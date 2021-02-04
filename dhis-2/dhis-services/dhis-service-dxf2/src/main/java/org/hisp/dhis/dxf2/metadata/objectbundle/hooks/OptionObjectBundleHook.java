@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -39,6 +36,9 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Volker Schmidt
@@ -52,15 +52,13 @@ public class OptionObjectBundleHook
     {
         List<ErrorReport> errors = new ArrayList<>();
 
-        if ( !(object instanceof Option) )
-            return new ArrayList<>();
+        if ( !(object instanceof Option) ) return new ArrayList<>();
 
         final Option option = (Option) object;
 
         if ( option.getOptionSet() != null )
         {
-            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
-                option.getOptionSet() );
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
 
             errors.addAll( checkDuplicateOption( optionSet, option ) );
         }
@@ -78,14 +76,11 @@ public class OptionObjectBundleHook
 
         final Option option = (Option) object;
 
-        // if the bundle contains also the option set there is no need to add the option
-        // here
-        // (will be done automatically later and option set may contain raw value
-        // already)
+        // if the bundle contains also the option set there is no need to add the option here
+        // (will be done automatically later and option set may contain raw value already)
         if ( option.getOptionSet() != null && !bundle.containsObject( option.getOptionSet() ) )
         {
-            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class,
-                option.getOptionSet() );
+            OptionSet optionSet = bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionSet.class, option.getOptionSet() );
 
             if ( optionSet != null )
             {
@@ -117,8 +112,7 @@ public class OptionObjectBundleHook
                 continue;
             }
 
-            if ( ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() )
-                && option.getUid().equals( checkOption.getUid() ) )
+            if ( ObjectUtils.allNotNull( option.getUid(), checkOption.getUid() ) && option.getUid().equals( checkOption.getUid() ) )
             {
                 continue;
             }

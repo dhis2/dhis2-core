@@ -90,10 +90,10 @@ public class AnalyticsCache
      * DataQueryParams. If the Grid is not found in the cache, the Grid will be
      * fetched by the function provided. In this case, the fetched Grid will be
      * cached, so the next consumers can hit the cache only.
-     *
+     * 
      * The TTL of the cached object will be set accordingly to the cache settings
      * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
-     *
+     * 
      * @param params the current DataQueryParams.
      * @param function that fetches a grid based on the given DataQueryParams.
      * @return the cached or fetched Grid.
@@ -119,10 +119,10 @@ public class AnalyticsCache
     /**
      * This method will cache the given Grid associated with the given
      * DataQueryParams.
-     *
+     * 
      * The TTL of the cached object will be set accordingly to the cache settings
      * available at {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
-     *
+     * 
      * @param params the DataQueryParams.
      * @param grid the associated Grid.
      */
@@ -131,8 +131,7 @@ public class AnalyticsCache
         if ( analyticsCacheSettings.isProgressiveCachingEnabled() )
         {
             // Uses the progressive TTL
-            put( params.getKey(), grid,
-                analyticsCacheSettings.progressiveExpirationTimeOrDefault( params.getLatestEndDate() ) );
+            put( params.getKey(), grid, analyticsCacheSettings.progressiveExpirationTimeOrDefault( params.getLatestEndDate() ) );
         }
         else
         {
@@ -144,7 +143,7 @@ public class AnalyticsCache
     /**
      * Will cache the given key/Grid pair respecting the TTL provided through the
      * parameter "ttlInSeconds".
-     *
+     * 
      * @param key the cache key associate with the Grid.
      * @param grid the Grid object to be cached.
      * @param ttlInSeconds the custom time to live (expiration time).

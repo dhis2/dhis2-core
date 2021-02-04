@@ -28,11 +28,6 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.cache.CacheProvider;
@@ -67,9 +62,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.util.List;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+
 /**
- * DataApprovalStore tests that no longer work in the H2 database but must be
- * done in the PostgreSQL database.
+ * DataApprovalStore tests that no longer work in the H2 database but must
+ * be done in the PostgreSQL database.
  *
  * @author Jim Grace
  */
@@ -137,7 +137,6 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     private User userA;
 
     private CategoryOption categoryOptionA;
-
     private CategoryOption categoryOptionB;
 
     private org.hisp.dhis.category.Category categoryA;
@@ -151,8 +150,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest()
-        throws Exception
+    public void setUpTest() throws Exception
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
             publisher, cacheProvider, periodService, currentUserService, categoryService,
@@ -239,14 +237,10 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
             Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
 
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
-            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA,
-                null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+            assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
 
             categoryOptionA.setStartDate( new DateTime( 2020, 1, 1, 0, 0 ).toDate() );
             categoryOptionA.setEndDate( new DateTime( 2020, 5, 30, 0, 0 ).toDate() );
@@ -261,34 +255,18 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
             return null;
         } );
 
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
 
         dataSetA.setOpenPeriodsAfterCoEndDate( 1 );
 
         dataSetService.updateDataSet( dataSetA );
 
-        assertEquals( 0, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
-        assertEquals( 1, dataApprovalStore
-            .getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null )
-            .size() );
+        assertEquals( 0, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJan, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodMay, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
+        assertEquals( 1, dataApprovalStore.getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null ).size() );
     }
 }

@@ -48,14 +48,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 public class ProgramInstanceRepeatableStageCheck implements Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         TrackedEntityInstance tei = null;
-
+        
         if ( program.isRegistration() )
         {
             tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
@@ -66,10 +66,10 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
          * should report this anomaly.
          */
         // @formatter:off
-        if ( programInstance != null &&
+        if ( programInstance != null && 
              tei != null &&
-             program.isRegistration() &&
-             !programStage.getRepeatable() &&
+             program.isRegistration() && 
+             !programStage.getRepeatable() && 
              hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programStage.getId(), tei.getId() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
@@ -81,8 +81,7 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
         return success();
     }
 
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId,
-        long trackedEntityInstanceId )
+    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programStageId, long trackedEntityInstanceId )
     {
         // @formatter:off
         final String sql = "select exists( " +

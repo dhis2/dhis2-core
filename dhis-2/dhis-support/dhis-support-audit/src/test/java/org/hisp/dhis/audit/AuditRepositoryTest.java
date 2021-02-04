@@ -28,14 +28,7 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.IntStream;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
@@ -45,7 +38,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -540,7 +539,8 @@ public class AuditRepositoryTest
         audits = auditRepository.count( AuditQuery.builder()
             .range( AuditQuery.range(
                 LocalDateTime.of( 2050, 1, 1, 0, 0, 0 ),
-                LocalDateTime.of( 2080, 1, 1, 0, 0, 0 ) ) )
+                LocalDateTime.of( 2080, 1, 1, 0, 0, 0 )
+            ) )
             .build() );
 
         assertEquals( 30, audits );

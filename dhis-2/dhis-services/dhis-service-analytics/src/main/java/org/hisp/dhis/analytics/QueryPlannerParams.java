@@ -37,13 +37,12 @@ import java.util.function.Function;
  * instantiated using the Builder class. Example usage:
  *
  * <pre>
- * {
- *     &#64;code
- *     QueryPlannerParams params = QueryPlannerParams.newBuilder()
- *         .withOptimalQueries( 4 )
- *         .withTableType( AnalyticsTableType.DATA_VALUE )
- *         .withTableSuffix( "table_suffix" )
- *         .build();
+ * {@code
+ * QueryPlannerParams params = QueryPlannerParams.newBuilder()
+ *     .withOptimalQueries( 4 )
+ *     .withTableType( AnalyticsTableType.DATA_VALUE )
+ *     .withTableSuffix( "table_suffix" )
+ *     .build();
  * }
  * </pre>
  *

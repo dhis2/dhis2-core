@@ -78,17 +78,17 @@ public class UserSupplierTest
         events.forEach( e -> e.setAssignedUser( CodeGenerator.generateUid() ) );
         final List<User> users = rnd.randomObjects( User.class, 5 );
         final List<String> userIds = events.stream().map( Event::getAssignedUser )
-            .collect( Collectors.toList() );
+                .collect( Collectors.toList() );
 
         IntStream.range( 0, 5 )
-            .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
+                .forEach( i -> users.get( i ).setUid( events.get( i ).getAssignedUser() ) );
 
         when( manager.getByUid( eq( User.class ),
-            argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
+                argThat( t -> t.containsAll( userIds ) ) ) ).thenReturn( users );
 
         final TrackerImportParams params = TrackerImportParams.builder()
-            .events( events )
-            .build();
+                .events( events )
+                .build();
 
         TrackerPreheat preheat = new TrackerPreheat();
         this.supplier.preheatAdd( params, preheat );

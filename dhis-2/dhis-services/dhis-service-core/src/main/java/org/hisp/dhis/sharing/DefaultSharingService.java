@@ -28,10 +28,7 @@ package org.hisp.dhis.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.validation.constraints.NotNull;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -55,6 +52,8 @@ import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.springframework.stereotype.Service;
+
+import javax.validation.constraints.NotNull;
 
 @Service
 @Slf4j
@@ -98,24 +97,21 @@ public class DefaultSharingService implements SharingService
 
         BaseIdentifiableObject object = (BaseIdentifiableObject) entity;
 
-        if ( (object instanceof SystemDefaultMetadataObject) && ((SystemDefaultMetadataObject) object).isDefault() )
+        if ( ( object instanceof SystemDefaultMetadataObject) && ( (SystemDefaultMetadataObject) object ).isDefault() )
         {
-            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3013, entityClass.getSimpleName() )
-                .setErrorKlass( entityClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3013, entityClass.getSimpleName() ).setErrorKlass( entityClass ) );
         }
 
         User user = currentUserService.getCurrentUser();
 
         if ( !aclService.canManage( user, object ) )
         {
-            objectReport
-                .addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3014 ).setErrorKlass( entityClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3014 ).setErrorKlass( entityClass ) );
         }
 
         if ( !AccessStringHelper.isValid( sharing.getPublicAccess() ) )
         {
-            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3015, sharing.getPublicAccess() )
-                .setErrorKlass( entityClass ) );
+            objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3015, sharing.getPublicAccess() ).setErrorKlass( entityClass ) );
         }
 
         // ---------------------------------------------------------------------
@@ -142,16 +138,15 @@ public class DefaultSharingService implements SharingService
         {
             if ( AccessStringHelper.hasDataSharing( object.getSharing().getPublicAccess() ) )
             {
-                objectReport
-                    .addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
+                objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
             }
         }
 
         object.getSharing().setOwner( sharing.getOwner() );
 
-        // --------------------------------------
+        //--------------------------------------
         // Handle UserGroupAccesses
-        // --------------------------------------
+        //--------------------------------------
 
         object.getSharing().getUserGroups().clear();
 
@@ -161,17 +156,14 @@ public class DefaultSharingService implements SharingService
             {
                 if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
                 {
-                    objectReport.addErrorReport(
-                        new ErrorReport( Sharing.class, ErrorCode.E3017, sharingUserGroupAccess.getAccess() )
-                            .setErrorKlass( entityClass ) );
+                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3017, sharingUserGroupAccess.getAccess() ).setErrorKlass( entityClass ) );
                 }
 
                 if ( !schema.isDataShareable() )
                 {
                     if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
                     {
-                        objectReport.addErrorReport(
-                            new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
+                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
                     }
                 }
 
@@ -184,9 +176,9 @@ public class DefaultSharingService implements SharingService
             }
         }
 
-        // --------------------------------------
+        //--------------------------------------
         // Handle UserAccesses
-        // --------------------------------------
+        //--------------------------------------
 
         object.getSharing().getUsers().clear();
 
@@ -196,17 +188,14 @@ public class DefaultSharingService implements SharingService
             {
                 if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
                 {
-                    objectReport.addErrorReport(
-                        new ErrorReport( Sharing.class, ErrorCode.E3018, sharingUserAccess.getAccess() )
-                            .setErrorKlass( entityClass ) );
+                    objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3018, sharingUserAccess.getAccess() ).setErrorKlass( entityClass ) );
                 }
 
                 if ( !schema.isDataShareable() )
                 {
                     if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
                     {
-                        objectReport.addErrorReport(
-                            new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
+                        objectReport.addErrorReport( new ErrorReport( Sharing.class, ErrorCode.E3016 ).setErrorKlass( entityClass ) );
                     }
                 }
 

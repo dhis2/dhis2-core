@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.hisp.dhis.common.DimensionalItemObject;
 
 @Getter
 @AllArgsConstructor

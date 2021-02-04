@@ -40,12 +40,6 @@ import java.util.*;
 
 import javax.sql.DataSource;
 
-import lombok.extern.slf4j.Slf4j;
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
@@ -76,6 +70,12 @@ import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+
 /**
  * @author Lars Helge Overland
  */
@@ -85,7 +85,6 @@ public class DefaultReportService
     implements ReportService
 {
     private static final String ORGUNIT_LEVEL_COLUMN_PREFIX = "idlevel";
-
     private static final String ORGUNIT_UID_LEVEL_COLUMN_PREFIX = "uidlevel";
 
     private static final Encoder ENCODER = new Encoder();
@@ -111,13 +110,12 @@ public class DefaultReportService
     private final SystemSettingManager systemSettingManager;
 
     public DefaultReportService(
-        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore,
-        VisualizationService visualizationService,
+        @Qualifier( "org.hisp.dhis.report.ReportStore" ) IdentifiableObjectStore<Report> reportStore, VisualizationService visualizationService,
         ConstantService constantService, OrganisationUnitService organisationUnitService, PeriodService periodService,
         I18nManager i18nManager, DataSource dataSource, SystemSettingManager systemSettingManager )
     {
         checkNotNull( reportStore );
-        checkNotNull( visualizationService );
+        checkNotNull(visualizationService);
         checkNotNull( constantService );
         checkNotNull( organisationUnitService );
         checkNotNull( periodService );
@@ -140,7 +138,7 @@ public class DefaultReportService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public JasperPrint renderReport( OutputStream out, String reportUid, Period period,
         String organisationUnitUid, String type )
     {
@@ -175,20 +173,17 @@ public class DefaultReportService
 
         JasperPrint print;
 
-        log.debug( String.format( "Get report for report date: '%s', org unit: '%s'",
-            DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
+        log.debug( String.format( "Get report for report date: '%s', org unit: '%s'", DateUtils.getMediumDateString( reportDate ), organisationUnitUid ) );
 
         try
         {
-            JasperReport jasperReport = JasperCompileManager
-                .compileReport( IOUtils.toInputStream( report.getDesignContent(), StandardCharsets.UTF_8 ) );
+            JasperReport jasperReport = JasperCompileManager.compileReport( IOUtils.toInputStream( report.getDesignContent(), StandardCharsets.UTF_8 ) );
 
             if ( report.hasVisualization() ) // Use JR data source
             {
                 Visualization visualization = report.getVisualization();
 
-                Grid grid = visualizationService.getVisualizationGrid( visualization.getUid(), reportDate,
-                    organisationUnitUid );
+                Grid grid = visualizationService.getVisualizationGrid( visualization.getUid(), reportDate, organisationUnitUid );
 
                 print = JasperFillManager.fillReport( jasperReport, params, grid );
             }
@@ -196,16 +191,12 @@ public class DefaultReportService
             {
                 if ( report.hasRelativePeriods() )
                 {
-                    AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                        .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+                    AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
-                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false,
-                        financialYearStart );
+                    List<Period> relativePeriods = report.getRelatives().getRelativePeriods( reportDate, null, false, financialYearStart );
 
-                    String periodString = getCommaDelimitedString(
-                        getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
-                    String isoPeriodString = getCommaDelimitedString(
-                        IdentifiableObjectUtils.getUids( relativePeriods ) );
+                    String periodString = getCommaDelimitedString( getIdentifiers( periodService.reloadPeriods( relativePeriods ) ) );
+                    String isoPeriodString = getCommaDelimitedString( IdentifiableObjectUtils.getUids( relativePeriods ) );
 
                     params.put( PARAM_RELATIVE_PERIODS, periodString );
                     params.put( PARAM_RELATIVE_ISO_PERIODS, isoPeriodString );
@@ -243,7 +234,7 @@ public class DefaultReportService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public void renderHtmlReport( Writer writer, String uid, Date date, String ou )
     {
         Report report = getReport( uid );
@@ -278,8 +269,7 @@ public class DefaultReportService
 
         if ( report != null && report.hasRelativePeriods() )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
 
             if ( calendar.isIso8601() )
             {
@@ -291,9 +281,8 @@ public class DefaultReportService
             }
             else
             {
-                periods = IdentifiableObjectUtils
-                    .getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true,
-                        financialYearStart ), calendar );
+                periods = IdentifiableObjectUtils.getLocalPeriodIdentifiers( report.getRelatives().getRelativePeriods( date, format, true,
+                    financialYearStart ), calendar );
             }
         }
 
@@ -334,21 +323,21 @@ public class DefaultReportService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<Report> getAllReports()
     {
         return reportStore.getAll();
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Report getReport( long id )
     {
         return reportStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Report getReport( String uid )
     {
         return reportStore.getByUid( uid );

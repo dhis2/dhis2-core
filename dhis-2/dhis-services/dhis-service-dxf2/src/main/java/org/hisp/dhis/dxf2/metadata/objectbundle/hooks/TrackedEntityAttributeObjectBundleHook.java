@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.common.ValueType;
@@ -43,6 +40,9 @@ import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.TrackedEntityAttributeObjectBundleHook" )
 public class TrackedEntityAttributeObjectBundleHook
     extends AbstractObjectBundleHook
@@ -52,8 +52,7 @@ public class TrackedEntityAttributeObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        // Validate that the RenderType (if any) conforms to the constraints of
-        // ValueType or OptionSet.
+        // Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
 
         if ( object != null && object.getClass().isAssignableFrom( TrackedEntityAttribute.class ) )
         {
@@ -61,8 +60,7 @@ public class TrackedEntityAttributeObjectBundleHook
 
             if ( attr.isGenerated() && !attr.getValueType().equals( ValueType.TEXT ) )
             {
-                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated",
-                    attr.getValueType() ) );
+                errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4010, "generated", attr.getValueType() ) );
             }
 
             errorReports.addAll( textPatternValid( attr ) );
@@ -75,8 +73,7 @@ public class TrackedEntityAttributeObjectBundleHook
                 }
                 catch ( TextPatternParser.TextPatternParsingException e )
                 {
-                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019,
-                        attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ) );
+                    errorReports.add( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4019, attr.getFieldMask(), "Not a valid TextPattern 'TEXT' segment." ));
                 }
             }
 

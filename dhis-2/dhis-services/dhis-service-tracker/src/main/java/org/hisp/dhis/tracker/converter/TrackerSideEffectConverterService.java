@@ -28,11 +28,11 @@ package org.hisp.dhis.tracker.converter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Converts rule-engine domain objects to tracker domain objects and vice versa.

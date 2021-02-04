@@ -39,6 +39,6 @@ import org.hisp.dhis.common.Objects;
 public interface StatisticsProvider
 {
     String ID = StatisticsProvider.class.getName();
-
+    
     Map<Objects, Integer> getObjectCounts();
 }

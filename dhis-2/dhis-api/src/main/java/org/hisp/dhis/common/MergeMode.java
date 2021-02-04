@@ -33,11 +33,8 @@ package org.hisp.dhis.common;
  */
 public enum MergeMode
 {
-    MERGE_ALWAYS,
-    MERGE_IF_NOT_NULL,
-    MERGE,
-    REPLACE,
-    NONE;
+    MERGE_ALWAYS, MERGE_IF_NOT_NULL,
+    MERGE, REPLACE, NONE;
 
     public boolean isMerge()
     {

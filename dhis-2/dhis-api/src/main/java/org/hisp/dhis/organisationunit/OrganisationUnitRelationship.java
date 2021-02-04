@@ -31,13 +31,13 @@ package org.hisp.dhis.organisationunit;
 public class OrganisationUnitRelationship
 {
     private long parentId;
-
+    
     private long childId;
-
+    
     public OrganisationUnitRelationship()
     {
     }
-
+    
     public OrganisationUnitRelationship( long parentId, long childId )
     {
         this.parentId = parentId;

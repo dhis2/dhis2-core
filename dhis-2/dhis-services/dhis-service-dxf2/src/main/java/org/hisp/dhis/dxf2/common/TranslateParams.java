@@ -28,9 +28,9 @@ package org.hisp.dhis.dxf2.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.Locale;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -28,13 +28,6 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.SetMap;
@@ -59,6 +52,13 @@ import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.mockito.stubbing.Answer;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Unit tests for {@link DefaultMetadataExportService}.
@@ -104,19 +104,19 @@ public class DefaultMetadataExportServiceTest
         service = Mockito.spy( service );
         Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
 
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertFalse( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
+        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then((Answer<CollectionNode>) invocation ->
+        {
+            FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
+            Assert.assertFalse( fieldFilterParams.getSkipSharing() );
+            return new CollectionNode( "test" );
+        });
 
         MetadataExportParams params = new MetadataExportParams();
         service.getMetadataWithDependenciesAsNode( attribute, params );
 
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
+        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() );
     }
+
 
     @Test
     public void getMetadataWithDependenciesAsNodeSkipSharing()
@@ -128,19 +128,18 @@ public class DefaultMetadataExportServiceTest
         service = Mockito.spy( service );
         Mockito.when( service.getMetadataWithDependencies( Mockito.eq( attribute ) ) ).thenReturn( metadata );
 
-        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) )
-            .then( (Answer<CollectionNode>) invocation -> {
-                FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
-                Assert.assertTrue( fieldFilterParams.getSkipSharing() );
-                return new CollectionNode( "test" );
-            } );
+        Mockito.when( fieldFilterService.toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() ) ).then((Answer<CollectionNode>) invocation ->
+        {
+            FieldFilterParams fieldFilterParams = invocation.getArgument( 1 );
+            Assert.assertTrue( fieldFilterParams.getSkipSharing() );
+            return new CollectionNode( "test" );
+        });
 
         MetadataExportParams params = new MetadataExportParams();
         params.setSkipSharing( true );
         service.getMetadataWithDependenciesAsNode( attribute, params );
 
-        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ),
-            Mockito.any() );
+        Mockito.verify( fieldFilterService, Mockito.only() ).toCollectionNode( Mockito.eq( Attribute.class ), Mockito.any() );
     }
 
     @Test

@@ -32,8 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
 import org.hisp.dhis.commons.timer.Timer;
@@ -44,6 +42,8 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,7 +56,6 @@ public class DefaultObjectBundleValidationService
     ObjectBundleValidationService
 {
     private final ValidationFactory validationFactory;
-
     private final SchemaService schemaService;
 
     public DefaultObjectBundleValidationService( ValidationFactory validationFactory, SchemaService schemaService )
@@ -72,7 +71,7 @@ public class DefaultObjectBundleValidationService
 
         ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
 
-        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
+        if ( ( bundle.getUser() == null || bundle.getUser().isSuper() ) && bundle.isSkipValidation() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );

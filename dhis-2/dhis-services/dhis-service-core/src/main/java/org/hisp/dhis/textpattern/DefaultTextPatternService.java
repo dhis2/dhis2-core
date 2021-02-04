@@ -28,15 +28,14 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.ImmutableMap;
+import org.springframework.stereotype.Service;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Stian Sandvold
@@ -73,7 +72,7 @@ public class DefaultTextPatternService
     @Override
     public Map<String, List<String>> getRequiredValues( TextPattern pattern )
     {
-        return ImmutableMap.<String, List<String>> builder()
+        return ImmutableMap.<String, List<String>>builder()
             .put( "REQUIRED", pattern.getSegments()
                 .stream()
                 .filter( this::isRequired )
@@ -134,8 +133,7 @@ public class DefaultTextPatternService
 
         if ( res == null || !TextPatternValidationUtils.validateSegmentValue( segment, res ) )
         {
-            throw new TextPatternGenerationException(
-                "Value is invalid: " + segment.getMethod().name() + " -> " + value );
+            throw new TextPatternGenerationException( "Value is invalid: " + segment.getMethod().name() + " -> " + value );
         }
 
         return res;

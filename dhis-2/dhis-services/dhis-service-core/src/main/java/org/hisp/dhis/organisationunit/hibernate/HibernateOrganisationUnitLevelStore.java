@@ -51,8 +51,7 @@ public class HibernateOrganisationUnitLevelStore
     public HibernateOrganisationUnitLevelStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitLevel.class, currentUserService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitLevel.class, currentUserService, aclService, true );
     }
 
     @Override

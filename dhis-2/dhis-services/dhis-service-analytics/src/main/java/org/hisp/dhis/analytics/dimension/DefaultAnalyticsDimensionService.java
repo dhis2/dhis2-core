@@ -102,7 +102,7 @@ public class DefaultAnalyticsDimensionService
 
         dimensions.addAll( idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class ) );
 
-        // TODO Filter org unit group sets
+        //TODO Filter org unit group sets
 
         return dimensions.stream()
             .filter( d -> aclService.canDataOrMetadataRead( user, d ) )

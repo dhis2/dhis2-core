@@ -34,7 +34,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 /**
  * Allows a {@link PreheatSupplier} to access the database using JDBC.
- *
+ * 
  * @author Luciano Fiandesio
  */
 public abstract class JdbcAbstractPreheatSupplier extends AbstractPreheatSupplier

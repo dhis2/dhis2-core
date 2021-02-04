@@ -76,7 +76,7 @@ public class EventDataValuesValidationHookTest
     @Before
     public void setUp()
     {
-        hookToTest = new EventDataValuesValidationHook();
+        hookToTest = new EventDataValuesValidationHook( );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setValueType( ValueType.TEXT );
@@ -269,8 +269,7 @@ public class EventDataValuesValidationHookTest
         when( event.getProgramStage() ).thenReturn( "PROGRAM_STAGE" );
         when( event.getStatus() ).thenReturn( EventStatus.ACTIVE );
         when( validationContext.getProgramStage( "PROGRAM_STAGE" ) ).thenReturn( programStage );
-        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) )
-            .thenReturn( notPresentDataElement );
+        when( validationContext.getDataElement( "de_not_present_in_progam_stage" ) ).thenReturn( notPresentDataElement );
 
         // When
         ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );

@@ -28,9 +28,11 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -41,11 +43,8 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * @author Kristian Nordal
@@ -170,8 +169,8 @@ public class Period
     }
 
     /**
-     * Copies the transient properties (name) from the argument Period to this
-     * Period.
+     * Copies the transient properties (name) from the argument Period
+     * to this Period.
      *
      * @param other Period to copy from.
      * @return this Period.
@@ -235,8 +234,8 @@ public class Period
      * spanned by this period.
      *
      * @param type the period type.
-     * @return the potential number of periods of the given period type spanned by
-     *         this period.
+     * @return the potential number of periods of the given period type spanned
+     * by this period.
      */
     public int getPeriodSpan( PeriodType type )
     {
@@ -246,8 +245,8 @@ public class Period
     }
 
     /**
-     * Returns the number of days in the period, i.e. the days between the start and
-     * end date.
+     * Returns the number of days in the period, i.e. the days between the start
+     * and end date.
      *
      * @return number of days in period.
      */
@@ -286,9 +285,9 @@ public class Period
     }
 
     /**
-     * Indicates whether this period is after the given period. Bases the comparison
-     * on the end dates of the periods. If the given period is null, false is
-     * returned.
+     * Indicates whether this period is after the given period. Bases the
+     * comparison on the end dates of the periods. If the given period is null,
+     * false is returned.
      *
      * @param period the period to compare.
      * @return true if this period is after the given period.
@@ -302,7 +301,7 @@ public class Period
 
         return getEndDate().after( period.getEndDate() );
     }
-
+    
     /**
      * Returns a unique key suitable for caching and lookups.
      */

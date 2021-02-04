@@ -28,10 +28,10 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.joda.time.DateTime;
+
+import java.util.List;
 
 public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
 {

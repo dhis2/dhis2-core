@@ -39,7 +39,7 @@ public interface ProgramOwnershipHistoryService
 
     /**
      * Adds program ownership history
-     *
+     * 
      * @param programOwnershipHistory the history to add
      */
     void addProgramOwnershipHistory( ProgramOwnershipHistory programOwnershipHistory );

@@ -33,8 +33,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 /**
  * @author Luciano Fiandesio
  */
-public abstract class AbstractMapper<T, E> implements Mapper<T, E>
-{
+public abstract class AbstractMapper<T, E> implements Mapper<T, E> {
 
     protected final WorkContext workContext;
 

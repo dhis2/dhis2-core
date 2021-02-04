@@ -37,22 +37,20 @@ import org.hisp.dhis.common.ListMap;
  * Immutable class representing a group of data query parameters. Should be
  * instantiated using the Builder class. Example usage:
  * <p>
- *
  * <pre>
- * {
- *     &#64;code
- *     DataQueryGroups groups = DataQueryGroups.newBuilder()
- *         .withQueries( queries )
- *         .build();
+ * {@code
+ * DataQueryGroups groups = DataQueryGroups.newBuilder()
+ *     .withQueries( queries )
+ *     .build();
  * }
  * </pre>
- *
+ * 
  * @author Lars Helge Overland
  */
 public class DataQueryGroups
 {
     private List<DataQueryParams> queries = new ArrayList<>();
-
+    
     private List<List<DataQueryParams>> sequentialQueries = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -62,46 +60,47 @@ public class DataQueryGroups
     private DataQueryGroups()
     {
     }
-
+    
     public static Builder newBuilder()
     {
         return new Builder();
     }
-
+    
     // -------------------------------------------------------------------------
     // Public methods
     // -------------------------------------------------------------------------
-
+    
     /**
      * Gets all queries.
-     *
+     * 
      * @return all queries.
      */
     public List<DataQueryParams> getAllQueries()
     {
         return queries;
     }
-
+    
     /**
      * Gets groups of queries which should be run in sequence for optimal
-     * performance. Currently queries with different aggregation type are run in
-     * sequence due to the typical indicator query, where few data elements have the
-     * average aggregation operator and many have the sum. Performance will increase
-     * if optimal number of queries can be run in parallel for the queries which
-     * take most time, which in this case are the ones with sum aggregation type.
-     *
+     * performance. Currently queries with different aggregation type are run
+     * in sequence due to the typical indicator query, where few data elements
+     * have the average aggregation operator and many have the sum. Performance
+     * will increase if optimal number of queries can be run in parallel for the
+     * queries which take most time, which in this case are the ones with sum 
+     * aggregation type.
+     * 
      * @return groups of queries which should be run in sequence
      */
     public List<List<DataQueryParams>> getSequentialQueries()
     {
         return sequentialQueries;
     }
-
+    
     /**
-     * Indicates whether the current number of queries in this group is optimal.
-     * Uses the given optimal query number compared to the size of the largest query
-     * group to determine the outcome.
-     *
+     * Indicates whether the current number of queries in this group is optimal. 
+     * Uses the given optimal query number compared to the size of the largest 
+     * query group to determine the outcome.
+     * 
      * @return true if the current number of queries in this group is optimal.
      */
     public boolean isOptimal( int optimalQueries )
@@ -111,26 +110,25 @@ public class DataQueryGroups
 
     /**
      * Gets the size of the largest query group of the sequential queries.
-     *
+     * 
      * @return the size of the largest query group of the sequential queries.
      */
     public int getLargestGroupSize()
-    {
+    {        
         int max = 0;
-
+        
         for ( List<DataQueryParams> list : sequentialQueries )
         {
             max = list.size() > max ? list.size() : max;
         }
-
+        
         return max;
     }
-
+    
     @Override
     public String toString()
     {
-        return "[Seq queries: " + sequentialQueries.size() + ", all queries: " + queries.size() + ", queries: "
-            + queries + "]";
+        return "[Seq queries: " + sequentialQueries.size() + ", all queries: " + queries.size() + ", queries: " + queries + "]";        
     }
 
     // -------------------------------------------------------------------------
@@ -140,12 +138,12 @@ public class DataQueryGroups
     private static ListMap<String, DataQueryParams> getListMap( List<DataQueryParams> queries )
     {
         ListMap<String, DataQueryParams> map = new ListMap<>();
-
+        
         for ( DataQueryParams query : queries )
         {
             map.putValue( query.getSequentialQueryGroupKey(), query );
         }
-
+        
         return map;
     }
 
@@ -156,22 +154,22 @@ public class DataQueryGroups
     public static class Builder
     {
         private DataQueryGroups groups;
-
+        
         private Builder()
         {
             groups = new DataQueryGroups();
         }
-
+        
         public Builder withQueries( List<DataQueryParams> queries )
         {
             this.groups.queries = queries;
             this.groups.sequentialQueries.addAll( getListMap( queries ).values() );
             return this;
         }
-
+        
         public DataQueryGroups build()
         {
             return groups;
         }
-    }
+    }    
 }

@@ -48,7 +48,6 @@ public class HibernateDataElementGroupSetStore
     public HibernateDataElementGroupSetStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementGroupSet.class, currentUserService, aclService,
-            false );
+        super( sessionFactory, jdbcTemplate, publisher, DataElementGroupSet.class, currentUserService, aclService, false );
     }
 }

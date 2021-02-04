@@ -91,8 +91,7 @@ public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegratio
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "tracker/tracker_metadata_with_program_rules.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource("tracker/tracker_metadata_with_program_rules.json").getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -113,7 +112,7 @@ public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegratio
     {
         TrackerImportParams trackerImportParams = renderService
             .fromJson( new ClassPathResource( "tracker/enrollment_data_with_program_rule_side_effects.json" )
-                .getInputStream(), TrackerImportParams.class );
+            .getInputStream(), TrackerImportParams.class );
 
         assertEquals( 0, trackerImportParams.getEvents().size() );
         assertEquals( 1, trackerImportParams.getTrackedEntities().size() );
@@ -128,8 +127,7 @@ public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegratio
 
         trackerImportService.importTracker( params );
 
-        await().atMost( 2, TimeUnit.SECONDS )
-            .until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
+        await().atMost( 2, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
 
         List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
 

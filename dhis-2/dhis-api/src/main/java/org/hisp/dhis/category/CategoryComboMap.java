@@ -28,19 +28,19 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableProperty;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.hisp.dhis.common.IdentifiableProperty;
 
 /**
  * CategoryComboMap is used to lookup categoryoptioncombos by identifiers of the
  * categoryoptions. Identifiers must be trimmed of whitespace and be
  * concatenated in the order given by the categories property in object of this
  * class.
- *
+ * 
  * @author bobj
  */
 public class CategoryComboMap
@@ -95,7 +95,7 @@ public class CategoryComboMap
             for ( Category category : categories )
             {
                 CategoryOption catopt = category.getCategoryOption( optionCombo );
-
+                
                 if ( catopt == null )
                 {
                     throw new CategoryComboMapException( "No categoryOption in " + category.getName() + " matching "
@@ -107,36 +107,35 @@ public class CategoryComboMap
 
                     switch ( idScheme )
                     {
-                    case UID:
-                        identifier = catopt.getUid().trim();
-                        break;
-                    case CODE:
-                        identifier = catopt.getCode().trim();
-                        break;
-                    case NAME:
-                        identifier = catopt.getName().trim();
-                        break;
-                    default:
-                        throw new CategoryComboMapException( "Unsupported ID Scheme: " + idScheme.toString() );
+                        case UID:
+                            identifier = catopt.getUid().trim();
+                            break;
+                        case CODE:
+                            identifier = catopt.getCode().trim();
+                            break;
+                        case NAME:
+                            identifier = catopt.getName().trim();
+                            break;
+                        default:
+                            throw new CategoryComboMapException( "Unsupported ID Scheme: " + idScheme.toString() );
                     }
 
                     if ( identifier == null )
                     {
-                        throw new CategoryComboMapException(
-                            "No " + idScheme.toString() + " identifier for CategoryOption: " + catopt.getName() );
+                        throw new CategoryComboMapException( "No " + idScheme.toString() + " identifier for CategoryOption: " + catopt.getName() );
                     }
 
                     compositeIdentifier += "\"" + identifier + "\"";
                 }
             }
-
+            
             this.ccMap.put( compositeIdentifier, optionCombo );
         }
     }
 
     /**
      * Look up the category option combo based on a composite identifier.
-     *
+     * 
      * @param compositeIdentifier the composite identifier.
      * @return a category option combo.
      */
@@ -147,24 +146,24 @@ public class CategoryComboMap
 
     /**
      * Create a composite identifier from a list of identifiers
-     *
+     * 
      * Note: identifiers must be in same order as list of categories in the map.
-     *
+     * 
      * @param identifiers the list of identifiers.
      * @return a composite identifier.
      */
     public String getKey( List<String> identifiers )
     {
         String key = "";
-
+        
         for ( String identifier : identifiers )
         {
             key += "\"" + identifier + "\"";
         }
-
+        
         return key;
     }
-
+    
     public String toString()
     {
         return "CatComboMap: catcombo=" + categoryCombo.getName() + " map:" + ccMap.toString();

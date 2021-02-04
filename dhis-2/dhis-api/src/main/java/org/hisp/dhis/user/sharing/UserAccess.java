@@ -28,18 +28,16 @@ package org.hisp.dhis.user.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.User;
+
+import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

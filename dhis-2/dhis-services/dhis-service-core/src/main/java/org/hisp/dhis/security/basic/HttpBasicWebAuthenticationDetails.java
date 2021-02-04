@@ -29,7 +29,6 @@ package org.hisp.dhis.security.basic;
  */
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
@@ -45,3 +44,4 @@ public class HttpBasicWebAuthenticationDetails
     }
 
 }
+

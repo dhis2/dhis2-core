@@ -43,10 +43,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -61,6 +57,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 
 @Component
 @Slf4j
@@ -160,8 +161,7 @@ public class EventManager
 
             // Post processing only the events that passed validation and were persisted
             // correctly.
-            List<Event> savedEvents = events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
@@ -228,8 +228,7 @@ public class EventManager
             // Post processing only the events that passed validation and were persisted
             // correctly.
 
-            List<Event> savedEvents = events.stream()
-                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
@@ -337,8 +336,7 @@ public class EventManager
 
     /**
      * Filters out Events which are already present in the database (regardless of
-     * the 'deleted' state) as well as duplicates within the payload (if stage is
-     * not repeatable)
+     * the 'deleted' state) as well as duplicates within the payload (if stage is not repeatable)
      *
      * @param events Events to import
      * @param importSummaries ImportSummaries used for import
@@ -375,9 +373,8 @@ public class EventManager
                 if ( importableStageEvents.contains( eventContextId ) )
                 {
                     final ImportSummary is = new ImportSummary( ERROR,
-                        "ProgramStage " + eventToImport.getProgramStage()
-                            + " is not repeatable. Current payload contains duplicate event" )
-                                .setReference( eventToImport.getUid() ).incrementIgnored();
+                        "ProgramStage " + eventToImport.getProgramStage() + " is not repeatable. Current payload contains duplicate event" )
+                            .setReference( eventToImport.getUid() ).incrementIgnored();
 
                     importSummaries.addImportSummary( is );
                 }

@@ -28,18 +28,18 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 /**
- * Abstract class for SixMonthly period types, including those starting at the
- * beginning of the calendar year and those starting at the beginning of other
- * months.
+ * Abstract class for SixMonthly period types, including those starting
+ * at the beginning of the calendar year and those starting at the beginning
+ * of other months.
  *
  * @author Jim Grace
  */
@@ -106,8 +106,8 @@ public abstract class SixMonthlyAbstractPeriodType
     }
 
     /**
-     * Generates six-monthly Periods for the whole year in which the given Period's
-     * startDate exists.
+     * Generates six-monthly Periods for the whole year in which the given
+     * Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit dateTimeUnit )
@@ -134,8 +134,8 @@ public abstract class SixMonthlyAbstractPeriodType
     }
 
     /**
-     * Generates the last 2 six-months where the last one is the six-month which the
-     * given date is inside.
+     * Generates the last 2 six-months where the last one is the six-month
+     * which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( Date date )

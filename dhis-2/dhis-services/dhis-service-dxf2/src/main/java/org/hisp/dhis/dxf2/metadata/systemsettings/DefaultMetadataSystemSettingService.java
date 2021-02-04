@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
  * @author anilkumk.
  */
 @Service( "org.hisp.dhis.dxf2.metadata.sync.MetadataSystemSettingService" )
-@Scope( "prototype" )
+@Scope("prototype")
 public class DefaultMetadataSystemSettingService
     implements MetadataSystemSettingService
 {
@@ -48,7 +48,6 @@ public class DefaultMetadataSystemSettingService
     private SystemSettingManager systemSettingManager;
 
     private final String API_URL = "/api/metadata/version";
-
     private final String BASELINE_URL = API_URL + "/history?baseline=";
 
     public String getRemoteInstanceUserName()
@@ -63,14 +62,12 @@ public class DefaultMetadataSystemSettingService
 
     public String getVersionDetailsUrl( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "?versionName="
-            + versionName;
+        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "?versionName=" + versionName;
     }
 
     public String getDownloadVersionSnapshotURL( String versionName )
     {
-        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/" + versionName
-            + "/data.gz";
+        return systemSettingManager.getSystemSetting( SettingKey.REMOTE_INSTANCE_URL ) + API_URL + "/" + versionName + "/data.gz";
     }
 
     public String getMetaDataDifferenceURL( String versionName )

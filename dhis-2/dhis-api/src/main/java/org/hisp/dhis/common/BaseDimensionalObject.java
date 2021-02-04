@@ -51,8 +51,7 @@ import com.google.common.base.MoreObjects;
 
 @JacksonXmlRootElement( localName = "dimension", namespace = DxfNamespaces.DXF_2_0 )
 public class BaseDimensionalObject
-    extends BaseNameableObject
-    implements DimensionalObject
+    extends BaseNameableObject implements DimensionalObject
 {
     /**
      * The type of this dimension.
@@ -71,9 +70,9 @@ public class BaseDimensionalObject
     protected boolean dataDimension = true;
 
     /**
-     * The name of this dimension. For the dynamic dimensions this will be equal to
-     * dimension identifier. For the period dimension, this will reflect the period
-     * type. For the org unit dimension, this will reflect the level.
+     * The name of this dimension. For the dynamic dimensions this will be equal
+     * to dimension identifier. For the period dimension, this will reflect the
+     * period type. For the org unit dimension, this will reflect the level.
      */
     private transient String dimensionName;
 
@@ -109,14 +108,14 @@ public class BaseDimensionalObject
 
     /**
      * Filter. Applicable for events. Contains operator and filter on this format:
-     * <operator>:<filter>;<operator>:<filter> Operator and filter pairs can be
-     * repeated any number of times.
+     * <operator>:<filter>;<operator>:<filter>
+     * Operator and filter pairs can be repeated any number of times.
      */
     private String filter;
 
     /**
-     * A {@link DimensionalKeywords} defines a pre-defined group of items. For
-     * instance, all the OU withing a district
+     * A {@link DimensionalKeywords} defines a pre-defined group of items. For instance,
+     * all the OU withing a district
      */
     private DimensionalKeywords dimensionalKeywords;
 
@@ -126,9 +125,9 @@ public class BaseDimensionalObject
      */
     private boolean fixed;
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Constructors
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     // TODO displayName collides with translation solution, rename
 
@@ -141,46 +140,39 @@ public class BaseDimensionalObject
         this.uid = dimension;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType,
-        List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, List<? extends DimensionalItemObject> items )
     {
         this.uid = dimension;
         this.dimensionType = dimensionType;
         this.items = new ArrayList<>( items );
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionDisplayName,
-        List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
-        String dimensionDisplayName, List<? extends DimensionalItemObject> items )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items )
     {
         this( dimension, dimensionType, items );
         this.dimensionName = dimensionName;
         this.dimensionDisplayName = dimensionDisplayName;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
-        String dimensionDisplayName, List<? extends DimensionalItemObject> items,
-        DimensionalKeywords dimensionalKeywords )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, DimensionalKeywords dimensionalKeywords )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.dimensionalKeywords = dimensionalKeywords;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
-        String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, List<? extends DimensionalItemObject> items, boolean allItems )
     {
         this( dimension, dimensionType, dimensionName, dimensionDisplayName, items );
         this.allItems = allItems;
     }
 
-    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName,
-        String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
+    public BaseDimensionalObject( String dimension, DimensionType dimensionType, String dimensionName, String dimensionDisplayName, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this( dimension );
         this.dimensionType = dimensionType;
@@ -251,14 +243,16 @@ public class BaseDimensionalObject
     @Override
     public AnalyticsType getAnalyticsType()
     {
-        return DimensionType.PROGRAM_ATTRIBUTE.equals( dimensionType ) ||
-            DimensionType.PROGRAM_DATA_ELEMENT.equals( dimensionType ) ? AnalyticsType.EVENT : AnalyticsType.AGGREGATE;
+        return
+            DimensionType.PROGRAM_ATTRIBUTE.equals( dimensionType ) ||
+                DimensionType.PROGRAM_DATA_ELEMENT.equals( dimensionType ) ?
+                AnalyticsType.EVENT : AnalyticsType.AGGREGATE;
     }
 
     /**
      * Returns the items in the filter as a list. Order of items are preserved.
-     * Requires that the filter has the IN operator and that at least one item is
-     * specified in the filter, returns null if not.
+     * Requires that the filter has the IN operator and that at least one item
+     * is specified in the filter, returns null if not.
      */
     public List<String> getFilterItemsAsList()
     {
@@ -290,9 +284,9 @@ public class BaseDimensionalObject
             .addIgnoreNull( "filter", filter ).asPlainKey();
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Getters and setters
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Override
     @JsonProperty

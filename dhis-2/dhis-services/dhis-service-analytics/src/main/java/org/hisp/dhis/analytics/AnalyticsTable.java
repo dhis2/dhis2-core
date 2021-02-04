@@ -28,8 +28,8 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
 import java.util.List;
+import java.util.Date;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -76,16 +76,14 @@ public class AnalyticsTable
     {
     }
 
-    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
-        List<AnalyticsTableColumn> valueColumns )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
     {
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
     }
 
-    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
-        List<AnalyticsTableColumn> valueColumns, Program program )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
     {
         this( tableType, dimensionColumns, valueColumns );
         this.program = program;
@@ -107,8 +105,7 @@ public class AnalyticsTable
     {
         Assert.notNull( year, "Year must be specified" );
 
-        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); // TODO
-                                                                                                                       // approval
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
         this.tablePartitions.add( tablePartition );
 
         return this;
@@ -198,8 +195,8 @@ public class AnalyticsTable
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
-        result = prime * result + ((program == null) ? 0 : program.hashCode());
+        result = prime * result + ( ( tableType == null ) ? 0 : tableType.hashCode() );
+        result = prime * result + ( ( program == null ) ? 0 : program.hashCode() );
         return result;
     }
 

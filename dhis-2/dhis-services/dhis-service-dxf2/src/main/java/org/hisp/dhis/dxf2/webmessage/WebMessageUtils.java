@@ -28,8 +28,6 @@ package org.hisp.dhis.dxf2.webmessage;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -47,6 +45,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -60,8 +60,7 @@ public final class WebMessageUtils
         return webMessage;
     }
 
-    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus,
-        ErrorCode errorCode )
+    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus, ErrorCode errorCode )
     {
         WebMessage webMessage = new WebMessage( status, httpStatus );
         webMessage.setErrorCode( errorCode );

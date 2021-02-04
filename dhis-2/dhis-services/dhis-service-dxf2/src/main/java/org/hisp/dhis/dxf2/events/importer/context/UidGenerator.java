@@ -49,16 +49,15 @@ public class UidGenerator
     /**
      * Generates a valid uid and assign it to the uid field of each event.
      *
-     * If the event has the 'event' field populated, it will be used for the 'uid'
-     * value
+     * If the event has the 'event' field populated, it will be used for the 'uid' value
      *
-     * Generates a valid uid and assign it to all the notes of each event (if the
-     * UID is missing)
+     * Generates a valid uid and assign it to all the notes of each event (if the UID
+     * is missing)
      *
      * @param events a List of {@see Events}
      * @return a List of {@see Events} with the uid field populated
      */
-    public List<Event> assignUidToEvents( List<Event> events )
+    public List<Event> assignUidToEvents(List<Event> events )
     {
         for ( Event event : events )
         {

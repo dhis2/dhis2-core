@@ -28,18 +28,20 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.configuration.Configuration;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -64,7 +66,7 @@ public class ConfigurationServiceTest
 
         UserGroup group = new UserGroup( "UserGroupA" );
         group.getMembers().add( userA );
-        group.getMembers().add( userB );
+        group.getMembers().add(  userB );
 
         userService.addUser( userA );
         userService.addUser( userB );

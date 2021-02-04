@@ -28,10 +28,10 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertFalse;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,8 +42,7 @@ public class SchemaServiceTest
     private SchemaService schemaService;
 
     @Override
-    protected void setUpTest()
-        throws Exception
+    protected void setUpTest() throws Exception
     {
         schemaService = (SchemaService) getBean( SchemaService.class.getName() );
     }

@@ -28,11 +28,12 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-
+import org.hisp.dhis.rules.models.RuleActionMessage;
 import org.hisp.dhis.rules.models.RuleActionShowWarning;
 import org.hisp.dhis.tracker.programrule.IssueType;
 import org.springframework.stereotype.Component;
+
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 
 /**
  * This implementer show warnings calculated by Rule Engine.

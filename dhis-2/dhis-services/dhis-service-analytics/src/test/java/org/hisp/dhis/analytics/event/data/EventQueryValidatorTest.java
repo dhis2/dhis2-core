@@ -73,31 +73,22 @@ public class EventQueryValidatorTest
     extends DhisSpringTest
 {
     private Program prA;
-
     private Program prB;
 
     private DataElement deA;
-
     private DataElement deB;
-
     private DataElement deC;
-
     private DataElement deD;
-
     private DataElement deE;
 
     private TrackedEntityAttribute atA;
-
     private TrackedEntityAttribute atB;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
-
     private OrganisationUnit ouC;
 
     private LegendSet lsA;
-
     private OptionSet osA;
 
     @Autowired
@@ -130,10 +121,8 @@ public class EventQueryValidatorTest
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
-            DataElementDomain.TRACKER );
+        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
+        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
         deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
         idObjectManager.save( deA );
@@ -348,8 +337,8 @@ public class EventQueryValidatorTest
     }
 
     /**
-     * Asserts whether the given error code is thrown by the query validator for the
-     * given query.
+     * Asserts whether the given error code is thrown by the query validator
+     * for the given query.
      *
      * @param errorCode the {@link ErrorCode}.
      * @param params the {@link DataQueryParams}.

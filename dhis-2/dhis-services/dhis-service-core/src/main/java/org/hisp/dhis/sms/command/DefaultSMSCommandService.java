@@ -28,8 +28,6 @@ package org.hisp.dhis.sms.command;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +37,8 @@ import org.hisp.dhis.sms.command.hibernate.SMSCommandStore;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service( "org.hisp.dhis.sms.command.SMSCommandService" )
 public class DefaultSMSCommandService
@@ -94,7 +94,7 @@ public class DefaultSMSCommandService
 
         if ( command != null )
         {
-            command.getCodes().addAll( codes );
+            command.getCodes().addAll( codes);
 
             smsCommandStore.update( command );
         }

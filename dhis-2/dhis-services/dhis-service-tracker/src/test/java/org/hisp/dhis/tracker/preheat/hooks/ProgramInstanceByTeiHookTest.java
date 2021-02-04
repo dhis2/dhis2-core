@@ -127,15 +127,15 @@ public class ProgramInstanceByTeiHookTest
         p4.setProgram( program1 );
         p4.setEntityInstance( t4 );
 
-        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq( ProgramStatus.ACTIVE ) ) )
-            .thenReturn( Collections.singletonList( p4 ) );
+        when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq(ProgramStatus.ACTIVE) ) )
+                .thenReturn( Collections.singletonList( p4 ) );
 
         // When
         this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-            .getProgramInstances();
+                .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ), hasSize( 1 ) );
         assertThat( programInstancesByProgramAndTei.get( e4.getUid() ).get( 0 ).getUid(), is( p4.getUid() ) );
@@ -167,7 +167,7 @@ public class ProgramInstanceByTeiHookTest
         Event e4 = createEvent( null, null, t4 );
         Event e5 = createEvent( p3, null, null );
 
-        params.setEvents( Lists.newArrayList( e1, e2, e3, e4, e5 ) );
+        params.setEvents( Lists.newArrayList( e1, e2, e3, e4, e5) );
 
         TrackerPreheat trackerPreheat = new TrackerPreheat();
 
@@ -187,20 +187,20 @@ public class ProgramInstanceByTeiHookTest
         p4.setEntityInstance( t4 );
 
         when( programInstanceStore.getByProgramAndTrackedEntityInstance( anyList(), eq( ProgramStatus.ACTIVE ) ) )
-            .thenReturn( Collections.singletonList( p4 ) );
+                .thenReturn( Collections.singletonList( p4 ) );
 
         // When
         this.hook.preheatAdd( params, trackerPreheat );
 
         // Then
         final Map<String, List<ProgramInstance>> programInstancesByProgramAndTei = trackerPreheat
-            .getProgramInstances();
+                .getProgramInstances();
         assertThat( programInstancesByProgramAndTei, is( notNullValue() ) );
         assertThat( programInstancesByProgramAndTei.keySet(), hasSize( 0 ) );
     }
 
     private Event createEvent( ProgramInstance programInstance, Program program,
-        TrackedEntityInstance trackedEntityInstance )
+                               TrackedEntityInstance trackedEntityInstance )
     {
         Event event = new Event();
         event.setUid( CodeGenerator.generateUid() );

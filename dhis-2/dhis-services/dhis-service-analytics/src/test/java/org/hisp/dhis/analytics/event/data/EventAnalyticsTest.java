@@ -28,10 +28,6 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.mockito.Mockito.when;
-
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.*;
@@ -45,6 +41,10 @@ import org.junit.Before;
 import org.mockito.Mock;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.mockito.Mockito.when;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -54,9 +54,7 @@ public abstract class EventAnalyticsTest
     protected SqlRowSet rowSet;
 
     protected ProgramStage programStage;
-
     protected Program programA;
-
     protected DataElement dataElementA;
 
     @Before
@@ -81,18 +79,16 @@ public abstract class EventAnalyticsTest
         return params.build();
     }
 
-    protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
-        ValueType withQueryItemValueType )
+    protected EventQueryParams createRequestParamsWithFilter(ProgramStage withProgramStage, ValueType withQueryItemValueType )
     {
-        EventQueryParams.Builder params = new EventQueryParams.Builder(
-            createRequestParams( withProgramStage, withQueryItemValueType ) );
+        EventQueryParams.Builder params = new EventQueryParams.Builder( createRequestParams( withProgramStage, withQueryItemValueType ) );
         QueryItem queryItem = params.build().getItems().get( 0 );
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
 
         return params.build();
     }
 
-    protected EventQueryParams createRequestParams()
+    protected EventQueryParams createRequestParams( )
     {
         return _createRequestParams();
     }
@@ -164,7 +160,7 @@ public abstract class EventAnalyticsTest
         when( rowSet.next() ).thenReturn( false );
     }
 
-    String getTable( String uid )
+    String getTable(String uid)
     {
         return getTableName() + "_" + uid;
 

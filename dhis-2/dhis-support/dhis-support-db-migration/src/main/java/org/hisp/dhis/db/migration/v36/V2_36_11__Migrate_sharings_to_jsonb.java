@@ -28,14 +28,14 @@ package org.hisp.dhis.db.migration.v36;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
 public class V2_36_11__Migrate_sharings_to_jsonb
     extends BaseJavaMigration
@@ -45,87 +45,67 @@ public class V2_36_11__Migrate_sharings_to_jsonb
     public void migrate( Context context )
         throws SQLException
     {
-        String[] tableNames = { "attribute", "userrole", "usergroup", "sqlview", "constant", "optionset", "optiongroup",
-            "optiongroupset", "maplegendset", "orgunitgroup", "orgunitgroupset", "dataelementcategoryoption",
-            "categoryoptiongroup", "categoryoptiongroupSet", "dataelementcategory", "categorycombo", "dataelement",
-            "dataelementgroup", "dataelementgroupset", "indicator", "indicatorgroup", "indicatorgroupset", "dataset",
-            "dataapprovallevel", "dataapprovalworkflow", "validationrule", "validationrulegroup",
-            "trackedentityattribute",
-            "trackedentitytype", "programstage", "program", "eventreport", "eventchart", "programindicator",
-            "programindicatorgroup", "relationshiptype", "externalmapLayer", "map", "report", "document",
-            "visualization",
-            "predictorgroup", "dashboard", "interpretation", "programstageinstancefilter", "keyjsonvalue" };
+        String[] tableNames = { "attribute","userrole","usergroup","sqlview","constant","optionset","optiongroup",
+            "optiongroupset","maplegendset","orgunitgroup","orgunitgroupset","dataelementcategoryoption",
+            "categoryoptiongroup","categoryoptiongroupSet","dataelementcategory","categorycombo","dataelement",
+            "dataelementgroup","dataelementgroupset","indicator","indicatorgroup","indicatorgroupset","dataset",
+            "dataapprovallevel","dataapprovalworkflow","validationrule","validationrulegroup","trackedentityattribute",
+            "trackedentitytype","programstage","program","eventreport","eventchart","programindicator",
+            "programindicatorgroup","relationshiptype","externalmapLayer","map","report","document","visualization",
+            "predictorgroup","dashboard","interpretation","programstageinstancefilter", "keyjsonvalue"};
 
-        String[] tablePkNames = { "attributeid", "userroleid", "usergroupid", "sqlviewid", "constantid", "optionsetid",
-            "optiongroupid", "optiongroupsetid", "maplegendsetid", "orgunitgroupid", "orgunitgroupsetid",
-            "categoryoptionid",
-            "categoryoptiongroupid", "categoryoptiongroupSetid", "categoryid", "categorycomboid", "dataelementid",
-            "dataelementgroupid", "dataelementgroupsetid", "indicatorid", "indicatorgroupid", "indicatorgroupsetid",
-            "datasetid", "dataapprovallevelid", "workflowid", "validationruleid", "validationrulegroupid",
-            "trackedentityattributeid", "trackedentitytypeid", "programstageid", "programid", "eventreportid",
-            "eventchartid", "programindicatorid", "programindicatorgroupid", "relationshiptypeid", "externalmapLayerid",
-            "mapid", "reportid", "documentid", "visualizationid", "predictorgroupid", "dashboardid", "interpretationid",
+        String[] tablePkNames = {"attributeid","userroleid","usergroupid","sqlviewid","constantid","optionsetid",
+            "optiongroupid","optiongroupsetid","maplegendsetid","orgunitgroupid","orgunitgroupsetid","categoryoptionid",
+            "categoryoptiongroupid","categoryoptiongroupSetid","categoryid","categorycomboid","dataelementid",
+            "dataelementgroupid","dataelementgroupsetid","indicatorid","indicatorgroupid","indicatorgroupsetid",
+            "datasetid","dataapprovallevelid","workflowid","validationruleid","validationrulegroupid",
+            "trackedentityattributeid","trackedentitytypeid","programstageid","programid","eventreportid",
+            "eventchartid","programindicatorid","programindicatorgroupid","relationshiptypeid","externalmapLayerid",
+            "mapid","reportid","documentid","visualizationid","predictorgroupid","dashboardid","interpretationid",
             "programstageinstancefilterid", "keyjsonvalueid" };
 
-        String[] tableUserAccesses = { "attributeuseraccesses", "userroleuseraccesses", "usergroupuseraccesses",
-            "sqlviewuseraccesses", "constantuseraccesses", "optionsetuseraccesses", "optiongroupuseraccesses",
-            "optiongroupsetuseraccesses", "legendsetuseraccesses", "orgunitgroupuseraccesses",
-            "orgunitgroupsetuseraccesses",
-            "dataelementcategoryoptionuseraccesses", "categoryoptiongroupuseraccesses",
-            "categoryoptiongroupSetuseraccesses",
-            "dataelementcategoryuseraccesses", "categorycombouseraccesses", "dataelementuseraccesses",
-            "dataelementgroupuseraccesses",
-            "dataelementgroupsetuseraccesses", "indicatoruseraccesses", "indicatorgroupuseraccesses",
-            "indicatorgroupsetuseraccesses",
-            "datasetuseraccesses", "dataapprovalleveluseraccesses", "dataapprovalworkflowuseraccesses",
-            "validationruleuseraccesses",
-            "validationrulegroupuseraccesses", "trackedentityattributeuseraccesses", "trackedentitytypeuseraccesses",
-            "programstageuseraccesses",
-            "programuseraccesses", "eventreportuseraccesses", "eventchartuseraccesses", "programindicatoruseraccesses",
-            "programindicatorgroupuseraccesses",
-            "relationshiptypeuseraccesses", "externalmapLayeruseraccesses", "mapuseraccesses", "reportuseraccesses",
-            "documentuseraccesses",
-            "visualization_useraccesses", "predictorgroupuseraccesses", "dashboarduseraccesses",
-            "interpretationuseraccesses",
-            "programstageinstancefilteruseraccesses", "keyjsonvalueuseraccesses" };
+        String[] tableUserAccesses = {"attributeuseraccesses","userroleuseraccesses","usergroupuseraccesses",
+            "sqlviewuseraccesses","constantuseraccesses","optionsetuseraccesses","optiongroupuseraccesses",
+            "optiongroupsetuseraccesses","legendsetuseraccesses","orgunitgroupuseraccesses","orgunitgroupsetuseraccesses",
+            "dataelementcategoryoptionuseraccesses","categoryoptiongroupuseraccesses","categoryoptiongroupSetuseraccesses",
+            "dataelementcategoryuseraccesses","categorycombouseraccesses","dataelementuseraccesses","dataelementgroupuseraccesses",
+            "dataelementgroupsetuseraccesses","indicatoruseraccesses","indicatorgroupuseraccesses","indicatorgroupsetuseraccesses",
+            "datasetuseraccesses","dataapprovalleveluseraccesses","dataapprovalworkflowuseraccesses","validationruleuseraccesses",
+            "validationrulegroupuseraccesses","trackedentityattributeuseraccesses","trackedentitytypeuseraccesses","programstageuseraccesses",
+            "programuseraccesses","eventreportuseraccesses","eventchartuseraccesses","programindicatoruseraccesses","programindicatorgroupuseraccesses",
+            "relationshiptypeuseraccesses","externalmapLayeruseraccesses","mapuseraccesses","reportuseraccesses","documentuseraccesses",
+            "visualization_useraccesses","predictorgroupuseraccesses","dashboarduseraccesses","interpretationuseraccesses",
+            "programstageinstancefilteruseraccesses", "keyjsonvalueuseraccesses"};
 
-        String[] tableUserGroupAccesses = { "attributeusergroupaccesses", "userroleusergroupaccesses",
-            "usergroupusergroupaccesses",
-            "sqlviewusergroupaccesses", "constantusergroupaccesses", "optionsetusergroupaccesses",
-            "optiongroupusergroupaccesses",
-            "optiongroupsetusergroupaccesses", "legendsetusergroupaccesses", "orgunitgroupusergroupaccesses",
-            "orgunitgroupsetusergroupaccesses", "dataelementcategoryoptionusergroupaccesses",
-            "categoryoptiongroupusergroupaccesses",
-            "categoryoptiongroupSetusergroupaccesses", "dataelementcategoryusergroupaccesses",
-            "categorycombousergroupaccesses",
-            "dataelementusergroupaccesses", "dataelementgroupusergroupaccesses", "dataelementgroupsetusergroupaccesses",
-            "indicatorusergroupaccesses", "indicatorgroupusergroupaccesses", "indicatorgroupsetusergroupaccesses",
-            "datasetusergroupaccesses", "dataapprovallevelusergroupaccesses", "dataapprovalworkflowusergroupaccesses",
-            "validationruleusergroupaccesses", "validationrulegroupusergroupaccesses",
-            "trackedentityattributeusergroupaccesses",
-            "trackedentitytypeusergroupaccesses", "programstageusergroupaccesses", "programusergroupaccesses",
-            "eventreportusergroupaccesses", "eventchartusergroupaccesses", "programindicatorusergroupaccesses",
-            "programindicatorgroupusergroupaccesses", "relationshiptypeusergroupaccesses",
-            "externalmapLayerusergroupaccesses",
-            "mapusergroupaccesses", "reportusergroupaccesses", "documentusergroupaccesses",
-            "visualization_usergroupaccesses",
-            "predictorgroupusergroupaccesses", "dashboardusergroupaccesses", "interpretationusergroupaccesses",
-            "programstageinstancefilterusergroupaccesses", "keyjsonvalueusergroupaccesses" };
+        String[] tableUserGroupAccesses = {"attributeusergroupaccesses","userroleusergroupaccesses","usergroupusergroupaccesses",
+            "sqlviewusergroupaccesses","constantusergroupaccesses","optionsetusergroupaccesses","optiongroupusergroupaccesses",
+            "optiongroupsetusergroupaccesses","legendsetusergroupaccesses","orgunitgroupusergroupaccesses",
+            "orgunitgroupsetusergroupaccesses","dataelementcategoryoptionusergroupaccesses","categoryoptiongroupusergroupaccesses",
+            "categoryoptiongroupSetusergroupaccesses","dataelementcategoryusergroupaccesses","categorycombousergroupaccesses",
+            "dataelementusergroupaccesses","dataelementgroupusergroupaccesses","dataelementgroupsetusergroupaccesses",
+            "indicatorusergroupaccesses","indicatorgroupusergroupaccesses","indicatorgroupsetusergroupaccesses",
+            "datasetusergroupaccesses","dataapprovallevelusergroupaccesses","dataapprovalworkflowusergroupaccesses",
+            "validationruleusergroupaccesses","validationrulegroupusergroupaccesses","trackedentityattributeusergroupaccesses",
+            "trackedentitytypeusergroupaccesses","programstageusergroupaccesses","programusergroupaccesses",
+            "eventreportusergroupaccesses","eventchartusergroupaccesses","programindicatorusergroupaccesses",
+            "programindicatorgroupusergroupaccesses","relationshiptypeusergroupaccesses","externalmapLayerusergroupaccesses",
+            "mapusergroupaccesses","reportusergroupaccesses","documentusergroupaccesses","visualization_usergroupaccesses",
+            "predictorgroupusergroupaccesses","dashboardusergroupaccesses","interpretationusergroupaccesses",
+            "programstageinstancefilterusergroupaccesses", "keyjsonvalueusergroupaccesses"};
 
-        for ( int i = 0; i < tableNames.length; i++ )
+
+        for ( int i=0; i < tableNames.length; i++ )
         {
             doMigration( context, tableNames[i], tableUserAccesses[i], tableUserGroupAccesses[i], tablePkNames[i] );
         }
     }
 
-    private void doMigration( Context context, String tableName, String tableUserAccess, String tableUserGroupAccess,
-        String tablePKName )
+    private void doMigration( Context context, String tableName, String tableUserAccess, String tableUserGroupAccess, String tablePKName  )
         throws SQLException
     {
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
-            ResultSet resultSet = statement
-                .executeQuery( "select exists ( select 1 from " + tableName + " where sharing = '{}')" );
+            ResultSet resultSet = statement.executeQuery( "select exists ( select 1 from " + tableName + " where sharing = '{}')");
             resultSet.next();
 
             if ( !resultSet.getBoolean( 1 ) )
@@ -140,24 +120,21 @@ public class V2_36_11__Migrate_sharings_to_jsonb
             "'public',nullif(_entity.publicaccess,'')," +
             "'external', false," +
             "'users',(" +
-            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select json_build_object(_u.uid, jsonb_build_object('id', _u.uid, 'access', _ua.access)) "
-            +
+            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select json_build_object(_u.uid, jsonb_build_object('id', _u.uid, 'access', _ua.access)) " +
             "from  " + tableUserAccess + " _tua inner join useraccess _ua on _tua.useraccessid = _ua.useraccessid  " +
             "inner join userinfo _u on _ua.userid = _u.userinfoid " +
             "where _tua." + tablePKName + " = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
             ")," +
             "'userGroups',(" +
-            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select  json_build_object(_ug.uid, jsonb_build_object('id', _ug.uid, 'access', _uga.access))"
-            +
-            "from  " + tableUserGroupAccess
-            + " _tuga inner join usergroupaccess _uga on _tuga.usergroupaccessid = _uga.usergroupaccessid  " +
+            "select to_jsonb(coalesce(nullif(replace(array_to_string(array ( select  json_build_object(_ug.uid, jsonb_build_object('id', _ug.uid, 'access', _uga.access))" +
+            "from  " + tableUserGroupAccess + " _tuga inner join usergroupaccess _uga on _tuga.usergroupaccessid = _uga.usergroupaccessid  " +
             "inner join usergroup _ug on _uga.usergroupid = _ug.usergroupid " +
-            "where _tuga." + tablePKName + " = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
+            "where _tuga."+ tablePKName +" = _entity." + tablePKName + " ) , ','), '}},{', '},'), ''), NULL)::json)" +
             ")));";
 
-        try (Statement statement = context.getConnection().createStatement())
+        try ( Statement statement = context.getConnection().createStatement() )
         {
-            log.info( "Executing sharing migration query: [" + query + "]" );
+            log.info( "Executing sharing migration query: [" + query  + "]");
             statement.execute( query );
         }
         catch ( SQLException e )

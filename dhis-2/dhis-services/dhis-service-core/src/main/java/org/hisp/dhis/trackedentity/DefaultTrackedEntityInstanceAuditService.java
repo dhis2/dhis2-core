@@ -52,11 +52,8 @@ public class DefaultTrackedEntityInstanceAuditService
     // Dependencies
     // -------------------------------------------------------------------------
     private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
-
     private final TrackedEntityInstanceStore trackedEntityInstanceStore;
-
     private final TrackerAccessManager trackerAccessManager;
-
     private final CurrentUserService currentUserService;
 
     public DefaultTrackedEntityInstanceAuditService( TrackerAccessManager trackerAccessManager,
@@ -113,7 +110,7 @@ public class DefaultTrackedEntityInstanceAuditService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );

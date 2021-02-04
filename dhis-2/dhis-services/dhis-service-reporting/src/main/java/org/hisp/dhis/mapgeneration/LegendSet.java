@@ -39,7 +39,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * This class can be used to render a set of legends onto one image.
- *
+ * 
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
@@ -50,11 +50,9 @@ public class LegendSet
     private Color backgroundColor = null;
 
     public static final int LEGEND_WIDTH = 132;
-
     public static final int LEGEND_MARGIN_LEFT = 3;
-
     public static final int LEGEND_MARGIN_BOTTOM = 20;
-
+    
     public static final int LEGEND_TOTAL_WIDTH = LEGEND_WIDTH + LEGEND_MARGIN_LEFT;
 
     public LegendSet()
@@ -75,12 +73,12 @@ public class LegendSet
     }
 
     /**
-     * Render the legends contained in this set onto a image. The width of the image
-     * returned may vary, depending on how many columns of legends that is added.
-     * The image height can be decided by the user, but if the biggest legend is
-     * higher than imageMaxHeight, the height will automatically be set to the
-     * height of this legend.
-     *
+     * Render the legends contained in this set onto a image. The width of the
+     * image returned may vary, depending on how many columns of legends that is
+     * added. The image height can be decided by the user, but if the biggest
+     * legend is higher than imageMaxHeight, the height will automatically be
+     * set to the height of this legend.
+     * 
      * @param format the i18n format.
      * @return a buffered image.
      */
@@ -153,10 +151,10 @@ public class LegendSet
         {
             imageHeight += legend.getHeight() + LEGEND_MARGIN_BOTTOM;
         }
-
+        
         return imageHeight;
     }
-
+    
     @Override
     public String toString()
     {

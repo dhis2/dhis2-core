@@ -107,9 +107,9 @@ public class JdbcCompletenessTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return params.isLatestUpdate() ? Lists.newArrayList()
-            : Lists.newArrayList(
-                new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
+        return params.isLatestUpdate() ?
+            Lists.newArrayList() :
+            Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -160,7 +160,8 @@ public class JdbcCompletenessTargetTableManager
             sql += col.getAlias() + ",";
         }
 
-        sql += "1 as value " +
+        sql +=
+            "1 as value " +
             "from _datasetorganisationunitcategory doc " +
             "inner join dataset ds on doc.datasetid=ds.datasetid " +
             "inner join organisationunit ou on doc.organisationunitid=ou.organisationunitid " +
@@ -176,39 +177,37 @@ public class JdbcCompletenessTargetTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitGroupSet> orgUnitGroupSets = idObjectManager
-            .getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
+        List<OrganisationUnitGroupSet> orgUnitGroupSets =
+            idObjectManager.getDataDimensionsNoAcl( OrganisationUnitGroupSet.class );
 
-        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
+        List<OrganisationUnitLevel> levels =
+            organisationUnitService.getFilledOrganisationUnitLevels();
 
-        List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets = categoryService
-            .getAttributeCategoryOptionGroupSetsNoAcl();
+        List<CategoryOptionGroupSet> attributeCategoryOptionGroupSets =
+            categoryService.getAttributeCategoryOptionGroupSetsNoAcl();
 
-        List<Category> attributeCategories = categoryService.getAttributeDataDimensionCategoriesNoAcl();
+        List<Category> attributeCategories =
+            categoryService.getAttributeDataDimensionCategoriesNoAcl();
 
         for ( OrganisationUnitGroupSet groupSet : orgUnitGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11,
-                "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "ougs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add(
-                new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         for ( CategoryOptionGroupSet groupSet : attributeCategoryOptionGroupSets )
         {
-            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11,
-                "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( groupSet.getUid() ), CHARACTER_11, "acs." + quote( groupSet.getUid() ) ).withCreated( groupSet.getCreated() ) );
         }
 
         for ( Category category : attributeCategories )
         {
-            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11,
-                "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( quote( category.getUid() ), CHARACTER_11, "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
         columns.addAll( getFixedColumns() );
@@ -223,8 +222,7 @@ public class JdbcCompletenessTargetTableManager
 
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
-        Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return ConcurrentUtils.getImmediateFuture();
     }

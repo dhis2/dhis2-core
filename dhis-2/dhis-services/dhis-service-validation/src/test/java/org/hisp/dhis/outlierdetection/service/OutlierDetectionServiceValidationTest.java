@@ -77,13 +77,10 @@ public class OutlierDetectionServiceValidationTest
     // -------------------------------------------------------------------------
 
     private DataElement deA;
-
     private DataElement deB;
-
     private DataElement deC;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
 
     @Before

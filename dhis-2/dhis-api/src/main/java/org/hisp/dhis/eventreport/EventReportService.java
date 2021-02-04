@@ -33,20 +33,20 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public interface EventReportService
     extends AnalyticalObjectService<EventReport>
 {
     long saveEventReport( EventReport report );
-
+    
     void updateEventReport( EventReport report );
-
+    
     EventReport getEventReport( long id );
-
+    
     EventReport getEventReport( String uid );
-
+    
     void deleteEventReport( EventReport report );
-
+    
     List<EventReport> getAllEventReports();
 }

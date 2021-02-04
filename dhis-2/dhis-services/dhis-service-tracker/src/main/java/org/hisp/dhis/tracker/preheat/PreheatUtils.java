@@ -30,11 +30,11 @@ package org.hisp.dhis.tracker.preheat;
 
 import java.util.Optional;
 
-import lombok.experimental.UtilityClass;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
+
+import lombok.experimental.UtilityClass;
 
 /**
  * @author Luciano Fiandesio

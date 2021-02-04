@@ -28,15 +28,14 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,14 +48,14 @@ import org.hisp.dhis.security.AuthorityType;
 import org.springframework.core.Ordered;
 import org.springframework.util.StringUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -106,15 +105,14 @@ public class Schema implements Ordered, Klass
     private final String plural;
 
     /**
-     * Is this class considered metadata, this is mainly used for our metadata
-     * importer/exporter.
+     * Is this class considered metadata, this is mainly used for our metadata importer/exporter.
      */
     private final boolean metadata;
 
     /**
-     * Specifies if the class is a more installation specific metadata object, that
-     * will not be exported by default. In some cases it is meaningful that this
-     * metadata can also be transferred between system installations.
+     * Specifies if the class is a more installation specific metadata object, that will not be
+     * exported by default. In some cases it is meaningful that this metadata can also be
+     * transferred between system installations.
      */
     private final boolean secondaryMetadata;
 
@@ -124,9 +122,8 @@ public class Schema implements Ordered, Klass
     private String namespace;
 
     /**
-     * This will normally be set to equal singular, but in certain cases it might be
-     * useful to have another name for when this class is used as an item inside a
-     * collection.
+     * This will normally be set to equal singular, but in certain cases it might be useful to have another name
+     * for when this class is used as an item inside a collection.
      */
     private String name;
 
@@ -136,8 +133,8 @@ public class Schema implements Ordered, Klass
     private String displayName;
 
     /**
-     * This will normally be set to equal plural, and is normally used as a wrapper
-     * for a collection of instances of this klass type.
+     * This will normally be set to equal plural, and is normally used as a wrapper for a collection of
+     * instances of this klass type.
      */
     private String collectionName;
 
@@ -162,26 +159,22 @@ public class Schema implements Ordered, Klass
     private String apiEndpoint;
 
     /**
-     * Used by LinkService to link to the Schema describing this type (if
-     * reference).
+     * Used by LinkService to link to the Schema describing this type (if reference).
      */
     private String href;
 
     /**
-     * Are any properties on this class being persisted, if false, this file does
-     * not have any hbm file attached to it.
+     * Are any properties on this class being persisted, if false, this file does not have any hbm file attached to it.
      */
     private boolean persisted;
 
     /**
-     * Should new instances always be default private, even if the user can create
-     * public instances.
+     * Should new instances always be default private, even if the user can create public instances.
      */
     private boolean defaultPrivate;
 
     /**
-     * If this is true, do not require private authority for create/update of
-     * instances of this type.
+     * If this is true, do not require private authority for create/update of instances of this type.
      */
     private boolean implicitPrivateAuthority;
 
@@ -191,8 +184,8 @@ public class Schema implements Ordered, Klass
     private List<Authority> authorities = Lists.newArrayList();
 
     /**
-     * Map of all exposed properties on this class, where key is property name, and
-     * value is instance of Property class.
+     * Map of all exposed properties on this class, where key is property
+     * name, and value is instance of Property class.
      *
      * @see org.hisp.dhis.schema.Property
      */
@@ -305,12 +298,11 @@ public class Schema implements Ordered, Klass
     }
 
     /**
-     * Returns if class contains more installation specific metadata, that will not
-     * be exported by default. In some cases it is meaningful that this metadata can
-     * also be transferred between system installations.
+     * Returns if class contains more installation specific metadata,
+     * that will not be exported by default. In some cases it is meaningful
+     * that this metadata can also be transferred between system installations.
      *
-     * @return <code>true</code> if class contains more installation specific
-     *         metadata.
+     * @return <code>true</code> if class contains more installation specific metadata.
      */
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -527,8 +519,7 @@ public class Schema implements Ordered, Klass
         {
             for ( Property property : propertyMap.values() )
             {
-                if ( property.isCollection() && property.isManyToMany()
-                    && (role.equals( property.getOwningRole() ) || role.equals( property.getInverseRole() )) )
+                if ( property.isCollection() && property.isManyToMany() && (role.equals( property.getOwningRole() ) || role.equals( property.getInverseRole() )) )
                 {
                     return property;
                 }
@@ -561,8 +552,7 @@ public class Schema implements Ordered, Klass
         if ( references == null )
         {
             references = getProperties().stream()
-                .filter( p -> p.isCollection() ? PropertyType.REFERENCE == p.getItemPropertyType()
-                    : PropertyType.REFERENCE == p.getPropertyType() )
+                .filter( p -> p.isCollection() ? PropertyType.REFERENCE == p.getItemPropertyType() : PropertyType.REFERENCE == p.getPropertyType() )
                 .map( p -> p.isCollection() ? p.getItemKlass() : p.getKlass() ).collect( Collectors.toSet() );
         }
 
@@ -626,8 +616,8 @@ public class Schema implements Ordered, Klass
             analyticalObjectProperties = new HashMap<>();
 
             getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isAnalyticalObject() )
-                .forEach( entry -> analyticalObjectProperties.put( entry.getKey(), entry.getValue() ) );
+                    .filter( entry -> entry.getValue().isAnalyticalObject() )
+                    .forEach( entry -> analyticalObjectProperties.put( entry.getKey(), entry.getValue() ) );
         }
 
         return analyticalObjectProperties;
@@ -713,7 +703,7 @@ public class Schema implements Ordered, Klass
     /**
      * Gets a list of properties marked as unique for this schema
      *
-     * @return a List of {@see Property}
+      * @return a List of {@see Property}
      */
     public List<Property> getUniqueProperties()
     {
@@ -724,21 +714,18 @@ public class Schema implements Ordered, Klass
 
     public Map<String, Property> getFieldNameMapProperties()
     {
-        return this.getPersistedProperties().entrySet().stream()
-            .collect( Collectors.toMap( p -> p.getValue().getFieldName(), p -> p.getValue() ) );
+         return this.getPersistedProperties().entrySet().stream().collect( Collectors.toMap( p->p.getValue().getFieldName(), p -> p.getValue() ) );
     }
 
     /**
-     * Get list of properties marked with
-     * {@link org.hisp.dhis.translation.Translatable}
-     *
+     * Get list of properties marked with {@link org.hisp.dhis.translation.Translatable}
      * @return
      */
     public List<Property> getTranslatableProperties()
     {
         return this.getProperties().stream()
             .filter( p -> p.isTranslatable() )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toList());
     }
 
     @Override
@@ -762,14 +749,11 @@ public class Schema implements Ordered, Klass
 
         final Schema other = (Schema) obj;
 
-        return java.util.Objects.equals( this.klass, other.klass )
-            && Objects.equals( this.identifiableObject, other.identifiableObject )
-            && Objects.equals( this.nameableObject, other.nameableObject )
-            && Objects.equals( this.singular, other.singular )
+        return java.util.Objects.equals( this.klass, other.klass ) && Objects.equals( this.identifiableObject, other.identifiableObject )
+            && Objects.equals( this.nameableObject, other.nameableObject ) && Objects.equals( this.singular, other.singular )
             && Objects.equals( this.plural, other.plural ) && Objects.equals( this.namespace, other.namespace )
             && Objects.equals( this.name, other.name ) && Objects.equals( this.collectionName, other.collectionName )
-            && Objects.equals( this.shareable, other.shareable )
-            && Objects.equals( this.relativeApiEndpoint, other.relativeApiEndpoint )
+            && Objects.equals( this.shareable, other.shareable ) && Objects.equals( this.relativeApiEndpoint, other.relativeApiEndpoint )
             && Objects.equals( this.metadata, other.metadata ) && Objects.equals( this.authorities, other.authorities )
             && Objects.equals( this.propertyMap, other.propertyMap ) && Objects.equals( this.order, other.order );
     }

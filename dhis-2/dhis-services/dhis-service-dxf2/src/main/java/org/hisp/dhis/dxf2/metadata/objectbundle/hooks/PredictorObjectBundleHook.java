@@ -53,8 +53,7 @@ public class PredictorObjectBundleHook
         Predictor predictor = (Predictor) object;
         Expression skipTest = predictor.getSampleSkipTest();
 
-        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(),
-            bundle.getPreheatIdentifier() );
+        preheatService.connectReferences( predictor.getGenerator(), bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
         if ( skipTest != null )
         {

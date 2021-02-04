@@ -59,9 +59,9 @@ import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
 
 /**
- * This class "collects" identifiers from all input objects. This resulting map
- * of all identifiers will then be used to "preheat/cache" all the objects
- * needed into memory to speed up the validation process.
+ * This class "collects" identifiers from all input objects.
+ * This resulting map of all identifiers will then be used to "preheat/cache"
+ * all the objects needed into memory to speed up the validation process.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
@@ -79,8 +79,7 @@ public class TrackerIdentifierCollector
         collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
         collectEvents( map, params.getIdentifiers(), params.getEvents() );
         collectRelationships( map, params.getRelationships() );
-        // Using "*" signals that all the entities of the given type have to be
-        // preloaded in the Preheat
+        // Using "*" signals that all the entities of the given type have to be preloaded in the Preheat
         map.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
         map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
         collectDefaults( map, params.getIdentifiers(), defaults );
@@ -92,8 +91,8 @@ public class TrackerIdentifierCollector
         TrackerIdentifierParams params,
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
-        defaults.forEach( ( defaultClass, defaultMetadata ) -> addIdentifier( map, defaultClass,
-            params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
+        defaults.forEach( ( defaultClass, defaultMetadata ) ->
+            addIdentifier( map, defaultClass, params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
     }
 
     private static void collectTrackedEntities(
@@ -120,8 +119,8 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(),
                 enrollment.getOrgUnit() );
-
-            collectNotes( map, enrollment.getNotes() );
+            
+            collectNotes( map, enrollment.getNotes());
             collectEvents( map, params, enrollment.getEvents() );
             collectTrackedEntityAttribute( map, enrollment.getAttributes() );
         } );
@@ -156,8 +155,7 @@ public class TrackerIdentifierCollector
             Stream
                 .of( MoreObjects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
                 .forEach(
-                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOptionIdScheme().getIdScheme(),
-                        s ) );
+                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOptionIdScheme().getIdScheme(), s ) );
 
             addIdentifier( map, CategoryOptionCombo.class, params.getCategoryOptionComboIdScheme().getIdScheme(),
                 event.getAttributeOptionCombo() );
@@ -200,8 +198,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID,
-            attribute.getAttribute() ) );
+        attributes.forEach( attribute ->
+            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,

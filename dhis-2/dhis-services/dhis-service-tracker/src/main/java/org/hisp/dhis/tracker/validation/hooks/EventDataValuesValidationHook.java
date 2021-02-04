@@ -76,11 +76,12 @@ public class EventDataValuesValidationHook
         if ( StringUtils.isNotEmpty( event.getProgramStage() ) )
         {
             ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-            final List<String> mandatoryDataElements = programStage.getProgramStageDataElements()
-                .stream()
-                .filter( ProgramStageDataElement::isCompulsory )
-                .map( de -> de.getDataElement().getUid() )
-                .collect( Collectors.toList() );
+            final List<String> mandatoryDataElements =
+                programStage.getProgramStageDataElements()
+                    .stream()
+                    .filter( ProgramStageDataElement::isCompulsory )
+                    .map( de -> de.getDataElement().getUid() )
+                    .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
             wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
@@ -119,10 +120,11 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
 
-        final Set<String> dataElements = programStage.getProgramStageDataElements()
-            .stream()
-            .map( de -> de.getDataElement().getUid() )
-            .collect( Collectors.toSet() );
+        final Set<String> dataElements =
+            programStage.getProgramStageDataElements()
+                .stream()
+                .map( de -> de.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
 
         Set<String> payloadDataElements = event.getDataValues().stream()
             .map( DataValue::getDataElement )

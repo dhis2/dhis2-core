@@ -28,11 +28,11 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.tracker.job.TrackerNotificationMessageManager;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author Zubair Asghar

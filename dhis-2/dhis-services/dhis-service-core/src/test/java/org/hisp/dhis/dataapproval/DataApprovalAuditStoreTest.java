@@ -28,14 +28,7 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.collect.Sets.newHashSet;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
-import static org.junit.Assert.assertEquals;
-
-import java.util.Date;
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -55,7 +48,13 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.Date;
+import java.util.List;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.APPROVE;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.UNAPPROVE;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jim Grace
@@ -92,25 +91,20 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
 
     private DataApprovalLevel level1;
-
     private DataApprovalLevel level2;
 
     private DataApprovalWorkflow workflowA;
-
     private DataApprovalWorkflow workflowB;
 
     private Period periodA;
-
     private Period periodB;
 
     private OrganisationUnit sourceA;
-
     private OrganisationUnit sourceB;
 
     private User userA;
 
     private CategoryOption optionA;
-
     private CategoryOption optionB;
 
     private Category categoryA;
@@ -118,15 +112,12 @@ public class DataApprovalAuditStoreTest
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo optionComboA;
-
     private CategoryOptionCombo optionComboB;
 
     private Date dateA;
-
     private Date dateB;
 
     private DataApprovalAudit auditA;
-
     private DataApprovalAudit auditB;
 
     // -------------------------------------------------------------------------
@@ -134,8 +125,7 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest()
-        throws Exception
+    public void setUpTest() throws Exception
     {
         setDependency( dataApprovalAuditStore, "currentUserService", currentUserService, CurrentUserService.class );
 
@@ -187,12 +177,10 @@ public class DataApprovalAuditStoreTest
         dateA = getDate( 2017, 1, 1 );
         dateB = getDate( 2018, 1, 1 );
 
-        DataApproval approvalA = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA,
-            userA );
-        DataApproval approvalB = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB,
-            userA );
-        auditA = new DataApprovalAudit( approvalA, APPROVE );
-        auditB = new DataApprovalAudit( approvalB, UNAPPROVE );
+        DataApproval approvalA = new DataApproval( level1, workflowA, periodA, sourceA, optionComboA, false, dateA, userA );
+        DataApproval approvalB = new DataApproval( level2, workflowB, periodB, sourceB, optionComboB, false, dateB, userA );
+        auditA = new DataApprovalAudit(approvalA, APPROVE );
+        auditB = new DataApprovalAudit(approvalB, UNAPPROVE );
     }
 
     // -------------------------------------------------------------------------
@@ -200,14 +188,12 @@ public class DataApprovalAuditStoreTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testSave()
-        throws Exception
+    public void testSave() throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
 
-        List<DataApprovalAudit> audits = dataApprovalAuditStore
-            .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
+        List<DataApprovalAudit> audits = dataApprovalAuditStore.getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 2, audits.size() );
 
         assertEquals( auditA, audits.get( 0 ) );
@@ -215,40 +201,35 @@ public class DataApprovalAuditStoreTest
     }
 
     @Test
-    public void testDelete()
-        throws Exception
+    public void testDelete() throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
 
         dataApprovalAuditStore.delete( auditA );
 
-        List<DataApprovalAudit> audits = dataApprovalAuditStore
-            .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
+        List<DataApprovalAudit> audits = dataApprovalAuditStore.getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 1, audits.size() );
 
         assertEquals( auditB, audits.get( 0 ) );
     }
 
     @Test
-    public void testDeleteDataApprovalAudits()
-        throws Exception
+    public void testDeleteDataApprovalAudits() throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );
 
         dataApprovalAuditStore.deleteDataApprovalAudits( sourceB );
 
-        List<DataApprovalAudit> audits = dataApprovalAuditStore
-            .getDataApprovalAudits( new DataApprovalAuditQueryParams() );
+        List<DataApprovalAudit> audits = dataApprovalAuditStore.getDataApprovalAudits( new DataApprovalAuditQueryParams() );
         assertEquals( 1, audits.size() );
 
         assertEquals( auditA, audits.get( 0 ) );
     }
 
     @Test
-    public void TestGetDataApprovalAudits()
-        throws Exception
+    public void TestGetDataApprovalAudits() throws Exception
     {
         dataApprovalAuditStore.save( auditA );
         dataApprovalAuditStore.save( auditB );

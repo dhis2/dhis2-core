@@ -41,10 +41,10 @@ public interface RelationshipTypeStore
 
     /**
      * Retrieve a relationship
-     *
+     * 
      * @param aIsToB The A side
      * @param bIsToA The B side
-     *
+     * 
      * @return RelationshipType
      */
     RelationshipType getRelationshipType( String aIsToB, String bIsToA );

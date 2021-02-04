@@ -41,7 +41,7 @@ public enum GatewayResponse
     SERVICE_NOT_AVAILABLE( "service not available", "" ),
     ENCODING_FAILURE( "encoding failed", "" ),
     PROCESSING( "processing", "" ),
-    QUEUED( "queued", "" ),
+    QUEUED( "queued" ,"" ),
     NO_GATEWAY_CONFIGURATION( "no gateway configuration found", "" ),
     NO_DEFAULT_GATEWAY( "no gateway is set to default", "" ),
     AUTHENTICATION_FAILED( "authentication failed", "" ),
@@ -72,8 +72,7 @@ public enum GatewayResponse
 
     RESULT_CODE_200( "success", "The request was successfully completed" ),
     RESULT_CODE_202( "accepted", "The message(s) will be processed" ),
-    RESULT_CODE_207( "multi-status",
-        "More than  one message was submitted to the API; however, not all messages have the same status" ),
+    RESULT_CODE_207( "multi-status", "More than  one message was submitted to the API; however, not all messages have the same status" ),
     RESULT_CODE_400( "bad request", "Validation failure (such as missing/invalid parameters or headers)" ),
     RESULT_CODE_401( "unauthorized", "Authentication failure. This can also be caused by IP lockdown settings" ),
     RESULT_CODE_402( "payment required", "Not enough credit to send message" ),
@@ -104,3 +103,4 @@ public enum GatewayResponse
         return responseMessageDetail;
     }
 }
+

@@ -32,9 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
@@ -47,6 +44,9 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -58,7 +58,7 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
     private final FileResourceService fileResourceService;
 
     @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 

@@ -112,7 +112,7 @@ public class MonitoringJob
 
         MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
-        // TODO improve collection usage
+        //TODO improve collection usage
 
         try
         {
@@ -128,7 +128,7 @@ public class MonitoringJob
             else
             {
                 validationRules = groupUIDs.stream()
-                    .map( validationRuleService::getValidationRuleGroup )
+                    .map(validationRuleService::getValidationRuleGroup)
                     .filter( Objects::nonNull )
                     .map( ValidationRuleGroup::getMembers )
                     .filter( Objects::nonNull )
@@ -137,8 +137,7 @@ public class MonitoringJob
 
             if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                Date startDate = DateUtils.getDateAfterAddition( new Date(),
-                    monitoringJobParameters.getRelativeStart() );
+                Date startDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeStart() );
                 Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
 
                 periods = periodService.getPeriodsBetweenDates( startDate, endDate );

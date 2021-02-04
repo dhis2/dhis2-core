@@ -87,12 +87,11 @@ public class HibernateUserSettingStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public UserSetting getUserSetting( User user, String name )
     {
         Session session = sessionFactory.getCurrentSession();
-        Query<UserSetting> query = session
-            .createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
+        Query<UserSetting> query = session.createQuery( "from UserSetting us where us.user = :user and us.name = :name" );
         query.setParameter( "user", user );
         query.setParameter( "name", name );
         query.setCacheable( CACHEABLE );
@@ -101,7 +100,7 @@ public class HibernateUserSettingStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public List<UserSetting> getAllUserSettings( User user )
     {
         Session session = sessionFactory.getCurrentSession();

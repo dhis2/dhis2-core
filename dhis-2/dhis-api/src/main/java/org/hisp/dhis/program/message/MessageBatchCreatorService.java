@@ -33,13 +33,13 @@ import java.util.List;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 
 /**
- * @author Zubair <rajazubair.asghar@gmail.com>
- */
+* @author Zubair <rajazubair.asghar@gmail.com>
+*/
 public interface MessageBatchCreatorService
 {
     /**
-     * Create batch of messages based on DeliveryChannel. It also populates required
-     * fields for that DeliveryChannel.
+     * Create batch of messages based on DeliveryChannel. It also populates
+     * required fields for that DeliveryChannel.
      *
      * @param programMessages list of ProgramMessages.
      */

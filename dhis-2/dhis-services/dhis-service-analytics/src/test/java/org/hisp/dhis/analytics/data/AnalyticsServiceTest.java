@@ -28,16 +28,7 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.junit.Assert.assertEquals;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -92,7 +83,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests aggregation of data in analytics tables.
@@ -184,8 +183,7 @@ public class AnalyticsServiceTest
 
     @Override
     public void setUpTest()
-        throws IOException,
-        InterruptedException
+        throws IOException, InterruptedException
     {
         // Set up meta data for data values
 
@@ -298,8 +296,7 @@ public class AnalyticsServiceTest
         List<String[]> dataValueLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataValues.csv", true );
         parseDataValues( dataValueLines );
 
-        List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataSetRegistrations.csv",
-            true );
+        List<String[]> dataSetRegistrationLines = CsvUtils.readCsvAsListFromClasspath( "csv/dataSetRegistrations.csv", true );
         parseDataSetRegistrations( dataSetRegistrationLines );
 
         // Make indicators
@@ -317,23 +314,23 @@ public class AnalyticsServiceTest
 
         // deB + deC
         Indicator indicatorB = createIndicator( 'B', indicatorType_1 );
-        String expressionB = "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "+#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
+        String expressionB =
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "+#{" + deC.getUid() + "." + ocDef.getUid() + "}";
         indicatorB.setNumerator( expressionB );
         indicatorB.setDenominator( "1" );
 
         // (deB * deC) / 100
         Indicator indicatorC = createIndicator( 'C', indicatorType_1 );
-        String expressionC = "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
+        String expressionC =
+            "#{" + deB.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}";
 
         indicatorC.setNumerator( expressionC );
         indicatorC.setDenominator( "100" );
 
         // (deA * deC) / deB
         Indicator indicatorD = createIndicator( 'D', indicatorType_1 );
-        String expressionD = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "."
-            + ocDef.getUid() + "}";
+        String expressionD =
+            "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*#{" + deC.getUid() + "." + ocDef.getUid() + "}";
         indicatorD.setNumerator( expressionD );
         indicatorD.setDenominator( "#{" + deB.getUid() + "." + ocDef.getUid() + "}" );
 
@@ -342,16 +339,14 @@ public class AnalyticsServiceTest
         reportingRateA = new ReportingRate( dataSetA );
         reportingRateB = new ReportingRate( dataSetB );
 
-        String expressionE = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateB.getUid()
-            + ".REPORTING_RATE} / 100)";
+        String expressionE = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateB.getUid() + ".REPORTING_RATE} / 100)";
         indicatorE.setNumerator( expressionE );
         indicatorE.setDenominator( "1" );
 
         // deA * reporting rate A
         Indicator indicatorF = createIndicator( 'F', indicatorType_1 );
 
-        String expressionF = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateA.getUid()
-            + ".REPORTING_RATE} / 100)";
+        String expressionF = "#{" + deA.getUid() + "." + ocDef.getUid() + "}" + "*(R{" + reportingRateA.getUid() + ".REPORTING_RATE} / 100)";
         indicatorF.setNumerator( expressionF );
         indicatorF.setDenominator( "1" );
 
@@ -408,44 +403,33 @@ public class AnalyticsServiceTest
 
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
-        ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB,
-            periodType );
+        ValidationRule validationRuleA = createValidationRule( 'A', equal_to, expressionVRA, expressionVRB, periodType );
         validationRuleA.setUid( "a234567vruA" );
 
-        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD,
-            periodType );
+        ValidationRule validationRuleB = createValidationRule( 'B', equal_to, expressionVRC, expressionVRD, periodType );
         validationRuleB.setUid( "a234567vruB" );
         validationRuleService.saveValidationRule( validationRuleA );
         validationRuleService.saveValidationRule( validationRuleB );
 
         Date today = new Date();
-        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0,
-            3 );
+        ValidationResult validationResultBA = new ValidationResult( validationRuleA, peJan, ouB, optionComboA, 1.0, 2.0, 3 );
         validationResultBA.setCreated( today );
-        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0,
-            3 );
+        ValidationResult validationResultBB = new ValidationResult( validationRuleA, peJan, ouB, optionComboB, 1.0, 2.0, 3 );
         validationResultBB.setCreated( today );
-        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0,
-            3 );
+        ValidationResult validationResultAA = new ValidationResult( validationRuleA, peJan, ouA, optionComboA, 1.0, 2.0, 3 );
         validationResultAA.setCreated( today );
-        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0,
-            3 );
+        ValidationResult validationResultAB = new ValidationResult( validationRuleA, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
         validationResultAB.setCreated( today );
 
-        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0,
-            2.0, 3 );
+        ValidationResult validationResultBAB = new ValidationResult( validationRuleB, peJan, ouA, optionComboB, 1.0, 2.0, 3 );
         validationResultBAB.setCreated( today );
-        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0,
-            2.0, 3 );
+        ValidationResult validationResultBBB = new ValidationResult( validationRuleB, peFeb, ouB, optionComboB, 1.0, 2.0, 3 );
         validationResultBBB.setCreated( today );
-        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0,
-            2.0, 3 );
+        ValidationResult validationResultBBA = new ValidationResult( validationRuleB, peFeb, ouB, optionComboA, 1.0, 2.0, 3 );
 
-        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA, validationResultAB,
-            validationResultBB, validationResultBA, validationResultBAB, validationResultBBB, validationResultBBA ) );
+        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA, validationResultAB, validationResultBB, validationResultBA, validationResultBAB, validationResultBBB,validationResultBBA ) );
 
-        Thread.sleep( 1000 ); // to ensure that Hibernate has flushed validation results before generating
-                              // tables.
+        Thread.sleep( 1000 ); //to ensure that Hibernate has flushed validation results before generating tables.
 
         // Generate analytics tables
 
@@ -723,8 +707,7 @@ public class AnalyticsServiceTest
     @Test
     public void queryValidationResultTable()
     {
-        List<Map<String, Object>> resultMap = jdbcTemplate
-            .queryForList( "select * from analytics_validationresult_2017;" );
+        List<Map<String, Object>> resultMap = jdbcTemplate.queryForList( "select * from analytics_validationresult_2017;" );
 
         assertEquals( 7, resultMap.size() );
     }
@@ -812,6 +795,7 @@ public class AnalyticsServiceTest
         assertEquals( "Import of data values failed, number of imports are wrong",
             dataValueService.getAllDataValues().size(), 24 );
     }
+
 
     /**
      * Adds data set registrations based on input from vales

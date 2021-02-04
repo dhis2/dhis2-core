@@ -28,10 +28,6 @@ package org.hisp.dhis.calendar.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Date;
-import java.util.List;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
@@ -44,6 +40,11 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Hans Jacobson <jacobson.hans@gmail.com>
@@ -136,6 +137,7 @@ public class PersianCalendarTest
         List<Period> monthly = new MonthlyPeriodType().generatePeriods( calendar, startDate, endDate );
         assertEquals( 13, monthly.size() );
     }
+
 
     @Test
     public void testGenerateQuarterlyPeriods()

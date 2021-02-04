@@ -33,8 +33,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,6 +49,8 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -100,18 +100,15 @@ public class MinMaxOutlierAnalysisService
             categoryOptionCombos.addAll( dataElement.getCategoryOptionCombos() );
         }
 
-        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: "
-            + parents.size() );
+        log.debug( "Starting min-max analysis, no of data elements: " + elements.size() + ", no of parent org units: " + parents.size() );
 
         return dataAnalysisStore.getMinMaxViolations( elements, categoryOptionCombos, periods, parents, MAX_OUTLIERS );
     }
 
     @Override
-    public void generateMinMaxValues( OrganisationUnit parent, Collection<DataElement> dataElements,
-        Double stdDevFactor )
+    public void generateMinMaxValues( OrganisationUnit parent, Collection<DataElement> dataElements, Double stdDevFactor )
     {
-        log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: "
-            + parent.getUid() );
+        log.info( "Starting min-max value generation, no of data elements: " + dataElements.size() + ", parent: " + parent.getUid() );
 
         Date from = new DateTime( 1, 1, 1, 1, 1 ).toDate();
 
@@ -121,8 +118,7 @@ public class MinMaxOutlierAnalysisService
 
         List<String> parentPaths = Lists.newArrayList( parent.getPath() );
 
-        BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory
-            .createBatchHandler( MinMaxDataElementBatchHandler.class ).init();
+        BatchHandler<MinMaxDataElement> batchHandler = batchHandlerFactory.createBatchHandler( MinMaxDataElementBatchHandler.class ).init();
 
         for ( DataElement dataElement : dataElements )
         {
@@ -130,25 +126,22 @@ public class MinMaxOutlierAnalysisService
             {
                 Set<CategoryOptionCombo> categoryOptionCombos = dataElement.getCategoryOptionCombos();
 
-                List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement,
-                    categoryOptionCombos, parentPaths, from );
+                List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement, categoryOptionCombos, parentPaths, from );
 
                 for ( DataAnalysisMeasures measures : measuresList )
                 {
-                    int min = (int) Math.round(
-                        MathUtils.getLowBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
-                    int max = (int) Math.round( MathUtils.getHighBound( measures.getStandardDeviation(), stdDevFactor,
-                        measures.getAverage() ) );
+                    int min = (int) Math.round( MathUtils.getLowBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
+                    int max = (int) Math.round( MathUtils.getHighBound( measures.getStandardDeviation(), stdDevFactor, measures.getAverage() ) );
 
                     switch ( dataElement.getValueType() )
                     {
-                    case INTEGER_POSITIVE:
-                    case INTEGER_ZERO_OR_POSITIVE:
-                        min = Math.max( 0, min ); // Cannot be < 0
-                        break;
-                    case INTEGER_NEGATIVE:
-                        max = Math.min( 0, max ); // Cannot be > 0
-                        break;
+                        case INTEGER_POSITIVE:
+                        case INTEGER_ZERO_OR_POSITIVE:
+                            min = Math.max( 0, min ); // Cannot be < 0
+                            break;
+                        case INTEGER_NEGATIVE:
+                            max = Math.min( 0, max ); // Cannot be > 0
+                            break;
                     }
 
                     OrganisationUnit orgUnit = new OrganisationUnit();
@@ -157,8 +150,7 @@ public class MinMaxOutlierAnalysisService
                     CategoryOptionCombo categoryOptionCombo = new CategoryOptionCombo();
                     categoryOptionCombo.setId( measures.getCategoryOptionComboId() );
 
-                    batchHandler.addObject(
-                        new MinMaxDataElement( dataElement, orgUnit, categoryOptionCombo, min, max, true ) );
+                    batchHandler.addObject( new MinMaxDataElement( dataElement, orgUnit, categoryOptionCombo, min, max, true ) );
                 }
             }
         }

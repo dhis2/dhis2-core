@@ -28,9 +28,9 @@ package org.hisp.dhis.monitoring.prometheus.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.time.Duration;
-
 import io.micrometer.prometheus.PrometheusConfig;
+
+import java.time.Duration;
 
 /**
  * @author Luciano Fiandesio

@@ -44,8 +44,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -55,6 +53,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair Asghar
@@ -93,15 +93,13 @@ public class DefaultAppHubService
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
 
-        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion,
-            query );
+        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion, query );
 
         String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
 
         log.info( "App Hub proxy request URL: '{}'", url );
 
-        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(),
-            String.class );
+        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(), String.class );
 
         return response.getBody();
     }

@@ -42,14 +42,14 @@ public interface NodePropertyConverter
 
     /**
      * @param property Property instance belonging to value
-     * @param value Actual value to transform
+     * @param value    Actual value to transform
      * @return true of false depending on support
      */
     boolean canConvertTo( Property property, Object value );
 
     /**
      * @param property Property instance belonging to value
-     * @param value Actual value to transform
+     * @param value    Actual value to transform
      * @return Value transformed to a Node
      */
     Node convertTo( Property property, Object value );

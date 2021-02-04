@@ -28,9 +28,9 @@ package org.hisp.dhis.outlierdetection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
  * Metadata for an outlier detection response.

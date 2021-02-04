@@ -74,7 +74,7 @@ public interface Calendar
     /**
      * Formats dateUnit using supplied date format
      *
-     * @param dateFormat Date format to use
+     * @param dateFormat   Date format to use
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Default date format
      * @see #getDateFormat()
@@ -93,12 +93,11 @@ public interface Calendar
     /**
      * Convert local calendar to an ISO 8601 DateUnit.
      *
-     * @param year Local year
+     * @param year  Local year
      * @param month Local month
-     * @param day Local day
+     * @param day   Local day
      * @return DateUnit representing local date in ISO 8601
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit toIso( int year, int month, int day );
 
@@ -107,8 +106,7 @@ public interface Calendar
      *
      * @param date Date formatted using default date format
      * @return DateUnit representing local date in ISO 8601
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit toIso( String date );
 
@@ -117,20 +115,18 @@ public interface Calendar
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return DateUnit representing local date in ISO 8601
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit toIso( DateTimeUnit dateTimeUnit );
 
     /**
      * Convert from ISO 8601 to local DateUnit.
      *
-     * @param year ISO 8601 year
+     * @param year  ISO 8601 year
      * @param month ISO 8601 month
-     * @param day ISO 8601 day
+     * @param day   ISO 8601 day
      * @return DateUnit representing ISO 8601 in local
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit fromIso( int year, int month, int day );
 
@@ -139,8 +135,7 @@ public interface Calendar
      *
      * @param dateTimeUnit DateUnit representing ISO 8601 year, month, day
      * @return DateUnit representing ISO 8601 in local
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit fromIso( DateTimeUnit dateTimeUnit );
 
@@ -149,8 +144,7 @@ public interface Calendar
      *
      * @param date Date to convert from
      * @return DateUnit representing ISO 8601 in local
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
      */
     DateTimeUnit fromIso( Date date );
 
@@ -158,21 +152,19 @@ public interface Calendar
      * Gets interval of type based on DateUnit
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param type Interval type to get
-     * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length = 2,
-     *        two months
+     * @param type         Interval type to get
+     * @param offset       Offset to start at, can be negative of positive
+     * @param length       How many periods to asks for, i.e. type = MONTH, length = 2, two months
      * @return Interval for interval type based on dateUnit
      * @see DateIntervalType
      */
     DateInterval toInterval( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length );
 
     /**
-     * Gets interval of type based on DateUnit using default options, 0 for offset,
-     * 1 for length
+     * Gets interval of type based on DateUnit using default options, 0 for offset, 1 for length
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param type Interval type to get
+     * @param type         Interval type to get
      * @return Interval for interval type based on dateUnit
      * @see DateIntervalType
      */
@@ -190,10 +182,9 @@ public interface Calendar
     /**
      * Gets interval of type based on today's date
      *
-     * @param type Interval type to get
+     * @param type   Interval type to get
      * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length = 2,
-     *        two months
+     * @param length How many periods to asks for, i.e. type = MONTH, length = 2, two months
      * @return Interval for interval type based on dateUnit
      * @see DateIntervalType
      */
@@ -203,16 +194,14 @@ public interface Calendar
      * Gets interval of type based on DateUnit
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param type Interval type to get
-     * @param offset Offset to start at, can be negative of positive
-     * @param length How many periods to asks for, i.e. type = MONTH, length = 2,
-     *        two months
-     * @param periods How many periods to generate
+     * @param type         Interval type to get
+     * @param offset       Offset to start at, can be negative of positive
+     * @param length       How many periods to asks for, i.e. type = MONTH, length = 2, two months
+     * @param periods      How many periods to generate
      * @return Interval for interval type based on dateUnit
      * @see DateIntervalType
      */
-    List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length,
-        int periods );
+    List<DateInterval> toIntervals( DateTimeUnit dateTimeUnit, DateIntervalType type, int offset, int length, int periods );
 
     /**
      * Gets current date as local DateUnit
@@ -257,21 +246,18 @@ public interface Calendar
     int weeksInYear( int year );
 
     /**
-     * Gets week number using local DateUnit, week number is calculated based on ISO
-     * 8601 week numbers
+     * Gets week number using local DateUnit, week number is calculated based on
+     * ISO 8601 week numbers
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Week number
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
      */
     int isoWeek( DateTimeUnit dateTimeUnit );
 
     /**
-     * Returns week number using local DateUnit, week number is calculated based on
-     * local calendar.
+     * Returns week number using local DateUnit, week number is calculated based on local calendar.
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Week number
@@ -279,15 +265,13 @@ public interface Calendar
     int week( DateTimeUnit dateTimeUnit );
 
     /**
-     * Gets the ISO 8601 weekday for this local DateUnit, using ISO 8601 day
-     * numbering, 1=Monday => 7=Sunday.
+     * Gets the ISO 8601 weekday for this local DateUnit, using ISO 8601 day numbering,
+     * 1=Monday => 7=Sunday.
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Weekday number
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
      */
     int isoWeekday( DateTimeUnit dateTimeUnit );
 
@@ -297,10 +281,8 @@ public interface Calendar
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
      * @return Weekday number
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_8601">http://en.wikipedia.org/wiki/ISO_8601</a>
+     * @see <a href="http://en.wikipedia.org/wiki/ISO_week_date">http://en.wikipedia.org/wiki/ISO_week_date</a>
      */
     int weekday( DateTimeUnit dateTimeUnit );
 
@@ -309,8 +291,7 @@ public interface Calendar
      *
      * @param month Month to fetch key for
      * @return I18n Key for this month
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
+     * @see <a href="http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
      */
     String nameOfMonth( int month );
 
@@ -319,8 +300,7 @@ public interface Calendar
      *
      * @param month Month to fetch key for
      * @return I18n Key for this month
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
+     * @see <a href="http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
      */
     String shortNameOfMonth( int month );
 
@@ -329,8 +309,7 @@ public interface Calendar
      *
      * @param day Day to fetch key for
      * @return I18n Key for this day
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
+     * @see <a href="http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
      */
     String nameOfDay( int day );
 
@@ -339,8 +318,7 @@ public interface Calendar
      *
      * @param day Day to fetch key for
      * @return I18n Key for this day
-     * @see <a href=
-     *      "http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
+     * @see <a href="http://en.wikipedia.org/wiki/Internationalization_and_localization">http://en.wikipedia.org/wiki/Internationalization_and_localization</a>
      */
     String shortNameOfDay( int day );
 
@@ -348,7 +326,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of days added
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param days Days to add
+     * @param days         Days to add
      * @return dateUnit + days
      */
     DateTimeUnit plusDays( DateTimeUnit dateTimeUnit, int days );
@@ -357,7 +335,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of days subtracted
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param days Days to subtract
+     * @param days         Days to subtract
      * @return dateUnit - days
      */
     DateTimeUnit minusDays( DateTimeUnit dateTimeUnit, int days );
@@ -366,7 +344,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of weeks added
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param weeks Weeks to add
+     * @param weeks        Weeks to add
      * @return dateUnit + weeks
      */
     DateTimeUnit plusWeeks( DateTimeUnit dateTimeUnit, int weeks );
@@ -375,7 +353,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of weeks subtracted
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param weeks Weeks to subtract
+     * @param weeks        Weeks to subtract
      * @return dateUnit - weeks
      */
     DateTimeUnit minusWeeks( DateTimeUnit dateTimeUnit, int weeks );
@@ -384,7 +362,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of months added
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param months Months to add
+     * @param months       Months to add
      * @return dateUnit + months
      */
     DateTimeUnit plusMonths( DateTimeUnit dateTimeUnit, int months );
@@ -393,7 +371,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of months subtracted
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param months Months to subtract
+     * @param months       Months to subtract
      * @return dateUnit - months
      */
     DateTimeUnit minusMonths( DateTimeUnit dateTimeUnit, int months );
@@ -402,7 +380,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of years added
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param years Years to add
+     * @param years        Years to add
      * @return dateUnit + years
      */
     DateTimeUnit plusYears( DateTimeUnit dateTimeUnit, int years );
@@ -411,7 +389,7 @@ public interface Calendar
      * Returns a new dateUnit with specified number of years subtracted
      *
      * @param dateTimeUnit DateUnit representing local year, month, day
-     * @param years Years to subtract
+     * @param years        Years to subtract
      * @return dateUnit - years
      */
     DateTimeUnit minusYears( DateTimeUnit dateTimeUnit, int years );

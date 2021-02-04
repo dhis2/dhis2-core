@@ -28,14 +28,13 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Jim Grace
@@ -117,9 +116,13 @@ public class DataApprovalAuditQueryParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).add( "levels", levels ).add( "workflows", workflows )
-            .add( "organisationUnits", organisationUnits ).add( "attributeOptionCombos", attributeOptionCombos )
-            .add( "startDate", startDate ).add( "endDate", endDate ).toString();
+        return MoreObjects.toStringHelper( this ).
+            add( "levels", levels ).
+            add( "workflows", workflows ).
+            add( "organisationUnits", organisationUnits ).
+            add( "attributeOptionCombos", attributeOptionCombos ).
+            add( "startDate", startDate ).
+            add( "endDate", endDate ).toString();
     }
 
     // -------------------------------------------------------------------------

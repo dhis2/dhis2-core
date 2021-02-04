@@ -28,6 +28,10 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -36,18 +40,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author markusbekken
  */
 @JacksonXmlRootElement( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleVariable
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The program that the variable belongs to
@@ -57,24 +55,25 @@ public class ProgramRuleVariable
     /**
      * The source of the variables content. Allowed values are:
      * dataelement_newest_event_program_stage Get a specific data elements value
-     * from the most recent event in the current enrollment, but within one program
-     * stage. dataelement_uID and programstage_uID needs to be specified.
-     * dataelement_newest_event_program Get a specific data elements value from the
-     * most recent event in the current enrollment, regardless of program
-     * stage.datalement_uID needs to be specified. dataelement_current_event Get a
-     * specific data elements value, but only within the current event.
-     * dataelement_previous_event Get a specific data elements value, specifically
-     * from the event preceding the current event, if this exists. calculated_value
-     * Do not assign the variable a hard-linked source, it will be populated by
-     * rules with assignvariable actions(i.e. calculation rules). tei_attribute Get
-     * a specific attribute from the current tracked entity. the linked attribute
-     * will be used to lookup the attributes uID value.
+     * from the most recent event in the current enrollment, but within one
+     * program stage. dataelement_uID and programstage_uID needs to be
+     * specified. dataelement_newest_event_program Get a specific data elements
+     * value from the most recent event in the current enrollment, regardless of
+     * program stage.datalement_uID needs to be specified.
+     * dataelement_current_event Get a specific data elements value, but only
+     * within the current event. dataelement_previous_event Get a specific
+     * data elements value, specifically from the event preceding the current
+     * event, if this exists. calculated_value Do not assign the variable a
+     * hard-linked source, it will be populated by rules with assignvariable
+     * actions(i.e. calculation rules). tei_attribute Get a specific attribute
+     * from the current tracked entity. the linked attribute will be used to
+     * lookup the attributes uID value.
      */
     private ProgramRuleVariableSourceType sourceType;
 
     /**
-     * Used for sourceType tei_attribute to determine which attribute to fetch into
-     * the variable.
+     * Used for sourceType tei_attribute to determine which attribute to fetch
+     * into the variable.
      */
     private TrackedEntityAttribute attribute;
 
@@ -97,8 +96,8 @@ public class ProgramRuleVariable
     private boolean useCodeForOptionSet;
 
     /**
-     * Specification of the program stage that the variable should be fetched from.
-     * Only used for source type dataelement_newest_event_program_stage
+     * Specification of the program stage that the variable should be fetched
+     * from. Only used for source type dataelement_newest_event_program_stage
      */
     private ProgramStage programStage;
 

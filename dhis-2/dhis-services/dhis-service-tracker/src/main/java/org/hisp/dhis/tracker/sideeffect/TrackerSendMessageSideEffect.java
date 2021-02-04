@@ -28,17 +28,14 @@ package org.hisp.dhis.tracker.sideeffect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.Builder;
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import lombok.Builder;
+import lombok.Data;
 
 /**
- * DHIS2 equivalent to rule engine
- * {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
- *
+ * DHIS2 equivalent to rule engine {@link org.hisp.dhis.rules.models.RuleActionScheduleMessage}
  * @author Zubair Asghar
  */
 

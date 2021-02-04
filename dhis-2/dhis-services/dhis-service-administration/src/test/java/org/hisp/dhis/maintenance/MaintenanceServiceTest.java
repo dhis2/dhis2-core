@@ -28,10 +28,7 @@ package org.hisp.dhis.maintenance;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.*;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -57,7 +54,9 @@ import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.*;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Enrico Colasante
@@ -91,10 +90,10 @@ public class MaintenanceServiceTest
 
     @Autowired
     private ProgramStageInstanceService programStageInstanceService;
-
+    
     @Autowired
     private RelationshipService relationshipService;
-
+    
     @Autowired
     private RelationshipTypeService relationshipTypeService;
 
@@ -223,65 +222,65 @@ public class MaintenanceServiceTest
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
     }
-
+    
     @Test
     public void testDeleteSoftDeletedProgramStageInstanceLinkedToARelationshipItem()
     {
-
-        RelationshipType rType = createRelationshipType( 'A' );
+       
+        RelationshipType rType= createRelationshipType( 'A' );
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         rType.getFromConstraint().setProgram( program );
         rType.getFromConstraint().setProgramStage( program.getProgramStageByStage( 1 ) );
-
+        
         rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
-
+        
         relationshipTypeService.addRelationshipType( rType );
-
+        
         ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstance,
             program.getProgramStageByStage( 1 ) );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setUid( "UID-A" );
 
         long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-
+        
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setProgramStageInstance( programStageInstanceA );
-
+      
+        
         RelationshipItem rItem2 = new RelationshipItem();
         rItem2.setTrackedEntityInstance( entityInstance );
-
+        
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
-
+        
         relationshipService.addRelationship( r );
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
+        
+        assertNotNull(relationshipService.getRelationship( r.getId() )) ;
 
-        assertNotNull( relationshipService.getRelationship( r.getId() ) );
 
         programStageInstanceService.deleteProgramStageInstance( programStageInstanceA );
 
         assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
-
-        assertNull( relationshipService.getRelationship( r.getId() ) );
-
-        assertTrue(
-            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
+        
+        assertNull(relationshipService.getRelationship( r.getId() )) ;
+        
+        assertTrue( programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
 
         maintenanceService.deleteSoftDeletedProgramStageInstances();
 
-        assertFalse(
-            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
+        assertFalse( programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstanceA.getUid() ) );
     }
-
+    
     @Test
     public void testDeleteSoftDeletedProgramInstanceLinkedToARelationshipItem()
     {
 
-        RelationshipType rType = createRelationshipType( 'A' );
+        RelationshipType rType= createRelationshipType( 'A' );
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         rType.getFromConstraint().setProgram( program );
 
@@ -290,9 +289,11 @@ public class MaintenanceServiceTest
 
         relationshipTypeService.addRelationshipType( rType );
 
+
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setProgramInstance( programInstance );
+
 
         RelationshipItem rItem2 = new RelationshipItem();
         rItem2.setTrackedEntityInstance( entityInstance );
@@ -305,13 +306,14 @@ public class MaintenanceServiceTest
 
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
 
-        assertNotNull( relationshipService.getRelationship( r.getId() ) );
+        assertNotNull(relationshipService.getRelationship( r.getId() )) ;
+
 
         programInstanceService.deleteProgramInstance( programInstance );
 
         assertNull( programInstanceService.getProgramInstance( programInstance.getId() ) );
 
-        assertNull( relationshipService.getRelationship( r.getId() ) );
+        assertNull(relationshipService.getRelationship( r.getId() )) ;
 
         assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
 

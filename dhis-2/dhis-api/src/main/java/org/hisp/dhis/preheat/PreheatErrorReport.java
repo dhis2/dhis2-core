@@ -39,8 +39,7 @@ public class PreheatErrorReport extends ErrorReport
 {
     private final PreheatIdentifier preheatIdentifier;
 
-    public PreheatErrorReport( PreheatIdentifier preheatIdentifier, Class<?> mainKlass, ErrorCode errorCode,
-        Object... args )
+    public PreheatErrorReport( PreheatIdentifier preheatIdentifier, Class<?> mainKlass, ErrorCode errorCode, Object... args )
     {
         super( mainKlass, errorCode, args );
         this.preheatIdentifier = preheatIdentifier;

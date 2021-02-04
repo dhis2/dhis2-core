@@ -39,7 +39,7 @@ public class ValueTypeTest
     {
         ValueType posInt = ValueType.INTEGER_POSITIVE;
         ValueType longText = ValueType.LONG_TEXT;
-
+        
         assertTrue( posInt.isNumeric() );
         assertTrue( longText.isText() );
     }

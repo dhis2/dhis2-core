@@ -27,8 +27,6 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
@@ -36,6 +34,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -67,8 +67,8 @@ class ImportConfig
 
     private CategoryOptionCombo fallbackCatOptCombo;
 
-    ImportConfig( SystemSettingManager systemSettingManager, CategoryService categoryService,
-        CompleteDataSetRegistrations cdsr, ImportOptions options )
+    ImportConfig(SystemSettingManager systemSettingManager, CategoryService categoryService,
+                 CompleteDataSetRegistrations cdsr, ImportOptions options)
     {
         dsScheme = IdScheme.from( cdsr.getDataSetIdSchemeProperty() );
         ouScheme = IdScheme.from( cdsr.getOrgUnitIdSchemeProperty() );

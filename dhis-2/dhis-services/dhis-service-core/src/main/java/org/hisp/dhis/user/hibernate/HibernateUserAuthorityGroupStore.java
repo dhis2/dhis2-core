@@ -51,17 +51,15 @@ public class HibernateUserAuthorityGroupStore
     public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, aclService, true );
     }
 
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
-        Query<Long> query = getTypedQuery(
-            "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
+        Query<Long> query = getTypedQuery( "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
         query.setParameter( "dataSet", dataSet );
 
-        return query.getSingleResult().intValue();
+        return  query.getSingleResult().intValue();
     }
 }

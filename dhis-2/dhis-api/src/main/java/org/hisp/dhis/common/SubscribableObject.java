@@ -35,11 +35,11 @@ import org.hisp.dhis.user.User;
 public interface SubscribableObject
     extends IdentifiableObject
 {
-    Set<String> getSubscribers();
+  Set<String> getSubscribers();
 
-    boolean isSubscribed();
+  boolean isSubscribed();
 
-    boolean subscribe( User user );
+  boolean subscribe( User user );
 
-    boolean unsubscribe( User user );
+  boolean unsubscribe( User user );
 }

@@ -5,8 +5,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collections;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.commons.util.PageRange;
@@ -23,6 +21,8 @@ import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -87,8 +87,7 @@ public class DefaultMaintenanceService
     public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
         UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
         DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
-        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService,
-        ApplicationEventPublisher eventPublisher )
+        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService, ApplicationEventPublisher eventPublisher )
     {
 
         checkNotNull( maintenanceStore );
@@ -215,7 +214,8 @@ public class DefaultMaintenanceService
     {
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null || !user.isSuper() )
+
+        if ( user == null  || !user.isSuper() )
         {
             return false;
         }

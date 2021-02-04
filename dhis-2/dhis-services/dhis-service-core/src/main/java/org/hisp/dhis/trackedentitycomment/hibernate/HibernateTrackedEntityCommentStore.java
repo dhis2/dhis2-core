@@ -49,8 +49,7 @@ public class HibernateTrackedEntityCommentStore
     public HibernateTrackedEntityCommentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, aclService,
-            false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityComment.class, currentUserService, aclService, false );
     }
 
     @Override
@@ -61,5 +60,7 @@ public class HibernateTrackedEntityCommentStore
             .setParameter( "uid", uid )
             .getSingleResult();
     }
+
+
 
 }

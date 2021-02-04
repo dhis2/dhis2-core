@@ -33,9 +33,5 @@ package org.hisp.dhis.message;
  */
 public enum MessageConversationStatus
 {
-    NONE,
-    OPEN,
-    PENDING,
-    INVALID,
-    SOLVED
+    NONE, OPEN, PENDING, INVALID, SOLVED
 }

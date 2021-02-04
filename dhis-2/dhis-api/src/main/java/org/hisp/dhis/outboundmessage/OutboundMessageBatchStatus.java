@@ -34,8 +34,5 @@ package org.hisp.dhis.outboundmessage;
 
 public enum OutboundMessageBatchStatus
 {
-    COMPLETED,
-    FAILED,
-    PENDING,
-    ABORTED
+    COMPLETED, FAILED, PENDING, ABORTED
 }

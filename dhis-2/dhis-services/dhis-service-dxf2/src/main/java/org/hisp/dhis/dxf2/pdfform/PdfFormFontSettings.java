@@ -28,11 +28,10 @@ package org.hisp.dhis.dxf2.pdfform;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.lowagie.text.Font;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.lowagie.text.Font;
 
 /**
  * @author James Chang

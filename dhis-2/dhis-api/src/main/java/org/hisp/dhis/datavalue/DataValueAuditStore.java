@@ -28,13 +28,13 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+
+import java.util.List;
 
 /**
  * @author Quang Nguyen
@@ -64,15 +64,15 @@ public interface DataValueAuditStore
      * @param dataElement the data element.
      */
     void deleteDataValueAudits( DataElement dataElement );
-
+    
     /**
-     * Returns all DataValueAudits which match the DataElement, Period,
-     * OrganisationUnit and CategoryOptionCombo of the given DataValue.
+     * Returns all DataValueAudits which match the DataElement, Period, OrganisationUnit
+     * and CategoryOptionCombo of the given DataValue.
      *
      * @param dataValue the DataValue to get DataValueAudits for.
      * @return a list of DataValueAudits which match the DataElement Period,
-     *         OrganisationUnit and CategoryOptionCombo of the given DataValue, or
-     *         an empty list if no DataValueAudits match.
+     * OrganisationUnit and CategoryOptionCombo of the given DataValue,
+     * or an empty list if no DataValueAudits match.
      */
     List<DataValueAudit> getDataValueAudits( DataValue dataValue );
 
@@ -80,25 +80,21 @@ public interface DataValueAuditStore
      * Returns all DataValueAudits which match the given DataElement, Period,
      * OrganisationUnit and CategoryOptionCombo.
      *
-     * @param dataElements the DataElement of the DataValueAudits.
-     * @param periods the Period of the DataValueAudits.
-     * @param organisationUnits the OrganisationUnit of the DataValueAudits.
-     * @param categoryOptionCombo the CategoryOptionCombo of the DataValueAudits.
+     * @param dataElements         the DataElement of the DataValueAudits.
+     * @param periods              the Period of the DataValueAudits.
+     * @param organisationUnits    the OrganisationUnit of the DataValueAudits.
+     * @param categoryOptionCombo  the CategoryOptionCombo of the DataValueAudits.
      * @param attributeOptionCombo the attribute option combo.
      * @return a list of DataValueAudits which match the given DataElement, Period,
-     *         OrganisationUnit and CategoryOptionCombo, or an empty list if no
-     *         DataValueAudits match.
+     * OrganisationUnit and CategoryOptionCombo, or an empty list
+     * if no DataValueAudits match.
      */
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
+    List<DataValueAudit> getDataValueAudits(List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+                                            CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 
-    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
-        int first, int max );
+    List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max );
 
-    int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
-        List<OrganisationUnit> organisationUnits,
+    int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType );
 }

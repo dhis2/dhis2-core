@@ -37,8 +37,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -52,6 +50,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Henning Håkonsen
  */
@@ -62,8 +62,7 @@ public class DefaultJobConfigurationService
 {
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
-    public DefaultJobConfigurationService(
-        @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
+    public DefaultJobConfigurationService( @Qualifier( "org.hisp.dhis.scheduling.JobConfigurationStore" ) IdentifiableObjectStore<JobConfiguration> jobConfigurationStore )
     {
         checkNotNull( jobConfigurationStore );
 
@@ -112,28 +111,28 @@ public class DefaultJobConfigurationService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public JobConfiguration getJobConfigurationByUid( String uid )
     {
         return jobConfigurationStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public JobConfiguration getJobConfiguration( long jobId )
     {
         return jobConfigurationStore.get( jobId );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<JobConfiguration> getAllJobConfigurations()
     {
         return jobConfigurationStore.getAll();
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Map<String, Map<String, Property>> getJobParametersSchema()
     {
         Map<String, Map<String, Property>> propertyMap = Maps.newHashMap();
@@ -214,13 +213,11 @@ public class DefaultJobConfigurationService
         }
 
         final Set<String> propertyNames = Stream.of( PropertyUtils.getPropertyDescriptors( clazz ) )
-            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null
-                && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
+            .filter( pd -> pd.getReadMethod() != null && pd.getWriteMethod() != null && pd.getReadMethod().getAnnotation( JsonProperty.class ) != null )
             .map( PropertyDescriptor::getName )
             .collect( Collectors.toSet() );
 
-        for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) )
-            .collect( Collectors.toList() ) )
+        for ( Field field : Stream.of( clazz.getDeclaredFields() ).filter( f -> propertyNames.contains( f.getName() ) ).collect( Collectors.toList() ) )
         {
             Property property = new Property( Primitives.wrap( field.getType() ), null, null );
             property.setName( field.getName() );
@@ -233,13 +230,11 @@ public class DefaultJobConfigurationService
             }
             catch ( IllegalAccessException | InstantiationException e )
             {
-                log.error(
-                    "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
+                log.error( "Fetching default value for JobParameters properties failed for property: " + field.getName(), e );
             }
 
-            String relativeApiElements = jobType.getRelativeApiElements() != null
-                ? jobType.getRelativeApiElements().get( field.getName() )
-                : "";
+            String relativeApiElements = jobType.getRelativeApiElements() != null ?
+                jobType.getRelativeApiElements().get( field.getName() ) : "";
 
             if ( relativeApiElements != null && !relativeApiElements.equals( "" ) )
             {

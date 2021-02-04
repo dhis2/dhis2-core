@@ -30,8 +30,6 @@ package org.hisp.dhis.sms.listener;
 
 import java.util.*;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -66,6 +64,8 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.DataValueSMSListener" )

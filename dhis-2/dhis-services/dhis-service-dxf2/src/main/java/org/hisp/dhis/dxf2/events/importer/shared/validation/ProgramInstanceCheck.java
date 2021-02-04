@@ -61,7 +61,7 @@ public class ProgramInstanceCheck implements Checker
         {
             teiUid = trackedEntityInstance.get().getUid();
         }
-
+        
         List<ProgramInstance> programInstances;
 
         if ( programInstance == null ) // Program Instance should be NOT null, after the pre-processing stage

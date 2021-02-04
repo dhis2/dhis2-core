@@ -28,13 +28,11 @@ package org.hisp.dhis.audit;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.jms.TextMessage;
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,19 +42,16 @@ public abstract class AbstractAuditConsumer
     implements AuditConsumer
 {
     protected AuditService auditService;
-
     protected ObjectMapper objectMapper;
 
     protected boolean isAuditLogEnabled;
-
     protected boolean isAuditDatabaseEnabled;
 
     protected void _consume( TextMessage message )
     {
         try
         {
-            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(),
-                org.hisp.dhis.artemis.audit.Audit.class );
+            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(), org.hisp.dhis.artemis.audit.Audit.class );
 
             if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
             {

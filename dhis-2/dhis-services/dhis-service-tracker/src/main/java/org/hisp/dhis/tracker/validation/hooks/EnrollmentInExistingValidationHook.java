@@ -130,8 +130,7 @@ public class EnrollmentInExistingValidationHook
 
             if ( !activeOnly.isEmpty() && !activeOnly.contains( enrollment ) )
             {
-                // TODO: How do we do this check on an import set, this only checks when the DB
-                // already contains it
+                // TODO: How do we do this check on an import set, this only checks when the DB already contains it
                 addError( reporter, E1015, tei, program );
             }
         }
@@ -149,7 +148,7 @@ public class EnrollmentInExistingValidationHook
 
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
-        // checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
+        //checkNotNull( trackedEntityInstance, TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -167,8 +166,7 @@ public class EnrollmentInExistingValidationHook
             {
 
                 ValidationErrorReporter localReporter = new ValidationErrorReporter( reporter.getValidationContext() );
-                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(),
-                    programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid() );
+                trackerImportAccessManager.checkReadEnrollmentAccess( localReporter, programInstance.getProgram(), programInstance.getOrganisationUnit(), programInstance.getEntityInstance().getUid());
 
                 if ( localReporter.hasErrors() )
                 {

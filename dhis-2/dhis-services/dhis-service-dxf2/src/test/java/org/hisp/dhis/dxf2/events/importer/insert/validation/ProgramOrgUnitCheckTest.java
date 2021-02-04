@@ -79,21 +79,21 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
         // Prepare data
         Program program = createProgram( 'P' );
         program.setId( 1 );
-
+        
         OrganisationUnit ou = new OrganisationUnit();
         ou.setId( 1 );
         ou.setUid( orgUnitId );
         when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-
+        
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( ImmutableMap.of( 1L, ImmutableList.of( 1L ) ) );
-
+        
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-
+        
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( scheme.name() );
         when( workContext.getImportOptions() ).thenReturn( importOptions );

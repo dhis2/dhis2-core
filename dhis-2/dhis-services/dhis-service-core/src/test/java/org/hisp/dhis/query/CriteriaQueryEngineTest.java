@@ -28,13 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collection;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -53,7 +47,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.Collection;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -266,8 +265,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
     public void getBetweenQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(),
-            Year.parseYear( "2005" ).getStart() ) );
+        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(), Year.parseYear( "2005" ).getStart() ) );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         assertEquals( 3, objects.size() );
@@ -638,7 +636,7 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         assertEquals( userB.getUid(), de.getSharing().getOwner() );
 
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.eq( "id", de.getUid() ) );
+        query.add( Restrictions.eq( "id", de.getUid()) );
         query.setUser( userA );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 

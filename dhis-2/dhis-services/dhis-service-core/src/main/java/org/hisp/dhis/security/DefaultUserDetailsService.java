@@ -30,8 +30,6 @@ package org.hisp.dhis.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.system.util.SecurityUtils;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -44,6 +42,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.extern.slf4j.Slf4j;
+
+
 /**
  * @author Torgeir Lorange Ostby
  */
@@ -53,13 +54,13 @@ public class DefaultUserDetailsService
     implements UserDetailsService
 {
     public static final String ID = UserDetailsService.class.getName();
-
+    
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private final UserService userService;
-
+    
     private final SecurityService securityService;
 
     public DefaultUserDetailsService( UserService userService, SecurityService securityService )
@@ -76,10 +77,9 @@ public class DefaultUserDetailsService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public UserDetails loadUserByUsername( String username )
-        throws UsernameNotFoundException,
-        DataAccessException
+        throws UsernameNotFoundException, DataAccessException
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
@@ -103,13 +103,11 @@ public class DefaultUserDetailsService
 
         if ( ObjectUtils.anyIsFalse( enabled, credentialsNonExpired, accountNonLocked ) )
         {
-            log.info( String.format(
-                "Login attempt for disabled/locked user: '%s', enabled: %b, credentials non-expired: %b, account non-locked: %b",
+            log.info( String.format( "Login attempt for disabled/locked user: '%s', enabled: %b, credentials non-expired: %b, account non-locked: %b", 
                 username, enabled, credentialsNonExpired, accountNonLocked ) );
         }
-
+        
         return new User( credentials.getUsername(), credentials.getPassword(),
-            enabled, true, credentialsNonExpired, accountNonLocked,
-            SecurityUtils.getGrantedAuthorities( credentials ) );
+            enabled, true, credentialsNonExpired, accountNonLocked, SecurityUtils.getGrantedAuthorities( credentials ) );
     }
 }

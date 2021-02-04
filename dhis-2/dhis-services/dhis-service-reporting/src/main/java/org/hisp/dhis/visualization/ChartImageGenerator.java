@@ -89,13 +89,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 @Component
-public class ChartImageGenerator
-{
+public class ChartImageGenerator {
 
     private static final Font TITLE_FONT = new Font( Font.SANS_SERIF, Font.BOLD, 12 );
-
     private static final Font SUB_TITLE_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 11 );
-
     private static final Font LABEL_FONT = new Font( Font.SANS_SERIF, Font.PLAIN, 10 );
 
     private static final String TREND_PREFIX = "Trend - ";
@@ -106,9 +103,7 @@ public class ChartImageGenerator
         Color.decode( "#6a33cf" ), Color.decode( "#4a7833" ) };
 
     private static final Color COLOR_LIGHT_GRAY = Color.decode( "#dddddd" );
-
     private static final Color COLOR_LIGHTER_GRAY = Color.decode( "#eeeeee" );
-
     private static final Color DEFAULT_BACKGROUND_COLOR = Color.WHITE;
 
     private final AnalyticsService analyticsService;
@@ -141,8 +136,7 @@ public class ChartImageGenerator
      * @return a JFreeChart object.
      */
     @Transactional( readOnly = true )
-    public JFreeChart getJFreeChart( final Visualization visualization, final Date date,
-        OrganisationUnit organisationUnit, final I18nFormat format, final User currentUser )
+    public JFreeChart getJFreeChart( final Visualization visualization, final Date date, OrganisationUnit organisationUnit, final I18nFormat format, final User currentUser )
     {
         User user = (currentUser != null ? currentUser : currentUserService.getCurrentUser());
 
@@ -156,14 +150,12 @@ public class ChartImageGenerator
 
         if ( visualization.hasOrganisationUnitLevels() )
         {
-            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels(
-                visualization.getOrganisationUnitLevels(), visualization.getOrganisationUnits() ) );
+            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( visualization.getOrganisationUnitLevels(), visualization.getOrganisationUnits() ) );
         }
 
         if ( visualization.hasItemOrganisationUnitGroups() )
         {
-            inGroups.addAll( organisationUnitService.getOrganisationUnits(
-                visualization.getItemOrganisationUnitGroups(), visualization.getOrganisationUnits() ) );
+            inGroups.addAll( organisationUnitService.getOrganisationUnits( visualization.getItemOrganisationUnitGroups(), visualization.getOrganisationUnits() ) );
         }
 
         visualization.init( user, date, organisationUnit, atLevels, inGroups, format );
@@ -245,8 +237,7 @@ public class ChartImageGenerator
             plot.setRenderer( 1, lineRenderer );
         }
 
-        JFreeChart jFreeChart = new JFreeChart( visualization.getName(), TITLE_FONT, plot,
-            !visualization.isHideLegend() );
+        JFreeChart jFreeChart = new JFreeChart( visualization.getName(), TITLE_FONT, plot, !visualization.isHideLegend() );
 
         setBasicConfig( jFreeChart, visualization );
 
@@ -283,10 +274,8 @@ public class ChartImageGenerator
 
     private JFreeChart getStackedAreaChart( final Visualization visualization, CategoryDataset dataSet )
     {
-        JFreeChart stackedAreaChart = ChartFactory.createStackedAreaChart( visualization.getName(),
-            visualization.getDomainAxisLabel(),
-            visualization.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL, !visualization.isHideLegend(), false,
-            false );
+        JFreeChart stackedAreaChart = ChartFactory.createStackedAreaChart( visualization.getName(), visualization.getDomainAxisLabel(),
+            visualization.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL, !visualization.isHideLegend(), false, false );
 
         setBasicConfig( stackedAreaChart, visualization );
 
@@ -306,21 +295,17 @@ public class ChartImageGenerator
         SpiderWebPlot plot = new SpiderWebPlot( dataSet, TableOrder.BY_ROW );
         plot.setLabelFont( LABEL_FONT );
 
-        JFreeChart radarChart = new JFreeChart( visualization.getName(), TITLE_FONT, plot,
-            !visualization.isHideLegend() );
+        JFreeChart radarChart = new JFreeChart( visualization.getName(), TITLE_FONT, plot, !visualization.isHideLegend() );
 
         setBasicConfig( radarChart, visualization );
 
         return radarChart;
     }
 
-    private JFreeChart getStackedBarChart( final Visualization visualization, CategoryDataset dataSet,
-        boolean horizontal )
+    private JFreeChart getStackedBarChart( final Visualization visualization, CategoryDataset dataSet, boolean horizontal )
     {
-        JFreeChart stackedBarChart = ChartFactory.createStackedBarChart( visualization.getName(),
-            visualization.getDomainAxisLabel(),
-            visualization.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL, !visualization.isHideLegend(), false,
-            false );
+        JFreeChart stackedBarChart = ChartFactory.createStackedBarChart( visualization.getName(), visualization.getDomainAxisLabel(),
+            visualization.getRangeAxisLabel(), dataSet, PlotOrientation.VERTICAL, !visualization.isHideLegend(), false, false );
 
         setBasicConfig( stackedBarChart, visualization );
 
@@ -336,8 +321,7 @@ public class ChartImageGenerator
 
     private JFreeChart getMultiplePieChart( final Visualization visualization, CategoryDataset[] dataSets )
     {
-        JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( visualization.getName(), dataSets[0],
-            TableOrder.BY_ROW,
+        JFreeChart multiplePieChart = ChartFactory.createMultiplePieChart( visualization.getName(), dataSets[0], TableOrder.BY_ROW,
             !visualization.isHideLegend(), false, false );
 
         setBasicConfig( multiplePieChart, visualization );
@@ -384,8 +368,7 @@ public class ChartImageGenerator
             double end = start + 10d;
             String label = String.valueOf( start );
 
-            meterPlot.addInterval(
-                new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
+            meterPlot.addInterval( new MeterInterval( label, new Range( start, end ), COLOR_LIGHT_GRAY, null, COLOR_LIGHT_GRAY ) );
         }
 
         meterPlot.setMeterAngle( 180 );
@@ -427,7 +410,7 @@ public class ChartImageGenerator
         plot.setOutlinePaint( DEFAULT_BACKGROUND_COLOR );
     }
 
-    private TextTitle getSubTitle( final Visualization visualization )
+    private TextTitle getSubTitle(final Visualization visualization )
     {
         TextTitle textTitle = new TextTitle();
 
@@ -451,8 +434,7 @@ public class ChartImageGenerator
         valueMap = DimensionalObjectUtils.getSortedKeysMap( valueMap );
 
         List<NameableObject> seriez = new ArrayList<>( visualization.chartSeries() );
-        List<NameableObject> categories = new ArrayList<>(
-            defaultIfNull( visualization.chartCategory(), emptyList() ) );
+        List<NameableObject> categories = new ArrayList<>( defaultIfNull( visualization.chartCategory(), emptyList() ) );
 
         if ( visualization.hasSortOrder() )
         {
@@ -478,8 +460,7 @@ public class ChartImageGenerator
                     regularDataSet.addValue( value, series.getShortName(), category.getShortName() );
                 }
 
-                if ( visualization.isRegression() && value != null && value instanceof Double
-                    && !MathUtils.isEqual( (Double) value, MathUtils.ZERO ) )
+                if ( visualization.isRegression() && value != null && value instanceof Double && !MathUtils.isEqual( (Double) value, MathUtils.ZERO ) )
                 {
                     regression.addData( categoryIndex, (Double) value );
                 }
@@ -497,19 +478,18 @@ public class ChartImageGenerator
 
                     if ( !Double.isNaN( value ) )
                     {
-                        regressionDataSet.addValue( value, TREND_PREFIX + series.getShortName(),
-                            category.getShortName() );
+                        regressionDataSet.addValue( value, TREND_PREFIX + series.getShortName(), category.getShortName() );
                     }
                 }
             }
         }
 
-        return new CategoryDataset[] { regularDataSet, regressionDataSet };
+        return new CategoryDataset[]{ regularDataSet, regressionDataSet };
     }
 
-    /**
-     * Creates a key based on the given input. Sorts the key on its components to
-     * remove significance of column order.
+   /**
+     * Creates a key based on the given input. Sorts the key on its components
+     * to remove significance of column order.
      */
     private String getKey( NameableObject series, NameableObject category, AnalyticsType analyticsType )
     {
@@ -517,9 +497,7 @@ public class ChartImageGenerator
 
         // Replace potential operand separator with dimension separator
 
-        key = AnalyticsType.AGGREGATE.equals( analyticsType )
-            ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP )
-            : key;
+        key = AnalyticsType.AGGREGATE.equals( analyticsType ) ? key.replace( DataElementOperand.SEPARATOR, DIMENSION_SEP ) : key;
 
         // TODO fix issue with keys including -.
 
@@ -530,8 +508,7 @@ public class ChartImageGenerator
      * Returns a list of sorted nameable objects. Sorting is defined per the
      * corresponding value in the given value map.
      */
-    private List<NameableObject> getSortedCategories( List<NameableObject> categories,
-        final Visualization visualization, Map<String, Object> valueMap )
+    private List<NameableObject> getSortedCategories( List<NameableObject> categories, final Visualization visualization, Map<String, Object> valueMap )
     {
         NameableObject series = visualization.getColumns().get( 0 );
 
@@ -623,7 +600,7 @@ public class ChartImageGenerator
     /**
      * Returns a horizontal line marker for the given x value and label.
      */
-    private Marker getMarker( Double value, String label )
+    private Marker getMarker(Double value, String label )
     {
         Marker marker = new ValueMarker( value );
         marker.setPaint( Color.BLACK );

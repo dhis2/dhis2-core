@@ -78,8 +78,7 @@ public class ObjectBundleServiceFavoritesTest
     private UserService _userService;
 
     @Override
-    protected void setUpTest()
-        throws Exception
+    protected void setUpTest() throws Exception
     {
         renderService = _renderService;
         userService = _userService;
@@ -87,8 +86,7 @@ public class ObjectBundleServiceFavoritesTest
 
     @Test
     @Ignore
-    public void testCreateMetadataWithCharts1()
-        throws IOException
+    public void testCreateMetadataWithCharts1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_with_charts1.json" ).getInputStream(), RenderFormat.JSON );
@@ -115,12 +113,10 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateMetadataWithVisualization()
-        throws IOException
+    public void testCreateMetadataWithVisualization() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -172,12 +168,10 @@ public class ObjectBundleServiceFavoritesTest
 
     @Test
     @Ignore
-    public void testCreateMetadataWithChartsWithPeriods1()
-        throws IOException
+    public void testCreateMetadataWithChartsWithPeriods1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_chart_periods1.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_chart_periods1.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -206,12 +200,10 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateMetadataWithVisualizationsWithPeriods()
-        throws IOException
+    public void testCreateMetadataWithVisualizationsWithPeriods() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/favorites/metadata_with_visualization_periods.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -241,8 +233,7 @@ public class ObjectBundleServiceFavoritesTest
 
     @Test
     @Ignore
-    public void testCreateMetadataWithReportTables1()
-        throws IOException
+    public void testCreateMetadataWithReportTables1() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/metadata_with_rt1.json" ).getInputStream(), RenderFormat.JSON );
@@ -269,8 +260,7 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testCreateLegendSets()
-        throws IOException
+    public void testCreateLegendSets() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );
@@ -297,8 +287,7 @@ public class ObjectBundleServiceFavoritesTest
     }
 
     @Test
-    public void testDeleteLegendSet()
-        throws IOException
+    public void testDeleteLegendSet() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/favorites/legends.json" ).getInputStream(), RenderFormat.JSON );

@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 import java.sql.SQLException;
@@ -102,8 +102,7 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
             .thenReturn( programMap );
 
-        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(),
-            Collections.singletonList( event ) );
+        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(), Collections.singletonList( event ) );
 
         ProgramInstance programInstance = map.get( event.getUid() );
         assertThat( programInstance, is( notNullValue() ) );

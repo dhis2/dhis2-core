@@ -37,11 +37,9 @@ public class TrackedEntityInstanceParams
 {
     public static final TrackedEntityInstanceParams TRUE = new TrackedEntityInstanceParams( true, true, true, true );
 
-    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false,
-        false );
+    public static final TrackedEntityInstanceParams FALSE = new TrackedEntityInstanceParams( false, false, false, false );
 
-    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true,
-        true, true, true, true );
+    public static final TrackedEntityInstanceParams DATA_SYNCHRONIZATION = new TrackedEntityInstanceParams( true, true, true, true, true, true );
 
     private boolean includeRelationships;
 
@@ -145,8 +143,7 @@ public class TrackedEntityInstanceParams
         this.dataSynchronizationQuery = dataSynchronizationQuery;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "TrackedEntityInstanceParams{" +
             "includeRelationships=" + includeRelationships +

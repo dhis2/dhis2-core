@@ -28,11 +28,8 @@ package org.hisp.dhis.tracker.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -56,8 +53,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class AssignedUserValidationHookTest
     extends AbstractImportValidationTest
@@ -154,8 +153,7 @@ public class AssignedUserValidationHookTest
         TrackerImportReport report = trackerImportService.importTracker( params );
 
         assertEquals( 1, report.getValidationReport().getErrorReports().size() );
-        assertEquals( "Assigned user `123` is not a valid uid.",
-            report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
+        assertEquals( "Assigned user `123` is not a valid uid.", report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
         assertEquals( TrackerErrorCode.E1118, report.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 
@@ -187,8 +185,7 @@ public class AssignedUserValidationHookTest
         TrackerImportReport report = trackerImportService.importTracker( params );
 
         assertEquals( 1, report.getValidationReport().getErrorReports().size() );
-        assertEquals( "Assigned user `A01234567890` is not a valid uid.",
-            report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
+        assertEquals( "Assigned user `A01234567890` is not a valid uid.", report.getValidationReport().getErrorReports().get( 0 ).getMessage() );
         assertEquals( TrackerErrorCode.E1118, report.getValidationReport().getErrorReports().get( 0 ).getErrorCode() );
     }
 

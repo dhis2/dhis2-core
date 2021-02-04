@@ -28,8 +28,6 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map.Entry;
@@ -43,6 +41,8 @@ import org.hisp.dhis.util.ObjectUtils;
 
 import com.google.common.collect.Lists;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Lars Helge Overland
  */
@@ -50,7 +50,6 @@ public class DefaultStyleManager
     implements StyleManager
 {
     private static final String SEPARATOR = "/";
-
     private static final String SYSTEM_SEPARATOR = File.separator;
 
     // -------------------------------------------------------------------------

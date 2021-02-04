@@ -99,16 +99,11 @@ public class HeaderHandler
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, Double.class.getName(),
-                    false, false ) )
-                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, Double.class.getName(),
-                        false, false ) )
-                    .addHeader(
-                        new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, Double.class.getName(),
-                        false, false ) )
-                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, Double.class.getName(), false,
-                        false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) );
             }
         }
     }

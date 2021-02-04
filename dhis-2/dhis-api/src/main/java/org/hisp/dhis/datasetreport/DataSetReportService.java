@@ -48,13 +48,11 @@ public interface DataSetReportService
      * @param dataSet the data set.
      * @param period the period.
      * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension option
-     *        identifiers.
+     * @param dimensions mapping between dimension identifiers and dimension option identifiers.
      * @param selectedUnitOnly indicates whether to use captured or aggregated data.
      * @return the HTML code for the custom data set report.
      */
-    String getCustomDataSetReport( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions,
-        boolean selectedUnitOnly );
+    String getCustomDataSetReport( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions, boolean selectedUnitOnly );
 
     /**
      * Generates a list of Grids based on the data set sections or custom form.
@@ -62,11 +60,9 @@ public interface DataSetReportService
      * @param dataSet the data set.
      * @param period the period.
      * @param orgUnit the organisation unit.
-     * @param dimensions mapping between dimension identifiers and dimension option
-     *        identifiers.
+     * @param dimensions mapping between dimension identifiers and dimension option identifiers.
      * @param selectedUnitOnly indicates whether to use captured or aggregated data.
      * @return a list of Grids.
      */
-    List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions,
-        boolean selectedUnitOnly );
+    List<Grid> getDataSetReportAsGrid( DataSet dataSet, Period period, OrganisationUnit orgUnit, Set<String> dimensions, boolean selectedUnitOnly );
 }

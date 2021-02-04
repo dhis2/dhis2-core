@@ -34,22 +34,22 @@ package org.hisp.dhis.dxf2.synch;
 public class SystemInstance
 {
     private String url;
-
+    
     private String username;
-
+    
     private String password;
 
     protected SystemInstance()
-    {
+    {        
     }
-
+    
     public SystemInstance( String url, String username, String password )
     {
         this.url = url;
         this.username = username;
         this.password = password;
     }
-
+    
     public String getUrl()
     {
         return url;

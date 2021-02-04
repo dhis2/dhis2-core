@@ -28,9 +28,6 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -40,10 +37,12 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 /**
- * Class represents a thread which will be triggered as soon as tracker rule
- * engine consumer consumes a message from tracker rule engine queue. It loops
- * through the list of rule effects and implement it if it has an associated
+ * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
+ * tracker rule engine queue. It loops through the list of rule effects and implement it if it has an associated
  * rule implementer class.
  *
  * @author Zubair Asghar
@@ -76,10 +75,8 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
             return;
         }
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService
-            .toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
-        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService
-            .toRuleEffects( sideEffectDataBundle.getEventRuleEffects() );
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerSideEffectConverterService.toRuleEffects( sideEffectDataBundle.getEnrollmentRuleEffects() );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerSideEffectConverterService.toRuleEffects( sideEffectDataBundle.getEventRuleEffects() );
 
         for ( RuleActionImplementer ruleActionImplementer : ruleActionImplementers )
         {

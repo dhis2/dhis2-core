@@ -28,11 +28,10 @@ package org.hisp.dhis.system.help;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Locale;
+
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
 
 import javax.xml.transform.Result;
 import javax.xml.transform.Source;
@@ -42,9 +41,11 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Locale;
 
-import org.springframework.core.io.ClassPathResource;
+import static org.hisp.dhis.commons.util.StreamUtils.ENCODING_UTF8;
 
 /**
  * @author Lars Helge Overland
@@ -101,8 +102,7 @@ public class HelpManager
     // -------------------------------------------------------------------------
 
     private static Transformer getTransformer( String stylesheetName )
-        throws IOException,
-        TransformerConfigurationException
+        throws IOException, TransformerConfigurationException
     {
         Source stylesheet = new StreamSource( new ClassPathResource( stylesheetName ).getInputStream(), ENCODING_UTF8 );
 
@@ -112,7 +112,7 @@ public class HelpManager
     private static ClassPathResource resolveHelpFileResource( Locale locale )
     {
         String helpFile;
-
+        
         ClassPathResource classPathResource;
 
         if ( locale != null && locale.getDisplayLanguage() != null )
@@ -133,7 +133,7 @@ public class HelpManager
         if ( !classPathResource.exists() )
         {
             log.warn( "Help file: " + helpFile + " not available on classpath, falling back to defaul" );
-
+            
             helpFile = "help_content.xml";
 
             classPathResource = new ClassPathResource( helpFile );

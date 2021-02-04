@@ -29,11 +29,10 @@ package org.hisp.dhis.deduplication;
  */
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
-
-import com.google.common.base.MoreObjects;
 
 public class PotentialDuplicateQuery
 {

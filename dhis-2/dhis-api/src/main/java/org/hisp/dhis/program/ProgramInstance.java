@@ -46,13 +46,13 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Abyot Asalefew
@@ -107,8 +107,7 @@ public class ProgramInstance
     {
     }
 
-    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
-        Program program )
+    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance, Program program )
     {
         this.enrollmentDate = enrollmentDate;
         this.incidentDate = incidentDate;
@@ -141,11 +140,11 @@ public class ProgramInstance
     // -------------------------------------------------------------------------
 
     /**
-     * Updated the bi-directional associations between this program instance and the
-     * given entity instance and program.
+     * Updated the bi-directional associations between this program instance and
+     * the given entity instance and program.
      *
      * @param entityInstance the entity instance to enroll.
-     * @param program the program to enroll the entity instance to.
+     * @param program        the program to enroll the entity instance to.
      */
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
@@ -178,8 +177,7 @@ public class ProgramInstance
         {
             if ( programStageInstance.getProgramStage().getOpenAfterEnrollment()
                 && !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null
-                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
             {
                 return programStageInstance;
             }
@@ -188,8 +186,7 @@ public class ProgramInstance
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
             if ( !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null
-                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
             {
                 return programStageInstance;
             }
@@ -202,9 +199,7 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( !programStageInstance.isDeleted()
-                && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
-                && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
             {
                 return true;
             }

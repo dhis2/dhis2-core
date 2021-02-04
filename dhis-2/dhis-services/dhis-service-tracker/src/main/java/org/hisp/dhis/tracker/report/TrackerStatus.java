@@ -33,7 +33,5 @@ package org.hisp.dhis.tracker.report;
  */
 public enum TrackerStatus
 {
-    OK,
-    WARNING,
-    ERROR
+    OK, WARNING, ERROR
 }

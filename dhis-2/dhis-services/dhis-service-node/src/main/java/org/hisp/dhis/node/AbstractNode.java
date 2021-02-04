@@ -28,19 +28,18 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.node.exception.InvalidTypeException;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.core.OrderComparator;
 import org.springframework.core.Ordered;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -64,6 +63,7 @@ public abstract class AbstractNode implements Node
     protected ImmutableList<Node> sortedChildren;
 
     protected Property property;
+
 
     protected AbstractNode( String name, NodeType nodeType )
     {
@@ -194,8 +194,7 @@ public abstract class AbstractNode implements Node
     }
 
     @Override
-    public <T extends Node> T addChild( T child )
-        throws InvalidTypeException
+    public <T extends Node> T addChild( T child ) throws InvalidTypeException
     {
         if ( child == null || child.getName() == null )
         {

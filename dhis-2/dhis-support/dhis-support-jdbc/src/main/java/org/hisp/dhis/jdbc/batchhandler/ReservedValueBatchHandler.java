@@ -28,14 +28,14 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.reservedvalue.ReservedValue;
+import org.hisp.quick.JdbcConfiguration;
+import org.hisp.quick.batchhandler.AbstractBatchHandler;
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Calendar;
 import java.util.List;
-
-import org.hisp.dhis.reservedvalue.ReservedValue;
-import org.hisp.quick.JdbcConfiguration;
-import org.hisp.quick.batchhandler.AbstractBatchHandler;
 
 /**
  * @author Stian Sandvold
@@ -92,7 +92,8 @@ public class ReservedValueBatchHandler
             object.getOwnerObject(),
             object.getOwnerUid(),
             object.getKey(),
-            object.getValue() );
+            object.getValue()
+        );
     }
 
     @Override
@@ -110,7 +111,8 @@ public class ReservedValueBatchHandler
             object.getKey(),
             object.getValue(),
             object.getExpiryDate(),
-            object.getCreated() );
+            object.getCreated()
+        );
     }
 
     @Override
@@ -133,7 +135,7 @@ public class ReservedValueBatchHandler
 
         return rv;
     }
-
+    
     @Override
     public String getIdSequenceName()
     {

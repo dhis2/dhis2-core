@@ -36,16 +36,16 @@ import java.util.List;
 public interface StyleManager
 {
     String ID = StyleManager.class.getName();
-
+    
     void setSystemStyle( String file );
-
+    
     void setUserStyle( String style );
-
+    
     String getCurrentStyle();
-
+    
     String getSystemStyle();
-
+    
     String getCurrentStyleDirectory();
-
+        
     List<StyleObject> getStyles();
 }

@@ -28,11 +28,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Optional;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
+
+import java.util.Optional;
 
 /**
  * @author Enrico Colasante

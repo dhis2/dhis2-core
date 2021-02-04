@@ -28,12 +28,7 @@ package org.hisp.dhis.artemis.audit.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.AuditScope;
@@ -43,14 +38,17 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Configures the Audit Matrix based on configuration properties from dhis.conf
  * <p>
- * This configurator uses properties with prefix "audit.". Each property
- * prefixed with "audit." must match the (lowercase) name of an
- * {@see AuditScope} and must contain a semi-colon list of valid
+ * This configurator uses properties with prefix "audit.". Each property prefixed with "audit."
+ * must match the (lowercase) name of an {@see AuditScope} and must contain a semi-colon list of valid
  * {@see AuditType} names: (READ;UPDATE;...).
  * <p>
  * Example:
@@ -58,8 +56,8 @@ import com.google.common.collect.ImmutableMap;
  * audit.tracker=CREATE;READ;UPDATE;DELETE
  * <p>
  * Misspelled entries are ignored, and the specific type is set to false.
- * Missing {@see AuditScope} are replaced with all-false types. To disable
- * Auditing completely, simply do not declare any audit.* property in dhis.conf
+ * Missing {@see AuditScope} are replaced with all-false types.
+ * To disable Auditing completely, simply do not declare any audit.* property in dhis.conf
  *
  * @author Luciano Fiandesio
  */
@@ -68,17 +66,14 @@ import com.google.common.collect.ImmutableMap;
 public class AuditMatrixConfigurer
 {
     private final DhisConfigurationProvider config;
-
     private final static String PROPERTY_PREFIX = "audit.";
-
     private final static String AUDIT_TYPE_STRING_SEPAR = ";";
 
     /**
-     * Default Audit configuration: CREATE, UPDATE and DELETE operations are audited
-     * by default. Other Audit types have to be explicitly enabled by the user
+     * Default Audit configuration: CREATE, UPDATE and DELETE operations are audited by default.
+     * Other Audit types have to be explicitly enabled by the user
      */
-    private static final Map<AuditType, Boolean> DEFAULT_AUDIT_CONFIGURATION = ImmutableMap
-        .<AuditType, Boolean> builder()
+    private static final Map<AuditType, Boolean> DEFAULT_AUDIT_CONFIGURATION = ImmutableMap.<AuditType, Boolean>builder()
         .put( AuditType.CREATE, true )
         .put( AuditType.UPDATE, true )
         .put( AuditType.DELETE, true )
@@ -100,8 +95,7 @@ public class AuditMatrixConfigurer
 
         for ( AuditScope value : AuditScope.values() )
         {
-            Optional<ConfigurationKey> confKey = ConfigurationKey
-                .getByKey( PROPERTY_PREFIX + value.name().toLowerCase() );
+            Optional<ConfigurationKey> confKey = ConfigurationKey.getByKey( PROPERTY_PREFIX + value.name().toLowerCase() );
 
             if ( confKey.isPresent() && !StringUtils.isEmpty( config.getProperty( confKey.get() ) ) )
             {

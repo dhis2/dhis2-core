@@ -32,9 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -45,6 +42,9 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -59,7 +59,7 @@ public class UsernameValueTypeSupplier extends AbstractPreheatSupplier
     private final UserService userService;
 
     @Override
-    public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
+    public void preheatAdd(TrackerImportParams params, TrackerPreheat preheat )
     {
         List<TrackedEntityAttribute> attributes = preheat.getAll( TrackedEntityAttribute.class );
 

@@ -47,7 +47,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -144,7 +143,7 @@ public class SmsUtils
             {
                 return URLEncoder.encode( value, StandardCharsets.UTF_8.toString() );
             }
-            catch ( UnsupportedEncodingException e )
+            catch( UnsupportedEncodingException e )
             {
                 log.error( "SMS text encoding failed: ", e );
             }

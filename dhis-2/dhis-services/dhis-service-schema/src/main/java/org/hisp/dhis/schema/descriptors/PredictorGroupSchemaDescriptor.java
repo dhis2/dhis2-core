@@ -28,13 +28,12 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Jim Grace
@@ -54,10 +53,8 @@ public class PredictorGroupSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 2002 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTORGROUP_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTORGROUP_DELETE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PREDICTORGROUP_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PREDICTORGROUP_DELETE" ) ) );
 
         return schema;
     }

@@ -60,9 +60,9 @@ public class TypeReport
         this.klass = klass;
     }
 
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
     // Utility Methods
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
 
     public void merge( TypeReport typeReport )
     {
@@ -90,9 +90,9 @@ public class TypeReport
         objectReportMap.get( objectReport.getIndex() ).merge( objectReport );
     }
 
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
     // Getters and Setters
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -115,7 +115,7 @@ public class TypeReport
     {
         return new ArrayList<>( objectReportMap.values() );
     }
-
+    
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )

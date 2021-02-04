@@ -59,7 +59,7 @@ public abstract class DhisTest extends BaseSpringTest
     {
         bindSession();
 
-        TestUtils.executeStartupRoutines( applicationContext );
+        TestUtils.executeStartupRoutines(applicationContext);
 
         boolean enableQueryLogging = dhisConfigurationProvider.getBoolean( ConfigurationKey.ENABLE_QUERY_LOGGING );
 

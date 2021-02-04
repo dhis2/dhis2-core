@@ -50,8 +50,8 @@ public enum TrackerImportStrategy
     PATCH,
 
     /**
-     * Create/import objects that don't match any existing identifiers,
-     * update/import objects that matches existing identifiers.
+     * Create/import objects that don't match any existing identifiers, update/import objects that
+     * matches existing identifiers.
      */
     CREATE_AND_UPDATE,
 

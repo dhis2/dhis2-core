@@ -101,8 +101,7 @@ public class ProgramTempOwnershipAudit implements Serializable
 
         return Objects.equals( this.program, other.program )
             && Objects.equals( this.reason, other.reason ) && Objects.equals( this.created, other.created )
-            && Objects.equals( this.accessedBy, other.accessedBy )
-            && Objects.equals( this.entityInstance, other.entityInstance );
+            && Objects.equals( this.accessedBy, other.accessedBy ) && Objects.equals( this.entityInstance, other.entityInstance );
     }
 
     // -------------------------------------------------------------------------

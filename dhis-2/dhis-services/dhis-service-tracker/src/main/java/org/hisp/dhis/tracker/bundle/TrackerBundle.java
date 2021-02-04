@@ -28,13 +28,11 @@ package org.hisp.dhis.tracker.bundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -44,7 +42,7 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -160,7 +158,7 @@ public class TrackerBundle
     {
         return User.username( user );
     }
-
+    
     public Optional<TrackedEntity> getTrackedEntity( String id )
     {
         return this.trackedEntities.stream().filter( t -> t.getTrackedEntity().equals( id ) ).findFirst();

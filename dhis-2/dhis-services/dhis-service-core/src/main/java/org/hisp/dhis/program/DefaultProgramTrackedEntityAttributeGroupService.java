@@ -28,12 +28,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Viet Nguyen
@@ -48,9 +48,7 @@ public class DefaultProgramTrackedEntityAttributeGroupService
 
     private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public DefaultProgramTrackedEntityAttributeGroupService(
-        @Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
-    {
+    public DefaultProgramTrackedEntityAttributeGroupService(@Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore) {
         this.attributeGroupStore = attributeGroupStore;
     }
 
@@ -82,21 +80,21 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id )
     {
         return attributeGroupStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid )
     {
         return attributeGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups()
     {
         return attributeGroupStore.getAll();

@@ -28,14 +28,8 @@ package org.hisp.dhis.dxf2.events;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.Date;
-import java.util.HashSet;
-
 import org.hamcrest.CoreMatchers;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -63,6 +57,13 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Date;
+import java.util.HashSet;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -92,23 +93,16 @@ public class RegistrationSingleEventServiceTest
     private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
-
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
     private OrganisationUnit organisationUnitA;
-
     private OrganisationUnit organisationUnitB;
-
     private DataElement dataElementA;
-
     private Program programA;
-
     private ProgramStage programStageA;
 
     @Override
@@ -118,8 +112,7 @@ public class RegistrationSingleEventServiceTest
     }
 
     @Override
-    protected void setUpTest()
-        throws Exception
+    protected void setUpTest() throws Exception
     {
         userService = _userService;
 
@@ -179,8 +172,7 @@ public class RegistrationSingleEventServiceTest
     @Test
     public void testSaveWithoutEnrollmentShouldFail()
     {
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
         assertThat( importSummary.getDescription(), CoreMatchers.containsString( "is not enrolled in program" ) );
@@ -189,23 +181,20 @@ public class RegistrationSingleEventServiceTest
     @Test
     public void testSaveWithEnrollmentShouldNotFail()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
-
+    
     @Test
     @Ignore // FIXME luciano -> re-enable after delete has been implemented
     public void testDeleteEventShouldReturnReference()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -222,12 +211,11 @@ public class RegistrationSingleEventServiceTest
         assertEquals( tei.getEnrollments().get( 0 ).getEvents().get( 0 ).getEvent(), importSummary.getReference() );
 
     }
-
+    
     @Test
     public void testDeleteEnrollmentShouldReturnReference()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -244,13 +232,11 @@ public class RegistrationSingleEventServiceTest
     @Ignore
     public void testSavingMultipleEventsShouldOnlyUpdate()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -261,15 +247,13 @@ public class RegistrationSingleEventServiceTest
 
         assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
 
-        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
         assertEquals( 1, eventService.getEvents( params ).getEvents().size() );
 
-        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(),
-            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 

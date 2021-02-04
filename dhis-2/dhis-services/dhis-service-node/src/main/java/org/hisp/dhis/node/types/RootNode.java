@@ -28,10 +28,10 @@ package org.hisp.dhis.node.types;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Objects;
-
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.config.Config;
+
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -28,13 +28,7 @@ package org.hisp.dhis.tracker.programrule.implementers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.google.api.client.util.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.rules.models.*;
@@ -47,7 +41,12 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.springframework.stereotype.Component;
 
-import com.google.api.client.util.Lists;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 /**
  * This implementer check if a field is not empty in the {@link TrackerBundle}
@@ -79,7 +78,7 @@ public class SetMandatoryFieldValidator
     }
 
     @Override
-    // TODO: review this logic. Check with Giuseppe
+        // TODO: review this logic. Check with Giuseppe
     List<ProgramRuleIssue> applyToEnrollments( Map.Entry<String, List<EnrollmentActionRule>> enrollmentActionRules,
         TrackerBundle bundle )
     {

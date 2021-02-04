@@ -28,13 +28,6 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Collections.emptyMap;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -43,6 +36,13 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.program.Program;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static java.util.Collections.emptyMap;
+import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 
 /**
  * @author Luciano Fiandesio

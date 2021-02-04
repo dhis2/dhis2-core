@@ -77,14 +77,13 @@ public interface OutlierDetectionService
         throws IllegalQueryException;
 
     /**
-     * Writes outlier data values for the given request as CSV to the given output
-     * stream.
+     * Writes outlier data values for the given request as CSV
+     * to the given output stream.
      *
      * @param request the {@link OutlierDetectionRequest}.
      * @param out the {@link OutputStream} to write to.
      * @throws IllegalQueryException if request is invalid.
      */
     void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
-        throws IllegalQueryException,
-        IOException;
+        throws IllegalQueryException, IOException;
 }

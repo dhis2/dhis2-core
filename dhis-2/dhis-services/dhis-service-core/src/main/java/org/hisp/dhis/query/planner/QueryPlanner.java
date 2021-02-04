@@ -28,11 +28,11 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Root;
-
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.schema.Schema;
+
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Root;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

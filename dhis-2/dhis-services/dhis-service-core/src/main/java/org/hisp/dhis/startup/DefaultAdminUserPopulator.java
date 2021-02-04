@@ -28,18 +28,17 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Set;
-import java.util.UUID;
-
+import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
-import com.google.common.collect.ImmutableSet;
+import java.util.Set;
+import java.util.UUID;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -81,7 +80,8 @@ public class DefaultAdminUserPopulator
         "F_UNCOMPLETE_EVENT",
         "F_EDIT_EXPIRED",
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
-        "F_TRACKER_IMPORTER_EXPERIMENTAL" );
+        "F_TRACKER_IMPORTER_EXPERIMENTAL"
+    );
 
     private final UserService userService;
 

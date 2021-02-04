@@ -28,13 +28,12 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
-import com.google.common.base.MoreObjects;
+import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

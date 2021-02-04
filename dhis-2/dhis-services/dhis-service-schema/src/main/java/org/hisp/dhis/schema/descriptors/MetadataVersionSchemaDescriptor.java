@@ -28,13 +28,12 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 /**
  * Created by aamerm on 3/14/16.
@@ -54,8 +53,7 @@ public class MetadataVersionSchemaDescriptor
         Schema schema = new Schema( MetadataVersion.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "ALL", "F_METADATA_MANAGE" ) ) );
 
         return schema;
     }

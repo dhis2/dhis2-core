@@ -28,20 +28,19 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.dataelement.DataElement;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Lars Helge Overland
@@ -96,9 +95,9 @@ public class DataSetElement implements EmbeddedObject, Serializable
     // -------------------------------------------------------------------------
 
     /**
-     * Returns the category combination of this data set element, if null, then
-     * returns the category combination of the data element of this data set
-     * element.
+     * Returns the category combination of this data set element, if null,
+     * then returns the category combination of the data element of this data
+     * set element.
      */
     public CategoryCombo getResolvedCategoryCombo()
     {
@@ -202,8 +201,8 @@ public class DataSetElement implements EmbeddedObject, Serializable
 
     /**
      * Category combination of this data set element. Can be null, use
-     * {@link #getResolvedCategoryCombo} to get fall back to category combination of
-     * data element.
+     * {@link #getResolvedCategoryCombo} to get fall back to category
+     * combination of data element.
      */
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )

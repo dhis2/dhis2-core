@@ -28,11 +28,11 @@ package org.hisp.dhis.attribute;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.common.IdentifiableObject;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -61,7 +61,6 @@ public interface AttributeService
 
     /**
      * Invalidate cached attribute
-     *
      * @param attributeUid
      */
     void invalidateCachedAttribute( String attributeUid );
@@ -120,8 +119,7 @@ public interface AttributeService
      *
      * @param attributeValue the attribute value.
      */
-    <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue )
-        throws NonUniqueAttributeValueException;
+    <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException;
 
     /**
      * Deletes an attribute value.

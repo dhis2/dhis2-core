@@ -28,15 +28,15 @@ package org.hisp.dhis.system.objectmapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.quick.mapper.RowMapper;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 /**
  * @author Lars Helge Overland
@@ -50,7 +50,7 @@ public class DataValueRowMapper
         throws SQLException
     {
         final DataValue dataValue = new DataValue();
-
+        
         dataValue.setDataElement( new DataElement() );
         dataValue.setCategoryOptionCombo( new CategoryOptionCombo() );
         dataValue.setAttributeOptionCombo( new CategoryOptionCombo() );

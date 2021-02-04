@@ -33,12 +33,12 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import lombok.experimental.UtilityClass;
-
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.util.DateUtils;
+
+import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class NoteHelper

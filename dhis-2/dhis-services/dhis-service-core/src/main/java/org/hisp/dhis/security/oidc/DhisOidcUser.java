@@ -28,13 +28,13 @@ package org.hisp.dhis.security.oidc;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+
+import java.util.Map;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

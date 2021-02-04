@@ -28,12 +28,12 @@ package org.hisp.dhis.system.grid;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import java.nio.charset.StandardCharsets;
+
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.collect.Lists;
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -43,7 +43,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -54,11 +54,10 @@ public class GridUtilsTest
     public void testFromHtml()
         throws Exception
     {
-        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(),
-            StandardCharsets.UTF_8 );
-
+        String html = IOUtils.toString( new ClassPathResource( "customform.html" ).getInputStream(), StandardCharsets.UTF_8 );
+        
         List<Grid> grids = GridUtils.fromHtml( html, "TitleA" );
-
+        
         assertNotNull( grids );
         assertEquals( 6, grids.size() );
         assertEquals( "TitleA", grids.get( 0 ).getTitle() );
@@ -76,11 +75,11 @@ public class GridUtilsTest
         Period period3 = PeriodType.getPeriodFromIsoString( "202012" );
         period3.setUid( CodeGenerator.generateUid() );
 
-        List<DimensionalItemObject> periods = Lists.newArrayList( period1, period2, period3 );
+        List<DimensionalItemObject> periods = Lists.newArrayList( period1, period2, period3);
 
         List<Object> row = new ArrayList<>( 3 );
         row.add( CodeGenerator.generateUid() ); // dimension
-        row.add( period2.getIsoDate() ); // period
+        row.add( period2.getIsoDate()); // period
         row.add( 10.22D ); // value
         assertEquals( 1, GridUtils.getGridIndexByDimensionItem( row, periods, 2 ) );
 
@@ -90,6 +89,8 @@ public class GridUtilsTest
         row2.add( 10.22D ); // value
         assertEquals( 2, GridUtils.getGridIndexByDimensionItem( row2, periods, 2 ) );
 
+
     }
+
 
 }

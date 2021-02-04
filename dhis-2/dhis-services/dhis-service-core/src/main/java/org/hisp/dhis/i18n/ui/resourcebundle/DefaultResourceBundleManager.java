@@ -28,6 +28,13 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.comparator.LocaleNameComparator;
+import org.hisp.dhis.i18n.locale.LocaleManager;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.commons.util.PathUtils;
+
 import java.io.File;
 import java.io.IOException;
 import java.net.JarURLConnection;
@@ -47,12 +54,6 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.common.comparator.LocaleNameComparator;
-import org.hisp.dhis.commons.util.PathUtils;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-
 /**
  * @author Torgeir Lorange Ostby
  * @author Pham Thi Thuy
@@ -63,9 +64,7 @@ public class DefaultResourceBundleManager
     implements ResourceBundleManager
 {
     private static final String EXT_RESOURCE_BUNDLE = ".properties";
-
     private static final String GLOBAL_RESOURCE_BUNDLE_NAME = "i18n_global";
-
     private static final String SPECIFIC_RESOURCE_BUNDLE_NAME = "i18n_module";
 
     // -------------------------------------------------------------------------
@@ -203,9 +202,8 @@ public class DefaultResourceBundleManager
     }
 
     /**
-     * Retrieves a {@link Locale} from the given resource bundle name. The resource
-     * bundle naming follows the Java locale format:
-     *
+     * Retrieves a {@link Locale} from the given resource bundle name. The
+     * resource bundle naming follows the Java locale format:
      * <pre>
      * [2-3 letter language]_[2 letter country/region]_[variant]
      * </pre>

@@ -34,16 +34,14 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Interface represents DHIS2 objects equivalent to rule engine objects.
- *
  * @author Zubair Asghar
  */
 
 @JsonInclude( JsonInclude.Include.NON_NULL )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( {
-    @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
-    @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
-    @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
+@JsonSubTypes( { @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
+        @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
 public interface TrackerRuleEngineSideEffect
 {
     String getData();

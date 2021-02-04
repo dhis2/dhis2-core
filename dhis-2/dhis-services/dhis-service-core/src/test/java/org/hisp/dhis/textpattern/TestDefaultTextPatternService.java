@@ -28,22 +28,21 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import com.google.common.collect.ImmutableMap;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.google.common.collect.ImmutableMap;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 @RunWith( MockitoJUnitRunner.class )
 public class TestDefaultTextPatternService
@@ -67,7 +66,7 @@ public class TestDefaultTextPatternService
 
         pattern = new TextPattern( segments );
 
-        values = ImmutableMap.<String, String> builder()
+        values = ImmutableMap.<String, String>builder()
             .put( "ORG_UNIT_CODE", "OSLO" )
             .put( "SEQUENTIAL", "1" )
             .build();

@@ -28,25 +28,20 @@ package org.hisp.dhis.dxf2.metadata.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface CollectionService
 {
-    void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
-        throws Exception;
+    void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception;
 
-    void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
-        throws Exception;
+    void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception;
 
-    void clearCollectionItems( IdentifiableObject object, String pvProperty )
-        throws WebMessageException,
-        InvocationTargetException,
-        IllegalAccessException;
+    void clearCollectionItems( IdentifiableObject object, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException;
 }

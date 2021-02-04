@@ -28,13 +28,13 @@ package org.hisp.dhis.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.sharing.Sharing;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class SharingUtils
 {
@@ -44,7 +44,7 @@ public class SharingUtils
             .stream().map( uag -> uag.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();
     }
 
-    public static final Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
+    public static final  Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
     {
         return sharing.hasUserAccesses() ? sharing.getUsers().values()
             .stream().map( ua -> ua.toDtoObject() ).collect( Collectors.toSet() ) : new HashSet<>();

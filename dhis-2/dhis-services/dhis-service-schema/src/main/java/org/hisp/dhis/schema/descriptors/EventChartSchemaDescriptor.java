@@ -28,13 +28,12 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
 
 public class EventChartSchemaDescriptor
     implements SchemaDescriptor
@@ -53,10 +52,8 @@ public class EventChartSchemaDescriptor
         schema.setOrder( 1540 );
         schema.setImplicitPrivateAuthority( true );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EVENTCHART_PUBLIC_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_EVENTCHART_EXTERNAL" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE_PUBLIC, Lists.newArrayList( "F_EVENTCHART_PUBLIC_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.EXTERNALIZE, Lists.newArrayList( "F_EVENTCHART_EXTERNAL" ) ) );
 
         return schema;
     }

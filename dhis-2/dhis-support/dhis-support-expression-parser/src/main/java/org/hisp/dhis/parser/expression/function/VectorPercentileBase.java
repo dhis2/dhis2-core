@@ -28,12 +28,12 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile.EstimationType;
+
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Vector function: percentile (base class)

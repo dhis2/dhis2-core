@@ -28,27 +28,25 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
 public class Document
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
-     * Can be either a valid URL, or the path (filename) of a file. If the external
-     * property is true, this should be an URL. If the external property is false,
-     * this should be the filename
+     * Can be either a valid URL, or the path (filename) of a file.
+     * If the external property is true, this should be an URL.
+     * If the external property is false, this should be the filename
      */
     private String url;
 
@@ -70,8 +68,8 @@ public class Document
     private String contentType;
 
     /**
-     * Flags whether the file should be displayed in-browser or downloaded. true
-     * should trigger a download of the file when accessing the document data
+     * Flags whether the file should be displayed in-browser or downloaded.
+     * true should trigger a download of the file when accessing the document data
      */
     private Boolean attachment = false;
 

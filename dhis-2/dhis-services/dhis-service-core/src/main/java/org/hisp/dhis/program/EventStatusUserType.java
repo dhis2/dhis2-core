@@ -37,8 +37,8 @@ import org.hisp.dhis.hibernate.EnumUserType;
 public class EventStatusUserType
     extends EnumUserType<EventStatus>
 {
-    public EventStatusUserType()
-    {
-        super( EventStatus.class );
-    }
+  public  EventStatusUserType()
+  {
+      super(  EventStatus.class );
+  }
 }

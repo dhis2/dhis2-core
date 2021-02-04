@@ -28,11 +28,11 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.attribute.AttributeValue;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
-import org.hisp.dhis.attribute.AttributeValue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

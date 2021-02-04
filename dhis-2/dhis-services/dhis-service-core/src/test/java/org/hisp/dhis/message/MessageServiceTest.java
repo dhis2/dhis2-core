@@ -28,13 +28,7 @@ package org.hisp.dhis.message;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -42,7 +36,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -58,10 +57,9 @@ public class MessageServiceTest
     private UserService _userService;
 
     private User sender;
-
     private User userA;
-
     private User userB;
+
 
     private Set<User> users;
 
@@ -115,23 +113,23 @@ public class MessageServiceTest
     public void testSaveMessageB()
     {
         MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
-
+        
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
-
+        
         conversation.addUserMessage( userMessageA );
         conversation.addUserMessage( userMessageB );
-
+        
         Message contentA = new Message( "TextA", "MetaA", sender );
-        Message contentB = new Message( "TextB", "MetaB", sender );
-
+        Message contentB = new Message( "TextB", "MetaB", sender);
+        
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
-
+        
         long id = messageService.saveMessageConversation( conversation );
-
+        
         conversation = messageService.getMessageConversation( id );
-
+        
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 2, conversation.getUserMessages().size() );
@@ -146,25 +144,25 @@ public class MessageServiceTest
     public void testDeleteMessage()
     {
         MessageConversation conversation = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
-
+        
         UserMessage userMessageA = new UserMessage( userA );
         UserMessage userMessageB = new UserMessage( userB );
-
+        
         conversation.addUserMessage( userMessageA );
         conversation.addUserMessage( userMessageB );
-
+        
         Message contentA = new Message( "TextA", "MetaA", sender );
-        Message contentB = new Message( "TextB", "MetaB", sender );
-
+        Message contentB = new Message( "TextB", "MetaB", sender);
+        
         conversation.addMessage( contentA );
         conversation.addMessage( contentB );
-
+        
         long id = messageService.saveMessageConversation( conversation );
-
+        
         conversation = messageService.getMessageConversation( id );
-
+        
         assertNotNull( conversation );
-
+        
         messageService.deleteMessages( userA );
         messageService.deleteMessages( userB );
         messageService.deleteMessages( sender );
@@ -174,43 +172,43 @@ public class MessageServiceTest
     public void testSendMessage()
     {
         long id = messageService.sendPrivateMessage( users, "Subject", "Text", "Meta", null );
-
+        
         MessageConversation conversation = messageService.getMessageConversation( id );
-
+        
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 2, conversation.getUserMessages().size() );
         assertEquals( 1, conversation.getMessages().size() );
         assertTrue( conversation.getMessages().iterator().next().getText().equals( "Text" ) );
     }
-
+    
     @Test
     public void testSendFeedback()
     {
         long id = messageService.sendTicketMessage( "Subject", "Text", "Meta" );
-
+        
         MessageConversation conversation = messageService.getMessageConversation( id );
-
+        
         assertNotNull( conversation );
         assertEquals( "Subject", conversation.getSubject() );
         assertEquals( 1, conversation.getMessages().size() );
         assertTrue( conversation.getMessages().iterator().next().getText().equals( "Text" ) );
     }
-
+    
     @Test
     public void testSendReply()
     {
         MessageConversation message = new MessageConversation( "Subject", sender, MessageType.PRIVATE );
-        message.addMessage( new Message( "TextA", "MetaA", sender ) );
+        message.addMessage( new Message( "TextA", "MetaA", sender) );
         long id = messageService.saveMessageConversation( message );
-
+        
         messageService.sendReply( message, "TextB", "MetaB", false, null );
-
+        
         message = messageService.getMessageConversation( id );
-
+        
         assertNotNull( message );
         assertEquals( "Subject", message.getSubject() );
-        assertEquals( 2, message.getMessages().size() );
+        assertEquals( 2, message.getMessages().size() );       
     }
 
     @Test

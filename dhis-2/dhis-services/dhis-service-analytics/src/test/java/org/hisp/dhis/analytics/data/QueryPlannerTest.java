@@ -121,69 +121,45 @@ public class QueryPlannerTest
     // -------------------------------------------------------------------------
 
     private PeriodType monthly = new MonthlyPeriodType();
-
     private PeriodType yearly = new YearlyPeriodType();
 
     private IndicatorType itA;
-
     private Indicator inA;
-
     private Indicator inB;
 
     private Program prA;
 
     private DataElement deA;
-
     private DataElement deB;
-
     private DataElement deC;
-
     private DataElement deD;
-
     private DataElement deE;
-
     private DataElement deF;
-
     private DataElement deG;
-
     private DataElement deH;
-
     private DataElement deI;
-
     private DataElement deJ;
-
     private DataElement deK;
 
     private ReportingRate rrA;
-
     private ReportingRate rrB;
-
     private ReportingRate rrC;
-
     private ReportingRate rrD;
 
     private CategoryCombo cc;
-
     private CategoryOptionCombo coc;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
-
     private OrganisationUnit ouC;
-
     private OrganisationUnit ouD;
-
     private OrganisationUnit ouE;
 
     private DataElementGroup degA;
-
     private DataElementGroup degB;
-
     private DataElementGroup degC;
 
     private DataElementGroupSet dgsA;
-
     private DataElementGroupSet dgsB;
 
     @Override
@@ -363,16 +339,16 @@ public class QueryPlannerTest
         ouAQ1Expected.add( new DimensionItemObjectValue( deB, 5d ) );
 
         List<DimensionItemObjectValue> ouAQ2Expected = new ArrayList<>();
-        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ) );
-        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ) );
+        ouAQ2Expected.add( new DimensionItemObjectValue( deA, 2d ));
+        ouAQ2Expected.add( new DimensionItemObjectValue( deB, 6d ));
 
         List<DimensionItemObjectValue> ouBQ1Expected = new ArrayList<>();
-        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ) );
-        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ) );
+        ouBQ1Expected.add( new DimensionItemObjectValue( deA, 3d ));
+        ouBQ1Expected.add( new DimensionItemObjectValue( deB, 7d ));
 
         List<DimensionItemObjectValue> ouBQ2Expected = new ArrayList<>();
-        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ) );
-        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ) );
+        ouBQ2Expected.add( new DimensionItemObjectValue( deA, 4d ));
+        ouBQ2Expected.add( new DimensionItemObjectValue( deB, 8d ));
 
         assertCollectionsMatch( ouAQ1Expected, ouAQ1 );
         assertCollectionsMatch( ouAQ2Expected, ouAQ2 );
@@ -385,25 +361,16 @@ public class QueryPlannerTest
     {
         MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
 
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101",
-            new DimensionItemObjectValue( deA, 1d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102",
-            new DimensionItemObjectValue( deA, 2d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101",
-            new DimensionItemObjectValue( deA, 3d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102",
-            new DimensionItemObjectValue( deA, 4d ) );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101",
-            new DimensionItemObjectValue( deB, 5d ) );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102",
-            new DimensionItemObjectValue( deB, 6d ) );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101",
-            new DimensionItemObjectValue( deB, 7d ) );
-        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102",
-            new DimensionItemObjectValue( deB, 8d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deA, 1d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deA, 2d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deA, 3d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deA, 4d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deB, 5d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deB, 6d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200101", new DimensionItemObjectValue( deB, 7d ) );
+        aggregatedDataMap.put( deB.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "200102", new DimensionItemObjectValue( deB, 8d ) );
 
-        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams
-            .getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -421,6 +388,7 @@ public class QueryPlannerTest
         assertEquals( 2, ouAM2.size() );
         assertEquals( 2, ouBM1.size() );
         assertEquals( 2, ouBM2.size() );
+
 
         List<DimensionItemObjectValue> ouAM1Expected = new ArrayList<>();
         ouAM1Expected.add( new DimensionItemObjectValue( deA, 1d ) );
@@ -449,22 +417,17 @@ public class QueryPlannerTest
     {
         MultiValuedMap<String, DimensionItemObjectValue> aggregatedDataMap = new ArrayListValuedHashMap<>();
 
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1",
-            new DimensionItemObjectValue( deA, 1d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2",
-            new DimensionItemObjectValue( deA, 2d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1",
-            new DimensionItemObjectValue( deA, 3d ) );
-        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2",
-            new DimensionItemObjectValue( deA, 4d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q1", new DimensionItemObjectValue( deA, 1d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouA.getUid() + DIMENSION_SEP + "2000Q2", new DimensionItemObjectValue( deA, 2d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q1", new DimensionItemObjectValue( deA, 3d ) );
+        aggregatedDataMap.put( deA.getUid() + DIMENSION_SEP + ouB.getUid() + DIMENSION_SEP + "2000Q2", new DimensionItemObjectValue( deA, 4d ) );
 
-        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q1" ), new DimensionItemObjectValue( deB, 5d ) );
-        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q2" ), new DimensionItemObjectValue( deB, 6d ) );
-        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q1" ), new DimensionItemObjectValue( deB, 7d ) );
-        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q2" ), new DimensionItemObjectValue( deB, 8d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q1"), new DimensionItemObjectValue( deB, 5d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouA, "2000Q2"), new DimensionItemObjectValue( deB, 6d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q1"), new DimensionItemObjectValue( deB, 7d ) );
+        aggregatedDataMap.put( makeKey( deB, coc, ouB, "2000Q2"), new DimensionItemObjectValue( deB, 8d ) );
 
-        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams
-            .getPermutationDimensionalItemValueMap( aggregatedDataMap );
+        Map<String, List<DimensionItemObjectValue>> permutationMap = DataQueryParams.getPermutationDimensionalItemValueMap( aggregatedDataMap );
 
         assertNotNull( permutationMap );
 
@@ -506,8 +469,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Ignores data element dimension and generates 2 x 3 = 6 combinations based on
-     * organisation unit and period dimensions.
+     * Ignores data element dimension and generates 2 x 3 = 6 combinations based
+     * on organisation unit and period dimensions.
      */
     @Test
     public void testGetDimensionOptionPermutations()
@@ -537,8 +500,7 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
+            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
             .withPeriodType( QuarterlyPeriodType.NAME )
             .withDataPeriodType( new YearlyPeriodType() ).build();
 
@@ -562,9 +524,9 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans two period types and two aggregation types. Splits in 2 queries
-     * for each period type, then splits in 4 queries on data elements to satisfy
-     * optimal of 4 queries per query group.
+     * Query spans two period types and two aggregation types. Splits in 2 queries for
+     * each period type, then splits in 4 queries on data elements to satisfy optimal of
+     * 4 queries per query group.
      */
     @Test
     public void planQueryA()
@@ -572,12 +534,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ),
-                createPeriod( "200107" ), createPeriod( "2002Q3" ), createPeriod( "2002Q4" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ), createPeriod( "200105" ), createPeriod( "200107" ), createPeriod( "2002Q3" ), createPeriod( "2002Q4" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -594,8 +554,8 @@ public class QueryPlannerTest
 
     /**
      * Query spans 3 period types. Splits in 3 queries for each period type, then
-     * splits in 2 queries on organisation units to satisfy optimal for a total of 6
-     * queries.
+     * splits in 2 queries on organisation units to satisfy optimal for a total
+     * of 6 queries.
      */
     @Test
     public void planQueryB()
@@ -603,12 +563,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
-                createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -648,11 +606,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -668,8 +625,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits
-     * one query on 3 days in period to satisfy optimal for a total of 4 queries.
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
+     * query on 3 days in period to satisfy optimal for a total of 4 queries.
      */
     @Test
     public void planQueryD()
@@ -677,14 +634,11 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC ) )
             .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ),
-                createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ),
-                createPeriod( "200009" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ),
+            createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -700,8 +654,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits
-     * one query on 3 days in period to satisfy optimal for a total of 4 queries. No
+     * Query spans 2 aggregation types. Splits on 2 aggregation types, then splits one
+     * query on 3 days in period to satisfy optimal for a total of 4 queries. No
      * organisation units specified.
      */
     @Test
@@ -709,14 +663,11 @@ public class QueryPlannerTest
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ),
-                createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ),
-                createPeriod( "200009" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ),
+            createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -740,14 +691,11 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ),
-                createPeriod( "200004" ),
-                createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ),
-                createPeriod( "200009" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "200001" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ),
+            createPeriod( "200005" ), createPeriod( "200006" ), createPeriod( "200007" ), createPeriod( "200008" ), createPeriod( "200009" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -772,15 +720,15 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB, deC ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
 
     /**
-     * Splits in 4 queries on data elements, then 2 queries on organisation units to
-     * satisfy optimal for a total of 8 queries.
+     * Splits in 4 queries on data elements, then 2 queries on organisation units
+     * to satisfy optimal for a total of 8 queries.
      */
     @Test
     public void planQueryH()
@@ -788,12 +736,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withFilterPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .build();
+            .withFilterPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -819,12 +765,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB, deE, deF ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ),
-                createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000" ), createPeriod( "200002" ), createPeriod( "200003" ), createPeriod( "200004" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 6 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 6 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -849,14 +793,15 @@ public class QueryPlannerTest
             .withDataElements( getList( deA, deB, deC, deD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
 
     /**
-     * Splits in 4 queries on data sets to satisfy optimal for a total of 4 queries.
+     * Splits in 4 queries on data sets to satisfy optimal for a total
+     * of 4 queries.
      */
     @Test
     public void planQueryK()
@@ -864,12 +809,10 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withReportingRates( getList( rrA, rrB, rrC, rrD ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) )
-            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ),
-                createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "2000Q1" ), createPeriod( "2000Q2" ), createPeriod( "2000Q3" ), createPeriod( "2000Q4" ), createPeriod( "2001Q1" ), createPeriod( "2001Q2" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -885,9 +828,9 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 2 queries for each data type, then 2 queries for each data element,
-     * then 2 queries for each organisation unit to satisfy optimal for a total of 8
-     * queries with 4 queries across 2 sequential queries.
+     * Splits in 2 queries for each data type, then 2 queries for each
+     * data element, then 2 queries for each organisation unit to satisfy optimal
+     * for a total of 8 queries with 4 queries across 2 sequential queries.
      */
     @Test
     public void planQueryL()
@@ -897,8 +840,8 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .withFilterPeriods( getList( createPeriod( "2000Q1" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -914,8 +857,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for data elements to satisfy optimal for a total of 4
-     * queries.
+     * Splits in 4 queries for data elements to satisfy optimal for a total of
+     * 4 queries.
      */
     @Test
     public void planQueryM()
@@ -925,8 +868,8 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA ) )
             .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200103" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -968,7 +911,8 @@ public class QueryPlannerTest
         planQueryForFirstOrLastAggregationType( AnalyticsAggregationType.LAST_IN_PERIOD );
     }
 
-    private void planQueryForFirstOrLastAggregationType( AnalyticsAggregationType analyticsAggregationType )
+
+    private void planQueryForFirstOrLastAggregationType(AnalyticsAggregationType analyticsAggregationType)
     {
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA ) )
@@ -980,8 +924,8 @@ public class QueryPlannerTest
                 createPeriod( "200104" ) ) )
             .withAggregationType( analyticsAggregationType ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -993,14 +937,13 @@ public class QueryPlannerTest
         {
             assertEquals( 1, query.getPeriods().size() );
             assertNotNull( query.getDimension( PERIOD_DIM_ID ) );
-            assertEquals( MonthlyPeriodType.NAME.toLowerCase(),
-                query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
+            assertEquals( MonthlyPeriodType.NAME.toLowerCase(), query.getDimension( PERIOD_DIM_ID ).getDimensionName() );
         }
     }
 
     /**
-     * No data dimension items or data element group set dimension items specified,
-     * illegal query.
+     * No data dimension items or data element group set dimension items
+     * specified, illegal query.
      */
     @Test( expected = IllegalQueryException.class )
     public void planQueryNoDataItems()
@@ -1009,15 +952,15 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ) ) )
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD, ouE ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         queryPlanner.planQuery( params, plannerParams );
     }
 
     /**
-     * Splits in 4 queries for each period to satisfy optimal for a total of 4
-     * queries, because all queries have different periods.
+     * Splits in 4 queries for each period to satisfy optimal for a total
+     * of 4 queries, because all queries have different periods.
      */
     @Test
     public void planQueryStartEndDateRestrictionQueryGrouperA()
@@ -1025,15 +968,15 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
-            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ),
-                createPeriod( "200104" ) ) )
-            .build();
+            .withPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) ).build();
 
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
         queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).withQueryGroupers( queryGroupers ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).
+            withTableType( ANALYTICS_TABLE_TYPE ).
+            withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1059,8 +1002,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Splits in 4 queries for each period to satisfy optimal for a total of 4
-     * queries, because all queries have different periods.
+     * Splits in 4 queries for each period to satisfy optimal for a total
+     * of 4 queries, because all queries have different periods.
      */
     @Test
     public void planQueryStartEndDateRestrictionQueryGrouperB()
@@ -1068,15 +1011,15 @@ public class QueryPlannerTest
         DataQueryParams params = DataQueryParams.newBuilder()
             .withDataElements( getList( deA, deB ) )
             .withOrganisationUnits( getList( ouA ) )
-            .withFilterPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ),
-                createPeriod( "200104" ) ) )
-            .build();
+            .withFilterPeriods( getList( createPeriod( "200101" ), createPeriod( "200102" ), createPeriod( "200103" ), createPeriod( "200104" ) ) ).build();
 
         List<Function<DataQueryParams, List<DataQueryParams>>> queryGroupers = Lists.newArrayList();
         queryGroupers.add( q -> queryPlanner.groupByStartEndDateRestriction( q ) );
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).withQueryGroupers( queryGroupers ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).
+            withTableType( ANALYTICS_TABLE_TYPE ).
+            withQueryGroupers( queryGroupers ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1100,8 +1043,8 @@ public class QueryPlannerTest
 
     /**
      * Split on two data elements. Set aggregation type average and value type
-     * integer on query. Convert aggregation type from data elements to average and
-     * then to average integer.
+     * integer on query. Convert aggregation type from data elements to average
+     * and then to average integer.
      */
     @Test
     public void planQueryAggregationTypeA()
@@ -1115,8 +1058,8 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1132,8 +1075,8 @@ public class QueryPlannerTest
 
     /**
      * Split on two data elements. Set aggregation type average and value type
-     * boolean on query. Convert aggregation type from data elements to average and
-     * then to average boolean.
+     * boolean on query. Convert aggregation type from data elements to average
+     * and then to average boolean.
      */
     @Test
     public void planQueryAggregationTypeB()
@@ -1147,8 +1090,8 @@ public class QueryPlannerTest
             .withPeriods( getList( createPeriod( "200101" ) ) )
             .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1163,8 +1106,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query is type disaggregation as aggregation period type for periods is
-     * monthly and data elements period type is yearly. Split on two data elements.
+     * Query is type disaggregation as aggregation period type for periods is monthly
+     * and data elements period type is yearly. Split on two data elements.
      */
     @Test
     public void planQueryDataElementDisaggregation()
@@ -1174,8 +1117,8 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB, ouC, ouD ) )
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1194,9 +1137,8 @@ public class QueryPlannerTest
     }
 
     /**
-     * Query is type disaggregation as aggregation period type for periods is
-     * monthly and data element groups period type is yearly. Split on two org
-     * units.
+     * Query is type disaggregation as aggregation period type for periods is monthly
+     * and data element groups period type is yearly. Split on two org units.
      */
     @Test
     public void planQueryDataElementGroupSetDisaggregation()
@@ -1206,8 +1148,8 @@ public class QueryPlannerTest
             .withOrganisationUnits( getList( ouA, ouB ) )
             .withPeriods( getList( createPeriod( "201001" ), createPeriod( "201003" ) ) ).build();
 
-        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().withOptimalQueries( 4 )
-            .withTableType( ANALYTICS_TABLE_TYPE ).build();
+        QueryPlannerParams plannerParams = QueryPlannerParams.newBuilder().
+            withOptimalQueries( 4 ).withTableType( ANALYTICS_TABLE_TYPE ).build();
 
         DataQueryGroups queryGroups = queryPlanner.planQuery( params, plannerParams );
 
@@ -1285,11 +1227,10 @@ public class QueryPlannerTest
         }
     }
 
-    private void assertCollectionsMatch( List<DimensionItemObjectValue> collection,
-        final List<DimensionItemObjectValue> in )
+    private void assertCollectionsMatch(List<DimensionItemObjectValue> collection, final List<DimensionItemObjectValue> in )
     {
         Function<String, Double> findValueByUid = ( String uid ) -> in.stream()
-            .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
+                .filter( v -> v.getDimensionalItemObject().getUid().equals( uid ) ).findFirst().get().getValue();
 
         for ( DimensionItemObjectValue dimensionItemObjectValue : collection )
         {

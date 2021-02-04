@@ -28,13 +28,12 @@ package org.hisp.dhis.trackedentityfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
 import org.hisp.dhis.program.Program;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -44,13 +43,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityInstanceFilterService
     implements TrackedEntityInstanceFilterService
 {
-
+    
     private final TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
 
     public DefaultTrackedEntityInstanceFilterService(
         TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore )
     {
-        checkNotNull( trackedEntityInstanceFilterStore );
+        checkNotNull(trackedEntityInstanceFilterStore);
 
         this.trackedEntityInstanceFilterStore = trackedEntityInstanceFilterStore;
     }
@@ -58,15 +57,15 @@ public class DefaultTrackedEntityInstanceFilterService
     // -------------------------------------------------------------------------
     // TrackedEntityInstanceFilterService implementation
     // -------------------------------------------------------------------------
-
+    
     @Override
     @Transactional
     public long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
-    {
+    {        
         trackedEntityInstanceFilterStore.save( trackedEntityInstanceFilter );
         return trackedEntityInstanceFilter.getId();
     }
-
+    
     @Override
     @Transactional
     public void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
@@ -80,23 +79,23 @@ public class DefaultTrackedEntityInstanceFilterService
     {
         trackedEntityInstanceFilterStore.update( trackedEntityInstanceFilter );
     }
-
+    
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public TrackedEntityInstanceFilter get( long id )
     {
         return trackedEntityInstanceFilterStore.get( id );
     }
-
+    
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceFilter> getAll()
     {
         return trackedEntityInstanceFilterStore.getAll();
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<TrackedEntityInstanceFilter> get( Program program )
     {
         return trackedEntityInstanceFilterStore.get( program );

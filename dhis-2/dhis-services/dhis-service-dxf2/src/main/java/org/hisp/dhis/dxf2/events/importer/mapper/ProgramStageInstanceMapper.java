@@ -60,7 +60,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         super( ctx );
         noteMapper = new ProgramStageInstanceNoteMapper( ctx );
     }
-
+    
     @Override
     public ProgramStageInstance map( Event event )
     {
@@ -141,7 +141,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
 
         // Program Stage
         psi.setProgramStage( this.workContext.getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
-            event.getProgramStage() ) );
+                event.getProgramStage() ) );
 
         // Org Unit
         psi.setOrganisationUnit( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );

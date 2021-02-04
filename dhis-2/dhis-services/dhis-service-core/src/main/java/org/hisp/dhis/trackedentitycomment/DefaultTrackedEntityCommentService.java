@@ -74,7 +74,7 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean trackedEntityCommentExists( String uid )
     {
         return commentStore.exists( uid );
@@ -88,7 +88,7 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public TrackedEntityComment getTrackedEntityComment( long id )
     {
         return commentStore.get( id );

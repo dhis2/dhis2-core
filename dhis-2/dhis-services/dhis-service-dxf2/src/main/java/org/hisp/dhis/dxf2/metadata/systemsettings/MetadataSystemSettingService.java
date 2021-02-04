@@ -48,7 +48,7 @@ public interface MetadataSystemSettingService
 
     String getEntireVersionHistory();
 
-    void setSystemMetadataVersion( String versionName );
+    void setSystemMetadataVersion(String versionName);
 
     String getSystemMetadataVersion();
 

@@ -39,6 +39,5 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "programMessageCatagory", namespace = DxfNamespaces.DXF_2_0 )
 public enum ProgramMessageCategory
 {
-    INCOMING,
-    OUTGOING
+    INCOMING, OUTGOING
 }

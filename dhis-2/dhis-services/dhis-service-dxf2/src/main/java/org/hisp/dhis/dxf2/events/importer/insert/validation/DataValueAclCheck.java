@@ -49,7 +49,7 @@ import org.hisp.dhis.user.User;
 public class DataValueAclCheck implements Checker
 {
     @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
     {
         final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
@@ -62,7 +62,7 @@ public class DataValueAclCheck implements Checker
         // Note that here we are passing a ProgramStageInstance, which during a INSERT
         // operation
         // is going to be null, so the ACL method will not be able to check that
-        final Set<EventDataValue> dataValues = eventDataValueMap.get( event.getUid() );
+        final Set<EventDataValue> dataValues = eventDataValueMap.get(event.getUid());
 
         for ( EventDataValue dataValue : dataValues )
         {

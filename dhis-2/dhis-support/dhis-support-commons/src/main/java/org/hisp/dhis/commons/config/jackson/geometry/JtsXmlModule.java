@@ -28,13 +28,12 @@ package org.hisp.dhis.commons.config.jackson.geometry;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
 /**
  * @author Enrico Colasante
@@ -47,7 +46,7 @@ public class JtsXmlModule
         this( new GeometryFactory() );
     }
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    @SuppressWarnings({"rawtypes","unchecked"})
     public JtsXmlModule( GeometryFactory geometryFactory )
     {
         super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );

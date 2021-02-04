@@ -105,8 +105,7 @@ public class FileResourceCleanUpJobTest
     @Test
     public void testNoRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
-            FileResourceRetentionStrategy.NONE );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.NONE );
 
         content = "filecontentA".getBytes();
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -122,8 +121,7 @@ public class FileResourceCleanUpJobTest
     @Test
     public void testRetention()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
-            FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "filecontentA".getBytes( StandardCharsets.UTF_8 );
         dataValueA = createFileResourceDataValue( 'A', content );
@@ -142,12 +140,12 @@ public class FileResourceCleanUpJobTest
         dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 )
             .setCreated( getDate( 2000, 1, 1 ) );
 
+
         cleanUpJob.execute( null );
 
         assertNotNull( fileResourceService.getFileResource( dataValueA.getValue() ) );
         assertTrue( fileResourceService.getFileResource( dataValueA.getValue() ).isAssigned() );
-        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(),
-            dataValueA.getSource(), null ) );
+        assertNull( dataValueService.getDataValue( dataValueA.getDataElement(), dataValueA.getPeriod(), dataValueA.getSource(), null ) );
         assertNull( fileResourceService.getFileResource( dataValueB.getValue() ) );
     }
 
@@ -155,8 +153,7 @@ public class FileResourceCleanUpJobTest
     @Ignore
     public void testFalsePositive()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
-            FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );
@@ -176,8 +173,7 @@ public class FileResourceCleanUpJobTest
     @Ignore
     public void testFailedUpload()
     {
-        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY,
-            FileResourceRetentionStrategy.THREE_MONTHS );
+        systemSettingManager.saveSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY, FileResourceRetentionStrategy.THREE_MONTHS );
 
         content = "externalA".getBytes();
         ExternalFileResource ex = createExternal( 'A', content );

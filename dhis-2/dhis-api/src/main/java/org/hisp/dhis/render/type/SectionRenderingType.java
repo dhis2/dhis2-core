@@ -29,8 +29,7 @@ package org.hisp.dhis.render.type;
  */
 
 /**
- * This class represents the different ways to render a Section (ProgramSection,
- * ProgramStageSection)
+ * This class represents the different ways to render a Section (ProgramSection, ProgramStageSection)
  */
 public enum SectionRenderingType
 {

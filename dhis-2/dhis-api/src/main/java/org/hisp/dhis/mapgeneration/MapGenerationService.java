@@ -28,41 +28,41 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.awt.image.BufferedImage;
-import java.util.Date;
-
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.mapping.MapView;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
 
+import java.awt.image.BufferedImage;
+import java.util.Date;
+
 /**
  * The MapGenerationService interface generates map images from Map objects.
- *
+ * 
  * Map objects may be built by adding layers to them, and once passed to
  * generateMapImage it will render an image representing the map according to
  * the properties defined by Map and MapView.
- *
+ * 
  * TODO Extend with more configuration options, e.g. width
- *
+ * 
  * @author Kenneth Solbø Andersen <kennetsa@ifi.uio.no>
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public interface MapGenerationService
 {
     String ID = MapGenerationService.class.getName();
-
+    
     /**
      * Generate an image that represents this map.
-     *
+     * 
      * @param mapView the map view that will be rendered,
      * @return the rendered map image or null if there is no data for the map view.
      */
     BufferedImage generateMapImage( MapView mapView );
-
+    
     /**
      * Generate an image that represents this map.
-     *
+     * 
      * @param map the map that will be rendered,
      * @return the rendered map image or null if there is no data for the map view.
      */
@@ -70,7 +70,7 @@ public interface MapGenerationService
 
     /**
      * Generate an image that represents this map.
-     *
+     * 
      * @param map the map that will be rendered.
      * @param date the date for relative periods.
      * @param unit the organisation unit.
@@ -80,6 +80,5 @@ public interface MapGenerationService
      */
     BufferedImage generateMapImage( Map map, Date date, OrganisationUnit unit, Integer width, Integer height );
 
-    BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width, Integer height,
-        User user );
+    BufferedImage generateMapImageForUser( Map map, Date date, OrganisationUnit unit, Integer width, Integer height, User user );
 }

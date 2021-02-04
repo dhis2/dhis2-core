@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 /**
  * PeriodType for monthly Periods. A valid monthly Period has startDate set to
@@ -135,8 +135,8 @@ public class MonthlyPeriodType
     }
 
     /**
-     * Generates the last 12 months where the last one is the month which the given
-     * date is inside.
+     * Generates the last 12 months where the last one is the month which the
+     * given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
@@ -172,6 +172,7 @@ public class MonthlyPeriodType
     {
         return ISO8601_DURATION;
     }
+
 
     @Override
     public Date getRewindedDate( Date date, Integer rewindedPeriods )

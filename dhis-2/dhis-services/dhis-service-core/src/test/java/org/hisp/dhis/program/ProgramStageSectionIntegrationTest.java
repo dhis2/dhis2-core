@@ -28,12 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.HashSet;
-
+import com.google.common.collect.Sets;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
@@ -44,7 +39,11 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Chau Thu Tran
@@ -97,14 +96,14 @@ public class ProgramStageSectionIntegrationTest
         stageA = new ProgramStage( "A", program );
         stageA.setUid( "UID-A" );
         stageA.setProgramStageSections( Sets.newHashSet( sectionA ) );
-        stageA.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
+        stageA.setProgramStageDataElements(Sets.newHashSet( programStageDataElementA ));
     }
 
     @Test
     public void testRemoveProgramStageSectionWillDeleteOrphans()
     {
 
-        Pair<Long, Long> idPair = transactionTemplate.execute( status -> {
+        Pair<Long,Long> idPair = transactionTemplate.execute( status -> {
             long idA = programStageService.saveProgramStage( stageA );
             assertNotNull( programStageService.getProgramStage( idA ) );
 

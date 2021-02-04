@@ -77,7 +77,7 @@ public class EventBaseCheck implements Checker
 
         validateDates( event, errors );
 
-        validateProgramInstance( event, ctx, errors );
+        validateProgramInstance( event, ctx, errors);
 
         return errors;
     }
@@ -105,8 +105,7 @@ public class EventBaseCheck implements Checker
         }
     }
 
-    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors )
-    {
+    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors ) {
 
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();
@@ -119,7 +118,7 @@ public class EventBaseCheck implements Checker
         else if ( COMPLETED.equals( programInstance.getStatus() ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
-                || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
+                    || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
             {
                 return;
             }
@@ -136,8 +135,8 @@ public class EventBaseCheck implements Checker
             if ( referenceDate.after( removeTimeStamp( programInstance.getEndDate() ) ) )
             {
                 errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                    + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
-                    + " )." );
+                        + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
+                        + " )." );
             }
         }
     }

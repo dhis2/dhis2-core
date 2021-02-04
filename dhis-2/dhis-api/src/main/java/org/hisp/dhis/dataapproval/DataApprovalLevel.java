@@ -28,17 +28,16 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * Records the approval of DataSet values for a given OrganisationUnit and
@@ -48,8 +47,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataApprovalLevel", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalLevel
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The data approval level, 1=highest level, max=lowest level.
@@ -134,8 +132,9 @@ public class DataApprovalLevel
             return false;
         }
 
-        if ( categoryOptionGroupSet != null ? !categoryOptionGroupSet.equals( other.getCategoryOptionGroupSet() )
-            : other.getCategoryOptionGroupSet() != null )
+        if ( categoryOptionGroupSet != null ?
+            !categoryOptionGroupSet.equals( other.getCategoryOptionGroupSet() ) :
+            other.getCategoryOptionGroupSet() != null )
         {
             return false;
         }
@@ -154,8 +153,7 @@ public class DataApprovalLevel
             "name=" + name +
             ", level=" + level +
             ", orgUnitLevel=" + orgUnitLevel +
-            ", categoryOptionGroupSet='"
-            + (categoryOptionGroupSet == null ? "(null)" : categoryOptionGroupSet.getName()) + "'" +
+            ", categoryOptionGroupSet='" + (categoryOptionGroupSet == null ? "(null)" : categoryOptionGroupSet.getName()) + "'" +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
             '}';

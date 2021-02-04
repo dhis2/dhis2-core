@@ -33,6 +33,5 @@ package org.hisp.dhis.query;
  */
 public enum Direction
 {
-    ASCENDING,
-    DESCENDING
+    ASCENDING, DESCENDING
 }

@@ -28,11 +28,6 @@ package org.hisp.dhis.reporttable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.ReportingRate;
@@ -54,6 +49,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -86,41 +86,30 @@ public class ReportTableStoreTest
     private IndicatorType indicatorType;
 
     private List<DataElement> dataElements;
-
     private List<Indicator> indicators;
-
     private List<ReportingRate> reportingRates;
-
     private List<Period> periods;
-
     private List<OrganisationUnit> units;
 
     private PeriodType periodType;
 
     private DataElement dataElementA;
-
     private DataElement dataElementB;
 
     private Indicator indicatorA;
-
     private Indicator indicatorB;
 
     private ReportingRate reportingRateA;
-
     private ReportingRate reportingRateB;
 
     private Period periodA;
-
     private Period periodB;
 
     private OrganisationUnit unitA;
-
     private OrganisationUnit unitB;
 
     private RelativePeriods relativesA;
-
     private RelativePeriods relativesB;
-
     private RelativePeriods relativesC;
 
     @Override

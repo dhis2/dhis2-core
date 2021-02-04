@@ -28,9 +28,9 @@ package org.hisp.dhis.program.notification.template.snapshot;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
 import lombok.Data;
+
+import java.io.Serializable;
 
 @Data
 public class IdentifiableObjectSnapshot implements Serializable

@@ -55,13 +55,10 @@ import com.google.common.collect.Lists;
 public class GridTest
 {
     private Grid gridA;
-
     private Grid gridB;
 
     private GridHeader headerA;
-
     private GridHeader headerB;
-
     private GridHeader headerC;
 
     @Before
@@ -846,8 +843,7 @@ public class GridTest
     }
 
     @Test
-    public void testJRDataSource()
-        throws Exception
+    public void testJRDataSource() throws Exception
     {
         assertTrue( gridA.next() );
         assertEquals( 11, gridA.getFieldValue( new MockJRField( "colA" ) ) );

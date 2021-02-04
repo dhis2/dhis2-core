@@ -28,14 +28,13 @@ package org.hisp.dhis.resourcetable.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Lars Helge Overland
@@ -69,7 +68,8 @@ public class CategoryOptionComboResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql = "insert into " + getTempTableName() +
+        String sql =
+            "insert into " + getTempTableName() +
             " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) " +
             "select de.dataelementid as dataelementid, de.uid as dataelementuid, " +
             "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid " +

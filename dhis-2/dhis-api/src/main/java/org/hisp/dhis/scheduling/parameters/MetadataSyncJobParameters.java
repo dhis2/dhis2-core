@@ -28,18 +28,17 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Optional;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.MetadataSyncJobParametersDeserializer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Optional;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -52,9 +51,7 @@ public class MetadataSyncJobParameters
     private static final long serialVersionUID = 332495511301532169L;
 
     private int trackerProgramPageSize = 20;
-
     private int eventProgramPageSize = 60;
-
     private int dataValuesPageSize = 10000;
 
     @JsonProperty
@@ -106,7 +103,8 @@ public class MetadataSyncJobParameters
                     "trackerProgramPageSize",
                     TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
                     TrackerProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    trackerProgramPageSize ) );
+                    trackerProgramPageSize )
+            );
         }
 
         if ( eventProgramPageSize < EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN ||
@@ -119,7 +117,8 @@ public class MetadataSyncJobParameters
                     "eventProgramPageSize",
                     EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MIN,
                     EventProgramsDataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    eventProgramPageSize ) );
+                    eventProgramPageSize )
+            );
         }
 
         if ( dataValuesPageSize < DataSynchronizationJobParameters.PAGE_SIZE_MIN ||
@@ -132,7 +131,8 @@ public class MetadataSyncJobParameters
                     "dataValuesPageSize",
                     DataSynchronizationJobParameters.PAGE_SIZE_MIN,
                     DataSynchronizationJobParameters.PAGE_SIZE_MAX,
-                    dataValuesPageSize ) );
+                    dataValuesPageSize )
+            );
         }
 
         return Optional.empty();

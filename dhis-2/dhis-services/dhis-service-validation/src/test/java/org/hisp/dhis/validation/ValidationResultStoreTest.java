@@ -28,26 +28,20 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,16 +55,22 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.user.UserGroupAccessService;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.Date;
+import java.util.List;
+
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Jim Grace
@@ -79,7 +79,6 @@ public class ValidationResultStoreTest
     extends TransactionalIntegrationTest
 {
     private static final String ACCESS_NONE = "--------";
-
     private static final String ACCESS_READ = "r-------";
 
     @Autowired
@@ -120,51 +119,35 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
 
     private Expression expressionA;
-
     private Expression expressionB;
 
     private ValidationRule validationRuleA;
-
     private ValidationRule validationRuleB;
 
     private ValidationResult validationResultAA;
-
     private ValidationResult validationResultAB;
-
     private ValidationResult validationResultAC;
-
     private ValidationResult validationResultBA;
-
     private ValidationResult validationResultBB;
-
     private ValidationResult validationResultBC;
-
     private ValidationResult validationResultCA;
 
     private Period periodA;
-
     private Period periodB;
 
     private OrganisationUnit sourceA;
-
     private OrganisationUnit sourceB;
-
     private OrganisationUnit sourceC;
 
     private CurrentUserService superUserService;
-
     private CurrentUserService userAService;
-
     private CurrentUserService userBService;
-
     private CurrentUserService userCService;
-
     private CurrentUserService userDService;
 
     private User userZ;
 
     private CategoryOption optionA;
-
     private CategoryOption optionB;
 
     private Category categoryA;
@@ -172,13 +155,10 @@ public class ValidationResultStoreTest
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo optionComboA;
-
     private CategoryOptionCombo optionComboB;
-
     private CategoryOptionCombo optionComboC;
 
     private CategoryOptionGroup optionGroupA;
-
     private CategoryOptionGroup optionGroupB;
 
     private CategoryOptionGroupSet optionGroupSetB;
@@ -187,11 +167,9 @@ public class ValidationResultStoreTest
     // Set up/tear down helper methods
     // -------------------------------------------------------------------------
 
-    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag,
-        OrganisationUnit orgUnit, String... auths )
+    private CurrentUserService getMockCurrentUserService( String userName, boolean superUserFlag, OrganisationUnit orgUnit, String... auths )
     {
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag,
-            Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( superUserFlag, Sets.newHashSet( orgUnit ), Sets.newHashSet( orgUnit ), auths );
 
         User user = mockCurrentUserService.getCurrentUser();
 
@@ -217,8 +195,8 @@ public class ValidationResultStoreTest
 
     private void setPrivateAccess( BaseIdentifiableObject object, UserGroup... userGroups )
     {
-        // object.setPublicAccess( ACCESS_NONE );
-        // object.setUser( userZ ); // Needed for sharing to work
+//        object.setPublicAccess( ACCESS_NONE );
+//        object.setUser( userZ ); // Needed for sharing to work
         object.getSharing().setOwner( userZ );
         object.getSharing().setPublicAccess( ACCESS_NONE );
 
@@ -247,8 +225,7 @@ public class ValidationResultStoreTest
     }
 
     @Override
-    public void setUpTest()
-        throws Exception
+    public void setUpTest() throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -372,8 +349,7 @@ public class ValidationResultStoreTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testSaveValidationResult()
-        throws Exception
+    public void testSaveValidationResult() throws Exception
     {
         Date beforeSave = new Date();
         validationResultStore.save( validationResultAA );
@@ -389,14 +365,13 @@ public class ValidationResultStoreTest
         assertEquals( validationResult.getAttributeOptionCombo(), optionComboA );
         assertEquals( validationResult.getLeftsideValue(), (Double) 1.0 );
         assertEquals( validationResult.getRightsideValue(), (Double) 2.0 );
-        assertEquals( validationResult.getDayInPeriod(), 3L );
+        assertEquals( validationResult.getDayInPeriod(),3L );
         assertTrue( validationResult.getCreated().getTime() >= beforeSave.getTime() );
         assertTrue( validationResult.getCreated().getTime() <= afterSave.getTime() );
     }
 
     @Test
-    public void testDeleteValidationResult()
-        throws Exception
+    public void testDeleteValidationResult() throws Exception
     {
         validationResultStore.save( validationResultAA );
         long id = validationResultAA.getId();
@@ -409,8 +384,7 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testGetAllUnreportedValidationResults()
-        throws Exception
+    public void testGetAllUnreportedValidationResults() throws Exception
     {
         validationResultStore.save( validationResultAA );
         validationResultStore.save( validationResultAB );
@@ -463,8 +437,7 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testGetById()
-        throws Exception
+    public void testGetById() throws Exception
     {
         validationResultStore.save( validationResultAA );
         validationResultStore.save( validationResultAB );
@@ -515,8 +488,7 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testQuery()
-        throws Exception
+    public void testQuery() throws Exception
     {
         validationResultStore.save( validationResultAA );
         validationResultStore.save( validationResultAB );
@@ -568,11 +540,9 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testCount()
-        throws Exception
+    public void testCount() throws Exception
     {
-        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA, validationResultAB,
-            validationResultAC, validationResultBA, validationResultBB, validationResultBC ) );
+        validationResultService.saveValidationResults( Lists.newArrayList( validationResultAA , validationResultAB, validationResultAC, validationResultBA, validationResultBB, validationResultBC ));
 
         ValidationResultQuery validationResultQuery = new ValidationResultQuery();
 
@@ -600,8 +570,7 @@ public class ValidationResultStoreTest
     }
 
     @Test
-    public void testGetValidationResults()
-        throws Exception
+    public void testGetValidationResults() throws Exception
     {
         validationResultStore.save( validationResultAA );
         validationResultStore.save( validationResultBA );

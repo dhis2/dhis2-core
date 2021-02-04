@@ -28,13 +28,13 @@ package org.hisp.dhis.minmax;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -52,7 +52,7 @@ public class MinMaxDataElementDeletionHandler
 
     public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
     {
-        checkNotNull( minMaxDataElementService );
+        checkNotNull(minMaxDataElementService);
 
         this.minMaxDataElementService = minMaxDataElementService;
     }
@@ -66,19 +66,19 @@ public class MinMaxDataElementDeletionHandler
     {
         return MinMaxDataElement.class.getSimpleName();
     }
-
+    
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
         minMaxDataElementService.removeMinMaxDataElements( dataElement );
     }
-
+    
     @Override
     public void deleteOrganisationUnit( OrganisationUnit source )
     {
         minMaxDataElementService.removeMinMaxDataElements( source );
     }
-
+    
     @Override
     public void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {

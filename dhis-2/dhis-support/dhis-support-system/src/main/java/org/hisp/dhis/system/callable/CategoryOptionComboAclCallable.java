@@ -28,15 +28,15 @@ package org.hisp.dhis.system.callable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.concurrent.ExecutionException;
-
+import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.IdScheme;
+
+import java.util.concurrent.ExecutionException;
 
 /**
- * Retrieves the category option combination with the given identifier and id
- * scheme. Checks that the current user has {@code data write} access.
+ * Retrieves the category option combination with the given identifier and
+ * id scheme. Checks that the current user has {@code data write} access.
  *
  * @author Lars Helge Overland
  */

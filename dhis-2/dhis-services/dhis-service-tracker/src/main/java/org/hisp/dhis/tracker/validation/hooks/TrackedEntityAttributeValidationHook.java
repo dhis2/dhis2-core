@@ -79,9 +79,9 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     private static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
     private final ReservedValueService reservedValueService;
-
+    
     private final DhisConfigurationProvider dhisConfigurationProvider;
-
+    
     public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
         ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
     {
@@ -119,7 +119,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             trackedEntityType.getTrackedEntityTypeAttributes()
                 .stream()
                 .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
-                .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
+                .map(TrackedEntityTypeAttribute::getTrackedEntityAttribute)
                 .map( BaseIdentifiableObject::getUid )
                 .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
                 .forEach(
@@ -152,12 +152,12 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 continue;
             }
 
-            // if ( StringUtils.isEmpty( attribute.getValue() ) )
+//            if ( StringUtils.isEmpty( attribute.getValue() ) )
             if ( attribute.getValue() == null )
             {
-                // continue; ??? Just continue on empty and null?
+                //continue; ??? Just continue on empty and null?
                 // TODO: Is this really correct? This check was not here originally
-                // Enrollment attr check fails on null so why not here too?
+                //  Enrollment attr check fails on null so why not here too?
                 addError( reporter, E1076, attribute );
 
                 continue;
@@ -180,15 +180,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
         // Validate value (string) don't exceed the max length
         addErrorIf( () -> value.length() > MAX_ATTR_VALUE_LENGTH, reporter, E1077, value, MAX_ATTR_VALUE_LENGTH );
-
-        // Validate if that encryption is configured properly if someone sets value to
-        // (confidential)
+        
+        // Validate if that encryption is configured properly if someone sets value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
         addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
 
-        // Uses ValidationUtils to check that the data value corresponds to the data
-        // value type set on the attribute
+        // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
         addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
@@ -206,11 +204,9 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         }
 
         // TODO: Should we check the text pattern even if its not generated?
-        // TextPatternValidationUtils.validateTextPatternValue(
-        // attribute.getTextPattern(), value )
+        // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
 
-        // TODO: Can't provoke this error since metadata importer won't allow null,
-        // empty or invalid patterns.
+        //TODO: Can't provoke this error since metadata importer won't allow null, empty or invalid patterns.
         if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1111 )
@@ -221,8 +217,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         {
             String oldValue = existingValue != null ? existingValue.getValue() : null;
 
-            // We basically ignore the pattern validation if the value is reserved or
-            // already
+            // We basically ignore the pattern validation if the value is reserved or already
             // assigned i.e. input eq. already persisted value.
             boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
                 reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );
@@ -256,7 +251,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         }
 
         FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
-
+        
         addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
         addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
     }

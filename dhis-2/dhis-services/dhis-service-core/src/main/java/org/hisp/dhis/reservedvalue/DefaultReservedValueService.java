@@ -28,7 +28,18 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
+import org.hisp.dhis.textpattern.TextPatternMethod;
+import org.hisp.dhis.textpattern.TextPatternMethodUtils;
+import org.hisp.dhis.textpattern.TextPatternSegment;
+import org.hisp.dhis.textpattern.TextPatternService;
+import org.hisp.dhis.textpattern.TextPatternValidationUtils;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,20 +50,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
-import org.hisp.dhis.textpattern.TextPatternMethod;
-import org.hisp.dhis.textpattern.TextPatternMethodUtils;
-import org.hisp.dhis.textpattern.TextPatternSegment;
-import org.hisp.dhis.textpattern.TextPatternService;
-import org.hisp.dhis.textpattern.TextPatternValidationUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
@@ -84,10 +82,8 @@ public class DefaultReservedValueService
 
     @Override
     @Transactional
-    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
-        Date expires )
-        throws ReserveValueException,
-        TextPatternGenerationException
+    public List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
+        throws ReserveValueException, TextPatternGenerationException
     {
         long startTime = System.currentTimeMillis();
         int attemptsLeft = 10;
@@ -99,9 +95,9 @@ public class DefaultReservedValueService
         String key = textPatternService.resolvePattern( textPattern, values );
 
         // Used for searching value tables
-        String valueKey = (generatedSegment != null
-            ? key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" )
-            : key);
+        String valueKey = ( generatedSegment != null ?
+            key.replaceAll( Pattern.quote( generatedSegment.getRawSegment() ), "%" ) :
+            key );
 
         ReservedValue reservedValue = new ReservedValue( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(),
             key,
@@ -142,8 +138,7 @@ public class DefaultReservedValueService
 
                 while ( generatedValues.size() < numberOfValuesLeftToGenerate && maxGenerateAttempts-- > 0 )
                 {
-                    generatedValues
-                        .addAll( generateValues( textPattern, key, numberOfReservations - resultList.size() ) );
+                    generatedValues.addAll( generateValues( textPattern, key, numberOfReservations - resultList.size() ) );
                     generatedValues.removeAll( usedGeneratedValues );
                 }
 
@@ -153,7 +148,7 @@ public class DefaultReservedValueService
                 for ( int i = 0; i < numberOfReservations - resultList.size(); i++ )
                 {
                     resolvedPatterns.add( textPatternService.resolvePattern( textPattern,
-                        ImmutableMap.<String, String> builder()
+                        ImmutableMap.<String, String>builder()
                             .putAll( values )
                             .put( generatedSegment.getMethod().name(), generatedValues.get( i ) )
                             .build() ) );
@@ -182,7 +177,7 @@ public class DefaultReservedValueService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean isReserved( TextPattern textPattern, String value )
     {
         return reservedValueStore.isReserved( textPattern.getOwnerObject().name(), textPattern.getOwnerUid(), value );

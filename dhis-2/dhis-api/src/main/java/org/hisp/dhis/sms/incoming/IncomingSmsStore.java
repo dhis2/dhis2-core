@@ -28,9 +28,9 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import java.util.List;
 
 /**
  * Store for incoming SMS messages.
@@ -43,8 +43,7 @@ public interface IncomingSmsStore extends IdentifiableObjectStore<IncomingSms>
 
     List<IncomingSms> getAll( Integer min, Integer max, boolean hasPagination );
 
-    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max,
-        boolean hasPagination );
+    List<IncomingSms> getSmsByStatus( SmsMessageStatus status, String keyword, Integer min, Integer max, boolean hasPagination );
 
     List<IncomingSms> getSmsByOriginator( String originator );
 

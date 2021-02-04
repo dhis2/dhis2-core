@@ -28,11 +28,11 @@ package org.hisp.dhis.system.callable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -41,9 +41,7 @@ public class IdentifiableObjectSearchCallable<T extends IdentifiableObject>
     implements Callable<T>
 {
     protected IdentifiableObjectManager manager;
-
     protected Class<T> clazz;
-
     protected String id;
 
     public IdentifiableObjectSearchCallable( IdentifiableObjectManager manager, Class<T> clazz, String id )

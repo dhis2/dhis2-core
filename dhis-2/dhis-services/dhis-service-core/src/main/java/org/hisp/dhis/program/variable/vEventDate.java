@@ -41,8 +41,8 @@ public class vEventDate
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
-            null, "executiondate", visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+        return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql( 
+            null, "executiondate", visitor.getReportingStartDate(), visitor.getReportingEndDate(), 
             visitor.getProgramIndicator() );
     }
 }

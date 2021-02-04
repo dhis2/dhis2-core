@@ -28,18 +28,18 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.awt.*;
-
+import org.locationtech.jts.geom.Geometry;
 import org.geotools.data.DataUtilities;
 import org.geotools.feature.SchemaException;
 import org.geotools.styling.SLD;
 import org.geotools.styling.Style;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 import org.opengis.feature.simple.SimpleFeatureType;
+
+import java.awt.*;
 
 /**
  * An internal representation of a map object (feature) in a map layer.
@@ -61,17 +61,12 @@ public class InternalMapObject
     private static final float LINE_STROKE_WIDTH = 0.1f;
 
     private static final String CIRCLE = "Circle";
-
     private static final String POINT = "Point";
-
     private static final String POLYGON = "Polygon";
-
     private static final String MULTI_POLYGON = "MultiPolygon";
-
     private static final String GEOMETRIES = "geometries";
 
     public static final String TYPE_THEMATIC = "thematic";
-
     public static final String TYPE_BOUNDARY = "boundary";
 
     protected String name;
@@ -113,32 +108,33 @@ public class InternalMapObject
      * Quick guide to how geometry is stored in DHIS:
      * <p>
      * Geometry for org units is stored in the DB as [[[[0.32, -33.87], [23.99,
-     * -43.02], ...]]], and may be retrieved by calling the getCoordinates method of
-     * OrganisationUnit.
+     * -43.02], ...]]], and may be retrieved by calling the getCoordinates
+     * method of OrganisationUnit.
      * <p>
      * The coordinates vary according to feature type, which can be found with a
-     * call to getFeatureType of OrganisationUnit. It varies between the following
-     * structures (names are omitted in the actual coordinates string):
+     * call to getFeatureType of OrganisationUnit. It varies between the
+     * following structures (names are omitted in the actual coordinates
+     * string):
      * <p>
-     * multipolygon = [ polygon0 = [ shell0 = [ point0 = [0.32, -33.87], point1 =
-     * [23.99, -43.02], point2 = [...]], hole0 = [...], hole1 = [...]], polygon1 =
-     * [...] polygon2 = [...]] polygon = [ shell0 = [ point0 = [0.32, -33.87],
-     * point1 = [23.99, -43.02]], hole0 = [...], hole1 = [...]]
+     * multipolygon = [ polygon0 = [ shell0 = [ point0 = [0.32, -33.87], point1
+     * = [23.99, -43.02], point2 = [...]], hole0 = [...], hole1 = [...]],
+     * polygon1 = [...] polygon2 = [...]] polygon = [ shell0 = [ point0 = [0.32,
+     * -33.87], point1 = [23.99, -43.02]], hole0 = [...], hole1 = [...]]
      * <p>
      * point = [0.32, -33.87]
      * <p>
-     * Multi-polygons are stored as an array of polygons. Polygons are stored as an
-     * array of linear-rings, where the first linear-ring is the shell, and
-     * remaining linear-rings are the holes in the polygon. Linear-rings are stored
-     * as an array of points, which in turn is stored as an array of (two)
-     * components as a floating point type.
+     * Multi-polygons are stored as an array of polygons. Polygons are stored as
+     * an array of linear-rings, where the first linear-ring is the shell, and
+     * remaining linear-rings are the holes in the polygon. Linear-rings are
+     * stored as an array of points, which in turn is stored as an array of
+     * (two) components as a floating point type.
      * <p>
      * There are three types of geometry that may be stored in a DHIS org unit:
      * point, polygon, and multi-polygon. This method supports all three.
      * <p>
-     * NOTE However, as of writing, there is a bug in DHIS OrganisationUnit where
-     * when getFeatureType reports type Polygon, getCoordinates really returns
-     * coordinates in the format of type MultiPolygon.
+     * NOTE However, as of writing, there is a bug in DHIS OrganisationUnit
+     * where when getFeatureType reports type Polygon, getCoordinates really
+     * returns coordinates in the format of type MultiPolygon.
      *
      * @param orgUnit the organisation unit
      */
@@ -208,6 +204,7 @@ public class InternalMapObject
             throw new RuntimeException( "failed to create geometry", ex );
         }
     }
+
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -318,7 +315,7 @@ public class InternalMapObject
     public String toString()
     {
         return String.format( "InternalMapObject {" + " name: \"%s\"," + " value: %.2f," + " radius: %d,"
-            + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
+                + " fillColor: %s," + " fillOpacity: %.2f" + " strokeColor: %s" + " }", name, value,
             radius, fillColor, fillOpacity, strokeColor );
     }
 }

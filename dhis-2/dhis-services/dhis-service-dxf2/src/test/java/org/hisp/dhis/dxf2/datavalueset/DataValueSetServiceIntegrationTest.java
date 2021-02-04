@@ -28,10 +28,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.io.InputStream;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,7 +53,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import java.io.InputStream;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -84,9 +83,7 @@ public class DataValueSetServiceIntegrationTest
     private UserService _userService;
 
     private DataElement deA;
-
     private DataElement deB;
-
     private DataElement deC;
 
     private PeriodType ptA;
@@ -94,15 +91,11 @@ public class DataValueSetServiceIntegrationTest
     private DataSet dsA;
 
     private Period peA;
-
     private Period peB;
-
     private Period peC;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
-
     private OrganisationUnit ouC;
 
     private User user;
@@ -131,12 +124,9 @@ public class DataValueSetServiceIntegrationTest
         dsA.setUid( "pBOMPrpg1QX" );
         dataSetService.addDataSet( dsA );
 
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ),
-            getDate( 2012, 1, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ),
-            getDate( 2012, 2, 29 ) );
-        peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 3, 1 ),
-            getDate( 2012, 3, 31 ) );
+        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ), getDate( 2012, 1, 31 ) );
+        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ), getDate( 2012, 2, 29 ) );
+        peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 3, 1 ), getDate( 2012, 3, 31 ) );
 
         periodService.addPeriod( peA );
         periodService.addPeriod( peB );
@@ -280,7 +270,8 @@ public class DataValueSetServiceIntegrationTest
 
     /**
      * Import 12 data values where 4 are marked as deleted. Then import 12 data
-     * values which reverse deletion of the 4 values and update the other 8 values.
+     * values which reverse deletion of the 4 values and update the other 8
+     * values.
      */
     @Test
     public void testImportReverseDeletedValuesXml()
@@ -346,7 +337,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values. Then import 12 values where 4 are marked as deleted.
+     * Import 12 data values. Then import 12 values where 4 are marked as
+     * deleted.
      */
     @Test
     public void testDeleteValuesXml()
@@ -378,8 +370,8 @@ public class DataValueSetServiceIntegrationTest
     }
 
     /**
-     * Import 12 data values. Then import 12 values where 4 are marked as deleted, 6
-     * are updates and 2 are new.
+     * Import 12 data values. Then import 12 values where 4 are marked as
+     * deleted, 6 are updates and 2 are new.
      */
     @Test
     public void testImportAndDeleteValuesXml()

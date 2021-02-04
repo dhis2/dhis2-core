@@ -28,13 +28,12 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.assertEquals;
 
 public class TrackedEntityTypeAttributeStoreTest
     extends DhisSpringTest
@@ -80,6 +79,7 @@ public class TrackedEntityTypeAttributeStoreTest
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeA ) ).size() );
         assertEquals( 1, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeB ) ).size() );
         assertEquals( 0, entityTypeAttributeStore.getAttributes( Lists.newArrayList( entityTypeC ) ).size() );
+
 
     }
 }

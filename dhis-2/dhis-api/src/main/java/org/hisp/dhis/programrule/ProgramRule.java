@@ -28,20 +28,19 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Markus Bekken
@@ -67,21 +66,18 @@ public class ProgramRule
     private ProgramStage programStage;
 
     /**
-     * The collection of actions that will be triggered if the the rule is
-     * triggered.
+     * The collection of actions that will be triggered if the the rule is triggered.
      */
     private Set<ProgramRuleAction> programRuleActions = new HashSet<>();
 
     /**
-     * The condition expression, if this expression is evaluated to true, the
-     * actions is triggered.
+     * The condition expression, if this expression is evaluated to true, the actions is triggered.
      */
     private String condition;
 
     /**
-     * The priority of the rule within the program. The lower the priority, the
-     * earlier the rule is run. Null means that the rule is run last(together will
-     * all other null-rules)
+     * The priority of the rule within the program. The lower the priority, the earlier the rule is run.
+     * Null means that the rule is run last(together will all other null-rules)
      */
     private Integer priority;
 

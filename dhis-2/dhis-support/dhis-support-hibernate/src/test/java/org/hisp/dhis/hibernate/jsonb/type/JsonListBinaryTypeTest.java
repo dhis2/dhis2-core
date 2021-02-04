@@ -28,17 +28,17 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertNotSame;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hamcrest.Matchers;
 import org.hisp.dhis.translation.Translation;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertNotSame;
 
 /**
  * Unit tests for {@link JsonListBinaryType}.

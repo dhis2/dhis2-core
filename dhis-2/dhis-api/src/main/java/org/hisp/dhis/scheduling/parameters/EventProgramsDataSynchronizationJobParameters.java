@@ -27,18 +27,17 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Optional;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.EventProgramsDataSynchronizationJobParametersDeserializer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Optional;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -51,7 +50,6 @@ public class EventProgramsDataSynchronizationJobParameters
     private static final long serialVersionUID = 168332662397563659L;
 
     static final int PAGE_SIZE_MIN = 5;
-
     static final int PAGE_SIZE_MAX = 200;
 
     private int pageSize = 60;
@@ -80,7 +78,8 @@ public class EventProgramsDataSynchronizationJobParameters
                     "pageSize",
                     PAGE_SIZE_MIN,
                     PAGE_SIZE_MAX,
-                    pageSize ) );
+                    pageSize  )
+            );
         }
 
         return Optional.empty();

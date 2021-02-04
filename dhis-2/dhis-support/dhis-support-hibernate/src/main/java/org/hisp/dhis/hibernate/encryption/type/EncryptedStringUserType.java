@@ -28,13 +28,6 @@ package org.hisp.dhis.hibernate.encryption.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.Properties;
-
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.ParameterizedType;
@@ -42,23 +35,27 @@ import org.hibernate.usertype.UserType;
 import org.hisp.dhis.hibernate.encryption.HibernateEncryptorRegistry;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.Properties;
+
 /**
- * Hibernate {@link UserType} implementation which employs a
- * {@link PBEStringEncryptor} to perform transparent encryption/decryption of
- * {@link String} properties.
+ * Hibernate {@link UserType} implementation which employs a {@link PBEStringEncryptor} to
+ * perform transparent encryption/decryption of {@link String} properties.
  *
- * The employed encryptor is resolved from the
- * {@link HibernateEncryptorRegistry}, which must be set up with a named
- * encryptor. The encryptor is resolved through the 'encryptor' parameter, which
- * looks up the given name in the registry.
+ * The employed encryptor is resolved from the {@link HibernateEncryptorRegistry}, which must be
+ * set up with a named encryptor. The encryptor is resolved through the 'encryptor' parameter,
+ * which looks up the given name in the registry.
  *
  * If no 'encryptor' parameter is given, or the given name does not resolve to a
  * {@link PBEStringEncryptor} in the {@link HibernateEncryptorRegistry}, an
  * {@link IllegalArgumentException} is thrown at initialization.
  *
- * This class implements a similar pattern to the encrypted types provided by
- * the org.jasypt.hibernate4 package, but serves to avoid this dependency (which
- * breaks on Hibernate > 5.1.x).
+ * This class implements a similar pattern to the encrypted types provided by the
+ * org.jasypt.hibernate4 package, but serves to avoid this dependency (which breaks on Hibernate > 5.1.x).
  *
  * @author Halvdan Hoem Grelland
  */
@@ -89,7 +86,7 @@ public class EncryptedStringUserType
     public boolean equals( Object x, Object y )
         throws HibernateException
     {
-        return x == y || (x != null && y != null && x.equals( y ));
+        return x == y || ( x != null && y != null && x.equals( y ) );
     }
 
     @Override
@@ -99,10 +96,9 @@ public class EncryptedStringUserType
         return x.hashCode();
     }
 
-    @Override
+       @Override
     public Object nullSafeGet( ResultSet rs, String[] names, SharedSessionContractImplementor session, Object owner )
-        throws HibernateException,
-        SQLException
+        throws HibernateException, SQLException
     {
         ensureEncryptorInit();
 
@@ -113,8 +109,7 @@ public class EncryptedStringUserType
 
     @Override
     public void nullSafeSet( PreparedStatement st, Object value, int index, SharedSessionContractImplementor session )
-        throws HibernateException,
-        SQLException
+        throws HibernateException, SQLException
     {
         ensureEncryptorInit();
 
@@ -142,22 +137,19 @@ public class EncryptedStringUserType
     }
 
     @Override
-    public Serializable disassemble( Object value )
-        throws HibernateException
+    public Serializable disassemble( Object value ) throws HibernateException
     {
         return value == null ? null : (Serializable) deepCopy( value );
     }
 
     @Override
-    public Object assemble( Serializable cached, Object owner )
-        throws HibernateException
+    public Object assemble( Serializable cached, Object owner ) throws HibernateException
     {
         return cached == null ? null : deepCopy( cached );
     }
 
     @Override
-    public Object replace( Object original, Object target, Object owner )
-        throws HibernateException
+    public Object replace( Object original, Object target, Object owner ) throws HibernateException
     {
         return original;
     }

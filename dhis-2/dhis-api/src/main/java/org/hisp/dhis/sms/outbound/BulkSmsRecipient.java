@@ -31,7 +31,6 @@ package org.hisp.dhis.sms.outbound;
 public class BulkSmsRecipient
 {
     private String type = "INTERNATIONAL";
-
     private String address;
 
     public BulkSmsRecipient()

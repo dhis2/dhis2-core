@@ -28,21 +28,20 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.function.Function;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.CurrentUserGroupInfo;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.List;
+import java.util.function.Function;
+
 /**
- * Interface which extends GenericStore and exposes support methods for
- * retrieving criteria.
+ * Interface which extends GenericStore and exposes support methods for retrieving
+ * criteria.
  *
  * @author Lars Helge Overland
  */

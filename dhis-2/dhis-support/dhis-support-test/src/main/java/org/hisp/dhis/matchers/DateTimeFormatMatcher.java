@@ -28,16 +28,16 @@ package org.hisp.dhis.matchers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
+import org.hamcrest.TypeSafeMatcher;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Locale;
-
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.hamcrest.TypeSafeMatcher;
 
 /**
  * @author Luciano Fiandesio
@@ -98,7 +98,7 @@ public class DateTimeFormatMatcher extends TypeSafeMatcher<String>
     @Override
     public void describeTo( Description description )
     {
-        description.appendText( "Invalid date format. Expected [" + format + "]" );
+        description.appendText("Invalid date format. Expected [" + format + "]");
     }
 
     public static Matcher<String> hasDateTimeFormat( String format )

@@ -28,10 +28,10 @@ package org.hisp.dhis.dxf2.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdSchemes;
+
 import java.io.OutputStream;
 import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -39,8 +39,7 @@ import org.hisp.dhis.common.IdSchemes;
 public interface CompleteDataSetRegistrationExchangeStore
 {
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations}
-     * and write result as XML.
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
      *
      * @param params the export query parameters.
      * @param outputStream the stream to write the XML result to.
@@ -48,8 +47,7 @@ public interface CompleteDataSetRegistrationExchangeStore
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
 
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations}
-     * and write result as JSON.
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
      *
      * @param params the export query parameters.
      * @param outputStream the stream to write the JSON result to.
@@ -57,11 +55,9 @@ public interface CompleteDataSetRegistrationExchangeStore
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations}
-     * and write result as JSON.
+     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to.
      * @param idSchemes idSchemes
      */

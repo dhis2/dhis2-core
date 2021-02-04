@@ -28,15 +28,14 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Properties;
-
+import com.fasterxml.jackson.databind.JavaType;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.RenderDevice;
 import org.hisp.dhis.render.type.RenderingObject;
 
-import com.fasterxml.jackson.databind.JavaType;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Properties;
 
 public class JsonDeviceRenderTypeMap extends JsonBinaryType
 {
@@ -53,7 +52,7 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
     {
         try
         {
-            LinkedHashMap<RenderDevice, LinkedHashMap<String, String>> map = reader.readValue( content );
+            LinkedHashMap<RenderDevice, LinkedHashMap<String,String>> map = reader.readValue( content );
             return convertMapToObject( map );
         }
         catch ( IOException | IllegalAccessException | InstantiationException e )
@@ -85,19 +84,14 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
         }
     }
 
-    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject(
-        LinkedHashMap<RenderDevice, LinkedHashMap<String, String>> map )
-        throws IllegalAccessException,
-        InstantiationException
-    {
+    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject( LinkedHashMap<RenderDevice,LinkedHashMap<String,String>> map ) throws IllegalAccessException, InstantiationException {
         DeviceRenderTypeMap deviceRenderTypeMap = new DeviceRenderTypeMap<>();
-        for ( RenderDevice renderDevice : map.keySet() )
+        for( RenderDevice renderDevice : map.keySet() )
         {
-            LinkedHashMap<String, String> renderObjectMap = map.get( renderDevice );
+            LinkedHashMap<String,String> renderObjectMap = map.get( renderDevice );
             RenderingObject renderingObject = renderType.newInstance();
-            renderingObject.setType(
-                Enum.valueOf( renderingObject.getRenderTypeClass(), renderObjectMap.get( RenderingObject._TYPE ) ) );
-            deviceRenderTypeMap.put( renderDevice, renderingObject );
+            renderingObject.setType( Enum.valueOf( renderingObject.getRenderTypeClass(), renderObjectMap.get( RenderingObject._TYPE ) ) );
+            deviceRenderTypeMap.put(  renderDevice , renderingObject );
         }
         return deviceRenderTypeMap;
     }

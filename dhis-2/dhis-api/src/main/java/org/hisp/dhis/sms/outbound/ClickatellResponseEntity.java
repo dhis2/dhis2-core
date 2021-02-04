@@ -1,5 +1,6 @@
 package org.hisp.dhis.sms.outbound;
 
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.

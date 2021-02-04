@@ -35,6 +35,5 @@ import org.hisp.dhis.schema.Schema;
 
 public interface AnalyticalObjectImportHandler
 {
-    void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject,
-        ObjectBundle bundle );
+    void handleAnalyticalObject( Session session, Schema schema, BaseAnalyticalObject analyticalObject, ObjectBundle bundle );
 }

@@ -28,12 +28,12 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.datavalue.DataExportParams;
+
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.Date;
-
-import org.hisp.dhis.common.IdSchemes;
-import org.hisp.dhis.datavalue.DataExportParams;
 
 /**
  * @author Lars Helge Overland
@@ -49,8 +49,7 @@ public interface DataValueSetStore
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      */
@@ -59,8 +58,7 @@ public interface DataValueSetStore
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      * @param pageSize pageSize

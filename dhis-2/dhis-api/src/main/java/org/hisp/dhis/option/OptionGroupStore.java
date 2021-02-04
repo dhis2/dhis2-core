@@ -28,10 +28,10 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
+import java.util.List;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -44,3 +44,4 @@ public interface OptionGroupStore
 
     List<OptionGroup> getOptionGroupsNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }
+

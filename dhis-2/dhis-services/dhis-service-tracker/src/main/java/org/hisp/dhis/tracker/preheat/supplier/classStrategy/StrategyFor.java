@@ -39,7 +39,7 @@ import org.hisp.dhis.tracker.preheat.mappers.PreheatMapper;
 /**
  * Annotation for {@link ClassBasedSupplierStrategy} classes that specifies the
  * Tracker domain object the annotated strategy has to process
- *
+ * 
  * @author Luciano Fiandesio
  */
 @Retention( RUNTIME )

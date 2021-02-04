@@ -28,11 +28,10 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
-
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -42,25 +41,24 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdScheme;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 
 /**
  * This object can act both as a hydrated persisted object and as a wrapper
  * object (but not both at the same time).
  * <p>
  * This object implements IdentifiableObject but does not have any UID. Instead
- * the UID is generated based on the data element and category option combo
- * which this object is based on.
+ * the UID is generated based on the data element and category option combo which
+ * this object is based on.
  *
  * @author Abyot Asalefew
  */
 @JacksonXmlRootElement( localName = "dataElementOperand", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementOperand
-    extends BaseDimensionalItemObject
-    implements EmbeddedObject
+    extends BaseDimensionalItemObject implements EmbeddedObject
 {
     public static final String SEPARATOR = COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 
@@ -96,8 +94,7 @@ public class DataElementOperand
         this.categoryOptionCombo = categoryOptionCombo;
     }
 
-    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
-        CategoryOptionCombo attributeOptionCombo )
+    public DataElementOperand( DataElement dataElement, CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.categoryOptionCombo = categoryOptionCombo;
@@ -291,7 +288,7 @@ public class DataElementOperand
     /**
      * Creates a {@link DataElementOperand} instance from the given identifiers.
      *
-     * @param dataElementUid the data element identifier.
+     * @param dataElementUid         the data element identifier.
      * @param categoryOptionComboUid the category option combo identifier.
      * @return a data element operand instance.
      */
@@ -312,8 +309,8 @@ public class DataElementOperand
     }
 
     /**
-     * Indicates whether this operand specifies a data element only with no option
-     * combinations.
+     * Indicates whether this operand specifies a data element only
+     * with no option combinations.
      *
      * @return true if operand specifies a data element only.
      */
@@ -433,9 +430,7 @@ public class DataElementOperand
         NONE( false, false, 0 );
 
         private boolean coc;
-
         private boolean aoc;
-
         private int propertyCount;
 
         TotalType()

@@ -56,8 +56,7 @@ public class HibernateCategoryOptionGroupStore
     public HibernateCategoryOptionGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroup.class, currentUserService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, CategoryOptionGroup.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -70,9 +69,9 @@ public class HibernateCategoryOptionGroupStore
             .addPredicate( root -> {
                 Join<Object, Object> groupSets = root.join( "groupSets" );
 
-                return builder.or( builder.equal( groupSets.get( "id" ), groupSet.getId() ),
-                    builder.isNull( groupSets.get( "id" ) ) );
-            } );
+                return builder.or( builder.equal( groupSets.get( "id" ) , groupSet.getId() ),
+                                    builder.isNull( groupSets.get( "id" ) ) );
+            });
 
         return getList( builder, parameters );
     }

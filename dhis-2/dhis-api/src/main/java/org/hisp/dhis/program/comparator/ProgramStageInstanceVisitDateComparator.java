@@ -28,10 +28,10 @@ package org.hisp.dhis.program.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.program.ProgramStageInstance;
+
 import java.util.Comparator;
 import java.util.Date;
-
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Chau Thu Tran
@@ -44,10 +44,8 @@ public class ProgramStageInstanceVisitDateComparator
     @Override
     public int compare( ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2 )
     {
-        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate()
-            : programStageInstance1.getDueDate();
-        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate()
-            : programStageInstance2.getDueDate();
+        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate() : programStageInstance1.getDueDate();
+        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate() : programStageInstance2.getDueDate();
         if ( d1.before( d2 ) )
         {
             return -1;

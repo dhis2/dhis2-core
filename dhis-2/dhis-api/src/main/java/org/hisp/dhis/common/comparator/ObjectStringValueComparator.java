@@ -34,16 +34,16 @@ import java.util.Objects;
 /**
  * Converts the given objects based on their string value. Null objects are
  * interpreted as empty strings.
- *
+ * 
  * @author Lars Helge Overland
  */
 public class ObjectStringValueComparator
     implements Comparator<Object>
 {
     public static final ObjectStringValueComparator INSTANCE = new ObjectStringValueComparator();
-
+    
     private static final String NULL_REPLACEMENT = "";
-
+    
     @Override
     public int compare( Object o1, Object o2 )
     {

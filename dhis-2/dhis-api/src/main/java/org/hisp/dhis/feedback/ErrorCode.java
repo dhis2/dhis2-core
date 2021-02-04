@@ -31,10 +31,14 @@ package org.hisp.dhis.feedback;
 /**
  * Error series:
  *
- * E2000 - E2999: Data E3000 - E3999: Security E4000 - E4999: Metadata
- * validation E5000 - E5999: Preheat E6000 - E6999: Metadata import E7000 -
- * E7099: Scheduling E7100 - E7199: Aggregate analytics E7200 - E7299: Event
- * analytics
+ * E2000 - E2999: Data
+ * E3000 - E3999: Security
+ * E4000 - E4999: Metadata validation
+ * E5000 - E5999: Preheat
+ * E6000 - E6999: Metadata import
+ * E7000 - E7099: Scheduling
+ * E7100 - E7199: Aggregate analytics
+ * E7200 - E7299: Event analytics
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -85,15 +89,15 @@ public enum ErrorCode
     E3008( "User `{0}` is not allowed to make public objects of type `{1}`." ),
     E3009( "User `{0}` is not allowed to make private objects of type `{1}`." ),
     E3010( "Invalid access string `{0}`." ),
-    E3011(
-        "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
+    E3011( "Data sharing is not enabled for type `{0}`, but one or more access strings contains data sharing read or write." ),
     E3012( "User `{0}` does not have read access for object `{1}`." ),
-    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified." ),
+    E3013( "Sharing settings of system default metadata object of type `{0}` cannot be modified."),
     E3014( "You do not have manage access to this object." ),
     E3015( "Invalid public access string: `{0}`" ),
     E3016( "Data sharing is not enabled for this object" ),
     E3017( "Invalid user group access string: `{0}`" ),
     E3018( "Invalid user access string: `{0}`" ),
+
 
     /* Metadata Validation */
     E4000( "Missing required property `{0}`." ),
@@ -145,17 +149,15 @@ public enum ErrorCode
     E4311( "SQL query contains illegal keywords" ),
 
     /* Preheat */
-    E5000(
-        "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
+    E5000( "Found matching object for given reference, but import mode is CREATE. Identifier was {0}, and object was {1}." ),
     E5001( "No matching object for given reference. Identifier was {0}, and object was {1}." ),
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one Program Instances" ),
-    E6001(
-        "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage." ),
+    E6000( "Program `{0}` has more than one Program Instances"),
+    E6001( "ProgramStage `{0}` has invalid next event scheduling property `{1}`. This property need to be data element of value type date and belong the program stage."),
 
     /* File resource */
     E6100( "Filename not present" ),
@@ -165,17 +167,13 @@ public enum ErrorCode
     E6200( "Feedback message recipients user group not defined" ),
 
     /* Scheduling */
-    E7000(
-        "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+    E7000( "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
-    E7003(
-        "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
-    E7004(
-        "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
+    E7003( "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
+    E7004( "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
     E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
     E7006( "Failed to execute job `{0}`." ),
-    E7007(
-        "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
+    E7007( "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
     E7010( "Failed to validate job runtime - `{0}`" ),
 
     /* Aggregate analytics */
@@ -200,7 +198,7 @@ public enum ErrorCode
     E7118( "A period dimension 'pe' must be specified when output format is DATA_VALUE_SET" ),
     E7119( "An organisation unit dimension 'ou' must be specified when output format is DATA_VALUE_SET" ),
     E7120( "User: `{0}` is not allowed to view org unit: `{1}`" ),
-    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`" ),
+    E7121( "User: `{0}` is not allowed to read data for `{1}`: `{2}`"),
     E7122( "Data approval level does not exist: `{0}`" ),
     E7123( "Current user is constrained by a dimension but has access to no dimension items: `{0}`" ),
     E7124( "Dimension is present in query without any valid dimension options: `{0}`" ),

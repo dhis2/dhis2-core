@@ -31,7 +31,7 @@ package org.hisp.dhis.db.migration.helper;
 /**
  * A no operation flyway that is used for unit tests. Disabling flyway
  * migrations during unit tests.
- *
+ * 
  * @author Ameen Mohamed
  *
  */

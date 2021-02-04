@@ -33,8 +33,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Data;
-
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -45,19 +43,20 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.ValidationFailFastException;
 
+import lombok.Data;
+
 /**
  * A class that collects {@link TrackerErrorReport} during the validation
  * process.
- *
+ * 
  * Each {@link TrackerErrorReport} collection is connected to a specific Tracker
  * entity (Tracked Entity, Enrollment, etc.) via the "mainUid" attribute
- *
- *
+ * 
+ * 
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
-// TODO: should this be "ValidationReporter" since it does not only report
-// errors ?
+// TODO: should this be "ValidationReporter" since it does not only report errors ?
 public class ValidationErrorReporter
 {
     private final List<TrackerErrorReport> reportList;
@@ -197,7 +196,7 @@ public class ValidationErrorReporter
     {
         return this.invalidDTOs.getOrDefault( trackerType, new ArrayList<>() ).contains( uid );
     }
-
+    
     public TrackerPreheat getPreheat()
     {
         return this.getValidationContext().getBundle().getPreheat();

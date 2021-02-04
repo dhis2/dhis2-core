@@ -96,8 +96,7 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testCreateSimpleMetadataAttributeValuesUID()
-        throws IOException
+    public void testCreateSimpleMetadataAttributeValuesUID() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/simple_metadata_with_av.json" ).getInputStream(), RenderFormat.JSON );
@@ -179,14 +178,12 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesMandatory()
-        throws IOException
+    public void testValidateMetadataAttributeValuesMandatory() throws IOException
     {
         defaultSetupWithAttributes();
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
@@ -202,12 +199,10 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesMandatoryFromPayload()
-        throws IOException
+    public void testValidateMetadataAttributeValuesMandatoryFromPayload() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes_from_payload_only.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes_from_payload_only.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
@@ -223,8 +218,7 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesUnique()
-        throws IOException
+    public void testValidateMetadataAttributeValuesUnique() throws IOException
     {
         defaultSetupWithAttributes();
 
@@ -244,12 +238,10 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesUniqueFromPayload()
-        throws IOException
+    public void testValidateMetadataAttributeValuesUniqueFromPayload() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_unique_attributes_from_payload.json" ).getInputStream(),
-            RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_unique_attributes_from_payload.json" ).getInputStream(), RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );

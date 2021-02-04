@@ -32,8 +32,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.metadata.systemsettings.DefaultMetadataSystemSettingService;
 import org.hisp.dhis.render.RenderFormat;
@@ -45,6 +43,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.JsonNode;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Handling remote calls for metadata sync
@@ -75,8 +75,7 @@ public class MetadataSyncDelegate
             return false;
         }
 
-        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
-            metadataVersionSnapshot.getBytes( StandardCharsets.UTF_8 ) );
+        ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream( metadataVersionSnapshot.getBytes( StandardCharsets.UTF_8 ) );
         String remoteVersion = "";
 
         try

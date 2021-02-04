@@ -28,15 +28,15 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import java.util.Date;
-
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
+
+import java.util.Date;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * @Author Zubair Asghar.
@@ -62,7 +62,7 @@ public abstract class ProgramMinMaxFunction
         {
             columnName = "\"executiondate\"";
         }
-        else // arg: #{programStageUid.dataElementUid}
+        else //  arg: #{programStageUid.dataElementUid}
         {
             String dataElement = ctx.uid1.getText();
             columnName = "\"" + dataElement + "\"";
@@ -79,21 +79,14 @@ public abstract class ProgramMinMaxFunction
         String eventTableName = "analytics_event_" + pi.getProgram().getUid();
         String programStage = ctx.uid0.getText();
 
-        return "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
+        return  "(select " + getAggregationOperator() + "(" + columnName + ") from " + eventTableName +
             " where " + eventTableName + ".pi = " + StatementBuilder.ANALYTICS_TBL_ALIAS + ".pi " +
-            (pi.getEndEventBoundary() != null
-                ? ("and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " ")
-                : "")
-            +
-            (pi.getStartEventBoundary() != null
-                ? ("and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " ")
-                : "")
-            + "and ps = '" + programStage + "')";
+            ( pi.getEndEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getEndEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) +
+            ( pi.getStartEventBoundary() != null ? ( "and " + sb.getBoundaryCondition( pi.getStartEventBoundary(), pi, startDate, endDate ) + " " ) : "" ) + "and ps = '" + programStage + "')";
     }
 
     /***
      * Generate the function part of the SQL
-     *
      * @return string sql min/max functions
      */
     public abstract String getAggregationOperator();

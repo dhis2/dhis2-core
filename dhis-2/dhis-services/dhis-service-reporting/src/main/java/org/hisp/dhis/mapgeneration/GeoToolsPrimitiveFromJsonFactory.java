@@ -31,16 +31,15 @@ package org.hisp.dhis.mapgeneration;
 import org.geotools.geometry.jts.JTSFactoryFinder;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.locationtech.jts.geom.LinearRing;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.locationtech.jts.geom.Polygon;
 
-import com.fasterxml.jackson.databind.JsonNode;
-
 /**
  * Factory for producing GeoTools geometric primitives from coordinates in json.
- *
+ * 
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class GeoToolsPrimitiveFromJsonFactory
@@ -50,7 +49,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric point primitive from coordinates in json.
-     *
+     * 
      * @param json the json array of components
      * @return the point
      */
@@ -60,8 +59,9 @@ public class GeoToolsPrimitiveFromJsonFactory
     }
 
     /**
-     * Create a GeoTools geometric coordinate primitive from coordinates in json.
-     *
+     * Create a GeoTools geometric coordinate primitive from coordinates in
+     * json.
+     * 
      * @param json the json array of components
      * @return the coordinate
      */
@@ -72,8 +72,9 @@ public class GeoToolsPrimitiveFromJsonFactory
     }
 
     /**
-     * Create a GeoTools geometric multi-polygon primitive from coordinates in json.
-     *
+     * Create a GeoTools geometric multi-polygon primitive from coordinates in
+     * json.
+     * 
      * @param json the json array of polygons
      * @return the multi-polygon
      */
@@ -86,7 +87,7 @@ public class GeoToolsPrimitiveFromJsonFactory
         for ( int i = 0; i < json.size(); i++ )
         {
             JsonNode node = json.get( i );
-
+            
             if ( MapUtils.nodeIsNonEmpty( node ) )
             {
                 polygons[i] = createPolygonFromJson( node );
@@ -99,7 +100,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric polygon primitive from coordinates in json.
-     *
+     * 
      * @param json the json array of linear ring
      * @return the polygon
      */
@@ -123,7 +124,7 @@ public class GeoToolsPrimitiveFromJsonFactory
             for ( int i = 1; i < shell.size(); i++ )
             {
                 JsonNode hole = json.get( i );
-
+                
                 if ( hole != null && hole.size() > 0 )
                 {
                     holes[i] = createLinearRingFromJson( hole );
@@ -137,7 +138,7 @@ public class GeoToolsPrimitiveFromJsonFactory
 
     /**
      * Create a GeoTools geometric linear-ring from coordinates in json.
-     *
+     * 
      * @param json the json array of coordinates
      * @return the linear-ring
      */
@@ -150,7 +151,7 @@ public class GeoToolsPrimitiveFromJsonFactory
         for ( int i = 0; i < json.size(); i++ )
         {
             JsonNode node = json.get( i );
-
+            
             if ( MapUtils.nodeIsNonEmpty( node ) )
             {
                 coords[i] = createCoordinateFromJson( node );

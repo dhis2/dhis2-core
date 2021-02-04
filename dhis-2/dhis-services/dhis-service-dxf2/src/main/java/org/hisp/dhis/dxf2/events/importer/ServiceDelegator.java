@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.events.importer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.Builder;
-import lombok.Getter;
-
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -39,6 +36,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.Builder;
+import lombok.Getter;
 
 /**
  * Centralizes a collection of services and components that can be accessed by

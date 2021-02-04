@@ -28,13 +28,13 @@ package org.hisp.dhis.version;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author mortenoh
@@ -87,7 +87,7 @@ public class DefaultVersionService
     public void updateVersion( String key, String value )
     {
         Version version = getVersionByKey( key );
-
+        
         if ( version == null )
         {
             version = new Version( key, value );
@@ -108,21 +108,21 @@ public class DefaultVersionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Version getVersion( long id )
     {
         return versionStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Version getVersionByKey( String key )
     {
         return versionStore.getVersionByKey( key );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<Version> getAllVersions()
     {
         return versionStore.getAll();

@@ -76,7 +76,7 @@ public class HibernateUserKeyJsonValueStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "user" ), user ) ) )
-                .stream().map( UserKeyJsonValue::getNamespace ).distinct().collect( Collectors.toList() );
+            .stream().map( UserKeyJsonValue::getNamespace  ).distinct().collect( Collectors.toList() );
     }
 
     @Override

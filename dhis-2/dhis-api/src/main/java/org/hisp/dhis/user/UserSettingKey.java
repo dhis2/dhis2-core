@@ -28,6 +28,9 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang3.LocaleUtils;
+import org.hisp.dhis.common.DisplayProperty;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,9 +40,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.LocaleUtils;
-import org.hisp.dhis.common.DisplayProperty;
 
 /**
  * @author Lars Helge Overland
@@ -60,8 +60,7 @@ public enum UserSettingKey
 
     private final Class<?> clazz;
 
-    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() )
-        .filter( k -> k.getDefaultValue() != null )
+    private static Map<String, Serializable> DEFAULT_USER_SETTINGS_MAP = Stream.of( UserSettingKey.values() ).filter( k -> k.getDefaultValue() != null )
         .collect( Collectors.toMap( UserSettingKey::getName, UserSettingKey::getDefaultValue ) );
 
     // -------------------------------------------------------------------------
@@ -116,7 +115,7 @@ public enum UserSettingKey
         return Optional.empty();
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public static Serializable getAsRealClass( String name, String value )
     {
         Optional<UserSettingKey> setting = getByName( name );
@@ -146,7 +145,7 @@ public enum UserSettingKey
                 return Enum.valueOf( (Class<? extends Enum>) settingClazz, value.toUpperCase() );
             }
 
-            // TODO handle Dates
+            //TODO handle Dates
         }
 
         return value;

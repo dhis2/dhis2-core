@@ -29,8 +29,8 @@ package org.hisp.dhis.resourcetable;
  */
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public enum ResourceTableType
 {
     ORG_UNIT_STRUCTURE( "_orgunitstructure" ),
@@ -48,12 +48,12 @@ public enum ResourceTableType
     DATA_APPROVAL_MIN_LEVEL( "_dataapprovalminlevel" );
 
     private String tableName;
-
+    
     ResourceTableType( String tableName )
     {
         this.tableName = tableName;
     }
-
+    
     public String getTableName()
     {
         return tableName;

@@ -87,7 +87,7 @@ public interface VisualizationStore
      * @param startingAt
      * @return the total of Pivot Table found.
      */
-    int countPivotTablesCreated( Date startingAt );
+    int countPivotTablesCreated ( Date startingAt );
 
     /**
      * Counts the number of Chart created since the given date.
@@ -95,5 +95,5 @@ public interface VisualizationStore
      * @param startingAt
      * @return the total of Chart found.
      */
-    int countChartsCreated( Date startingAt );
+    int countChartsCreated ( Date startingAt );
 }

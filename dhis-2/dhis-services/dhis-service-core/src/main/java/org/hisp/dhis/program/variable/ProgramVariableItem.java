@@ -28,14 +28,13 @@ package org.hisp.dhis.program.variable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ZERO_POS_VALUE_COUNT;
-
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 
-import com.google.common.collect.ImmutableMap;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_ZERO_POS_VALUE_COUNT;
 
 /**
  * Program indicator variable expression item
@@ -45,8 +44,7 @@ import com.google.common.collect.ImmutableMap;
 public class ProgramVariableItem
     extends ProgramExpressionItem
 {
-    private final static ImmutableMap<Integer, ProgramVariable> PROGRAM_VARIABLES = ImmutableMap
-        .<Integer, ProgramVariable> builder()
+    private final static ImmutableMap<Integer, ProgramVariable> PROGRAM_VARIABLES = ImmutableMap.<Integer, ProgramVariable>builder()
         .put( V_ANALYTICS_PERIOD_END, new vAnalyticsPeriodEnd() )
         .put( V_ANALYTICS_PERIOD_START, new vAnalyticsPeriodStart() )
         .put( V_CREATION_DATE, new vCreationDate() )
@@ -76,7 +74,7 @@ public class ProgramVariableItem
 
         visitor.getItemDescriptions().put( ctx.getText(), variableName );
 
-        ProgramVariable programVariable = getProgramVariable( ctx );
+        ProgramVariable programVariable = getProgramVariable ( ctx );
 
         return programVariable.defaultVariableValue();
     }
@@ -84,7 +82,7 @@ public class ProgramVariableItem
     @Override
     public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        ProgramVariable programVariable = getProgramVariable( ctx );
+        ProgramVariable programVariable = getProgramVariable ( ctx );
 
         return programVariable.getSql( visitor );
     }
@@ -99,8 +97,7 @@ public class ProgramVariableItem
 
         if ( programVariable == null )
         {
-            throw new ParserExceptionWithoutContext(
-                "Can't find program variable " + ctx.programVariable().var.getText() );
+            throw new ParserExceptionWithoutContext( "Can't find program variable " + ctx.programVariable().var.getText() );
         }
 
         return programVariable;

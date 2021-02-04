@@ -27,9 +27,8 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
  * DataStatistics object to be saved as snapshot.
@@ -41,43 +40,24 @@ public class DataStatistics
     extends BaseIdentifiableObject
 {
     private Double mapViews;
-
     private Double chartViews;
-
     private Double reportTableViews;
-
     private Double visualizationViews;
-
     private Double eventReportViews;
-
     private Double eventChartViews;
-
     private Double dashboardViews;
-
     private Double dataSetReportViews;
-
     private Double totalViews;
-
     private Double savedMaps;
-
     private Double savedCharts;
-
     private Double savedReportTables;
-
     private Double savedVisualizations;
-
     private Double savedEventReports;
-
     private Double savedEventCharts;
-
     private Double savedDashboards;
-
     private Double savedIndicators;
-
     private Double savedDataValues;
-
     private Integer activeUsers;
-
     private Integer users;
 
     public DataStatistics()
@@ -333,8 +313,7 @@ public class DataStatistics
         this.users = users;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return super.toString() + "DataStatistics{" +
             "mapViews=" + mapViews +

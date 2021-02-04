@@ -28,10 +28,10 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * Simple linear pipeline that run transformers sequentially.
@@ -43,7 +43,6 @@ public class LinearNodePipeline implements NodePipeline
     private class NodeTransformerWithArgs
     {
         NodeTransformer transformer;
-
         List<String> arguments;
 
         NodeTransformerWithArgs( NodeTransformer transformer, List<String> arguments )

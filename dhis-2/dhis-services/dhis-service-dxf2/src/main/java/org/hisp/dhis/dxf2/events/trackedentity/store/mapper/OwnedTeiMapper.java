@@ -28,8 +28,10 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 import java.sql.ResultSet;
 import java.sql.SQLException;
+
 
 /**
  * @author Ameen Mohamed
@@ -43,7 +45,7 @@ public class OwnedTeiMapper
     String getItem( ResultSet rs )
         throws SQLException
     {
-        return rs.getString( "pgm_uid" );
+        return rs.getString( "pgm_uid" ) ;
     }
 
     @Override

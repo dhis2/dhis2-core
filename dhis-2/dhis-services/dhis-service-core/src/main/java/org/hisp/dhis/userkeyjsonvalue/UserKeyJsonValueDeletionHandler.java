@@ -28,12 +28,12 @@ package org.hisp.dhis.userkeyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.userkeyjsonvalue.UserKeyJsonValueDeletionHandler" )
 public class UserKeyJsonValueDeletionHandler
@@ -57,6 +57,6 @@ public class UserKeyJsonValueDeletionHandler
     @Override
     public void deleteUser( User user )
     {
-        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId() );
+        jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId());
     }
 }

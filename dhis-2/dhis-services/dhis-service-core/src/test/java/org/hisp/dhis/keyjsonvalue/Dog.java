@@ -36,15 +36,15 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Dog
 {
     private String id;
-
+    
     private String name;
-
+    
     private String color;
-
+    
     public Dog()
     {
     }
-
+    
     public Dog( String id, String name, String color )
     {
         this.id = id;

@@ -52,7 +52,6 @@ public interface PropertyIntrospectorService
      */
     Map<String, Property> getPropertiesMap( Class<?> klass );
 
-    // TODO should probably be moved out of PropertyIntrospectorService, useful
-    // other places also
+    // TODO should probably be moved out of PropertyIntrospectorService, useful other places also
     Class<?> getConcreteClass( Class<?> klass );
 }

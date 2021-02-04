@@ -110,16 +110,13 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
+    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.OBJECT );
+        params.setAtomicMode(AtomicMode.OBJECT);
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
@@ -130,16 +127,13 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
-        throws IOException
-    {
+    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
-            .getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
 
         TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setAtomicMode( AtomicMode.ALL );
+        params.setAtomicMode(AtomicMode.ALL);
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );

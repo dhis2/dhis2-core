@@ -28,8 +28,6 @@ package org.hisp.dhis.apphub;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.regex.Pattern;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -39,6 +37,8 @@ import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+
+import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -99,8 +99,8 @@ public class AppHubUtils
     }
 
     /**
-     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a
-     * {@code application/json} response.
+     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to
+     * accept a {@code application/json} response.
      *
      * @return a {@link HttpEntity}.
      */

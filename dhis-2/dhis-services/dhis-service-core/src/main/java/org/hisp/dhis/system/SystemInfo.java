@@ -28,15 +28,14 @@ package org.hisp.dhis.system;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.system.database.DatabaseInfo;
 import org.springframework.beans.BeanUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland
@@ -327,8 +326,7 @@ public class SystemInfo
         return intervalSinceLastAnalyticsTablePartitionSuccess;
     }
 
-    public void setIntervalSinceLastAnalyticsTablePartitionSuccess(
-        String intervalSinceLastAnalyticsTablePartitionSuccess )
+    public void setIntervalSinceLastAnalyticsTablePartitionSuccess( String intervalSinceLastAnalyticsTablePartitionSuccess )
     {
         this.intervalSinceLastAnalyticsTablePartitionSuccess = intervalSinceLastAnalyticsTablePartitionSuccess;
     }

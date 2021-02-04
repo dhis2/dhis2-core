@@ -40,8 +40,8 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public interface AnalyticalObject
     extends IdentifiableObject, InterpretableObject, SubscribableObject
 {

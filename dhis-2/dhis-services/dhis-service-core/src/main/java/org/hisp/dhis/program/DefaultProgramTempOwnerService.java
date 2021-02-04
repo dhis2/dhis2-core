@@ -59,12 +59,12 @@ public class DefaultProgramTempOwnerService implements ProgramTempOwnerService
     {
         programTempOwnerStore.addProgramTempOwner( programTempOwner );
     }
-
+    
     @Override
     @Transactional( readOnly = true )
     public int getValidTempOwnerRecordCount( Program program, TrackedEntityInstance entityInstance, User user )
     {
-        return programTempOwnerStore.getValidTempOwnerCount( program, entityInstance, user );
+        return programTempOwnerStore.getValidTempOwnerCount( program, entityInstance, user);
     }
 
 }

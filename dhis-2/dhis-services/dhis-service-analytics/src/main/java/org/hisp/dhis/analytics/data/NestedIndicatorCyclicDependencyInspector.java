@@ -78,8 +78,7 @@ public class NestedIndicatorCyclicDependencyInspector
     /**
      * Initiate the inspection, by invoking the recursive 'inspect' function.
      *
-     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as
-     *        Indicators.
+     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as Indicators.
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {

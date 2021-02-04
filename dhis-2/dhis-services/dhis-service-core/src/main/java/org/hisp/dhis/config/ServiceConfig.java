@@ -28,8 +28,6 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.DefaultResourceBundleManager;
@@ -45,6 +43,8 @@ import org.hisp.dhis.user.UserSettingService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+
+import java.util.*;
 
 /**
  * @author Luciano Fiandesio

@@ -38,6 +38,5 @@ public interface Deserializer<T>
 {
     List<String> contentTypes();
 
-    T deserialize( InputStream inputStream )
-        throws Exception;
+    T deserialize( InputStream inputStream ) throws Exception;
 }

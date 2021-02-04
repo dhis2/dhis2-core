@@ -28,20 +28,19 @@ package org.hisp.dhis.i18n.locale;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Locale;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Locale;
 
 /**
  * Wrapper for java.util.Locale for persistence purposes.
- *
+ * 
  * @author larshelg
  */
 public class I18nLocale
     extends BaseIdentifiableObject
-{
+{    
     private String locale;
 
     // -------------------------------------------------------------------------
@@ -49,7 +48,7 @@ public class I18nLocale
     // -------------------------------------------------------------------------
 
     public I18nLocale()
-    {
+    {        
         this.name = "English (United Kingdom)";
         this.locale = "en_GB";
     }
@@ -59,7 +58,7 @@ public class I18nLocale
         this.name = locale.getDisplayName();
         this.locale = locale.toString();
     }
-
+    
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -69,7 +68,7 @@ public class I18nLocale
     {
         return locale;
     }
-
+    
     public void setLocale( String locale )
     {
         this.locale = locale;

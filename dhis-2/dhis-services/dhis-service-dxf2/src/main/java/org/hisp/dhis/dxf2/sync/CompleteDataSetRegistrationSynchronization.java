@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrationExchangeService;
@@ -45,6 +43,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -53,11 +53,8 @@ import org.springframework.web.client.RestTemplate;
 public class CompleteDataSetRegistrationSynchronization extends DataSynchronizationWithoutPaging
 {
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
-
     private final CompleteDataSetRegistrationService completeDataSetRegistrationService;
-
     private final CompleteDataSetRegistrationExchangeService completeDataSetRegistrationExchangeService;
 
     private Date lastUpdatedAfter;
@@ -93,8 +90,7 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
             SyncUtils.setLastSyncSuccess( systemSettingManager,
                 SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC, new Date( clock.getStartTime() ) );
             log.info( "Skipping completeness synchronization, no new or updated data" );
-            return SynchronizationResult
-                .newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
+            return SynchronizationResult.newSuccessResultWithMessage( "Skipping completeness synchronization, no new or updated data" );
         }
 
         if ( sendSyncRequest() )
@@ -118,11 +114,9 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
 
         final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
             SettingKey.LAST_SUCCESSFUL_COMPLETE_DATA_SET_REGISTRATION_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager
-            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
-        objectsToSynchronize = completeDataSetRegistrationService
-            .getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
+        objectsToSynchronize = completeDataSetRegistrationService.getCompleteDataSetCountLastUpdatedAfter( lastUpdatedAfter );
 
         log.info(
             "CompleteDataSetRegistrations last changed before " + skipChangedBefore + " will not be synchronized." );
@@ -148,7 +142,6 @@ public class CompleteDataSetRegistrationSynchronization extends DataSynchronizat
                 .writeCompleteDataSetRegistrationsJson( lastUpdatedAfter, request.getBody(), new IdSchemes() );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
-            SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.COMPLETE_DATA_SET_REGISTRATIONS );
     }
 }

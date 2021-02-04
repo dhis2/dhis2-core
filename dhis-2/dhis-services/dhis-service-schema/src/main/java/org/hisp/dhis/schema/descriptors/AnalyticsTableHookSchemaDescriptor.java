@@ -54,10 +54,8 @@ public class AnalyticsTableHookSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1240 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_ADD" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_ANALYTICSTABLEHOOK_DELETE" ) ) );
 
         return schema;
     }

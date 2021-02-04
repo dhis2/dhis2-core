@@ -34,8 +34,6 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -44,6 +42,8 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair Asghar.
@@ -62,8 +62,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap,
-        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap, ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
     {
         checkNotNull( variableMap );
         checkNotNull( programInstanceService );
@@ -109,7 +108,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
     }
 
-    private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
+    private void assignValue(RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( programInstance == null )
         {

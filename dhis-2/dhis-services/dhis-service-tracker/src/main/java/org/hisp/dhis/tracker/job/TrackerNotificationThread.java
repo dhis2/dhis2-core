@@ -28,8 +28,7 @@ package org.hisp.dhis.tracker.job;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.function.Consumer;
-
+import com.google.common.collect.ImmutableMap;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.program.ProgramInstance;
@@ -41,11 +40,11 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.function.Consumer;
 
 /**
- * Class represents a thread which will be triggered as soon as tracker
- * notification consumer consumes a message from tracker notification queue.
+ * Class represents a thread which will be triggered as soon as tracker notification consumer consumes a message from
+ * tracker notification queue.
  *
  * @author Zubair Asghar
  */
@@ -59,16 +58,15 @@ public class TrackerNotificationThread extends SecurityContextRunnable
     private ProgramNotificationService programNotificationService;
 
     private TrackerSideEffectDataBundle sideEffectDataBundle;
-
     private IdentifiableObjectManager manager;
 
-    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
+    private final ImmutableMap<Class<? extends BaseIdentifiableObject>, Consumer<Long>> serviceMapper = new
+        ImmutableMap.Builder<Class<? extends BaseIdentifiableObject>, Consumer<Long>>()
         .put( ProgramInstance.class, id -> programNotificationService.sendEnrollmentNotifications( id ) )
         .put( ProgramStageInstance.class, id -> programNotificationService.sendEventCompletionNotifications( id ) )
         .build();
 
-    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier,
-        IdentifiableObjectManager manager )
+    public TrackerNotificationThread( ProgramNotificationService programNotificationService, Notifier notifier, IdentifiableObjectManager manager )
     {
         this.programNotificationService = programNotificationService;
         this.notifier = notifier;
@@ -85,8 +83,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable
 
         if ( serviceMapper.containsKey( sideEffectDataBundle.getKlass() ) )
         {
-            BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(),
-                sideEffectDataBundle.getObject() );
+            BaseIdentifiableObject object = manager.get( sideEffectDataBundle.getKlass(), sideEffectDataBundle.getObject() );
 
             serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
         }

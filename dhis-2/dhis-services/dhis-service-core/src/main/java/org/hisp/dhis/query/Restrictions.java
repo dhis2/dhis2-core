@@ -28,8 +28,6 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-
 import org.hisp.dhis.query.operators.BetweenOperator;
 import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
@@ -47,6 +45,8 @@ import org.hisp.dhis.query.operators.NotNullOperator;
 import org.hisp.dhis.query.operators.NotTokenOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.query.operators.TokenOperator;
+
+import java.util.Collection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

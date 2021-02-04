@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -98,8 +97,7 @@ public class DefaultTrackerBundleService
     private ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER;
 
     @PostConstruct
-    public void initMaps()
-    {
+    public void initMaps() {
 
         COMMIT_MAPPER = new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
             .put( TrackerType.ENROLLMENT,

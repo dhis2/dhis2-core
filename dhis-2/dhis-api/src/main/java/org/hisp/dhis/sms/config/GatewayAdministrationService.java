@@ -49,7 +49,7 @@ public interface GatewayAdministrationService
 
     boolean hasDefaultGateway();
 
-    SmsGatewayConfig getByUid( String uid );
+    SmsGatewayConfig getByUid(String uid );
 
     boolean addGateway( SmsGatewayConfig config );
 

@@ -48,8 +48,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" )
 public class HibernateTrackedEntityInstanceFilterStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter>
-    implements TrackedEntityInstanceFilterStore
+    extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter> implements TrackedEntityInstanceFilterStore
 {
     public HibernateTrackedEntityInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )

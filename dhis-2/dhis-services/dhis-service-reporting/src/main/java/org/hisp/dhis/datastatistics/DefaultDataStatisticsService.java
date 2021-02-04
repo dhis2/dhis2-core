@@ -28,9 +28,6 @@ package org.hisp.dhis.datastatistics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -51,6 +48,9 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -112,7 +112,7 @@ public class DefaultDataStatisticsService
         Date startDate = cal.getTime();
         Date now = new Date();
         long diff = now.getTime() - startDate.getTime();
-        int days = (int) TimeUnit.DAYS.convert( diff, TimeUnit.MILLISECONDS );
+        int days = (int) TimeUnit.DAYS.convert(diff, TimeUnit.MILLISECONDS);
 
         double savedCharts = visualizationStore.countChartsCreated( startDate );
         double savedReportTables = visualizationStore.countPivotTablesCreated( startDate );
@@ -126,8 +126,7 @@ public class DefaultDataStatisticsService
         int activeUsers = userService.getActiveUsersCount( 1 );
         int users = idObjectManager.getCount( User.class );
 
-        Map<DataStatisticsEventType, Double> eventCountMap = dataStatisticsEventStore
-            .getDataStatisticsEventCount( startDate, day );
+        Map<DataStatisticsEventType, Double> eventCountMap = dataStatisticsEventStore.getDataStatisticsEventCount( startDate, day );
 
         DataStatistics dataStatistics = new DataStatistics(
             eventCountMap.get( DataStatisticsEventType.MAP_VIEW ),
@@ -160,8 +159,7 @@ public class DefaultDataStatisticsService
     }
 
     @Override
-    public List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize,
-        SortOrder sortOrder, String username )
+    public List<FavoriteStatistics> getTopFavorites( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username )
     {
         return dataStatisticsEventStore.getFavoritesData( eventType, pageSize, sortOrder, username );
     }
@@ -178,49 +176,48 @@ public class DefaultDataStatisticsService
         DataSummary statistics = new DataSummary();
 
         /* database object counts */
-        Map<String, Integer> objectCounts = new HashMap<>();
-        statisticsProvider.getObjectCounts()
-            .forEach( ( object, count ) -> objectCounts.put( object.getValue(), count ) );
+        Map<String, Integer> objectCounts = new HashMap<>(  );
+        statisticsProvider.getObjectCounts().forEach( (object, count) -> objectCounts.put( object.getValue(), count ));
         statistics.setObjectCounts( objectCounts );
 
         /* active users count */
         Date lastHour = new DateTime().minusHours( 1 ).toDate();
 
-        Map<Integer, Integer> activeUsers = new HashMap<>();
+        Map<Integer, Integer> activeUsers = new HashMap<>(  );
 
-        activeUsers.put( 0, userService.getActiveUsersCount( lastHour ) );
-        activeUsers.put( 1, userService.getActiveUsersCount( 0 ) );
-        activeUsers.put( 2, userService.getActiveUsersCount( 1 ) );
-        activeUsers.put( 7, userService.getActiveUsersCount( 7 ) );
-        activeUsers.put( 30, userService.getActiveUsersCount( 30 ) );
+        activeUsers.put( 0,  userService.getActiveUsersCount( lastHour ));
+        activeUsers.put( 1,  userService.getActiveUsersCount( 0 ));
+        activeUsers.put( 2,  userService.getActiveUsersCount( 1 ));
+        activeUsers.put( 7,  userService.getActiveUsersCount( 7 ));
+        activeUsers.put( 30,  userService.getActiveUsersCount( 30 ));
 
         statistics.setActiveUsers( activeUsers );
 
         /* user invitations count */
-        Map<String, Integer> userInvitations = new HashMap<>();
+        Map<String, Integer> userInvitations = new HashMap<>(  );
 
         UserQueryParams inviteAll = new UserQueryParams();
         inviteAll.setInvitationStatus( UserInvitationStatus.ALL );
-        userInvitations.put( UserInvitationStatus.ALL.getValue(), userService.getUserCount( inviteAll ) );
+        userInvitations.put( UserInvitationStatus.ALL.getValue(),  userService.getUserCount( inviteAll ) );
 
         UserQueryParams inviteExpired = new UserQueryParams();
         inviteExpired.setInvitationStatus( UserInvitationStatus.EXPIRED );
-        userInvitations.put( UserInvitationStatus.EXPIRED.getValue(), userService.getUserCount( inviteExpired ) );
+        userInvitations.put( UserInvitationStatus.EXPIRED.getValue(),  userService.getUserCount( inviteExpired ) );
 
         statistics.setUserInvitations( userInvitations );
 
         /* data value count */
-        Map<Integer, Integer> dataValueCount = new HashMap<>();
+        Map<Integer, Integer> dataValueCount = new HashMap<>(  );
 
-        dataValueCount.put( 0, dataValueService.getDataValueCount( 0 ) );
-        dataValueCount.put( 1, dataValueService.getDataValueCount( 1 ) );
-        dataValueCount.put( 7, dataValueService.getDataValueCount( 7 ) );
-        dataValueCount.put( 30, dataValueService.getDataValueCount( 30 ) );
+        dataValueCount.put( 0, dataValueService.getDataValueCount( 0 ));
+        dataValueCount.put( 1, dataValueService.getDataValueCount( 1 ));
+        dataValueCount.put( 7, dataValueService.getDataValueCount( 7 ));
+        dataValueCount.put( 30, dataValueService.getDataValueCount( 30 ));
 
         statistics.setDataValueCount( dataValueCount );
 
         /* event count */
-        Map<Integer, Long> eventCount = new HashMap<>();
+        Map<Integer, Long> eventCount = new HashMap<>(  );
 
         eventCount.put( 0, programStageInstanceService.getProgramStageInstanceCount( 0 ) );
         eventCount.put( 1, programStageInstanceService.getProgramStageInstanceCount( 1 ) );

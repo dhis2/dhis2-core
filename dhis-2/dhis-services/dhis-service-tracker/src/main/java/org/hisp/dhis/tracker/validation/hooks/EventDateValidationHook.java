@@ -29,14 +29,14 @@ package org.hisp.dhis.tracker.validation.hooks;
  */
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
 
 import java.util.Date;
 

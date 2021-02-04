@@ -35,6 +35,5 @@ package org.hisp.dhis.metadata.version;
  */
 public enum VersionType
 {
-    BEST_EFFORT,
-    ATOMIC
+    BEST_EFFORT, ATOMIC
 }

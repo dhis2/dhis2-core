@@ -50,7 +50,7 @@ public class DummyService
     {
         return sequentialNumberCounterStore.getNextValues( uid, key, length );
     }
-
+    
     @Transactional
     public void deleteCounter( String uid )
     {

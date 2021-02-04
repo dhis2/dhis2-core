@@ -49,7 +49,7 @@ public interface TrackerOwnershipManager
      *        skipped or not.
      */
     void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
-        boolean skipAccessValidation, boolean createIfNotExists );
+                            boolean skipAccessValidation, boolean createIfNotExists );
 
     /**
      * @param entityInstance The tracked entity instance object
@@ -57,7 +57,7 @@ public interface TrackerOwnershipManager
      * @param organisationUnit The org unit that has to become the owner
      */
     void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
-        boolean skipAccessValidation, boolean overwriteIfExists );
+                          boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
      * Check whether the user has access (as owner or has temporarily broken the
@@ -73,7 +73,8 @@ public interface TrackerOwnershipManager
     boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
     /**
-     * Grant temporary ownership for a user for a specific tei-program combination
+     * Grant temporary ownership for a user for a specific tei-program
+     * combination
      *
      * @param entityInstance The tracked entity instance object
      * @param program The program object

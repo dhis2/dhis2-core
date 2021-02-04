@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.Lists;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -98,9 +98,9 @@ public abstract class FinancialPeriodType
     // -------------------------------------------------------------------------
     // CalendarPeriodType functionality
     // -------------------------------------------------------------------------
-
+    
     @Override
-    public DateTimeUnit getDateWithOffset( DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
+    public DateTimeUnit getDateWithOffset(  DateTimeUnit dateTimeUnit, int offset, Calendar calendar )
     {
         return calendar.plusYears( dateTimeUnit, offset );
     }
@@ -134,8 +134,8 @@ public abstract class FinancialPeriodType
     }
 
     /**
-     * Generates the last 5 financial years where the last one is the financial year
-     * which the given date is inside.
+     * Generates the last 5 financial years where the last one is the financial
+     * year which the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( Date date )

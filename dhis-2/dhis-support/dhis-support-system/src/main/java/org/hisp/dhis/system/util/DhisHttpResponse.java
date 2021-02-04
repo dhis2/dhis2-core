@@ -90,7 +90,6 @@ public class DhisHttpResponse
     @Override
     public String toString()
     {
-        return "DhisHttpResponse [httpResponse=" + httpResponse + ", response=" + response + " statusCode=" + statusCode
-            + "]";
+        return "DhisHttpResponse [httpResponse=" + httpResponse + ", response=" + response + " statusCode=" + statusCode + "]";
     }
 }

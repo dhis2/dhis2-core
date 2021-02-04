@@ -28,9 +28,9 @@ package org.hisp.dhis.dataset.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Comparator;
-
 import org.hisp.dhis.dataset.LockException;
+
+import java.util.Comparator;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

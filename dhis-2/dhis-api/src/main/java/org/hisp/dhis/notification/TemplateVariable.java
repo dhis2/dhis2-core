@@ -34,6 +34,5 @@ package org.hisp.dhis.notification;
 public interface TemplateVariable
 {
     String name();
-
     String getVariableName();
 }

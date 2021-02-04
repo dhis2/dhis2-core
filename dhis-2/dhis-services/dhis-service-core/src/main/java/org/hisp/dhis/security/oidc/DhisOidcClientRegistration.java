@@ -30,7 +30,6 @@ package org.hisp.dhis.security.oidc;
 
 import lombok.Builder;
 import lombok.Data;
-
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
 /**

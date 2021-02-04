@@ -75,8 +75,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
-        TrackedEntityCommentService trackedEntityCommentService,
-        TrackerSideEffectConverterService sideEffectConverterService )
+        TrackedEntityCommentService trackedEntityCommentService, TrackerSideEffectConverterService sideEffectConverterService )
     {
         super( bundleHooks, reservedValueService );
         this.eventConverter = eventConverter;

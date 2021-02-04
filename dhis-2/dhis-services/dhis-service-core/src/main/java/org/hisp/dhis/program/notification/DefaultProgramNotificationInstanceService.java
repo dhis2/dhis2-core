@@ -28,14 +28,14 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Zubair Asghar
@@ -62,8 +62,7 @@ public class DefaultProgramNotificationInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances(
-        ProgramStageInstance programStageInstance )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
     {
         return notificationInstanceStore.getProgramNotificationInstances( programStageInstance );
     }

@@ -439,7 +439,6 @@ public class DataQueryRequest
             this.request.userOrgUnitType = userOrgUnitType;
             return this;
         }
-
         public DataQueryRequestBuilder apiVersion( DhisApiVersion apiVersion )
         {
             this.request.apiVersion = apiVersion;

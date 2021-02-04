@@ -28,13 +28,7 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
@@ -72,7 +66,12 @@ import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -81,31 +80,24 @@ public class EventDataQueryServiceTest
     extends DhisSpringTest
 {
     private Program prA;
-
     private ProgramStage psA;
 
     private Period peA;
-
     private Period peB;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
 
     private DataElement deA;
-
     private DataElement deB;
-
     private DataElement deC;
 
     private TrackedEntityAttribute atA;
-
     private TrackedEntityAttribute atB;
 
     private LegendSet legendSetA;
 
     private Legend legendA;
-
     private Legend legendB;
 
     @Autowired
@@ -209,8 +201,7 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
-            .aggregationType( AggregationType.AVERAGE ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -236,8 +227,7 @@ public class EventDataQueryServiceTest
         desc.add( "eventdate" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
-            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -247,7 +237,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( "executiondate", params.getDesc().get( 0 ).getName() );
+        assertEquals("executiondate", params.getDesc().get(0).getName());
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -265,8 +255,7 @@ public class EventDataQueryServiceTest
         desc.add( "ouname" );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
-            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -276,7 +265,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( "ouname", params.getDesc().get( 0 ).getName() );
+        assertEquals("ouname", params.getDesc().get(0).getName());
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -294,8 +283,7 @@ public class EventDataQueryServiceTest
         desc.add( deA.getUid() );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
-            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -305,7 +293,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( deA.getUid(), params.getDesc().get( 0 ).getUid() );
+        assertEquals(deA.getUid(), params.getDesc().get(0).getUid());
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -323,8 +311,7 @@ public class EventDataQueryServiceTest
         desc.add( atA.getUid() );
 
         EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
-            .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
-            .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
+            .dimension( dimensionParams ).filter( filterParams ).value(  deA.getUid() ).aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
 
@@ -334,7 +321,7 @@ public class EventDataQueryServiceTest
         assertEquals( 1, params.getFilterPeriods().size() );
         assertEquals( deA, params.getValue() );
         assertEquals( 1, params.getDesc().size() );
-        assertEquals( atA.getUid(), params.getDesc().get( 0 ).getUid() );
+        assertEquals(atA.getUid(), params.getDesc().get(0).getUid());
         assertEquals( AnalyticsAggregationType.AVERAGE, params.getAggregationType() );
     }
 
@@ -402,8 +389,7 @@ public class EventDataQueryServiceTest
         eventChart.getRowDimensions().add( DimensionalObject.ORGUNIT_DIM_ID );
         eventChart.getFilterDimensions().add( DimensionalObject.PERIOD_DIM_ID );
 
-        eventChart.getDataElementDimensions()
-            .add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
+        eventChart.getDataElementDimensions().add( new TrackedEntityDataElementDimension( deA, null, null, "GT:2000" ) );
         eventChart.getAttributeDimensions().add( new TrackedEntityAttributeDimension( atA, null, "LE:5" ) );
         eventChart.getPeriods().add( peA );
         eventChart.getPeriods().add( peB );
@@ -460,8 +446,7 @@ public class EventDataQueryServiceTest
     public void testGetFromUrlLegendSet()
     {
         Set<String> dimensionParams = new HashSet<>();
-        dimensionParams
-            .add( deA.getUid() + "-" + legendSetA.getUid() + ":IN:" + legendA.getUid() + ";" + legendB.getUid() );
+        dimensionParams.add( deA.getUid() + "-" + legendSetA.getUid() + ":IN:" + legendA.getUid() + ";" + legendB.getUid() );
 
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
@@ -483,8 +468,7 @@ public class EventDataQueryServiceTest
     public void testGetCoordinateField()
     {
         assertEquals( "psigeometry", dataQueryService.getCoordinateField( EventQueryParams.EVENT_COORDINATE_FIELD ) );
-        assertEquals( "pigeometry",
-            dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
+        assertEquals( "pigeometry", dataQueryService.getCoordinateField( EventQueryParams.ENROLLMENT_COORDINATE_FIELD ) );
         assertEquals( "psigeometry", dataQueryService.getCoordinateField( null ) );
         assertEquals( deC.getUid(), dataQueryService.getCoordinateField( deC.getUid() ) );
     }

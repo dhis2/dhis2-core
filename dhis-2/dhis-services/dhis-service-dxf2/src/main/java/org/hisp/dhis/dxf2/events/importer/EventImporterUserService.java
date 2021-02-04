@@ -28,13 +28,13 @@ package org.hisp.dhis.dxf2.events.importer;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.experimental.Delegate;
-
 import org.hisp.dhis.artemis.config.UsernameSupplier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 
 @RequiredArgsConstructor
 @Component

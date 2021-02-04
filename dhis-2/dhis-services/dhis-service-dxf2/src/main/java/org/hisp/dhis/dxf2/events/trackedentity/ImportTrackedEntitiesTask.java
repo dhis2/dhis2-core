@@ -28,11 +28,11 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,8 +48,7 @@ public class ImportTrackedEntitiesTask
 
     private final JobConfiguration id;
 
-    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances,
-        TrackedEntityInstanceService trackedEntityInstanceService,
+    public ImportTrackedEntitiesTask( List<TrackedEntityInstance> trackedEntityInstances, TrackedEntityInstanceService trackedEntityInstanceService,
         ImportOptions importOptions, JobConfiguration id )
     {
         super();

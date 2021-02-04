@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.metadata.sync.exception;
  */
 
 /**
- * @author aamerm.
+ * @author  aamerm.
  */
 public class RemoteServerUnavailableException
     extends RuntimeException

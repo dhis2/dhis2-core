@@ -48,7 +48,11 @@ public class AnalyticsTestUtils
     /**
      * Configure org unit hierarchy like so:
      *
-     * A / \ B C / \ D E
+     *          A
+     *         / \
+     *        B   C
+     *       / \
+     *      D   E
      *
      * @param ouA root
      * @param ouB leftRoot
@@ -100,8 +104,7 @@ public class AnalyticsTestUtils
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -127,8 +130,7 @@ public class AnalyticsTestUtils
             Double actual = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 
@@ -149,8 +151,7 @@ public class AnalyticsTestUtils
             Double actual = Double.parseDouble( dataValue.getValue() );
             Double expected = keyValue.get( key );
 
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
-                actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
         }
     }
 }

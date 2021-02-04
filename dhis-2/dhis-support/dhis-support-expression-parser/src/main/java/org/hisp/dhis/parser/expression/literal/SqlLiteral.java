@@ -28,14 +28,14 @@ package org.hisp.dhis.parser.expression.literal;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.antlr.AntlrExprLiteral;
+
 import static org.apache.commons.lang.StringEscapeUtils.escapeSql;
 import static org.apache.commons.text.StringEscapeUtils.unescapeJava;
 import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.NumericLiteralContext;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
-
-import org.hisp.dhis.antlr.AntlrExprLiteral;
 
 /**
  * Gets literal value Strings from an ANTLR parse tree for use in SQL queries.

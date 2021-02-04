@@ -36,7 +36,7 @@ public class SMSProcessingException
 {
 
     /**
-     *
+     * 
      */
     private static final long serialVersionUID = 353425388316643481L;
 

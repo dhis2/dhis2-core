@@ -28,15 +28,15 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
-import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
+
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.quote;
+import static org.hisp.dhis.analytics.util.AnalyticsSqlUtils.removeQuote;
+import static org.hisp.dhis.analytics.AnalyticsTableManager.TABLE_TEMP_SUFFIX;
 
 /**
  * Class representing an index on a database table column.
@@ -88,8 +88,7 @@ public class AnalyticsIndex
     {
         String columnName = StringUtils.join( this.getColumns(), "_" );
 
-        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType )
-            + "_" + CodeGenerator.generateCode( 5 ) );
+        return quote( PREFIX_INDEX + removeQuote( columnName ) + "_" + shortenTableName( this.getTable(), tableType ) + "_" + CodeGenerator.generateCode( 5 ) );
     }
 
     /**

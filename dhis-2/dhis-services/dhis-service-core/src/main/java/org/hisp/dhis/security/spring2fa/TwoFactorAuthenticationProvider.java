@@ -29,7 +29,6 @@ package org.hisp.dhis.security.spring2fa;
  */
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
@@ -86,8 +85,7 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        // Initialize all required properties of user credentials since these will
-        // become detached
+        // Initialize all required properties of user credentials since these will become detached
 
         userCredentials.getAllAuthorities();
 
@@ -97,7 +95,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         if ( userCredentials.isTwoFA() )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails =
+                (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             // -------------------------------------------------------------------------
             // Check whether account is locked due to multiple failed login attempts

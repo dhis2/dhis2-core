@@ -28,19 +28,21 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.DataDimensionType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -53,15 +55,11 @@ public class CategoryOptionServiceTest
     private CategoryService categoryService;
 
     private CategoryOption categoryOptionA;
-
     private CategoryOption categoryOptionB;
-
     private CategoryOption categoryOptionC;
 
     private Category categoryA;
-
     private Category categoryB;
-
     private Category categoryC;
 
     // -------------------------------------------------------------------------

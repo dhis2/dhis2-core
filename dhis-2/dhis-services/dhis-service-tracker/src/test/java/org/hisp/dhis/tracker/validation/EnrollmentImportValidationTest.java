@@ -39,8 +39,6 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
-import lombok.SneakyThrows;
-
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -55,6 +53,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+
+import lombok.SneakyThrows;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -454,7 +454,7 @@ public class EnrollmentImportValidationTest
 
         TrackerImportParams params = renderService
             .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
-                TrackerImportParams.class );
+                    TrackerImportParams.class );
 
         User user2 = userService.getUser( USER_4 );
         params.setUser( user2 );
@@ -486,10 +486,8 @@ public class EnrollmentImportValidationTest
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
     }
 
-    // TODO: Empty json geo obj OR (missing field in obj) causes strange json
-    // mapping exception, should we capture this?
-    // com.fasterxml.jackson.databind.JsonMappingException: (was
-    // java.lang.NullPointerException) (through reference chain:
+    // TODO: Empty json geo obj OR (missing field in obj) causes strange json mapping exception, should we capture this?
+    // com.fasterxml.jackson.databind.JsonMappingException: (was java.lang.NullPointerException) (through reference chain:
     // org.hisp.dhis.tracker.bundle.TrackerBundleParams["enrollments"]->java.util.ArrayList[0]->org.hisp.dhis.tracker.domain.Enrollment["geometry"])
     @Test
     @Ignore( "Validation not possible yet exception surface before this validation" )
@@ -511,15 +509,9 @@ public class EnrollmentImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
     }
 
-    /*
-     * FAILS ERROR 00:26:29,461 Value too long for column "GEOMETRY BINARY(255)":
-     * "X'aced000573720021636f6d2e7669766964736f6c7574696f6e732e6a74732e67656f6d2e506f696e7444077bad161cbb2a0200014c000b636f6f7264696e61... (1168)"
-     * ; SQL statement: insert into programinstance (uid, created, lastUpdated,
-     * createdAtClient, lastUpdatedAtClient, incidentDate, enrollmentdate, enddate,
-     * followup, completedBy, geometry, deleted, storedby, status,
-     * trackedentityinstanceid, programid, organisationunitid, programinstanceid)
-     * values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) [22001-196]
-     * (SqlExceptionHelper.java [main])
+    /* FAILS
+    * ERROR 00:26:29,461 Value too long for column "GEOMETRY BINARY(255)": "X'aced000573720021636f6d2e7669766964736f6c7574696f6e732e6a74732e67656f6d2e506f696e7444077bad161cbb2a0200014c000b636f6f7264696e61... (1168)"; SQL statement:
+insert into programinstance (uid, created, lastUpdated, createdAtClient, lastUpdatedAtClient, incidentDate, enrollmentdate, enddate, followup, completedBy, geometry, deleted, storedby, status, trackedentityinstanceid, programid, organisationunitid, programinstanceid) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) [22001-196] (SqlExceptionHelper.java [main])
      */
     @Test
     public void testBadGeoOnEnrollmentMissingFeatureType()
@@ -561,8 +553,7 @@ public class EnrollmentImportValidationTest
     public void testEnrollmentInAnotherProgramExists()
         throws IOException
     {
-        // TODO: Morten: How do we do this check on an import set, this only checks when
-        // the DB already contains it
+        // TODO: Morten: How do we do this check on an import set, this only checks when the DB already contains it
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
             "tracker/validations/enrollments_double-tei-enrollment_part1.json", TrackerImportStrategy.CREATE );
@@ -616,7 +607,7 @@ public class EnrollmentImportValidationTest
 
     /**
      * Notes with no value are ignored
-     *
+     * 
      */
     @Test
     public void testBadEnrollmentNoteNoValue()
@@ -670,6 +661,6 @@ public class EnrollmentImportValidationTest
 
         assertEquals( 1, validationReport.getErrorReports().size() );
         assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
+                everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
     }
 }

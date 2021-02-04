@@ -32,12 +32,12 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 
-import lombok.Data;
-
 import org.hisp.dhis.common.FontStyle;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+
+import lombok.Data;
 
 /**
  * This class should be used for Visualization objects that need styling.

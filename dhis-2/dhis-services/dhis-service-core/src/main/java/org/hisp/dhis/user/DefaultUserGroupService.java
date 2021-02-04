@@ -28,16 +28,16 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -143,8 +143,7 @@ public class DefaultUserGroupService
         }
 
         boolean canUpdate = aclService.canUpdate( currentUser, userGroup );
-        boolean canAddMember = currentUser.getUserCredentials()
-            .isAuthorized( UserGroup.AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS );
+        boolean canAddMember = currentUser.getUserCredentials().isAuthorized( UserGroup.AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS );
 
         return canUpdate || canAddMember;
     }

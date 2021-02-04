@@ -28,8 +28,6 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectService;
@@ -37,6 +35,8 @@ import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -77,19 +77,19 @@ public class MapViewDeletionHandler
     public void deleteLegendSet( LegendSet legendSet )
     {
         List<MapView> mapViews = mappingService.getAnalyticalObjects( legendSet );
-
+        
         for ( MapView mapView : mapViews )
         {
             mapView.setLegendSet( null );
             mappingService.update( mapView );
         }
     }
-
+    
     @Override
     public void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         List<MapView> mapViews = mappingService.getMapViewsByOrganisationUnitGroupSet( groupSet );
-
+        
         for ( MapView mapView : mapViews )
         {
             mapView.setOrganisationUnitGroupSet( null );

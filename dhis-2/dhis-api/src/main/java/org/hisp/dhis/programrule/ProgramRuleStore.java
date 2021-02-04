@@ -47,7 +47,7 @@ public interface ProgramRuleStore
      * @return ProgramRuleVariable list
      */
     List<ProgramRule> get( Program program );
-
+    
     /**
      * Returns a {@link ProgramRule}.
      *

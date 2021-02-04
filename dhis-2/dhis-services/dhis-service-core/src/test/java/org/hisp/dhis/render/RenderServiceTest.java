@@ -28,15 +28,6 @@ package org.hisp.dhis.render;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -46,6 +37,15 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,8 +57,7 @@ public class RenderServiceTest
     private RenderService renderService;
 
     @Test
-    public void testParseJsonMetadata()
-        throws IOException
+    public void testParseJsonMetadata() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = renderService.fromMetadata(
             new ClassPathResource( "render/metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -75,8 +74,7 @@ public class RenderServiceTest
 
     @Test
     @Ignore // ignoring since Jackson can't handle parsing of XML as trees
-    public void testParseXmlMetadata()
-        throws IOException
+    public void testParseXmlMetadata() throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> map = renderService.fromMetadata(
             new ClassPathResource( "render/metadata.xml" ).getInputStream(), RenderFormat.XML );
@@ -92,15 +90,13 @@ public class RenderServiceTest
     }
 
     @Test
-    public void testfromMetadataVersion_should_give_empty_list_if_format_is_not_JSON()
-        throws IOException
+    public void testfromMetadataVersion_should_give_empty_list_if_format_is_not_JSON() throws IOException
     {
         assertEquals( 0, renderService.fromMetadataVersion( null, null ).size() );
     }
 
     @Test
-    public void testfromMetadataVersion_should_generate_versions_from_json_stream()
-        throws IOException
+    public void testfromMetadataVersion_should_generate_versions_from_json_stream() throws IOException
     {
         String jsonString = "{" +
             "\"metadataversions\":  [" +
@@ -122,8 +118,7 @@ public class RenderServiceTest
     }
 
     @Test
-    public void testEmptyStringShouldBeDeserializedAsNull()
-        throws IOException
+    public void testEmptyStringShouldBeDeserializedAsNull() throws IOException
     {
         String json = "{\"a\": null, \"b\": \"\", \"c\": \"abc\"}";
         DeserializeTest deserializeTest = renderService.fromJson( json, DeserializeTest.class );
@@ -134,8 +129,7 @@ public class RenderServiceTest
     }
 
     @Test
-    public void testShouldSupportMultipleDateFormats()
-        throws IOException
+    public void testShouldSupportMultipleDateFormats() throws IOException
     {
         Date y2011 = renderService.fromJson( "{\"d\": \"2011\"}", DeserializeTest.class ).getD();
         Date y201105 = renderService.fromJson( "{\"d\": \"2011-05\"}", DeserializeTest.class ).getD();

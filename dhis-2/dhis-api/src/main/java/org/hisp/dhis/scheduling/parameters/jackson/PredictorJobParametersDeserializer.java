@@ -28,9 +28,8 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 
 public class PredictorJobParametersDeserializer extends AbstractJobParametersDeserializer<PredictorJobParameters>
 {

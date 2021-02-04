@@ -1,5 +1,6 @@
 package org.hisp.dhis.analytics.table.scheduling;
 
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,10 +29,6 @@ package org.hisp.dhis.analytics.table.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Date;
-
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.scheduling.AbstractJob;
@@ -39,6 +36,10 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Date;
 
 /**
  * @author Lars Helge Overland

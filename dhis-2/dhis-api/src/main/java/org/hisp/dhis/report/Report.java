@@ -79,8 +79,7 @@ public class Report
         this.visualization = visualization;
     }
 
-    public Report( String name, ReportType type, String designContent, RelativePeriods relatives,
-        ReportingParams reportingParams )
+    public Report(String name, ReportType type, String designContent, RelativePeriods relatives, ReportingParams reportingParams )
     {
         this.name = name;
         this.type = type;
@@ -165,7 +164,7 @@ public class Report
         return visualization;
     }
 
-    public void setVisualization( Visualization visualization )
+    public void setVisualization(Visualization visualization)
     {
         this.visualization = visualization;
     }
@@ -189,7 +188,7 @@ public class Report
         return reportingParams;
     }
 
-    public void setReportParams( ReportingParams reportingParams )
+    public void setReportParams(ReportingParams reportingParams )
     {
         this.reportingParams = reportingParams;
     }

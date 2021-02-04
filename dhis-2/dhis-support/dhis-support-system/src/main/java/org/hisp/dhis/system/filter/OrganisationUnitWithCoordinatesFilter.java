@@ -41,5 +41,5 @@ public class OrganisationUnitWithCoordinatesFilter
     public boolean retain( OrganisationUnit object )
     {
         return object != null && object.hasCoordinates();
-    }
+    }    
 }

@@ -125,7 +125,7 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
         return false;
     }
-
+    
     public Optional<ImportSummary> getByReference( String reference )
     {
         for ( ImportSummary importSummary : importSummaries )
@@ -137,11 +137,12 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
         return Optional.empty();
     }
-
+    
     /**
-     * Returns the {@link ImportStatus} with the highest order from the list of
-     * import summaries, where {@link ImportStatus#ERROR} is the highest. If no
-     * import summaries are present, {@link ImportStatus#SUCCESS} is returned.
+     * Returns the {@link ImportStatus} with the highest order from the list
+     * of import summaries, where {@link ImportStatus#ERROR} is the highest.
+     * If no import summaries are present, {@link ImportStatus#SUCCESS} is
+     * returned.
      *
      * @return import status with highest order.
      */

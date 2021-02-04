@@ -28,9 +28,9 @@ package org.hisp.dhis.fileresource;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import com.google.common.collect.ImmutableSet;
+
+import java.util.Set;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -41,15 +41,15 @@ public enum FileResourceDomain
     PUSH_ANALYSIS( "pushAnalysis" ),
     DOCUMENT( "document" ),
     MESSAGE_ATTACHMENT( "messageAttachment" ),
-    USER_AVATAR( "userAvatar" );
+    USER_AVATAR( "userAvatar");
 
     /**
      * Container name to use when storing blobs of this FileResourceDomain
      */
     private String containerName;
 
-    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES = new ImmutableSet.Builder<FileResourceDomain>()
-        .add( DATA_VALUE, USER_AVATAR ).build();
+    private static final Set<FileResourceDomain> DOMAIN_FOR_MULTIPLE_IMAGES =
+        new ImmutableSet.Builder<FileResourceDomain>().add( DATA_VALUE, USER_AVATAR ).build();
 
     FileResourceDomain( String containerName )
     {

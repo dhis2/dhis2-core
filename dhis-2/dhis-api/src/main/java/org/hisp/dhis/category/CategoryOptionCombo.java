@@ -28,11 +28,12 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -44,20 +45,17 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Aselefew
  */
 @JacksonXmlRootElement( localName = "categoryOptionCombo", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOptionCombo
-    extends BaseDimensionalItemObject
-    implements SystemDefaultMetadataObject
+    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -205,14 +203,14 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a
-     * data set.
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data set.
      * <p>
      * The earliest valid date is the latest start date (if any) from all the
      * category options associated with this option combo.
      * <p>
-     * The latest valid date is the earliest end date (if any) from all the category
-     * options associated with this option combo.
+     * The latest valid date is the earliest end date (if any) from all the
+     * category options associated with this option combo.
      *
      * @param dataSet the data set for which to check dates.
      * @return valid date range for this (attribute) category option combo.
@@ -223,14 +221,14 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a
-     * data element (for all data sets to which the data element belongs).
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data element (for all data sets to which the data element belongs).
      * <p>
      * The earliest valid date is the latest start date (if any) from all the
      * category options associated with this option combo.
      * <p>
-     * The latest valid date is the earliest end date (if any) from all the category
-     * options associated with this option combo.
+     * The latest valid date is the earliest end date (if any) from all the
+     * category options associated with this option combo.
      *
      * @param dataElement the data element for which to check dates.
      * @return valid date range for this (attribute) category option combo.
@@ -244,16 +242,17 @@ public class CategoryOptionCombo
      * Gets a set of valid organisation units (subtrees) for this (attribute)
      * category option combo, if any.
      * <p>
-     * The set of valid organisation units (if any) is the intersection of the sets
-     * of valid organisation untis for all the category options associated with this
-     * option combo.
+     * The set of valid organisation units (if any) is the intersection of the
+     * sets of valid organisation untis for all the category options associated
+     * with this option combo.
      * <p>
      * Note: returns null if there are no organisation unit restrictions (no
      * associated option combos have any organisation unit restrictions), but
      * returns an empty set if associated option combos have organisation unit
      * restrictions and their intersection is empty.
      *
-     * @return valid organisation units for this (attribute) category option combo.
+     * @return valid organisation units for this (attribute) category option
+     * combo.
      */
     public Set<OrganisationUnit> getOrganisationUnits()
     {
@@ -279,9 +278,9 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the latest category option start date for this category option combo.
-     * The combo is only valid between the latest start date of any options and the
-     * earliest end date of any options.
+     * Gets the latest category option start date for this category
+     * option combo. The combo is only valid between the latest start
+     * date of any options and the earliest end date of any options.
      *
      * @return the latest option start date for this combo.
      */
@@ -293,9 +292,8 @@ public class CategoryOptionCombo
         {
             if ( co.getStartDate() != null )
             {
-                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() )
-                    ? co.getStartDate()
-                    : latestStartDate);
+                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ?
+                    co.getStartDate() : latestStartDate);
             }
         }
 
@@ -303,13 +301,13 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the earliest category option end date for this category option combo.
-     * The combo is only valid between the latest start date of any options and the
-     * earliest end date of any options.
+     * Gets the earliest category option end date for this category
+     * option combo. The combo is only valid between the latest start
+     * date of any options and the earliest end date of any options.
      * <p>
-     * Note that this end date does not take into account any possible extensions to
-     * the category end dates for aggregate data entry in data sets with
-     * openPeriodsAfterCoEndDate.
+     * Note that this end date does not take into account any possible
+     * extensions to the category end dates for aggregate data entry
+     * in data sets with openPeriodsAfterCoEndDate.
      *
      * @return the latest option start date for this combo.
      */
@@ -321,9 +319,8 @@ public class CategoryOptionCombo
         {
             if ( co.getEndDate() != null )
             {
-                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() )
-                    ? co.getStartDate()
-                    : earliestEndDate);
+                earliestEndDate = ( earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
+                    co.getStartDate() : earliestEndDate);
             }
         }
 
@@ -335,8 +332,8 @@ public class CategoryOptionCombo
     // -------------------------------------------------------------------------
 
     /**
-     * Gets a range of valid dates for this (attribute) cateogry option combo for a
-     * data set or, if that is not present, a data element.
+     * Gets a range of valid dates for this (attribute) cateogry option combo
+     * for a data set or, if that is not present, a data element.
      *
      * @param dataSet the data set to get the range for, or
      * @param dataElement the data element to get the range for
@@ -349,7 +346,7 @@ public class CategoryOptionCombo
 
         for ( CategoryOption co : getCategoryOptions() )
         {
-            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate )) )
+            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate ) ) )
             {
                 latestStartDate = co.getStartDate();
             }
@@ -358,7 +355,7 @@ public class CategoryOptionCombo
                 ? co.getAdjustedEndDate( dataSet )
                 : co.getAdjustedEndDate( dataElement );
 
-            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate )) )
+            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate ) ) )
             {
                 earliestEndDate = coEndDate;
             }
@@ -392,7 +389,8 @@ public class CategoryOptionCombo
         {
             List<CategoryOption> options = category.getCategoryOptions();
 
-            optionLoop: for ( CategoryOption option : categoryOptions )
+            optionLoop:
+            for ( CategoryOption option : categoryOptions )
             {
                 if ( options.contains( option ) )
                 {

@@ -44,8 +44,7 @@ import org.springframework.stereotype.Repository;
  * Created by zubair@dhis2.org on 16.11.17.
  */
 @Repository( "org.hisp.dhis.program.ProgramNotificationTemplateStore" )
-public class DefaultProgramNotificationTemplateStore
-    extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
+public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore
 {
     public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

@@ -28,21 +28,19 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertFalse;
-import static junit.framework.TestCase.assertTrue;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
+import static junit.framework.TestCase.assertFalse;
+import static junit.framework.TestCase.assertTrue;
 
 public class TestTextPatternValidationUtils
 {
 
     private TextPatternSegment textSegment = new TextPatternSegment( TextPatternMethod.TEXT, "\"FOOBAR\"" );
 
-    private TextPatternSegment textSegmentWithSpecialCharacters = new TextPatternSegment( TextPatternMethod.TEXT,
-        "\"\\d\\x\\X\\w\"" );
+    private TextPatternSegment textSegmentWithSpecialCharacters = new TextPatternSegment( TextPatternMethod.TEXT, "\"\\d\\x\\X\\w\"" );
 
     private TextPatternSegment randomSegment = new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(XXxx##)" );
 
@@ -89,8 +87,7 @@ public class TestTextPatternValidationUtils
         assertFalse( TextPatternValidationUtils.validateSegmentValue( orgUnitCodeSegment, "AB" ) );
         assertFalse( TextPatternValidationUtils.validateSegmentValue( orgUnitCodeSegment, "" ) );
 
-        // TODO: We only validate that there is <something> , not that it follows the
-        // format.
+        // TODO: We only validate that there is <something> , not that it follows the format.
         assertTrue( TextPatternValidationUtils.validateSegmentValue( currentDateSegment, "22/10/1990" ) );
 
     }

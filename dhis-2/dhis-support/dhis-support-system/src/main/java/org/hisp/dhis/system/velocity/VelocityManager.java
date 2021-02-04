@@ -28,13 +28,13 @@ package org.hisp.dhis.system.velocity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.StringWriter;
-
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 import org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader;
 import org.springframework.stereotype.Component;
+
+import java.io.StringWriter;
 
 @Component( "org.hisp.dhis.system.velocity.VelocityManager" )
 public class VelocityManager
@@ -42,20 +42,18 @@ public class VelocityManager
     public static final String CONTEXT_KEY = "object";
 
     private static final String RESOURCE_LOADER_NAME = "class";
-
     private static final String VM_SUFFIX = ".vm";
-
+    
     private VelocityEngine velocity;
 
     public VelocityManager()
     {
         velocity = new VelocityEngine();
         velocity.setProperty( RuntimeConstants.RESOURCE_LOADER, RESOURCE_LOADER_NAME );
-        velocity.setProperty( RESOURCE_LOADER_NAME + ".resource.loader.class",
-            ClasspathResourceLoader.class.getName() );
+        velocity.setProperty( RESOURCE_LOADER_NAME + ".resource.loader.class", ClasspathResourceLoader.class.getName() );
         velocity.setProperty( "runtime.log.logsystem.log4j.logger", "console" );
         velocity.setProperty( "runtime.log", "" );
-
+                
         velocity.init();
     }
 
@@ -68,7 +66,7 @@ public class VelocityManager
     {
         return render( null, template );
     }
-
+    
     public String render( Object object, String template )
     {
         try
@@ -87,7 +85,7 @@ public class VelocityManager
             return writer.toString();
 
             // TODO include encoder in context
-        }
+        } 
         catch ( Exception ex )
         {
             throw new RuntimeException( "Failed to merge velocity template", ex );

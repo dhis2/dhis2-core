@@ -28,19 +28,7 @@ package org.hisp.dhis.artemis.audit.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Hibernate;
 import org.hibernate.event.spi.EventSource;
 import org.hibernate.event.spi.PostDeleteEvent;
@@ -63,6 +51,17 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -70,11 +69,8 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 public abstract class AbstractHibernateListener
 {
     protected final AuditManager auditManager;
-
     protected final AuditObjectFactory objectFactory;
-
     private final UsernameSupplier usernameSupplier;
-
     private final SchemaService schemaService;
 
     public AbstractHibernateListener(
@@ -98,8 +94,7 @@ public abstract class AbstractHibernateListener
     {
         if ( AnnotationUtils.isAnnotationPresent( HibernateProxyUtils.getRealClass( object ), Auditable.class ) )
         {
-            Auditable auditable = AnnotationUtils.getAnnotation( HibernateProxyUtils.getRealClass( object ),
-                Auditable.class );
+            Auditable auditable = AnnotationUtils.getAnnotation( HibernateProxyUtils.getRealClass( object ), Auditable.class );
 
             boolean shouldAudit = Arrays.stream( auditable.eventType() )
                 .anyMatch( s -> s.contains( "all" ) || s.contains( type ) );
@@ -121,20 +116,19 @@ public abstract class AbstractHibernateListener
     abstract AuditType getAuditType();
 
     /**
-     * Create serializable Map<String, Object> for delete event Because the entity
-     * has already been deleted and transaction is committed all lazy collections or
-     * properties that haven't been loaded will be ignored.
+     * Create serializable Map<String, Object> for delete event
+     * Because the entity has already been deleted and transaction is committed
+     * all lazy collections or properties that haven't been loaded will be ignored.
      *
-     * @return Map<String, Object> with key is property name and value is property
-     *         value.
+     * @return Map<String, Object> with key is property name and value is property value.
      */
     protected Object createAuditEntry( PostDeleteEvent event )
     {
-        Map<String, Object> objectMap = new HashMap<>();
+        Map<String,Object> objectMap = new HashMap<>();
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( event.getEntity() ) );
         Map<String, Property> properties = schema.getFieldNameMapProperties();
 
-        for ( int i = 0; i < event.getDeletedState().length; i++ )
+        for ( int i = 0; i< event.getDeletedState().length; i++ )
         {
             if ( event.getDeletedState()[i] == null )
             {
@@ -150,12 +144,11 @@ public abstract class AbstractHibernateListener
                 continue;
             }
 
-            if ( Hibernate.isInitialized( value ) )
+            if ( Hibernate.isInitialized( value )  )
             {
-                if ( property.isCollection()
-                    && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
+                if ( property.isCollection() && BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
                 {
-                    objectMap.put( pName, IdentifiableObjectUtils.getUids( (Collection) value ) );
+                    objectMap.put( pName, IdentifiableObjectUtils.getUids( ( Collection ) value ) );
                 }
                 else
                 {
@@ -167,20 +160,17 @@ public abstract class AbstractHibernateListener
     }
 
     /**
-     * Create serializable Map<String, Object> based on given Audit Entity and
-     * related objects that are produced by {@link PostUpdateEvent} or
-     * {@link PostInsertEvent} The returned object must comply with below rules: 1.
-     * Only includes referenced properties that are owned by the current Audit
-     * Entity. Means that the property's schema has attribute "owner = true" 2. Do
-     * not include any lazy HibernateProxy or PersistentCollection that is not
-     * loaded. 3. All referenced properties that extend BaseIdentifiableObject
-     * should be mapped to only UID string
+     * Create serializable Map<String, Object> based on given Audit Entity and related objects that are produced by
+     * {@link PostUpdateEvent} or {@link PostInsertEvent}
+     * The returned object must comply with below rules:
+     *  1. Only includes referenced properties that are owned by the current Audit Entity.
+     *  Means that the property's schema has attribute "owner = true"
+     *  2. Do not include any lazy HibernateProxy or PersistentCollection that is not loaded.
+     *  3. All referenced properties that extend BaseIdentifiableObject should be mapped to only UID string
      *
-     * @return Map<String, Object> with key is property name and value is property
-     *         value.
+     * @return Map<String, Object> with key is property name and value is property value.
      */
-    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id,
-        EntityPersister persister )
+    protected Object createAuditEntry( Object entity, Object[] state, EventSource session, Serializable id, EntityPersister persister )
     {
         Map<String, Object> objectMap = new HashMap<>();
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( entity ) );
@@ -190,8 +180,7 @@ public abstract class AbstractHibernateListener
 
         for ( int i = 0; i < state.length; i++ )
         {
-            if ( state[i] == null )
-                continue;
+            if ( state[i] == null ) continue;
 
             Object value = state[i];
 
@@ -228,7 +217,7 @@ public abstract class AbstractHibernateListener
     {
         try
         {
-            return (HibernateProxy) persister.createProxy( id, session );
+            return ( HibernateProxy ) persister.createProxy( id, session );
         }
         catch ( Exception ex )
         {
@@ -240,8 +229,7 @@ public abstract class AbstractHibernateListener
 
     private void handleNonIdentifiableCollection( Property property, Object value, Map<String, Object> objectMap )
     {
-        if ( value == null )
-            return;
+        if ( value == null ) return;
 
         Schema schema = schemaService.getSchema( property.getItemKlass() );
 
@@ -251,31 +239,28 @@ public abstract class AbstractHibernateListener
             return;
         }
 
-        List<Map<String, Object>> listProperties = new ArrayList<>();
+        List<Map<String,Object>> listProperties = new ArrayList<>();
 
         List<Property> properties = schema.getProperties();
         Collection collection = (Collection) value;
         collection.forEach( item -> {
             Map<String, Object> propertyMap = new HashMap<>();
-            properties.forEach( prop -> putValueToMap( prop, propertyMap,
-                ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
+            properties.forEach(  prop  -> putValueToMap( prop, propertyMap, ReflectionUtils.invokeGetterMethod( prop.getFieldName(), item ) ) );
             listProperties.add( propertyMap );
-        } );
+        }  );
 
         objectMap.put( property.getFieldName(), listProperties );
     }
 
     private void putValueToMap( Property property, Map<String, Object> objectMap, Object value )
     {
-        if ( value == null )
-            return;
+        if ( value == null ) return;
 
         if ( property.isCollection() )
         {
-            Collection collection = (Collection) value;
+            Collection collection = ( Collection ) value;
 
-            if ( collection.isEmpty() )
-                return;
+            if ( collection.isEmpty() ) return;
 
             if ( BaseIdentifiableObject.class.isAssignableFrom( property.getItemKlass() ) )
             {
@@ -301,12 +286,12 @@ public abstract class AbstractHibernateListener
     {
         try
         {
-            return persister.getPropertyValue( entityProxy, pName );
+            return  persister.getPropertyValue( entityProxy, pName );
         }
         catch ( Exception ex )
         {
             // Ignore if couldn't find property reference object, maybe it was deleted.
-            log.debug( "Couldn't value of property: " + pName, DebugUtils.getStackTrace( ex ) );
+            log.debug( "Couldn't value of property: " + pName , DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
@@ -326,7 +311,7 @@ public abstract class AbstractHibernateListener
     {
         if ( BaseIdentifiableObject.class.isAssignableFrom( object.getClass() ) )
         {
-            return ((BaseIdentifiableObject) object).getUid();
+            return ( ( BaseIdentifiableObject ) object ).getUid();
         }
 
         return object;

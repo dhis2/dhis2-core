@@ -28,15 +28,6 @@ package org.hisp.dhis.dxf2.metadata;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MergeMode;
@@ -56,6 +47,15 @@ import org.hisp.dhis.schema.SchemaService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -140,8 +140,7 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    public void testOptionSetMerge()
-        throws IOException
+    public void testOptionSetMerge() throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
@@ -179,15 +178,14 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    public void testOptionSetMergeDuplicate()
-        throws IOException
+    public void testOptionSetMergeDuplicate() throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
 
         Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
             .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true ) );
+            .setFirstRowIsHeader( true )  );
 
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -221,8 +219,7 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    public void testOptionSetReplace()
-        throws IOException
+    public void testOptionSetReplace() throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();

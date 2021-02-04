@@ -28,8 +28,6 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +43,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Chau Thu Tran
@@ -137,8 +137,7 @@ public class TrackedEntityAttributeValueServiceTest
         attributeValueA.setValue( "B" );
         attributeValueService.updateTrackedEntityAttributeValue( attributeValueA );
 
-        assertEquals( "B",
-            attributeValueService.getTrackedEntityAttributeValue( entityInstanceA, attributeA ).getValue() );
+        assertEquals( "B", attributeValueService.getTrackedEntityAttributeValue( entityInstanceA, attributeA ).getValue() );
     }
 
     @Test
@@ -167,10 +166,8 @@ public class TrackedEntityAttributeValueServiceTest
         attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
         attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
 
-        assertEquals( attributeValueA,
-            attributeValueService.getTrackedEntityAttributeValue( entityInstanceA, attributeA ) );
-        assertEquals( attributeValueC,
-            attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeA ) );
+        assertEquals( attributeValueA, attributeValueService.getTrackedEntityAttributeValue( entityInstanceA, attributeA ) );
+        assertEquals( attributeValueC, attributeValueService.getTrackedEntityAttributeValue( entityInstanceB, attributeA ) );
     }
 
     @Test
@@ -180,8 +177,7 @@ public class TrackedEntityAttributeValueServiceTest
         attributeValueService.addTrackedEntityAttributeValue( attributeValueB );
         attributeValueService.addTrackedEntityAttributeValue( attributeValueC );
 
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueService
-            .getTrackedEntityAttributeValues( entityInstanceA );
+        List<TrackedEntityAttributeValue> attributeValues = attributeValueService.getTrackedEntityAttributeValues( entityInstanceA );
 
         assertEquals( 2, attributeValues.size() );
         assertTrue( equals( attributeValues, attributeValueA, attributeValueB ) );
@@ -221,8 +217,7 @@ public class TrackedEntityAttributeValueServiceTest
         entityInstances.add( entityInstanceA );
         entityInstances.add( entityInstanceB );
 
-        List<TrackedEntityAttributeValue> attributeValues = attributeValueService
-            .getTrackedEntityAttributeValues( entityInstances );
+        List<TrackedEntityAttributeValue> attributeValues = attributeValueService.getTrackedEntityAttributeValues( entityInstances );
         assertEquals( 3, attributeValues.size() );
         assertTrue( equals( attributeValues, attributeValueA, attributeValueB, attributeValueC ) );
     }
@@ -253,6 +248,7 @@ public class TrackedEntityAttributeValueServiceTest
         attributeValueB = createTrackedEntityAttributeValue( 'B', entityInstanceB, attributeB );
         attributeValueA.setValue( fileResourceA.getUid() );
         attributeValueB.setValue( fileResourceB.getUid() );
+
 
         attributeValueService.addTrackedEntityAttributeValue( attributeValueA );
         attributeValueService.addTrackedEntityAttributeValue( attributeValueB );

@@ -52,7 +52,7 @@ import com.google.common.collect.Lists;
  * This supplier collects all the references from the Tracker Import payload and
  * executes class-based strategies, based on the type of the object in the
  * payload.
- *
+ * 
  * @author Luciano Fiandesio
  */
 @Component

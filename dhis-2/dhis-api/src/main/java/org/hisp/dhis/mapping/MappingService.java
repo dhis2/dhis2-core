@@ -28,10 +28,10 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+
+import java.util.List;
 
 /**
  * @author Jan Henrik Overland
@@ -42,21 +42,17 @@ public interface MappingService
     String GEOJSON_DIR = "geojson";
 
     String MAP_LEGEND_SYMBOLIZER_COLOR = "color";
-
     String MAP_LEGEND_SYMBOLIZER_IMAGE = "image";
 
     String KEY_MAP_DATE_TYPE = "dateType";
 
     String MAP_DATE_TYPE_FIXED = "fixed";
-
     String MAP_DATE_TYPE_START_END = "start-end";
 
     String ORGANISATION_UNIT_SELECTION_TYPE_PARENT = "parent";
-
     String ORGANISATION_UNIT_SELECTION_TYPE_LEVEL = "level";
 
     String MAP_LAYER_TYPE_BASELAYER = "baselayer";
-
     String MAP_LAYER_TYPE_OVERLAY = "overlay";
 
     // -------------------------------------------------------------------------

@@ -34,5 +34,5 @@ package org.hisp.dhis.analytics;
 public enum AnalyticsTablePhase
 {
     RESOURCE_TABLE_POPULATED,
-    ANALYTICS_TABLE_POPULATED
+    ANALYTICS_TABLE_POPULATED    
 }

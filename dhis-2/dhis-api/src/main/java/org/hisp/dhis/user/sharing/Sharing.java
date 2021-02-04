@@ -28,24 +28,22 @@ package org.hisp.dhis.user.sharing;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Builder
 @Data
@@ -63,7 +61,7 @@ public class Sharing
     @JsonProperty
     private String owner;
 
-    @JsonProperty( "public" )
+    @JsonProperty("public")
     private String publicAccess;
 
     @JsonProperty
@@ -85,7 +83,7 @@ public class Sharing
 
     public void setOwner( User user )
     {
-        this.owner = user != null ? user.getUid() : null;
+        this.owner =  user != null ? user.getUid() : null;
     }
 
     public void setOwner( String userId )
@@ -103,24 +101,20 @@ public class Sharing
 
     public void setUserAccesses( Set<UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
+        if ( this.users != null ) this.users.clear();
+        else this.users = new HashMap<>();
 
         userAccesses.forEach( ua -> this.addUserAccess( ua ) );
     }
 
     public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
-        if ( this.users != null )
-            this.users.clear();
-        else
-            this.users = new HashMap<>();
+        if ( this.users != null ) this.users.clear();
+        else this.users = new HashMap<>();
 
         if ( userAccesses != null && !userAccesses.isEmpty() )
         {
-            userAccesses.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
+            userAccesses.forEach( ua ->  this.addUserAccess( new UserAccess( ua ) ) );
         }
     }
 
@@ -131,21 +125,18 @@ public class Sharing
             this.userGroups.clear();
         }
 
-        else
-            this.userGroups = new HashMap<>();
+        else this.userGroups = new HashMap<>();
 
         if ( userGroupAccesses != null && !userGroupAccesses.isEmpty() )
         {
-            userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
+            userGroupAccesses.forEach( uga ->  this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
         }
     }
 
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
-        if ( this.userGroups != null )
-            this.userGroups.clear();
-        else
-            this.userGroups = new HashMap<>();
+        if ( this.userGroups != null ) this.userGroups.clear();
+        else this.userGroups = new HashMap<>();
         userGroupAccesses.forEach( uga -> this.addUserGroupAccess( uga ) );
     }
 
@@ -213,3 +204,4 @@ public class Sharing
             .userGroups( new HashMap<>( userGroups ) ).build();
     }
 }
+

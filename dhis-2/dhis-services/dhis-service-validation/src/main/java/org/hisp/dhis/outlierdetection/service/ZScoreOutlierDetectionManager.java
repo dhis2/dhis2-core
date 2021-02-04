@@ -33,8 +33,6 @@ import static org.hisp.dhis.outlierdetection.util.OutlierDetectionUtils.getOrgUn
 
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -48,9 +46,11 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Repository;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Manager for database queries related to outlier data detection based on
- * z-score.
+ * Manager for database queries related to outlier data detection
+ * based on z-score.
  *
  * @author Lars Helge Overland
  */
@@ -86,10 +86,9 @@ public class ZScoreOutlierDetectionManager
                 "abs(dvs.value::double precision - stats.mean) / stats.std_dev as z_score, " +
                 "stats.mean - (stats.std_dev * :threshold) as lower_bound, " +
                 "stats.mean + (stats.std_dev * :threshold) as upper_bound " +
-                // Data value query
-                "from (" +
-                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, "
-                +
+            // Data value query
+            "from (" +
+                "select dv.dataelementid, dv.sourceid, dv.periodid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, " +
                 "de.uid as de_uid, ou.uid as ou_uid, coc.uid as coc_uid, aoc.uid as aoc_uid, " +
                 "de.name as de_name, ou.name as ou_name, coc.name as coc_name, aoc.name as aoc_name, " +
                 "pe.startdate as pe_start_date, pt.name as pt_name, " +
@@ -106,9 +105,9 @@ public class ZScoreOutlierDetectionManager
                 "and pe.enddate <= :end_date " +
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false" +
-                ") as dvs " +
-                // Mean and std dev mapping query
-                "inner join (" +
+            ") as dvs " +
+            // Mean and std dev mapping query
+            "inner join (" +
                 "select dv.dataelementid as dataelementid, dv.sourceid as sourceid, " +
                 "dv.categoryoptioncomboid as categoryoptioncomboid, " +
                 "dv.attributeoptioncomboid as attributeoptioncomboid, " +
@@ -120,18 +119,18 @@ public class ZScoreOutlierDetectionManager
                 "and " + ouPathClause + " " +
                 "and dv.deleted is false " +
                 "group by dv.dataelementid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid" +
-                ") as stats " +
-                // Query join
-                "on dvs.dataelementid = stats.dataelementid " +
-                "and dvs.sourceid = stats.sourceid " +
-                "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
-                "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
-                "where stats.std_dev != 0.0 " +
-                // Filter on z-score threshold
-                "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
-                // Order and limit
-                "order by " + request.getOrderBy().getKey() + " desc " +
-                "limit :max_results;";
+            ") as stats " +
+            // Query join
+            "on dvs.dataelementid = stats.dataelementid " +
+            "and dvs.sourceid = stats.sourceid " +
+            "and dvs.categoryoptioncomboid = stats.categoryoptioncomboid " +
+            "and dvs.attributeoptioncomboid = stats.attributeoptioncomboid " +
+            "where stats.std_dev != 0.0 " +
+            // Filter on z-score threshold
+            "and (abs(dvs.value::double precision - stats.mean) / stats.std_dev) >= :threshold " +
+            // Order and limit
+            "order by " + request.getOrderBy().getKey() + " desc " +
+            "limit :max_results;";
 
         final SqlParameterSource params = new MapSqlParameterSource()
             .addValue( "threshold", request.getThreshold() )
@@ -148,8 +147,7 @@ public class ZScoreOutlierDetectionManager
         }
         catch ( DataIntegrityViolationException ex )
         {
-            // Casting non-numeric data to double, catching exception is faster than
-            // filtering
+            // Casting non-numeric data to double, catching exception is faster than filtering
 
             log.error( ErrorCode.E2207.getMessage(), ex );
 
@@ -192,3 +190,4 @@ public class ZScoreOutlierDetectionManager
         };
     }
 }
+

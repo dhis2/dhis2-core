@@ -36,7 +36,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Object representing a geometry of type rectangle.
- *
+ * 
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "rectangle", namespace = DxfNamespaces.DXF_2_0 )
@@ -46,7 +46,7 @@ public class Rectangle
      * The extent of the rectangle (bounding box).
      */
     private String extent;
-
+    
     /**
      * The count of events inside the rectangle.
      */

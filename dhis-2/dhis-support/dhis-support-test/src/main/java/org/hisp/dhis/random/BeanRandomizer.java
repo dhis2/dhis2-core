@@ -28,16 +28,15 @@ package org.hisp.dhis.random;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
-import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
+import org.locationtech.jts.geom.Geometry;
+import io.github.benas.randombeans.api.EnhancedRandom;
+import org.hisp.dhis.period.PeriodType;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.period.PeriodType;
-import org.locationtech.jts.geom.Geometry;
-
-import io.github.benas.randombeans.api.EnhancedRandom;
+import static io.github.benas.randombeans.EnhancedRandomBuilder.aNewEnhancedRandomBuilder;
+import static io.github.benas.randombeans.FieldDefinitionBuilder.*;
 
 /**
  * @author Luciano Fiandesio
@@ -57,9 +56,7 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates an instance of the specified type and fill the instance's
-     * properties with random data
-     *
+     * Generates an instance of the specified type and fill the instance's properties with random data
      * @param type The bean type
      * @param excludedFields a list of fields to exclude from the random population
      *
@@ -71,9 +68,7 @@ public class BeanRandomizer
     }
 
     /**
-     * Generates multiple instances of the specified type and fills each instance's
-     * properties with random data
-     *
+     * Generates multiple instances of the specified type and fills each instance's properties with random data
      * @param type The bean type
      * @param amount the amount of beans to generate
      * @param excludedFields a list of fields to exclude from the random population

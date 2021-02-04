@@ -28,14 +28,14 @@ package org.hisp.dhis.calendar.impl;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.ChronologyBasedCalendar;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.joda.time.DateTimeZone;
 import org.joda.time.chrono.EthiopicChronology;
 import org.springframework.stereotype.Component;
+
+import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -66,8 +66,7 @@ public class EthiopianCalendar extends ChronologyBasedCalendar
     {
         if ( dateTimeUnit.getMonth() > 12 )
         {
-            throw new RuntimeException(
-                "Illegal month, must be between 1 and 12, was given " + dateTimeUnit.getMonth() );
+            throw new RuntimeException( "Illegal month, must be between 1 and 12, was given " + dateTimeUnit.getMonth() );
         }
 
         return super.toIso( dateTimeUnit );
@@ -80,8 +79,7 @@ public class EthiopianCalendar extends ChronologyBasedCalendar
 
         if ( dateTimeUnit.getMonth() > 12 )
         {
-            throw new RuntimeException(
-                "Illegal month, must be between 1 and 12, was given " + dateTimeUnit.getMonth() );
+            throw new RuntimeException( "Illegal month, must be between 1 and 12, was given " + dateTimeUnit.getMonth() );
         }
 
         return dateTimeUnit;

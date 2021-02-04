@@ -28,39 +28,33 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.schema.annotation.PropertyTransformer;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "userGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class UserGroup
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String AUTH_USER_ADD = "F_USER_ADD";
-
     public static final String AUTH_USER_DELETE = "F_USER_DELETE";
-
     public static final String AUTH_USER_VIEW = "F_USER_VIEW";
-
     public static final String AUTH_USER_ADD_IN_GROUP = "F_USER_ADD_WITHIN_MANAGED_GROUP";
-
     public static final String AUTH_ADD_MEMBERS_TO_READ_ONLY_USER_GROUPS = "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS";
 
     /**
@@ -74,19 +68,20 @@ public class UserGroup
     private Set<User> members = new HashSet<>();
 
     /**
-     * User groups (if any) that members of this user group can manage the members
-     * within.
+     * User groups (if any) that members of this user group can manage
+     * the members within.
      */
     private Set<UserGroup> managedGroups = new HashSet<>();
 
     /**
-     * User groups (if any) whose members can manage the members of this user group.
+     * User groups (if any) whose members can manage the members of this
+     * user group.
      */
     private Set<UserGroup> managedByGroups = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // Constructors
-    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------     
 
     public UserGroup()
     {

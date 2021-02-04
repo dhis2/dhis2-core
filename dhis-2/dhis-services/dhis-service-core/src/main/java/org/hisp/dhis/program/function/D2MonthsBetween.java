@@ -40,6 +40,6 @@ public class D2MonthsBetween
     public Object getSqlBetweenDates( String startDate, String endDate )
     {
         return "((date_part('year',age(cast(" + endDate + " as date), cast(" + startDate + " as date)))) * 12 + " +
-            "date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
+               "date_part('month',age(cast(" + endDate + " as date), cast(" + startDate + " as date))))";
     }
 }

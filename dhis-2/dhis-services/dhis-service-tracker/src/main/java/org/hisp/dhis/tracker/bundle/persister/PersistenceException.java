@@ -31,7 +31,7 @@ package org.hisp.dhis.tracker.bundle.persister;
 /**
  * This exception is thrown by a {@link TrackerPersister) to signal an
  * unrecoverable exception which should roll back the entire transaction.
- *
+ * 
  * @author Luciano Fiandesio
  */
 public class PersistenceException extends RuntimeException

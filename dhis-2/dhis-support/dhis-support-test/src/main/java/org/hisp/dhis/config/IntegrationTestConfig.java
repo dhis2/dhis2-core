@@ -28,10 +28,7 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.container.DhisPostgisContainerProvider;
 import org.hisp.dhis.container.DhisPostgreSQLContainer;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -40,6 +37,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.testcontainers.containers.JdbcDatabaseContainer;
+
+import java.util.Properties;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -88,12 +87,11 @@ public class IntegrationTestConfig
     private JdbcDatabaseContainer<?> initContainer()
     {
         // NOSONAR
-        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider()
-            .newInstance()) // NOSONAR
-                .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
-                .withDatabaseName( POSTGRES_DATABASE_NAME )
-                .withUsername( POSTGRES_CREDENTIALS )
-                .withPassword( POSTGRES_CREDENTIALS );
+        DhisPostgreSQLContainer<?> postgisContainer = ((DhisPostgreSQLContainer<?>) new DhisPostgisContainerProvider().newInstance()) //NOSONAR
+            .appendCustomPostgresConfig( "max_locks_per_transaction=100" )
+            .withDatabaseName( POSTGRES_DATABASE_NAME )
+            .withUsername( POSTGRES_CREDENTIALS )
+            .withPassword( POSTGRES_CREDENTIALS );
 
         postgisContainer.start();
 

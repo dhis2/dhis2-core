@@ -28,15 +28,15 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.UserType;
+
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
-
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.UserType;
 
 /**
  * Template for storing enums. Borrowed from http://community.jboss.org/wiki/
@@ -67,10 +67,8 @@ public class EnumUserType<E extends Enum<E>>
     }
 
     @Override
-    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl,
-        Object owner )
-        throws HibernateException,
-        SQLException
+    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner )
+        throws HibernateException, SQLException
     {
         String name = resultSet.getString( names[0] );
         E result = null;
@@ -82,10 +80,8 @@ public class EnumUserType<E extends Enum<E>>
     }
 
     @Override
-    public void nullSafeSet( PreparedStatement preparedStatement, Object value, int index,
-        SharedSessionContractImplementor impl )
-        throws HibernateException,
-        SQLException
+    public void nullSafeSet( PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor impl )
+        throws HibernateException, SQLException
     {
         if ( null == value )
         {

@@ -71,7 +71,7 @@ public class AssignedUserValidationHook
             .orElse( false );
     }
 
-    private boolean assignedUserNotPresentInPreheat( ValidationErrorReporter reporter, Event event )
+    private boolean assignedUserNotPresentInPreheat(ValidationErrorReporter reporter, Event event )
     {
         return reporter.getValidationContext().getBundle().getPreheat().get( User.class,
             event.getAssignedUser() ) == null;

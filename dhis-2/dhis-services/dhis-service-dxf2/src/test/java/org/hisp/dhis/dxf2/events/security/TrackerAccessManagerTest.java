@@ -28,18 +28,9 @@ package org.hisp.dhis.dxf2.events.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-
+import com.google.common.collect.Sets;
 import org.hibernate.SessionFactory;
+
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
@@ -71,7 +62,16 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -501,8 +501,7 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
         }
 
         // Cannot create events with evemntOu outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
-            "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users search scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );
@@ -517,8 +516,7 @@ public class TrackerAccessManagerTest extends TransactionalIntegrationTest
 
         // Cannot create events with eventOu outside capture scope, even if ownerOu is
         // also in capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
-            "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users capture scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );

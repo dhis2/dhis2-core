@@ -36,7 +36,7 @@ import org.hisp.dhis.calendar.DateTimeUnit;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class FinancialNovemberPeriodType
+public class FinancialNovemberPeriodType 
     extends FinancialPeriodType
 {
 

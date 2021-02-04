@@ -31,14 +31,14 @@ package org.hisp.dhis.tracker.report;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.hisp.dhis.tracker.TrackerType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.tracker.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * The Bundle Report is responsible for aggregating the outcome of the

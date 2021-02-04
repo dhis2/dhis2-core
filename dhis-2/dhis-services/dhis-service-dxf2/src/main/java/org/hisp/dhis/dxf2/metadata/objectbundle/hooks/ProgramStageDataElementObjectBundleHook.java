@@ -28,9 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -43,6 +40,9 @@ import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Component
 public class ProgramStageDataElementObjectBundleHook
     extends AbstractObjectBundleHook
@@ -54,8 +54,7 @@ public class ProgramStageDataElementObjectBundleHook
         List<ErrorReport> errorReports = new ArrayList<>();
 
         /*
-         * Validate that the RenderType (if any) conforms to the constraints of
-         * ValueType or OptionSet.
+         * Validate that the RenderType (if any) conforms to the constraints of ValueType or OptionSet.
          */
         if ( object != null && object.getClass().isAssignableFrom( ProgramStageDataElement.class ) )
         {

@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.preheat.supplier;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.time.StopWatch;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -41,10 +39,12 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * A {@link PreheatSupplier} subclass can implement this abstract class to
  * execute code before and after the supplier has been executed (e.g. timing)
- *
+ * 
  * @author Luciano Fiandesio
  */
 @Slf4j
@@ -91,13 +91,11 @@ public abstract class AbstractPreheatSupplier implements PreheatSupplier
     protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects, int ttl,
         long capacity )
     {
-        objects.forEach(
-            rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, ttl, capacity ) );
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, ttl, capacity ) );
     }
 
     protected void addToCache( PreheatCacheService cache, List<? extends IdentifiableObject> objects )
     {
-        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL,
-            CACHE_CAPACITY ) );
+        objects.forEach( rt -> cache.put( HibernateProxyUtils.getRealClass( rt ).getName(), rt.getUid(), rt, CACHE_TTL, CACHE_CAPACITY ) );
     }
 }

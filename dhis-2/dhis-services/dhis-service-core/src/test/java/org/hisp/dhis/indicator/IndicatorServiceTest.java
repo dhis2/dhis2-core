@@ -355,10 +355,8 @@ public class IndicatorServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( indicatorA.getTranslations() );
 
-        listObjectTranslation.add(
-            new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION,
-            denominatorTranslated ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION, denominatorTranslated ) );
 
         identifiableObjectManager.updateTranslations( indicatorA, listObjectTranslation );
 

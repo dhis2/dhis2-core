@@ -36,8 +36,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 public interface TrackerPreheatService
 {
     /**
-     * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata
-     * classes automatically.
+     * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes automatically.
      *
      * @param params Params for preheating
      */

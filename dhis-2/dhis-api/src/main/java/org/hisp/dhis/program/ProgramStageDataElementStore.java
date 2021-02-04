@@ -43,17 +43,18 @@ public interface ProgramStageDataElementStore
     String ID = ProgramStageInstanceStore.class.getName();
 
     /**
-     * Retrieve ProgramStageDataElement list on a program stage and a data element
+     * Retrieve ProgramStageDataElement list on a program stage and a data
+     * element
      *
      * @param programStage ProgramStage
-     * @param dataElement DataElement
+     * @param dataElement  DataElement
      * @return ProgramStageDataElement
      */
     ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
 
+
     /**
-     * Returns Map of ProgramStages containing Set of DataElements (together
-     * ProgramStageDataElements) that have skipSynchronization flag set to true
+     * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements) that have skipSynchronization flag set to true
      *
      * @return Map<String, Set<String>>
      */

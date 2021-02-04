@@ -28,14 +28,8 @@ package org.hisp.dhis.dxf2.synch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.IOException;
-import java.util.Date;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -62,7 +56,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Optional;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -75,19 +73,12 @@ public class DefaultSynchronizationManager
     private static final String HEADER_AUTHORIZATION = "Authorization";
 
     private final DataValueSetService dataValueSetService;
-
     private final DataValueService dataValueService;
-
     private final MetadataImportService importService;
-
     private final SchemaService schemaService;
-
     private final CurrentUserService currentUserService;
-
     private final SystemSettingManager systemSettingManager;
-
     private final RestTemplate restTemplate;
-
     private final ObjectMapper jsonMapper;
 
     public DefaultSynchronizationManager(
@@ -199,12 +190,13 @@ public class DefaultSynchronizationManager
 
         final int maxSyncAttempts = (int) systemSettingManager.getSystemSetting( SettingKey.MAX_SYNC_ATTEMPTS );
 
-        Optional<AbstractWebMessageResponse> responseSummary = SyncUtils.runSyncRequest(
-            restTemplate,
-            requestCallback,
-            SyncEndpoint.DATA_VALUE_SETS.getKlass(),
-            instance.getUrl(),
-            maxSyncAttempts );
+        Optional<AbstractWebMessageResponse> responseSummary =
+            SyncUtils.runSyncRequest(
+                restTemplate,
+                requestCallback,
+                SyncEndpoint.DATA_VALUE_SETS.getKlass(),
+                instance.getUrl(),
+                maxSyncAttempts );
 
         ImportSummary summary = null;
         if ( responseSummary.isPresent() )

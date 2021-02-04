@@ -28,19 +28,23 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -56,29 +60,19 @@ public class CategoryComboServiceTest
     private CategoryManager categoryManager;
 
     private CategoryOption categoryOptionA;
-
     private CategoryOption categoryOptionB;
-
     private CategoryOption categoryOptionC;
-
     private CategoryOption categoryOptionD;
-
     private CategoryOption categoryOptionE;
-
     private CategoryOption categoryOptionF;
-
     private CategoryOption categoryOptionG;
 
     private Category categoryA;
-
     private Category categoryB;
-
     private Category categoryC;
 
     private CategoryCombo categoryComboA;
-
     private CategoryCombo categoryComboB;
-
     private CategoryCombo categoryComboC;
 
     private List<Category> categories;
@@ -286,14 +280,10 @@ public class CategoryComboServiceTest
         assertEquals( 12, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
 
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
     }
 
     @Test
@@ -336,14 +326,10 @@ public class CategoryComboServiceTest
         assertEquals( 12, categoryComboA.getOptionCombos().size() );
         assertOptionCombos( categoryComboA.getOptionCombos() );
 
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG ) ) );
-        assertTrue( categoryComboA.getOptionCombos().contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionG ) ) );
+        assertTrue( categoryComboA.getOptionCombos().contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionG ) ) );
     }
 
     @Test
@@ -366,11 +352,9 @@ public class CategoryComboServiceTest
 
         categoryManager.addAndPruneAllOptionCombos();
 
-        assertTrue( categoryComboT.getOptionCombos()
-            .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
+        assertTrue( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
 
-        assertFalse( categoryComboT.getOptionCombos()
-            .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
+        assertFalse( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
 
         categoryB.removeCategoryOption( categoryOptionC );
         categoryB.addCategoryOption( categoryOptionE );
@@ -380,30 +364,20 @@ public class CategoryComboServiceTest
 
         categoryComboT = categoryService.getCategoryCombo( id );
 
-        assertFalse( categoryComboT.getOptionCombos()
-            .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
+        assertFalse( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionC ) ) );
 
-        assertTrue( categoryComboT.getOptionCombos()
-            .contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
+        assertTrue( categoryComboT.getOptionCombos().contains( createCategoryOptionCombo( categoryComboT, categoryOptionA, categoryOptionE ) ) );
     }
 
     private void assertOptionCombos( Set<CategoryOptionCombo> optionCombos )
     {
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionE ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionF ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionE ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionF ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionE ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionF ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionE ) ) );
-        assertTrue( optionCombos.contains(
-            createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionF ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionE ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionC, categoryOptionF ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionE ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionA, categoryOptionD, categoryOptionF ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionE ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionC, categoryOptionF ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionE ) ) );
+        assertTrue( optionCombos.contains( createCategoryOptionCombo( categoryComboA, categoryOptionB, categoryOptionD, categoryOptionF ) ) );
     }
 }

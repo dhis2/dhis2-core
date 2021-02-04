@@ -42,7 +42,6 @@ public class AggregatableDataElementFilter
     @Override
     public boolean retain( DataElement object )
     {
-        return object != null && object.getValueType().isAggregateable()
-            && object.getAggregationType().isAggregateable();
+        return object != null && object.getValueType().isAggregateable() && object.getAggregationType().isAggregateable();
     }
 }

@@ -28,15 +28,14 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
 
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
 /**
  * Function if
- *
  * <pre>
  *
  * In-memory Logic:
@@ -69,8 +68,8 @@ public class FunctionIf
         return arg0 == null
             ? null
             : arg0
-                ? visitor.visit( ctx.expr( 1 ) )
-                : visitor.visit( ctx.expr( 2 ) );
+            ? visitor.visit( ctx.expr( 1 ) )
+            : visitor.visit( ctx.expr( 2 ) );
     }
 
     @Override

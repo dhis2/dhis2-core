@@ -34,7 +34,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 public class OrganisationUnitDisplayShortNameComparator
     implements Comparator<OrganisationUnit>
-{
+{ 
     public static final Comparator<OrganisationUnit> INSTANCE = new OrganisationUnitDisplayShortNameComparator();
 
     @Override

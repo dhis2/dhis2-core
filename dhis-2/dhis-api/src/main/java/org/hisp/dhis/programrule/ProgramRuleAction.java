@@ -28,8 +28,11 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -43,19 +46,14 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.translation.TranslationProperty;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Set;
 
 /**
  * @author Markus Bekken
  */
 @JacksonXmlRootElement( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleAction
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The programRule that the action belongs to
@@ -67,42 +65,45 @@ public class ProgramRuleAction
      * <p>
      * The actual action the ruleaction row is performing. Allowed values are:
      * <ul>
-     * <li>{@code displaytext} Shows a text in the rulebound widget with the
-     * matching location string. location: the location code of the widget to
-     * display data in content: A hardcoded string to display data: a variable to be
-     * evaluated and displayed at the end of the string, can be null.</li>
+     * <li>{@code displaytext}
+     * Shows a text in the rulebound widget with the matching location string.
+     * location: the location code of the widget to display data in
+     * content: A hardcoded string to display
+     * data: a variable to be evaluated and displayed at the end of the string, can be null.</li>
      *
-     * <li>{@code displaykeyvaluepair} Shows a key data box with a hardcoded name
-     * and a variable value. location: the location code of the widget to display
-     * data in content: A hardcoded string to display as title in the key data box
-     * data: The variable to be evaluated and display in the lower half of the key
-     * data box.</li>
+     * <li>{@code displaykeyvaluepair}
+     * Shows a key data box with a hardcoded name and a variable value.
+     * location: the location code of the widget to display data in
+     * content: A hardcoded string to display as title in the key data box
+     * data: The variable to be evaluated and display in the lower half of the key data box.</li>
      *
-     * <li>{@code hidefield} Hides a dataelement from the page, as long as the
-     * dataelement is not containing a value. dataelement: the dataelement to
-     * hide.</li>
+     * <li>{@code hidefield}
+     * Hides a dataelement from the page, as long as the dataelement is not containing a value.
+     * dataelement: the dataelement to hide.</li>
      *
-     * <li>{@code assignvariable} Assigns/calculates a value that can be further
-     * used by other rules. Make sure the priorities is set so the rules that depend
-     * on the calculation is run after the assignvariable-rule. content: the
-     * variable name to be assigned. “$severeanemia” for example. data: the
-     * expression to be evaluated and assigned to the content field. Can contain a
-     * hardcoded value(f.ex. “true”) or an expression that is evaluated(for exampple
-     * “$hemoglobin < 7”).</li>
+     * <li>{@code assignvariable}
+     * Assigns/calculates a value that can be further used by other rules. Make sure the priorities is set so the rules
+     * that depend on the calculation is run after the assignvariable-rule.
+     * content: the variable name to be assigned. “$severeanemia” for example.
+     * data: the expression to be evaluated and assigned to the content field. Can contain a hardcoded value(f.ex. “true”)
+     * or an expression that is evaluated(for exampple “$hemoglobin < 7”).</li>
      *
-     * <li>{@code showwarning} Shows a validation warning connected to a designated
-     * dataelement dataelement: the dataelement to show validationerror for content:
-     * the validation error itself</li>
+     * <li>{@code showwarning}
+     * Shows a validation warning connected to a designated dataelement
+     * dataelement: the dataelement to show validationerror for
+     * content: the validation error itself</li>
      *
-     * <li>{@code showerror} Shows a validation error connected to a designated
-     * dataelement dataelement: the dataelement to show validationerror for content:
-     * the validation error itself</li>
+     * <li>{@code showerror}
+     * Shows a validation error connected to a designated dataelement
+     * dataelement: the dataelement to show validationerror for
+     * content: the validation error itself</li>
      * </ul>
      */
     private ProgramRuleActionType programRuleActionType;
 
     /**
-     * The data element that is affected by the rule action. Used for:
+     * The data element that is affected by the rule action.
+     * Used for:
      * <p>
      * <ul>
      * <li>hidefield</li>
@@ -113,7 +114,8 @@ public class ProgramRuleAction
     private DataElement dataElement;
 
     /**
-     * The data element that is affected by the rule action. Used for:
+     * The data element that is affected by the rule action.
+     * Used for:
      * <p>
      * <ul>
      * <li>hidefield</li>
@@ -124,7 +126,8 @@ public class ProgramRuleAction
     private TrackedEntityAttribute attribute;
 
     /**
-     * The program indicator that is affected by the rule action. Used for:
+     * The program indicator that is affected by the rule action.
+     * Used for:
      * <ul>
      * <li>hidefield</li>
      * </ul>
@@ -137,12 +140,13 @@ public class ProgramRuleAction
     private ProgramStageSection programStageSection;
 
     /**
-     * The program stage that is affected by the rule action.
+     * The program stage  that is affected by the rule action.
      */
     private ProgramStage programStage;
 
     /**
-     * The program notification that will be triggered by the rule action. Used for:
+     * The program notification that will be triggered by the rule action.
+     * Used for:
      * <ul>
      * <li>sendmessage</li>
      * </ul>
@@ -165,8 +169,7 @@ public class ProgramRuleAction
     private String content;
 
     /**
-     * Used by all the different actions. See “actions”. The data field will be
-     * evaluated, so it can contain a rich expression.
+     * Used by all the different actions. See “actions”. The data field will be evaluated, so it can contain a rich expression.
      */
     private String data;
 
@@ -181,16 +184,16 @@ public class ProgramRuleAction
     private OptionGroup optionGroup;
 
     /**
-     * The time when the rule is going to be evaluated. This field is used to run
-     * only the rules that makes sense at each stage of the rule validation. Default
-     * to {@link ProgramRuleActionEvaluationTime#ALWAYS}
+     * The time when the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense at each stage of the rule validation.
+     * Default to {@link ProgramRuleActionEvaluationTime#ALWAYS}
      */
     private ProgramRuleActionEvaluationTime programRuleActionEvaluationTime = ProgramRuleActionEvaluationTime.ALWAYS;
 
     /**
-     * The environments where the rule is going to be evaluated. This field is used
-     * to run only the rules that makes sense in each environment. Default to
-     * {@link ProgramRuleActionEvaluationEnvironment#getDefault()}
+     * The environments where the rule is going to be evaluated. This field is used to run only the rules that
+     * makes sense in each environment.
+     * Default to {@link ProgramRuleActionEvaluationEnvironment#getDefault()}
      */
     private Set<ProgramRuleActionEvaluationEnvironment> programRuleActionEvaluationEnvironments = ProgramRuleActionEvaluationEnvironment
         .getDefault();

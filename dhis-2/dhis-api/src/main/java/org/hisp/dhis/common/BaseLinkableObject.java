@@ -28,12 +28,11 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,9 +42,8 @@ public class BaseLinkableObject
     implements LinkableObject
 {
     /**
-     * As part of the serializing process, this field can be set to indicate a link
-     * to this identifiable object (will be used on the web layer for navigating the
-     * REST API)
+     * As part of the serializing process, this field can be set to indicate a link to this
+     * identifiable object (will be used on the web layer for navigating the REST API)
      */
     private transient String href;
 

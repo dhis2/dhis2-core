@@ -29,7 +29,6 @@ package org.hisp.dhis.fileresource;
  */
 
 import org.apache.commons.io.FilenameUtils;
-
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -54,7 +53,8 @@ public class FileResourceBlocklist
         "application/vnd.mozilla.xul+xml",
         "application/x-httpd-php",
         "application/x-sh",
-        "application/x-csh" );
+        "application/x-csh"
+    );
 
     private static final ImmutableSet<String> FILE_EXTENSIONS = ImmutableSet.of(
         // Web
@@ -78,11 +78,12 @@ public class FileResourceBlocklist
         "bin",
         "sh",
         "csh",
-        "bat" );
+        "bat"
+    );
 
     /**
-     * Indicates whether the given file resource has a valid file extension and
-     * content type according to the blacklist.
+     * Indicates whether the given file resource has a valid file extension and content type
+     * according to the blacklist.
      *
      * @param fileResource the {@link FileResource}.
      * @return true if valid, false if invalid.

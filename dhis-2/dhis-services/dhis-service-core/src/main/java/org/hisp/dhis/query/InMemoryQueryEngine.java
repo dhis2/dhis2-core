@@ -28,13 +28,7 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
@@ -48,7 +42,12 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,14 +57,11 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
     private final SchemaService schemaService;
-
     private final AclService aclService;
-
     private final CurrentUserService currentUserService;
 
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService )
+    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
     {
         checkNotNull( schemaService );
         checkNotNull( aclService );
@@ -126,12 +122,12 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         List<T> sorted = new ArrayList<>( objects );
 
-        sorted.sort( ( o1, o2 ) -> {
+        sorted.sort( ( o1, o2 ) ->
+        {
             for ( Order order : query.getOrders() )
             {
                 int result = order.compare( o1, o2 );
-                if ( result != 0 )
-                    return result;
+                if ( result != 0 ) return result;
             }
 
             return 0;

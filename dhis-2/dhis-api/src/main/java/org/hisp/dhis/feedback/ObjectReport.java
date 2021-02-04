@@ -73,8 +73,7 @@ public class ObjectReport
         this( object, objectIndexProvider, null );
     }
 
-    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider,
-        @Nullable String uid )
+    public ObjectReport( @Nonnull IdentifiableObject object, @Nonnull ObjectIndexProvider objectIndexProvider, @Nullable String uid )
     {
         this( object.getClass(), objectIndexProvider.mergeObjectIndex( object ), uid == null ? object.getUid() : uid );
     }
@@ -109,9 +108,9 @@ public class ObjectReport
         this.displayName = objectReport.getDisplayName();
     }
 
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
     // Utility Methods
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
 
     public void merge( ObjectReport objectReport )
     {
@@ -133,9 +132,9 @@ public class ObjectReport
         errorReportsByCode.get( errorReport.getErrorCode() ).add( errorReport );
     }
 
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
     // Getters and Setters
-    // -----------------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -180,7 +179,7 @@ public class ObjectReport
 
         return errorReports;
     }
-
+    
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "errorReports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "errorReport", namespace = DxfNamespaces.DXF_2_0 )

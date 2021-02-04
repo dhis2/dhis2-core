@@ -60,8 +60,7 @@ public class ContinuousAnalyticsJobParameters
     private Integer fullUpdateHourOfDay = 0;
 
     /**
-     * The number of last years of data to include in the full analytics table
-     * update.
+     * The number of last years of data to include in the full analytics table update.
      */
     private Integer lastYears;
 
@@ -74,8 +73,7 @@ public class ContinuousAnalyticsJobParameters
     {
     }
 
-    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears,
-        Set<AnalyticsTableType> skipTableTypes )
+    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears, Set<AnalyticsTableType> skipTableTypes )
     {
         this.fullUpdateHourOfDay = fullUpdateHourOfDay;
         this.lastYears = lastYears;
@@ -93,6 +91,7 @@ public class ContinuousAnalyticsJobParameters
     {
         this.fullUpdateHourOfDay = fullUpdateHourOfDay;
     }
+
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

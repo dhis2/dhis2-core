@@ -28,21 +28,20 @@ package org.hisp.dhis.appmanager;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Set;
-
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Set;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Saptarshi
@@ -110,7 +109,7 @@ public class AppTest
     {
         AppDhis dhisActivity = app.getActivities().getDhis();
         Assert.assertEquals( "http://localhost:8080/dhis", dhisActivity.getHref() );
-        dhisActivity.setHref( "ALL TEST" );
+        dhisActivity.setHref("ALL TEST");
         Assert.assertEquals( "ALL TEST", dhisActivity.getHref() );
     }
 

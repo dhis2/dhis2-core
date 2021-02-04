@@ -28,12 +28,12 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 /**
  * @author Ken Haase
@@ -81,21 +81,21 @@ public class DefaultPredictorService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Predictor getPredictor( long id )
     {
         return predictorStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Predictor getPredictor( String uid )
     {
         return predictorStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<Predictor> getAllPredictors()
     {
         return predictorStore.getAll();
@@ -129,21 +129,21 @@ public class DefaultPredictorService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public PredictorGroup getPredictorGroup( long id )
     {
         return predictorGroupStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public PredictorGroup getPredictorGroup( String uid )
     {
         return predictorGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<PredictorGroup> getAllPredictorGroups()
     {
         return predictorGroupStore.getAll();

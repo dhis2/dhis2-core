@@ -30,8 +30,5 @@ package org.hisp.dhis.message;
 
 public enum MessageConversationPriority
 {
-    NONE,
-    LOW,
-    MEDIUM,
-    HIGH
+    NONE, LOW, MEDIUM, HIGH
 }

@@ -54,9 +54,7 @@ import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepea
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
@@ -66,7 +64,9 @@ import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
@@ -253,7 +253,7 @@ public class ServiceConfig
             ProgramStagePreProcessor.class,
             EventGeometryPreProcessor.class,
             FilteringOutUndeclaredDataElementsProcessor.class,
-            UserInfoInsertPreProcessor.class ) );
+            UserInfoInsertPreProcessor.class) );
     }
 
     @Bean
@@ -274,7 +274,7 @@ public class ServiceConfig
             EventStoredByPreProcessor.class,
             ProgramStageInstanceUpdatePreProcessor.class,
             ProgramInstanceGeometryPreProcessor.class,
-            UserInfoUpdatePreProcessor.class ) );
+            UserInfoUpdatePreProcessor.class) );
     }
 
     @Bean

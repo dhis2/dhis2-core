@@ -82,7 +82,7 @@ public class DimensionalKeywords
     {
         this.groupBy = new ArrayList<>();
 
-        this.groupBy.addAll( groupBy.stream().map( this::toKeyword ).collect( Collectors.toList() ) );
+        this.groupBy.addAll( groupBy.stream().map(this::toKeyword).collect( Collectors.toList() ) );
     }
 
     public DimensionalKeywords()
@@ -117,7 +117,7 @@ public class DimensionalKeywords
     {
         return new Keyword( object.getUid(), object.getUid(), object.getName(), object.getCode() );
     }
-
+    
     public boolean isEmpty()
     {
         return groupBy.isEmpty();

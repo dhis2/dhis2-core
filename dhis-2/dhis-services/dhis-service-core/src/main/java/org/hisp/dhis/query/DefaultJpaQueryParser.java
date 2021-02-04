@@ -28,12 +28,6 @@ package org.hisp.dhis.query;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -44,6 +38,12 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.query.QueryParser" )
 public class DefaultJpaQueryParser
@@ -59,8 +59,7 @@ public class DefaultJpaQueryParser
 
     private final CurrentUserService currentUserService;
 
-    public DefaultJpaQueryParser( SchemaService schemaService, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService )
+    public DefaultJpaQueryParser( SchemaService schemaService, CurrentUserService currentUserService, OrganisationUnitService organisationUnitService )
     {
         checkNotNull( schemaService );
 
@@ -70,23 +69,19 @@ public class DefaultJpaQueryParser
     }
 
     @Override
-    public Query parse( Class<?> klass, List<String> filters )
-        throws QueryParserException
+    public Query parse( Class<?> klass, List<String> filters ) throws QueryParserException
     {
         return parse( klass, filters, Junction.Type.AND );
     }
 
     @Override
-    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction )
-        throws QueryParserException
+    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction ) throws QueryParserException
     {
         return parse( klass, filters, rootJunction, false );
     }
 
     @Override
-    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction,
-        boolean restrictToCaptureScope )
-        throws QueryParserException
+    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( klass );
         Query query = Query.from( schema, rootJunction );
@@ -119,7 +114,7 @@ public class DefaultJpaQueryParser
             }
         }
 
-        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
+        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass )  )
         {
             User user = currentUserService.getCurrentUser();
 
@@ -138,12 +133,10 @@ public class DefaultJpaQueryParser
         params.setParents( user.getOrganisationUnits() );
         params.setFetchChildren( true );
 
-        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream()
-            .map( orgUnit -> orgUnit.getUid() ).collect(
-                Collectors.toList() );
+        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
+            Collectors.toList() );
 
-        disjunction
-            .add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
+        disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
         disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
 
@@ -160,8 +153,7 @@ public class DefaultJpaQueryParser
     }
 
     @Override
-    public Restriction getRestriction( Schema schema, String path, String operator, Object arg )
-        throws QueryParserException
+    public Restriction getRestriction( Schema schema, String path, String operator, Object arg ) throws QueryParserException
     {
         Property property = getProperty( schema, path );
 
@@ -330,8 +322,7 @@ public class DefaultJpaQueryParser
     }
 
     @Override
-    public Property getProperty( Schema schema, String path )
-        throws QueryParserException
+    public Property getProperty( Schema schema, String path ) throws QueryParserException
     {
         String[] paths = path.split( "\\." );
         Schema currentSchema = schema;
@@ -353,8 +344,7 @@ public class DefaultJpaQueryParser
 
             if ( (currentProperty.isSimple() && !currentProperty.isCollection()) && i != (paths.length - 1) )
             {
-                throw new QueryParserException(
-                    "Simple type was found before finished parsing path expression, please check your path string." );
+                throw new QueryParserException( "Simple type was found before finished parsing path expression, please check your path string." );
             }
 
             if ( currentProperty.isCollection() )

@@ -28,8 +28,10 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.Charsets;
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.context.ApplicationListener;
@@ -41,10 +43,6 @@ import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuth
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.security.web.authentication.session.SessionFixationProtectionEvent;
 import org.springframework.util.ClassUtils;
-
-import com.google.common.base.Charsets;
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -76,8 +74,8 @@ public class AuthenticationLoggerListener
 
         if ( event instanceof AbstractAuthenticationFailureEvent )
         {
-            exceptionMessage = "; exception: "
-                + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
+            exceptionMessage =
+                "; exception: " + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
         }
 
         Object details = event.getAuthentication().getDetails();

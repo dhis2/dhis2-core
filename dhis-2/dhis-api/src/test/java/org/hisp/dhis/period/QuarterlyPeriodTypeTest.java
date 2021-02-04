@@ -28,13 +28,13 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.List;
-
 import org.joda.time.DateTime;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland
@@ -42,17 +42,14 @@ import org.junit.Test;
 public class QuarterlyPeriodTypeTest
 {
     private DateTime startDate;
-
     private DateTime endDate;
-
     private DateTime testDate;
-
     private QuarterlyPeriodType periodType;
 
     @Before
     public void before()
     {
-        periodType = new QuarterlyPeriodType();
+       periodType = new QuarterlyPeriodType();
     }
 
     @Test
@@ -150,10 +147,10 @@ public class QuarterlyPeriodTypeTest
         List<Period> periods = periodType.generatePeriods( testDate.toDate() );
 
         assertEquals( 4, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 4, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 7, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 10, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 4, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 7, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 10, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
     }
 
     @Test
@@ -164,10 +161,10 @@ public class QuarterlyPeriodTypeTest
         List<Period> periods = periodType.generateRollingPeriods( testDate.toDate() );
 
         assertEquals( 4, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2008, 10, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 1, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 4, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 7, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2008, 10, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 1, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 4, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 7, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
     }
 
     @Test
@@ -178,10 +175,10 @@ public class QuarterlyPeriodTypeTest
         List<Period> periods = periodType.generateLast5Years( testDate.toDate() );
 
         assertEquals( 20, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2005, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2005, 4, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2005, 7, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2005, 10, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2005, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2005, 4, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2005, 7, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2005, 10, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
     }
 
     @Test
@@ -193,9 +190,9 @@ public class QuarterlyPeriodTypeTest
         List<Period> periods = periodType.generatePeriods( startDate.toDate(), endDate.toDate() );
 
         assertEquals( 3, periods.size() );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 7, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2009, 10, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
-        assertEquals( periodType.createPeriod( new DateTime( 2010, 1, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 7, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2009, 10, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
+        assertEquals( periodType.createPeriod( new DateTime(  2010, 1, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
     }
 
     @Test

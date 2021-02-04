@@ -28,13 +28,6 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -43,6 +36,13 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.scheduling.JobConfiguration;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -84,8 +84,7 @@ public interface DataValueSetService
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      */
@@ -94,8 +93,7 @@ public interface DataValueSetService
     /**
      * Query for {@link DataValueSet DataValueSets} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last
-     *        updated after
+     * @param lastUpdated specifies the date to filter complete data sets last updated after
      * @param outputStream the stream to write to
      * @param idSchemes idSchemes
      * @param pageSize pageSize

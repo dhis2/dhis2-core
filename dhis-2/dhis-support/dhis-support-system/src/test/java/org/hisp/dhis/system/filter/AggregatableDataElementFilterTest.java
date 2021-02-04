@@ -28,9 +28,7 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.Set;
+import com.google.common.collect.Sets;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
@@ -38,7 +36,9 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Lars Helge Overland

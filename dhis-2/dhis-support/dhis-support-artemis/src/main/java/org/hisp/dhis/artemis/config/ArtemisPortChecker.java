@@ -28,15 +28,14 @@ package org.hisp.dhis.artemis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.net.InetAddress;
-import java.net.ServerSocket;
-
-import javax.annotation.PostConstruct;
-import javax.net.ServerSocketFactory;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import javax.net.ServerSocketFactory;
+import java.net.InetAddress;
+import java.net.ServerSocket;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,8 +61,7 @@ public class ArtemisPortChecker
             String message = "\n\n";
             message += "############################################################################################\n";
             message += "#\n";
-            message += String.format( "# Current selected Apache Artemis port '%s' on host '%s' is already in use.\n",
-                artemisPort, artemisHost );
+            message += String.format( "# Current selected Apache Artemis port '%s' on host '%s' is already in use.\n", artemisPort, artemisHost );
             message += "#\n";
             message += "# Please change this in your 'dhis.conf' by using the 'artemis.port = X' key.\n";
             message += "#\n";
@@ -78,8 +76,7 @@ public class ArtemisPortChecker
 
     private boolean isEmbedded()
     {
-        return ArtemisMode
-            .valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) == ArtemisMode.EMBEDDED;
+        return ArtemisMode.valueOf( (dhisConfig.getProperty( ConfigurationKey.ARTEMIS_MODE )).toUpperCase() ) == ArtemisMode.EMBEDDED;
     }
 
     private boolean isPortAvailable( String host, int port )

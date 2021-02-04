@@ -77,7 +77,7 @@ public class TrackedEntityAttributeTest
     public void testTrackedAttributePreheater()
         throws IOException
     {
-        TrackerImportParams trackerImportParams = fromJson( "tracker/te_with_tea_data.json" );
+        TrackerImportParams trackerImportParams = fromJson(  "tracker/te_with_tea_data.json" );
 
         TrackerPreheat preheat = trackerPreheatService.preheat( trackerImportParams );
 

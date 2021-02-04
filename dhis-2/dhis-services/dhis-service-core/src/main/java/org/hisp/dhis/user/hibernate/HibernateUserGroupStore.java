@@ -46,7 +46,7 @@ public class HibernateUserGroupStore extends HibernateIdentifiableObjectStore<Us
     public HibernateUserGroupStore( SessionFactory sessionFactory,
         JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService,
+         CurrentUserService currentUserService,
         AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, UserGroup.class, currentUserService, aclService, true );

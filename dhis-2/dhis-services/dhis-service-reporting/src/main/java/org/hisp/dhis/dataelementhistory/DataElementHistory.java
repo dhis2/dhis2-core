@@ -28,12 +28,12 @@ package org.hisp.dhis.dataelementhistory;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -42,34 +42,34 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 public class DataElementHistory
 {
     private DataElement dataElement;
-
+    
     private CategoryOptionCombo optionCombo;
-
+    
     private CategoryOptionCombo attributeOptionCombo;
 
     private OrganisationUnit organisationUnit;
-
+    
     private Integer minLimit;
 
     private Integer maxLimit;
 
     private int historyLength;
-
+    
     /**
      * Max value used to draw the history graph
      */
     private double maxHistoryValue;
-
+    
     /**
      * The lowest entered value
      */
     private double minValue;
-
+    
     /**
      * The highest entered value
      */
     private double maxValue = Double.NEGATIVE_INFINITY;
-
+    
     private List<DataElementHistoryPoint> historyPoints = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -115,25 +115,25 @@ public class DataElementHistory
     {
         this.dataElement = dataElement;
     }
-
+    
     public CategoryOptionCombo getOptionCombo()
     {
-        return optionCombo;
+    	return optionCombo;
     }
-
+    
     public void setOptionCombo( CategoryOptionCombo optionCombo )
     {
-        this.optionCombo = optionCombo;
+    	this.optionCombo = optionCombo;
     }
-
+    
     public CategoryOptionCombo getAttributeOptionCombo()
     {
-        return attributeOptionCombo;
+    	return attributeOptionCombo;
     }
-
+    
     public void setAttributeOptionComboOptionCombo( CategoryOptionCombo attributeOptionCombo )
     {
-        this.attributeOptionCombo = attributeOptionCombo;
+    	this.attributeOptionCombo = attributeOptionCombo;
     }
 
     public int getHistoryLength()
@@ -167,7 +167,7 @@ public class DataElementHistory
     }
 
     public double getMinValue()
-    {
+    {       
         return minValue;
     }
 

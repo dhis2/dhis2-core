@@ -45,10 +45,9 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore" )
 public class HibernateTrackedEntityProgramOwnerStore
     extends HibernateGenericStore<TrackedEntityProgramOwner>
-    implements TrackedEntityProgramOwnerStore
+        implements TrackedEntityProgramOwnerStore
 {
-    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+    public HibernateTrackedEntityProgramOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityProgramOwner.class, false );
     }

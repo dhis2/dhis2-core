@@ -74,7 +74,7 @@ import org.springframework.http.HttpStatus;
  */
 @RunWith( PowerMockRunner.class )
 @PrepareForTest( HttpUtils.class )
-@PowerMockIgnore( { "com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*", "org.w3c.*" } )
+@PowerMockIgnore({"com.sun.org.apache.xerces.*", "javax.xml.*", "org.xml.*", "javax.management.*","org.w3c.*"})
 public class MetadataVersionDelegateTest
 {
     private MetadataVersionDelegate target;
@@ -420,7 +420,7 @@ public class MetadataVersionDelegateTest
         when( synchronizationManager.isRemoteServerAvailable() ).thenReturn( availabilityStatus );
         String actualMetadataVersionSnapshot = target.downloadMetadataVersionSnapshot( metadataVersion );
 
-        assertNull( actualMetadataVersionSnapshot );
+        assertNull(actualMetadataVersionSnapshot);
     }
 
     @Test

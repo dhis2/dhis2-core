@@ -28,24 +28,24 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.locationtech.jts.geom.Geometry;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -98,7 +98,7 @@ public class Enrollment
     private Boolean deleted = false;
 
     private String storedBy;
-
+    
     private Geometry geometry;
 
     public Enrollment()
@@ -380,7 +380,7 @@ public class Enrollment
     {
         this.relationships = relationships;
     }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
@@ -393,8 +393,7 @@ public class Enrollment
         this.geometry = geometry;
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "Enrollment{" +
             "enrollment='" + enrollment + '\'' +
@@ -414,13 +413,11 @@ public class Enrollment
     }
 
     @JsonIgnore
-    public Long getId()
-    {
+    public Long getId() {
         return enrollmentId;
     }
 
-    public void setId( Long enrollmentId )
-    {
+    public void setId(Long enrollmentId) {
         this.enrollmentId = enrollmentId;
     }
 }

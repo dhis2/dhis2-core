@@ -50,8 +50,7 @@ import org.springframework.stereotype.Repository;
  */
 @Repository( "org.hisp.dhis.interpretation.InterpretationStore" )
 public class HibernateInterpretationStore
-    extends HibernateIdentifiableObjectStore<Interpretation>
-    implements InterpretationStore
+    extends HibernateIdentifiableObjectStore<Interpretation> implements InterpretationStore
 {
     @Autowired
     public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -97,10 +96,9 @@ public class HibernateInterpretationStore
     @Override
     public long countVisualizationInterpretations( Visualization visualization )
     {
-        Query query = getQuery(
-            "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
-                .setParameter( "visualization", visualization )
-                .setCacheable( cacheable );
+        Query query = getQuery( "select count(distinct c) from " + clazz.getName() + " c where c.visualization=:visualization" )
+            .setParameter( "visualization", visualization )
+            .setCacheable( cacheable );
 
         return ((Long) query.uniqueResult()).intValue();
     }

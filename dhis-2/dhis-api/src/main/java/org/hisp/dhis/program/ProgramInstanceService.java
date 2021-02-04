@@ -28,15 +28,15 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -58,7 +58,7 @@ public interface ProgramInstanceService
      * Adds an {@link ProgramInstance}
      *
      * @param programInstance The to ProgramInstance add.
-     * @param user the current user.
+     * @param user            the current user.
      * @return A generated unique id of the added {@link ProgramInstance}.
      */
     long addProgramInstance( ProgramInstance programInstance, User user );
@@ -103,8 +103,7 @@ public interface ProgramInstanceService
     ProgramInstance getProgramInstance( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Deleted values are not taken into
-     * account.
+     * Checks for the existence of a PI by UID. Deleted values are not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -112,8 +111,7 @@ public interface ProgramInstanceService
     boolean programInstanceExists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the deleted
-     * values.
+     * Checks for the existence of a PI by UID. Takes into account also the deleted values.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -121,8 +119,7 @@ public interface ProgramInstanceService
     boolean programInstanceExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramInstances (including deleted) from the
-     * provided UIDs
+     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of existing PSIs (including deleted)
@@ -132,22 +129,23 @@ public interface ProgramInstanceService
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.
      *
-     * @param ou the set of organisation unit identifiers.
-     * @param ouMode the OrganisationUnitSelectionMode.
-     * @param lastUpdated the last updated for PI.
-     * @param lastUpdatedDuration the last updated duration filter.
-     * @param program the Program identifier.
-     * @param programStatus the ProgramStatus in the given program.
-     * @param programStartDate the start date for enrollment in the given Program.
-     * @param programEndDate the end date for enrollment in the given Program.
-     * @param trackedEntityType the TrackedEntityType uid.
+     * @param ou                    the set of organisation unit identifiers.
+     * @param ouMode                the OrganisationUnitSelectionMode.
+     * @param lastUpdated           the last updated for PI.
+     * @param lastUpdatedDuration   the last updated duration filter.
+     * @param program               the Program identifier.
+     * @param programStatus         the ProgramStatus in the given program.
+     * @param programStartDate      the start date for enrollment in the given
+     *                              Program.
+     * @param programEndDate        the end date for enrollment in the given Program.
+     * @param trackedEntityType     the TrackedEntityType uid.
      * @param trackedEntityInstance the TrackedEntityInstance uid.
-     * @param followUp indicates follow up status in the given Program.
-     * @param page the page number.
-     * @param pageSize the page size.
-     * @param totalPages indicates whether to include the total number of pages.
-     * @param skipPaging whether to skip paging.
-     * @param includeDeleted whether to include soft deleted ones
+     * @param followUp              indicates follow up status in the given Program.
+     * @param page                  the page number.
+     * @param pageSize              the page size.
+     * @param totalPages            indicates whether to include the total number of pages.
+     * @param skipPaging            whether to skip paging.
+     * @param includeDeleted        whether to include soft deleted ones
      * @return a ProgramInstanceQueryParams.
      */
     ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode, Date lastUpdated,
@@ -182,8 +180,9 @@ public interface ProgramInstanceService
     void decideAccess( ProgramInstanceQueryParams params );
 
     /**
-     * Validates the given ProgramInstanceQueryParams. The params is considered
-     * valid if no exception are thrown and the method returns normally.
+     * Validates the given ProgramInstanceQueryParams. The params is
+     * considered valid if no exception are thrown and the method returns
+     * normally.
      *
      * @param params the ProgramInstanceQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
@@ -203,59 +202,54 @@ public interface ProgramInstanceService
      * Retrieve program instances on a program by status
      *
      * @param program Program
-     * @param status Status of program-instance, include STATUS_ACTIVE,
-     *        STATUS_COMPLETED and STATUS_CANCELLED
+     * @param status  Status of program-instance, include STATUS_ACTIVE,
+     *                STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
     List<ProgramInstance> getProgramInstances( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a
-     * program
+     * Retrieve program instances on a TrackedEntityInstance with a status by a program
      *
      * @param entityInstance TrackedEntityInstance
-     * @param program Program
-     * @param status Status of program-instance, include STATUS_ACTIVE,
-     *        STATUS_COMPLETED and STATUS_CANCELLED
+     * @param program        Program
+     * @param status         Status of program-instance, include STATUS_ACTIVE,
+     *                       STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
-    List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program,
-        ProgramStatus status );
+    List<ProgramInstance> getProgramInstances( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
      *
      * @param trackedEntityInstance TrackedEntityInstance
-     * @param program Program
-     * @param enrollmentDate The date of enrollment
-     * @param incidentDate The date of incident
-     * @param orgunit Organisation Unit
-     * @param uid UID to use for new instance
+     * @param program               Program
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgunit               Organisation Unit
+     * @param uid                   UID to use for new instance
      * @return ProgramInstance
      */
     ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a TrackedEntityInstance into a program. Must be run inside a transaction.
      *
      * @param trackedEntityInstance TrackedEntityInstance
-     * @param program Program
-     * @param enrollmentDate The date of enrollment
-     * @param incidentDate The date of incident
-     * @param orgunit Organisation Unit
+     * @param program               Program
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgunit               Organisation Unit
      * @return ProgramInstance
      */
-    ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
-        Date enrollmentDate, Date incidentDate,
+    ProgramInstance enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program, Date enrollmentDate, Date incidentDate,
         OrganisationUnit orgunit );
 
     /**
-     * Check a program instance if it can be completed automatically. If there is
-     * some event of this program-isntance uncompleted or this program has any
-     * repeatable stage, then this program cannot be completed automatically
+     * Check a program instance if it can be completed automatically. If there
+     * is some event of this program-isntance uncompleted or this program has
+     * any repeatable stage, then this program cannot be completed automatically
      *
      * @param programInstance ProgramInstance
      * @return True/False value
@@ -263,8 +257,8 @@ public interface ProgramInstanceService
     boolean canAutoCompleteProgramInstanceStatus( ProgramInstance programInstance );
 
     /**
-     * Complete a program instance. Besides, program template messages will be send
-     * if it was defined to send when to complete this program
+     * Complete a program instance. Besides, program template messages will be
+     * send if it was defined to send when to complete this program
      *
      * @param programInstance ProgramInstance
      */
@@ -278,8 +272,8 @@ public interface ProgramInstanceService
     void cancelProgramInstanceStatus( ProgramInstance programInstance );
 
     /**
-     * Incomplete a program instance. This is is possible only if there is no other
-     * program instance with active status.
+     * Incomplete a program instance. This is is possible only if there is
+     * no other program instance with active status.
      *
      * @param programInstance ProgramInstance
      */
@@ -289,12 +283,12 @@ public interface ProgramInstanceService
      * Prepare a ProgramInstance for storing
      *
      * @param trackedEntityInstance TrackedEntityInstance
-     * @param program Program
-     * @param programStatus ProgramStatus
-     * @param enrollmentDate The date of enrollment
-     * @param incidentDate The date of incident
-     * @param orgUnit Organisation Unit
-     * @param uid UID to use for new instance
+     * @param program               Program
+     * @param programStatus         ProgramStatus
+     * @param enrollmentDate        The date of enrollment
+     * @param incidentDate          The date of incident
+     * @param orgUnit               Organisation Unit
+     * @param uid                   UID to use for new instance
      * @return ProgramInstance
      */
     ProgramInstance prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,

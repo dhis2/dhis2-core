@@ -30,13 +30,13 @@ package org.hisp.dhis.artemis.audit;
 
 import java.util.Map;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.audit.AuditScope;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.Strings;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -46,7 +46,6 @@ import com.google.common.base.Strings;
 public class AuditProducerSupplier
 {
     private final MessageManager messageManager;
-
     private final Map<AuditScope, String> auditScopeDestinationMap;
 
     public AuditProducerSupplier(

@@ -31,8 +31,8 @@ package org.hisp.dhis.security;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Implementation of a runnable that makes sure the thread is run without any
- * security context (user = null). Useful for cases where you want to have
+ * Implementation of a runnable that makes sure the thread is run without
+ * any security context (user = null). Useful for cases where you want to have
  * access to all objects without the user flag interfering.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -41,13 +41,13 @@ public class RecaptchaResponse
 {
     @JsonProperty( value = "success" )
     private Boolean success;
-
+    
     @JsonProperty( value = "challenge_ts" )
     private String challengeTs;
-
+    
     @JsonProperty( value = "hostname" )
     private String hostname;
-
+    
     @JsonProperty( value = "error-codes" )
     private List<String> errorCodes = new ArrayList<>();
 
@@ -56,7 +56,7 @@ public class RecaptchaResponse
     {
         return success != null && success;
     }
-
+    
     public Boolean getSuccess()
     {
         return success;

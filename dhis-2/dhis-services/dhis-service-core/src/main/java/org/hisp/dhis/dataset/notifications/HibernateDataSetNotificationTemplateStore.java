@@ -48,7 +48,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateStore" )
 public class HibernateDataSetNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<DataSetNotificationTemplate>
-    implements DataSetNotificationTemplateStore
+        implements DataSetNotificationTemplateStore
 {
     public HibernateDataSetNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -58,8 +58,7 @@ public class HibernateDataSetNotificationTemplateStore
     }
 
     @Override
-    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet,
-        DataSetNotificationTrigger trigger )
+    public List<DataSetNotificationTemplate> getNotificationsByTriggerType( DataSet dataSet, DataSetNotificationTrigger trigger )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

@@ -28,13 +28,12 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.io.Serializable;
 
 /**
  * @author Chau Thu Tran
@@ -44,19 +43,12 @@ public class ProgramExpression
     implements Serializable
 {
     public static final String SEPARATOR_ID = "\\.";
-
     public static final String SEPARATOR_OBJECT = ":";
-
     public static final String DUE_DATE = "DUE_DATE";
-
     public static final String REPORT_DATE = "REPORT_DATE";
-
     public static final String RANGE_IN_DUE_DATE = "RANGE_IN_DUE_DATE";
-
     public static final String NOT_NULL_VALUE_IN_EXPRESSION = "NOT-NULL-VALUE";
-
     public static final String OBJECT_PROGRAM_STAGE_DATAELEMENT = "DE";
-
     public static final String OBJECT_PROGRAM_STAGE = "PS";
 
     private long id;

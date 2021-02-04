@@ -54,7 +54,6 @@ public class DefaultTrackedEntityDataValueAuditService
     // -------------------------------------------------------------------------
 
     private final TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore;
-
     private Predicate<TrackedEntityDataValueAudit> aclFilter;
 
     public DefaultTrackedEntityDataValueAuditService( TrackedEntityDataValueAuditStore trackedEntityDataValueAuditStore,
@@ -88,7 +87,7 @@ public class DefaultTrackedEntityDataValueAuditService
     {
         return trackedEntityDataValueAuditStore
             .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType ).stream()
-            .filter( aclFilter ).collect( Collectors.toList() );
+            .filter(aclFilter).collect( Collectors.toList() );
     }
 
     @Override
@@ -98,7 +97,7 @@ public class DefaultTrackedEntityDataValueAuditService
     {
         return trackedEntityDataValueAuditStore
             .getTrackedEntityDataValueAudits( dataElements, programStageInstances, auditType, first, max ).stream()
-            .filter( aclFilter ).collect( Collectors.toList() );
+            .filter(aclFilter).collect( Collectors.toList() );
     }
 
     @Override

@@ -28,14 +28,14 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -45,35 +45,30 @@ public class AnalyticsTableHookStoreTest
 {
     @Autowired
     private AnalyticsTableHookStore sqlHookStore;
-
+    
     private final String sql = "update _orgunitstructure set organisationunitid=1";
-
+    
     @Test
     public void testGetByType()
     {
-        AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_POPULATED,
-            ResourceTableType.ORG_UNIT_STRUCTURE, sql );
-        AnalyticsTableHook hookB = new AnalyticsTableHook( "NameB", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED,
-            AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableHook hookC = new AnalyticsTableHook( "NameC", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED,
-            AnalyticsTableType.DATA_VALUE, sql );
-        AnalyticsTableHook hookD = new AnalyticsTableHook( "NameD", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED,
-            AnalyticsTableType.EVENT, sql );
-
+        AnalyticsTableHook hookA = new AnalyticsTableHook( "NameA", AnalyticsTablePhase.RESOURCE_TABLE_POPULATED, ResourceTableType.ORG_UNIT_STRUCTURE, sql );
+        AnalyticsTableHook hookB = new AnalyticsTableHook( "NameB", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookC = new AnalyticsTableHook( "NameC", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE, sql );
+        AnalyticsTableHook hookD = new AnalyticsTableHook( "NameD", AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.EVENT, sql );
+        
         sqlHookStore.save( hookA );
         sqlHookStore.save( hookB );
         sqlHookStore.save( hookC );
         sqlHookStore.save( hookD );
-
-        List<AnalyticsTableHook> hooks = sqlHookStore.getByPhaseAndAnalyticsTableType(
-            AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE );
-
+        
+        List<AnalyticsTableHook> hooks = sqlHookStore.getByPhaseAndAnalyticsTableType( AnalyticsTablePhase.ANALYTICS_TABLE_POPULATED, AnalyticsTableType.DATA_VALUE );
+        
         assertEquals( 2, hooks.size() );
-
+        
         hooks.forEach( hook -> {
             assertNotNull( hook.getName() );
             assertNotNull( hook.getPhase() );
             assertEquals( AnalyticsTableType.DATA_VALUE, hook.getAnalyticsTableType() );
-        } );
+        });
     }
 }

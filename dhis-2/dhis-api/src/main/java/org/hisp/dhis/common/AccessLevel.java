@@ -38,7 +38,7 @@ public enum AccessLevel
     AUDITED( 1 ),
     PROTECTED( 2 ),
     CLOSED( 3 );
-
+    
     private final int value;
 
     AccessLevel( int value )

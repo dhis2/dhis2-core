@@ -52,7 +52,7 @@ public @interface Auditable
     /**
      * The scope of the annotated class. The scope is used to group logically
      * adjacent objects (e.g. METADATA)
-     *
+     * 
      * @return an {@see AuditScope}
      */
     AuditScope scope();

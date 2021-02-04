@@ -29,8 +29,8 @@ package org.hisp.dhis.analytics;
  */
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public enum AnalyticsTableType
 {
     DATA_VALUE( "analytics", true, true ),

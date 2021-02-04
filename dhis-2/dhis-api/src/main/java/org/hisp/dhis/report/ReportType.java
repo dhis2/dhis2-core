@@ -33,7 +33,5 @@ package org.hisp.dhis.report;
  */
 public enum ReportType
 {
-    JASPER_REPORT_TABLE,
-    JASPER_JDBC,
-    HTML
+    JASPER_REPORT_TABLE, JASPER_JDBC, HTML
 }

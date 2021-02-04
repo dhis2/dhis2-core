@@ -31,9 +31,9 @@ package org.hisp.dhis.outlierdetection;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.Data;
 
 /**
  * @author Lars Helge Overland

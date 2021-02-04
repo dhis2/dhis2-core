@@ -28,10 +28,9 @@ package org.hisp.dhis.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Iterator;
-
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
+import java.util.Iterator;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

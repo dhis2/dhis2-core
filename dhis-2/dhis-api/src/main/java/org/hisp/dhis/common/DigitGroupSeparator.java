@@ -33,7 +33,5 @@ package org.hisp.dhis.common;
  */
 public enum DigitGroupSeparator
 {
-    COMMA,
-    SPACE,
-    NONE
+    COMMA, SPACE, NONE
 }

@@ -1,13 +1,6 @@
 package org.hisp.dhis.dxf2.events.relationship;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Optional;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -38,7 +31,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.HashMap;
+import java.util.Optional;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -137,7 +136,7 @@ public class JacksonRelationshipServiceTest
     {
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.empty() );
+            .thenReturn( Optional.empty() );
 
         ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
 
@@ -153,15 +152,14 @@ public class JacksonRelationshipServiceTest
 
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.of( daoRelationship ) );
+            .thenReturn( Optional.of( daoRelationship ) );
 
         ImportSummary importSummary = subject.addRelationship( relationship, rnd.randomObject( ImportOptions.class ) );
 
         assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
         assertThat( importSummary.getReference(), is( daoRelationship.getUid() ) );
-        assertThat( importSummary.getDescription(),
-            is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
+        assertThat( importSummary.getDescription(), is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
     }
 
     private void initFakeCaches( Relationship relationship, RelationshipType relationshipType )
@@ -198,12 +196,10 @@ public class JacksonRelationshipServiceTest
         Relationship relationship = new Relationship();
 
         RelationshipItem from = new RelationshipItem();
-        from.setTrackedEntityInstance(
-            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+        from.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         RelationshipItem to = new RelationshipItem();
-        to.setTrackedEntityInstance(
-            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+        to.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         relationship.setFrom( from );
         relationship.setTo( to );

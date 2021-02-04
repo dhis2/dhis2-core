@@ -28,15 +28,6 @@ package org.hisp.dhis.analytics.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.stream.Collectors;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionItemType;
@@ -47,14 +38,23 @@ import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+
 /**
  * @author Luciano Fiandesio
  */
 public class PeriodOffsetUtils
 {
     /**
-     * Creates an associative Map between Period Types (e.g. Month, Quarter) and
-     * Periods extracted from a {@link DataQueryParams} object.
+     * Creates an associative Map between Period Types (e.g. Month, Quarter)
+     * and Periods extracted from a {@link DataQueryParams} object.
      * <p>
      * Each map value may also contain periods that are derived from Period offsets
      * applied to elements from the "data" dimension of the {@link DataQueryParams}
@@ -70,8 +70,7 @@ public class PeriodOffsetUtils
             return new ListMap<>();
         }
 
-        ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils
-            .getPeriodTypePeriodMap( params.getPeriods() );
+        ListMap<String, DimensionalItemObject> periodTypePeriodMap = PartitionUtils.getPeriodTypePeriodMap( params.getPeriods() );
 
         DimensionalObject dimension = params.getDimension( DATA_X_DIM_ID );
 
@@ -111,8 +110,8 @@ public class PeriodOffsetUtils
      * <p>
      * Example:
      * <p>
-     * Period: 202001 , Offset: 1 -> Period: 202002 Period: 2020 , Offset: -1 ->
-     * Period: 2019
+     * Period: 202001 , Offset: 1 -> Period: 202002
+     * Period: 2020 , Offset: -1 -> Period: 2019
      *
      * @param period a Period.
      * @param periodOffset a positive or negative integer.
@@ -161,7 +160,7 @@ public class PeriodOffsetUtils
         if ( !hasOffset )
         {
             final List<DimensionalItemObject> nonShiftedPeriods = params.getPeriods().stream()
-                .filter( dio -> (!((Period) dio).isShifted()) )
+                .filter( dio -> ( !( (Period) dio).isShifted() ) )
                 .collect( Collectors.toList() );
 
             return DataQueryParams.newBuilder( params )
@@ -172,9 +171,8 @@ public class PeriodOffsetUtils
     }
 
     /**
-     * Given a Analytics {@link Grid}, this methods tries to extract the row from
-     * the Grid that matches the given {@link DimensionalItemObject} and offset
-     * period. If there is no match, null is returned.
+     * Given a Analytics {@link Grid}, this methods tries to extract the row from the Grid that matches the given
+     * {@link DimensionalItemObject} and offset period. If there is no match, null is returned.
      *
      * @param grid a {@link Grid} object
      * @param dimItem a DimensionalItemObject object
@@ -190,14 +188,14 @@ public class PeriodOffsetUtils
             return null;
         }
 
-        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
-            Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
+        BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = (Integer index, Integer defaultIndex )
+                -> index == -1 ? defaultIndex : index;
 
         final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
         final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
 
-        Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset )
-            : PeriodType.getPeriodFromIsoString( isoPeriod );
+        Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset ) :
+            PeriodType.getPeriodFromIsoString( isoPeriod );
 
         for ( List<Object> row : grid.getRows() )
         {

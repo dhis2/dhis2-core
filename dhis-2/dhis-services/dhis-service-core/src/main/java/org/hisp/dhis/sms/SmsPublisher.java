@@ -28,12 +28,12 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.sms.SmsPublisher" )
 public class SmsPublisher
@@ -62,7 +62,7 @@ public class SmsPublisher
     {
         messageQueue.initialize();
 
-        future = taskScheduler.scheduleWithFixedDelay( smsConsumer::spawnSmsConsumer, 5000 );
+        future = taskScheduler.scheduleWithFixedDelay(smsConsumer::spawnSmsConsumer, 5000 );
     }
 
     public void stop()

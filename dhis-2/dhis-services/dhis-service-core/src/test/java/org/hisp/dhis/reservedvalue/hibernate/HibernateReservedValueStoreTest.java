@@ -28,14 +28,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.Objects;
@@ -52,7 +45,14 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class HibernateReservedValueStoreTest
     extends DhisSpringTest
@@ -117,21 +117,19 @@ public class HibernateReservedValueStoreTest
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( rv, Lists.newArrayList( rv.getValue() ) );
 
         assertEquals( 1, res.size() );
-        assertEquals( reservedValueStore.getCount(), count + 1 );
+        assertEquals(reservedValueStore.getCount(), count + 1);
     }
 
     @Test
     public void isReservedShouldBeTrue()
     {
-        assertTrue(
-            reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
+        assertTrue( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "001" ) );
     }
 
     @Test
     public void isReservedShouldBeFalse()
     {
-        assertFalse(
-            reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
+        assertFalse( reservedValueStore.isReserved( reservedValueA.getOwnerObject(), reservedValueA.getOwnerUid(), "100" ) );
     }
 
     @Test
@@ -150,7 +148,7 @@ public class HibernateReservedValueStoreTest
         List<ReservedValue> res = reservedValueStore.reserveValuesJpa( getFreeReservedValue(), values );
 
         assertEquals( n, res.size() );
-        assertEquals( (count + n), reservedValueStore.getCount() );
+        assertEquals( ( count + n ), reservedValueStore.getCount() );
     }
 
     @Test
@@ -187,7 +185,7 @@ public class HibernateReservedValueStoreTest
 
         assertEquals( 1, count );
         assertEquals( 3, res.size() );
-        assertEquals( (count + 3), reservedValueStore.getCount() );
+        assertEquals( ( count + 3 ), reservedValueStore.getCount() );
     }
 
     @Test
@@ -233,8 +231,8 @@ public class HibernateReservedValueStoreTest
 
         reservedValueStore.removeExpiredReservations();
 
-        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList( expired.getValue() ) )
-            .contains( expired ) );
+        assertFalse( reservedValueStore.getIfReservedValues( expired, Lists.newArrayList(expired.getValue() ) )
+                .contains( expired ) );
     }
 
     @Test
@@ -256,6 +254,7 @@ public class HibernateReservedValueStoreTest
             "FREE",
             "00X",
             String.format( "%03d", counter++ ),
-            futureDate );
+            futureDate
+        );
     }
 }

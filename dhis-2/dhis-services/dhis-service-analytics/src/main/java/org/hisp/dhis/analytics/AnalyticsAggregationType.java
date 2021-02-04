@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics;
  */
 
 import java.util.Objects;
-
 import org.hisp.dhis.util.ObjectUtils;
-
 import com.google.common.base.MoreObjects;
 
 /**
@@ -39,23 +37,12 @@ import com.google.common.base.MoreObjects;
  */
 public class AnalyticsAggregationType
 {
-    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM,
-        AggregationType.SUM );
-
-    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE,
-        AggregationType.AVERAGE );
-
-    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT,
-        AggregationType.COUNT );
-
-    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST,
-        AggregationType.FIRST );
-
-    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST,
-        AggregationType.LAST );
-
-    public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType(
-        AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );
+    public static final AnalyticsAggregationType SUM = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.SUM );
+    public static final AnalyticsAggregationType AVERAGE = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.AVERAGE );
+    public static final AnalyticsAggregationType COUNT = new AnalyticsAggregationType( AggregationType.COUNT, AggregationType.COUNT );
+    public static final AnalyticsAggregationType FIRST = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
+    public static final AnalyticsAggregationType LAST = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+    public static final AnalyticsAggregationType LAST_IN_PERIOD = new AnalyticsAggregationType( AggregationType.LAST_IN_PERIOD, AggregationType.LAST_IN_PERIOD );
 
     /**
      * General aggregation type.
@@ -87,8 +74,7 @@ public class AnalyticsAggregationType
         this.periodAggregationType = periodAggregationType;
     }
 
-    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType,
-        DataType dataType, boolean disaggregation )
+    public AnalyticsAggregationType( AggregationType aggregationType, AggregationType periodAggregationType, DataType dataType, boolean disaggregation )
     {
         this( aggregationType, periodAggregationType );
         this.dataType = dataType;
@@ -100,8 +86,7 @@ public class AnalyticsAggregationType
      */
     public AnalyticsAggregationType instance()
     {
-        return new AnalyticsAggregationType( this.aggregationType, this.periodAggregationType, this.dataType,
-            this.disaggregation );
+        return new AnalyticsAggregationType( this.aggregationType, this.periodAggregationType, this.dataType, this.disaggregation );
     }
 
     // -------------------------------------------------------------------------
@@ -124,12 +109,10 @@ public class AnalyticsAggregationType
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
             break;
         case LAST_IN_PERIOD:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM,
-                AggregationType.LAST_IN_PERIOD );
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST_IN_PERIOD );
             break;
         case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE,
-                AggregationType.LAST_IN_PERIOD );
+            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST_IN_PERIOD );
             break;
         case FIRST:
             analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.FIRST );
@@ -156,20 +139,17 @@ public class AnalyticsAggregationType
 
     public boolean isLastPeriodAggregationType()
     {
-        return AggregationType.LAST == periodAggregationType
-            || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
+        return AggregationType.LAST == periodAggregationType || AggregationType.LAST_AVERAGE_ORG_UNIT == periodAggregationType;
     }
 
     public boolean isFirstPeriodAggregationType()
     {
-        return AggregationType.FIRST == periodAggregationType
-            || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType;
+        return AggregationType.FIRST == periodAggregationType || AggregationType.FIRST_AVERAGE_ORG_UNIT == periodAggregationType;
     }
-
+    
     public boolean isLastInPeriodAggregationType()
     {
-        return AggregationType.LAST_IN_PERIOD == periodAggregationType
-            || AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT == periodAggregationType;
+        return AggregationType.LAST_IN_PERIOD == periodAggregationType || AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT == periodAggregationType;
     }
 
     public boolean isFirstOrLastPeriodAggregationType()
@@ -255,6 +235,7 @@ public class AnalyticsAggregationType
             Objects.equals( this.dataType, other.dataType ) &&
             Objects.equals( this.disaggregation, other.disaggregation );
     }
+
 
     @Override
     public int hashCode()

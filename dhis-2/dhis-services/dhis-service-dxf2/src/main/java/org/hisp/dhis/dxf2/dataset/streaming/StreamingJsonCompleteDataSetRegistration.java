@@ -28,12 +28,11 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
+import com.fasterxml.jackson.core.JsonGenerator;
 import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.jfree.util.Log;
 
-import com.fasterxml.jackson.core.JsonGenerator;
+import java.io.IOException;
 
 /**
  * @author Halvdan Hoem Grelland

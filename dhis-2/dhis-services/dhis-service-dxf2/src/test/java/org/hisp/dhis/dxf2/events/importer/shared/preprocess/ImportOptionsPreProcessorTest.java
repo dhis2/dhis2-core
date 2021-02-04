@@ -59,7 +59,7 @@ public class ImportOptionsPreProcessorTest
     public void verifyExceptionIsThrownOnMissingImportOptions()
     {
         WorkContext wc = WorkContext.builder().build();
-
+        
         assertThrows( UnrecoverableImportException.class, () -> subject.process( new Event(), wc ) );
     }
 

@@ -31,8 +31,8 @@ package org.hisp.dhis.leader.election;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * Manages cluster leader node elections, renewals, revocations and to check
- * whether the current instance is the leader in the cluster.
+ * Manages cluster leader node elections, renewals, revocations and to check whether
+ * the current instance is the leader in the cluster.
  *
  * @author Ameen Mohamed
  */
@@ -56,8 +56,7 @@ public interface LeaderManager
     boolean isLeader();
 
     /**
-     * Setter to set the scheduling manager to gain access to systems scheduling
-     * mechanisms.
+     * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
      *
      * @param schedulingManager the instantiated scheduling manager.
      */

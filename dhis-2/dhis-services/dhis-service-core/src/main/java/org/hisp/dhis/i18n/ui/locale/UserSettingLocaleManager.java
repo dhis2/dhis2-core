@@ -28,8 +28,6 @@ package org.hisp.dhis.i18n.ui.locale;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -40,6 +38,8 @@ import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -116,7 +116,7 @@ public class UserSettingLocaleManager
     {
         return DEFAULT_LOCALE;
     }
-
+    
     @Override
     public List<Locale> getAvailableLocales()
     {

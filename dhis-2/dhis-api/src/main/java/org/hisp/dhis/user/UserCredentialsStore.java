@@ -28,11 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.GenericStore;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
-
-import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Lars Helge Overland
@@ -43,7 +42,8 @@ public interface UserCredentialsStore
     String ID = UserCredentialsStore.class.getName();
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given name.
+     * Retrieves the UserCredentials associated with the User with the given
+     * name.
      *
      * @param username the name of the User.
      * @return the UserCredentials.
@@ -59,8 +59,8 @@ public interface UserCredentialsStore
     List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given open
-     * ID.
+     * Retrieves the UserCredentials associated with the User with the given
+     * open ID.
      *
      * @param openId open ID.
      * @return the UserCredentials.
@@ -68,8 +68,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByOpenId( String openId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given LDAP
-     * ID.
+     * Retrieves the UserCredentials associated with the User with the given
+     * LDAP ID.
      *
      * @param ldapId LDAP ID.
      * @return the UserCredentials.
@@ -77,8 +77,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByLdapId( String ldapId );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given id
-     * token.
+     * Retrieves the UserCredentials associated with the User with the given
+     * id token.
      *
      * @param token the restore token of the User.
      * @return the UserCredentials.
@@ -86,7 +86,8 @@ public interface UserCredentialsStore
     UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
-     * Retrieves the UserCredentials associated with the User with the given UUID.
+     * Retrieves the UserCredentials associated with the User with the given
+     * UUID.
      *
      * @param uuid UUID.
      * @return the UserCredentials.

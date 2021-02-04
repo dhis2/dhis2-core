@@ -33,16 +33,7 @@ package org.hisp.dhis.dashboard;
  */
 public enum DashboardItemType
 {
-    VISUALIZATION,
-    CHART,
-    EVENT_CHART,
-    MAP,
-    REPORT_TABLE,
-    EVENT_REPORT,
-    USERS,
-    REPORTS,
-    RESOURCES,
-    TEXT,
-    MESSAGES,
-    APP
+    VISUALIZATION, CHART, EVENT_CHART, MAP, REPORT_TABLE,
+    EVENT_REPORT, USERS, REPORTS, 
+    RESOURCES, TEXT, MESSAGES, APP
 }

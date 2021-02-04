@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
  */
 @Service( "org.hisp.dhis.user.PasswordValidationService" )
 public class DefaultPasswordValidationService
-    implements PasswordValidationService
+        implements PasswordValidationService
 {
     @Autowired
     private List<PasswordValidationRule> rules;

@@ -42,7 +42,7 @@ public class ConnectionPropertyFactoryBean
     // -------------------------------------------------------------------------
 
     private HibernateConfigurationProvider hibernateConfigurationProvider;
-
+    
     public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         this.hibernateConfigurationProvider = hibernateConfigurationProvider;
@@ -54,7 +54,7 @@ public class ConnectionPropertyFactoryBean
     {
         this.hibernateProperty = hibernateProperty;
     }
-
+    
     private String defaultValue;
 
     public void setDefaultValue( String defaultValue )
@@ -70,7 +70,7 @@ public class ConnectionPropertyFactoryBean
     public String getObject()
     {
         String value = hibernateConfigurationProvider.getConfiguration().getProperty( hibernateProperty );
-
+        
         return StringUtils.defaultIfEmpty( value, defaultValue );
     }
 

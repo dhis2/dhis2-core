@@ -28,8 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.eventchart.EventChart;
@@ -38,9 +36,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.junit.Test;
 
+import static org.junit.Assert.*;
+
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public class BaseAnalyticalObjectTest
 {
 

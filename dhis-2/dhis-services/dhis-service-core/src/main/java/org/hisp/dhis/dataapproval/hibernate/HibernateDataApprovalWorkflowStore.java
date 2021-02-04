@@ -49,7 +49,6 @@ public class HibernateDataApprovalWorkflowStore
     public HibernateDataApprovalWorkflowStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataApprovalWorkflow.class, currentUserService, aclService,
-            true );
+        super( sessionFactory, jdbcTemplate, publisher, DataApprovalWorkflow.class, currentUserService, aclService, true );
     }
 }

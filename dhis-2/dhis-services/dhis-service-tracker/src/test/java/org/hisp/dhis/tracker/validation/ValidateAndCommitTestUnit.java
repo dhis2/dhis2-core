@@ -31,7 +31,6 @@ package org.hisp.dhis.tracker.validation;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -40,8 +39,7 @@ import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
 
 /**
- * Convenience class for creating a tracker bundle and calling validation and
- * commit.
+ * Convenience class for creating a tracker bundle and calling validation and commit.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -72,8 +70,7 @@ public class ValidateAndCommitTestUnit
     /**
      * Runs the work
      *
-     * @return an instance of it self to retrieve the commit and validation results
-     *         from later.
+     * @return an instance of it self to retrieve the commit and validation results from later.
      */
     public ValidateAndCommitTestUnit invoke()
     {

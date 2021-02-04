@@ -70,8 +70,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "domainType" ), domainType ) ) );
     }
 
     @Override
@@ -79,8 +78,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "valueType" ), valueType ) ) );
     }
 
     @Override
@@ -88,8 +86,7 @@ public class HibernateDataElementStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
+        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "categoryCombo" ), categoryCombo ) ) );
     }
 
     @Override

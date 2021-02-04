@@ -47,9 +47,9 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryKey;
-import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.TimeField;
+import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DimensionType;
@@ -78,17 +78,16 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import com.google.common.base.MoreObjects;
 
 /**
- * Class representing query parameters for retrieving event data from the event
- * analytics service. Example instantiation:
+ * Class representing query parameters for retrieving event data from the
+ * event analytics service. Example instantiation:
  *
  * <pre>
- * {
- *     &#64;code
- *     EventQueryParams params = new EventQueryParams.Builder()
- *         .addItem( qiA )
- *         .addItemFilter( qiB )
- *         .withOrganisationUnits( ouA, ouB )
- *         .build();
+ * {@code
+ * EventQueryParams params = new EventQueryParams.Builder()
+ *      .addItem( qiA )
+ *      .addItemFilter( qiB )
+ *      .withOrganisationUnits( ouA, ouB )
+ *      .build();
  * }
  * </pre>
  *
@@ -98,7 +97,6 @@ public class EventQueryParams
     extends DataQueryParams
 {
     public static final String EVENT_COORDINATE_FIELD = "EVENT";
-
     public static final String ENROLLMENT_COORDINATE_FIELD = "ENROLLMENT";
 
     /**
@@ -162,8 +160,8 @@ public class EventQueryParams
     private Integer limit;
 
     /**
-     * Indicates the event output type which can be by event, enrollment type or
-     * tracked entity instance.
+     * Indicates the event output type which can be by event, enrollment type
+     * or tracked entity instance.
      */
     private EventOutputType outputType;
 
@@ -173,8 +171,8 @@ public class EventQueryParams
     private EventStatus eventStatus;
 
     /**
-     * Indicates whether the data dimension items should be collapsed into a single
-     * dimension.
+     * Indicates whether the data dimension items should be collapsed into a
+     * single dimension.
      */
     private boolean collapseDataDimensions;
 
@@ -225,8 +223,8 @@ public class EventQueryParams
 
     /**
      * Identifier scheme to use for data and attribute values. Applies to data
-     * elements with option sets and legend sets, which are stored as codes and UIDs
-     * respectively.
+     * elements with option sets and legend sets, which are stored as codes and
+     * UIDs respectively.
      */
     protected IdScheme dataIdScheme;
 
@@ -306,9 +304,7 @@ public class EventQueryParams
         {
             ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement();
-            QueryItem item = new QueryItem( dataElement,
-                (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 )),
-                dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -317,9 +313,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute,
-                (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 )),
-                attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItem( item );
         }
@@ -328,9 +322,7 @@ public class EventQueryParams
         {
             ProgramDataElementDimensionItem element = (ProgramDataElementDimensionItem) object;
             DataElement dataElement = element.getDataElement();
-            QueryItem item = new QueryItem( dataElement,
-                (dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 )),
-                dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
+            QueryItem item = new QueryItem( dataElement, ( dataElement.getLegendSets().isEmpty() ? null : dataElement.getLegendSets().get( 0 ) ), dataElement.getValueType(), dataElement.getAggregationType(), dataElement.getOptionSet() );
             item.setProgram( element.getProgram() );
             builder.addItemFilter( item );
         }
@@ -339,9 +331,7 @@ public class EventQueryParams
         {
             ProgramTrackedEntityAttributeDimensionItem element = (ProgramTrackedEntityAttributeDimensionItem) object;
             TrackedEntityAttribute attribute = element.getAttribute();
-            QueryItem item = new QueryItem( attribute,
-                (attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 )),
-                attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
+            QueryItem item = new QueryItem( attribute, ( attribute.getLegendSets().isEmpty() ? null : attribute.getLegendSets().get( 0 ) ), attribute.getValueType(), attribute.getAggregationType(), attribute.getOptionSet() );
             builder.addItemFilter( item );
         }
 
@@ -357,8 +347,7 @@ public class EventQueryParams
     }
 
     /**
-     * Returns a unique key representing this query. The key is suitable for
-     * caching.
+     * Returns a unique key representing this query. The key is suitable for caching.
      */
     @Override
     public String getKey()
@@ -401,9 +390,9 @@ public class EventQueryParams
     // -------------------------------------------------------------------------
 
     /**
-     * Replaces periods with start and end dates, using the earliest start date from
-     * the periods as start date and the latest end date from the periods as end
-     * date. Remove the period dimension or filter.
+     * Replaces periods with start and end dates, using the earliest start date
+     * from the periods as start date and the latest end date from the periods
+     * as end date. Remove the period dimension or filter.
      */
     private void replacePeriodsWithStartEndDates()
     {
@@ -414,12 +403,12 @@ public class EventQueryParams
             Date start = period.getStartDate();
             Date end = period.getEndDate();
 
-            if ( startDate == null || (start != null && start.before( startDate )) )
+            if ( startDate == null || ( start != null && start.before( startDate ) ) )
             {
                 startDate = start;
             }
 
-            if ( endDate == null || (end != null && end.after( endDate )) )
+            if ( endDate == null || ( end != null && end.after( endDate ) ) )
             {
                 endDate = end;
             }
@@ -429,8 +418,8 @@ public class EventQueryParams
     }
 
     /**
-     * Returns a list of query items which occur more than once, not including the
-     * first duplicate.
+     * Returns a list of query items which occur more than once, not including
+     * the first duplicate.
      */
     public List<QueryItem> getDuplicateQueryItems()
     {
@@ -496,9 +485,9 @@ public class EventQueryParams
     }
 
     /**
-     * Indicates whether the given time field is valid, i.e. whether it is either a
-     * fixed time field or matches the identifier of an attribute or data element of
-     * date value type part of the query program.
+     * Indicates whether the given time field is valid, i.e. whether
+     * it is either a fixed time field or matches the identifier of an
+     * attribute or data element of date value type part of the query program.
      */
     public boolean timeFieldIsValid()
     {
@@ -528,9 +517,9 @@ public class EventQueryParams
     }
 
     /**
-     * Indicates whether the given organisation unit field is valid, i.e. whether it
-     * matches the identifier of an attribute or data element of organisation unit
-     * value type part of the query program.
+     * Indicates whether the given organisation unit field is valid, i.e.
+     * whether it matches the identifier of an attribute or data element of
+     * organisation unit value type part of the query program.
      */
     public boolean orgUnitFieldIsValid()
     {
@@ -583,8 +572,8 @@ public class EventQueryParams
     /**
      * Removes items and item filters of type program indicators.
      *
-     * TODO add support for program indicators in aggregate event analytics and
-     * remove this method.
+     * TODO add support for program indicators in aggregate event
+     * analytics and remove this method.
      */
     public EventQueryParams removeProgramIndicatorItems()
     {
@@ -595,8 +584,8 @@ public class EventQueryParams
 
     /**
      * Returns the aggregation type for this query, first by looking at the
-     * aggregation type of the query, second by looking at the aggregation type of
-     * the value dimension, third by returning AVERAGE;
+     * aggregation type of the query, second by looking at the aggregation type
+     * of the value dimension, third by returning AVERAGE;
      */
     public AnalyticsAggregationType getAggregationTypeFallback()
     {
@@ -641,8 +630,7 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} LAST
+     * Returns true if an aggregation type is defined, and this is type is {@link AggregationType} LAST
      */
     public boolean isLastPeriodAggregationType()
     {
@@ -650,8 +638,7 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if an aggregation type is defined, and this is type is
-     * {@link AggregationType} FIRST
+     * Returns true if an aggregation type is defined, and this is type is {@link AggregationType} FIRST
      */
     public boolean isFirstPeriodAggregationType()
     {
@@ -664,8 +651,7 @@ public class EventQueryParams
     }
 
     /**
-     * Returns true if a program indicator exists with non-default analytics period
-     * boundaries.
+     * Returns true if a program indicator exists with non-default analytics period boundaries.
      */
     public boolean hasNonDefaultBoundaries()
     {
@@ -760,7 +746,6 @@ public class EventQueryParams
 
     /**
      * Indicates whether the EventQueryParams has exactly one Period dimension.
-     *
      * @return true when exactly one Period dimension exists.
      */
     public boolean hasSinglePeriod()
@@ -770,7 +755,6 @@ public class EventQueryParams
 
     /**
      * Indicates whether the EventQueryParams has Period filters.
-     *
      * @return true when any Period filters exists.
      */
     public boolean hasFilterPeriods()
@@ -779,8 +763,8 @@ public class EventQueryParams
     }
 
     /**
-     * Indicates whether the program of this query requires registration of tracked
-     * entity instances.
+     * Indicates whether the program of this query requires registration of
+     * tracked entity instances.
      */
     public boolean isProgramRegistration()
     {
@@ -1021,8 +1005,7 @@ public class EventQueryParams
 
         public Builder withPeriods( List<? extends DimensionalItemObject> periods, String periodType )
         {
-            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(),
-                asList( periods ) );
+            this.params.setDimensionOptions( PERIOD_DIM_ID, DimensionType.PERIOD, periodType.toLowerCase(), asList( periods ) );
             this.params.periodType = periodType;
             return this;
         }
@@ -1048,8 +1031,7 @@ public class EventQueryParams
 
         public Builder withOrganisationUnits( List<? extends DimensionalItemObject> organisationUnits )
         {
-            this.params.setDimensionOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null,
-                asList( organisationUnits ) );
+            this.params.setDimensionOptions( ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, null, asList( organisationUnits ) );
             return this;
         }
 

@@ -28,10 +28,6 @@ package org.hisp.dhis.node.transformers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -40,9 +36,13 @@ import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * Transforms a collection node with complex nodes to a list with the the first
- * field values of the includes simple nodes.
+ * Transforms a collection node with complex nodes to a list with the
+ * the first field values of the includes simple nodes.
  *
  * @author Volker Schmidt
  */
@@ -65,22 +65,18 @@ public class PluckNodeTransformer implements NodeTransformer
 
         if ( property.isCollection() )
         {
-            final String fieldName = (args == null || args.isEmpty()) ? null
-                : StringUtils.defaultIfEmpty( args.get( 0 ), null );
+            final String fieldName = ( args == null || args.isEmpty() ) ? null : StringUtils.defaultIfEmpty( args.get( 0 ), null );
 
-            final CollectionNode collectionNode = new CollectionNode( node.getName(),
-                node.getUnorderedChildren().size() );
+            final CollectionNode collectionNode = new CollectionNode( node.getName(), node.getUnorderedChildren().size() );
             collectionNode.setNamespace( node.getNamespace() );
 
             for ( final Node objectNode : node.getUnorderedChildren() )
             {
                 for ( final Node fieldNode : objectNode.getUnorderedChildren() )
                 {
-                    if ( fieldNode instanceof SimpleNode
-                        && (fieldName == null || fieldName.equals( fieldNode.getName() )) )
+                    if ( fieldNode instanceof SimpleNode && ( fieldName == null || fieldName.equals( fieldNode.getName() ) ) )
                     {
-                        final SimpleNode childNode = new SimpleNode( fieldNode.getName(),
-                            ((SimpleNode) fieldNode).getValue() );
+                        final SimpleNode childNode = new SimpleNode( fieldNode.getName(), ( (SimpleNode) fieldNode ).getValue() );
                         childNode.setProperty( collectionNode.getProperty() );
                         collectionNode.addChild( childNode );
 

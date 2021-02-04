@@ -28,15 +28,15 @@ package org.hisp.dhis.userkeyjsonvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Sandvold.
@@ -53,8 +53,7 @@ public class UserKeyJsonValueStoreTest
     private User user;
 
     @Override
-    public void setUpTest()
-    {
+    public void setUpTest() {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
     }
@@ -86,7 +85,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueA.setKey( "a" );
         userKeyJsonValueA.setUser( user );
 
-        userKeyJsonValueStore.save( userKeyJsonValueA );
+        userKeyJsonValueStore.save(userKeyJsonValueA);
 
         UserKeyJsonValue userKeyJsonValueB = new UserKeyJsonValue();
 
@@ -95,7 +94,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueB.setKey( "b" );
         userKeyJsonValueB.setUser( user );
 
-        userKeyJsonValueStore.save( userKeyJsonValueB );
+        userKeyJsonValueStore.save(userKeyJsonValueB);
 
         List<String> list = userKeyJsonValueStore.getNamespacesByUser( user );
 
@@ -113,7 +112,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueA.setKey( "test_a" );
         userKeyJsonValueA.setUser( user );
 
-        userKeyJsonValueStore.save( userKeyJsonValueA );
+        userKeyJsonValueStore.save(userKeyJsonValueA);
 
         UserKeyJsonValue userKeyJsonValueB = new UserKeyJsonValue();
 
@@ -122,7 +121,7 @@ public class UserKeyJsonValueStoreTest
         userKeyJsonValueB.setKey( "test_b" );
         userKeyJsonValueB.setUser( user );
 
-        userKeyJsonValueStore.save( userKeyJsonValueB );
+        userKeyJsonValueStore.save(userKeyJsonValueB);
 
         List<UserKeyJsonValue> list = userKeyJsonValueStore.getUserKeyJsonValueByUserAndNamespace( user, "a" );
 

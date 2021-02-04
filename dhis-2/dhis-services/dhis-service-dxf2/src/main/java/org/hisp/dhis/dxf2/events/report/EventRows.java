@@ -48,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class EventRows
 {
     private List<EventRow> eventRows = new ArrayList<>();
-
+    
     private Pager pager;
 
     public EventRows()
@@ -67,7 +67,7 @@ public class EventRows
     {
         this.eventRows = eventRows;
     }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Pager getPager()
@@ -83,15 +83,12 @@ public class EventRows
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
 
         EventRows that = (EventRows) o;
 
-        if ( eventRows != null ? !eventRows.equals( that.eventRows ) : that.eventRows != null )
-            return false;
+        if ( eventRows != null ? !eventRows.equals( that.eventRows ) : that.eventRows != null ) return false;
 
         return true;
     }

@@ -28,9 +28,8 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.JobConfiguration;
-
 import com.fasterxml.jackson.databind.util.StdConverter;
+import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * Cleans the resulting job configuration after de-serializing.

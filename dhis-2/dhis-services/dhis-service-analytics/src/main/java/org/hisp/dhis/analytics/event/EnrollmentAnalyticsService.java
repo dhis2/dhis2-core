@@ -39,23 +39,14 @@ import org.hisp.dhis.common.Grid;
 public interface EnrollmentAnalyticsService
 {
     String ITEM_TEI = "tei";
-
     String ITEM_PI = "pi";
-
     String ITEM_ENROLLMENT_DATE = "enrollmentdate";
-
     String ITEM_INCIDENT_DATE = "incidentdate";
-
     String ITEM_GEOMETRY = "geometry";
-
     String ITEM_LONGITUDE = "longitude";
-
     String ITEM_LATITUDE = "latitude";
-
     String ITEM_ORG_UNIT_NAME = "ouname";
-
     String ITEM_ORG_UNIT_CODE = "oucode";
-
     String ITEM_ORG_UNIT_ID = "ou";
 
     /**

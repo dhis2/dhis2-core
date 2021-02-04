@@ -28,13 +28,13 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.apache.commons.lang3.EnumUtils.isValidEnum;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
-import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
+import com.google.common.base.MoreObjects;
 
 import java.util.Objects;
 
-import com.google.common.base.MoreObjects;
+import static org.apache.commons.lang3.EnumUtils.isValidEnum;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
+import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 
 /**
  * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
@@ -123,24 +123,24 @@ public class DimensionalItemId
     {
         switch ( dimensionItemType )
         {
-        case DATA_ELEMENT:
-        case INDICATOR:
-        case PROGRAM_INDICATOR:
-            return id0 != null && id1 == null && id2 == null;
+            case DATA_ELEMENT:
+            case INDICATOR:
+            case PROGRAM_INDICATOR:
+                return id0 != null && id1 == null && id2 == null;
 
-        case DATA_ELEMENT_OPERAND:
-            return id0 != null && (id1 != null || id2 != null);
+            case DATA_ELEMENT_OPERAND:
+                return id0 != null && ( id1 != null || id2 != null );
 
-        case REPORTING_RATE:
-            return id0 != null && id1 != null && id2 == null
-                && isValidEnum( ReportingRateMetric.class, id1 );
+            case REPORTING_RATE:
+                return id0 != null && id1 != null && id2 == null
+                    && isValidEnum( ReportingRateMetric.class, id1 );
 
-        case PROGRAM_DATA_ELEMENT:
-        case PROGRAM_ATTRIBUTE:
-            return id0 != null && id1 != null && id2 == null;
+            case PROGRAM_DATA_ELEMENT:
+            case PROGRAM_ATTRIBUTE:
+                return id0 != null && id1 != null && id2 == null;
 
-        default:
-            return false;
+            default:
+                return false;
         }
     }
 

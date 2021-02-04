@@ -28,12 +28,11 @@ package org.hisp.dhis.query.planner;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-
-import org.hisp.dhis.schema.Property;
-
 import com.google.common.base.Joiner;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.schema.Property;
+
+import java.util.Arrays;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -44,7 +43,7 @@ public class QueryPath
 
     private final boolean persisted;
 
-    private String[] alias = new String[] {};
+    private String[] alias = new String[]{};
 
     private static final Joiner PATH_JOINER = Joiner.on( "." );
 

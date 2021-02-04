@@ -61,8 +61,8 @@ public class OutlierDetectionUtils
     }
 
     /**
-     * Returns an organisation unit 'path' "like" clause for the given list of
-     * {@link OrganisationUnit}.
+     * Returns an organisation unit 'path' "like" clause for the given list
+     * of {@link OrganisationUnit}.
      *
      * @param query the list of {@link OrganisationUnit}.
      * @return an organisation unit 'path' "like" clause.

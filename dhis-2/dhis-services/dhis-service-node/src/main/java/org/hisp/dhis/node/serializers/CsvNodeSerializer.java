@@ -71,8 +71,7 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
-        throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
     {
         csvGenerator = CSV_FACTORY.createGenerator( outputStream );
 
@@ -103,15 +102,13 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void flushStream()
-        throws Exception
+    protected void flushStream() throws Exception
     {
         csvGenerator.flush();
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode )
-        throws Exception
+    protected void startWriteRootNode( RootNode rootNode ) throws Exception
     {
         for ( Node child : rootNode.getChildren() )
         {
@@ -136,15 +133,13 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode )
-        throws Exception
+    protected void endWriteRootNode( RootNode rootNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode )
-        throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
     {
         String value = String.format( "%s", simpleNode.getValue() );
 
@@ -157,43 +152,37 @@ public class CsvNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode )
-        throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteComplexNode( ComplexNode complexNode )
-        throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode )
-        throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode )
-        throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode )
-        throws Exception
+    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
     {
 
     }
 
     @Override
-    protected void dispatcher( Node node )
-        throws Exception
+    protected void dispatcher( Node node ) throws Exception
     {
 
     }

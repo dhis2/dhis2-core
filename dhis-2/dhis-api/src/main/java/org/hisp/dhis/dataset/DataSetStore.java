@@ -56,7 +56,6 @@ public interface DataSetStore
 
     /**
      * Gets all DataSets associated with the given DataEntryForm.
-     *
      * @param dataEntryForm the DataEntryForm.
      * @return a list of DataSets.
      */

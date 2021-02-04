@@ -28,11 +28,11 @@ package org.hisp.dhis.parser.expression.literal;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
-
 import org.hisp.dhis.antlr.AntlrExprLiteral;
 import org.hisp.dhis.parser.expression.antlr.ExpressionParser;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.BooleanLiteralContext;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.StringLiteralContext;
 
 /**
  * Gets literal values from an ANTLR parse tree to regenerate the expression.

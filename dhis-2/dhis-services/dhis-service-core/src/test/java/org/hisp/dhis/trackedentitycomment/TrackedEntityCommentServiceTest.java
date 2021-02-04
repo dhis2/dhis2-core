@@ -112,7 +112,7 @@ public class TrackedEntityCommentServiceTest
         assertEquals( commentA, commentService.getTrackedEntityComment( idA ) );
         assertEquals( commentB, commentService.getTrackedEntityComment( idB ) );
     }
-
+    
     @Test
     public void testCommentExists()
     {

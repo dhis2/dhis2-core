@@ -34,11 +34,11 @@ import org.springframework.stereotype.Component;
 /**
  * @author Lars Helge Overland
  */
-@Component( "org.hisp.dhis.mapping.MapDeletionHandler" )
+@Component( "org.hisp.dhis.mapping.MapDeletionHandler")
 public class MapDeletionHandler
     extends DeletionHandler
 {
-    // TODO remove this?
+    //TODO remove this?
 
     // -------------------------------------------------------------------------
     // DeletionHandler implementation

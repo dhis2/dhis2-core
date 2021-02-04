@@ -28,14 +28,13 @@ package org.hisp.dhis.sms.outbound;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Set;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import java.util.Date;
+import java.util.Set;
 
 @JacksonXmlRootElement( localName = "outboundsms" )
 public class OutboundSms

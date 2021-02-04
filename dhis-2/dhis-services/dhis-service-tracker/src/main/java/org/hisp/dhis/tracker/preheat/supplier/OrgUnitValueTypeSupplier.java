@@ -32,9 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -46,6 +43,9 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>

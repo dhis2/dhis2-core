@@ -30,7 +30,7 @@ package org.hisp.dhis.deduplication;
 
 public enum DeduplicationStatus
 {
-    OPEN,
-    INVALID,
-    MERGED
+        OPEN,
+        INVALID,
+        MERGED
 }

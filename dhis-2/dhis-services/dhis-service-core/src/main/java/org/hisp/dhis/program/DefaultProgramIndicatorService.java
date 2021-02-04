@@ -28,24 +28,7 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
-import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
@@ -68,10 +51,10 @@ import org.hisp.dhis.parser.expression.function.VectorStddevSamp;
 import org.hisp.dhis.parser.expression.function.VectorSum;
 import org.hisp.dhis.parser.expression.function.VectorVariance;
 import org.hisp.dhis.parser.expression.literal.SqlLiteral;
-import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
 import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
-import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.function.*;
+import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
+import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
 import org.hisp.dhis.program.variable.*;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -79,7 +62,23 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.jdbc.StatementBuilder.ANALYTICS_TBL_ALIAS;
+import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEMS;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
 /**
  * @author Chau Thu Tran
@@ -118,9 +117,8 @@ public class DefaultProgramIndicatorService
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
-        TrackedEntityAttributeService attributeService, ConstantService constantService,
-        StatementBuilder statementBuilder,
-        @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
+        TrackedEntityAttributeService attributeService, ConstantService constantService, StatementBuilder statementBuilder,
+        @Qualifier("org.hisp.dhis.program.ProgramIndicatorGroupStore") IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
         I18nManager i18nManager, RelationshipTypeService relationshipTypeService )
     {
         checkNotNull( programIndicatorStore );
@@ -144,8 +142,7 @@ public class DefaultProgramIndicatorService
         this.relationshipTypeService = relationshipTypeService;
     }
 
-    public final static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap
-        .<Integer, ExpressionItem> builder()
+    public final static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap.<Integer, ExpressionItem>builder()
 
         // Common functions
 
@@ -219,28 +216,28 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( long id )
     {
         return programIndicatorStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicator( String name )
     {
         return programIndicatorStore.getByName( name );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramIndicator getProgramIndicatorByUid( String uid )
     {
         return programIndicatorStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<ProgramIndicator> getAllProgramIndicators()
     {
         return programIndicatorStore.getAll();
@@ -258,43 +255,42 @@ public class DefaultProgramIndicatorService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
-    @Deprecated
-    public String getUntypedDescription( String expression )
+    @Transactional(readOnly = true)
+    @Deprecated public String getUntypedDescription( String expression )
     {
         return getDescription( expression, null );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public String getExpressionDescription( String expression )
     {
         return getDescription( expression, Double.class );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public String getFilterDescription( String expression )
     {
         return getDescription( expression, Boolean.class );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean expressionIsValid( String expression )
     {
         return isValid( expression, Double.class );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public boolean filterIsValid( String filter )
     {
         return isValid( filter, Boolean.class );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public void validate( String expression, Class<?> clazz, Map<String, String> itemDescriptions )
     {
         CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS );
@@ -319,8 +315,7 @@ public class DefaultProgramIndicatorService
         return getAnalyticsSqlCached( expression, programIndicator, startDate, endDate, tableAlias );
     }
 
-    private String getAnalyticsSqlCached( String expression, ProgramIndicator programIndicator, Date startDate,
-        Date endDate, String tableAlias )
+    private String getAnalyticsSqlCached( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         if ( expression == null )
         {
@@ -329,23 +324,19 @@ public class DefaultProgramIndicatorService
 
         String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
 
-        return ANALYTICS_SQL_CACHE
-            .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) )
-            .orElse( null );
+        return ANALYTICS_SQL_CACHE.get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) ).orElse( null );
     }
 
-    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate,
-        Date endDate, String tableAlias )
+    private String getAnalyticsSqlCacheKey( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         return expression
             + "|" + programIndicator.getUid()
             + "|" + startDate.getTime()
             + "|" + endDate.getTime()
-            + "|" + (tableAlias == null ? "" : tableAlias);
+            + "|" + ( tableAlias == null ? "" : tableAlias );
     }
 
-    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate,
-        String tableAlias )
+    private String _getAnalyticsSql( String expression, ProgramIndicator programIndicator, Date startDate, Date endDate, String tableAlias )
     {
         Set<String> uids = getDataElementAndAttributeIdentifiers( expression, programIndicator.getAnalyticsType() );
 
@@ -357,12 +348,12 @@ public class DefaultProgramIndicatorService
         visitor.setReportingEndDate( endDate );
         visitor.setDataElementAndAttributeIdentifiers( uids );
 
-        String sql = castString( Parser.visit( expression, visitor ) );
+        String sql =  castString( Parser.visit( expression, visitor ) );
         return (tableAlias != null ? sql.replaceAll( ANALYTICS_TBL_ALIAS + "\\.", tableAlias + "\\." ) : sql);
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public String getAnyValueExistsClauseAnalyticsSql( String expression, AnalyticsType analyticsType )
     {
         if ( expression == null )
@@ -421,21 +412,21 @@ public class DefaultProgramIndicatorService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( long id )
     {
         return programIndicatorGroupStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ProgramIndicatorGroup getProgramIndicatorGroup( String uid )
     {
         return programIndicatorGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<ProgramIndicatorGroup> getAllProgramIndicatorGroups()
     {
         return programIndicatorGroupStore.getAll();
@@ -499,8 +490,7 @@ public class DefaultProgramIndicatorService
     {
         Set<String> items = new HashSet<>();
 
-        ProgramElementsAndAttributesCollecter listener = new ProgramElementsAndAttributesCollecter( items,
-            analyticsType );
+        ProgramElementsAndAttributesCollecter listener = new ProgramElementsAndAttributesCollecter( items, analyticsType );
 
         Parser.listen( expression, listener );
 

@@ -28,13 +28,13 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.HashSet;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -70,9 +70,8 @@ public class ProgramIndicatorDeletionHandler
     {
         Collection<ProgramIndicator> indicators = new HashSet<>( program.getProgramIndicators() );
 
-        for ( ProgramIndicator indicator : indicators )
-        {
-            programIndicatorService.deleteProgramIndicator( indicator );
+        for (ProgramIndicator indicator : indicators) {
+            programIndicatorService.deleteProgramIndicator(indicator);
         }
     }
 }

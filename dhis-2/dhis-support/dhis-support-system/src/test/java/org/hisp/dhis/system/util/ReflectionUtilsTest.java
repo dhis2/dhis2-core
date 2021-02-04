@@ -28,18 +28,18 @@ package org.hisp.dhis.system.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.Assert.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hisp.dhis.system.util.ReflectionUtils.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland

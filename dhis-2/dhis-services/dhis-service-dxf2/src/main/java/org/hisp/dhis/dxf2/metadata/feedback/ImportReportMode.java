@@ -44,8 +44,7 @@ public enum ImportReportMode
     ERRORS,
 
     /**
-     * Gives full import report, including object reports for valid objects and
-     * names (if available).
+     * Gives full import report, including object reports for valid objects and names (if available).
      */
     DEBUG
 }

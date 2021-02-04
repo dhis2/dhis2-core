@@ -37,8 +37,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -53,11 +51,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve
- * performance.
+ * cache miss in order to reduce the number of transactions to improve performance.
  *
  * @author Stian Strandli
  * @author Lars Helge Overland
@@ -194,8 +193,7 @@ public class DefaultSystemSettingManager
 
     /**
      * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache
-     * hits.
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key )
@@ -208,8 +206,7 @@ public class DefaultSystemSettingManager
 
     /**
      * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache
-     * hits.
+     * store level behind the cache to avoid the transaction overhead for cache hits.
      */
     @Override
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
@@ -222,8 +219,7 @@ public class DefaultSystemSettingManager
 
     /**
      * Get system setting {@link SerializableOptional}. The return object is never
-     * null in order to cache requests for system settings which have no value or
-     * default value.
+     * null in order to cache requests for system settings which have no value or default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
@@ -241,8 +237,7 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted
-                                                                    // or not existing
+                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted or not existing
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
@@ -260,7 +255,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -274,11 +269,12 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<SystemSetting> getAllSystemSettings()
     {
-        return systemSettingStore.getAll().stream()
-            .filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).collect( Collectors.toList() );
+        return systemSettingStore.getAll().stream().
+            filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).
+            collect( Collectors.toList() );
     }
 
     @Override

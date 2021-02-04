@@ -52,8 +52,8 @@ public abstract class PropertiesAwareConfigurationCondition
     {
         DefaultLocationManager locationManager = (DefaultLocationManager) new ServiceConfig().locationManager();
         locationManager.init();
-        DefaultDhisConfigurationProvider dhisConfigurationProvider = new DefaultDhisConfigurationProvider(
-            locationManager );
+        DefaultDhisConfigurationProvider dhisConfigurationProvider =
+            new DefaultDhisConfigurationProvider( locationManager );
         dhisConfigurationProvider.init();
 
         return dhisConfigurationProvider;
@@ -71,6 +71,6 @@ public abstract class PropertiesAwareConfigurationCondition
 
     protected boolean getBooleanValue( ConfigurationKey key )
     {
-        return getConfiguration().isEnabled( key );
+        return getConfiguration().isEnabled(key);
     }
 }

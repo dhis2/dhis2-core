@@ -46,7 +46,7 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.security.oauth2.OAuth2ClientStore" )
 public class HibernateOAuth2ClientStore
     extends HibernateIdentifiableObjectStore<OAuth2Client>
-    implements OAuth2ClientStore
+        implements OAuth2ClientStore
 {
     public HibernateOAuth2ClientStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -60,7 +60,6 @@ public class HibernateOAuth2ClientStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getSingleResult( builder,
-            newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
+        return getSingleResult( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "cid" ), cid ) ) );
     }
 }

@@ -44,9 +44,9 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -155,7 +155,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
-            programInstance.getProgramStageInstances() );
+                programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {

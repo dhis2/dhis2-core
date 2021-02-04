@@ -27,15 +27,15 @@ package org.hisp.dhis.tracker.bundle.persister;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.stereotype.Service;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.stereotype.Service;
-
 /**
  * Facade class for classes implementing the {@link TrackerPersister} interface
- *
+ * 
  * @author Luciano Fiandesio
  */
 @Service

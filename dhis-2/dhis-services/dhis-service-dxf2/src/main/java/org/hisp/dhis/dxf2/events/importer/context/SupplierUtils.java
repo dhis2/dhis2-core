@@ -38,10 +38,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 /**
  * @author Luciano Fiandesio
  */
-public class SupplierUtils
-{
+public class SupplierUtils {
 
-    static OrganisationUnit getParentHierarchy( OrganisationUnit ou, String path )
+    static OrganisationUnit getParentHierarchy(OrganisationUnit ou, String path )
     {
         if ( path.startsWith( "/" ) )
         {

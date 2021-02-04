@@ -33,20 +33,20 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public interface EventChartService
     extends AnalyticalObjectService<EventChart>
 {
     long saveEventChart( EventChart eventChart );
-
+    
     void updateEventChart( EventChart eventChart );
-
+    
     EventChart getEventChart( long id );
-
+    
     EventChart getEventChart( String uid );
-
+    
     void deleteEventChart( EventChart eventChart );
-
+    
     List<EventChart> getAllEventCharts();
 }

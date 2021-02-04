@@ -137,13 +137,13 @@ public class EventSecurityImportValidationTest
     protected void initTest()
         throws IOException
     {
-        setUpMetadata( "tracker/tracker_basic_metadata.json" );
+        setUpMetadata("tracker/tracker_basic_metadata.json");
 
         TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUser( user  );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 5, trackerBundle.getTrackedEntities().size() );
@@ -157,7 +157,7 @@ public class EventSecurityImportValidationTest
         trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerImportParams.class );
+                    TrackerImportParams.class );
 
         trackerBundleParams.setUser( user );
 

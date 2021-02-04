@@ -33,9 +33,10 @@ import java.util.Optional;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.geotools.geometry.jts.WKBReader;
-import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.ParseException;
 import org.springframework.util.StringUtils;
+
+import org.locationtech.jts.geom.Geometry;
 
 /**
  * @author Luciano Fiandesio

@@ -91,8 +91,7 @@ public class EnrollmentAttrValidationTests
     public void testAttributesMissingUid()
         throws IOException
     {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_attr-missing-uuid.json" );
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_attr-missing-uuid.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
@@ -123,9 +122,8 @@ public class EnrollmentAttrValidationTests
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1076 ) ) ) );
     }
 
-    // TODO: Fails with: (need to figure out how to force deletion here first)
-    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute on
-    // DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java [main])
+    //TODO: Fails with: (need to figure out how to force deletion here first)
+    // * ERROR 22:47:50,353 Failed to invoke method deleteTrackedEntityAttribute on DeletionHandler 'ProgramDeletionHandler' (DefaultDeletionManager.java [main])
     @Test
     @Ignore( "Delete not impl." )
     public void testAttributesMissingTeA()

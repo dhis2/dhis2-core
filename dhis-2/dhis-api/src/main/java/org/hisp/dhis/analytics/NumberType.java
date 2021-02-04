@@ -38,7 +38,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "numberType", namespace = DxfNamespaces.DXF_2_0 )
 public enum NumberType
 {
-    VALUE,
-    ROW_PERCENTAGE,
+    VALUE, 
+    ROW_PERCENTAGE, 
     COLUMN_PERCENTAGE;
 }

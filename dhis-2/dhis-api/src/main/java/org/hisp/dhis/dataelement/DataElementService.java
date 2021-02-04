@@ -28,14 +28,14 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.List;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.hierarchy.HierarchyViolationException;
 import org.hisp.dhis.period.PeriodType;
+
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Defines service functionality for DataElements and DataElementGroups.
@@ -103,8 +103,8 @@ public interface DataElementService
     /**
      * Returns all DataElements.
      *
-     * @return a list of all DataElements, or an empty list if there are no
-     *         DataElements.
+     * @return a list of all DataElements, or an empty list if there
+     * are no DataElements.
      */
     List<DataElement> getAllDataElements();
 
@@ -112,8 +112,8 @@ public interface DataElementService
      * Returns all DataElements of a given type.
      *
      * @param valueType the value type restriction
-     * @return a list of all DataElements with the given value type, or an empty
-     *         list if there are no DataElements.
+     * @return a list of all DataElements with the given value type,
+     * or an empty list if there are no DataElements.
      */
     List<DataElement> getAllDataElementsByValueType( ValueType valueType );
 
@@ -231,8 +231,8 @@ public interface DataElementService
     /**
      * Returns all DataElementGroups.
      *
-     * @return a collection of all DataElementGroups, or an empty collection if no
-     *         DataElementGroups exist.
+     * @return a collection of all DataElementGroups, or an empty collection if
+     * no DataElementGroups exist.
      */
     List<DataElementGroup> getAllDataElementGroups();
 
@@ -267,5 +267,7 @@ public interface DataElementService
     List<DataElement> getByAttribute( Attribute attribute );
 
     DataElement getByUniqueAttributeValue( Attribute attribute, String value );
+
+
 
 }

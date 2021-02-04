@@ -28,11 +28,11 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by zubair on 16.03.17.
@@ -42,11 +42,9 @@ public class PasswordDictionaryValidationRule
     implements PasswordValidationRule
 {
     public static final String ERROR = "Password must not have any generic word";
-
     public static final String I18_ERROR = "password_dictionary_validation";
 
-    private static final List<String> DICTIONARY = Arrays.asList( "user", "admin", "system", "administrator",
-        "username", "password", "login", "manager" );
+    private static final List<String> DICTIONARY = Arrays.asList( "user", "admin", "system", "administrator", "username", "password", "login", "manager");
 
     @Override
     public boolean isRuleApplicable( CredentialsInfo credentialsInfo )

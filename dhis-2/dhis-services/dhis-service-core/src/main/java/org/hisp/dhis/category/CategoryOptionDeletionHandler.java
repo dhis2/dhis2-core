@@ -28,11 +28,11 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -59,7 +59,7 @@ public class CategoryOptionDeletionHandler
     {
         return CategoryOption.class.getSimpleName();
     }
-
+    
     @Override
     public void deleteCategory( Category category )
     {

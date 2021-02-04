@@ -28,14 +28,14 @@ package org.hisp.dhis.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
 
 /**
  * The DataValueService interface defines how to work with data values.
@@ -53,27 +53,28 @@ public interface DataValueService
 
     /**
      * Adds a DataValue. If both the value and the comment properties of the
-     * specified DataValue object are null, then the object should not be persisted.
-     * The value will be validated and not be saved if not passing validation.
+     * specified DataValue object are null, then the object should not be
+     * persisted. The value will be validated and not be saved if not passing
+     * validation.
      *
      * @param dataValue the DataValue to add.
      * @return false whether the data value is null or invalid, true if value is
-     *         valid and attempted to be saved.
+     * valid and attempted to be saved.
      */
     boolean addDataValue( DataValue dataValue );
 
     /**
      * Updates a DataValue. If both the value and the comment properties of the
-     * specified DataValue object are null, then the object should be deleted from
-     * the underlying storage.
+     * specified DataValue object are null, then the object should be deleted
+     * from the underlying storage.
      *
      * @param dataValue the DataValue to update.
      */
     void updateDataValue( DataValue dataValue );
 
     /**
-     * Updates multiple DataValues. If both the value and the comment properties of
-     * the specified DataValue object are null, then the object should be deleted
+     * Updates multiple DataValues. If both the value and the comment properties of the
+     * specified DataValue object are null, then the object should be deleted
      * from the underlying storage.
      *
      * @param dataValues list of DataValues to update.
@@ -105,11 +106,11 @@ public interface DataValueService
      * Returns a DataValue.
      *
      * @param dataElement the DataElement of the DataValue.
-     * @param period the Period of the DataValue.
-     * @param source the Source of the DataValue.
+     * @param period      the Period of the DataValue.
+     * @param source      the Source of the DataValue.
      * @param optionCombo the category option combo.
-     * @return the DataValue which corresponds to the given parameters, or null if
-     *         no match.
+     * @return the DataValue which corresponds to the given parameters, or null
+     * if no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo optionCombo );
@@ -117,13 +118,13 @@ public interface DataValueService
     /**
      * Returns a DataValue.
      *
-     * @param dataElement the DataElement of the DataValue.
-     * @param period the Period of the DataValue.
-     * @param source the Source of the DataValue.
-     * @param categoryOptionCombo the category option combo.
+     * @param dataElement          the DataElement of the DataValue.
+     * @param period               the Period of the DataValue.
+     * @param source               the Source of the DataValue.
+     * @param categoryOptionCombo  the category option combo.
      * @param attributeOptionCombo the attribute option combo.
-     * @return the DataValue which corresponds to the given parameters, or null if
-     *         no match.
+     * @return the DataValue which corresponds to the given parameters, or null
+     * if no match.
      */
     DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo );
@@ -137,14 +138,12 @@ public interface DataValueService
      * <p>
      * Example usage:
      * <p>
-     *
      * <pre>
-     * {
-     *     &#64;code
-     *     List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-     *         .setDataElements( dataElements )
-     *         .setPeriods( Sets.newHashSet( period ) )
-     *         .setOrganisationUnits( orgUnits ) );
+     * {@code
+     * List<DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
+     *     .setDataElements( dataElements )
+     *     .setPeriods( Sets.newHashSet( period ) )
+     *     .setOrganisationUnits( orgUnits ) );
      * }
      * </pre>
      *
@@ -170,16 +169,16 @@ public interface DataValueService
     List<DataValue> getAllDataValues();
 
     /**
-     * Returns all DataValues for a given Source, Period, collection of DataElements
-     * and CategoryOptionCombo.
+     * Returns all DataValues for a given Source, Period, collection of
+     * DataElements and CategoryOptionCombo.
      *
-     * @param source the Source of the DataValues.
-     * @param period the Period of the DataValues.
-     * @param dataElements the DataElements of the DataValues.
+     * @param source               the Source of the DataValues.
+     * @param period               the Period of the DataValues.
+     * @param dataElements         the DataElements of the DataValues.
      * @param attributeOptionCombo the CategoryCombo.
-     * @return a collection of all DataValues which match the given Source, Period,
-     *         and any of the DataElements, or an empty collection if no values
-     *         match.
+     * @return a collection of all DataValues which match the given Source,
+     * Period, and any of the DataElements, or an empty collection if no
+     * values match.
      */
     List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo );
@@ -201,33 +200,22 @@ public interface DataValueService
     int getDataValueCount( int days );
 
     /**
-     * Gets the number of DataValues which have been updated after the given date
-     * time.
+     * Gets the number of DataValues which have been updated after the given
+     * date time.
      *
-     * @param date the date time.
+     * @param date           the date time.
      * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */
     int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted );
 
     /**
-     * Gets the number of DataValues which have been updated between the given start
-     * and end date. The
+     * Gets the number of DataValues which have been updated between the given
+     * start and end date. The <pre>startDate</pre> and <pre>endDate</pre> parameters
+     * can both be null but one must be defined.
      *
-     * <pre>
-     * startDate
-     * </pre>
-     *
-     * and
-     *
-     * <pre>
-     * endDate
-     * </pre>
-     *
-     * parameters can both be null but one must be defined.
-     *
-     * @param startDate the start date to compare against data value last updated.
-     * @param endDate the end date to compare against data value last updated.
+     * @param startDate      the start date to compare against data value last updated.
+     * @param endDate        the end date to compare against data value last updated.
      * @param includeDeleted whether to include deleted data values.
      * @return the number of DataValues.
      */

@@ -28,13 +28,12 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
-import com.google.common.base.MoreObjects;
+import java.util.Set;
 
 /**
  * @author Kristian Wærstad
@@ -56,6 +55,7 @@ public class SqlViewQuery
     private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
     private int total;
+
 
     public Set<String> getCriteria()
     {

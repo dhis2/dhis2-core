@@ -27,19 +27,19 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.validation.comparator.ValidationResultQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Stian Sandvold
@@ -118,7 +118,6 @@ public class DefaultValidationResultService
         boolean includeOrgUnitDescendants, Collection<ValidationRule> validationRules, Collection<Period> periods )
     {
         List<Period> persistedPeriods = periodService.reloadPeriods( new ArrayList<>( periods ) );
-        return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules,
-            persistedPeriods );
+        return validationResultStore.getValidationResults( orgUnit, includeOrgUnitDescendants, validationRules, persistedPeriods );
     }
 }

@@ -28,7 +28,6 @@ package org.hisp.dhis.artemis.audit.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.audit.AuditScope.AGGREGATE;
@@ -41,6 +40,7 @@ import static org.hisp.dhis.audit.AuditType.SEARCH;
 import static org.hisp.dhis.audit.AuditType.SECURITY;
 import static org.hisp.dhis.audit.AuditType.UPDATE;
 import static org.junit.Assert.assertFalse;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -111,7 +111,7 @@ public class AuditMatrixConfigurerTest
 
         assertMatrixAllDisabled( METADATA );
         assertMatrixAllDisabled( TRACKER );
-        assertMatrixAllDisabled( AGGREGATE );
+        assertMatrixAllDisabled( AGGREGATE  );
     }
 
     @Test
@@ -182,7 +182,7 @@ public class AuditMatrixConfigurerTest
         for ( AuditType auditType : AuditType.values() )
         {
             assertThat( "Expecting false for audit type: " + auditType.name(),
-                matrix.get( auditScope ).get( auditType ), is( false ) );
+                    matrix.get( auditScope ).get( auditType ), is( false ) );
         }
     }
 }

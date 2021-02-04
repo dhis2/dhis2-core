@@ -69,7 +69,7 @@ public interface OptionService
 
     Option getOptionByCode( String code );
 
-    void deleteOption( Option option );
+    void deleteOption( Option option  );
 
     // -------------------------------------------------------------------------
     // OptionGroup

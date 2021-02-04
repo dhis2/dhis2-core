@@ -32,9 +32,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createBaseEvent;
 import static org.mockito.Mockito.when;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -45,6 +42,9 @@ import org.junit.Rule;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio

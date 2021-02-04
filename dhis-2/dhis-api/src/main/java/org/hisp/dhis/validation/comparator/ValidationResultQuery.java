@@ -27,11 +27,10 @@ package org.hisp.dhis.validation.comparator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.base.MoreObjects;
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
-
-import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold

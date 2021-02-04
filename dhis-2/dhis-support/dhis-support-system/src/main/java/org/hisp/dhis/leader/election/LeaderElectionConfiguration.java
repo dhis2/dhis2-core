@@ -40,8 +40,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
 
 /**
- * Configures leaderManager that takes care of node leader elections.
- *
+ * Configures leaderManager that takes care of node leader elections. 
+ * 
  * @author Ameen Mohamed
  *
  */

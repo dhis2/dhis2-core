@@ -28,13 +28,13 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Iterator;
-
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Iterator;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -78,7 +78,7 @@ public class ValidationRuleDeletionHandler
             Expression rightSide = rule.getRightSide();
 
             if ( (leftSide != null && leftSide.equals( expression )) ||
-                (rightSide != null && rightSide.equals( expression )) )
+                 (rightSide != null && rightSide.equals( expression )) )
             {
                 iterator.remove();
                 validationRuleService.deleteValidationRule( rule );

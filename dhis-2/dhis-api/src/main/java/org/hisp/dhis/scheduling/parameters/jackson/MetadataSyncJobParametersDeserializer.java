@@ -27,9 +27,8 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 
 /**
  * @author David Katuscak
@@ -42,8 +41,7 @@ public class MetadataSyncJobParametersDeserializer
         super( MetadataSyncJobParameters.class, CustomJobParameters.class );
     }
 
-    @JsonDeserialize
-    private static class CustomJobParameters extends MetadataSyncJobParameters
+    @JsonDeserialize private static class CustomJobParameters extends MetadataSyncJobParameters
     {
     }
 }

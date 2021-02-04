@@ -68,7 +68,7 @@ public abstract class SecurityContextRunnable
     }
 
     public abstract void call();
-
+    
     /**
      * Hook invoked before {@link #call()}.
      */
@@ -80,7 +80,7 @@ public abstract class SecurityContextRunnable
      * Hook invoked after {@link #call()}.
      */
     public void after()
-    {
+    {   
     }
 
     public void handleError( Throwable ex )

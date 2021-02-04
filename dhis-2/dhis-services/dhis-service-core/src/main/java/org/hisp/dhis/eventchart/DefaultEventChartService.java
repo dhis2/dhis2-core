@@ -28,10 +28,6 @@ package org.hisp.dhis.eventchart;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
@@ -39,9 +35,13 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 @Service( "org.hisp.dhis.eventchart.EventChartService" )
 public class DefaultEventChartService
     extends GenericAnalyticalObjectService<EventChart>
@@ -65,7 +65,7 @@ public class DefaultEventChartService
     {
         return eventChartStore;
     }
-
+    
     @Override
     public long saveEventChart( EventChart eventChart )
     {
@@ -73,23 +73,23 @@ public class DefaultEventChartService
 
         return eventChart.getId();
     }
-
+    
     @Override
     @Transactional
     public void updateEventChart( EventChart eventChart )
     {
         eventChartStore.update( eventChart );
     }
-
+    
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public EventChart getEventChart( long id )
     {
         return eventChartStore.get( id );
     }
-
+    
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public EventChart getEventChart( String uid )
     {
         return eventChartStore.getByUid( uid );
@@ -101,9 +101,9 @@ public class DefaultEventChartService
     {
         eventChartStore.delete( eventChart );
     }
-
+    
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<EventChart> getAllEventCharts()
     {
         return eventChartStore.getAll();

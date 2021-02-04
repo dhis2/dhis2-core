@@ -44,8 +44,7 @@ public interface ObjectBundleService
     ObjectBundle create( ObjectBundleParams params );
 
     /**
-     * Commits objects from bundle into persistence store if bundle mode COMMIT is
-     * enabled.
+     * Commits objects from bundle into persistence store if bundle mode COMMIT is enabled.
      *
      * @param bundle ObjectBundle to commit.
      */

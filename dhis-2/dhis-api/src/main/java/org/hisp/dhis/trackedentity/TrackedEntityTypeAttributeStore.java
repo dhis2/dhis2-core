@@ -28,16 +28,15 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
+
+import java.util.List;
 
 public interface TrackedEntityTypeAttributeStore
     extends IdentifiableObjectStore<TrackedEntityTypeAttribute>
 {
     /**
      * Get all TrackedEntityAttribute filtered by given List of TrackedEntityType
-     *
      * @param trackedEntityTypes
      * @return List of TrackedEntityAttribute
      */

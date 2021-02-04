@@ -37,8 +37,7 @@ public abstract class Junction extends Criteria implements Criterion
 {
     public enum Type
     {
-        AND,
-        OR
+        AND, OR
     }
 
     protected Type type;
@@ -53,6 +52,7 @@ public abstract class Junction extends Criteria implements Criterion
     {
         return type;
     }
+
 
     @Override
     public String toString()

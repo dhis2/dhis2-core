@@ -27,13 +27,13 @@ package org.hisp.dhis.jdbc.batchhandler;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.List;
-
 import org.hisp.dhis.validation.ValidationResult;
 import org.hisp.quick.JdbcConfiguration;
 import org.hisp.quick.batchhandler.AbstractBatchHandler;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -84,7 +84,8 @@ public class ValidationResultBatchHandler
             "periodid",
             "organisationunitid",
             "attributeoptioncomboid",
-            "dayinperiod" );
+            "dayinperiod"
+        );
     }
 
     @Override
@@ -95,7 +96,8 @@ public class ValidationResultBatchHandler
             validationResult.getPeriod().getId(),
             validationResult.getOrganisationUnit().getId(),
             validationResult.getAttributeOptionCombo().getId(),
-            validationResult.getDayInPeriod() );
+            validationResult.getDayInPeriod()
+        );
     }
 
     @Override
@@ -108,7 +110,8 @@ public class ValidationResultBatchHandler
             "periodid",
             "organisationunitid",
             "attributeoptioncomboid",
-            "dayinperiod" );
+            "dayinperiod"
+        );
     }
 
     @Override
@@ -121,7 +124,8 @@ public class ValidationResultBatchHandler
             validationResult.getPeriod().getId(),
             validationResult.getOrganisationUnit().getId(),
             validationResult.getAttributeOptionCombo().getId(),
-            validationResult.getDayInPeriod() );
+            validationResult.getDayInPeriod()
+        );
     }
 
     @Override

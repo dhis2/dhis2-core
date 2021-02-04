@@ -28,13 +28,12 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Map;
-
-import org.hisp.dhis.node.LinearNodePipeline;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ForwardingMap;
 import com.google.common.collect.Maps;
+import org.hisp.dhis.node.LinearNodePipeline;
+
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

@@ -28,9 +28,9 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -42,9 +42,9 @@ public class StreamingXmlCompleteDataSetRegistration
 
     private XMLReader reader;
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Constructors
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     public StreamingXmlCompleteDataSetRegistration( XMLWriter writer )
     {
@@ -56,9 +56,9 @@ public class StreamingXmlCompleteDataSetRegistration
         this.reader = reader;
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Logic
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Override
     protected void open()
@@ -88,9 +88,9 @@ public class StreamingXmlCompleteDataSetRegistration
         writer.writeAttribute( fieldName, value );
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Getters and setters
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Override
     public String getDataSet()
@@ -119,8 +119,8 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public String getOrganisationUnit()
     {
-        return organisationUnit = organisationUnit == null ? reader.getAttributeValue( FIELD_ORGUNIT )
-            : organisationUnit;
+        return organisationUnit = organisationUnit == null ?
+            reader.getAttributeValue( FIELD_ORGUNIT ) : organisationUnit;
     }
 
     @Override
@@ -132,8 +132,8 @@ public class StreamingXmlCompleteDataSetRegistration
     @Override
     public String getAttributeOptionCombo()
     {
-        return attributeOptionCombo = attributeOptionCombo == null ? reader.getAttributeValue( FIELD_ATTR_OPTION_COMBO )
-            : attributeOptionCombo;
+        return attributeOptionCombo = attributeOptionCombo == null ?
+            reader.getAttributeValue( FIELD_ATTR_OPTION_COMBO ) : attributeOptionCombo;
     }
 
     @Override

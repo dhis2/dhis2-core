@@ -29,6 +29,7 @@ package org.hisp.dhis.common.coordinate;
  */
 
 import org.hisp.dhis.organisationunit.FeatureType;
+
 import org.locationtech.jts.geom.Geometry;
 
 /**

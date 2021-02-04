@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Optional;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
@@ -42,6 +40,8 @@ import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJob
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.stereotype.Component;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
@@ -50,11 +50,8 @@ import org.springframework.stereotype.Component;
 public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
 {
     private final Notifier notifier;
-
     private final MessageService messageService;
-
     private final DataSynchronizationWithPaging trackerSync;
-
     private final SynchronizationManager synchronizationManager;
 
     public TrackerProgramsDataSynchronizationJob( Notifier notifier, MessageService messageService,
@@ -70,6 +67,7 @@ public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
         this.synchronizationManager = synchronizationManager;
     }
 
+
     @Override
     public JobType getJobType()
     {
@@ -81,8 +79,8 @@ public class TrackerProgramsDataSynchronizationJob extends SynchronizationJob
     {
         try
         {
-            TrackerProgramsDataSynchronizationJobParameters jobParameters = (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration
-                .getJobParameters();
+            TrackerProgramsDataSynchronizationJobParameters jobParameters =
+                (TrackerProgramsDataSynchronizationJobParameters) jobConfiguration.getJobParameters();
             trackerSync.synchronizeData( jobParameters.getPageSize() );
             notifier.notify( jobConfiguration, "Tracker programs data sync successful" );
         }

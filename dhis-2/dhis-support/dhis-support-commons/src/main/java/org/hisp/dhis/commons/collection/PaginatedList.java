@@ -71,9 +71,9 @@ public class PaginatedList<T>
     }
 
     /**
-     * Sets the number of pages. The page size will be calculated and set in order
-     * to provide the appropriate total number of pages. The resulting number of
-     * pages can be lower than the given argument but not higher.
+     * Sets the number of pages. The page size will be calculated and set in
+     * order to provide the appropriate total number of pages. The resulting
+     * number of pages can be lower than the given argument but not higher.
      *
      * @param pages the number of pages.
      * @return this PaginatedList
@@ -101,7 +101,7 @@ public class PaginatedList<T>
             return null;
         }
 
-        int toIndex = Math.min( (fromIndex + pageSize), size );
+        int toIndex = Math.min( ( fromIndex + pageSize ), size );
 
         List<T> page = subList( fromIndex, toIndex );
 
@@ -129,7 +129,7 @@ public class PaginatedList<T>
         int pages = count / pageSize;
         int mod = count % pageSize;
 
-        return mod == 0 ? pages : (pages + 1);
+        return mod == 0 ? pages : ( pages + 1 );
     }
 
     /**
@@ -143,7 +143,7 @@ public class PaginatedList<T>
 
         List<T> page = null;
 
-        while ( (page = nextPage()) != null )
+        while ( ( page = nextPage() ) != null )
         {
             pages.add( page );
         }

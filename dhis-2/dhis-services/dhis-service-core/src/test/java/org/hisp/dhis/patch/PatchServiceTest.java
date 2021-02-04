@@ -28,13 +28,10 @@ package org.hisp.dhis.patch;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Collection;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -42,18 +39,20 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -74,8 +73,7 @@ public class PatchServiceTest
     private ObjectMapper jsonMapper;
 
     @Override
-    protected void setUpTest()
-        throws Exception
+    protected void setUpTest() throws Exception
     {
         userService = _userService;
     }
@@ -132,8 +130,7 @@ public class PatchServiceTest
 
         Patch patch = new Patch()
             .addMutation( new Mutation( "name", "Updated Name" ) )
-            .addMutation(
-                new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
+            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deA.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -141,8 +138,7 @@ public class PatchServiceTest
         assertEquals( 1, dataElementGroup.getMembers().size() );
 
         patch = new Patch()
-            .addMutation(
-                new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
+            .addMutation( new Mutation( "dataElements", Lists.newArrayList( deB.getUid() ), Mutation.Operation.DELETION ) );
 
         patchService.apply( patch, dataElementGroup );
 
@@ -438,7 +434,6 @@ public class PatchServiceTest
             }
         }
 
-        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected,
-            count );
+        assertEquals( "Did not find " + expected + " mutations of type " + operation + " on property " + name, expected, count );
     }
 }

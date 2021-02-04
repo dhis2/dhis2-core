@@ -28,12 +28,11 @@ package org.hisp.dhis.programrule;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.common.DxfNamespaces;
+
+import java.util.Set;
 
 /**
  * @author markusbekken
@@ -50,13 +49,11 @@ public enum ProgramRuleVariableSourceType
 
     private final String value;
 
-    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>()
-        .add( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
-            DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT, DATAELEMENT_PREVIOUS_EVENT )
-        .build();
+    private static final Set<ProgramRuleVariableSourceType> DATA_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
+        DATAELEMENT_NEWEST_EVENT_PROGRAM, DATAELEMENT_CURRENT_EVENT, DATAELEMENT_PREVIOUS_EVENT ).build();
 
-    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES = new ImmutableSet.Builder<ProgramRuleVariableSourceType>()
-        .add( TEI_ATTRIBUTE ).build();
+    private static final Set<ProgramRuleVariableSourceType> ATTRIBUTE_TYPES =
+        new ImmutableSet.Builder<ProgramRuleVariableSourceType>().add( TEI_ATTRIBUTE ).build();
 
     ProgramRuleVariableSourceType( String value )
     {

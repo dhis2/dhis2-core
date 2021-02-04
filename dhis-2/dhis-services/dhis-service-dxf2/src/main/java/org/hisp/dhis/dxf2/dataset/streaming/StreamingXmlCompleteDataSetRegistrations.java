@@ -28,13 +28,13 @@ package org.hisp.dhis.dxf2.dataset.streaming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
-import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
-import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
 import org.hisp.staxwax.reader.XMLReader;
 import org.hisp.staxwax.writer.XMLWriter;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistration;
+import org.hisp.dhis.dxf2.dataset.CompleteDataSetRegistrations;
+
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -46,17 +46,17 @@ public class StreamingXmlCompleteDataSetRegistrations
 
     private static final String NS = "http://dhis2.org/schema/dxf/2.0";
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Properties
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     private XMLWriter writer;
 
     private XMLReader reader;
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Constructor
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     public StreamingXmlCompleteDataSetRegistrations( XMLWriter writer )
     {
@@ -68,9 +68,9 @@ public class StreamingXmlCompleteDataSetRegistrations
         this.reader = reader;
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Logic
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Override
     protected void open()
@@ -113,9 +113,9 @@ public class StreamingXmlCompleteDataSetRegistrations
         writer.writeAttribute( fieldName, value );
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Getters and setters
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     @Override
     public String getIdScheme()
@@ -156,8 +156,7 @@ public class StreamingXmlCompleteDataSetRegistrations
     @Override
     public String getAttributeOptionComboIdScheme()
     {
-        return get( FIELD_ATTR_OPT_COMBO_ID_SCHEME, super::getAttributeOptionComboIdScheme,
-            super::setAttributeOptionComboIdScheme );
+        return get( FIELD_ATTR_OPT_COMBO_ID_SCHEME, super::getAttributeOptionComboIdScheme, super::setAttributeOptionComboIdScheme );
     }
 
     @Override
@@ -169,8 +168,7 @@ public class StreamingXmlCompleteDataSetRegistrations
     @Override
     public Boolean getDryRun()
     {
-        return get( FIELD_DRY_RUN, super::getDryRun,
-            v -> super.setDryRun( Boolean.parseBoolean( v ) ? Boolean.TRUE : null ) );
+        return get( FIELD_DRY_RUN, super::getDryRun, v -> super.setDryRun( Boolean.parseBoolean( v ) ? Boolean.TRUE : null ) );
     }
 
     @Override
@@ -203,9 +201,9 @@ public class StreamingXmlCompleteDataSetRegistrations
         return new StreamingXmlCompleteDataSetRegistration( reader );
     }
 
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
     // Supportive methods
-    // --------------------------------------------------------------------------
+    //--------------------------------------------------------------------------
 
     private <T> T get( String fieldName, Supplier<T> getter, Consumer<String> setter )
     {

@@ -28,12 +28,12 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Iterator;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 @Component( "org.hisp.dhis.user.UserSettingDeletionHandler" )
 public class UserSettingDeletionHandler
     extends DeletionHandler
-{
+{   
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -64,12 +64,12 @@ public class UserSettingDeletionHandler
     {
         return User.class.getSimpleName();
     }
-
+    
     @Override
     public void deleteUser( User user )
     {
         Iterator<UserSetting> settings = userSettingService.getUserSettings( user ).iterator();
-
+        
         while ( settings.hasNext() )
         {
             UserSetting setting = settings.next();

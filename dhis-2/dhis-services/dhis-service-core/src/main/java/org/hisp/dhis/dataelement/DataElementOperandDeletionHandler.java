@@ -28,12 +28,12 @@ package org.hisp.dhis.dataelement;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
@@ -61,9 +61,8 @@ public class DataElementOperandDeletionHandler
         return DataElementOperand.class.getSimpleName();
     }
 
-    // TODO masking real problem, we should control operands better and check
-    // associated objects regarding deletion
-
+    //TODO masking real problem, we should control operands better and check associated objects regarding deletion
+    
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {

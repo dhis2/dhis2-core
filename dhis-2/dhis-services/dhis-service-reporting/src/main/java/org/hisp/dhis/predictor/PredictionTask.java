@@ -28,11 +28,11 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.security.SecurityContextRunnable;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace
@@ -41,11 +41,9 @@ public class PredictionTask
     extends SecurityContextRunnable
 {
     private final Date startDate;
-
     private final Date endDate;
 
     private final List<String> predictors;
-
     private final List<String> predictorGroups;
 
     private final PredictionService predictionService;

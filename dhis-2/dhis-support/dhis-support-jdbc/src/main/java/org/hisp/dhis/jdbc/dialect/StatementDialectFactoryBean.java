@@ -28,13 +28,13 @@ package org.hisp.dhis.jdbc.dialect;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.quick.StatementDialect;
+import org.springframework.beans.factory.FactoryBean;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.quick.StatementDialect;
-import org.springframework.beans.factory.FactoryBean;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland

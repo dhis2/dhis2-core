@@ -37,9 +37,7 @@ import org.hisp.dhis.system.util.Clock;
 public abstract class DataSynchronizationWithoutPaging
 {
     protected Clock clock;
-
     protected int objectsToSynchronize;
-
     protected SystemInstance instance;
 
     public abstract SynchronizationResult synchronizeData();

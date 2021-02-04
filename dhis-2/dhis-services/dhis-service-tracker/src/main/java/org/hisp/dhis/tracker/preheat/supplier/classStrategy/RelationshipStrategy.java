@@ -30,9 +30,6 @@ package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
 import java.util.List;
 
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -41,6 +38,9 @@ import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.springframework.stereotype.Component;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Luciano Fiandesio

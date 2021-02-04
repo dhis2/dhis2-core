@@ -40,8 +40,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -58,6 +56,8 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -121,7 +121,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                 psi.setDueDate( rs.getDate( "duedate" ) );
                 psi.setExecutionDate( rs.getDate( "executiondate" ) );
                 psi.setCompletedDate( rs.getDate( "completeddate" ) );
-                psi.setAttributeOptionCombo( getCatOptionCombo( rs ) );
+                psi.setAttributeOptionCombo( getCatOptionCombo ( rs ));
                 try
                 {
                     psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
@@ -160,7 +160,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
 
         return ou;
     }
-
+    
     private ProgramStage getProgramStage( ImportOptions importOptions, Long programStageId )
     {
         Collection<Program> programs = this.programSupplier.get( importOptions, new ArrayList<>() ).values();

@@ -51,8 +51,7 @@ public class HibernateDataElementOperandStore
     public HibernateDataElementOperandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, DataElementOperand.class, currentUserService, aclService,
-            false );
+        super( sessionFactory, jdbcTemplate, publisher, DataElementOperand.class, currentUserService, aclService, false );
 
         transientIdentifiableProperties = true;
     }

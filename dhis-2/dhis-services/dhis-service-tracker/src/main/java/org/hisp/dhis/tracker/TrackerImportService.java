@@ -36,9 +36,8 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 public interface TrackerImportService
 {
     /**
-     * Import object using provided params. Takes the objects through all phases of
-     * the importer from preheating to validation, and then finished with a commit
-     * (unless its validate only)
+     * Import object using provided params. Takes the objects through all phases of the importer
+     * from preheating to validation, and then finished with a commit (unless its validate only)
      *
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)

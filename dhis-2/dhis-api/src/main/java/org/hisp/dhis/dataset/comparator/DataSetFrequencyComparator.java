@@ -33,17 +33,17 @@ import java.util.Comparator;
 import org.hisp.dhis.dataset.DataSet;
 
 /**
- * Sorts data sets according to the frequency order of their period type,
- * ordered from high to low collection frequency. A lower frequency order value
- * implies higher data set collection frequency. Next, sorts by data set name.
- *
+ * Sorts data sets according to the frequency order of their period type, ordered
+ * from high to low collection frequency. A lower frequency order value implies 
+ * higher data set collection frequency. Next, sorts by data set name.
+ * 
  * @author Lars Helge Overland
  */
 public class DataSetFrequencyComparator
     implements Comparator<DataSet>
 {
     public static final DataSetFrequencyComparator INSTANCE = new DataSetFrequencyComparator();
-
+    
     @Override
     public int compare( DataSet d1, DataSet d2 )
     {
@@ -51,20 +51,19 @@ public class DataSetFrequencyComparator
         {
             return -1;
         }
-
+        
         if ( d2 == null || d2.getPeriodType() == null )
         {
             return 1;
         }
-
-        int frequencyOrder = Integer.valueOf( d1.getPeriodType().getFrequencyOrder() )
-            .compareTo( Integer.valueOf( d2.getPeriodType().getFrequencyOrder() ) );
-
+        
+        int frequencyOrder = Integer.valueOf( d1.getPeriodType().getFrequencyOrder() ).compareTo( Integer.valueOf( d2.getPeriodType().getFrequencyOrder() ) );
+        
         if ( frequencyOrder != 0 )
         {
             return frequencyOrder;
         }
-
+        
         return d1.compareTo( d2 );
     }
 }

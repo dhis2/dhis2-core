@@ -28,22 +28,21 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.locationtech.jts.geom.Geometry;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -324,10 +323,8 @@ public class TrackedEntityInstance
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o )
-            return true;
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+        if ( this == o ) return true;
+        if ( o == null || getClass() != o.getClass() ) return false;
         TrackedEntityInstance that = (TrackedEntityInstance) o;
         return Objects.equals( trackedEntityType, that.trackedEntityType ) &&
             Objects.equals( trackedEntityInstance, that.trackedEntityInstance ) &&
@@ -345,13 +342,11 @@ public class TrackedEntityInstance
     @Override
     public int hashCode()
     {
-        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated,
-            lastUpdatedAtClient,
+        return Objects.hash( trackedEntityType, trackedEntityInstance, orgUnit, created, createdAtClient, lastUpdated, lastUpdatedAtClient,
             relationships, attributes, enrollments, inactive );
     }
 
-    @Override
-    public String toString()
+    @Override public String toString()
     {
         return "TrackedEntityInstance{" +
             "trackedEntityType='" + trackedEntityType + '\'' +

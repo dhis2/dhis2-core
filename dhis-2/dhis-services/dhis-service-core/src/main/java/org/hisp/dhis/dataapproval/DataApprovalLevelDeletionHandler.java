@@ -62,8 +62,7 @@ public class DataApprovalLevelDeletionHandler
     @Override
     public String allowDeleteCategoryOptionGroupSet( CategoryOptionGroupSet categoryOptionGroupSet )
     {
-        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid="
-            + categoryOptionGroupSet.getId();
+        String sql = "select count(*) from dataapprovallevel where categoryoptiongroupsetid=" + categoryOptionGroupSet.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
@@ -72,7 +71,7 @@ public class DataApprovalLevelDeletionHandler
     public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
         String sql = "select count(*) from dataapprovalworkflowmembers where workflowid=" + workflow.getId();
-
+        
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

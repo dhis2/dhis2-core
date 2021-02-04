@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-import lombok.RequiredArgsConstructor;
-
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -47,6 +45,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Pre-heat cache implementation for metadata objects.
@@ -66,7 +66,7 @@ public class DefaultPreheatCacheService implements PreheatCacheService
      *
      * - the key is the full class name of the metadata class getting cached (e.g.
      * "org.hisp.dhis.program.Program")
-     *
+     * 
      * - the value is a Cache2K cache holding the objects to cache
      *
      * Caveat: this data structure may reference multiple times the same objects, if

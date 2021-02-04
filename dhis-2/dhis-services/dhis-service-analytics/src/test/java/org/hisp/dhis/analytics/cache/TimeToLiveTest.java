@@ -31,10 +31,10 @@ package org.hisp.dhis.analytics.cache;
 import static java.util.Calendar.DATE;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.analytics.cache.TimeToLive.DEFAULT_MULTIPLIER;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR;
 import static org.hisp.dhis.util.DateUtils.calculateDateFrom;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
@@ -80,7 +80,7 @@ public class TimeToLiveTest
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
@@ -115,7 +115,7 @@ public class TimeToLiveTest
         final long expectedTtl = DEFAULT_MULTIPLIER * aPositiveCachingFactor;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 
@@ -134,7 +134,7 @@ public class TimeToLiveTest
         final long expectedTtl = aPositiveCachingFactor * tenDays;
 
         // When
-        when( systemSettingManager.getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR ) )
+        when( systemSettingManager.getSystemSetting(ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR) )
             .thenReturn( aPositiveCachingFactor );
         final long actualTtl = new TimeToLive( endingDate, aPositiveCachingFactor ).compute();
 

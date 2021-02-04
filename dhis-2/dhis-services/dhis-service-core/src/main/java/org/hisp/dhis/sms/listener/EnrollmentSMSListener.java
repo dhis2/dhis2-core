@@ -28,14 +28,6 @@ package org.hisp.dhis.sms.listener;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -72,6 +64,14 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component( "org.hisp.dhis.sms.listener.EnrollmentSMSListener" )
@@ -139,7 +139,7 @@ public class EnrollmentSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_TETYPE.set( tetid ) );
         }
 
-        if ( !programService.hasOrgUnit( program, orgUnit ) )
+        if ( !programService.hasOrgUnit( program, orgUnit )  )
         {
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
@@ -228,6 +228,7 @@ public class EnrollmentSMSListener
         return SmsResponse.SUCCESS;
     }
 
+
     private TrackedEntityAttributeValue findAttributeValue( TrackedEntityAttributeValue attributeValue,
         Set<TrackedEntityAttributeValue> attributeValues )
     {
@@ -289,7 +290,7 @@ public class EnrollmentSMSListener
 
         TrackedEntityAttribute attribute = trackedEntityAttributeService
             .getTrackedEntityAttribute( attribUid.getUid() );
-
+            
         if ( attribute == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ATTRIB.set( attribUid ) );

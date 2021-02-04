@@ -50,11 +50,8 @@ import org.springframework.stereotype.Component;
 public class DataSynchronizationJob extends SynchronizationJob
 {
     private final SynchronizationManager synchronizationManager;
-
     private final Notifier notifier;
-
     private final DataValueSynchronization dataValueSynchronization;
-
     private final CompleteDataSetRegistrationSynchronization completenessSynchronization;
 
     public DataSynchronizationJob( Notifier notifier, DataValueSynchronization dataValueSynchronization,
@@ -72,6 +69,7 @@ public class DataSynchronizationJob extends SynchronizationJob
         this.synchronizationManager = synchronizationManager;
     }
 
+
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -85,8 +83,8 @@ public class DataSynchronizationJob extends SynchronizationJob
     @Override
     public void execute( JobConfiguration jobConfiguration )
     {
-        DataSynchronizationJobParameters jobParameters = (DataSynchronizationJobParameters) jobConfiguration
-            .getJobParameters();
+        DataSynchronizationJobParameters jobParameters =
+            (DataSynchronizationJobParameters) jobConfiguration.getJobParameters();
         dataValueSynchronization.synchronizeData( jobParameters.getPageSize() );
         notifier.notify( jobConfiguration, "Data value sync successful" );
 

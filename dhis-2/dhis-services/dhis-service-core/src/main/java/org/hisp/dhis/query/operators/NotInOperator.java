@@ -28,16 +28,15 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.planner.QueryPath;
 import org.hisp.dhis.schema.Property;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import java.util.Collection;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -62,8 +61,7 @@ public class NotInOperator<T extends Comparable<? super T>> extends InOperator<T
 
         if ( property.isCollection() )
         {
-            return builder.not( root.get( queryPath.getPath() ).in(
-                getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) ) );
+            return builder.not( root.get( queryPath.getPath() ).in( getValue( Collection.class, queryPath.getProperty().getItemKlass(), getCollectionArgs().get( 0 ) ) ) );
         }
 
         return builder.not( root.get( queryPath.getPath() ).in( getCollectionArgs().get( 0 ) ) );

@@ -28,10 +28,10 @@ package org.hisp.dhis.system.filter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.commons.filter.Filter;
 
 /**
  * @author Lars Helge Overland
@@ -40,13 +40,13 @@ public class UserAuthorityGroupCanIssueFilter
     implements Filter<UserAuthorityGroup>
 {
     private UserCredentials userCredentials;
-
+    
     private boolean canGrantOwnUserAuthorityGroups = false;
-
+    
     protected UserAuthorityGroupCanIssueFilter()
     {
     }
-
+    
     public UserAuthorityGroupCanIssueFilter( User user, boolean canGrantOwnUserAuthorityGroups )
     {
         if ( user != null && user.getUserCredentials() != null )

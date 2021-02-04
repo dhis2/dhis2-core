@@ -28,14 +28,13 @@ package org.hisp.dhis.apphub;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
@@ -85,8 +84,7 @@ public class WebApp
     }
 
     @JsonProperty
-    public String getDescription()
-    {
+    public String getDescription() {
         return description;
     }
 
@@ -96,8 +94,7 @@ public class WebApp
     }
 
     @JsonProperty
-    public Developer getDeveloper()
-    {
+    public Developer getDeveloper() {
         return developer;
     }
 

@@ -28,10 +28,10 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.GenericDimensionalObjectStore;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -42,6 +42,6 @@ public interface CategoryStore
     List<Category> getCategoriesByDimensionType( DataDimensionType dataDimensionType );
 
     List<Category> getCategories( DataDimensionType dataDimensionType, boolean dataDimension );
-
+    
     List<Category> getCategoriesNoAcl( DataDimensionType dataDimensionType, boolean dataDimension );
 }

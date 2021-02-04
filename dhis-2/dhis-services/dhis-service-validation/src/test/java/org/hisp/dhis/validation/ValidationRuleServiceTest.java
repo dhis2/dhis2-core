@@ -28,15 +28,6 @@ package org.hisp.dhis.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.*;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.greater_than;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -53,6 +44,15 @@ import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import static junit.framework.TestCase.*;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.greater_than;
 
 /**
  * @author Lars Helge Overland
@@ -77,13 +77,9 @@ public class ValidationRuleServiceTest
     private OrganisationUnitService organisationUnitService;
 
     private DataElement dataElementA;
-
     private DataElement dataElementB;
-
     private DataElement dataElementC;
-
     private DataElement dataElementD;
-
     private DataElement dataElementE;
 
     private Set<CategoryOptionCombo> optionCombos;
@@ -91,9 +87,7 @@ public class ValidationRuleServiceTest
     private CategoryOptionCombo optionCombo;
 
     private Expression expressionA;
-
     private Expression expressionB;
-
     private Expression expressionC;
 
     private Expression expressionD;
@@ -105,17 +99,11 @@ public class ValidationRuleServiceTest
     private DataSet dataSetYearly;
 
     private OrganisationUnit sourceA;
-
     private OrganisationUnit sourceB;
-
     private OrganisationUnit sourceC;
-
     private OrganisationUnit sourceD;
-
     private OrganisationUnit sourceE;
-
     private OrganisationUnit sourceF;
-
     private OrganisationUnit sourceG;
 
     private Set<OrganisationUnit> sourcesA = new HashSet<>();
@@ -123,13 +111,10 @@ public class ValidationRuleServiceTest
     private Set<OrganisationUnit> allSources = new HashSet<>();
 
     private ValidationRule validationRuleA;
-
     private ValidationRule validationRuleB;
 
     private PeriodType periodTypeWeekly;
-
     private PeriodType periodTypeMonthly;
-
     private PeriodType periodTypeYearly;
 
     // -------------------------------------------------------------------------
@@ -241,13 +226,7 @@ public class ValidationRuleServiceTest
         dataElementService.updateDataElement( dataElementD );
         dataElementService.updateDataElement( dataElementE );
 
-        validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly, true ); // deA
-                                                                                                                    // +
-                                                                                                                    // deB
-                                                                                                                    // =
-                                                                                                                    // deC
-                                                                                                                    // -
-                                                                                                                    // deD
+        validationRuleA = createValidationRule( "A", equal_to, expressionA, expressionB, periodTypeMonthly, true ); // deA + deB = deC - deD
         validationRuleB = createValidationRule( "B", greater_than, expressionC, expressionD,
             periodTypeMonthly ); // deC - deD > deB * 2
     }

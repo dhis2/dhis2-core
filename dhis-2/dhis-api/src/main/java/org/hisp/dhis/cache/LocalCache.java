@@ -56,7 +56,7 @@ public class LocalCache<V> implements Cache<V>
      *
      * @param cacheBuilder CacheBuilder instance
      */
-    @SuppressWarnings( "unchecked" )
+    @SuppressWarnings("unchecked")
     public LocalCache( final CacheBuilder<V> cacheBuilder )
     {
         Cache2kBuilder<?, ?> builder = Cache2kBuilder.forUnknownTypes();

@@ -103,7 +103,7 @@ public class HibernateValidationRuleStore
 
         return getList( builder, newJpaParameters()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> builder.equal( root.get( "skipFormValidation" ), false ) ) );
+            .addPredicate( root -> builder.equal( root.get( "skipFormValidation" ), false ) ));
     }
 
     @Override

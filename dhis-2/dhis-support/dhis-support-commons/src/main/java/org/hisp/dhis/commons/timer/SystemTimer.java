@@ -66,6 +66,6 @@ public class SystemTimer
     public String toString()
     {
         double seconds = duration() / (double) TimeUnit.SECONDS.toNanos( 1 );
-        return String.format( "%f sec.", seconds );
+        return String.format( "%f sec.",  seconds );
     }
 }

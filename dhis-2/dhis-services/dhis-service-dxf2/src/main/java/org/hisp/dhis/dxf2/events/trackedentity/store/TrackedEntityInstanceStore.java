@@ -80,10 +80,10 @@ public interface TrackedEntityInstanceStore
     Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
 
     /**
-     * For each tei, get the list of programs for which the user has ownership.
-     *
+     * For each tei, get the list of programs for which the user has ownership. 
+     * 
      * @param ids a list of Tracked Entinty Instance primary keys
-     * @param ctx
+     * @param ctx 
      * @return Tei uids mapped to a list of program uids to which user has ownership
      */
     Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx );

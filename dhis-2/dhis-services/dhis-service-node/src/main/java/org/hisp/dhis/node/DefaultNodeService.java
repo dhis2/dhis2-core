@@ -28,14 +28,8 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.PostConstruct;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -46,8 +40,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import javax.annotation.PostConstruct;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -156,8 +154,7 @@ public class DefaultNodeService implements NodeService
     public ComplexNode toNode( Object object )
     {
         Assert.notNull( object, "object can not be null" );
-        return fieldFilterService
-            .toComplexNode( new FieldFilterParams( Lists.newArrayList( object ), new ArrayList<>() ) );
+        return fieldFilterService.toComplexNode( new FieldFilterParams( Lists.newArrayList( object ), new ArrayList<>() ) );
     }
 
     @Override
@@ -166,7 +163,6 @@ public class DefaultNodeService implements NodeService
         Assert.notNull( objects, "objects can not be null" );
         Assert.isTrue( objects.size() > 0, "objects list must be larger than 0" );
 
-        return fieldFilterService.toCollectionNode( HibernateProxyUtils.getRealClass( objects.get( 0 ) ),
-            new FieldFilterParams( objects, new ArrayList<>() ) );
+        return fieldFilterService.toCollectionNode( HibernateProxyUtils.getRealClass( objects.get( 0 ) ), new FieldFilterParams( objects, new ArrayList<>() ) );
     }
 }

@@ -216,8 +216,7 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
 
         // Then
-        assertHasError( importSummary, event,
-            "The program's expiry date has passed. It is not possible to make changes to this event" );
+        assertHasError( importSummary, event, "The program's expiry date has passed. It is not possible to make changes to this event" );
     }
 
     @Test
@@ -275,11 +274,12 @@ public class ExpirationDaysCheckTest extends BaseValidationTest
         return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
 
-    private Date getTodayMinusDays( int days )
+    private Date getTodayMinusDays( int days)
     {
         LocalDateTime localDateTime = new Date().toInstant().atZone( ZoneId.systemDefault() ).toLocalDateTime()
             .minusDays( days );
         return Date.from( localDateTime.atZone( ZoneId.systemDefault() ).toInstant() );
     }
+
 
 }

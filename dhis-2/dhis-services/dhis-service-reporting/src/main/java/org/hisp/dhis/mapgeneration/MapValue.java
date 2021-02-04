@@ -31,7 +31,7 @@ package org.hisp.dhis.mapgeneration;
 public class MapValue
 {
     private String ou;
-
+    
     private double value;
 
     public MapValue( String ou, double value )

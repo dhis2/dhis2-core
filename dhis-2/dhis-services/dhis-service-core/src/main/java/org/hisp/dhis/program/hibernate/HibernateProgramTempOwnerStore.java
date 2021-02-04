@@ -47,8 +47,7 @@ public class HibernateProgramTempOwnerStore
     extends HibernateGenericStore<ProgramTempOwner>
     implements ProgramTempOwnerStore
 {
-    public HibernateProgramTempOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+    public HibernateProgramTempOwnerStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramTempOwner.class, false );
     }
@@ -66,11 +65,10 @@ public class HibernateProgramTempOwnerStore
     @Override
     public int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user )
     {
-        final String sql = "select count(1) from programtempowner "
+        final String sql = "select count(1) from programtempowner " 
             + "where programid = ? and trackedentityinstanceid=? and userid=? "
             + "and extract(epoch from validtill)-extract (epoch from now()::timestamp) > 0";
-        return jdbcTemplate.queryForObject( sql, new Object[] { program.getId(), entityInstance.getId(), user.getId() },
-            Integer.class );
+        return jdbcTemplate.queryForObject( sql, new Object[] { program.getId(), entityInstance.getId(), user.getId() }, Integer.class );
     }
 
 }

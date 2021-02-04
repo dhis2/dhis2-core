@@ -129,8 +129,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-            "Tracked entity instance: " + tei.getUid() + " has multiple active enrollments in program: "
-                + program.getUid() );
+            "Tracked entity instance: " + tei.getUid() + " has multiple active enrollments in program: " + program.getUid() );
     }
 
     @Test
@@ -161,7 +160,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
         when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
+                .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
 
         event.setProgram( programNoReg.getUid() );
 
@@ -170,6 +169,6 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-            "Multiple active program instances exists for program: " + programNoReg.getUid() );
+                "Multiple active program instances exists for program: " + programNoReg.getUid() );
     }
 }

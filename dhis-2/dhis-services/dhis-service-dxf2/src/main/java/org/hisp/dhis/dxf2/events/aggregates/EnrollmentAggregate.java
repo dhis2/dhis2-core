@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -84,8 +83,7 @@ public class EnrollmentAggregate
         List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
-        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
-            ctx.getParams().isIncludeEvents(),
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.getParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(

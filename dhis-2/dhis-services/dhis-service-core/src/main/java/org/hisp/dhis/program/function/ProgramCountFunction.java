@@ -28,16 +28,16 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import java.util.Date;
-
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
+
+import java.util.Date;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator count functions
@@ -71,20 +71,16 @@ public abstract class ProgramCountFunction
             columnName + " is not null and " + columnName + conditionSql + " " +
             (pi.getEndEventBoundary() != null ? ("and " +
                 sb.getBoundaryCondition( pi.getEndEventBoundary(), pi,
-                    startDate, endDate )
-                +
-                " ") : "")
-            + (pi.getStartEventBoundary() != null ? ("and " +
-                sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
-                    startDate, endDate )
-                +
-                " ") : "")
-            + "and ps = '" + programStage + "')";
+                    startDate, endDate ) +
+                " ") : "") + (pi.getStartEventBoundary() != null ? ("and " +
+            sb.getBoundaryCondition( pi.getStartEventBoundary(), pi,
+                startDate, endDate ) +
+            " ") : "") + "and ps = '" + programStage + "')";
     }
 
     /**
-     * Get the description for the first arg #{programStageUid.dataElementUid} and
-     * return a value with its data type.
+     * Get the description for the first arg #{programStageUid.dataElementUid}
+     * and return a value with its data type.
      *
      * @param ctx the expression context
      * @param visitor the tree visitor
@@ -94,7 +90,7 @@ public abstract class ProgramCountFunction
     {
         validateCountFunctionArgs( ctx );
 
-        return (new ProgramItemStageElement()).getDescription( ctx, visitor );
+        return ( new ProgramItemStageElement() ).getDescription( ctx, visitor );
     }
 
     /**
@@ -112,10 +108,9 @@ public abstract class ProgramCountFunction
 
     private void validateCountFunctionArgs( ExprContext ctx )
     {
-        if ( !(getProgramArgType( ctx ) instanceof ProgramItemStageElement) )
+        if ( ! ( getProgramArgType( ctx ) instanceof ProgramItemStageElement ) )
         {
-            throw new ParserExceptionWithoutContext(
-                "First argument not supported for d2:count... functions: " + ctx.getText() );
+            throw new ParserExceptionWithoutContext( "First argument not supported for d2:count... functions: " + ctx.getText() );
         }
     }
 }

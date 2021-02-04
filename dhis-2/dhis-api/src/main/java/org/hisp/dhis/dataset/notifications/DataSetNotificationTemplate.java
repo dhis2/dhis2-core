@@ -28,9 +28,10 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -43,18 +44,15 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.UserGroup;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Created by zubair on 26.06.17.
  */
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetNotificationTemplate
-    extends BaseIdentifiableObject
-    implements NotificationTemplate, MetadataObject
+    extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
 {
     private String messageTemplate;
 
@@ -82,11 +80,9 @@ public class DataSetNotificationTemplate
     {
     }
 
-    public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels,
-        String messageTemplate,
-        DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger,
-        String subjectTemplate,
-        UserGroup userGroup, Integer relativeScheduledDays, SendStrategy sendStrategy )
+    public DataSetNotificationTemplate( Set<DataSet> dataSets, Set<DeliveryChannel> deliveryChannels, String messageTemplate,
+        DataSetNotificationRecipient notificationRecipient, DataSetNotificationTrigger dataSetNotificationTrigger, String subjectTemplate,
+            UserGroup userGroup, Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
         this.dataSets = dataSets;
         this.deliveryChannels = deliveryChannels;

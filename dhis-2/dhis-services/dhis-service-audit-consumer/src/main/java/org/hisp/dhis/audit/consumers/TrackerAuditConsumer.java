@@ -28,10 +28,7 @@ package org.hisp.dhis.audit.consumers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Objects;
-
-import javax.jms.TextMessage;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -40,7 +37,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.jms.TextMessage;
+import java.util.Objects;
 
 /**
  * Tracker audit consumer.
@@ -59,10 +57,8 @@ public class TrackerAuditConsumer
         this.auditService = auditService;
         this.objectMapper = objectMapper;
 
-        // for legacy reasons we are overriding the default here and using "off" for
-        // tracking logger (we don't have a specific key for tracker logger)
-        this.isAuditLogEnabled = Objects
-            .equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
+        // for legacy reasons we are overriding the default here and using "off" for tracking logger (we don't have a specific key for tracker logger)
+        this.isAuditLogEnabled = Objects.equals( dhisConfig.getPropertyOrDefault( ConfigurationKey.AUDIT_LOGGER, "off" ), "on" );
         this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
     }
 

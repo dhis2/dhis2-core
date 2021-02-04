@@ -36,24 +36,24 @@ import org.hisp.dhis.user.User;
 public interface ConfigurationService
 {
     String ID = ConfigurationService.class.getName();
-
+    
     /**
      * Sets the configuration.
-     *
+     * 
      * @param configuration the configuration.
      */
     void setConfiguration( Configuration configuration );
-
+    
     /**
      * Gets the configuration.
-     *
+     * 
      * @return the configuration.
      */
     Configuration getConfiguration();
-
+    
     /**
      * Indicates whether the given origin is CORS white listed.
-     *
+     * 
      * @param origin the origin.
      * @return true if the given origin is CORS white listed.
      */

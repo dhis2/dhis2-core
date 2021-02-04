@@ -28,11 +28,11 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.lang.BooleanUtils;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
-import org.apache.commons.lang.BooleanUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,7 +76,7 @@ public final class PagerUtils
         {
             return !BooleanUtils.toBoolean( paging );
         }
-
+     
         return false;
     }
 

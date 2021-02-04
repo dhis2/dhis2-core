@@ -42,12 +42,12 @@ public class ServiceProvider<T>
     {
         this.services = services;
     }
-
+    
     public T provide( String key )
     {
         return services.get( key );
     }
-
+    
     public Set<String> getServiceKeySet()
     {
         return services.keySet();

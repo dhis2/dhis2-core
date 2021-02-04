@@ -92,7 +92,6 @@ public class TrackedEntityDataValueAuditStoreTest
     private DataElement dataElementB;
 
     private ProgramStageInstance stageInstance;
-
     private EventDataValue dataValueA;
 
     @Override
@@ -132,19 +131,16 @@ public class TrackedEntityDataValueAuditStoreTest
         stageInstance = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, new Date(), new Date(), organisationUnit );
 
-        dataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo( "test-user" ) );
+        dataValueA = new EventDataValue( dataElementA.getUid(), "1", UserInfoTestHelper.testUserInfo("test-user") );
     }
 
     @Test
     public void testGetTrackedEntityDataValueAudits()
     {
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance,
-            dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
+        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElementA, stageInstance, dataValueA.getAuditValue(), "userA", dataValueA.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dataValueAudit );
 
-        Assert.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ),
-            Lists.newArrayList( stageInstance ), AuditType.UPDATE ).size() );
-        Assert.assertEquals( 1, auditStore.countTrackedEntityDataValueAudits(
-            Lists.newArrayList( dataElementA, dataElementB ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ) );
+        Assert.assertEquals( 1, auditStore.getTrackedEntityDataValueAudits( Lists.newArrayList( dataElementA ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ).size() );
+        Assert.assertEquals( 1, auditStore.countTrackedEntityDataValueAudits(  Lists.newArrayList( dataElementA, dataElementB ), Lists.newArrayList( stageInstance ), AuditType.UPDATE ) );
     }
 }

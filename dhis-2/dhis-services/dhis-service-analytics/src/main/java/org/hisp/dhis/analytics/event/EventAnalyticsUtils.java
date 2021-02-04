@@ -28,7 +28,9 @@ package org.hisp.dhis.analytics.event;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.common.Grid;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -39,9 +41,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
-import org.hisp.dhis.common.Grid;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 /**
  * @author Henning Haakonsen
@@ -99,7 +99,7 @@ public class EventAnalyticsUtils
     }
 
     /**
-     * Get all permutations for event report dimensions.
+     *  Get all permutations for event report dimensions.
      *
      * @param dataOptionMap the map to generate permutations from
      * @return a list of a map with a permutations

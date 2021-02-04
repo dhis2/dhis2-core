@@ -28,16 +28,16 @@ package org.hisp.dhis.dataanalysis;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -48,14 +48,13 @@ public interface DataAnalysisStore
 
     /**
      * Calculates the average and standard deviation measures of the DataValues
-     * registered for a given data element, set of category option combos, and
-     * organisation unit parents.
+     * registered for a given data element, set of category option combos,
+     * and organisation unit parents.
      *
      * @param dataElement the DataElement.
      * @param parentPaths the parent OrganisationUnits' paths.
-     * @param from the from date for which to include data values.
-     * @return a mapping between OrganisationUnit identifier and its standard
-     *         deviation.
+     * @param from        the from date for which to include data values.
+     * @return a mapping between OrganisationUnit identifier and its standard deviation.
      */
     List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
         Collection<CategoryOptionCombo> categoryOptionCombos,
@@ -64,11 +63,11 @@ public interface DataAnalysisStore
     /**
      * Generates a collection of data value violations of min-max predefined values.
      *
-     * @param dataElements the data elements.
+     * @param dataElements         the data elements.
      * @param categoryOptionCombos the category option combos.
-     * @param periods the periods.
-     * @param parents the parent OrganisationUnit units.
-     * @param limit the max limit of violations to return.
+     * @param periods              the periods.
+     * @param parents              the parent OrganisationUnit units.
+     * @param limit                the max limit of violations to return.
      * @return a list of data value violations.
      */
     List<DeflatedDataValue> getMinMaxViolations( Collection<DataElement> dataElements,
@@ -78,11 +77,11 @@ public interface DataAnalysisStore
     /**
      * Returns a collection of DeflatedDataValues for the given input.
      *
-     * @param dataElement the DataElement.
+     * @param dataElement         the DataElement.
      * @param categoryOptionCombo the CategoryOptionCombo.
-     * @param periods the collection of Periods.
-     * @param lowerBoundMap the lower bound for the registered MinMaxDataElement.
-     * @param upperBoundMap the upper bound for the registered MinMaxDataElement.
+     * @param periods             the collection of Periods.
+     * @param lowerBoundMap       the lower bound for the registered MinMaxDataElement.
+     * @param upperBoundMap       the upper bound for the registered MinMaxDataElement.
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getDeflatedDataValues( DataElement dataElement, CategoryOptionCombo categoryOptionCombo,
@@ -90,14 +89,13 @@ public interface DataAnalysisStore
 
     /**
      * Returns a collection of DeflatedDataValues which are marked for followup and
-     * whose source OrganisationUnit is equal or subordinate to the given
-     * OrganisationUnit.
+     * whose source OrganisationUnit is equal or subordinate to the given OrganisationUnit.
      *
-     * @param dataElements the data elements.
+     * @param dataElements         the data elements.
      * @param categoryOptionCombos the category option combos.
-     * @param periods the periods.
-     * @param parents the parent OrganisationUnit units.
-     * @param limit the maximum number of DeflatedDataValues to return.
+     * @param periods              the periods.
+     * @param parents              the parent OrganisationUnit units.
+     * @param limit            the maximum number of DeflatedDataValues to return.
      * @return a list of DeflatedDataValues.
      */
     List<DeflatedDataValue> getFollowupDataValues( Collection<DataElement> dataElements,

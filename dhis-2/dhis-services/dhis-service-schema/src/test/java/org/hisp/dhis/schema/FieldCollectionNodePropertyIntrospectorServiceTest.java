@@ -28,20 +28,19 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.hisp.dhis.node.annotation.NodeCollection;
 import org.hisp.dhis.node.annotation.NodeRoot;
 import org.hisp.dhis.node.annotation.NodeSimple;
 import org.junit.Before;
 import org.junit.Test;
 
-@NodeRoot( value = "collectionItem" )
-class Item
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
+
+@NodeRoot( value = "collectionItem" ) class Item
 {
     @NodeSimple
     private String value;

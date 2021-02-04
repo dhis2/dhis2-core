@@ -28,29 +28,26 @@ package org.hisp.dhis.common.adapter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Set;
-
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.RenderDevice;
-import org.hisp.dhis.render.type.RenderingObject;
-
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
+import org.hisp.dhis.render.type.RenderingObject;
+
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Set;
 
 public class DeviceRenderTypeMapSerializer
     extends JsonSerializer<DeviceRenderTypeMap<RenderingObject<?>>>
 {
     @Override
-    @SuppressWarnings( "unchecked" )
-    public void serialize( DeviceRenderTypeMap<RenderingObject<?>> value, JsonGenerator gen,
-        SerializerProvider serializers )
+    @SuppressWarnings("unchecked")
+    public void serialize( DeviceRenderTypeMap<RenderingObject<?>> value, JsonGenerator gen, SerializerProvider serializers )
         throws IOException
     {
         Set<RenderDevice> keys = value.keySet();
@@ -63,7 +60,7 @@ public class DeviceRenderTypeMapSerializer
                 for ( RenderDevice key : keys )
                 {
                     RenderingObject<?> val = value.get( key );
-                    staxWriter.writeStartElement( key.name() );
+                    staxWriter.writeStartElement(  key.name() );
                     staxWriter.writeAttribute( RenderingObject._TYPE, val.getType().name() );
                     staxWriter.writeEndElement();
                 }
@@ -79,17 +76,17 @@ public class DeviceRenderTypeMapSerializer
 
             for ( RenderDevice key : keys )
             {
-                Object val = value.get( key );
+                Object val =  value.get( key );
                 String fieldValue = "";
 
                 if ( LinkedHashMap.class.isAssignableFrom( val.getClass() ) )
                 {
-                    LinkedHashMap<String, String> map = (LinkedHashMap<String, String>) val;
+                    LinkedHashMap<String,String> map = (LinkedHashMap<String, String>) val;
                     fieldValue = map.get( RenderingObject._TYPE );
                 }
-                else if ( RenderingObject.class.isAssignableFrom( val.getClass() ) )
+                else if ( RenderingObject.class.isAssignableFrom( val.getClass()) )
                 {
-                    RenderingObject<?> renderingObject = (RenderingObject<?>) val;
+                    RenderingObject<?> renderingObject = ( RenderingObject<?> ) val;
                     fieldValue = renderingObject.getType().name();
                 }
                 else
@@ -98,7 +95,7 @@ public class DeviceRenderTypeMapSerializer
                 }
 
                 gen.writeObjectFieldStart( key.name() );
-                gen.writeStringField( RenderingObject._TYPE, fieldValue );
+                gen.writeStringField( RenderingObject._TYPE,  fieldValue );
                 gen.writeEndObject();
             }
             gen.writeEndObject();

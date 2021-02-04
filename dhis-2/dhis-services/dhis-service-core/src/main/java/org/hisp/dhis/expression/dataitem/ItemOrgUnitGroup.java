@@ -28,13 +28,13 @@ package org.hisp.dhis.expression.dataitem;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+
+import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Expression item OrganisationUnitGroup
@@ -47,8 +47,7 @@ public class ItemOrgUnitGroup
     @Override
     public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
     {
-        OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService()
-            .getOrganisationUnitGroup( ctx.uid0.getText() );
+        OrganisationUnitGroup orgUnitGroup = visitor.getOrganisationUnitGroupService().getOrganisationUnitGroup( ctx.uid0.getText() );
 
         if ( orgUnitGroup == null )
         {

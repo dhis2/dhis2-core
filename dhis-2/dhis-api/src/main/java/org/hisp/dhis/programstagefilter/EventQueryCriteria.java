@@ -42,55 +42,53 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * Represents the filtering/sorting criteria to be used when querying events.
- *
+ * 
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 public class EventQueryCriteria implements Serializable
 {
     private static final long serialVersionUID = 1L;
-
+    
     /**
      * Property indicating the followUp status of the enrollment.
      */
     private Boolean followUp;
-
+    
     /**
      * Property indication the OU for the filter.
      */
     private String organisationUnit;
-
+    
     /**
      * Property indicating the OU selection mode for the event filter
      */
     private OrganisationUnitSelectionMode ouMode;
-
+    
     /**
      * Property indicating the assigned user selection mode for the event filter.
      */
     private AssignedUserSelectionMode assignedUserMode;
-
+    
     /**
-     * Property which contains the required assigned user ids to be used in the
-     * event filter.
+     * Property which contains the required assigned user ids to be used in the event filter.
      */
     private Set<String> assignedUsers;
-
+    
     /**
-     * Property which contains the required field ordering along with its direction
-     * (asc/desc)
+     * Property which contains the required field ordering along with its direction (asc/desc)
      */
     private String order;
-
+    
     /**
      * Property which contains the order of output columns
      */
     private List<String> displayColumnOrder = new ArrayList<>();
-
+    
     /**
      * Property which contains the filters to be used when querying events.
      */
     private List<EventDataFilter> dataFilters;
-
+    
     /**
      * Property indicating explicit event uids to be used when listing events.
      */
@@ -115,11 +113,12 @@ public class EventQueryCriteria implements Serializable
      * Property to filter events based on event dates
      */
     private DateFilterPeriod lastUpdatedDate;
-
+    
     /**
      * Property to filter events based on event dates
      */
     private DateFilterPeriod completedDate;
+
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -156,7 +155,7 @@ public class EventQueryCriteria implements Serializable
     {
         this.dueDate = dueDate;
     }
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public DateFilterPeriod getCompletedDate()
@@ -288,5 +287,7 @@ public class EventQueryCriteria implements Serializable
     {
         this.organisationUnit = organisationUnit;
     }
+    
+    
 
 }

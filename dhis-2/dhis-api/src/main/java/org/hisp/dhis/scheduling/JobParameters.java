@@ -28,14 +28,13 @@ package org.hisp.dhis.scheduling;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.feedback.ErrorReport;
+
 import java.io.Serializable;
 import java.util.Optional;
 
-import org.hisp.dhis.feedback.ErrorReport;
-
 /**
- * Interface for job specific parameters. Serializable so that we can store the
- * object in the database.
+ * Interface for job specific parameters. Serializable so that we can store the object in the database.
  *
  * @author Henning Håkonsen
  */

@@ -28,13 +28,13 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
 /**
  * Created by zubair on 08.03.17.
  */
 public interface PasswordValidationRule
 {
     String MANDATORY_PARAMETER_MISSING = "Username or Password is missing";
-
     String I18_MANDATORY_PARAMETER_MISSING = "mandatory_parameter_missing";
 
     /**
@@ -47,8 +47,8 @@ public interface PasswordValidationRule
     PasswordValidationResult validate( CredentialsInfo credentialsInfo );
 
     /**
-     * All rules are not applicable all the time so this will check if this rule
-     * should be validated against the password or be skipped.
+     * All rules are not applicable all the time so this will check if this rule should be validated
+     * against the password or be skipped.
      *
      * @param credentialsInfo
      * @return true if rule is application, false otherwise

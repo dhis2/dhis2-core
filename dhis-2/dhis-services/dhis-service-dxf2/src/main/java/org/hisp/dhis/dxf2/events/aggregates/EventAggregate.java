@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -85,8 +84,7 @@ public class EventAggregate
         List<Long> eventIds = events.values().stream().map( Event::getId ).collect( Collectors.toList() );
 
         /*
-         * Async fetch Relationships for the given Event ids (only if
-         * isIncludeRelationships = true)
+         * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ), getPool() );

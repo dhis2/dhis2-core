@@ -28,13 +28,13 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -84,28 +84,28 @@ public class DefaultTrackedEntityTypeService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityType( long id )
     {
         return trackedEntityTypeStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityType( String uid )
     {
         return trackedEntityTypeStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public TrackedEntityType getTrackedEntityByName( String name )
     {
         return trackedEntityTypeStore.getByName( name );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<TrackedEntityType> getAllTrackedEntityType()
     {
         return trackedEntityTypeStore.getAll();

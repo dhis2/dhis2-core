@@ -28,14 +28,14 @@ package org.hisp.dhis.schema;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.Map;
-
 import org.hisp.dhis.node.annotation.NodeComplex;
 import org.hisp.dhis.node.annotation.NodeSimple;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 class Value
 {

@@ -247,8 +247,7 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    // TODO: This method needs some love and care, the logic here is very hard to
-    // read.
+    //TODO: This method needs some love and care, the logic here is very hard to read.
     protected void validateEventCategoryCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {

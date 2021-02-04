@@ -34,26 +34,20 @@ import org.slf4j.Logger;
 public class AuditLogUtil
 {
     public static final String ACTION_CREATE = "create";
-
     public static final String ACTION_READ = "read";
-
     public static final String ACTION_UPDATE = "update";
-
     public static final String ACTION_DELETE = "delete";
 
     public static final String ACTION_CREATE_DENIED = "create denied";
-
     public static final String ACTION_READ_DENIED = "read denied";
-
     public static final String ACTION_UPDATE_DENIED = "update denied";
-
     public static final String ACTION_DELETE_DENIED = "delete denied";
 
     public static void infoWrapper( Logger log, Object object, String action )
     {
         infoWrapper( log, UserContext.getUsername(), object, action );
     }
-
+    
     public static void infoWrapper( Logger log, String username, Object object, String action )
     {
         if ( log.isInfoEnabled() )

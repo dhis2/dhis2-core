@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
@@ -41,8 +42,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -97,13 +96,13 @@ public class ProgramStageStoreTest
     {
         programStageStore.save( stageA );
         programStageStore.save( stageB );
-
+        
         Set<ProgramStage> programStages = new HashSet<>();
         programStages.add( stageA );
         programStages.add( stageB );
         program.setProgramStages( programStages );
         programService.updateProgram( program );
-
+       
         assertEquals( stageA, programStageStore.getByNameAndProgram( "A", program ) );
         assertEquals( stageB, programStageStore.getByNameAndProgram( "B", program ) );
     }

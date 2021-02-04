@@ -33,8 +33,5 @@ package org.hisp.dhis.query.operators;
  */
 public enum MatchMode
 {
-    EXACT,
-    START,
-    END,
-    ANYWHERE
+    EXACT, START, END, ANYWHERE
 }

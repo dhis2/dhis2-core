@@ -39,7 +39,6 @@ public class Encoder
 {
     /**
      * HTML-escapes the String representation of the given Object.
-     *
      * @param object the Object.
      * @return an HTML-escaped String representation.
      */
@@ -50,7 +49,6 @@ public class Encoder
 
     /**
      * HTML-escapes the given String.
-     *
      * @param object the String.
      * @return an HTML-escaped representation.
      */
@@ -61,7 +59,6 @@ public class Encoder
 
     /**
      * XML-escapes the given String.
-     *
      * @param object the String.
      * @return an XML-escaped representation.
      */
@@ -72,7 +69,6 @@ public class Encoder
 
     /**
      * JavaScript-escaped the given String.
-     *
      * @param object the String.
      * @return a JavaScript-escaped representation.
      */
@@ -84,8 +80,8 @@ public class Encoder
     /**
      * Escaped the given JSON content using Java String rules.
      *
-     * Assumes " is used as quote char and not used inside values and does not
-     * escape '.
+     * Assumes " is used as quote char and not used inside values and does
+     * not escape '.
      *
      * @param object the String.
      * @return the escaped representation.
@@ -102,7 +98,7 @@ public class Encoder
      * @param quoteChar the quote char.
      * @return the escaped representation.
      *
-     *         See {@link #jsEncode(String)}.
+     * See {@link #jsEncode(String)}.
      * @deprecated quoteChar is ignored.
      */
     @Deprecated

@@ -28,9 +28,9 @@ package org.hisp.dhis.node;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import com.google.common.collect.Lists;
+
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,8 +42,7 @@ public enum Preset
     ID_NAME( "idName", Lists.newArrayList( "id", "displayName" ) ),
     ALL( "all", Lists.newArrayList( "*" ) ),
     IDENTIFIABLE( "identifiable", Lists.newArrayList( "id", "name", "code", "created", "lastUpdated", "href" ) ),
-    NAMEABLE( "nameable",
-        Lists.newArrayList( "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href" ) );
+    NAMEABLE( "nameable", Lists.newArrayList( "id", "name", "shortName", "description", "code", "created", "lastUpdated", "href" ) );
 
     private String name;
 

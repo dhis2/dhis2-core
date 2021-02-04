@@ -28,9 +28,9 @@ package org.hisp.dhis.reservedvalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
+
+import java.util.List;
 
 /**
  * @author Stian Sandvold

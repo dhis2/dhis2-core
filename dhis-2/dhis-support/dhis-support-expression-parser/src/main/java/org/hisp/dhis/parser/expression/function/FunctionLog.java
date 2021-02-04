@@ -28,11 +28,11 @@ package org.hisp.dhis.parser.expression.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.antlr.function.AntlrFunctionLog;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
+
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Function log [natural logarithm base e, or log with specified base]

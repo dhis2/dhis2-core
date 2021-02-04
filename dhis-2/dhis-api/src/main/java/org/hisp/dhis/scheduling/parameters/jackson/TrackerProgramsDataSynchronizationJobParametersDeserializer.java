@@ -27,9 +27,8 @@ package org.hisp.dhis.scheduling.parameters.jackson;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>

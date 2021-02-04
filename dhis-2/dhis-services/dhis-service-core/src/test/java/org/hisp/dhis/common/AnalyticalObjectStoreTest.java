@@ -28,11 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
-import java.util.List;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
@@ -48,6 +43,11 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Lars Helge Overland
  */
@@ -57,17 +57,13 @@ public class AnalyticalObjectStoreTest
     private IndicatorType itA;
 
     private Indicator inA;
-
     private Indicator inB;
 
     private OrganisationUnit ouA;
-
     private OrganisationUnit ouB;
 
     private MapView mvA;
-
     private MapView mvB;
-
     private MapView mvC;
 
     @Autowired

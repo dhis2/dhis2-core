@@ -28,14 +28,13 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.Translatable;
-import org.hisp.dhis.translation.TranslationProperty;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.TranslationProperty;
 
 /**
  * @author Bob Jolliffe
@@ -159,8 +158,7 @@ public class BaseNameableObject
             return false;
         }
 
-        if ( getDescription() != null ? !getDescription().equals( other.getDescription() )
-            : other.getDescription() != null )
+        if ( getDescription() != null ? !getDescription().equals( other.getDescription() ) : other.getDescription() != null )
         {
             return false;
         }

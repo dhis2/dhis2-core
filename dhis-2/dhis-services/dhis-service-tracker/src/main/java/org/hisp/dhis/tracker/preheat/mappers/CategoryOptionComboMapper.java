@@ -28,8 +28,6 @@ package org.hisp.dhis.tracker.preheat.mappers;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Set;
-
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.mapstruct.BeanMapping;
@@ -37,6 +35,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
+
+import java.util.Set;
 
 @Mapper( uses = { DebugMapper.class, CategoryOptionMapper.class, CategoryComboMapper.class } )
 public interface CategoryOptionComboMapper

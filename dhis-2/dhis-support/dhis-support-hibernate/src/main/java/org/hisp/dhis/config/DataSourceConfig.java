@@ -28,21 +28,13 @@ package org.hisp.dhis.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.beans.PropertyVetoException;
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-
-import javax.sql.DataSource;
-
+import com.google.common.base.MoreObjects;
 import lombok.extern.slf4j.Slf4j;
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
-
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
@@ -61,7 +53,12 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
-import com.google.common.base.MoreObjects;
+import javax.sql.DataSource;
+import java.beans.PropertyVetoException;
+import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -96,8 +93,7 @@ public class DataSourceConfig
     {
         DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
 
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(
-            MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
         jdbcTemplate.setFetchSize( 1000 );
 
         return jdbcTemplate;
@@ -174,8 +170,8 @@ public class DataSourceConfig
 
         if ( elapsedTimeLogging )
         {
-            b.afterQuery(
-                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
+            b.afterQuery( ( execInfo, queryInfoList )
+                -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
         }
 
         return b.build();

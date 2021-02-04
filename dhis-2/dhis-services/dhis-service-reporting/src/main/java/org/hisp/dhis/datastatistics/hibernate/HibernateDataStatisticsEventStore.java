@@ -59,8 +59,7 @@ public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
     }
@@ -70,7 +69,8 @@ public class HibernateDataStatisticsEventStore
     {
         Map<DataStatisticsEventType, Double> eventTypeCountMap = new HashMap<>();
 
-        final String sql = "select eventtype as eventtype, count(eventtype) as numberofviews " +
+        final String sql =
+            "select eventtype as eventtype, count(eventtype) as numberofviews " +
             "from datastatisticsevent " +
             "where timestamp between ? and ? " +
             "group by eventtype;";
@@ -82,12 +82,12 @@ public class HibernateDataStatisticsEventStore
         };
 
         jdbcTemplate.query( sql, pss, ( rs, i ) -> {
-            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ),
-                rs.getDouble( "numberofviews" ) );
+            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ), rs.getDouble( "numberofviews" ) );
             return eventTypeCountMap;
         } );
 
-        final String totalSql = "select count(eventtype) as total " +
+        final String totalSql =
+            "select count(eventtype) as total " +
             "from datastatisticsevent " +
             "where timestamp between ? and ?;";
 
@@ -99,13 +99,13 @@ public class HibernateDataStatisticsEventStore
     }
 
     @Override
-    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize,
-        SortOrder sortOrder, String username )
+    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username )
     {
         Assert.notNull( eventType, "Data statistics event type cannot be null" );
         Assert.notNull( sortOrder, "Sort order cannot be null" );
 
-        String sql = "select c.uid, views, c.name, c.created from ( " +
+        String sql =
+            "select c.uid, views, c.name, c.created from ( " +
             "select favoriteuid as uid, count(favoriteuid) as views " +
             "from datastatisticsevent ";
 
@@ -114,7 +114,8 @@ public class HibernateDataStatisticsEventStore
             sql += "where username = ? ";
         }
 
-        sql += "group by uid) as events " +
+        sql +=
+            "group by uid) as events " +
             "inner join " + eventType.getTable() + " c on c.uid = events.uid " +
             "order by events.views " + sortOrder.getValue() + " " +
             "limit ?;";
@@ -146,7 +147,8 @@ public class HibernateDataStatisticsEventStore
     @Override
     public FavoriteStatistics getFavoriteStatistics( String uid )
     {
-        String sql = "select count(dse.favoriteuid) " +
+        String sql =
+            "select count(dse.favoriteuid) " +
             "from datastatisticsevent dse " +
             "where dse.favoriteuid = ?;";
 
@@ -159,3 +161,4 @@ public class HibernateDataStatisticsEventStore
         return stats;
     }
 }
+

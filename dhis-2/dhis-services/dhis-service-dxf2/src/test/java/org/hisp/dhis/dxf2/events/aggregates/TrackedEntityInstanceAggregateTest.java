@@ -81,7 +81,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private SessionFactory sessionFactory;
+    private SessionFactory  sessionFactory;
 
     @Autowired
     private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
@@ -130,10 +130,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
 
-        // Check further for explicit uid in param
+        //Check further for explicit uid in param
         queryParams.getTrackedEntityInstanceUids()
-            .addAll( trackedEntityInstances.stream().limit( 2 ).map( TrackedEntityInstance::getTrackedEntityInstance )
-                .collect( Collectors.toSet() ) );
+            .addAll( trackedEntityInstances.stream().limit( 2 ).map(TrackedEntityInstance::getTrackedEntityInstance).collect( Collectors.toSet() ) );
 
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false );
@@ -373,14 +372,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+                .getTrackedEntityInstances( queryParams, params, false );
 
         Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
 
         assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
-            is( trackedEntityTypeA.getUid() ) );
+                is( trackedEntityTypeA.getUid() ) );
         assertThat( "Tracked Entity Instance UID does not match", enrollment.getTrackedEntityInstance(),
-            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+                is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
         assertThat( "Org Unit UID does not match", enrollment.getOrgUnit(), is( organisationUnitA.getUid() ) );
         assertThat( "Org Unit Name does not match", enrollment.getOrgUnitName(), is( organisationUnitA.getName() ) );
         assertTrue( CodeGenerator.isValidUid( enrollment.getEnrollment() ) );
@@ -446,7 +445,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+                .getTrackedEntityInstances( queryParams, params, false );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
@@ -540,8 +539,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
             sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().clear();
-            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
-                Collections.singletonList( t2.getUid() ) ).get( 0 );
+            t2 = manager.get( org.hisp.dhis.trackedentity.TrackedEntityInstance.class, Collections.singletonList( t2.getUid() ) ).get( 0 );
             ProgramInstance pi = t2.getProgramInstances().iterator().next();
             final ProgramStageInstance psi = pi.getProgramStageInstances().iterator().next();
             this.persistRelationship( t1, psi );
@@ -604,9 +602,9 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         ProgramOwner programOwner = trackedEntityInstances.get( 0 ).getProgramOwners().get( 0 );
         assertThat( programOwner.getProgram(), is( programA.getUid() ) );
         assertThat( programOwner.getOwnerOrgUnit(), is( organisationUnitA.getUid() ) );
-        assertThat( programOwner.getTrackedEntityInstance(),
-            is( trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
+        assertThat( programOwner.getTrackedEntityInstance(), is(  trackedEntityInstances.get( 0 ).getTrackedEntityInstance() ) );
     }
+
 
     private void checkDate( Date currentTime, String date, long milliseconds )
     {

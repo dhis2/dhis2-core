@@ -28,15 +28,14 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.google.common.collect.Lists;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,8 +57,7 @@ public class DefaultFieldParser implements FieldParser
         {
             String c = fieldSplit[i];
 
-            // if we reach a field transformer, parse it out here (necessary to allow for ()
-            // to be used to handle transformer parameters)
+            // if we reach a field transformer, parse it out here (necessary to allow for () to be used to handle transformer parameters)
             if ( (c.equals( ":" ) && fieldSplit[i + 1].equals( ":" )) || c.equals( "~" ) || c.equals( "|" ) )
             {
                 boolean insideParameters = false;
@@ -86,7 +84,7 @@ public class DefaultFieldParser implements FieldParser
                         builder.append( c );
                         break;
                     }
-                    else if ( c.equals( "," ) || (c.equals( "[" ) && !insideParameters) ) // rewind and break
+                    else if ( c.equals( "," ) || ( c.equals( "[" ) && !insideParameters ) ) // rewind and break
                     {
                         i--;
                         break;
@@ -113,8 +111,7 @@ public class DefaultFieldParser implements FieldParser
                 prefixList.remove( prefixList.size() - 1 );
                 builder = new StringBuilder();
             }
-            else if ( StringUtils.isAlphanumeric( c ) || c.equals( "*" ) || c.equals( ":" ) || c.equals( ";" )
-                || c.equals( "~" ) || c.equals( "!" )
+            else if ( StringUtils.isAlphanumeric( c ) || c.equals( "*" ) || c.equals( ":" ) || c.equals( ";" ) || c.equals( "~" ) || c.equals( "!" )
                 || c.equals( "|" ) || c.equals( "{" ) || c.equals( "}" ) )
             {
                 builder.append( c );
@@ -138,10 +135,8 @@ public class DefaultFieldParser implements FieldParser
         }
 
         return fields.stream()
-            .map( s -> s.replaceAll( "]",
-                String.format( ",%s]", excludeFields.toString().replaceAll( "\\[|\\]", "" ) ) ) )
-            .map( s -> s.replaceAll( "\\)",
-                String.format( ",%s)", excludeFields.toString().replaceAll( "\\(|\\)", "" ) ) ) )
+            .map( s -> s.replaceAll( "]", String.format( ",%s]", excludeFields.toString().replaceAll( "\\[|\\]", "" ) ) ) )
+            .map( s -> s.replaceAll( "\\)", String.format( ",%s)", excludeFields.toString().replaceAll( "\\(|\\)", "" ) ) ) )
             .collect( Collectors.toList() );
     }
 

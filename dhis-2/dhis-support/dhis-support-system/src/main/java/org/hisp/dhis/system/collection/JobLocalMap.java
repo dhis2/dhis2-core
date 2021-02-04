@@ -28,10 +28,10 @@ package org.hisp.dhis.system.collection;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.scheduling.JobConfiguration;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import org.hisp.dhis.scheduling.JobConfiguration;
 
 /**
  * @author Lars Helge Overland
@@ -39,7 +39,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 public class JobLocalMap<T, V>
 {
     private final Map<JobConfiguration, Map<T, V>> internalMap;
-
+    
     public JobLocalMap()
     {
         this.internalMap = new HashMap<>();

@@ -28,12 +28,12 @@ package org.hisp.dhis.utils;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.springframework.core.io.ClassPathResource;
+import org.testcontainers.shaded.com.google.common.io.Files;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-import org.springframework.core.io.ClassPathResource;
-import org.testcontainers.shaded.com.google.common.io.Files;
 
 /**
  * @author Luciano Fiandesio

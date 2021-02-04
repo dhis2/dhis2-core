@@ -28,13 +28,12 @@ package org.hisp.dhis.schema.descriptors;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import com.google.common.collect.Lists;
+import org.hisp.dhis.security.oauth2.OAuth2Client;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.security.oauth2.OAuth2Client;
-
-import com.google.common.collect.Lists;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -54,12 +53,9 @@ public class OAuth2ClientSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1030 );
 
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
-        schema.getAuthorities()
-            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.READ, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_OAUTH2_CLIENT_MANAGE" ) ) );
 
         return schema;
     }

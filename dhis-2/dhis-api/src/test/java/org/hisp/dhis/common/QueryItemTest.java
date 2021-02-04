@@ -28,15 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.legend.Legend;
-import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.Program;
@@ -45,34 +36,35 @@ import org.junit.Test;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.legend.Legend;
+import org.hisp.dhis.legend.LegendSet;
+
+import static org.junit.Assert.*;
 
 /**
- * @author Lars Helge Overland
- */
+* @author Lars Helge Overland
+*/
 public class QueryItemTest
 {
     private Option opA;
-
     private Option opB;
-
     private Option opC;
-
     private OptionSet osA;
 
     private Legend leA;
-
     private Legend leB;
-
     private Legend leC;
-
     private LegendSet lsA;
 
     private Program prA;
-
     private Program prB;
 
     private DataElement deA;
-
     private DataElement deB;
 
     @Before
@@ -145,8 +137,7 @@ public class QueryItemTest
     public void testEquality()
     {
         QueryItem qiA = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ); // Unique
-        QueryItem qiB = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ); // Duplicate of
-                                                                                                     // 'qiA'
+        QueryItem qiB = new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ); // Duplicate of 'qiA'
         QueryItem qiC = new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ); // Unique
         QueryItem qiD = new QueryItem( deA ); // Unique
         QueryItem qiE = new QueryItem( deA ); // Duplicate of 'qiD'

@@ -28,9 +28,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Multimap;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -42,7 +40,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.query.EventQuery;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.Multimap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Luciano Fiandesio

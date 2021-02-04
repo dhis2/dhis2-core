@@ -28,11 +28,12 @@ package org.hisp.dhis.scheduling.parameters;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -40,12 +41,10 @@ import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.MonitoringJobParametersDeserializer;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Henning Håkonsen
@@ -146,11 +145,9 @@ public class MonitoringJobParameters
     @Override
     public Optional<ErrorReport> validate()
     {
-        // No need to validate relatePeriods, since it will fail in the controller if
-        // invalid.
+        // No need to validate relatePeriods, since it will fail in the controller if invalid.
 
-        // Validating validationRuleGroup. Since it's too late to check if the input was
-        // an array of strings or
+        // Validating validationRuleGroup. Since it's too late to check if the input was an array of strings or
         // something else, this is a best effort to avoid invalid data in the object.
         List<String> invalidUIDs = validationRuleGroups.stream()
             .filter( ( group ) -> !CodeGenerator.isValidUid( group ) )
@@ -158,8 +155,8 @@ public class MonitoringJobParameters
 
         if ( invalidUIDs.size() > 0 )
         {
-            return Optional.of( new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
-                "validationRuleGroups" ) );
+            return Optional.of(  new ErrorReport( this.getClass(), ErrorCode.E4014, invalidUIDs.get( 0 ),
+                "validationRuleGroups" ));
         }
 
         return Optional.empty();

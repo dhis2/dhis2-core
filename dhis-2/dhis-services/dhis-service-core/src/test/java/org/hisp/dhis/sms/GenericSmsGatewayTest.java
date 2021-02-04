@@ -78,17 +78,12 @@ import com.google.common.collect.Sets;
 public class GenericSmsGatewayTest
 {
     private static final String GATEWAY_URL = "http://gateway.com/messages";
-
     private static final String UID = "UID-123";
-
     private static final String CONFIG_TEMPLATE_JSON = "{\"to\": \"${recipients}\",\"body\": \"${text}\"}";
-
     private static final String CONFIG_TEMPLATE_URL_ENCODED = "to=${recipients}&message=${text}&user=${user}&pass=${password}";
 
     private static final String TEXT = "HI DHIS2";
-
     private static final String SUBJECT = "Greeting";
-
     private static final Set<String> RECIPIENTS = Sets.newHashSet( "4033XXYY, 404YYXXX" );
 
     @Rule
@@ -163,14 +158,12 @@ public class GenericSmsGatewayTest
 
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) )
-                .thenReturn( responseEntity );
+        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
+            .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-            httpEntityArgumentCaptor.capture(), eq( String.class ) );
+        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture() , httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );
@@ -219,14 +212,12 @@ public class GenericSmsGatewayTest
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
         when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
-        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-            eq( String.class ) ) )
-                .thenReturn( responseEntity );
+        when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
+            .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
-        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-            httpEntityArgumentCaptor.capture(), eq( String.class ) );
+        verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture() , httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );

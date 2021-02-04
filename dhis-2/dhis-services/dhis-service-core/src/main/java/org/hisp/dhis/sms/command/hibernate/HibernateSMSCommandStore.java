@@ -47,8 +47,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository( "org.hisp.dhis.sms.command.hibernate.SMSCommandStore" )
 public class HibernateSMSCommandStore
-    extends HibernateIdentifiableObjectStore<SMSCommand>
-    implements SMSCommandStore
+    extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
     public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -72,12 +71,11 @@ public class HibernateSMSCommandStore
 
         List<SMSCommand> list = getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "parserType" ), parserType ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName,
-                JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName, JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
 
         if ( list != null && !list.isEmpty() )
         {
-            return list.get( 0 );
+            return  list.get( 0 );
         }
 
         return null;
@@ -90,6 +88,6 @@ public class HibernateSMSCommandStore
         query.setParameter( "dataSet", dataSet );
         // TODO rename data set property
 
-        return query.getSingleResult().intValue();
+        return  query.getSingleResult().intValue();
     }
 }

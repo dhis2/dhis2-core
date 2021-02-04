@@ -34,9 +34,9 @@ package org.hisp.dhis.program;
 
 public enum AnalyticsType
 {
-    EVENT( "event" ),
+    EVENT( "event" ), 
     ENROLLMENT( "enrollment" );
-
+    
     private final String value;
 
     private AnalyticsType( String value )
@@ -56,7 +56,7 @@ public enum AnalyticsType
 
         return null;
     }
-
+    
     public String getValue()
     {
         return value;

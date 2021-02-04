@@ -60,8 +60,8 @@ public class ExpressionFunctions
     }
 
     /**
-     * Function which will return one if the argument is zero or a positive number,
-     * and zero if not.
+     * Function which will return one if the argument is zero or a positive
+     * number, and zero if not.
      *
      * @param value the value, must be a number.
      * @return a Double.
@@ -73,7 +73,7 @@ public class ExpressionFunctions
             return null;
         }
 
-        return (value.doubleValue() >= 0d) ? 1d : 0d;
+        return ( value.doubleValue() >= 0d ) ? 1d : 0d;
     }
 
     /**

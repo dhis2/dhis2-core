@@ -68,14 +68,14 @@ public class DefaultProgramTempOwnershipAuditService implements ProgramTempOwner
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<ProgramTempOwnershipAudit> getProgramTempOwnershipAudits( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAudits( params );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public int getProgramTempOwnershipAuditsCount( ProgramTempOwnershipAuditQueryParams params )
     {
         return programTempOwnershipAuditStore.getProgramTempOwnershipAuditsCount( params );

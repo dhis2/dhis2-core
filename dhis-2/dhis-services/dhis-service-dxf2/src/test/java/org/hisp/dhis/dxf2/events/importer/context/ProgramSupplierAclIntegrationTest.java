@@ -1,5 +1,6 @@
 package org.hisp.dhis.dxf2.events.importer.context;
 
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,21 +29,6 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -58,6 +44,21 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Luciano Fiandesio
@@ -93,8 +94,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     }
 
     //
-    // PROGRAM ACL TESTS
-    // ----------------------------------------------------------------------------
+    // PROGRAM ACL TESTS ----------------------------------------------------------------------------
     //
 
     @Test
@@ -219,7 +219,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final User user = createUser( "user2" );
 
         final ProgramStage programStage = createProgramStage( 'B', 1 );
-
+        
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );
         userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
@@ -256,8 +256,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         user.getGroups().add( userGroup );
 
-        programStage.getSharing().addUserGroupAccess(
-            new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
+        programStage.getSharing().addUserGroupAccess( new org.hisp.dhis.user.sharing.UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE ) );
         manager.save( programStage, false );
 
         final Program program = createProgram( 'A' );
@@ -302,8 +301,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     }
 
     //
-    // TRACKED ENTITY TYPE ACL TESTS
-    // ----------------------------------------------------------------------------
+    // TRACKED ENTITY TYPE ACL TESTS ----------------------------------------------------------------------------
     //
 
     @Test
@@ -311,12 +309,12 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     {
         // Given
         final User demo = createUser( "demo" );
-        final TrackedEntityType tet = createTrackedEntityType( 'A' );
+        final TrackedEntityType tet = createTrackedEntityType('A');
         tet.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( tet );
 
         final Program program = createProgram( 'A' );
-
+        
         program.setTrackedEntityType( tet );
         program.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( program, false );
@@ -336,7 +334,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
     {
         // Given
         final User user = createUser( "A" );
-        final TrackedEntityType tet = createTrackedEntityType( 'A' );
+        final TrackedEntityType tet = createTrackedEntityType('A');
         manager.save( tet );
 
         UserAccess userAccess = new UserAccess();
@@ -368,7 +366,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         // Given
         final User user = createUser( "user1" );
 
-        final TrackedEntityType tet = createTrackedEntityType( 'A' );
+        final TrackedEntityType tet = createTrackedEntityType('A');
         manager.save( tet );
 
         UserGroup userGroup = new UserGroup( "test-group-tet", singleton( user ) );
@@ -402,7 +400,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         // Given
         final User user = createUser( "user1" );
 
-        final TrackedEntityType tet = createTrackedEntityType( 'A' );
+        final TrackedEntityType tet = createTrackedEntityType('A');
         tet.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.save( tet, false );
 

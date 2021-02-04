@@ -28,15 +28,15 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
  */
 public class ExpressionFunctionsTest
-{
+{    
     @Test
     public void testDaysBetween()
     {

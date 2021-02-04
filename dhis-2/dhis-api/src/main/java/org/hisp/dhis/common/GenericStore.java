@@ -28,10 +28,10 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -65,8 +65,8 @@ public interface GenericStore<T>
     void delete( T object );
 
     /**
-     * Retrieves the object with the given identifier. This method will first look
-     * in the current Session, then hit the database if not existing.
+     * Retrieves the object with the given identifier. This method will first
+     * look in the current Session, then hit the database if not existing.
      *
      * @param id the object identifier.
      * @return the object identified by the given identifier.
@@ -93,7 +93,7 @@ public interface GenericStore<T>
 
     List<T> getByAttribute( Attribute attribute );
 
-    List<T> getByAttributeAndValue( Attribute attribute, String value );
+    List<T> getByAttributeAndValue(Attribute attribute, String value );
 
     List<T> getAllByAttributes( List<Attribute> attributes );
 

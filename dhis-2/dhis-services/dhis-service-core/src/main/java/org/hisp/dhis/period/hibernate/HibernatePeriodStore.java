@@ -28,17 +28,7 @@ package org.hisp.dhis.period.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -60,6 +50,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import javax.annotation.PostConstruct;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Implements the PeriodStore interface.
@@ -212,9 +210,7 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Long id = PERIOD_ID_CACHE
-            .get( period.getCacheKey(),
-                key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
             .orElse( null );
 
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
@@ -308,9 +304,8 @@ public class HibernatePeriodStore
 
         if ( reloadedPeriodType == null )
         {
-            throw new InvalidIdentifierReferenceException(
-                "The PeriodType referenced by the Period is not in database: "
-                    + periodType.getName() );
+            throw new InvalidIdentifierReferenceException( "The PeriodType referenced by the Period is not in database: "
+                + periodType.getName() );
         }
 
         return reloadedPeriodType;

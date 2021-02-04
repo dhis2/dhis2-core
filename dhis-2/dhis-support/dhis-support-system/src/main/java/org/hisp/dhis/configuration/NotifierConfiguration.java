@@ -28,6 +28,7 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.hisp.dhis.system.notification.InMemoryNotifier;
@@ -39,8 +40,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.core.RedisTemplate;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This class deals with the configuring an appropriate notifier depending on

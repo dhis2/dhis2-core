@@ -41,21 +41,21 @@ public interface ProgramTempOwnershipAuditStore
 
     /**
      * Adds program temp ownership audit
-     *
+     * 
      * @param programTempOwnershipAudit the audit to add
      */
     void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 
     /**
-     * Deletes audit for the given program
-     *
+     * Deletes  audit for the given program
+     * 
      * @param program the program instance
      */
     void deleteProgramTempOwnershipAudit( Program program );
 
     /**
      * Returns program temp ownership audits matching query params
-     *
+     * 
      * @param params program temp ownership audit query params
      * @return matching ProgramTempOwnershipAudit
      */
@@ -63,7 +63,7 @@ public interface ProgramTempOwnershipAuditStore
 
     /**
      * Returns count of program temp ownership audits matching query params
-     *
+     * 
      * @param params program temp ownership audit query params
      * @return count of ProgramTempOwnershipAudit
      */

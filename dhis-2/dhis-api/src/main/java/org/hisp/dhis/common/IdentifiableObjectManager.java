@@ -28,17 +28,17 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserInfo;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -75,8 +75,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, String uid );
 
-    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme,
-        String value );
+    <T extends IdentifiableObject> T get( Collection<Class<? extends IdentifiableObject>> classes, IdScheme idScheme, String value );
 
     <T extends IdentifiableObject> T getByCode( Class<T> clazz, String code );
 
@@ -103,8 +102,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> List<T> getAllByAttributes( Class<T> klass, List<Attribute> attributes );
 
-    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass,
-        List<Attribute> attributes );
+    <T extends IdentifiableObject> List<AttributeValue> getAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
     <T extends IdentifiableObject> long countAllValuesByAttributes( Class<T> klass, List<Attribute> attributes );
 
@@ -134,8 +132,7 @@ public interface IdentifiableObjectManager
 
     <T extends IdentifiableObject> Map<String, T> getIdMapNoAcl( Class<T> clazz, IdScheme idScheme );
 
-    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property,
-        Collection<String> identifiers );
+    <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, IdentifiableProperty property, Collection<String> identifiers );
 
     <T extends IdentifiableObject> List<T> getObjects( Class<T> clazz, Collection<Long> identifiers );
 

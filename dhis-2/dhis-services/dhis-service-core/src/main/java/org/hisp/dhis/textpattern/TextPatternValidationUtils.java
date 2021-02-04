@@ -28,9 +28,9 @@ package org.hisp.dhis.textpattern;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.regex.Pattern;
-
 import org.hisp.dhis.common.ValueType;
+
+import java.util.regex.Pattern;
 
 /**
  * @author Stian Sandvold

@@ -28,17 +28,16 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashSet;
-import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
- * Contains minimal User info used for ACL check in
- * {@link org.hisp.dhis.common.IdentifiableObjectStore}
+ * Contains minimal User info used for ACL check in {@link org.hisp.dhis.common.IdentifiableObjectStore}
  */
 @Getter
 @Setter

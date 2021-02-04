@@ -28,14 +28,7 @@ package org.hisp.dhis.dataset.notifications;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -67,7 +60,13 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Zubair Asghar.
@@ -75,31 +74,23 @@ import com.google.common.collect.Sets;
 public class DataSetNotificationServiceTest extends DhisConvenienceTest
 {
     public static final String TEMPALTE_A_UID = "smsTemplateA";
-
     public static final String TEMPALTE_B_UID = "emailTemplateB";
 
     public static final String DATA_ELEMENT_A_UID = "dataElementA";
-
     public static final String DATA_ELEMENT_B_UID = "dataElementB";
 
     public static final String PHONE_NUMBER = "00474";
 
     private DataSetNotificationTemplate smsTemplateA;
-
     private DataSetNotificationTemplate emailTemplateB;
-
     private BatchResponseStatus successStatus;
-
     private OutboundMessageResponseSummary summary;
 
     private List<DataSetNotificationTemplate> templates = new ArrayList<>();
-
     private CompleteDataSetRegistration registrationA;
-
     private NotificationMessage notificationMessage;
 
     private OrganisationUnit organisationUnitA;
-
     private OrganisationUnit organisationUnitB;
 
     private DataSet dataSetA;
@@ -107,7 +98,6 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     private Period periodA;
 
     private DataElement dataElementA;
-
     private DataElement dataElementB;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -156,8 +146,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     @Before
     public void setUp()
     {
-        this.subject = new DefaultDataSetNotificationService( dsntService, internalMessageService,
-            externalMessageService, renderer,
+        this.subject = new DefaultDataSetNotificationService( dsntService, internalMessageService, externalMessageService, renderer,
             completeDataSetRegistrationService, periodService, categoryService, i18nManager, organisationUnitService );
 
         setUpConfigurations();
@@ -202,8 +191,7 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
         emailTemplateB.getDataSets().add( dataSetA );
 
         templates.add( smsTemplateA );
-        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, organisationUnitA, categoryOptionCombo,
-            new Date(), "", new Date(), "", true );
+        registrationA = new CompleteDataSetRegistration( dataSetA, periodA, organisationUnitA, categoryOptionCombo, new Date(), "", new Date(), "", true );
         notificationMessage = new NotificationMessage( "subject", "message" );
         summary = new OutboundMessageResponseSummary();
         summary.setBatchStatus( OutboundMessageBatchStatus.COMPLETED );
@@ -215,9 +203,9 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
     @Test
     public void testShouldReturnNullIfRegistrationIsNull()
     {
-        subject.sendCompleteDataSetNotifications( null );
+         subject.sendCompleteDataSetNotifications( null );
 
-        verify( dsntService, times( 0 ) ).getCompleteNotifications( any( DataSet.class ) );
+         verify( dsntService, times( 0 ) ).getCompleteNotifications( any( DataSet.class ) );
     }
 
     @Test
@@ -228,15 +216,13 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
         subject.sendCompleteDataSetNotifications( registrationA );
 
         verify( dsntService, times( 1 ) ).getCompleteNotifications( any( DataSet.class ) );
-        verify( renderer, times( 0 ) ).render( any( CompleteDataSetRegistration.class ),
-            any( DataSetNotificationTemplate.class ) );
+        verify( renderer, times( 0 ) ).render( any( CompleteDataSetRegistration.class ) , any( DataSetNotificationTemplate.class ) );
     }
 
     @Test
     public void testSendCompletionSMSNotification()
     {
-        when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) )
-            .thenReturn( notificationMessage );
+        when( renderer.render( any( CompleteDataSetRegistration.class ), any( DataSetNotificationTemplate.class ) ) ).thenReturn( notificationMessage );
         when( externalMessageService.sendMessages( anyList() ) ).thenReturn( successStatus );
         when( dsntService.getCompleteNotifications( any( DataSet.class ) ) ).thenReturn( templates );
 
@@ -252,7 +238,6 @@ public class DataSetNotificationServiceTest extends DhisConvenienceTest
         assertEquals( 1, programMessageCaptor.getValue().size() );
         assertTrue( programMessageCaptor.getValue().get( 0 ).getDeliveryChannels().contains( DeliveryChannel.SMS ) );
         assertEquals( "subject", programMessageCaptor.getValue().get( 0 ).getSubject() );
-        assertTrue(
-            programMessageCaptor.getValue().get( 0 ).getRecipients().getPhoneNumbers().contains( PHONE_NUMBER ) );
+        assertTrue( programMessageCaptor.getValue().get( 0 ).getRecipients().getPhoneNumbers().contains( PHONE_NUMBER ) );
     }
 }

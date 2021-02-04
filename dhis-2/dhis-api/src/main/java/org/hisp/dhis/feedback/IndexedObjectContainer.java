@@ -28,12 +28,11 @@ package org.hisp.dhis.feedback;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.IdentityHashMap;
-import java.util.Map;
+import org.hisp.dhis.common.IdentifiableObject;
 
 import javax.annotation.Nonnull;
-
-import org.hisp.dhis.common.IdentifiableObject;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 /**
  * Container with objects where the index of the object can be retrieved by the
@@ -54,8 +53,7 @@ public class IndexedObjectContainer implements ObjectIndexProvider
 
     /**
      * @param object the identifiable object that should be checked.
-     * @return <code>true</code> if the object is included in the container,
-     *         <code>false</code> otherwise.
+     * @return <code>true</code> if the object is included in the container, <code>false</code> otherwise.
      */
     public boolean containsObject( @Nonnull IdentifiableObject object )
     {
@@ -63,8 +61,8 @@ public class IndexedObjectContainer implements ObjectIndexProvider
     }
 
     /**
-     * Adds an object to the container of indexed objects. If the object has already
-     * an index assigned, that will not be changed.
+     * Adds an object to the container of indexed objects. If the object has
+     * already an index assigned, that will not be changed.
      *
      * @param object the object to which an index should be assigned.
      * @return the resulting zero based index of the added object in the container.
@@ -74,6 +72,6 @@ public class IndexedObjectContainer implements ObjectIndexProvider
     {
         final Integer newIndex = objectsIndexMap.size();
         final Integer existingIndex = objectsIndexMap.putIfAbsent( object, newIndex );
-        return (existingIndex == null) ? newIndex : existingIndex;
+        return ( existingIndex == null ) ? newIndex : existingIndex;
     }
 }

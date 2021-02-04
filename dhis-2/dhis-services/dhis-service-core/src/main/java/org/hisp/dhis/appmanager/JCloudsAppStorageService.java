@@ -361,9 +361,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                + "New app '%s' installed"
-                + "\n\tInstall path: %s"
-                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                    + "New app '%s' installed"
+                    + "\n\tInstall path: %s"
+                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -523,8 +523,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                        "Standard domain name naming conventions apply (no underscores allowed). " +
-                        "Using default container name ' %s'", container,
+                            "Standard domain name naming conventions apply (no underscores allowed). " +
+                            "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

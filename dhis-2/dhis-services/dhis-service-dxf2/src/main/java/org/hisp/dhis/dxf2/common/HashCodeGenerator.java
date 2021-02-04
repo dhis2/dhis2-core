@@ -37,8 +37,7 @@ import java.security.NoSuchAlgorithmException;
  */
 public class HashCodeGenerator
 {
-    public static String getHashCode( String value )
-        throws NoSuchAlgorithmException
+    public static String getHashCode( String value ) throws NoSuchAlgorithmException
     {
         byte[] bytesOfMessage = value.getBytes( StandardCharsets.UTF_8 );
         MessageDigest md = MessageDigest.getInstance( "MD5" );

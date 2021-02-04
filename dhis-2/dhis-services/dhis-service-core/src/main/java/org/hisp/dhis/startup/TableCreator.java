@@ -28,10 +28,10 @@ package org.hisp.dhis.startup;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -58,15 +58,9 @@ public class TableCreator
     @Override
     public void execute()
     {
-        createSilently(
-            "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)",
-            "dataapproval_unique" );
-        createSilently(
-            "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)",
-            "in_datavalueaudit" );
-        createSilently(
-            "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)",
-            "in_trackedentityattributevalue_attributeid" );
+        createSilently( "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)", "dataapproval_unique" );
+        createSilently( "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)", "in_datavalueaudit" );
+        createSilently( "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)", "in_trackedentityattributevalue_attributeid" );
     }
 
     private void createSilently( final String sql, final String name )

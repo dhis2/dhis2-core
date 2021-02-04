@@ -28,14 +28,14 @@ package org.hisp.dhis.trackedentityattributevalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collection;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -81,7 +81,6 @@ public class TrackedEntityAttributeValueDeletionHandler
     @Override
     public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? null
-            : "Some values are still assigned to this attribute";
+        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? null : "Some values are still assigned to this attribute";
     }
 }

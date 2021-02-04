@@ -28,18 +28,7 @@ package org.hisp.dhis.analytics.table;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.util.DateUtils.getLongDateString;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.AnalyticsIndex;
 import org.hisp.dhis.analytics.AnalyticsTable;
 import org.hisp.dhis.analytics.AnalyticsTableColumn;
@@ -61,6 +50,16 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 
 import com.google.common.collect.Lists;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
+
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -140,8 +139,7 @@ public class DefaultAnalyticsTableService
 
         if ( tables.isEmpty() )
         {
-            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'",
-                tableType.getTableName() ) );
+            clock.logTime( String.format( "Table update aborted, no table or partitions to be updated: '%s'", tableType.getTableName() ) );
             notifier.notify( jobId, "Table updated aborted, no table or partitions to be updated" );
             return;
         }
@@ -292,7 +290,7 @@ public class DefaultAnalyticsTableService
 
         int aggLevels = 0;
 
-        levelLoop: for ( int i = 0; i < maxLevels; i++ )
+        levelLoop : for ( int i = 0; i < maxLevels; i++ )
         {
             int level = maxLevels - i;
 
@@ -361,8 +359,7 @@ public class DefaultAnalyticsTableService
             {
                 if ( !col.isSkipIndex() )
                 {
-                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns()
-                        : Lists.newArrayList( col.getName() );
+                    List<String> indexColumns = col.hasIndexColumns() ? col.getIndexColumns() : Lists.newArrayList( col.getName() );
 
                     indexes.add( new AnalyticsIndex( partition.getTempTableName(), indexColumns, col.getIndexType() ) );
                 }
@@ -409,17 +406,17 @@ public class DefaultAnalyticsTableService
     }
 
     /**
-     * Gets the number of available cores. Uses explicit number from system setting
-     * if available. Detects number of cores from current server runtime if not.
-     * Subtracts one to the number of cores if greater than two to allow one core
-     * for general system operations.
+     * Gets the number of available cores. Uses explicit number from system
+     * setting if available. Detects number of cores from current server runtime
+     * if not. Subtracts one to the number of cores if greater than two to allow
+     * one core for general system operations.
      */
     private int getProcessNo()
     {
         Integer cores = (Integer) systemSettingManager.getSystemSetting( SettingKey.DATABASE_SERVER_CPUS );
 
-        cores = (cores == null || cores == 0) ? SystemUtils.getCpuCores() : cores;
+        cores = ( cores == null || cores == 0 ) ? SystemUtils.getCpuCores() : cores;
 
-        return cores > 2 ? (cores - 1) : cores;
+        return cores > 2 ? ( cores - 1 ) : cores;
     }
 }

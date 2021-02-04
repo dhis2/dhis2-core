@@ -30,7 +30,7 @@ package org.hisp.dhis.analytics;
 
 /**
  * Analytics engine processing hints.
- *
+ * 
  * @author Lars Helge Overland
  */
 public enum ProcessingHint

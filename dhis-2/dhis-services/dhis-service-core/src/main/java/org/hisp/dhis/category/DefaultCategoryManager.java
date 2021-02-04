@@ -34,13 +34,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -82,6 +82,7 @@ public class DefaultCategoryManager
 
         boolean modified = false;
 
+
         Iterator<CategoryOptionCombo> iterator = persistedOptionCombos.iterator();
 
         while ( iterator.hasNext() )
@@ -92,8 +93,7 @@ public class DefaultCategoryManager
 
             for ( CategoryOptionCombo optionCombo : generatedOptionCombos )
             {
-                if ( optionCombo.equals( persistedOptionCombo )
-                    || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
+                if ( optionCombo.equals( persistedOptionCombo ) || persistedOptionCombo.getUid().equals( optionCombo.getUid() ) )
                 {
                     isDelete = false;
                     if ( !optionCombo.getName().equals( persistedOptionCombo.getName() ) )
@@ -119,8 +119,7 @@ public class DefaultCategoryManager
                 iterator.remove();
                 categoryCombo.getOptionCombos().remove( persistedOptionCombo );
 
-                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: "
-                    + categoryCombo.getName() );
+                log.info( "Deleted obsolete category option combo: " + persistedOptionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;
             }
         }
@@ -132,11 +131,11 @@ public class DefaultCategoryManager
                 categoryCombo.getOptionCombos().add( optionCombo );
                 categoryService.addCategoryOptionCombo( optionCombo );
 
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: "
-                    + categoryCombo.getName() );
+                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
                 modified = true;
             }
         }
+
 
         if ( modified )
         {

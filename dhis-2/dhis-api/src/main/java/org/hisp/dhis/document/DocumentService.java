@@ -28,9 +28,9 @@ package org.hisp.dhis.document;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.user.User;
+
+import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -39,7 +39,6 @@ import org.hisp.dhis.user.User;
 public interface DocumentService
 {
     String ID = DocumentService.class.getName();
-
     String DIR = "documents";
 
     /**
@@ -68,7 +67,6 @@ public interface DocumentService
 
     /**
      * Used when removing a file reference from a Document.
-     *
      * @param document
      */
     void deleteFileFromDocument( Document document );

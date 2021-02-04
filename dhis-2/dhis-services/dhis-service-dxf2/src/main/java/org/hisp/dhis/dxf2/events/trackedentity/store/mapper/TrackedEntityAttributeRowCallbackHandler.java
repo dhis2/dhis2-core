@@ -28,6 +28,13 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
+import org.hisp.dhis.util.DateUtils;
+
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_CODE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_NAME;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.ATTR_SKIP_SYNC;
@@ -39,13 +46,6 @@ import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQu
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.UPDATED;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.COLUMNS.VALUE;
 import static org.hisp.dhis.dxf2.events.trackedentity.store.query.TeiAttributeQuery.getColumnName;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.util.DateUtils;
 
 /**
  * @author Luciano Fiandesio

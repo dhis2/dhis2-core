@@ -28,11 +28,11 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -59,20 +59,20 @@ public class CategoryDimensionDeletionHandler
     {
         return CategoryDimension.class.getSimpleName();
     }
-
+    
     @Override
     public String allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-
+        
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
-
+    
     @Override
     public String allowDeleteCategory( Category category )
     {
         String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-
+        
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
     }
 }

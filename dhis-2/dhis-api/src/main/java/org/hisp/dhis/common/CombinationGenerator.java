@@ -37,9 +37,7 @@ import java.util.List;
 public class CombinationGenerator<T>
 {
     private List<List<T>> objects; // List of object lists
-
     private int[] indexes; // Current index for each array
-
     private int no; // No of arrays
 
     private CombinationGenerator( List<List<T>> objects )
@@ -50,7 +48,7 @@ public class CombinationGenerator<T>
 
         if ( no > 0 )
         {
-            indexes[no - 1]--; // Rewind last index to simplify looping
+            indexes[no-1]--; // Rewind last index to simplify looping
         }
     }
 
@@ -110,8 +108,7 @@ public class CombinationGenerator<T>
                 current = getCurrent();
                 break;
             }
-            else // At last position in list, reset index to 0 and continue to increment next
-                 // list
+            else // At last position in list, reset index to 0 and continue to increment next list
             {
                 if ( hasNext() ) // Don't reset if at end
                 {

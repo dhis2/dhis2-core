@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
  * (primary keys). The scope of this data structure is to allow the validation
  * to check if the entity or enrollment declared org unit is part of the
  * declared program's org units.
- *
+ * 
  * This supplier is efficient because it only loads the data that are strictly
  * necessary for this check.
  *

@@ -28,12 +28,12 @@ package org.hisp.dhis.relationship;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Optional;
-
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Abyot Asalefew
@@ -75,10 +75,11 @@ public interface RelationshipService
     Relationship getRelationship( long id );
 
     /**
-     * Fetches a {@link Relationship} based on a relationship identifying
-     * attributes:
+     * Fetches a {@link Relationship} based on a relationship identifying attributes:
      *
-     * - relationship type - from - to
+     * - relationship type
+     * - from
+     * - to
      *
      * @param relationship A valid Relationship
      * @return an Optional Relationship
@@ -87,8 +88,7 @@ public interface RelationshipService
 
     Relationship getRelationship( String uid );
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        boolean skipAccessValidation );
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation );
 

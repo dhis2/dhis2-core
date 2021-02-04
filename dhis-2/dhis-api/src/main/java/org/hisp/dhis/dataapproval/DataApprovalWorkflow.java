@@ -28,6 +28,23 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
+import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -35,27 +52,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
- * Identifies types of data to be approved, and the set of approval levels by
- * which it is approved.
+ * Identifies types of data to be approved, and the set of approval levels
+ * by which it is approved.
  * <p>
  * The types of data to be approved are identified by data sets (for aggregate
  * data) and or programs (for event/tracker data) that are related to a
@@ -65,8 +64,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalWorkflow
-    extends BaseIdentifiableObject
-    implements MetadataObject
+    extends BaseIdentifiableObject implements MetadataObject
 {
     /**
      * The period type for approving data with this workflow.
@@ -128,8 +126,8 @@ public class DataApprovalWorkflow
      */
     public List<DataApprovalLevel> getSortedLevels()
     {
-        Comparator<DataApprovalLevel> orderByLevelNumber = ( DataApprovalLevel dal1,
-            DataApprovalLevel dal2 ) -> dal1.getLevel() - dal2.getLevel();
+        Comparator<DataApprovalLevel> orderByLevelNumber =
+            ( DataApprovalLevel dal1, DataApprovalLevel dal2 ) -> dal1.getLevel() - dal2.getLevel();
 
         List<DataApprovalLevel> sortedLevels = new ArrayList<>( levels );
 
@@ -139,12 +137,13 @@ public class DataApprovalWorkflow
     }
 
     /**
-     * Returns the SQL fragment to extend the category option end dates for this
-     * data approval workflow. This will be based on the dataset belonging to this
-     * workflow with the longest category option end date extension (if any).
+     * Returns the SQL fragment to extend the category option end dates
+     * for this data approval workflow. This will be based on the
+     * dataset belonging to this workflow with the longest
+     * category option end date extension (if any).
      *
-     * @return the SQL to extend the category option end dates, or an empty string
-     *         if there is no such extension.
+     * @return the SQL to extend the category option end dates,
+     * or an empty string if there is no such extension.
      */
     public String getSqlCoEndDateExtension()
     {

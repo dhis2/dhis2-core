@@ -28,8 +28,6 @@ package org.hisp.dhis.eventreport;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -42,6 +40,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -83,13 +83,12 @@ public class EventReportDeletionHandler
     {
         // Ignore default implementation
     }
-
+    
     @Override
     public void deleteDataElement( DataElement dataElement )
     {
-        List<EventReport> eventReports = getAnalyticalObjectService()
-            .getAnalyticalObjectsByDataDimension( dataElement );
-
+        List<EventReport> eventReports = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
+        
         for ( EventReport report : eventReports )
         {
             report.getDataElementDimensions()
@@ -109,19 +108,19 @@ public class EventReportDeletionHandler
     @Override
     public void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
-        // Ignore default implementation
+     // Ignore default implementation
     }
-
+    
     @Override
     public void deleteProgramStage( ProgramStage programStage )
     {
         Collection<EventReport> charts = eventReportService.getAllEventReports();
-
+        
         for ( EventReport chart : charts )
         {
-            if ( chart.getProgramStage().equals( programStage ) )
+            if ( chart.getProgramStage().equals( programStage ))
             {
-                eventReportService.deleteEventReport( chart );
+               eventReportService.deleteEventReport( chart );
             }
         }
     }
@@ -130,12 +129,12 @@ public class EventReportDeletionHandler
     public void deleteProgram( Program program )
     {
         Collection<EventReport> charts = eventReportService.getAllEventReports();
-
+        
         for ( EventReport chart : charts )
         {
-            if ( chart.getProgram().equals( program ) )
+            if( chart.getProgram().equals( program ))
             {
-                eventReportService.deleteEventReport( chart );
+               eventReportService.deleteEventReport( chart );
             }
         }
     }

@@ -33,14 +33,7 @@ package org.hisp.dhis.common;
  */
 public enum QueryOperator
 {
-    EQ( "=" ),
-    GT( ">" ),
-    GE( ">=" ),
-    LT( "<" ),
-    LE( "<=" ),
-    NE( "!=" ),
-    LIKE( "like" ),
-    IN( "in" );
+    EQ( "=" ), GT( ">" ), GE( ">=" ), LT( "<" ), LE( "<=" ), NE( "!=" ), LIKE( "like" ), IN( "in" );
 
     private final String value;
 

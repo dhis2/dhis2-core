@@ -51,8 +51,7 @@ public class DbmsUtils
 
     public static void unbindSessionFromThread( SessionFactory sessionFactory )
     {
-        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager
-            .unbindResource( sessionFactory );
+        SessionHolder sessionHolder = (SessionHolder) TransactionSynchronizationManager.unbindResource( sessionFactory );
 
         SessionFactoryUtils.closeSession( sessionHolder.getSession() );
     }

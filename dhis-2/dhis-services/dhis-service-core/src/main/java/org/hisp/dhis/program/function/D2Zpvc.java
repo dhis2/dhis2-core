@@ -28,13 +28,13 @@ package org.hisp.dhis.program.function;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
-
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
+
+import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator function: d2 zpvc, Zero or Positive Value Count
@@ -57,7 +57,7 @@ public class D2Zpvc
     {
         String sql = "nullif(cast((";
 
-        for ( ExprContext c : ctx.expr() )
+        for ( ExprContext c :  ctx.expr() )
         {
             sql += "case when " + visitor.visitAllowingNulls( c ) + " >= 0 then 1 else 0 end + ";
         }

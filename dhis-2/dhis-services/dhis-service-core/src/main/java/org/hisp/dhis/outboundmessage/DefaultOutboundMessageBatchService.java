@@ -32,11 +32,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.message.MessageSender;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -97,7 +97,8 @@ public class DefaultOutboundMessageBatchService
             return new OutboundMessageResponseSummary(
                 errorMessage,
                 channel,
-                OutboundMessageBatchStatus.FAILED );
+                OutboundMessageBatchStatus.FAILED
+            );
         }
         else if ( !sender.isConfigured() )
         {
@@ -107,7 +108,8 @@ public class DefaultOutboundMessageBatchService
             return new OutboundMessageResponseSummary(
                 errorMessage,
                 channel,
-                OutboundMessageBatchStatus.FAILED );
+                OutboundMessageBatchStatus.FAILED
+            );
         }
 
         log.info( "Invoking message sender: " + sender.getClass().getSimpleName() );

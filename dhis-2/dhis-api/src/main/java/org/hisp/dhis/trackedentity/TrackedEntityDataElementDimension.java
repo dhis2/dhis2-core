@@ -28,16 +28,15 @@ package org.hisp.dhis.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.program.ProgramStage;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -63,7 +62,8 @@ public class TrackedEntityDataElementDimension
     private ProgramStage programStage;
 
     /**
-     * Operator and filter on this format: <operator>:<filter>;<operator>:<filter>
+     * Operator and filter on this format:
+     * <operator>:<filter>;<operator>:<filter>
      * Operator and filter pairs can be repeated any number of times.
      */
     private String filter;
@@ -76,8 +76,7 @@ public class TrackedEntityDataElementDimension
     {
     }
 
-    public TrackedEntityDataElementDimension( DataElement dataElement, LegendSet legendSet, ProgramStage programStage,
-        String filter )
+    public TrackedEntityDataElementDimension( DataElement dataElement, LegendSet legendSet, ProgramStage programStage, String filter )
     {
         this.dataElement = dataElement;
         this.legendSet = legendSet;

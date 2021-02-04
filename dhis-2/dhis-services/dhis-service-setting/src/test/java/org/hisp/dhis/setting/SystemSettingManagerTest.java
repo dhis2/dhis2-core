@@ -28,19 +28,18 @@ package org.hisp.dhis.setting;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.setting.SettingKey.*;
-import static org.junit.Assert.*;
+import com.google.common.collect.ImmutableSet;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.ImmutableSet;
+import static org.hisp.dhis.setting.SettingKey.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Stian Strandli
@@ -122,10 +121,8 @@ public class SystemSettingManagerTest
 
         assertEquals( "valueA", settingsMap.get( SettingKey.APPLICATION_TITLE.getName() ) );
         assertEquals( "valueB", settingsMap.get( SettingKey.APPLICATION_NOTIFICATION.getName() ) );
-        assertEquals( SettingKey.CACHE_STRATEGY.getDefaultValue(),
-            settingsMap.get( SettingKey.CACHE_STRATEGY.getName() ) );
-        assertEquals( SettingKey.CREDENTIALS_EXPIRES.getDefaultValue(),
-            settingsMap.get( SettingKey.CREDENTIALS_EXPIRES.getName() ) );
+        assertEquals( SettingKey.CACHE_STRATEGY.getDefaultValue(), settingsMap.get( SettingKey.CACHE_STRATEGY.getName() ) );
+        assertEquals( SettingKey.CREDENTIALS_EXPIRES.getDefaultValue(), settingsMap.get( SettingKey.CREDENTIALS_EXPIRES.getName() ) );
     }
 
     @Test
@@ -147,6 +144,6 @@ public class SystemSettingManagerTest
         assertEquals( systemSettingManager.isConfidential( SettingKey.EMAIL_PASSWORD.getName() ), true );
 
         assertEquals( SettingKey.EMAIL_HOST_NAME.isConfidential(), false );
-        assertEquals( systemSettingManager.isConfidential( SettingKey.EMAIL_HOST_NAME.getName() ), false );
+        assertEquals( systemSettingManager.isConfidential( SettingKey.EMAIL_HOST_NAME.getName() ), false);
     }
 }

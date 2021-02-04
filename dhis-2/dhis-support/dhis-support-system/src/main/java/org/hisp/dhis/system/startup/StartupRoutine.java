@@ -55,8 +55,8 @@ public interface StartupRoutine
     String getName();
 
     /**
-     * StartupRoutines with lower runlevels will be executed before StartupRoutines
-     * with higher runlevel.
+     * StartupRoutines with lower runlevels will be executed before
+     * StartupRoutines with higher runlevel.
      *
      * @return the runlevel for the StartupRoutine.
      */
@@ -64,7 +64,6 @@ public interface StartupRoutine
 
     /**
      * Returns whether this StartupRoutine is to be skipped in tests or not.
-     *
      * @return true if this StartupRoutine is skipped in tests, false otherwise.
      */
     boolean skipInTests();

@@ -43,7 +43,7 @@ import com.google.common.collect.Iterators;
 /**
  * Data source implementation which routes to the configured target data sources
  * in a circular fashion.
- *
+ * 
  * @author Lars Helge Overland
  */
 public class CircularRoutingDataSource
@@ -54,12 +54,12 @@ public class CircularRoutingDataSource
     public CircularRoutingDataSource()
     {
     }
-
+    
     public CircularRoutingDataSource( List<DataSource> targetDataSources )
     {
         this.dataSourceIterator = Iterators.cycle( Collections.synchronizedList( targetDataSources ) );
     }
-
+        
     // -------------------------------------------------------------------------
     // AbstractDataSource implementation
     // -------------------------------------------------------------------------

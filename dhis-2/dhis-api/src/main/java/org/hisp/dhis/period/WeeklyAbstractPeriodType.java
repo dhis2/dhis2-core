@@ -28,18 +28,17 @@ package org.hisp.dhis.period;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.time.LocalDate;
-import java.time.temporal.WeekFields;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
+import com.google.common.collect.Lists;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.calendar.DateInterval;
 import org.hisp.dhis.calendar.DateIntervalType;
 import org.hisp.dhis.calendar.DateTimeUnit;
 
-import com.google.common.collect.Lists;
+import java.time.LocalDate;
+import java.time.temporal.WeekFields;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -150,8 +149,8 @@ public abstract class WeeklyAbstractPeriodType extends CalendarPeriodType
     }
 
     /**
-     * Generates the last 52 weeks where the last one is the week which the given
-     * date is inside.
+     * Generates the last 52 weeks where the last one is the week which the
+     * given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit end, Calendar calendar )

@@ -28,18 +28,17 @@ package org.hisp.dhis.trackedentitydatavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.Objects;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -72,8 +71,7 @@ public class TrackedEntityDataValueAudit
     {
     }
 
-    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance,
-        String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
+    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance, String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
     {
         this.dataElement = dataElement;
         this.programStageInstance = programStageInstance;
@@ -88,8 +86,7 @@ public class TrackedEntityDataValueAudit
     @Override
     public int hashCode()
     {
-        return Objects.hash( dataElement, programStageInstance, created, value, providedElsewhere, modifiedBy,
-            auditType );
+        return Objects.hash( dataElement, programStageInstance, created, value, providedElsewhere, modifiedBy, auditType );
     }
 
     @Override

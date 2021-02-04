@@ -28,10 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -53,7 +53,7 @@ public class UserAuthorityGroupDeletionHandler
         this.userService = userService;
     }
 
-    // -------------------------------------------------------------------------
+// -------------------------------------------------------------------------
     // DeletionHandler implementation
     // -------------------------------------------------------------------------
 
@@ -67,7 +67,7 @@ public class UserAuthorityGroupDeletionHandler
     public void deleteUser( User user )
     {
         UserCredentials credentials = user.getUserCredentials();
-
+        
         for ( UserAuthorityGroup group : credentials.getUserAuthorityGroups() )
         {
             group.getMembers().remove( credentials );

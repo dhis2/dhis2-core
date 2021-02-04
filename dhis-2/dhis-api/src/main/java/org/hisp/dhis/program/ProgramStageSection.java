@@ -28,20 +28,19 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Chau Thu Tran
@@ -62,16 +61,14 @@ public class ProgramStageSection
     private Integer sortOrder;
 
     /**
-     * The style represents how the ProgramStageSection should be presented on the
-     * client
+     * The style represents how the ProgramStageSection should be presented on the client
      */
     private ObjectStyle style;
 
     private String formName;
 
     /**
-     * The renderType defines how the ProgramStageSection should be rendered on the
-     * client
+     * The renderType defines how the ProgramStageSection should be rendered on the client
      */
     private DeviceRenderTypeMap<SectionRenderingObject> renderType;
 

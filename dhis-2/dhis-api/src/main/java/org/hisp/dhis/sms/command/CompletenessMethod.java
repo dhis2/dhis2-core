@@ -31,7 +31,7 @@ package org.hisp.dhis.sms.command;
 /**
  * Created by zubair@dhis2.org on 17.08.17.
  */
-public enum CompletenessMethod
+public enum  CompletenessMethod
 {
     ALL_DATAVALUE( "Receive all data values" ),
     AT_LEAST_ONE_DATAVALUE( "Receive at least one data value" ),

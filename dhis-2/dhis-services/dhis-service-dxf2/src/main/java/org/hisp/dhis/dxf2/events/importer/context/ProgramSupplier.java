@@ -28,22 +28,10 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -73,8 +61,18 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -127,36 +125,28 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final static String PROGRAM_ID = "programid";
-
     private final static String PROGRAM_STAGE_ID = "programstageid";
-
     private final static String COMPULSORY = "compulsory";
-
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
     // Caches the entire Program hierarchy, including Program Stages and ACL data
-    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
-    {
-    }
+    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
         .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
     // Caches the User Groups and the Users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
-    {
-    }
+    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
         .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
         {
             @Override
-            public Set<User> load( Long userGroupId )
-            {
+            public Set<User> load( Long userGroupId ) {
                 return loadUserGroups( userGroupId );
             }
-        } ).build();
+        } ).build() ;
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper, Environment env )
     {
@@ -211,7 +201,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     private void aggregateProgramAndAclData( Map<String, Program> programMap,
-        Map<Long, DataElementSets> dataElementSetsMap )
+        Map<Long, DataElementSets> dataElementSetsMap  )
     {
         for ( Program program : programMap.values() )
         {
@@ -444,8 +434,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         {
             try
             {
-                ou.setAttributeValues(
-                    EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
+                ou.setAttributeValues( EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
             }
             catch ( JsonProcessingException e )
             {
@@ -516,8 +505,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Sharing toSharing( String json )
     {
-        if ( StringUtils.isEmpty( json ) )
-            return null;
+        if ( StringUtils.isEmpty( json ) ) return null;
 
         try
         {

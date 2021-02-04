@@ -55,11 +55,12 @@ public class PeriodTypeRandomizer
         PeriodType.getPeriodTypeFromIsoString( "2011AprilS1" ),
         PeriodType.getPeriodTypeFromIsoString( "2011April" ),
         PeriodType.getPeriodTypeFromIsoString( "2011July" ),
-        PeriodType.getPeriodTypeFromIsoString( "2011Oct" ) );
+        PeriodType.getPeriodTypeFromIsoString( "2011Oct" )
+    );
 
     @Override
     public PeriodType getRandomValue()
     {
-        return periodTypes.get( new Random().nextInt( periodTypes.size() - 1 ) );
+        return periodTypes.get(new Random().nextInt(periodTypes.size() -1 ));
     }
 }

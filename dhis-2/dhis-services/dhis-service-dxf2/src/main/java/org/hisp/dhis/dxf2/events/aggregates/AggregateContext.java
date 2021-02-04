@@ -30,17 +30,17 @@ package org.hisp.dhis.dxf2.events.aggregates;
 
 import java.util.List;
 
-import lombok.Builder;
-import lombok.Value;
-
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+
+import lombok.Builder;
+import lombok.Value;
 
 /**
  * @author Luciano Fiandesio
  */
 @Value
-@Builder( toBuilder = true )
+@Builder(toBuilder = true)
 public class AggregateContext
 {
     /**

@@ -28,12 +28,12 @@ package org.hisp.dhis.commons.util;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Collection;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Utility class for concurrency operations.
@@ -70,8 +70,8 @@ public class ConcurrentUtils
     }
 
     /**
-     * Returns a {@link Future} which is immediately completed and has its value set
-     * to an empty string.
+     * Returns a {@link Future} which is immediately completed and has its
+     * value set to an empty string.
      *
      * @return a future which is immediately completed.
      */

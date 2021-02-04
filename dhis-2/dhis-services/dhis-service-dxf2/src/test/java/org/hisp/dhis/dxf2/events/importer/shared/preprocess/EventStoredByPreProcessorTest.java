@@ -28,12 +28,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.dxf2.events.event.EventUtils.FALLBACK_USERNAME;
-
+import com.google.common.collect.Sets;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
@@ -42,7 +37,11 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.collect.Sets;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.allOf;
+import static org.hamcrest.Matchers.hasItems;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.dxf2.events.event.EventUtils.FALLBACK_USERNAME;
 
 /**
  * @author Luciano Fiandesio

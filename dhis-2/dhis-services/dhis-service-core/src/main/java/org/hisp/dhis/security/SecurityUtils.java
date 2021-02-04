@@ -1,14 +1,14 @@
 package org.hisp.dhis.security;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.jboss.aerogear.security.otp.Totp;
 import org.springframework.util.Assert;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -44,7 +44,6 @@ import org.springframework.util.Assert;
 public class SecurityUtils
 {
     private static final String APP_NAME_PREFIX = "DHIS 2 ";
-
     private static final String QR_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
 
     /**

@@ -28,10 +28,9 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>

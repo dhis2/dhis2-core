@@ -28,15 +28,14 @@ package org.hisp.dhis.dxf2.datavalueset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.OutputStream;
-
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingJsonDataValue;
-
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalue.StreamingJsonDataValue;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

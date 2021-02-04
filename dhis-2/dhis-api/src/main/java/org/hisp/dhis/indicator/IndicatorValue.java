@@ -31,13 +31,13 @@ package org.hisp.dhis.indicator;
 /**
  * Non-persisted class for representing the various components of an aggregated
  * indicator value.
- *
+ * 
  * @author Lars Helge Overland
  */
 public class IndicatorValue
-{
+{    
     private double numeratorValue;
-
+    
     private double denominatorValue;
 
     private int multiplier;
@@ -57,7 +57,7 @@ public class IndicatorValue
      */
     public double getValue()
     {
-        return (numeratorValue * multiplier) / (denominatorValue * divisor);
+        return ( numeratorValue * multiplier ) / ( denominatorValue * divisor );
     }
 
     /**
@@ -65,7 +65,7 @@ public class IndicatorValue
      */
     public double getFactor()
     {
-        return ((double) multiplier) / ((double) divisor);
+        return ( (double) multiplier ) / ( (double) divisor );
     }
 
     // -------------------------------------------------------------------------

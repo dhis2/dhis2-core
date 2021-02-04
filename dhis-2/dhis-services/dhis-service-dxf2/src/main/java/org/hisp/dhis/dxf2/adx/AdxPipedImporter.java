@@ -28,11 +28,6 @@ package org.hisp.dhis.dxf2.adx;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
-import java.util.concurrent.Callable;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
@@ -43,6 +38,11 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.io.IOException;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
+import java.util.concurrent.Callable;
 
 /**
  * @author bobj
@@ -67,8 +67,7 @@ public class AdxPipedImporter
     private final Authentication authentication;
 
     public AdxPipedImporter( DataValueSetService dataValueSetService, ImportOptions importOptions,
-        JobConfiguration id, PipedOutputStream pipeOut, SessionFactory sessionFactory )
-        throws IOException
+        JobConfiguration id, PipedOutputStream pipeOut, SessionFactory sessionFactory ) throws IOException
     {
         this.dataValueSetService = dataValueSetService;
         this.pipeIn = new PipedInputStream( pipeOut, PIPE_BUFFER_SIZE );

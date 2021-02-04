@@ -28,11 +28,11 @@ package org.hisp.dhis.datasummary;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * DataSummary object to transfer System Statistics

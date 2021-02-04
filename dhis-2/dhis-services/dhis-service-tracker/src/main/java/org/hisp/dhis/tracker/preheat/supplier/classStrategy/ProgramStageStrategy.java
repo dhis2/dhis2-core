@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = ProgramStage.class, mapper = ProgramStageMapper.class, cache = true, ttl = 20 )
+@StrategyFor( value = ProgramStage.class, mapper = ProgramStageMapper.class, cache = true, ttl = 20  )
 public class ProgramStageStrategy extends AbstractSchemaStrategy
 {
     public ProgramStageStrategy( SchemaService schemaService, QueryService queryService,

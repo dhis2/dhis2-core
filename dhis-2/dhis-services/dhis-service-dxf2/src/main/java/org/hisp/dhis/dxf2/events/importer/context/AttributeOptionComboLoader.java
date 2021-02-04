@@ -28,17 +28,8 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.google.common.collect.ImmutableMap;
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.category.CategoryCombo;
@@ -55,8 +46,16 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.common.collect.ImmutableMap;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Luciano Fiandesio
@@ -105,7 +104,8 @@ public class AttributeOptionComboLoader
     }
 
     /**
-     * Fetches a {@see CategoryOptionCombo} by id, using the provided look-up Scheme
+     * Fetches a {@see CategoryOptionCombo} by id, using the provided look-up
+     * Scheme
      *
      * @param idScheme an IdScheme
      * @param id the actual id
@@ -125,7 +125,7 @@ public class AttributeOptionComboLoader
      * @return a {@see CategoryOptionCombo}
      */
     public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
-        String attributeOptionCombo, IdScheme idScheme )
+                                                        String attributeOptionCombo, IdScheme idScheme )
     {
         final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
 
@@ -134,12 +134,11 @@ public class AttributeOptionComboLoader
 
     /**
      * Fetches the default {@see CategoryOptionCombo}
-     *
      * @return a {@see CategoryOptionCombo} or null
      */
     public CategoryOptionCombo getDefault()
     {
-        return loadCategoryOptionCombo( IdScheme.NAME, "default" );
+        return  loadCategoryOptionCombo( IdScheme.NAME, "default" );
     }
 
     /**
@@ -240,9 +239,7 @@ public class AttributeOptionComboLoader
         return id;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId,
-        Set<CategoryOption> categoryOptions )
-    {
+    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions ) {
 
         final String key = "categorycomboid";
         final String categoryComboKey = resolveId( idScheme, key, categoryComboId );
@@ -259,8 +256,7 @@ public class AttributeOptionComboLoader
 
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
-            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ),
-                ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
+            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
 
         if ( categoryOptionCombos.size() == 1 )
         {
@@ -287,7 +283,7 @@ public class AttributeOptionComboLoader
     {
         String key = "categoryoptioncomboid";
 
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
             .put( "key", key )
             .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );
@@ -383,7 +379,7 @@ public class AttributeOptionComboLoader
         }
         catch ( JsonProcessingException e )
         {
-            // ignore
+            //ignore
             return null;
         }
 

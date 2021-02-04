@@ -32,11 +32,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
-
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.google.common.collect.Lists;
+import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
 @JsonTypeName( "http" )
 public class GenericHttpGatewayConfig

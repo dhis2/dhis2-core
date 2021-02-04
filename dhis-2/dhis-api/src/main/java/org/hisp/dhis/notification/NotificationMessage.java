@@ -37,11 +37,8 @@ import org.hisp.dhis.message.MessageConversationStatus;
 public class NotificationMessage
 {
     private String subject = "";
-
     private String message = "";
-
     private MessageConversationPriority priority = MessageConversationPriority.NONE;
-
     private MessageConversationStatus status = MessageConversationStatus.NONE;
 
     public NotificationMessage( String subject, String message )

@@ -28,13 +28,12 @@ package org.hisp.dhis.dxf2.events.event.csv;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Objects;
-
-import org.springframework.util.Assert;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.google.common.base.MoreObjects;
+import org.springframework.util.Assert;
+
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -329,21 +328,14 @@ public class CsvEventDataValue
 
         final CsvEventDataValue other = (CsvEventDataValue) obj;
 
-        return Objects.equals( this.event, other.event ) && Objects.equals( this.status, other.status )
-            && Objects.equals( this.program,
-                other.program )
-            && Objects.equals( this.programStage, other.programStage ) && Objects.equals( this.orgUnit,
-                other.orgUnit )
-            && Objects.equals( this.enrollment, other.enrollment ) && Objects.equals( this.eventDate,
-                other.eventDate )
-            && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
-                other.latitude )
-            && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
-                other.dataElement )
-            && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
-                other.storedBy )
-            && Objects.equals( this.providedElsewhere, other.providedElsewhere ) && Objects.equals( this.geometry,
-                other.geometry );
+        return Objects.equals( this.event, other.event ) && Objects.equals( this.status, other.status ) && Objects.equals( this.program,
+            other.program ) && Objects.equals( this.programStage, other.programStage ) && Objects.equals( this.orgUnit,
+            other.orgUnit ) && Objects.equals( this.enrollment, other.enrollment ) && Objects.equals( this.eventDate,
+            other.eventDate ) && Objects.equals( this.dueDate, other.dueDate ) && Objects.equals( this.latitude,
+            other.latitude ) && Objects.equals( this.longitude, other.longitude ) && Objects.equals( this.dataElement,
+            other.dataElement ) && Objects.equals( this.value, other.value ) && Objects.equals( this.storedBy,
+            other.storedBy ) && Objects.equals( this.providedElsewhere, other.providedElsewhere ) &&Objects.equals( this.geometry,
+            other.geometry );
     }
 
     @Override

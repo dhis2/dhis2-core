@@ -28,15 +28,15 @@ package org.hisp.dhis.dxf2.datavalueset.tasks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.InputStream;
-
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.security.SecurityContextRunnable;
+
+import java.io.InputStream;
 
 /**
  * @author Lars Helge Overland
@@ -45,21 +45,17 @@ public class ImportDataValueTask
     extends SecurityContextRunnable
 {
     public static final String FORMAT_XML = "xml";
-
     public static final String FORMAT_JSON = "json";
-
     public static final String FORMAT_CSV = "csv";
-
     public static final String FORMAT_PDF = "pdf";
-
     public static final String FORMAT_ADX = "adx";
 
     private DataValueSetService dataValueSetService;
 
     private AdxDataService adxDataService;
-
+    
     private SessionFactory sessionFactory;
-
+    
     private InputStream inputStream;
 
     private final ImportOptions importOptions;
@@ -69,9 +65,8 @@ public class ImportDataValueTask
     private final String format;
 
     // TODO: Re-factor as bean to avoid injecting session factory / dependencies
-
-    public ImportDataValueTask( DataValueSetService dataValueSetService, AdxDataService adxDataService,
-        SessionFactory sessionFactory,
+    
+    public ImportDataValueTask( DataValueSetService dataValueSetService, AdxDataService adxDataService, SessionFactory sessionFactory,
         InputStream inputStream, ImportOptions importOptions, JobConfiguration jobId, String format )
     {
         this.dataValueSetService = dataValueSetService;
@@ -107,13 +102,13 @@ public class ImportDataValueTask
             dataValueSetService.saveDataValueSet( inputStream, importOptions, jobId );
         }
     }
-
+    
     @Override
     public void before()
     {
         DbmsUtils.bindSessionToThread( sessionFactory );
     }
-
+    
     @Override
     public void after()
     {

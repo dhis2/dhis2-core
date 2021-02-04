@@ -28,9 +28,9 @@ package org.hisp.dhis.dxf2.datavalue;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-
 import com.fasterxml.jackson.core.JsonGenerator;
+
+import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,7 +118,7 @@ public class StreamingJsonDataValue extends DataValue
     {
         writeObjectField( "followup", followup );
     }
-
+    
     @Override
     public void setDeleted( Boolean deleted )
     {

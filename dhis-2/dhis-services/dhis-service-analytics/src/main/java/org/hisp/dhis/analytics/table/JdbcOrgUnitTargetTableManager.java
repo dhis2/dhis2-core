@@ -100,9 +100,9 @@ public class JdbcOrgUnitTargetTableManager
     @Transactional
     public List<AnalyticsTable> getAnalyticsTables( AnalyticsTableUpdateParams params )
     {
-        return params.isLatestUpdate() ? Lists.newArrayList()
-            : Lists.newArrayList(
-                new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
+        return params.isLatestUpdate() ?
+            Lists.newArrayList() :
+            Lists.newArrayList( new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns(), getValueColumns() ) );
     }
 
     @Override
@@ -153,7 +153,8 @@ public class JdbcOrgUnitTargetTableManager
             sql += col.getAlias() + ",";
         }
 
-        sql += "1 as value " +
+        sql +=
+            "1 as value " +
             "from orgunitgroupmembers ougm " +
             "inner join orgunitgroup oug on ougm.orgunitgroupid=oug.orgunitgroupid " +
             "left join _orgunitstructure ous on ougm.organisationunitid=ous.organisationunitid " +
@@ -166,13 +167,13 @@ public class JdbcOrgUnitTargetTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        List<OrganisationUnitLevel> levels = organisationUnitService.getFilledOrganisationUnitLevels();
+        List<OrganisationUnitLevel> levels =
+            organisationUnitService.getFilledOrganisationUnitLevels();
 
         for ( OrganisationUnitLevel level : levels )
         {
             String column = quote( PREFIX_ORGUNITLEVEL + level.getLevel() );
-            columns.add(
-                new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
+            columns.add( new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
         columns.addAll( getFixedColumns() );
@@ -187,8 +188,7 @@ public class JdbcOrgUnitTargetTableManager
 
     @Override
     @Async
-    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
-        Collection<String> dataElements, int aggregationLevel )
+    public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions, Collection<String> dataElements, int aggregationLevel )
     {
         return ConcurrentUtils.getImmediateFuture();
     }

@@ -31,8 +31,6 @@ package org.hisp.dhis.sms.config;
 import java.util.List;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
@@ -48,6 +46,8 @@ import org.springframework.web.client.RestTemplate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
@@ -55,13 +55,9 @@ import com.google.common.collect.ImmutableSet;
 public abstract class SmsGateway
 {
     protected static final String PROTOCOL_VERSION = "X-Version";
-
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
-
     protected static final String BASIC = " Basic ";
-
     public static final String KEY_TEXT = "text";
-
     public static final String KEY_RECIPIENT = "recipients";
 
     public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
@@ -85,13 +81,11 @@ public abstract class SmsGateway
     @Autowired
     private RestTemplate restTemplate;
 
-    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch,
-        SmsGatewayConfig gatewayConfig );
+    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
     protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
 
-    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients,
-        SmsGatewayConfig gatewayConfig );
+    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {

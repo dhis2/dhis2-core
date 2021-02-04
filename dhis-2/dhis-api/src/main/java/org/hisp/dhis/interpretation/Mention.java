@@ -29,10 +29,10 @@ package org.hisp.dhis.interpretation;
  */
 
 import java.io.Serializable;
+
 import java.util.Date;
 
 import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -44,9 +44,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class Mention implements Serializable
 {
     private String username;
-
+    
     private Date created;
-
+    
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUsername()

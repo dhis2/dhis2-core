@@ -91,8 +91,7 @@ public class TrackedEntityProgramAttributeEncryptionTest
 
         assertEquals( 5, attributeValues.size() );
 
-        // not really a great test, but we are using a random seed for salt, so it
-        // changes on every run... we might want to
+        // not really a great test, but we are using a random seed for salt, so it changes on every run... we might want to
         // add another EncryptionConfig test profile
         RowCallbackHandler handler = resultSet -> assertNotNull( resultSet.getString( "encryptedvalue" ) );
         jdbcTemplate.query( "select * from trackedentityattributevalue where encryptedvalue is not null ", handler );

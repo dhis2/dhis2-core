@@ -28,10 +28,6 @@ package org.hisp.dhis.mapping;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
 import org.hisp.dhis.indicator.Indicator;
@@ -44,6 +40,10 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.RelativePeriods;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jan Henrik Overland
@@ -58,15 +58,15 @@ public class DefaultMappingService
     // -------------------------------------------------------------------------
 
     private final MapStore mapStore;
-
+    
     private final MapViewStore mapViewStore;
 
     private final ExternalMapLayerStore externalMapLayerStore;
 
     private final OrganisationUnitService organisationUnitService;
-
+    
     private final IndicatorService indicatorService;
-
+    
     private final PeriodService periodService;
 
     public DefaultMappingService( MapStore mapStore, MapViewStore mapViewStore,
@@ -123,21 +123,21 @@ public class DefaultMappingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Map getMap( long id )
     {
         return mapStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Map getMap( String uid )
     {
         return mapStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Map getMapNoAcl( String uid )
     {
         return mapStore.getByUidNoAcl( uid );
@@ -177,21 +177,21 @@ public class DefaultMappingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public MapView getMapView( long id )
     {
         return mapViewStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public MapView getMapView( String uid )
     {
         return mapViewStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public MapView getIndicatorLastYearMapView( String indicatorUid, String organisationUnitUid, int level )
     {
         MapView mapView = new MapView();
@@ -212,14 +212,14 @@ public class DefaultMappingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<MapView> getMapViewsByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         return mapViewStore.getByOrganisationUnitGroupSet( groupSet );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public int countMapViewMaps( MapView mapView )
     {
         return mapStore.countMapViewMaps( mapView );
@@ -252,14 +252,14 @@ public class DefaultMappingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ExternalMapLayer getExternalMapLayer( long id )
     {
         return externalMapLayerStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public ExternalMapLayer getExternalMapLayer( String uid )
     {
         return externalMapLayerStore.getByUid( uid );

@@ -65,8 +65,8 @@ public class PostgreSQLStatementBuilder
     public String getAnalyze( String table )
     {
         return "analyze " + table + ";";
-    }
-
+    }   
+    
     @Override
     public String getAutoIncrementValue()
     {
@@ -77,26 +77,26 @@ public class PostgreSQLStatementBuilder
     public String getTableOptions( boolean autoVacuum )
     {
         String sql = "";
-
+        
         if ( !autoVacuum )
         {
             sql += "autovacuum_enabled = false";
         }
-
+        
         if ( !sql.isEmpty() )
         {
             sql = "with (" + sql + ")";
         }
-
+        
         return sql;
     }
-
+    
     @Override
     public String getRegexpMatch()
     {
         return "~*";
     }
-
+    
     @Override
     public String getRegexpWordStart()
     {
@@ -126,7 +126,7 @@ public class PostgreSQLStatementBuilder
     {
         return "(" + dateField + "+" + days + ")";
     }
-
+    
     @Override
     public String getDaysBetweenDates( String fromColumn, String toColumn )
     {
@@ -142,7 +142,8 @@ public class PostgreSQLStatementBuilder
     @Override
     public String getAddPrimaryKeyToExistingTable( String table, String column )
     {
-        return "alter table " + table + " add column " + column + " bigint;" +
+        return
+            "alter table " + table + " add column " + column + " bigint;" +
             "update " + table + " set " + column + " = nextval('hibernate_sequence') where " + column + " is null;" +
             "alter table " + table + " alter column " + column + " set not null;" +
             "alter table " + table + " add primary key(" + column + ");";
@@ -157,7 +158,8 @@ public class PostgreSQLStatementBuilder
     /**
      * Generates a derived table containing one column of literal strings.
      *
-     * The PostgreSQL implementation returns the following form: <code>
+     * The PostgreSQL implementation returns the following form:
+     * <code>
      *     (values ('s1'),('s2'),('s3')) table (column)
      * </code>
      *
@@ -169,25 +171,26 @@ public class PostgreSQLStatementBuilder
     @Override
     public String literalStringTable( Collection<String> values, String table, String column )
     {
-        StringBuilder sb = new StringBuilder( "(values " );
+        StringBuilder sb = new StringBuilder("(values ");
 
         for ( String value : values )
         {
             sb.append( "('" ).append( value ).append( "')," );
         }
 
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
-            .append( ") " ).append( table )
-            .append( " (" ).append( column ).append( ")" )
+        return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
+            .append(") ").append( table )
+            .append(" (").append(column).append(")")
             .toString();
     }
 
     /**
-     * Generates a derived table containing literals in two columns: long and
-     * string.
+     * Generates a derived table containing literals in two columns: long
+     * and string.
      *
-     * The generic implementation, which works in all supported database types,
-     * returns a subquery in the following form: <code>
+     * The generic implementation, which works in all supported database
+     * types, returns a subquery in the following form:
+     * <code>
      *     (values (i1, 's1'),(i2, 's2'),(i3, 's3')) table (intColumn, strColumn)
      * </code>
      *
@@ -210,7 +213,7 @@ public class PostgreSQLStatementBuilder
                 .append( strValues.get( i ) ).append( "')," );
         }
 
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
+        return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
             .append( ") " ).append( table )
             .append( " (" ).append( longColumn ).append( ", " )
             .append( strColumn ).append( ")" )
@@ -218,7 +221,8 @@ public class PostgreSQLStatementBuilder
     }
 
     /**
-     * Generates a derived table containing literals in two columns: long and long.
+     * Generates a derived table containing literals in two columns: long
+     * and long.
      *
      * @param long1Values (non-empty) 1st long column values for the table
      * @param long2Values (same size) 2nd long column values for the table
@@ -227,8 +231,9 @@ public class PostgreSQLStatementBuilder
      * @param long2Column the desired 2nd long column name
      * @return the derived literal table
      *
-     *         The generic implementation, which works in all supported database
-     *         types, returns a subquery in the following form: <code>
+     * The generic implementation, which works in all supported database
+     * types, returns a subquery in the following form:
+     * <code>
      *     (values (i1_1, i2_1),(i1_2, i2_2),(i1_3, i2_3)) table (int1Column, int2Column)
      * </code>
      */
@@ -236,15 +241,15 @@ public class PostgreSQLStatementBuilder
     public String literalLongLongTable( List<Long> long1Values,
         List<Long> long2Values, String table, String long1Column, String long2Column )
     {
-        StringBuilder sb = new StringBuilder( "(values " );
+        StringBuilder sb = new StringBuilder("(values ");
 
         for ( int i = 0; i < long1Values.size(); i++ )
         {
-            sb.append( "(" ).append( long1Values.get( i ) ).append( ", " )
+            sb.append( "(" ).append( long1Values.get( i ) ).append( ", ")
                 .append( long2Values.get( i ) ).append( ")," );
         }
 
-        return sb.deleteCharAt( sb.length() - 1 ) // Remove the final ','.
+        return sb.deleteCharAt(sb.length()-1) // Remove the final ','.
             .append( ") " ).append( table )
             .append( " (" ).append( long1Column ).append( ", " )
             .append( long2Column ).append( ")" )

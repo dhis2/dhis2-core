@@ -28,13 +28,8 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -45,8 +40,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.junit.Test;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -58,8 +57,7 @@ public class DimensionalObjectUtilsTest
     {
         assertEquals( "< 5, = Discharged", DimensionalObjectUtils.getPrettyFilter( "LT:5:EQ:Discharged" ) );
         assertEquals( ">= 10, Female", DimensionalObjectUtils.getPrettyFilter( "GE:10:LIKE:Female" ) );
-        assertEquals( "> 20, Discharged, Transferred",
-            DimensionalObjectUtils.getPrettyFilter( "GT:20:IN:Discharged;Transferred" ) );
+        assertEquals( "> 20, Discharged, Transferred", DimensionalObjectUtils.getPrettyFilter( "GT:20:IN:Discharged;Transferred" ) );
         assertEquals( null, DimensionalObjectUtils.getPrettyFilter( null ) );
         assertEquals( null, DimensionalObjectUtils.getPrettyFilter( "uid" ) );
     }
@@ -244,7 +242,6 @@ public class DimensionalObjectUtilsTest
         assertTrue( items.contains( opC ) );
         assertTrue( items.contains( deA ) );
     }
-
     @Test
     public void testSortKeys()
     {
@@ -367,8 +364,8 @@ public class DimensionalObjectUtilsTest
         final Map<DimensionalItemObject, Double> asMap = DimensionalObjectUtils.convertToDimItemValueMap( list );
 
         assertEquals( asMap.size(), 3 );
-        assertEquals( asMap.get( deA ).intValue(), 10 );
-        assertEquals( asMap.get( deB ).intValue(), 20 );
-        assertEquals( asMap.get( deC ).intValue(), 30 );
+        assertEquals( asMap.get( deA).intValue(), 10 );
+        assertEquals( asMap.get( deB).intValue(), 20 );
+        assertEquals( asMap.get( deC).intValue(), 30 );
     }
 }

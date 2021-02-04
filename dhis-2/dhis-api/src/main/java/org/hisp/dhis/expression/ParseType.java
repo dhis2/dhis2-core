@@ -28,9 +28,9 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hisp.dhis.analytics.DataType.*;
-
 import org.hisp.dhis.analytics.DataType;
+
+import static org.hisp.dhis.analytics.DataType.*;
 
 /**
  * Type of expression that can be parsed by the Expression Service

@@ -28,11 +28,11 @@ package org.hisp.dhis.query.operators;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.hibernate.criterion.MatchMode;
 import org.hisp.dhis.query.Type;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Henning Håkonsen
@@ -47,16 +47,16 @@ public class TokenUtils
     public static StringBuilder createRegex( String value )
     {
         StringBuilder regex = new StringBuilder();
-
+        
         List<String> tokens = TokenUtils.getTokens( value );
-
+        
         if ( tokens == null || tokens.isEmpty() )
         {
             return regex;
         }
-
+        
         TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
-
+                
         return regex;
     }
 

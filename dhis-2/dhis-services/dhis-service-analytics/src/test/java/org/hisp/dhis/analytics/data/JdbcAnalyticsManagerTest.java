@@ -28,11 +28,11 @@ package org.hisp.dhis.analytics.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.*;
@@ -144,8 +144,7 @@ public class JdbcAnalyticsManagerTest
         when( rowSet.next() ).thenReturn( false );
     }
 
-    private DataQueryParams createParams( AggregationType aggregationType )
-    {
+    private DataQueryParams createParams(AggregationType aggregationType) {
 
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, aggregationType );
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -159,8 +158,7 @@ public class JdbcAnalyticsManagerTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
-    private void assertExpectedSql( String sortOrder )
-    {
+    private void assertExpectedSql(String sortOrder) {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
@@ -172,8 +170,7 @@ public class JdbcAnalyticsManagerTest
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
     }
 
-    private void assertExpectedLastSql( String sortOrder )
-    {
+    private void assertExpectedLastSql(String sortOrder) {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","

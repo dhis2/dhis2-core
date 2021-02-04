@@ -28,8 +28,8 @@ package org.hisp.dhis.sqlview;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.Grid;
 
 /**
  * @author Dang Duy Hieu
@@ -49,11 +49,11 @@ public interface SqlViewStore
 
     /**
      * Tests the given SQL for validity.
-     *
+     * 
      * @param sql the SQL string.
      * @return a non-null description if invalid, and null if valid.
      */
     String testSqlGrammar( String sql );
-
+    
     boolean refreshMaterializedView( SqlView sqlView );
 }

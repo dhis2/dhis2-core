@@ -28,29 +28,27 @@ package org.hisp.dhis.expression;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+
+import java.io.Serializable;
 
 /**
  * An Expression is the expression of e.g. a validation rule. It consist of a
  * String representation of the rule as well as references to the data elements
  * and category option combos included in the expression.
  * <p/>
- * The expression can contain numbers and mathematical operators and contain
- * references to data elements and category option combos on the form:
+ * The expression can contain numbers and mathematical operators and contain references
+ * to data elements and category option combos on the form:
  * <p/>
  * i) [1.2] where 1 refers to the data element identifier and 2 refers to the
  * category option combo identifier.
  * <p/>
- * ii) [1] where 1 refers to the data element identifier, in this case the
- * formula represents the total value for all category option combos for that
- * data element.
+ * ii) [1] where 1 refers to the data element identifier, in this case the formula
+ * represents the total value for all category option combos for that data element.
  *
  * @author Margrethe Store
  * @version $Id: Expression.java 5011 2008-04-24 20:41:28Z larshelg $
@@ -65,9 +63,7 @@ public class Expression
     private static final long serialVersionUID = -4868682510629094282L;
 
     public static final String SEPARATOR = ".";
-
     public static final String EXP_OPEN = "#{";
-
     public static final String EXP_CLOSE = "}";
 
     /**
@@ -91,8 +87,8 @@ public class Expression
     private Boolean slidingWindow = false;
 
     /**
-     * Indicates whether the expression should evaluate to null if all or any data
-     * values are missing in the expression.
+     * Indicates whether the expression should evaluate to null if all or any
+     * data values are missing in the expression.
      */
     private MissingValueStrategy missingValueStrategy = MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
 
@@ -108,7 +104,7 @@ public class Expression
     }
 
     /**
-     * @param expression The expression as a String
+     * @param expression  The expression as a String
      * @param description A description of the Expression.
      */
     public Expression( String expression, String description )
@@ -120,8 +116,8 @@ public class Expression
     /**
      * Constructor with all the parameters.
      *
-     * @param expression The expression as a String
-     * @param description A description of the Expression.
+     * @param expression           The expression as a String
+     * @param description          A description of the Expression.
      * @param missingValueStrategy Strategy for handling missing values.
      */
     public Expression( String expression, String description,

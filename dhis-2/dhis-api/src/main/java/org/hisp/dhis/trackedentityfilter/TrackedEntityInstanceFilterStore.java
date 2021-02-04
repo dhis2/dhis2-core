@@ -42,7 +42,6 @@ public interface TrackedEntityInstanceFilterStore
 {
     /**
      * Gets trackedEntityInstanceFilters
-     *
      * @param program program of trackedEntityInstanceFilter to be fetched
      * @return list of trackedEntityInstanceFilters
      */

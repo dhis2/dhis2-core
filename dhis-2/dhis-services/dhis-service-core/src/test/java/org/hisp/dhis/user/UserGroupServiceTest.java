@@ -28,16 +28,16 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 /**
  * @author Dang Duy Hieu
@@ -50,12 +50,10 @@ public class UserGroupServiceTest
     private UserGroupService userGroupService;
 
     @Autowired
-    private UserService userService;
-
+    private  UserService userService;
+    
     private User user1;
-
     private User user2;
-
     private User user3;
 
     @Override

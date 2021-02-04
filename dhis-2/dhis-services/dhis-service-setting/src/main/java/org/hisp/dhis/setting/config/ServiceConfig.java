@@ -44,7 +44,7 @@ import org.springframework.core.env.Environment;
 /**
  * @author Luciano Fiandesio
  */
-@Configuration( "settingServiceConfig" )
+@Configuration("settingServiceConfig")
 public class ServiceConfig
 {
     @Autowired

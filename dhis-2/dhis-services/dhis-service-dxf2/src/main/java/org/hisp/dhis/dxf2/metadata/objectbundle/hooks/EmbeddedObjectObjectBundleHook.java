@@ -28,10 +28,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -48,6 +44,10 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -138,8 +138,7 @@ public class EmbeddedObjectObjectBundleHook
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle,
-        Collection<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -150,7 +149,7 @@ public class EmbeddedObjectObjectBundleHook
                     continue;
                 }
 
-                ((Collection<?>) ReflectionUtils.invokeMethod( object, property.getGetterMethod() )).clear();
+                ( ( Collection<?> ) ReflectionUtils.invokeMethod( object, property.getGetterMethod() ) ).clear();
             }
             else
             {
@@ -159,17 +158,17 @@ public class EmbeddedObjectObjectBundleHook
         }
     }
 
-    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle,
-        Collection<Property> properties )
+    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
     {
         for ( Property property : properties )
         {
-            Object propertyObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            Object propertyObject =  ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
             if ( property.isCollection() )
             {
                 Collection<?> objects = (Collection<?>) propertyObject;
-                objects.forEach( itemPropertyObject -> {
+                objects.forEach( itemPropertyObject ->
+                {
                     handleProperty( itemPropertyObject, bundle, property );
                     handleEmbeddedAnalyticalProperty( itemPropertyObject, bundle, property );
                 } );
@@ -224,7 +223,6 @@ public class EmbeddedObjectObjectBundleHook
 
         Schema propertySchema = schemaService.getDynamicSchema( property.getItemKlass() );
 
-        analyticalObjectImportHandler.handleAnalyticalObject( session, propertySchema,
-            (BaseAnalyticalObject) identifiableObject, bundle );
+        analyticalObjectImportHandler.handleAnalyticalObject( session, propertySchema, ( BaseAnalyticalObject ) identifiableObject, bundle );
     }
 }

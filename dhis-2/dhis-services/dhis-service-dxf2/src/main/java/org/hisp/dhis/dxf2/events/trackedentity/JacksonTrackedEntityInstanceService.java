@@ -28,16 +28,9 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -72,9 +65,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -87,31 +86,31 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     private final RelationshipTypeService relationshipTypeService;
 
     public JacksonTrackedEntityInstanceService(
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
-        TrackedEntityAttributeService trackedEntityAttributeService,
-        RelationshipService _relationshipService,
-        org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
-        RelationshipTypeService relationshipTypeService,
-        TrackedEntityAttributeValueService trackedEntityAttributeValueService,
-        IdentifiableObjectManager manager,
-        UserService userService,
-        DbmsManager dbmsManager,
-        EnrollmentService enrollmentService,
-        ProgramInstanceService programInstanceService,
-        CurrentUserService currentUserService,
-        SchemaService schemaService,
-        QueryService queryService,
-        ReservedValueService reservedValueService,
-        TrackerAccessManager trackerAccessManager,
-        FileResourceService fileResourceService,
-        TrackerOwnershipManager trackerOwnershipAccessManager,
-        TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
-        TrackedEntityAttributeStore trackedEntityAttributeStore,
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
-        TrackedEntityTypeService trackedEntityTypeService,
-        Notifier notifier,
-        ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+            org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+            TrackedEntityAttributeService trackedEntityAttributeService,
+            RelationshipService _relationshipService,
+            org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
+            RelationshipTypeService relationshipTypeService,
+            TrackedEntityAttributeValueService trackedEntityAttributeValueService,
+            IdentifiableObjectManager manager,
+            UserService userService,
+            DbmsManager dbmsManager,
+            EnrollmentService enrollmentService,
+            ProgramInstanceService programInstanceService,
+            CurrentUserService currentUserService,
+            SchemaService schemaService,
+            QueryService queryService,
+            ReservedValueService reservedValueService,
+            TrackerAccessManager trackerAccessManager,
+            FileResourceService fileResourceService,
+            TrackerOwnershipManager trackerOwnershipAccessManager,
+            TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
+            TrackedEntityAttributeStore trackedEntityAttributeStore,
+            TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+            TrackedEntityTypeService trackedEntityTypeService,
+            Notifier notifier,
+            ObjectMapper jsonMapper,
+            @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
         checkNotNull( teiService );
         checkNotNull( trackedEntityAttributeService );
@@ -170,29 +169,25 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @SuppressWarnings( "unchecked" )
-    private <T> T fromXml( InputStream inputStream, Class<?> clazz )
-        throws IOException
+    private <T> T fromXml( InputStream inputStream, Class<?> clazz ) throws IOException
     {
         return (T) xmlMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T> T fromXml( String input, Class<?> clazz )
-        throws IOException
+    private <T> T fromXml( String input, Class<?> clazz ) throws IOException
     {
         return (T) xmlMapper.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T> T fromJson( InputStream inputStream, Class<?> clazz )
-        throws IOException
+    private <T> T fromJson( InputStream inputStream, Class<?> clazz ) throws IOException
     {
         return (T) jsonMapper.readValue( inputStream, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T> T fromJson( String input, Class<?> clazz )
-        throws IOException
+    private <T> T fromJson( String input, Class<?> clazz ) throws IOException
     {
         return (T) jsonMapper.readValue( input, clazz );
     }
@@ -202,8 +197,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream )
-        throws IOException
+    public List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
@@ -211,8 +205,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     }
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream )
-        throws IOException
+    public List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
 
@@ -220,8 +213,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     }
 
     @Override
-    public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions )
-        throws IOException
+    public ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<TrackedEntityInstance> trackedEntityInstances = parseXmlTrackedEntityInstances( input );
@@ -230,8 +222,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     }
 
     @Override
-    public ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions )
-        throws IOException
+    public ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, Charset.forName( "UTF-8" ) );
         List<TrackedEntityInstance> trackedEntityInstances = parseJsonTrackedEntityInstances( input );
@@ -239,8 +230,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return addTrackedEntityInstanceList( trackedEntityInstances, updateImportOptions( importOptions ) );
     }
 
-    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances( String input )
-        throws IOException
+    private List<TrackedEntityInstance> parseJsonTrackedEntityInstances( String input ) throws IOException
     {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
@@ -260,8 +250,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return trackedEntityInstances;
     }
 
-    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances( String input )
-        throws IOException
+    private List<TrackedEntityInstance> parseXmlTrackedEntityInstances( String input ) throws IOException
     {
         List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
 
@@ -279,8 +268,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return trackedEntityInstances;
     }
 
-    private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances,
-        ImportOptions importOptions )
+    private ImportSummaries addTrackedEntityInstanceList( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
@@ -289,16 +277,17 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         List<TrackedEntityInstance> update = new ArrayList<>();
         List<TrackedEntityInstance> delete = new ArrayList<>();
 
-        // TODO: Check whether relationships are modified during create/update/delete
-        // TEI logic. Decide whether logic below can be removed
+        //TODO: Check whether relationships are modified during create/update/delete TEI logic. Decide whether logic below can be removed
         List<Relationship> relationships = new ArrayList<>();
         trackedEntityInstances.stream()
             .filter( tei -> !tei.getRelationships().isEmpty() )
-            .forEach( tei -> {
+            .forEach( tei ->
+            {
                 RelationshipItem item = new RelationshipItem();
                 item.setTrackedEntityInstance( tei );
 
-                tei.getRelationships().forEach( rel -> {
+                tei.getRelationships().forEach( rel ->
+                {
                     // Update from if it is empty. Current tei is then "from"
                     if ( rel.getFrom() == null )
                     {
@@ -343,10 +332,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         importSummaries.addImportSummaries( updateTrackedEntityInstances( update, importOptions ) );
         importSummaries.addImportSummaries( deleteTrackedEntityInstances( delete, importOptions ) );
 
-        // TODO: Created importSummaries don't contain correct href (TEI endpoint
-        // instead of relationships is used)
-        importSummaries
-            .addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ) );
+        //TODO: Created importSummaries don't contain correct href (TEI endpoint instead of relationships is used)
+        importSummaries.addImportSummaries( relationshipService.processRelationshipList( relationships, importOptions ) );
 
         if ( ImportReportMode.ERRORS == importOptions.getReportMode() )
         {
@@ -356,17 +343,14 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         return importSummaries;
     }
 
-    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances,
-        List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
+    private void sortCreatesAndUpdates( List<TrackedEntityInstance> trackedEntityInstances, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
     {
-        List<String> ids = trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance )
-            .collect( Collectors.toList() );
+        List<String> ids = trackedEntityInstances.stream().map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toList() );
         List<String> existingUids = teiService.getTrackedEntityInstancesUidsIncludingDeleted( ids );
 
         for ( TrackedEntityInstance trackedEntityInstance : trackedEntityInstances )
         {
-            if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() )
-                || !existingUids.contains( trackedEntityInstance.getTrackedEntityInstance() ) )
+            if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) || !existingUids.contains( trackedEntityInstance.getTrackedEntityInstance() ) )
             {
                 create.add( trackedEntityInstance );
             }
@@ -377,8 +361,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         }
     }
 
-    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create,
-        List<TrackedEntityInstance> update )
+    private void sortCreatesAndUpdates( TrackedEntityInstance trackedEntityInstance, List<TrackedEntityInstance> create, List<TrackedEntityInstance> update )
     {
         if ( StringUtils.isEmpty( trackedEntityInstance.getTrackedEntityInstance() ) )
         {

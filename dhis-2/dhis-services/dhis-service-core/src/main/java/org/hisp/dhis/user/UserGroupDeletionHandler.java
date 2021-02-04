@@ -28,13 +28,13 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Set;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Set;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -74,19 +74,19 @@ public class UserGroupDeletionHandler
     public void deleteUser( User user )
     {
         Set<UserGroup> userGroups = user.getGroups();
-
+        
         for ( UserGroup group : userGroups )
         {
             group.getMembers().remove( user );
             idObjectManager.updateNoAcl( group );
         }
     }
-
+    
     @Override
     public void deleteUserGroup( UserGroup userGroup )
     {
         Set<UserGroup> userGroups = userGroup.getManagedByGroups();
-
+        
         for ( UserGroup group : userGroups )
         {
             group.getManagedGroups().remove( userGroup );

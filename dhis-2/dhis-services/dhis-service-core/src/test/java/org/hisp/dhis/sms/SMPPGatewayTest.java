@@ -28,11 +28,7 @@ package org.hisp.dhis.sms;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.junit.Assert.*;
-
-import java.util.ArrayList;
-import java.util.List;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.outboundmessage.OutboundMessage;
@@ -46,7 +42,10 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.*;
 
 /**
  * To run this test, make sure that the SMSC is running on:
@@ -64,17 +63,11 @@ import com.google.common.collect.Sets;
 public class SMPPGatewayTest extends DhisSpringTest
 {
     private static final String SYSTEM_ID = "smppclient1";
-
     private static final String SYSTEM_TYPE = "cp";
-
     private static final String HOST = "localhost";
-
     private static final String PASSWORD = "password";
-
     private static final String RECIPIENT = "47XXXXXX";
-
     private static final String TEXT = "text through smpp";
-
     private static final String SUBJECT = "subject";
 
     private static final int PORT = 2775;

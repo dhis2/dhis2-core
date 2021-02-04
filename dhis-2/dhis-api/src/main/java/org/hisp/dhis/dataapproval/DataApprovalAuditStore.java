@@ -28,10 +28,10 @@ package org.hisp.dhis.dataapproval;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import java.util.List;
 
 /**
  * Defines the functionality for persisting DataApproval objects.
@@ -58,3 +58,4 @@ public interface DataApprovalAuditStore
      */
     List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params );
 }
+

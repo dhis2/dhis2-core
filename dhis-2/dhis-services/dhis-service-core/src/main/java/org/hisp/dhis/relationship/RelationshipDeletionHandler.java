@@ -78,7 +78,7 @@ public class RelationshipDeletionHandler
             }
         }
     }
-
+    
     @Override
     public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
@@ -93,7 +93,7 @@ public class RelationshipDeletionHandler
             }
         }
     }
-
+    
     @Override
     public void deleteProgramInstance( ProgramInstance programInstance )
     {
@@ -109,11 +109,11 @@ public class RelationshipDeletionHandler
         }
     }
 
+
     @Override
     public String allowDeleteRelationshipType( RelationshipType relationshipType )
     {
-        Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByRelationshipType( relationshipType );
+        Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
 
         return relationships.isEmpty() ? null : ERROR;
     }

@@ -49,14 +49,13 @@ public class HibernateExternalFileResourceStore
     public HibernateExternalFileResourceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ExternalFileResource.class, currentUserService, aclService,
-            false );
+        super( sessionFactory, jdbcTemplate, publisher, ExternalFileResource.class, currentUserService, aclService, false );
     }
 
     @Override
     public ExternalFileResource getExternalFileResourceByAccessToken( String accessToken )
     {
-        return getQuery( "from ExternalFileResource where accessToken = :accessToken" )
+        return  getQuery( "from ExternalFileResource where accessToken = :accessToken" )
             .setParameter( "accessToken", accessToken ).uniqueResult();
     }
 }

@@ -31,8 +31,6 @@ package org.hisp.dhis.tracker.programrule;
 public interface ActionRule
 {
     String getData();
-
     String getField();
-
     String getContent();
 }

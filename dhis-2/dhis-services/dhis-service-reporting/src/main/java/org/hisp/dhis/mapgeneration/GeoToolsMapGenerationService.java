@@ -28,13 +28,6 @@ package org.hisp.dhis.mapgeneration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.util.*;
-import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsService;
@@ -55,6 +48,13 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.*;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * An implementation of MapGenerationService that uses GeoTools to generate
  * maps.
@@ -73,9 +73,9 @@ public class GeoToolsMapGenerationService
     // -------------------------------------------------------------------------
 
     private final OrganisationUnitService organisationUnitService;
-
+    
     private final AnalyticsService analyticsService;
-
+    
     private final CurrentUserService currentUserService;
 
     private final SystemSettingManager systemSettingManager;
@@ -178,18 +178,17 @@ public class GeoToolsMapGenerationService
         }
     }
 
+
     // -------------------------------------------------------------------------
     // Internal
     // -------------------------------------------------------------------------
 
     private static final String DEFAULT_COLOR_HIGH = "#ff0000";
-
     private static final String DEFAULT_COLOR_LOW = "#ffff00";
 
     private static final float DEFAULT_OPACITY = 0.75f;
 
     private static final Integer DEFAULT_RADIUS_HIGH = 35;
-
     private static final Integer DEFAULT_RADIUS_LOW = 15;
 
     private InternalMapLayer getSingleInternalMapLayer( MapView mapView, User user, Date date )
@@ -204,14 +203,12 @@ public class GeoToolsMapGenerationService
 
         if ( mapView.hasOrganisationUnitLevels() )
         {
-            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( mapView.getOrganisationUnitLevels(),
-                mapView.getOrganisationUnits() ) );
+            atLevels.addAll( organisationUnitService.getOrganisationUnitsAtLevels( mapView.getOrganisationUnitLevels(), mapView.getOrganisationUnits() ) );
         }
 
         if ( mapView.hasItemOrganisationUnitGroups() )
         {
-            inGroups.addAll( organisationUnitService.getOrganisationUnits( mapView.getItemOrganisationUnitGroups(),
-                mapView.getOrganisationUnits() ) );
+            inGroups.addAll( organisationUnitService.getOrganisationUnits( mapView.getItemOrganisationUnitGroups(), mapView.getOrganisationUnits() ) );
         }
 
         mapView.init( user, date, null, atLevels, inGroups, null );
@@ -237,8 +234,7 @@ public class GeoToolsMapGenerationService
         }
         else if ( mapView.getRelatives() != null )
         {
-            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager
-                .getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
+            AnalyticsFinancialYearStartKey financialYearStart = (AnalyticsFinancialYearStartKey) systemSettingManager.getSystemSetting( SettingKey.ANALYTICS_FINANCIAL_YEAR_START );
             period = mapView.getRelatives().getRelativePeriods( date, null, false, financialYearStart ).get( 0 );
         }
 
@@ -246,12 +242,10 @@ public class GeoToolsMapGenerationService
         Integer radiusHigh = mapView.getRadiusHigh() != null ? mapView.getRadiusHigh() : DEFAULT_RADIUS_HIGH;
 
         // Get the low and high colors, typically in hexadecimal form, e.g. #ff3200
-        Color colorLow = MapUtils
-            .createColorFromString( StringUtils.trimToNull( mapView.getColorLow() ) != null ? mapView.getColorLow()
-                : DEFAULT_COLOR_LOW );
-        Color colorHigh = MapUtils
-            .createColorFromString( StringUtils.trimToNull( mapView.getColorHigh() ) != null ? mapView.getColorHigh()
-                : DEFAULT_COLOR_HIGH );
+        Color colorLow = MapUtils.createColorFromString( StringUtils.trimToNull( mapView.getColorLow() ) != null ? mapView.getColorLow()
+            : DEFAULT_COLOR_LOW );
+        Color colorHigh = MapUtils.createColorFromString( StringUtils.trimToNull( mapView.getColorHigh() ) != null ? mapView.getColorHigh()
+            : DEFAULT_COLOR_HIGH );
 
         float opacity = mapView.getOpacity() != null ? mapView.getOpacity().floatValue() : DEFAULT_OPACITY;
 
@@ -327,8 +321,8 @@ public class GeoToolsMapGenerationService
     }
 
     /**
-     * Returns a list of map values for the given map view. If the map view is not a
-     * data layer, an empty list is returned.
+     * Returns a list of map values for the given map view. If the map view is
+     * not a data layer, an empty list is returned.
      */
     private List<MapValue> getAggregatedMapValues( MapView mapView )
     {
@@ -352,7 +346,7 @@ public class GeoToolsMapGenerationService
                 int valueIndex = row.size() - 1;
 
                 String ou = (String) row.get( ouIndex );
-                Double value = ((Number) row.get( valueIndex )).doubleValue();
+                Double value = ( (Number) row.get( valueIndex ) ).doubleValue();
 
                 mapValues.add( new MapValue( ou, value ) );
             }
@@ -361,8 +355,7 @@ public class GeoToolsMapGenerationService
         return mapValues;
     }
 
-    private BufferedImage combineLegendAndMapImages( BufferedImage titleImage, BufferedImage legendImage,
-        BufferedImage mapImage )
+    private BufferedImage combineLegendAndMapImages( BufferedImage titleImage, BufferedImage legendImage, BufferedImage mapImage )
     {
         Assert.notNull( titleImage, "Title image cannot be null" );
         Assert.notNull( legendImage, "Legend image cannot be null" );
@@ -371,7 +364,7 @@ public class GeoToolsMapGenerationService
         // Create image, note that image height cannot be less than legend
 
         int width = getImageWidth( legendImage, mapImage );
-        int height = Math.max( titleImage.getHeight() + mapImage.getHeight(), (legendImage.getHeight() + 1) );
+        int height = Math.max( titleImage.getHeight() + mapImage.getHeight(), ( legendImage.getHeight() + 1 ) );
 
         BufferedImage finalImage = new BufferedImage( width, height, mapImage.getType() );
 
@@ -387,6 +380,6 @@ public class GeoToolsMapGenerationService
 
     private int getImageWidth( BufferedImage legendImage, BufferedImage mapImage )
     {
-        return (legendImage != null ? legendImage.getWidth() : 0) + (mapImage != null ? mapImage.getWidth() : 0);
+        return ( legendImage != null ? legendImage.getWidth() : 0 ) + ( mapImage != null ? mapImage.getWidth() : 0 );
     }
 }

@@ -28,10 +28,11 @@ package org.hisp.dhis.program;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.Objects;
-import java.util.regex.Pattern;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -42,11 +43,9 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.joda.time.DateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.Objects;
+import java.util.regex.Pattern;
 
 /**
  * @author Markus Bekken
@@ -55,47 +54,26 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements EmbeddedObject
 {
     public static final String EVENT_DATE = "EVENT_DATE";
-
     public static final String ENROLLMENT_DATE = "ENROLLMENT_DATE";
-
     public static final String INCIDENT_DATE = "INCIDENT_DATE";
-
     public static final String COHORT_HAVING_PROGRAM_STAGE_PREFIX = "PS_EVENTDATE:";
-
     public static final String PROGRAM_STAGE_REGEX_GROUP = "ps";
-
-    public static final String COHORT_HAVING_PROGRAM_STAGE_REGEX = COHORT_HAVING_PROGRAM_STAGE_PREFIX + "(?<"
-        + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11})";
-
-    public static final Pattern COHORT_HAVING_PROGRAM_STAGE_PATTERN = Pattern
-        .compile( COHORT_HAVING_PROGRAM_STAGE_REGEX );
-
+    public static final String COHORT_HAVING_PROGRAM_STAGE_REGEX = COHORT_HAVING_PROGRAM_STAGE_PREFIX + "(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11})";
+    public static final Pattern COHORT_HAVING_PROGRAM_STAGE_PATTERN = Pattern.compile( COHORT_HAVING_PROGRAM_STAGE_REGEX );
     public static final String COHORT_HAVING_DATA_ELEMENT_PREFIX = "#{";
-
     public static final String DATA_ELEMENT_REGEX_GROUP = "de";
-
-    public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "#\\{(?<" + PROGRAM_STAGE_REGEX_GROUP
-        + ">\\w{11})\\.(?<" + DATA_ELEMENT_REGEX_GROUP + ">\\w{11})}";
-
-    public static final Pattern COHORT_HAVING_DATA_ELEMENT_PATTERN = Pattern
-        .compile( COHORT_HAVING_DATA_ELEMENT_REGEX );
-
+    public static final String COHORT_HAVING_DATA_ELEMENT_REGEX = "#\\{(?<" + PROGRAM_STAGE_REGEX_GROUP + ">\\w{11})\\.(?<" + DATA_ELEMENT_REGEX_GROUP + ">\\w{11})}";
+    public static final Pattern COHORT_HAVING_DATA_ELEMENT_PATTERN = Pattern.compile( COHORT_HAVING_DATA_ELEMENT_REGEX );
     public static final String COHORT_HAVING_ATTRIBUTE_PREFIX = "A{";
-
     public static final String ATTRIBUTE_REGEX_GROUP = "a";
-
     public static final String COHORT_HAVING_ATTRIBUTE_REGEX = "A\\{(?<" + ATTRIBUTE_REGEX_GROUP + ">\\w{11})}";
-
     public static final Pattern COHORT_HAVING_ATTRIBUTE_PATTERN = Pattern.compile( COHORT_HAVING_ATTRIBUTE_REGEX );
 
     public static final String DB_EVENT_DATE = "executiondate";
-
     public static final String DB_ENROLLMENT_DATE = "enrollmentdate";
-
     public static final String DB_INCIDENT_DATE = "incidentdate";
 
     public static final String DB_QUOTE = "\"";
-
     public static final String DB_SEPARATOR_ID = "_";
 
     private String boundaryTarget;
@@ -137,16 +115,14 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     // -------------------------------------------------------------------------
 
     /**
-     * Get the date representing this boundary. For end-type boundaries
-     * BEFORE_START_OF_REPORTING_PERIOD and BEFORE_END_OF_REPORTING_PERIOD, one day
-     * is added to the date. This to allow SQL and comparisons using a less than
-     * operator to find anything before the end of the reporting period.
+     * Get the date representing this boundary. For end-type boundaries BEFORE_START_OF_REPORTING_PERIOD and
+     * BEFORE_END_OF_REPORTING_PERIOD, one day is added to the date. This to allow SQL and comparisons using a
+     * less than operator to find anything before the end of the reporting period.
      *
      * @param reportingStartDate the reporting period start date
-     * @param reportingEndDate the reporting period end date
-     * @return the reporting start or end date is returned based on the boundary
-     *         settings, potentially incremented by one day if the boundary is one
-     *         of the end-type boundaries.
+     * @param reportingEndDate   the reporting period end date
+     * @return the reporting start or end date is returned based on the boundary settings, potentially incremented
+     * by one day if the boundary is one of the end-type boundaries.
      */
     public Date getBoundaryDate( Date reportingStartDate, Date reportingEndDate )
     {
@@ -170,6 +146,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
 
         return returnDate;
     }
+
 
     public Boolean isCohortDateBoundary()
     {
@@ -213,8 +190,7 @@ public class AnalyticsPeriodBoundary extends BaseIdentifiableObject implements E
     @Override
     public int hashCode()
     {
-        return 31 * Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType,
-            getOffsetPeriodsInt() );
+        return 31 * Objects.hash( this.boundaryTarget, this.analyticsPeriodBoundaryType, this.offsetPeriodType, getOffsetPeriodsInt() );
     }
 
     @Override

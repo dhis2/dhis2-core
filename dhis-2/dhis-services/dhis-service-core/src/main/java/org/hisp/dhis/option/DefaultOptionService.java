@@ -28,15 +28,15 @@ package org.hisp.dhis.option;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -52,15 +52,13 @@ public class DefaultOptionService
     private IdentifiableObjectStore<OptionSet> optionSetStore;
 
     private OptionStore optionStore;
-
+    
     private OptionGroupStore optionGroupStore;
 
     private OptionGroupSetStore optionGroupSetStore;
 
-    public DefaultOptionService(
-        @Qualifier( "org.hisp.dhis.option.OptionSetStore" ) IdentifiableObjectStore<OptionSet> optionSetStore,
-        OptionStore optionStore,
-        OptionGroupStore optionGroupStore, OptionGroupSetStore optionGroupSetStore )
+    public DefaultOptionService(@Qualifier("org.hisp.dhis.option.OptionSetStore") IdentifiableObjectStore<OptionSet> optionSetStore, OptionStore optionStore,
+                                OptionGroupStore optionGroupStore, OptionGroupSetStore optionGroupSetStore )
     {
         checkNotNull( optionSetStore );
         checkNotNull( optionStore );
@@ -98,28 +96,28 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionSet getOptionSet( long id )
     {
         return optionSetStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionSet getOptionSet( String uid )
     {
         return optionSetStore.getByUid( uid );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionSet getOptionSetByName( String name )
     {
         return optionSetStore.getByName( name );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionSet getOptionSetByCode( String code )
     {
         return optionSetStore.getByCode( code );
@@ -133,7 +131,7 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<OptionSet> getAllOptionSets()
     {
         return optionSetStore.getAll();
@@ -144,7 +142,7 @@ public class DefaultOptionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
         List<Option> options;
@@ -175,14 +173,14 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Option getOption( long id )
     {
         return optionStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public Option getOptionByCode( String code )
     {
         return optionStore.getByCode( code );
@@ -216,14 +214,14 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionGroup getOptionGroup( long id )
     {
         return optionGroupStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionGroup getOptionGroup( String uid )
     {
         return optionGroupStore.getByUid( uid );
@@ -237,7 +235,7 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<OptionGroup> getAllOptionGroups()
     {
         return optionGroupStore.getAll();
@@ -264,14 +262,14 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionGroupSet getOptionGroupSet( long id )
     {
         return optionGroupSetStore.get( id );
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public OptionGroupSet getOptionGroupSet( String uid )
     {
         return optionGroupSetStore.getByUid( uid );
@@ -285,7 +283,7 @@ public class DefaultOptionService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional(readOnly = true)
     public List<OptionGroupSet> getAllOptionGroupSets()
     {
         return optionGroupSetStore.getAll();

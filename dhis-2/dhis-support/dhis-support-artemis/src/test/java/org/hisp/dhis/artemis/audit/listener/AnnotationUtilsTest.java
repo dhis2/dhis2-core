@@ -36,6 +36,7 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.junit.Test;
 
+
 /**
  * @author Luciano Fiandesio
  */
@@ -55,8 +56,7 @@ public class AnnotationUtilsTest
     public void testGetAnnotatedFields()
     {
         NestedTestImplementation testImplementation = new NestedTestImplementation();
-        assertEquals( 3,
-            AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
+        assertEquals( 3, AnnotationUtils.getAnnotatedFields( testImplementation.getClass(), AuditAttribute.class ).size() );
     }
 
 }

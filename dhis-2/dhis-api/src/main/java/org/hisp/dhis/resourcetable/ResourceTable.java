@@ -28,10 +28,10 @@ package org.hisp.dhis.resourcetable;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.CodeGenerator;
+
 import java.util.List;
 import java.util.Optional;
-
-import org.hisp.dhis.common.CodeGenerator;
 
 /**
  * @author Lars Helge Overland

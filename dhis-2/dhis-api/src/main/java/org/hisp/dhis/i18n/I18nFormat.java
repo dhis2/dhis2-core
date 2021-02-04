@@ -28,6 +28,15 @@ package org.hisp.dhis.i18n;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyAbstractPeriodType;
+import org.hisp.dhis.period.WeeklyPeriodType;
+import org.joda.time.DateTime;
+
 import java.text.DateFormat;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
@@ -41,15 +50,6 @@ import java.time.temporal.WeekFields;
 import java.util.Date;
 import java.util.ResourceBundle;
 
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
-import org.hisp.dhis.period.BiWeeklyAbstractPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyAbstractPeriodType;
-import org.hisp.dhis.period.WeeklyPeriodType;
-import org.joda.time.DateTime;
-
 /**
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
@@ -58,17 +58,13 @@ import org.joda.time.DateTime;
 public class I18nFormat
 {
     private static final DecimalFormat FORMAT_VALUE = new DecimalFormat( "#.#" ); // Fixed for now
-
     private static final String EMPTY = "";
-
     private static final String NAN = "NaN";
 
     private static final String INVALID_DATE = "Invalid date format";
 
     public static final String FORMAT_DATE = "yyyy-MM-dd";
-
     public static final String FORMAT_TIME = "HH:mm";
-
     public static final String FORMAT_DATETIME = "yyyy-MM-dd HH:mm";
 
     private ResourceBundle resourceBundle;
@@ -222,8 +218,7 @@ public class I18nFormat
     }
 
     /**
-     * Formats a period. Returns null if value is null. Returns INVALID_DATE if
-     * formatting string is invalid.
+     * Formats a period. Returns null if value is null. Returns INVALID_DATE if formatting string is invalid.
      *
      * @param period the value to format.
      */
@@ -240,8 +235,7 @@ public class I18nFormat
         if ( periodType instanceof WeeklyAbstractPeriodType ) // Use ISO dates due to potential week confusion
         {
             DateTime dateTime = new DateTime( period.getStartDate() );
-            LocalDate date = Instant.ofEpochMilli( period.getStartDate().getTime() ).atZone( ZoneId.systemDefault() )
-                .toLocalDate();
+            LocalDate date = Instant.ofEpochMilli( period.getStartDate().getTime() ).atZone( ZoneId.systemDefault() ).toLocalDate();
             WeekFields weekFields = WeekFields.of( PeriodType.MAP_WEEK_TYPE.get( periodType.getName() ), 4 );
 
             String year = String.valueOf( date.get( weekFields.weekBasedYear() ) );
@@ -332,9 +326,9 @@ public class I18nFormat
     }
 
     /**
-     * Formats value. Returns empty string if value is null. Returns NaN if value is
-     * not a number. Return a formatted string if value is an instance of Number, if
-     * not returns the value as a string.
+     * Formats value. Returns empty string if value is null. Returns NaN if value
+     * is not a number. Return a formatted string if value is an instance of Number,
+     * if not returns the value as a string.
      *
      * @param value the value to format.
      */

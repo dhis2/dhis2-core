@@ -28,9 +28,9 @@ package org.hisp.dhis.apphub;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.Date;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.

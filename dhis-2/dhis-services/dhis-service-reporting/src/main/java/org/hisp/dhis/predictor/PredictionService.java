@@ -28,11 +28,11 @@ package org.hisp.dhis.predictor;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Date;
-import java.util.List;
-
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Jim Grace

@@ -115,6 +115,7 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
                 .and( hasProperty( "aggregationType", hasProperty( "dataType", is( DataType.TEXT ) ) ) ) ) );
     }
 
+
     @Test
     public void verifySingleNonDataElementRetainAggregationTypeButNullDataType()
     {
@@ -122,24 +123,24 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
         periods.add( new MonthlyPeriodType().createPeriod( new DateTime( 2014, 4, 1, 0, 0 ).toDate() ) );
         // DataQueryParams with **one** Indicator
         DataQueryParams queryParams = DataQueryParams.newBuilder().withDimensions(
-            // PERIOD DIMENSION
-            Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
-                new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                    Lists.newArrayList( createIndicator( 'A', createIndicatorType( 'A' ) ) ) ) ) )
-            .withFilters( Lists.newArrayList(
-                // OU FILTER
-                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-            .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
+                // PERIOD DIMENSION
+                Lists.newArrayList( new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
+                        new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
+                                Lists.newArrayList( createIndicator('A', createIndicatorType( 'A' ) ) ) ) ) )
+                .withFilters( Lists.newArrayList(
+                        // OU FILTER
+                        new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                                ImmutableList.of( new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+                .withAggregationType( AnalyticsAggregationType.AVERAGE ).build();
 
         DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+                QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
 
         assertThat( dataQueryGroups.getAllQueries(), hasItem(
-            both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
-                .and( hasProperty( "aggregationType", hasProperty( "dataType", is( nullValue() ) ) ) ) ) );
+                both( hasProperty( "aggregationType", hasProperty( "aggregationType", is( AggregationType.AVERAGE ) ) ) )
+                        .and( hasProperty( "aggregationType", hasProperty( "dataType", is( nullValue() ) ) ) ) ) );
     }
 
     @Test
@@ -194,11 +195,11 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
         DataQueryParams queryParams = createDataQueryParams( new BaseDimensionalObject( "dx", DimensionType.DATA_X,
-            DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
+                DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
                 createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT ) ) ) );
 
         DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+                QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
         DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
@@ -216,14 +217,12 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
         // DataQueryParams with **two** DataElement as filter
         // Both have DataType NUMERIC but different AggregationType
         // Aggregation type is overridden (COUNT)
-        DataQueryParams queryParams = createDataQueryParamsWithAggregationType(
-            new BaseDimensionalObject( "dx", DimensionType.DATA_X,
+        DataQueryParams queryParams = createDataQueryParamsWithAggregationType( new BaseDimensionalObject( "dx", DimensionType.DATA_X,
                 DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                    createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT ) ) ),
-            AnalyticsAggregationType.COUNT );
+                createDataElement( 'B', ValueType.INTEGER, AggregationType.COUNT ) ) ), AnalyticsAggregationType.COUNT );
 
         DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+                QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
         DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );
@@ -241,14 +240,12 @@ public class DefaultQueryPlannerGroupByAggregationTypeTest
         // DataQueryParams with **two** DataElement as filter
         // One Data Element has Type Numeric
         // Aggregation type is overridden (COUNT)
-        DataQueryParams queryParams = createDataQueryParamsWithAggregationType(
-            new BaseDimensionalObject( "dx", DimensionType.DATA_X,
+        DataQueryParams queryParams = createDataQueryParamsWithAggregationType( new BaseDimensionalObject( "dx", DimensionType.DATA_X,
                 DISPLAY_NAME_DATA_X, "display name", Lists.newArrayList( createDataElement( 'A', new CategoryCombo() ),
-                    createDataElement( 'B', ValueType.TEXT, AggregationType.COUNT ) ) ),
-            AnalyticsAggregationType.COUNT );
+                createDataElement( 'B', ValueType.TEXT, AggregationType.COUNT ) ) ), AnalyticsAggregationType.COUNT );
 
         DataQueryGroups dataQueryGroups = subject.planQuery( queryParams,
-            QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
+                QueryPlannerParams.newBuilder().withTableType( AnalyticsTableType.DATA_VALUE ).build() );
 
         assertThat( dataQueryGroups.getAllQueries(), hasSize( 1 ) );
         DataQueryParams dataQueryParam = dataQueryGroups.getAllQueries().get( 0 );

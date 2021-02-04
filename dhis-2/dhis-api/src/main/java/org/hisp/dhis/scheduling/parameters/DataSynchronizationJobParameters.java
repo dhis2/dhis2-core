@@ -51,7 +51,6 @@ public class DataSynchronizationJobParameters implements JobParameters
     private static final long serialVersionUID = 153645562301563469L;
 
     static final int PAGE_SIZE_MIN = 50;
-
     public static final int PAGE_SIZE_MAX = 30000;
 
     private int pageSize = 10000;
@@ -80,7 +79,8 @@ public class DataSynchronizationJobParameters implements JobParameters
                     "pageSize",
                     PAGE_SIZE_MIN,
                     PAGE_SIZE_MAX,
-                    pageSize ) );
+                    pageSize )
+            );
         }
 
         return Optional.empty();

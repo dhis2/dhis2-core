@@ -28,12 +28,12 @@ package org.hisp.dhis.security;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertTrue;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -55,8 +55,8 @@ public class PasswordManagerTest
         assertFalse( encodedPassword1.equals( encodedPassword2 ) );
         assertFalse( password.equals( encodedPassword1 ) );
 
-        assertTrue( passwordManager.matches( password, encodedPassword1 ) );
-        assertTrue( passwordManager.matches( password, encodedPassword2 ) );
+        assertTrue( passwordManager.matches( password, encodedPassword1 ));
+        assertTrue( passwordManager.matches( password, encodedPassword2 ));
 
         assertFalse( passwordManager.matches( password, "anotherPassword" ) );
     }

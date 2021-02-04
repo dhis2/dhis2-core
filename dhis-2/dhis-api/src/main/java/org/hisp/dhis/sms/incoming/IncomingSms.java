@@ -28,14 +28,13 @@ package org.hisp.dhis.sms.incoming;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.Serializable;
-import java.util.Date;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import java.io.Serializable;
+import java.util.Date;
 
 @JacksonXmlRootElement( localName = "inboundsms" )
 public class IncomingSms extends BaseIdentifiableObject

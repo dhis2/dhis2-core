@@ -35,10 +35,8 @@ import org.hisp.dhis.common.ValueType;
  */
 public enum DataType
 {
-    NUMERIC,
-    BOOLEAN,
-    TEXT;
-
+    NUMERIC, BOOLEAN, TEXT;
+    
     public static DataType fromValueType( ValueType valueType )
     {
         if ( ValueType.NUMERIC_TYPES.contains( valueType ) )
@@ -50,7 +48,7 @@ public enum DataType
             return DataType.BOOLEAN;
         }
         else
-        {
+        {        
             return DataType.TEXT;
         }
     }

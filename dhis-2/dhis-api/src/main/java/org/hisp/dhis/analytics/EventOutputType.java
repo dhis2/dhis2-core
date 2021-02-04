@@ -28,9 +28,8 @@ package org.hisp.dhis.analytics;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.common.DxfNamespaces;
-
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Lars Helge Overland
@@ -38,7 +37,5 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "eventOutputType", namespace = DxfNamespaces.DXF_2_0 )
 public enum EventOutputType
 {
-    EVENT,
-    ENROLLMENT,
-    TRACKED_ENTITY_INSTANCE
+    EVENT, ENROLLMENT, TRACKED_ENTITY_INSTANCE
 }

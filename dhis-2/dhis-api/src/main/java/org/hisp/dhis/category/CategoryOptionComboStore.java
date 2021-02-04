@@ -28,10 +28,10 @@ package org.hisp.dhis.category;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.hisp.dhis.common.IdentifiableObjectStore;
+
 import java.util.List;
 import java.util.Set;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
@@ -46,12 +46,10 @@ public interface CategoryOptionComboStore
     void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given
-     * {@link CategoryOptionGroup} uid.
+     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
      *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
-     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
-     * members of the given {@link CategoryOptionGroup}
+     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
+     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
      *
      * @param groupId a {@link CategoryOptionGroup} uid
      * @return a List of {@link CategoryOptionCombo} or empty List

@@ -142,7 +142,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .map( Enrollment::getAttributes )
             .orElse( Collections.emptyList() )
             .stream()
-            .filter( this::isNonEmpty )
+            .filter( this::isNonEmpty)
             .collect( Collectors.toMap(
                 Attribute::getAttribute,
                 Attribute::getValue ) );
@@ -192,9 +192,9 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             .collect( Collectors.toSet() );
     }
 
-    private boolean isNonEmpty( Attribute attribute )
+    private boolean isNonEmpty(Attribute attribute )
     {
-        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank( attribute.getAttribute() );
+        return StringUtils.isNotBlank( attribute.getValue() ) && StringUtils.isNotBlank(attribute.getAttribute());
     }
 
     private String getOrgUnitUidFromTei( TrackerImportValidationContext context, String teiUid )

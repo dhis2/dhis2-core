@@ -28,18 +28,11 @@ package org.hisp.dhis.dataset;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.indicator.Indicator;
@@ -47,6 +40,13 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -87,42 +87,42 @@ public class DataSetDeletionHandler
     public void deleteDataElement( DataElement dataElement )
     {
         Iterator<DataSetElement> elements = dataElement.getDataSetElements().iterator();
-
+        
         while ( elements.hasNext() )
         {
             DataSetElement element = elements.next();
             elements.remove();
-
+            
             dataElement.removeDataSetElement( element );
             idObjectManager.updateNoAcl( element.getDataSet() );
         }
-
+        
         List<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
-
+        
         for ( DataSet dataSet : dataSets )
         {
             boolean update = false;
-
+            
             Iterator<DataElementOperand> operands = dataSet.getCompulsoryDataElementOperands().iterator();
-
+            
             while ( operands.hasNext() )
             {
                 DataElementOperand operand = operands.next();
-
+                
                 if ( operand.getDataElement().equals( dataElement ) )
                 {
                     operands.remove();
                     update = true;
                 }
             }
-
+            
             if ( update )
             {
                 idObjectManager.updateNoAcl( dataSet );
             }
         }
     }
-
+    
     @Override
     public void deleteIndicator( Indicator indicator )
     {
@@ -132,19 +132,19 @@ public class DataSetDeletionHandler
             idObjectManager.updateNoAcl( dataSet );
         }
     }
-
+    
     @Override
     public void deleteSection( Section section )
     {
         DataSet dataSet = section.getDataSet();
-
+        
         if ( dataSet != null )
         {
             dataSet.getSections().remove( section );
             idObjectManager.updateNoAcl( dataSet );
         }
     }
-
+    
     @Override
     public void deleteLegendSet( LegendSet legendSet )
     {
@@ -152,7 +152,7 @@ public class DataSetDeletionHandler
         {
             for ( LegendSet ls : dataSet.getLegendSets() )
             {
-                if ( legendSet.equals( ls ) )
+                if( legendSet.equals( ls ) )
                 {
                     dataSet.getLegendSets().remove( ls );
                     idObjectManager.updateNoAcl( dataSet );
@@ -161,7 +161,7 @@ public class DataSetDeletionHandler
             }
         }
     }
-
+    
     @Override
     public void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
@@ -171,13 +171,13 @@ public class DataSetDeletionHandler
         Collection<DataSet> dataSets = idObjectManager.getAllNoAcl( DataSet.class );
 
         for ( DataSet dataSet : dataSets )
-        {
+        {            
             if ( dataSet != null && categoryCombo.equals( dataSet.getCategoryCombo() ) )
             {
                 dataSet.setCategoryCombo( defaultCategoryCombo );
                 idObjectManager.updateNoAcl( dataSet );
             }
-        }
+        }        
     }
 
     @Override
@@ -201,7 +201,7 @@ public class DataSetDeletionHandler
             idObjectManager.updateNoAcl( dataSet );
         }
     }
-
+    
     @Override
     public void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
