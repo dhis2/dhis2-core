@@ -31,7 +31,9 @@ import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 
 import java.util.Set;
 
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -81,6 +83,13 @@ public enum ProgramRuleActionType
      */
     public static final ImmutableSet<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = ImmutableSet.of(
         SENDMESSAGE, SCHEDULEMESSAGE );
+
+    /**
+     * Complete set of actions which require server-side execution.
+     */
+    public static final ImmutableSet<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = ImmutableSet
+        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN,
+            SETMANDATORYFIELD );
 
     ProgramRuleActionType( String value )
     {
