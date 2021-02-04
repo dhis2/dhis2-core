@@ -195,7 +195,8 @@ public class I18nAction
 
         Schema schema = schemaService.getSchema( object.getClass() );
 
-        propertyNames = schema.getTranslatableProperties().stream().map( p -> p.getName() ).collect( Collectors.toList());
+        propertyNames = schema.getTranslatableProperties().stream().map( p -> p.getName() )
+            .collect( Collectors.toList() );
 
         return SUCCESS;
     }

@@ -148,7 +148,7 @@ public class TranslateAction
 
         Set<Translation> listObjectTranslation = new HashSet<>( object.getTranslations() );
 
-        for ( Translation p :  listObjectTranslation )
+        for ( Translation p : listObjectTranslation )
         {
             Enumeration<String> paramNames = request.getParameterNames();
 

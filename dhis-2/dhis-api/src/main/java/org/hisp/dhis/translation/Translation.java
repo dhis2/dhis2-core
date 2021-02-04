@@ -98,7 +98,7 @@ public class Translation
      */
     public static String getCacheKey( String locale, String property )
     {
-        return locale != null && property != null ? (locale + property ) : null;
+        return locale != null && property != null ? (locale + property) : null;
     }
 
     // -------------------------------------------------------------------------------

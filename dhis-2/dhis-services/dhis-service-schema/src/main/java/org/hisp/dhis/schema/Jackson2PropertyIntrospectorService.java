@@ -102,7 +102,7 @@ public class Jackson2PropertyIntrospectorService
             propertyMap.put( "__self__", property );
         }
 
-        Map<String,String> translatablefields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
+        Map<String, String> translatablefields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
 
         List<Property> properties = collectProperties( clazz );
 

@@ -424,7 +424,8 @@ public class BaseIdentifiableObject
                 if ( translation.getLocale() != null && translation.getProperty() != null
                     && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty().getName() );
+                    String key = Translation.getCacheKey( translation.getLocale(),
+                        translation.getProperty().getName() );
                     translationCache.put( key, translation.getValue() );
                 }
             }
