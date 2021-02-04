@@ -61,31 +61,30 @@ public class FilteredDataValueCheck implements Checker
 
         final ImportSummary importSummary = new ImportSummary();
 
-        if ( !eventDataValuesUids.isEmpty() && Objects.nonNull( event ) )
+        if ( !eventDataValuesUids.isEmpty() &&
+            Objects.nonNull( event ) &&
+            StringUtils.isNotBlank( event.getProgramStage() ) )
         {
-            if ( StringUtils.isNotBlank( event.getProgramStage() ) )
-            {
 
-                Set<String> filteredEventDataValuesUids = getFilteredEventDataValues( event,
-                    getDataElementUidsFromProgramStage( event.getProgramStage(), ctx ) ).stream()
-                        .map( DataValue::getDataElement )
-                        .collect( Collectors.toSet() );
-
-                Set<String> ignoredDataValues = eventDataValuesUids.stream()
-                    .filter( uid -> !filteredEventDataValuesUids.contains( uid ) )
+            Set<String> filteredEventDataValuesUids = getFilteredEventDataValues( event,
+                getDataElementUidsFromProgramStage( event.getProgramStage(), ctx ) ).stream()
+                    .map( DataValue::getDataElement )
                     .collect( Collectors.toSet() );
 
-                if ( !ignoredDataValues.isEmpty() )
-                {
-                    importSummary.setStatus( ImportStatus.WARNING );
-                    importSummary.setReference( event.getUid() );
-                    importSummary.setDescription( "Data Values " +
-                        ignoredDataValues.stream()
-                            .collect( Collectors.joining( ",", "[", "]" ) )
-                        + " ignored because " +
-                        "not defined in program stage " + event.getProgramStage() );
-                    importSummary.incrementImported();
-                }
+            Set<String> ignoredDataValues = eventDataValuesUids.stream()
+                .filter( uid -> !filteredEventDataValuesUids.contains( uid ) )
+                .collect( Collectors.toSet() );
+
+            if ( !ignoredDataValues.isEmpty() )
+            {
+                importSummary.setStatus( ImportStatus.WARNING );
+                importSummary.setReference( event.getUid() );
+                importSummary.setDescription( "Data Values " +
+                    ignoredDataValues.stream()
+                        .collect( Collectors.joining( ",", "[", "]" ) )
+                    + " ignored because " +
+                    "not defined in program stage " + event.getProgramStage() );
+                importSummary.incrementImported();
             }
         }
 

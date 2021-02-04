@@ -84,7 +84,7 @@ public class FilteredDataValueCheckTest
 
         ImportSummary importSummary = dataValueCheck.check( new ImmutableEvent( event ), ctx );
 
-        assertEquals( importSummary.getStatus(), ImportStatus.WARNING );
+        assertEquals( ImportStatus.WARNING, importSummary.getStatus() );
 
     }
 
