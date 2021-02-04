@@ -59,7 +59,7 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String trackedEntity;
 
-    private String ou;
+    private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
