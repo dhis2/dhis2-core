@@ -30,6 +30,7 @@ package org.hisp.dhis.container;
 
 import org.testcontainers.containers.JdbcDatabaseContainer;
 import org.testcontainers.containers.PostgisContainerProvider;
+import org.testcontainers.utility.DockerImageName;
 
 /**
  * Custom PostgisContainerProvider to create
@@ -54,7 +55,9 @@ public class DhisPostgisContainerProvider
     @Override
     public JdbcDatabaseContainer newInstance( String tag )
     {
-        return new DhisPostgreSQLContainer( DEFAULT_IMAGE + ":" + tag );
+        DockerImageName postgres = DockerImageName.parse( DEFAULT_IMAGE + ":" + tag )
+            .asCompatibleSubstituteFor( "postgres" );
+        return new DhisPostgreSQLContainer( postgres );
     }
 
 }
