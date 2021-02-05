@@ -80,8 +80,6 @@ public class TrackerImportController
     private final Notifier notifier;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
-    // @PreAuthorize( "hasRole('ALL') or
-    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
         throws IOException
@@ -103,8 +101,6 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    // @PreAuthorize( "hasRole('ALL') or
-    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public TrackerImportReport syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
         HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
@@ -117,22 +113,6 @@ public class TrackerImportController
 
         return trackerImportService.buildImportReport( trackerImportReport, trackerBundleReportMode );
 
-    }
-
-    private TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-
-        TrackerBundleReportMode trackerBundleReportMode;
-        try
-        {
-            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportMode.toUpperCase() );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                "Value " + reportMode + " is not a valid report mode" );
-        }
-        return trackerBundleReportMode;
     }
 
     @SneakyThrows
@@ -180,4 +160,21 @@ public class TrackerImportController
 
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
     }
+
+    private TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
+    {
+
+        TrackerBundleReportMode trackerBundleReportMode;
+        try
+        {
+            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportMode.toUpperCase() );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
+                "Value " + reportMode + " is not a valid report mode" );
+        }
+        return trackerBundleReportMode;
+    }
+
 }
