@@ -42,6 +42,7 @@ import org.mapstruct.Mapping;
 public interface TrackerTrackedEntityCriteriaMapper
 {
     @Mapping( source = "orgUnit", target = "ou" )
+    @Mapping( source = "orgUnit", target = "ou" )
     @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
     @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
     @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )

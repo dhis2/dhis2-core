@@ -50,6 +50,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 
 /**
@@ -65,8 +66,8 @@ import com.google.common.collect.Lists;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+    private static final ImmutableMap<String, SettingKey> NAME_KEY_MAP = ImmutableMap.copyOf( Lists.newArrayList(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) ) );
 
     /**
      * Cache for system settings. Does not accept nulls. Disabled during test
@@ -78,19 +79,19 @@ public class DefaultSystemSettingManager
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingStore systemSettingStore;
+    private final SystemSettingStore systemSettingStore;
 
-    private PBEStringEncryptor pbeStringEncryptor;
+    private final PBEStringEncryptor pbeStringEncryptor;
 
-    private CacheProvider cacheProvider;
+    private final CacheProvider cacheProvider;
 
-    private Environment environment;
+    private final Environment environment;
 
-    private List<String> flags;
+    private final List<String> flags;
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
-        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
-        Environment environment, List<String> flags )
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor,
+        CacheProvider cacheProvider, Environment environment, List<String> flags )
     {
         checkNotNull( systemSettingStore );
         checkNotNull( pbeStringEncryptor );
@@ -241,15 +242,7 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most
-                                                                    // likely
-                                                                    // this
-                                                                    // means the
-                                                                    // value is
-                                                                    // not
-                                                                    // encrypted
-                                                                    // or not
-                                                                    // existing
+                catch ( EncryptionOperationNotPossibleException e )
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();

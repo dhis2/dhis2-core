@@ -248,6 +248,7 @@ public class DefaultValidationService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ValidationAnalysisParams.Builder newParamsBuilder( DataSet dataSet, OrganisationUnit organisationUnit,
         Period period )
     {

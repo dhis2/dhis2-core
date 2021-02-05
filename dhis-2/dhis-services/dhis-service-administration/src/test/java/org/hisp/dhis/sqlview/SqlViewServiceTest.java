@@ -42,10 +42,10 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +61,9 @@ public class SqlViewServiceTest
 
     @Autowired
     private SqlViewService sqlViewService;
+
+    @Autowired
+    private UserService internalUserService;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -78,6 +81,12 @@ public class SqlViewServiceTest
         + "AND dv.periodid=p.periodid LIMIT 10";
 
     private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
+
+    @Override
+    public void setUpTest()
+    {
+        super.userService = internalUserService;
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -285,14 +294,32 @@ public class SqlViewServiceTest
     @Test
     public void testGetGridValidationFailure()
     {
-        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
+        // this is the easiest way to be allowed to read SQL view data
+        createAndInjectAdminUser();
 
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );
 
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
                 () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
             ErrorCode.E4311 );
+    }
+
+    @Test
+    public void testGetGridRequiresDataReadSharing()
+    {
+        createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
+
+        // we have the right to create the view
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
+        sqlViewService.saveSqlView( sqlView );
+
+        // but we lack sharing to view the result grid
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class,
+                () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
+            ErrorCode.E4312 );
     }
 
     @Test
@@ -355,16 +382,7 @@ public class SqlViewServiceTest
     @Test
     public void testGetSqlViewGrid()
     {
-        UserCredentials currentUserCredentials = new UserCredentials();
-        currentUserCredentials.setUsername( "Mary" );
-
-        User currentUser = new User();
-        currentUser.setUserCredentials( currentUserCredentials );
-        currentUser.setId( 47 );
-
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
-
-        sqlViewService.setCurrentUserService( currentUserService );
+        User admin = createAndInjectAdminUser(); // makes admin current user
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
@@ -374,9 +392,11 @@ public class SqlViewServiceTest
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 
+        String username = admin.getUsername();
+        long id = admin.getId();
         assertEquals( grid.toString(), "[\n" +
-            "['Mary', 47, 10]\n" +
-            "[Mary, 47, 10]\n" +
+            "['" + username + "', " + id + ", 10]\n" +
+            "[" + username + ", " + id + ", 10]\n" +
             "]" );
     }
 

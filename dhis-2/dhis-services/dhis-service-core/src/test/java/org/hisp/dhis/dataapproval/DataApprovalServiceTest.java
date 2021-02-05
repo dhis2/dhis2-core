@@ -29,6 +29,7 @@ package org.hisp.dhis.dataapproval;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Collections.singleton;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -39,7 +40,6 @@ import static org.junit.Assert.fail;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.category.Category;
@@ -52,7 +52,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.mock.MockCurrentUserService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
@@ -468,22 +467,7 @@ public class DataApprovalServiceTest
     @Override
     public void tearDownTest()
     {
-        setDependency( dataApprovalService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( organisationUnitService, "currentUserService", currentUserService, CurrentUserService.class );
-        setDependency( dataApprovalStore, "currentUserService", currentUserService, CurrentUserService.class );
-
         DataApprovalPermissionsEvaluator.invalidateCache();
-    }
-
-    private void setCurrentUserServiceDependencies( CurrentUserService mockCurrentUserService )
-    {
-        setDependency( dataApprovalService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-        setDependency( dataApprovalLevelService, "currentUserService", mockCurrentUserService,
-            CurrentUserService.class );
-        setDependency( organisationUnitService, "currentUserService", mockCurrentUserService,
-            CurrentUserService.class );
-        setDependency( dataApprovalStore, "currentUserService", mockCurrentUserService, CurrentUserService.class );
     }
 
     // -------------------------------------------------------------------------
@@ -644,12 +628,8 @@ public class DataApprovalServiceTest
     @Test
     public void testAddDuplicateDataApproval()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level2, workflow12, periodA, organisationUnitB,
@@ -658,22 +638,15 @@ public class DataApprovalServiceTest
             defaultOptionCombo, NOT_ACCEPTED, date, userA ); // Same
 
         dataApprovalService.approveData( newArrayList( dataApprovalA ) );
-        dataApprovalService.approveData( newArrayList( dataApprovalB ) ); // Redundant,
-                                                                          // so
-                                                                          // call
-                                                                          // is
-                                                                          // ignored.
+        // Redundant, so call is ignored.
+        dataApprovalService.approveData( newArrayList( dataApprovalB ) );
     }
 
     @Test
     public void testAddDataApprovalWithWrongPeriodType()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -696,12 +669,8 @@ public class DataApprovalServiceTest
     @Test
     public void testAddAllAndGetDataApprovalStatus()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level1, workflow12A, periodA, organisationUnitA,
@@ -774,12 +743,8 @@ public class DataApprovalServiceTest
     @Test
     public void testDeleteDataApproval()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
         DataApproval dataApprovalA = new DataApproval( level1, workflow12, periodA, organisationUnitA,
@@ -823,12 +788,8 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalState()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         // No levels defined.
         assertEquals( DataApprovalState.UNAPPROVABLE, dataApprovalService
@@ -1077,12 +1038,8 @@ public class DataApprovalServiceTest
     {
         transactionTemplate.execute( status -> {
 
-            Set<OrganisationUnit> units = newHashSet( organisationUnitD );
-
-            CurrentUserService currentUserService = new MockCurrentUserService( units, null,
+            createUserAndInjectSecurityContext( singleton( organisationUnitD ), false,
                 DataApproval.AUTH_APPROVE );
-            userService.addUser( currentUserService.getCurrentUser() );
-            setCurrentUserServiceDependencies( currentUserService );
             assertEquals( "UNAPPROVED_ABOVE level=null approve=F unapprove=F accept=F unaccept=F read=T",
                 statusAndPermissions( workflow12, periodA, organisationUnitD, defaultOptionCombo ) );
 
@@ -1100,17 +1057,13 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateOrgUnitAssignments()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
-
         dataSetG.removeOrganisationUnit( organisationUnitC );
         dataSetG.removeOrganisationUnit( organisationUnitE );
         dataSetG.removeOrganisationUnit( organisationUnitF );
         dataSetService.updateDataSet( dataSetG );
+
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService
             .getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
@@ -1167,12 +1120,8 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateAbove()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -1190,12 +1139,8 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateWithMultipleChildren()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        userService.addUser( currentUserService.getCurrentUser() );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         Date date = new Date();
 
@@ -1270,11 +1215,8 @@ public class DataApprovalServiceTest
     @Test
     public void testGetDataApprovalStateOtherPeriodTypes()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitA ), false,
+            DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
 
         assertEquals( DataApprovalState.UNAPPROVED_WAITING, dataApprovalService
             .getDataApprovalStatus( workflow1234, periodA, organisationUnitA, defaultOptionCombo ).getState() );
@@ -1298,13 +1240,8 @@ public class DataApprovalServiceTest
         Date date = new Date();
 
         transactionTemplate.execute( status -> {
-            Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-            CurrentUserService currentUserService = new MockCurrentUserService( false, units, null,
+            createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
                 DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
-            User currentUser = currentUserService.getCurrentUser();
-            userService.addUser( currentUser );
-            setCurrentUserServiceDependencies( currentUserService );
 
             dbmsManager.clearSession();
             return null;
@@ -1535,13 +1472,8 @@ public class DataApprovalServiceTest
     @Test
     public void testMayApproveLowerLevels()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null,
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
 
@@ -1650,13 +1582,8 @@ public class DataApprovalServiceTest
     @Test
     public void testMayApproveSameAndLowerLevels()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false, DataApproval.AUTH_APPROVE,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
 
@@ -1754,12 +1681,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayApproveNoAuthority()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -1792,13 +1714,8 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveSameLevel()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
-            AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
+            DataApproval.AUTH_APPROVE, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -1906,13 +1823,8 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveLowerLevels()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null,
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
             DataApproval.AUTH_APPROVE_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
 
@@ -2019,13 +1931,8 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveWithAcceptAuthority()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null,
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false,
             DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
 
         Date date = new Date();
 
@@ -2132,12 +2039,7 @@ public class DataApprovalServiceTest
     @Test
     public void testMayUnapproveNoAuthority()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false, AUTH_APPR_LEVEL );
 
         Date date = new Date();
 
@@ -2260,12 +2162,7 @@ public class DataApprovalServiceTest
             defaultOptionCombo, NOT_ACCEPTED, date, userA );
 
         transactionTemplate.execute( status -> {
-            Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-            CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL );
-            User currentUser = currentUserService.getCurrentUser();
-            userService.addUser( currentUser );
-            setCurrentUserServiceDependencies( currentUserService );
+            createUserAndInjectSecurityContext( singleton( organisationUnitB ), false, AUTH_APPR_LEVEL );
 
             dataApprovalStore.addDataApproval( dataApprovalD );
             dataApprovalStore.addDataApproval( dataApprovalF );
@@ -2307,13 +2204,8 @@ public class DataApprovalServiceTest
 
             setUpCategories();
 
-            Set<OrganisationUnit> units = newHashSet( organisationUnitA );
-
-            CurrentUserService currentUserService = new MockCurrentUserService( units, null, DataApproval.AUTH_APPROVE,
+            createUserAndInjectSecurityContext( singleton( organisationUnitA ), false, DataApproval.AUTH_APPROVE,
                 DataApproval.AUTH_APPROVE_LOWER_LEVELS, DataApproval.AUTH_ACCEPT_LOWER_LEVELS, AUTH_APPR_LEVEL );
-            User currentUser = currentUserService.getCurrentUser();
-            userService.addUser( currentUser );
-            setCurrentUserServiceDependencies( currentUserService );
 
             dbmsManager.flushSession();
             return null;
@@ -2534,13 +2426,8 @@ public class DataApprovalServiceTest
     @Test
     public void testWorkflows()
     {
-        Set<OrganisationUnit> units = newHashSet( organisationUnitB );
-
-        CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL,
+        createUserAndInjectSecurityContext( singleton( organisationUnitB ), false, AUTH_APPR_LEVEL,
             DataApproval.AUTH_APPROVE, DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        User currentUser = currentUserService.getCurrentUser();
-        userService.addUser( currentUser );
-        setCurrentUserServiceDependencies( currentUserService );
 
         assertEquals( "UNAPPROVED_WAITING level=null approve=F unapprove=F accept=F unaccept=F read=T",
             statusAndPermissions( workflow1234, periodA, organisationUnitC, defaultOptionCombo ) );
@@ -2574,13 +2461,8 @@ public class DataApprovalServiceTest
         Date date = new Date();
 
         transactionTemplate.execute( status -> {
-            Set<OrganisationUnit> units = newHashSet( organisationUnitC );
-
-            CurrentUserService currentUserService = new MockCurrentUserService( units, null, AUTH_APPR_LEVEL,
+            createUserAndInjectSecurityContext( singleton( organisationUnitC ), false, AUTH_APPR_LEVEL,
                 DataApproval.AUTH_APPROVE );
-            User currentUser = currentUserService.getCurrentUser();
-            userService.addUser( currentUser );
-            setCurrentUserServiceDependencies( currentUserService );
 
             dataApprovalStore.addDataApproval( new DataApproval( level4, workflow1234, periodA, organisationUnitC,
                 defaultOptionCombo, NOT_ACCEPTED, date, userA ) );

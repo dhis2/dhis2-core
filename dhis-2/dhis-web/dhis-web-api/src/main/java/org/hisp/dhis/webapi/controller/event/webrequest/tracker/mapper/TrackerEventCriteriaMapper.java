@@ -42,6 +42,7 @@ import org.mapstruct.Mapping;
 public interface TrackerEventCriteriaMapper
 {
     @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
+    @Mapping( source = "ou", target = "orgUnit" )
     @Mapping( source = "occurredAfter", target = "startDate" )
     @Mapping( source = "occurredBefore", target = "endDate" )
     @Mapping( source = "scheduledAfter", target = "dueDateStart" )

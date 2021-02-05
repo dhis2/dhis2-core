@@ -55,12 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
@@ -87,12 +82,13 @@ public class TrackerImportController
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     // @PreAuthorize( "hasRole('ALL') or
     // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
-    public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
+    public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
+        @RequestBody TrackerBundleParams trackerBundleParams )
         throws IOException
     {
 
         String jobId = trackerMessageManager.addJob(
-            buildTrackerImportParams( request, currentUser ) );
+            buildTrackerImportParams( request, currentUser, trackerBundleParams ) );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
         response.setHeader( "Location", location );
@@ -111,13 +107,13 @@ public class TrackerImportController
     // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public TrackerImportReport syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
-        HttpServletRequest request, User currentUser )
+        HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
     {
 
         TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
 
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker(
-            buildTrackerImportParams( request, currentUser ) );
+        TrackerImportParams trackerImportParams = buildTrackerImportParams( request, currentUser, trackerBundleParams );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
 
         return trackerImportService.buildImportReport( trackerImportReport, trackerBundleReportMode );
 
@@ -140,14 +136,11 @@ public class TrackerImportController
     }
 
     @SneakyThrows
-    private TrackerImportParams buildTrackerImportParams( HttpServletRequest request, User currentUser )
+    private TrackerImportParams buildTrackerImportParams( HttpServletRequest request, User currentUser,
+        TrackerBundleParams trackerBundleParams )
     {
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
             .builder( contextService.getParameterValuesMap() );
-
-        TrackerBundleParams trackerBundleParams = renderService.fromJson(
-            request.getInputStream(),
-            TrackerBundleParams.class );
 
         return paramsBuilder
             .userId( currentUser.getUid() )
