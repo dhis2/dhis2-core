@@ -25,31 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.db.migration;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.Assert.assertEquals;
 
-import java.util.List;
+import java.util.function.UnaryOperator;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
+import org.junit.Test;
 
-@Component
-public class NewImplementableRuleService implements ImplementableRuleService
+/**
+ * Tests database migration changes connected to use of JSONB columns and
+ * changes of values in these columns.
+ *
+ * @author Jan Bernitt
+ */
+public class JsonbTest
 {
-    private final ProgramRuleService programRuleService;
 
-    public NewImplementableRuleService( ProgramRuleService programRuleService )
+    /**
+     * Note that the update of the sharing access strings itself is tested more
+     * thorough in dedicated tests for
+     * {@link Sharing#withAccess(UnaryOperator)}. Here we only want to verify
+     * that the mapping from and to JSON happening around it also works.
+     */
+    @Test
+    public void updateSharing()
+        throws Exception
     {
-        checkNotNull( programRuleService );
-        this.programRuleService = programRuleService;
-    }
-
-    @Override
-    public List<ProgramRule> getImplementableRules( Program program )
-    {
-        return programRuleService.getProgramRule( program );
+        String actual = SharingUtils.withAccess(
+            "{\"owner\": \"Rbh43X53NBP\", \"users\": {}, \"public\": \"rw------\", \"external\": false, \"userGroups\": {}}",
+            Sharing::copyMetadataToData );
+        assertEquals(
+            "{\"external\":false,\"owner\":\"Rbh43X53NBP\",\"public\":\"rwrw----\",\"userGroups\":{},\"users\":{}}",
+            actual );
     }
 }

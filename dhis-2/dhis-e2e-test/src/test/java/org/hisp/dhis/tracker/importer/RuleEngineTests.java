@@ -56,7 +56,7 @@ import static org.hamcrest.Matchers.*;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class ImportSideEffectsTests
+public class RuleEngineTests
     extends ApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";
@@ -152,7 +152,7 @@ public class ImportSideEffectsTests
 
         response.validateErrorReport()
             .body( "errorCode", hasItem( "E1200" ) )
-            .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ));
+            .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) );
     }
 
     @Test
@@ -177,7 +177,7 @@ public class ImportSideEffectsTests
             .body( "dataValues.value", contains( "AUTO_ASSIGNED_COMMENT" ) );
     }
 
-    @Disabled("bug DHIS2-10127")
+    @Disabled( "bug DHIS2-10127" )
     @Test
     public void shouldSendNotification()
     {
@@ -190,6 +190,9 @@ public class ImportSideEffectsTests
                 .build(), new JsonObjectBuilder()
                 .addProperty( "dataElement", "z3Z4TD3oBCP" )
                 .addProperty( "value", "true" )
+                .build(), new JsonObjectBuilder()
+                .addProperty( "dataElement", "BuZ5LGNfGEU" )
+                .addProperty( "value", "40" )
                 .build() );
 
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
@@ -254,6 +257,18 @@ public class ImportSideEffectsTests
             .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
             .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
             .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
+    }
+
+    @Test
+    public void shouldBeSkippedWhenSkipRuleEngineFlag()
+    {
+        JsonObject payload = trackerActions.buildEvent( Constants.ORG_UNIT_IDS[0], eventProgramId, "Mt6Ac5brjoK" );
+        JsonObjectBuilder.jsonObject( payload ).addPropertyByJsonPath( "events[0].status", "COMPLETED" );
+
+        TrackerApiResponse response = trackerActions
+            .postAndGetJobReport( payload, new QueryParamsBuilder().add( "skipRuleEngine=true" ) );
+
+        response.validateSuccessfulImport();
     }
 
     @Test

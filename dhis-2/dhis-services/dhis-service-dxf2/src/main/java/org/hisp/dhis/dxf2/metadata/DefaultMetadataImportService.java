@@ -327,9 +327,9 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, params.getUser() );
         }
 
-        if ( object.getUser() == null )
+        if ( object.getCreatedBy() == null )
         {
-            object.setUser( params.getUser() );
+            object.setCreatedBy( params.getUser() );
         }
 
         object.setLastUpdatedBy( params.getUser() );
@@ -352,11 +352,11 @@ public class DefaultMetadataImportService implements MetadataImportService
     private void postCreateBundleObject( BaseIdentifiableObject object, ObjectBundle bundle, ObjectBundleParams params )
     {
         IdentifiableObject userByReference = bundle.getPreheat().get( params.getPreheatIdentifier(),
-            User.class, params.getPreheatIdentifier().getIdentifier( object.getUser() ) );
+            User.class, params.getPreheatIdentifier().getIdentifier( object.getCreatedBy() ) );
 
         if ( userByReference != null )
         {
-            object.setUser( (User) userByReference );
+            object.setCreatedBy( (User) userByReference );
         }
     }
 }

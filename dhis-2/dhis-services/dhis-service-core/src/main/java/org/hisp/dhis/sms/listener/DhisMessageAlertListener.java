@@ -98,7 +98,7 @@ public class DhisMessageAlertListener
 
         if ( userGroup != null )
         {
-            Collection<User> users = Collections.singleton( sms.getUser() );
+            Collection<User> users = Collections.singleton( sms.getCreatedBy() );
 
             if ( users != null && users.size() > 1 )
             {

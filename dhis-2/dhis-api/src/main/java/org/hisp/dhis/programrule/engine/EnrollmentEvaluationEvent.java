@@ -34,7 +34,7 @@ import org.springframework.context.ApplicationEvent;
  */
 public class EnrollmentEvaluationEvent extends ApplicationEvent
 {
-    private long programInstance;
+    private final long programInstance;
 
     public EnrollmentEvaluationEvent( Object source, long programInstance )
     {

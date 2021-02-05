@@ -66,9 +66,9 @@ public class InterpretationDeletionHandler
 
         for ( Interpretation interpretation : interpretations )
         {
-            if ( interpretation.getUser() != null && interpretation.getUser().equals( user ) )
+            if ( interpretation.getCreatedBy() != null && interpretation.getCreatedBy().equals( user ) )
             {
-                interpretation.setUser( null );
+                interpretation.setCreatedBy( null );
                 interpretationService.updateInterpretation( interpretation );
             }
         }

@@ -31,12 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,7 +65,7 @@ public class IsNotEmptyNodeTransformer implements NodeTransformer
         }
         else if ( property.isSimple() )
         {
-            return new SimpleNode( property.getName(), !StringUtils.isEmpty( ((SimpleNode) node).getValue() ),
+            return new SimpleNode( property.getName(), !ObjectUtils.isEmpty( ((SimpleNode) node).getValue() ),
                 property.isAttribute() );
         }
 

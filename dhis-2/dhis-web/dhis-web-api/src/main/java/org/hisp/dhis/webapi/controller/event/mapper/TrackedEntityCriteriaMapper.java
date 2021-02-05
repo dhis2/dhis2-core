@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
+import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isEnrollmentColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 
 import java.util.Collections;
@@ -132,10 +133,6 @@ public class TrackedEntityCriteriaMapper
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
-
-        validateOrderParams( orderParams, attributes );
-
         if ( criteria.getAttribute() != null )
         {
             for ( String attr : criteria.getAttribute() )
@@ -179,7 +176,13 @@ public class TrackedEntityCriteriaMapper
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
+
         Program program = validateProgram( criteria );
+
+        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
+
+        validateOrderParams( program, orderParams, attributes );
+
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( validateProgramStage( criteria, program ) )
@@ -375,13 +378,19 @@ public class TrackedEntityCriteriaMapper
             .orElse( null );
     }
 
-    private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )
+    private void validateOrderParams( Program program, List<OrderParam> orderParams,
+        Map<String, TrackedEntityAttribute> attributes )
     {
         if ( orderParams != null && !orderParams.isEmpty() )
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( isEnrollmentColumn( orderParam.getField() ) && Objects.isNull( program ) )
+                {
+                    throw new IllegalQueryException(
+                        "Invalid order property, program should be present: " + orderParam.getField() );
+                }
+                else if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }
