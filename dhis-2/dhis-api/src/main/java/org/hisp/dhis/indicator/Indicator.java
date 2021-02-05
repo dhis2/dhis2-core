@@ -27,22 +27,26 @@
  */
 package org.hisp.dhis.indicator;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.translation.Translatable;
-import org.hisp.dhis.translation.TranslationProperty;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseDataDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.TotalAggregationType;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.Translatable;
+
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -232,10 +236,10 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( translationProperty = TranslationProperty.NUMERATOR_DESCRIPTION )
+    @Translatable( propertyName = "numeratorDescription" ,translationKey = "NUMERATOR_DESCRIPTION" )
     public String getDisplayNumeratorDescription()
     {
-        return getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, getNumeratorDescription() );
+        return getTranslation( "NUMERATOR_DESCRIPTION", getNumeratorDescription() );
     }
 
     @JsonIgnore
@@ -275,10 +279,10 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( translationProperty = TranslationProperty.DENOMINATOR_DESCRIPTION )
+    @Translatable( propertyName = "denominatorDescription", translationKey = "DENOMINATOR_DESCRIPTION" )
     public String getDisplayDenominatorDescription()
     {
-        return getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, getDenominatorDescription() );
+        return getTranslation( "DENOMINATOR_DESCRIPTION", getDenominatorDescription() );
     }
 
     @JsonIgnore

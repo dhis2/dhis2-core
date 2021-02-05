@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.dataelement;
 
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -61,16 +57,18 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
 
 /**
  * A DataElement is a definition (meta-information about) of the entities that
@@ -87,10 +85,6 @@ import com.google.common.collect.Lists;
 public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
-    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(),
-        TranslationProperty.SHORT_NAME.getName(),
-        TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
-
     /**
      * Data element value type (int, boolean, etc)
      */
@@ -462,23 +456,6 @@ public class DataElement extends BaseDimensionalItemObject
     public boolean hasAggregationLevels()
     {
         return aggregationLevels != null && aggregationLevels.size() > 0;
-    }
-
-    /**
-     * Returns the form name, or the name if it does not exist.
-     */
-    @Override
-    public String getFormNameFallback()
-    {
-        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
     }
 
     /**

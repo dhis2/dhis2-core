@@ -27,12 +27,6 @@
  */
 package org.hisp.dhis.translation;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
@@ -54,6 +48,12 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -94,11 +94,11 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( dataElementA.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedName ) );
+        translations.add( new Translation( locale.getLanguage(), "NAME", translatedName ) );
         translations
-            .add( new Translation( locale.getLanguage(), TranslationProperty.SHORT_NAME, translatedShortName ) );
+            .add( new Translation( locale.getLanguage(), "SHORT_NAME", translatedShortName ) );
         translations
-            .add( new Translation( locale.getLanguage(), TranslationProperty.DESCRIPTION, translatedDescription ) );
+            .add( new Translation( locale.getLanguage(), "DESCRIPTION", translatedDescription ) );
 
         manager.updateTranslations( dataElementA, translations );
 
@@ -121,7 +121,7 @@ public class TranslationServiceTest
 
         String translatedValue = "Option FormName Translated";
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( option, translations );
 
@@ -156,7 +156,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( relationship.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( relationship, translations );
 
@@ -173,7 +173,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programStageSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programStageSection, translations );
 
@@ -190,7 +190,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programStage.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programStage, translations );
 
@@ -211,7 +211,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programSection, translations );
 
@@ -232,9 +232,9 @@ public class TranslationServiceTest
         String toFromNameTranslated = "To from name translated";
 
         Set<Translation> translations = new HashSet<>();
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME,
+        translations.add( new Translation( locale.getLanguage(), "RELATIONSHIP_TO_FROM_NAME",
             toFromNameTranslated ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME,
+        translations.add( new Translation( locale.getLanguage(), "RELATIONSHIP_FROM_TO_NAME",
             fromToNameTranslated ) );
 
         manager.updateTranslations( relationshipType, translations );

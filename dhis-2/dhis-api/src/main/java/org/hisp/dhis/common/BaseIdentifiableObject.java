@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
@@ -49,19 +49,17 @@ import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.util.SharingUtils;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Bob Jolliffe
@@ -288,10 +286,10 @@ public class BaseIdentifiableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( translationProperty = TranslationProperty.NAME )
+    @Translatable( propertyName = "name", translationKey = "NAME" )
     public String getDisplayName()
     {
-        return getTranslation( TranslationProperty.NAME, getName() );
+        return getTranslation( "NAME", getName() );
     }
 
     @Override
@@ -390,24 +388,24 @@ public class BaseIdentifiableObject
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
      *
-     * @param property the translation property.
+     * @param translationKey the translation key.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
-    protected String getTranslation( TranslationProperty property, String defaultValue )
+    protected String getTranslation( String translationKey, String defaultValue )
     {
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
-        if ( locale == null || property == null )
+        if ( locale == null || translationKey == null )
         {
             return defaultValue;
         }
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = Translation.getCacheKey( locale.toString(), property.getName() );
+        String cacheKey = Translation.getCacheKey( locale.toString(), translationKey );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
@@ -425,7 +423,7 @@ public class BaseIdentifiableObject
                     && !StringUtils.isEmpty( translation.getValue() ) )
                 {
                     String key = Translation.getCacheKey( translation.getLocale(),
-                        translation.getProperty().getName() );
+                        translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }

@@ -27,22 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.util.Locale;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.webapi.DhisWebSpringTest;
 import org.hisp.dhis.webapi.documentation.common.TestUtils;
 import org.junit.Ignore;
@@ -52,8 +45,12 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Locale;
+
+import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -87,7 +84,7 @@ public class TranslationWebApiTest extends DhisWebSpringTest
             identifiableObjectManager.save( dataElementA );
 
             dataElementA.getTranslations()
-                .add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
+                .add( new Translation( locale.getLanguage(), "NAME", valueToCheck ) );
 
             try
             {

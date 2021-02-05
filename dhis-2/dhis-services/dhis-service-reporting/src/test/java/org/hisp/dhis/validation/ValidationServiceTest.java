@@ -27,31 +27,8 @@
  */
 package org.hisp.dhis.validation;
 
-import static junit.framework.TestCase.assertEquals;
-import static junit.framework.TestCase.assertFalse;
-import static org.hisp.dhis.expression.Expression.SEPARATOR;
-import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
-import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
-import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
-import static org.hisp.dhis.expression.Operator.compulsory_pair;
-import static org.hisp.dhis.expression.Operator.equal_to;
-import static org.hisp.dhis.expression.Operator.exclusive_pair;
-import static org.hisp.dhis.expression.Operator.greater_than;
-import static org.hisp.dhis.expression.Operator.less_than;
-import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
-import static org.hisp.dhis.expression.Operator.not_equal_to;
-import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisTest;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -79,7 +56,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -88,8 +64,30 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
+import static junit.framework.TestCase.assertEquals;
+import static junit.framework.TestCase.assertFalse;
+import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
+import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING;
+import static org.hisp.dhis.expression.MissingValueStrategy.SKIP_IF_ANY_VALUE_MISSING;
+import static org.hisp.dhis.expression.Operator.compulsory_pair;
+import static org.hisp.dhis.expression.Operator.equal_to;
+import static org.hisp.dhis.expression.Operator.exclusive_pair;
+import static org.hisp.dhis.expression.Operator.greater_than;
+import static org.hisp.dhis.expression.Operator.less_than;
+import static org.hisp.dhis.expression.Operator.less_than_or_equal_to;
+import static org.hisp.dhis.expression.Operator.not_equal_to;
+import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
 
 /**
  * @author Jim Grace
@@ -1579,7 +1577,7 @@ public class ValidationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( validationRule.getTranslations() );
         listObjectTranslation
-            .add( new Translation( locale.getLanguage(), TranslationProperty.INSTRUCTION, instructionTranslated ) );
+            .add( new Translation( locale.getLanguage(), "INSTRUCTION", instructionTranslated ) );
 
         identifiableObjectManager.updateTranslations( validationRule, listObjectTranslation );
 

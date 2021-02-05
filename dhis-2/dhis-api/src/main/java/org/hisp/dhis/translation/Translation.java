@@ -27,16 +27,15 @@
  */
 package org.hisp.dhis.translation;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.EmbeddedObject;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -47,7 +46,7 @@ public class Translation
 {
     private String locale;
 
-    private TranslationProperty property;
+    private String property;
 
     private String value;
 
@@ -55,7 +54,7 @@ public class Translation
     {
     }
 
-    public Translation( String locale, TranslationProperty property, String value )
+    public Translation( String locale, String property, String value )
     {
         this.locale = locale;
         this.property = property;
@@ -119,12 +118,12 @@ public class Translation
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public TranslationProperty getProperty()
+    public String getProperty()
     {
         return property;
     }
 
-    public void setProperty( TranslationProperty property )
+    public void setProperty( String property )
     {
         this.property = property;
     }
