@@ -35,6 +35,7 @@ import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -75,6 +76,14 @@ import com.google.common.collect.Sets;
  */
 public class ProgramNotificationMessageRendererTest extends DhisSpringTest
 {
+    private String dataElementUid = CodeGenerator.generateUid();
+
+    private String trackedEntityAttributeUid = CodeGenerator.generateUid();
+
+    private String programUid = CodeGenerator.generateUid();
+
+    private String programStageUid = CodeGenerator.generateUid();
+
     private Program programA;
 
     private ProgramStage programStageA;
@@ -148,7 +157,10 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private ProgramNotificationMessageRenderer subject;
+    private ProgramNotificationMessageRenderer programNotificationMessageRenderer;
+
+    @Autowired
+    private ProgramStageNotificationMessageRenderer programStageNotificationMessageRenderer;
 
     @Override
     protected void setUpTest()
@@ -164,7 +176,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         Date enrollmentDate = testDate2.toDate();
 
         dataElementA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
-        dataElementA.setUid( "DEA-UID" );
+        dataElementA.setUid( dataElementUid );
         dataElementB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementB.setUid( "DEB-UID" );
 
@@ -172,6 +184,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         dataElementService.addDataElement( dataElementB );
 
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
+        trackedEntityAttributeA.setUid( trackedEntityAttributeUid );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
 
         attributeService.addTrackedEntityAttribute( trackedEntityAttributeA );
@@ -181,13 +194,11 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
+        programA.setUid( programUid );
         programService.addProgram( programA );
 
         programTrackedEntityAttributeA = createProgramTrackedEntityAttribute( programA, trackedEntityAttributeA );
-        programTrackedEntityAttributeA.setUid( "ATTRA-UID" );
-
         programTrackedEntityAttributeB = createProgramTrackedEntityAttribute( programA, trackedEntityAttributeB );
-        programTrackedEntityAttributeB.setUid( "ATTRB-UID" );
 
         programTrackedEntityAttributeStore.save( programTrackedEntityAttributeA );
         programTrackedEntityAttributeStore.save( programTrackedEntityAttributeB );
@@ -197,6 +208,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         programService.updateProgram( programA );
 
         programStageA = createProgramStage( 'A', programA );
+        programStageA.setUid( programStageUid );
         programStageService.saveProgramStage( programStageA );
 
         programStageDataElementA = createProgramStageDataElement( programStageA, dataElementA, 1 );
@@ -216,7 +228,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         entityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
         trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityInstanceA,
-            "test" );
+            "attribute-test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA );
 
         trackedEntityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValueA ) );
@@ -232,7 +244,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setExecutionDate( new Date() );
-        programStageInstanceA.setUid( "-PSI-UID" );
+        programStageInstanceA.setUid( "PSI-UID" );
 
         eventDataValueA = new EventDataValue();
         eventDataValueA.setDataElement( dataElementA.getUid() );
@@ -265,7 +277,8 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
     @Test
     public void testRendererForSimpleMessage()
     {
-        NotificationMessage notificationMessage = subject.render( programInstanceA, programNotificationTemplate );
+        NotificationMessage notificationMessage = programNotificationMessageRenderer.render( programInstanceA,
+            programNotificationTemplate );
         assertEquals( "message_template", notificationMessage.getMessage() );
         assertEquals( "subject_template", notificationMessage.getSubject() );
     }
@@ -273,10 +286,52 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
     @Test
     public void testRendererForMessageWithAttribute()
     {
+        programNotificationTemplate.setMessageTemplate( "message is A{" + trackedEntityAttributeUid + "}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is A{" + trackedEntityAttributeUid + "}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programNotificationMessageRenderer.render( programInstanceA,
+            programNotificationTemplate );
+        assertEquals( "message is attribute-test", notificationMessage.getMessage() );
+        assertEquals( "subject is attribute-test", notificationMessage.getSubject() );
     }
 
     @Test
     public void testRendererForMessageWithDataElement()
     {
+        programNotificationTemplate.setMessageTemplate( "message is #{" + dataElementUid + "}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is #{" + dataElementUid + "}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+            programNotificationTemplate );
+        assertEquals( "message is dataElementA-Text", notificationMessage.getMessage() );
+        assertEquals( "subject is dataElementA-Text", notificationMessage.getSubject() );
+    }
+
+    @Test
+    public void testRendererForMessageWithVariableName()
+    {
+        programNotificationTemplate.setMessageTemplate( "V{org_unit_name}" );
+        programNotificationTemplate.setSubjectTemplate( "V{program_name}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programNotificationMessageRenderer.render( programInstanceA,
+            programNotificationTemplate );
+        assertEquals( "OrganisationUnitA", notificationMessage.getMessage() );
+        assertEquals( "ProgramA", notificationMessage.getSubject() );
+    }
+
+    @Test
+    public void testRendererForMessageWithVariableUid()
+    {
+        programNotificationTemplate.setMessageTemplate( "message is V{program_id}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is V{program_stage_id}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+            programNotificationTemplate );
+        assertEquals( "message is " + programA.getUid(), notificationMessage.getMessage() );
+        assertEquals( "subject is " + programStageA.getUid(), notificationMessage.getSubject() );
     }
 }
