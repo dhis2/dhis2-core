@@ -123,7 +123,7 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
         for ( ProgramInstance pi : resultList )
         {
             final List<Event> eventList = idToEventMap.get( makeKey( pi ) );
-            if ( eventList != null && !eventList.isEmpty() )
+            if ( eventList != null )
             {
                 for ( Event event : eventList )
                 {
