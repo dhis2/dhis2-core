@@ -42,12 +42,12 @@ import org.mapstruct.Mapping;
 public interface TrackerEventCriteriaMapper
 {
     @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "occurredAtFrom", target = "startDate" )
-    @Mapping( source = "occurredAtTo", target = "endDate" )
-    @Mapping( source = "scheduledAtFrom", target = "dueDateStart" )
-    @Mapping( source = "scheduledAtTo", target = "dueDateEnd" )
-    @Mapping( source = "updatedAtFrom", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedAtTo", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedAtWithin", target = "lastUpdatedDuration" )
+    @Mapping( source = "occurredAfter", target = "startDate" )
+    @Mapping( source = "occurredBefore", target = "endDate" )
+    @Mapping( source = "scheduledAfter", target = "dueDateStart" )
+    @Mapping( source = "scheduledBefore", target = "dueDateEnd" )
+    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
+    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
+    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
     EventCriteria toEventCriteria( TrackerEventCriteria from );
 }

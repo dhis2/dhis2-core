@@ -42,15 +42,15 @@ import org.mapstruct.Mapping;
 public interface TrackerTrackedEntityCriteriaMapper
 {
     @Mapping( source = "orgUnit", target = "ou" )
-    @Mapping( source = "updatedAtFrom", target = "lastUpdatedStartDate" )
-    @Mapping( source = "updatedAtTo", target = "lastUpdatedEndDate" )
-    @Mapping( source = "updatedAtWithin", target = "lastUpdatedDuration" )
-    @Mapping( source = "enrolledAtFrom", target = "programStartDate" )
-    @Mapping( source = "enrolledAtTo", target = "programEndDate" )
-    @Mapping( source = "occurredAtFrom", target = "programIncidentStartDate" )
-    @Mapping( source = "occurredAtTo", target = "programIncidentEndDate" )
+    @Mapping( source = "updatedAfter", target = "lastUpdatedStartDate" )
+    @Mapping( source = "updatedBefore", target = "lastUpdatedEndDate" )
+    @Mapping( source = "updatedWithin", target = "lastUpdatedDuration" )
+    @Mapping( source = "enrollmentEnrolledAfter", target = "programStartDate" )
+    @Mapping( source = "enrollmentEnrolledBefore", target = "programEndDate" )
+    @Mapping( source = "enrollmentOccurredAfter", target = "programIncidentStartDate" )
+    @Mapping( source = "enrollmentOccurredBefore", target = "programIncidentEndDate" )
     @Mapping( source = "trackedEntity", target = "trackedEntityInstance" )
-    @Mapping( source = "eventExecutedAtFrom", target = "eventStartDate" )
-    @Mapping( source = "eventExecutedAtTo", target = "eventEndDate" )
+    @Mapping( source = "eventOccurredAfter", target = "eventStartDate" )
+    @Mapping( source = "eventOccurredBefore", target = "eventEndDate" )
     TrackedEntityInstanceCriteria toTrackedEntityInstanceCriteria( TrackerTrackedEntityCriteria from );
 }
