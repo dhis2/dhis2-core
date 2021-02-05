@@ -1,5 +1,3 @@
-package org.hisp.dhis.configuration;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -28,8 +26,21 @@ package org.hisp.dhis.configuration;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+package org.hisp.dhis.configuration;
+
+import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
 import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
-public class HttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {
+/**
+ * This is used for adding springSessionRepositoryFilter into the filter chain.
+ * The actual filter bean used will be either backed by redis from the
+ * {@link RedisSpringSessionConfiguration} or a dummy filter from
+ * {@link DefaultSessionConfiguration}.
+ * 
+ * @author Ameen Mohamed
+ *
+ */
+public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer
+{
 
 }
