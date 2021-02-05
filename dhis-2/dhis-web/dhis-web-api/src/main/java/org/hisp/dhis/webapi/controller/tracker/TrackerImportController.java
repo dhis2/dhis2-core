@@ -51,10 +51,12 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -101,7 +103,7 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    public TrackerImportReport syncPostJsonTracker(
+    public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
         HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
     {
@@ -110,9 +112,15 @@ public class TrackerImportController
 
         TrackerImportParams trackerImportParams = buildTrackerImportParams( request, currentUser, trackerBundleParams );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReportResponse = trackerImportService.buildImportReport( trackerImportReport,
+            trackerBundleReportMode );
 
-        return trackerImportService.buildImportReport( trackerImportReport, trackerBundleReportMode );
-
+        return trackerImportReportResponse.getStatus() == TrackerStatus.ERROR ? new ResponseEntity<>(
+            trackerImportReportResponse,
+            HttpStatus.CONFLICT )
+            : new ResponseEntity<>(
+                trackerImportReportResponse,
+                HttpStatus.OK );
     }
 
     @SneakyThrows
