@@ -95,7 +95,7 @@ public class ConstantServiceTest
 
         constantService.updateConstant( constantA );
 
-        assertEquals( 20.0, constantService.getConstant( constantA.getUid() ).getValue(), .01 );
+        assertEquals( 20.0, constantService.getConstant( constantA.getUid() ).getValue(), .001 );
     }
 
     @Test
@@ -206,8 +206,8 @@ public class ConstantServiceTest
         Map<String, Double> constantParameterMap = constantService.getConstantParameterMap();
 
         assertEquals( 2, constantParameterMap.size() );
-        assertEquals( 12.0, constantParameterMap.get( constantA.getName() ), .01 );
-        assertEquals( 13.0, constantParameterMap.get( constantB.getName() ), .01 );
+        assertEquals( 12.0, constantParameterMap.get( constantA.getName() ), .001 );
+        assertEquals( 13.0, constantParameterMap.get( constantB.getName() ), .001 );
     }
 
     @Test
