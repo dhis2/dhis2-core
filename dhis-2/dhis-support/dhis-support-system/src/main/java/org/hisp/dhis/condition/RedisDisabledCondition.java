@@ -54,6 +54,6 @@ public class RedisDisabledCondition extends PropertiesAwareConfigurationConditio
     @Override
     public ConfigurationPhase getConfigurationPhase()
     {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
+        return ConfigurationPhase.REGISTER_BEAN;
     }
 }
