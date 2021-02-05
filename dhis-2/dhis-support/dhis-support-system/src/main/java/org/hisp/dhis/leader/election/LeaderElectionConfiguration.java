@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -46,6 +47,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  *
  */
 @Configuration
+@DependsOn
 public class LeaderElectionConfiguration
 {
     @Autowired
@@ -59,9 +61,8 @@ public class LeaderElectionConfiguration
 
     @Bean( name = "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
-    @Autowired( required = false )
-    @Qualifier( "stringRedisTemplate" )
-    public LeaderManager redisLeaderManager( StringRedisTemplate stringRedisTemplate )
+    public LeaderManager redisLeaderManager(
+        @Autowired( required = false ) @Qualifier( "stringRedisTemplate" ) StringRedisTemplate stringRedisTemplate )
     {
         return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate,
             dhisConfigurationProvider );
