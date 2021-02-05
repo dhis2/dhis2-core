@@ -86,16 +86,6 @@ public class TrackerImportControllerTest
 
     private RenderService renderService;
 
-    private final static TrackerImportReport TRACKER_IMPORT_REPORT = TrackerImportReport.withImportCompleted(
-        TrackerStatus.OK,
-        TrackerBundleReport.builder()
-            .status( TrackerStatus.OK )
-            .build(),
-        TrackerValidationReport.builder()
-            .build(),
-        new TrackerTimingsStats(),
-        new HashMap<>() );
-
     @Before
     public void setUp()
     {
@@ -129,11 +119,20 @@ public class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySync()
+    public void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
         throws Exception
     {
         // When
-        when( trackerImportService.importTracker( any() ) ).thenReturn( TRACKER_IMPORT_REPORT );
+        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+            TrackerStatus.OK,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.OK )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
         when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
 
         // Then
@@ -142,6 +141,46 @@ public class TrackerImportControllerTest
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
+    public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
+        throws Exception
+    {
+
+        // When
+        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+            TrackerStatus.ERROR,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.ERROR )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
+        when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isConflict() )
             .andExpect( jsonPath( "$.message" ).doesNotExist() )
             .andExpect( content().contentType( "application/json" ) )
             .andReturn()
