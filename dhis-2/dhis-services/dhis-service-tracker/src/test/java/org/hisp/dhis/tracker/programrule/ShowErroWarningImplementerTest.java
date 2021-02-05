@@ -28,11 +28,12 @@
 
 package org.hisp.dhis.tracker.programrule;
 
+import static org.junit.Assert.*;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
@@ -55,14 +56,14 @@ import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
 import org.hisp.dhis.user.UserService;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 import com.google.common.collect.Sets;
 
-import static org.junit.Assert.*;
-
+@Ignore
 public class ShowErroWarningImplementerTest
     extends AbstractImportValidationTest
 {
