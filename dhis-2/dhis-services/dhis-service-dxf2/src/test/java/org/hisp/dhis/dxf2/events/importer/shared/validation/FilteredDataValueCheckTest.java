@@ -25,27 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.DATA_ELEMENT_1;
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.DATA_ELEMENT_2;
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.PROGRAMSTAGE;
 import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.getProgramMap;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.EventDataValueAggregator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -55,18 +53,18 @@ import com.google.common.collect.Sets;
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
-public class FilteringOutUndeclaredDataElementsProcessorTest
+public class FilteredDataValueCheckTest
 {
-    private FilteringOutUndeclaredDataElementsProcessor preProcessor;
+    private FilteredDataValueCheck dataValueCheck;
 
     @Before
     public void setUp()
     {
-        preProcessor = new FilteringOutUndeclaredDataElementsProcessor();
+        dataValueCheck = new FilteredDataValueCheck();
     }
 
     @Test
-    public void testNotLinkedDataElementsAreRemovedFromEvent()
+    public void testNotLinkedDataElementsAreReported()
     {
         Event event = new Event();
         event.setProgramStage( PROGRAMSTAGE );
@@ -84,20 +82,10 @@ public class FilteringOutUndeclaredDataElementsProcessorTest
                 Collections.emptyMap(), ImportOptions.getDefaultImportOptions() ) )
             .build();
 
-        preProcessor.process( event, ctx );
+        ImportSummary importSummary = dataValueCheck.check( new ImmutableEvent( event ), ctx );
 
-        Set<String> allowedDataValues = ctx
-            .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), PROGRAMSTAGE )
-            .getDataElements().stream()
-            .map( BaseIdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
-
-        Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream()
-            .flatMap( Collection::stream )
-            .map( EventDataValue::getDataElement )
-            .collect( Collectors.toSet() );
-
-        assertTrue( allowedDataValues.containsAll( filteredEventDataValues ) );
+        assertEquals( ImportStatus.WARNING, importSummary.getStatus() );
 
     }
+
 }
