@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
@@ -47,7 +46,6 @@ import org.springframework.data.redis.core.StringRedisTemplate;
  *
  */
 @Configuration
-@DependsOn
 public class LeaderElectionConfiguration
 {
     @Autowired
