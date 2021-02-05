@@ -100,6 +100,12 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     private DeletedObjectStore deletedObjectStore;
 
     @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return false;
+    }
+
+    @Override
     public void setUpTest()
     {
         programA = createProgram( 'A', null, null );
