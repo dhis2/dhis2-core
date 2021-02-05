@@ -29,12 +29,18 @@ package org.hisp.dhis.constant;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -54,12 +60,33 @@ public class DefaultConstantService
 
     private IdentifiableObjectStore<Constant> constantStore;
 
+    private final CacheProvider cacheProvider;
+
+    private static Cache<List> ALL_CONSTANTS_CACHE;
+
+    private static final String ALL_CONSTANTS_KEY = "x";
+
     public DefaultConstantService(
-        @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore )
+        @Qualifier( "org.hisp.dhis.constant.ConstantStore" ) IdentifiableObjectStore<Constant> constantStore,
+        CacheProvider cacheProvider )
     {
         checkNotNull( constantStore );
+        checkNotNull( cacheProvider );
 
         this.constantStore = constantStore;
+        this.cacheProvider = cacheProvider;
+    }
+
+    @PostConstruct
+    public void init()
+    {
+        ALL_CONSTANTS_CACHE = cacheProvider.newCacheBuilder( List.class )
+            .forRegion( "allConstantsCache" )
+            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .withInitialCapacity( 1 )
+            .forceInMemory()
+            .withMaximumSize( 1 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -71,6 +98,9 @@ public class DefaultConstantService
     public long saveConstant( Constant constant )
     {
         constantStore.save( constant );
+
+        ALL_CONSTANTS_CACHE.invalidate( ALL_CONSTANTS_KEY );
+
         return constant.getId();
     }
 
@@ -79,6 +109,8 @@ public class DefaultConstantService
     public void updateConstant( Constant constant )
     {
         constantStore.update( constant );
+
+        ALL_CONSTANTS_CACHE.invalidate( ALL_CONSTANTS_KEY );
     }
 
     @Override
@@ -86,6 +118,8 @@ public class DefaultConstantService
     public void deleteConstant( Constant constant )
     {
         constantStore.delete( constant );
+
+        ALL_CONSTANTS_CACHE.invalidate( ALL_CONSTANTS_KEY );
     }
 
     @Override
@@ -106,7 +140,8 @@ public class DefaultConstantService
     @Transactional( readOnly = true )
     public List<Constant> getAllConstants()
     {
-        return constantStore.getAll();
+        return (List<Constant>) ALL_CONSTANTS_CACHE.get( ALL_CONSTANTS_KEY, key -> constantStore.getAll() )
+            .orElse( new ArrayList<Constant>() );
     }
 
     @Override
