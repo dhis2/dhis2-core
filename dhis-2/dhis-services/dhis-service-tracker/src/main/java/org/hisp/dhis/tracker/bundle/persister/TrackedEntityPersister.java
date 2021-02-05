@@ -77,7 +77,7 @@ public class TrackedEntityPersister extends AbstractTrackerPersister<TrackedEnti
     }
 
     @Override
-    protected void persistComments( TrackedEntityInstance trackedEntityInstance )
+    protected void persistComments( TrackerPreheat preheat, TrackedEntityInstance trackedEntityInstance )
     {
         // DO NOTHING - TEI HAVE NO COMMENTS
     }

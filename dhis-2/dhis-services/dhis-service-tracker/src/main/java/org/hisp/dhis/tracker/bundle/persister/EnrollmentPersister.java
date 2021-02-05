@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 import org.hibernate.Session;
 import org.hisp.dhis.program.ProgramInstance;
@@ -88,13 +89,16 @@ public class EnrollmentPersister extends AbstractTrackerPersister<Enrollment, Pr
     }
 
     @Override
-    protected void persistComments( ProgramInstance programInstance )
+    protected void persistComments( TrackerPreheat preheat, ProgramInstance programInstance )
     {
         if ( !programInstance.getComments().isEmpty() )
         {
             for ( TrackedEntityComment comment : programInstance.getComments() )
             {
-                this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                if ( Objects.isNull( preheat.getNote( comment.getUid() ) ) )
+                {
+                    this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                }
             }
         }
     }

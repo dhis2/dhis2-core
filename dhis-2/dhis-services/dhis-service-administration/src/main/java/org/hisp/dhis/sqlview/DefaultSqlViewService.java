@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.sqlview;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.sqlview.SqlView.*;
+import static org.hisp.dhis.sqlview.SqlView.CURRENT_USERNAME_VARIABLE;
+import static org.hisp.dhis.sqlview.SqlView.CURRENT_USER_ID_VARIABLE;
+import static org.hisp.dhis.sqlview.SqlView.STANDARD_VARIABLES;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
@@ -47,11 +49,11 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryUtils;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,6 +63,7 @@ import com.google.common.collect.Sets;
  * @author Dang Duy Hieu
  */
 @Slf4j
+@AllArgsConstructor
 @Transactional
 @Service( "org.hisp.dhis.sqlview.SqlViewService" )
 public class DefaultSqlViewService
@@ -76,26 +79,9 @@ public class DefaultSqlViewService
 
     private final DhisConfigurationProvider config;
 
-    @Autowired
-    private CurrentUserService currentUserService;
+    private final AclService aclService;
 
-    @Override
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
-    }
-
-    public DefaultSqlViewService( SqlViewStore sqlViewStore, StatementBuilder statementBuilder,
-        DhisConfigurationProvider config )
-    {
-        checkNotNull( sqlViewStore );
-        checkNotNull( statementBuilder );
-        checkNotNull( config );
-
-        this.sqlViewStore = sqlViewStore;
-        this.statementBuilder = statementBuilder;
-        this.config = config;
-    }
+    private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // CRUD methods
@@ -184,6 +170,7 @@ public class DefaultSqlViewService
     public Grid getSqlViewGrid( SqlView sqlView, Map<String, String> criteria, Map<String, String> variables,
         List<String> filters, List<String> fields )
     {
+        canAccess( sqlView );
         validateSqlView( sqlView, criteria, variables );
 
         Grid grid = new ListGrid();
@@ -198,6 +185,15 @@ public class DefaultSqlViewService
         sqlViewStore.populateSqlViewGrid( grid, sql );
 
         return grid;
+    }
+
+    private void canAccess( SqlView sqlView )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( !aclService.canDataRead( currentUser, sqlView ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E4312, sqlView.getUid() ) );
+        }
     }
 
     private String parseFilters( List<String> filters, SqlHelper sqlHelper )

@@ -40,7 +40,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @NoArgsConstructor
 public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private String ou;
+    private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 

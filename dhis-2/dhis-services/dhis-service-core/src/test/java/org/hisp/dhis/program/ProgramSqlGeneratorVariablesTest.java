@@ -151,11 +151,7 @@ public class ProgramSqlGeneratorVariablesTest
     public void testCompletedDateForEnrollment()
     {
         String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
-        assertThat( sql,
-            is( "(select completeddate from analytics_event_" + enrollmentIndicator.getProgram().getUid()
-                + " where analytics_event_"
-                + enrollmentIndicator.getProgram().getUid()
-                + ".pi = ax.pi and completeddate is not null order by executiondate desc limit 1 )" ) );
+        assertThat( sql, is( "completeddate" ) );
     }
 
     @Test

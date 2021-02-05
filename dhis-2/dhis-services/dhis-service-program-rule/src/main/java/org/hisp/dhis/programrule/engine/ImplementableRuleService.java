@@ -28,11 +28,36 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 
-public interface ImplementableRuleService
+abstract class ImplementableRuleService
 {
-    List<ProgramRule> getImplementableRules( Program program );
+    private final ProgramRuleService programRuleService;
+
+    public ImplementableRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
+    }
+
+    abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
+
+    protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
+        Set<ProgramRuleActionType> types, String programStageUid )
+    {
+        if ( programStageUid == null )
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types );
+        }
+        else
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types, programStageUid );
+        }
+
+    }
+
 }

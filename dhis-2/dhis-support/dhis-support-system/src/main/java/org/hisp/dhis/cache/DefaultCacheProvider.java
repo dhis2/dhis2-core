@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -66,6 +67,7 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Autowired( required = false )
+    @Qualifier( "redisTemplate" )
     public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
     {
         this.redisTemplate = redisTemplate;

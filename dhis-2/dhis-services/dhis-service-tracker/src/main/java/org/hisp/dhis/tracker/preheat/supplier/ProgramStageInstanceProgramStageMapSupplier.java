@@ -43,7 +43,8 @@ import org.springframework.stereotype.Component;
 /**
  * This supplier adds to the pre-heat object a List of all Program Stages UIDs
  * that have at least ONE Program Stage Instance that is not logically deleted
- * ('deleted = true') and the status is not 'SKIPPED'
+ * ('deleted = true') and the status is not 'SKIPPED' among the Program Stages
+ * and the Enrollments present in the payload
  *
  * @author Luciano Fiandesio
  */
@@ -55,13 +56,12 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
     private static final String PI_UID = "programInstanceUid";
 
-    private static final String SQL = "select DISTINCT ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
+    private static final String SQL = "select ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
         " from programstage AS ps " +
         " JOIN programinstance AS pi ON pi.programid = ps.programid " +
         " where exists( select programstageinstanceid from programstageinstance psi where  psi.deleted = false " +
         " and psi.status != 'SKIPPED' and ps.programstageid = psi.programstageid " +
-        " and pi.programinstanceid = psi.programinstanceid ) " +
-        " and ps.uid in (:ids)";
+        " and pi.programinstanceid = psi.programinstanceid ) ";
 
     protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
     {
@@ -82,13 +82,20 @@ public class ProgramStageInstanceProgramStageMapSupplier
             .distinct()
             .collect( Collectors.toList() );
 
+        List<String> programInstanceUids = params.getEvents().stream()
+            .map( Event::getEnrollment )
+            .filter( Objects::nonNull )
+            .distinct()
+            .collect( Collectors.toList() );
+
         if ( !programStageUids.isEmpty() )
         {
             List<Pair<String, String>> programStageWithEvents = new ArrayList<>();
 
             MapSqlParameterSource parameters = new MapSqlParameterSource();
-            parameters.addValue( "ids", programStageUids );
-            jdbcTemplate.query( SQL, parameters, rs -> {
+            parameters.addValue( "programStageUids", programStageUids );
+            parameters.addValue( "programInstanceUids", programInstanceUids );
+            jdbcTemplate.query( getSql( programStageUids, programInstanceUids ), parameters, rs -> {
 
                 programStageWithEvents.add( Pair.of( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
 
@@ -96,5 +103,21 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
             preheat.setProgramStageWithEvents( programStageWithEvents );
         }
+    }
+
+    private String getSql( List<String> programStageUids, List<String> programInstanceUids )
+    {
+        StringBuilder sql = new StringBuilder( SQL );
+
+        if ( !programStageUids.isEmpty() )
+        {
+            sql.append( " and ps.uid in (:programStageUids) " );
+        }
+        if ( !programInstanceUids.isEmpty() )
+        {
+            sql.append( " and pi.uid in (:programInstanceUids) " );
+        }
+
+        return sql.toString();
     }
 }

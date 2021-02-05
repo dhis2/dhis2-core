@@ -141,7 +141,6 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public Preheat preheat( PreheatParams params )
     {
         Timer timer = new SystemTimer().start();
