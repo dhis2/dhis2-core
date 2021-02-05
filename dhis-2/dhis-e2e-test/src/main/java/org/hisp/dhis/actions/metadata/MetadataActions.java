@@ -78,9 +78,10 @@ public class MetadataActions
     public ApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
     {
         ApiResponse response = importMetadata( object, queryParams );
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
+
         response.validate().body( "stats.ignored", not(
             equalTo( response.extract( "stats.total" ) ) ) );
+
         return response;
     }
 
@@ -88,9 +89,9 @@ public class MetadataActions
     {
         ApiResponse response = importMetadata( file, queryParams );
 
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
         response.validate().body( "stats.ignored", not(
             equalTo( response.extract( "stats.total" ) ) ) );
+
         return response;
     }
 }
