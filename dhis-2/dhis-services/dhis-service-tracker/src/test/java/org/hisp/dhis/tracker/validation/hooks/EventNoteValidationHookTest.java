@@ -79,7 +79,7 @@ public class EventNoteValidationHookTest
     }
 
     @Test
-    public void testNoteWithExistingUidFails()
+    public void testNoteWithExistingUidWarnings()
     {
         // Given
         final Note note = rnd.randomObject( Note.class );
@@ -99,8 +99,8 @@ public class EventNoteValidationHookTest
         this.hook.validateEvent( reporter, event );
 
         // Then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1119 ) );
+        assertTrue( reporter.hasWarnings() );
+        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1119 ) );
         assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
