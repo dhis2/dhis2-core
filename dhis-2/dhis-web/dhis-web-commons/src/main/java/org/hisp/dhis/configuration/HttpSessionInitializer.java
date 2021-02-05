@@ -1,3 +1,5 @@
+package org.hisp.dhis.configuration;
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -25,34 +27,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.condition;
 
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
-/**
- * Condition that matches to true if redis.enabled property is set to true in
- * dhis.conf.
- *
- * @author Ameen Mohamed
- *
- */
-public class RedisEnabledCondition extends PropertiesAwareConfigurationCondition
-{
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( !isTestRun( context ) )
-        {
-            return getConfiguration().getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" );
-        }
-        return false;
-    }
+public class HttpSessionInitializer extends AbstractHttpSessionApplicationInitializer {
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
-    {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
-    }
 }
