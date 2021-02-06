@@ -133,7 +133,7 @@ public class PeriodOffsetUtils
         }
         else
         {
-            p = periodType.getPreviousPeriod( period, periodOffset );
+            p = periodType.getPreviousPeriod( period, -periodOffset );
         }
 
         p.setShifted( true );
