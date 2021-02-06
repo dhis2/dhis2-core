@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.translation;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import javax.validation.constraints.NotNull;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import javax.validation.constraints.NotNull;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
  * This annotation is used for indicating that a property of an object is
@@ -51,8 +52,9 @@ public @interface Translatable
     String propertyName();
 
     /**
-     * Translation key for storing translation in json format.
-     * If not defined then property name is used as the key.
+     * Translation key for storing translation in json format. If not defined
+     * then property name is used as the key.
+     *
      * @return
      */
     String translationKey();

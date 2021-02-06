@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.util;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.translation.Translation;
+import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -39,7 +36,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.translation.Translation;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

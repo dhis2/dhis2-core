@@ -27,7 +27,15 @@
  */
 package org.hisp.dhis.i18n.action;
 
-import com.opensymphony.xwork2.Action;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+
+import java.util.ArrayList;
+import java.util.Hashtable;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.i18n.I18nLocaleService;
@@ -38,14 +46,7 @@ import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.util.TranslationUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Hashtable;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Oyvind Brucker

@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.translation;
 
+import static org.junit.Assert.assertEquals;
+
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
@@ -48,12 +54,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
