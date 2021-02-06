@@ -31,13 +31,15 @@ import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserCredentialsMapper.class, OrganisationUnitMapper.class } )
+@Mapper( uses = { DebugMapper.class, UserCredentialsMapper.class, OrganisationUnitMapper.class,
+    UserGroupMapper.class } )
 public interface FullUserMapper extends PreheatMapper<User>
 {
     FullUserMapper INSTANCE = Mappers.getMapper( FullUserMapper.class );
@@ -49,6 +51,7 @@ public interface FullUserMapper extends PreheatMapper<User>
     @Mapping( target = "userCredentials" )
     @Mapping( target = "organisationUnits", qualifiedByName = "organisationUnits" )
     @Mapping( target = "teiSearchOrganisationUnits", qualifiedByName = "teiSearchOrganisationUnits" )
+    @Mapping( target = "groups", qualifiedByName = "groups" )
     User map( User user );
 
     @Named( "teiSearchOrganisationUnits" )
@@ -56,4 +59,7 @@ public interface FullUserMapper extends PreheatMapper<User>
 
     @Named( "organisationUnits" )
     Set<OrganisationUnit> organisationUnits( Set<OrganisationUnit> organisationUnits );
+
+    @Named( "groups" )
+    Set<UserGroup> groups( Set<UserGroup> groups );
 }

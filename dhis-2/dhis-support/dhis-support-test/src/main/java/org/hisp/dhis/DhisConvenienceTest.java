@@ -238,6 +238,8 @@ public abstract class DhisConvenienceTest
 
     protected static CategoryService categoryService;
 
+    private char nextUserName = 'a';
+
     @PostConstruct
     protected void initServices()
     {
@@ -2214,7 +2216,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUserAuthorityGroup( group );
 
-        User user = createUser( 'A' );
+        User user = createUser( nextUserName++ );
 
         if ( organisationUnits != null )
         {

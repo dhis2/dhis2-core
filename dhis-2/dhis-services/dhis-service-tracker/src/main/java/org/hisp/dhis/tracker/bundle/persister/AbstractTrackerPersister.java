@@ -124,7 +124,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 //
                 // Handle comments persistence, if required
                 //
-                persistComments( convertedDto );
+                persistComments( bundle.getPreheat(), convertedDto );
 
                 updateDataValues( session, bundle.getPreheat(), trackerDto, convertedDto );
 
@@ -213,7 +213,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     /**
      * Persists the comments for the given entity, if the entity has comments
      */
-    protected abstract void persistComments( V entity );
+    protected abstract void persistComments( TrackerPreheat preheat, V entity );
 
     /**
      * Execute the persistence of Data values linked to the entity being

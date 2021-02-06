@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.user.CurrentUserService;
 
 /**
  * @author Dang Duy Hieu
@@ -46,8 +45,6 @@ public interface SqlViewService
     String SELECT_EXPRESSION = "^(?i)\\s*(select|with)\\s+.+";
 
     Pattern SELECT_PATTERN = Pattern.compile( SELECT_EXPRESSION, Pattern.DOTALL );
-
-    void setCurrentUserService( CurrentUserService currentUserService );
 
     // -------------------------------------------------------------------------
     // CRUD

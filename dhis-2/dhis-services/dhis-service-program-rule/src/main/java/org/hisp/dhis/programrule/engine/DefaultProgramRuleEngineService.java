@@ -63,8 +63,6 @@ public class DefaultProgramRuleEngineService
 
     private final ProgramRuleEngine programRuleEngine;
 
-    private final ProgramRuleEngine programRuleEngineNew;
-
     private final List<RuleActionImplementer> ruleActionImplementers;
 
     private final ProgramInstanceService programInstanceService;
@@ -76,14 +74,12 @@ public class DefaultProgramRuleEngineService
     private final DhisConfigurationProvider config;
 
     public DefaultProgramRuleEngineService(
-        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
         @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService, ProgramService programService,
         DhisConfigurationProvider config )
     {
         checkNotNull( programRuleEngine );
-        checkNotNull( programRuleEngineNew );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
@@ -91,7 +87,6 @@ public class DefaultProgramRuleEngineService
         checkNotNull( config );
 
         this.programRuleEngine = programRuleEngine;
-        this.programRuleEngineNew = programRuleEngineNew;
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
@@ -149,7 +144,7 @@ public class DefaultProgramRuleEngineService
     {
         Program program = programService.getProgram( programId );
 
-        return programRuleEngineNew.getDescription( condition, program );
+        return programRuleEngine.getDescription( condition, program );
     }
 
     private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
