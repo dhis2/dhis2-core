@@ -318,20 +318,20 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
     @Test
     public void testRendererForMessageWithVariableName()
     {
-        programNotificationTemplate.setMessageTemplate( "message is V{org_unit_name}" );
+        programNotificationTemplate.setMessageTemplate( "message is V{org_unit_name} and V{enrollment_org_unit_id}" );
         programNotificationTemplate.setSubjectTemplate( "subject is V{program_name}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
 
         NotificationMessage notificationMessage = programNotificationMessageRenderer.render( programInstanceA,
             programNotificationTemplate );
-        assertEquals( "message is OrganisationUnitA", notificationMessage.getMessage() );
+        assertEquals( "message is OrganisationUnitA and " + orgUnitUid, notificationMessage.getMessage() );
         assertEquals( "subject is ProgramA", notificationMessage.getSubject() );
     }
 
     @Test
     public void testRendererForMessageWithVariableId()
     {
-        programNotificationTemplate.setMessageTemplate( "message is V{program_id} and V{org_unit_id}" );
+        programNotificationTemplate.setMessageTemplate( "message is V{program_id} and V{event_org_unit_id}" );
         programNotificationTemplate.setSubjectTemplate( "subject is V{program_stage_id} and V{enrollment_id}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
 

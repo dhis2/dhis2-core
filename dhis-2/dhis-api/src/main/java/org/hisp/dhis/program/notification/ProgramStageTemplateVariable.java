@@ -64,7 +64,8 @@ public enum ProgramStageTemplateVariable
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
     CURRENT_DATE( "current_date" ),
     PROGRAM_ID( "program_id" ),
-    ORG_UNIT_ID( "org_unit_id" ),
+    EVENT_ORG_UNIT_ID( "event_org_unit_id" ),
+    ENROLLMENT_ORG_UNIT_ID( "enrollment_org_unit_id" ),
     PROGRAM_STAGE_ID( "program_stage_id" ),
     ENROLLMENT_ID( "enrollment_id" );
 
