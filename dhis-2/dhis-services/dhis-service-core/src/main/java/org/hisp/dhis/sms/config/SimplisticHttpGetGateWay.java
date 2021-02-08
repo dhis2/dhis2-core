@@ -45,6 +45,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -101,28 +102,28 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder;
 
         ResponseEntity<String> responseEntity = null;
 
-        HttpEntity<String> requestEntity = null;
+        HttpEntity<String> requestEntity;
 
         URI uri;
 
         try
         {
+            requestEntity = getRequestEntity( genericConfig, text, recipients );
+
             if ( genericConfig.isSendUrlParameters() )
             {
-                uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
-
-                requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
+                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
             }
             else
             {
-                uri = uriBuilder.build().encode().toUri();
-
-                requestEntity = getRequestEntity( genericConfig, text, recipients );
+                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
             }
+
+            uri = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
         }
@@ -148,42 +149,14 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        List<GenericGatewayParameter> parameters = config.getParameters();
-
-        Map<String, String> valueStore = new HashMap<>();
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
-
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( parameter.isHeader() )
-            {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
-                continue;
-            }
-
-            if ( parameter.isEncode() )
-            {
-                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
-                continue;
-            }
-
-            valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
-        }
-
-        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
-        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
-
-        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches on ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
-        return new HttpEntity<>( data, httpHeaders );
+        return new HttpEntity<>( data, getRequestHeaderParameters( config ) );
     }
 
-    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    private Map<String, String> getRequestData( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         List<GenericGatewayParameter> parameters = config.getParameters();
 
@@ -191,10 +164,17 @@ public class SimplisticHttpGetGateWay
 
         for ( GenericGatewayParameter parameter : parameters )
         {
+            if ( parameter.isEncode() )
+            {
+                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
+                continue;
+            }
+
             if ( !parameter.isHeader() )
             {
                 valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );            }
+                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+            }
         }
 
         valueStore.put( KEY_TEXT, text );
@@ -203,7 +183,7 @@ public class SimplisticHttpGetGateWay
         return valueStore;
     }
 
-    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
+    private HttpHeaders getRequestHeaderParameters( GenericHttpGatewayConfig config )
     {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
@@ -212,7 +192,18 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put(parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                if ( parameter.getKey().equals( HttpHeaders.AUTHORIZATION ) )
+                {
+                    String encodedCredentials = Base64.getEncoder().encodeToString( parameter.getValue().getBytes() );
+
+                    httpHeaders.put( HttpHeaders.AUTHORIZATION, Collections.singletonList( BASIC + encodedCredentials ) );
+
+                    continue;
+                }
+
+                httpHeaders.put( parameter.getKey(),
+                    parameter.isEncode() ? Collections.singletonList( SmsUtils.encode( parameter.getValue() ) ):
+                    Collections.singletonList( parameter.getValue() ) );
             }
         }
 

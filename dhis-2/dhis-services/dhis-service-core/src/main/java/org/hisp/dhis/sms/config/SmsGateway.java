@@ -28,16 +28,21 @@ package org.hisp.dhis.sms.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -80,6 +85,10 @@ public abstract class SmsGateway
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    @Qualifier( "tripleDesStringEncryptor" )
+    private PBEStringEncryptor pbeStringEncryptor;
 
     protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
 
@@ -153,5 +162,19 @@ public abstract class SmsGateway
         status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
+    }
+
+    protected HttpHeaders getAuthenticationHeaderParameters( SmsGatewayConfig config )
+    {
+        String credentials = config.getUsername().trim() + ":" +
+            pbeStringEncryptor.decrypt( config.getPassword().trim());
+        String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.AUTHORIZATION, BASIC + encodedCredentials );
+
+        return headers;
     }
 }
