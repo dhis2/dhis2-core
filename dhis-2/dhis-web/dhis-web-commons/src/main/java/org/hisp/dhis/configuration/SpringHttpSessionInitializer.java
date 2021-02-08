@@ -1,6 +1,7 @@
-package org.hisp.dhis.cache;
+package org.hisp.dhis.configuration;
+
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +28,19 @@ package org.hisp.dhis.cache;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
-
-import java.util.Map;
+import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
+import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;
 
 /**
- * Provides cache builder to build instances.
+ * This is used for adding springSessionRepositoryFilter into the filter chain.
+ * The actual filter bean used will be either backed by redis from the
+ * {@link RedisSpringSessionConfiguration} or a dummy filter from
+ * {@link DefaultSessionConfiguration}.
  *
  * @author Ameen Mohamed
  *
  */
-@Component( "cacheProvider" )
-public class DefaultCacheProvider implements CacheProvider
+public class SpringHttpSessionInitializer extends AbstractHttpSessionApplicationInitializer
 {
-    private DhisConfigurationProvider configurationProvider;
-
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder( Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
-    }
-
-    @Override
-    public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
-    {
-        return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
-    }
-
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
-
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
 
 }
