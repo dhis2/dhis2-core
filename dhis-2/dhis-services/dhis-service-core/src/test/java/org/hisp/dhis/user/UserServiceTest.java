@@ -158,7 +158,7 @@ public class UserServiceTest
         userA.setSurname( "UpdatedSurnameA" );
         userService.updateUser( userA );
 
-        assertEquals( userService.getUser( userA.getId() ).getSurname(), "UpdatedSurnameA" );
+        assertEquals( "UpdatedSurnameA", userService.getUser( userA.getId() ).getSurname() );
     }
 
     @Test

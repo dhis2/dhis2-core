@@ -48,6 +48,8 @@ import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.QueryHints;
@@ -74,8 +76,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Nguyen Hong Duc
  */
@@ -85,6 +85,8 @@ public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
     implements UserStore
 {
+    public static final String DISABLED_COLUMN = "disabled";
+
     private final SchemaService schemaService;
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -336,7 +338,7 @@ public class HibernateUserStore
 
         if ( params.getDisabled() != null )
         {
-            query.setParameter( "disabled", params.getDisabled() );
+            query.setParameter( DISABLED_COLUMN, params.getDisabled() );
         }
 
         if ( params.isAuthSubset() && params.getUser() != null )
@@ -483,9 +485,9 @@ public class HibernateUserStore
         Root<UserCredentials> uc = update.from( UserCredentials.class );
         update.where( builder.and(
             // just so we do not count rows already disabled
-            builder.equal( uc.get( "disabled" ), false ),
+            builder.equal( uc.get( DISABLED_COLUMN ), false ),
             builder.lessThanOrEqualTo( uc.get( "lastLogin" ), inactiveSince ) ) );
-        update.set( "disabled", true );
+        update.set( DISABLED_COLUMN, true );
         return getSession().createQuery( update ).executeUpdate();
     }
 }
