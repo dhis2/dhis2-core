@@ -51,10 +51,12 @@ import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -80,13 +82,10 @@ public class TrackerImportController
     private final Notifier notifier;
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE )
-    // @PreAuthorize( "hasRole('ALL') or
-    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
     public void asyncPostJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
         throws IOException
     {
-
         String jobId = trackerMessageManager.addJob(
             buildTrackerImportParams( request, currentUser, trackerBundleParams ) );
 
@@ -103,36 +102,23 @@ public class TrackerImportController
     }
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
-    // @PreAuthorize( "hasRole('ALL') or
-    // hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
-    public TrackerImportReport syncPostJsonTracker(
+    public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
         HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
     {
-
-        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
+        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
+            .getTrackerBundleReportMode( reportMode );
 
         TrackerImportParams trackerImportParams = buildTrackerImportParams( request, currentUser, trackerBundleParams );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport trackerImportReportResponse = trackerImportService.buildImportReport( trackerImportReport,
+            trackerBundleReportMode );
 
-        return trackerImportService.buildImportReport( trackerImportReport, trackerBundleReportMode );
+        ResponseEntity.BodyBuilder builder = trackerImportReportResponse.getStatus() == TrackerStatus.ERROR
+            ? ResponseEntity.status( HttpStatus.CONFLICT )
+            : ResponseEntity.ok();
 
-    }
-
-    private TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-
-        TrackerBundleReportMode trackerBundleReportMode;
-        try
-        {
-            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportMode.toUpperCase() );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                "Value " + reportMode + " is not a valid report mode" );
-        }
-        return trackerBundleReportMode;
+        return builder.body( trackerImportReportResponse );
     }
 
     @SneakyThrows
@@ -167,7 +153,8 @@ public class TrackerImportController
         HttpServletResponse response )
         throws HttpStatusCodeException
     {
-        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
+        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
+            .getTrackerBundleReportMode( reportMode );
 
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );

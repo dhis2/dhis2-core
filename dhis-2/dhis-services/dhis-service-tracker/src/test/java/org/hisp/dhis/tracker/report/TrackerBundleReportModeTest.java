@@ -25,44 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.report;
 
-import java.util.stream.Stream;
+import static org.junit.Assert.assertNotNull;
 
-import org.springframework.http.HttpStatus;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.junit.Test;
 import org.springframework.web.client.HttpClientErrorException;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public enum TrackerBundleReportMode
+public class TrackerBundleReportModeTest
 {
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
-
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
-
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
-
-    private static Stream<TrackerBundleReportMode> stream()
+    @Test
+    public void shouldFindReportMode()
     {
-        return Stream.of( TrackerBundleReportMode.values() );
+        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
     }
 
-    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
+    @Test( expected = HttpClientErrorException.class )
+    public void shouldThrowWhenReportModeNotFound()
     {
-        return TrackerBundleReportMode.stream().filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
-            .findFirst().orElseThrow( () -> new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                "Value " + reportMode + " is not a valid report mode" ) );
+        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
     }
 }
