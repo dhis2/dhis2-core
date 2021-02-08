@@ -192,7 +192,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         List<RuleEffect> effects = new ArrayList<>();
         effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
-        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
         when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
@@ -201,7 +201,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -251,6 +251,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         programStageInstance = new ProgramStageInstance();
         programStageInstance.setProgramStage( programStageA );
         programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setUid( "PSI1" );
 
         programRules.add( programRuleA );
     }
