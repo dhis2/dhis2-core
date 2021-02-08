@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.report;
 
 import static org.junit.Assert.assertNotNull;
+
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.junit.Test;
 import org.springframework.web.client.HttpClientErrorException;

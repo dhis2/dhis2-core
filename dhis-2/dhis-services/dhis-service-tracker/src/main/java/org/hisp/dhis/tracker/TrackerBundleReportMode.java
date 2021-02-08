@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker;
 
+import java.util.stream.Stream;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
-
-import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
