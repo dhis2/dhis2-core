@@ -54,7 +54,7 @@ public enum TrackerBundleReportMode
      */
     WARNINGS;
 
-    public static Stream<TrackerBundleReportMode> stream()
+    private static Stream<TrackerBundleReportMode> stream()
     {
         return Stream.of( TrackerBundleReportMode.values() );
     }
