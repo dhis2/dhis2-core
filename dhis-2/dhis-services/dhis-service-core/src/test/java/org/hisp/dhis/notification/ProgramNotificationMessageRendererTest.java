@@ -338,6 +338,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
             programNotificationTemplate );
         assertEquals( "message is " + programA.getUid() + " and " + orgUnitUid, notificationMessage.getMessage() );
-        assertEquals( "subject is " + programStageA.getUid() + " and " + enrollmentUid, notificationMessage.getSubject() );
+        assertEquals( "subject is " + programStageA.getUid() + " and " + enrollmentUid,
+            notificationMessage.getSubject() );
     }
 }

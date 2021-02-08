@@ -61,7 +61,8 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.DAYS_UNTIL_DUE_DATE, psi -> daysUntil( psi.getDueDate() ) )
         .put( ProgramStageTemplateVariable.CURRENT_DATE, psi -> formatDate( new Date() ) )
         .put( ProgramStageTemplateVariable.EVENT_ORG_UNIT_ID, psi -> psi.getOrganisationUnit().getUid() )
-        .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID, psi -> psi.getProgramInstance().getOrganisationUnit().getUid() )
+        .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID,
+            psi -> psi.getProgramInstance().getOrganisationUnit().getUid() )
         .put( ProgramStageTemplateVariable.PROGRAM_ID, psi -> psi.getProgramStage().getProgram().getUid() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_ID, psi -> psi.getProgramStage().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ID, psi -> psi.getProgramInstance().getUid() )
