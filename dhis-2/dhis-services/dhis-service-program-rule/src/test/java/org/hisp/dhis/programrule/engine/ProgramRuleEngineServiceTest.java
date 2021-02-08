@@ -28,12 +28,11 @@ package org.hisp.dhis.programrule.engine;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.*;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -196,7 +195,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 

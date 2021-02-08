@@ -29,6 +29,7 @@ package org.hisp.dhis.programrule.engine;
  */
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -53,7 +54,7 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstanceUid() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

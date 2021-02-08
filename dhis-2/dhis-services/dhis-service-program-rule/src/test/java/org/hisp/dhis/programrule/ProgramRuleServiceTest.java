@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
 import static org.junit.Assert.*;
 
@@ -39,19 +38,23 @@ import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.deletedobject.DeletedObjectQuery;
 import org.hisp.dhis.deletedobject.DeletedObjectStore;
-import org.hisp.dhis.program.*;
-import org.junit.Rule;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Sets;
 
-public class ProgramRuleServiceTest
-    extends IntegrationTestBase
+public class ProgramRuleServiceTest extends IntegrationTestBase
 {
     private Program programA;
+
     private Program programB;
+
     private Program programC;
 
     private ProgramStage programStageA;
@@ -59,10 +62,15 @@ public class ProgramRuleServiceTest
     private ProgramStage programStageB;
 
     private ProgramStageSection programStageSectionA;
+
     private ProgramRule programRuleA;
+
     private ProgramRuleAction programRuleActionA;
+
     private ProgramRuleAction programRuleActionB;
+
     private ProgramRuleVariable programRuleVariableA;
+
     private ProgramRuleVariable programRuleVariableB;
 
     @Autowired
@@ -85,9 +93,6 @@ public class ProgramRuleServiceTest
 
     @Autowired
     private DeletedObjectStore deletedObjectStore;
-
-    @Rule
-    public ExpectedException expectedEx = ExpectedException.none();
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -126,7 +131,7 @@ public class ProgramRuleServiceTest
         programStageSectionA.setProgramStage( programStageB );
         programStageSectionService.updateProgramStageSection( programStageSectionA );
 
-        //Add a tree of variables, rules and actions to programA:
+        // Add a tree of variables, rules and actions to programA:
         programRuleA = createProgramRule( 'A', programA );
         programRuleService.addProgramRule( programRuleA );
 
@@ -148,8 +153,9 @@ public class ProgramRuleServiceTest
     public void testAddGet()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
-        ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionA", programA, null, null, "$a < 1", 1 );
+        ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionA", programA, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
 
         long idA = programRuleService.addProgramRule( ruleA );
         long idB = programRuleService.addProgramRule( ruleB );
@@ -176,7 +182,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -213,7 +219,7 @@ public class ProgramRuleServiceTest
         ProgramRule retrievedProgramRule = programRuleService.getProgramRule( idA );
         Set<ProgramRuleActionEvaluationTime> evaluationTimesForActions = retrievedProgramRule.getProgramRuleActions()
             .stream()
-            .map( action -> action.getProgramRuleActionEvaluationTime() ).collect(
+            .map( ProgramRuleAction::getProgramRuleActionEvaluationTime ).collect(
                 Collectors.toSet() );
         Set<ProgramRuleActionEvaluationEnvironment> evaluationEnvironmentsForActions = retrievedProgramRule
             .getProgramRuleActions().stream()
@@ -358,8 +364,9 @@ public class ProgramRuleServiceTest
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null, "($a < 1 && $a > -10) && !$b", 0 );
-        //Add a rule that is not part of programB....
+        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
+        // Add a rule that is not part of programB....
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -367,27 +374,27 @@ public class ProgramRuleServiceTest
         programRuleService.addProgramRule( ruleF );
         programRuleService.addProgramRule( ruleG );
 
-        //Get all the 3 rules for programB
+        // Get all the 3 rules for programB
         List<ProgramRule> rules = programRuleService.getProgramRule( programB );
         assertEquals( 3, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertTrue( rules.contains( ruleE ) );
         assertTrue( rules.contains( ruleF ) );
-        //Make sure that the rule connected to program A is not returned as part of list of rules in program B.
+        // Make sure that the rule connected to program A is not returned as
+        // part of list of rules in program B.
         assertFalse( rules.contains( ruleG ) );
-
 
         assertEquals( ruleD.getId(), programRuleService.getProgramRuleByName( "RuleD", programB ).getId() );
 
-        assertEquals( 3, programRuleService.getProgramRules( programB ,"rule" ).size() );
+        assertEquals( 3, programRuleService.getProgramRules( programB, "rule" ).size() );
     }
 
     @Test
-    public void testGetImplementableProgramRules()
+    public void testGetProgramRulesByActionTypes()
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        //Add a rule that is not part of programB....
+        // Add a rule that is not part of programB
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -402,9 +409,9 @@ public class ProgramRuleServiceTest
         ruleD.setProgramRuleActions( Sets.newHashSet( actionD ) );
         programRuleService.updateProgramRule( ruleD );
 
-
-        //Get all the 3 rules for programB
-        List<ProgramRule> rules = programRuleService.getImplementableProgramRules( programB, ProgramRuleActionType.getImplementedActions() );
+        // Get all the 3 rules for programB
+        List<ProgramRule> rules = programRuleService.getProgramRulesByActionTypes( programB,
+            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
         assertEquals( 1, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertFalse( rules.contains( ruleG ) );
@@ -454,13 +461,13 @@ public class ProgramRuleServiceTest
     @Test
     public void testDeleteDeletedObjectWithCascade()
     {
-        ProgramRule programRule = createProgramRule( 'A', programA );
+        ProgramRule programRule = createProgramRule( 'C', programA );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleAction.setProgramRule( programRule );
 
-        programRule.setProgramRuleActions( Sets.newHashSet(programRuleAction) );
+        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
 
         programRuleService.addProgramRule( programRule );
 
@@ -469,7 +476,7 @@ public class ProgramRuleServiceTest
 
         programRuleService.deleteProgramRule( programRule );
 
-        ProgramRule programRule1 = createProgramRule( 'A', programA );
+        ProgramRule programRule1 = createProgramRule( 'X', programA );
         programRule1.setUid( programRuleUID );
 
         ProgramRuleAction programRuleAction1 = createProgramRuleAction( 'D' );
@@ -498,24 +505,18 @@ public class ProgramRuleServiceTest
         assertNull( programRuleVariableService.getProgramRuleVariable( programRuleVariableB.getId() ) );
     }
 
-    @Test
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRule()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleA.setProgramStage( programStageA );
         programRuleService.updateProgramRule( programRuleA );
 
         programStageService.deleteProgramStage( programStageA );
     }
 
-    @Test
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDoNotAllowDeleteProgramStageSectionBecauseOfLinkWithProgramRuleAction()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStageSection( programStageSectionA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
@@ -525,12 +526,9 @@ public class ProgramRuleServiceTest
         programStageSectionService.deleteProgramStageSection( programStageSectionA );
     }
 
-    @Test
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleActionAndSection()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStageSection( programStageSectionA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
@@ -540,12 +538,9 @@ public class ProgramRuleServiceTest
         programStageService.deleteProgramStage( programStageB );
     }
 
-    @Test
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleAction()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleA" );
-
         programRuleActionA.setProgramStage( programStageA );
         programRuleActonService.updateProgramRuleAction( programRuleActionA );
 
@@ -555,12 +550,9 @@ public class ProgramRuleServiceTest
         programStageService.deleteProgramStage( programStageA );
     }
 
-    @Test
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDoNotAllowDeleteProgramStageBecauseOfLinkWithProgramRuleVariable()
     {
-        expectedEx.expect( DeleteNotAllowedException.class );
-        expectedEx.expectMessage( "ProgramRuleVariableA" );
-
         programRuleVariableA.setProgramStage( programStageA );
         programRuleVariableService.updateProgramRuleVariable( programRuleVariableA );
 

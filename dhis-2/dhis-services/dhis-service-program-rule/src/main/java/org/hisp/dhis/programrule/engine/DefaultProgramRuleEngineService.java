@@ -47,9 +47,9 @@ import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -57,15 +57,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service( "org.hisp.dhis.programrule.engine.ProgramRuleEngineService" )
-public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
+public class DefaultProgramRuleEngineService
+    implements ProgramRuleEngineService
 {
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private final ProgramRuleEngine programRuleEngine;
-
-    private final ProgramRuleEngine programRuleEngineNew;
 
     private final List<RuleActionImplementer> ruleActionImplementers;
 
@@ -80,14 +79,12 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     private final DhisConfigurationProvider config;
 
     public DefaultProgramRuleEngineService(
-        @Qualifier( "serviceTrackerRuleEngine" ) ProgramRuleEngine programRuleEngineNew,
         @Qualifier( "notificationRuleEngine" ) ProgramRuleEngine programRuleEngine,
         List<RuleActionImplementer> ruleActionImplementers, ProgramInstanceService programInstanceService,
         ProgramStageInstanceService programStageInstanceService, ProgramRuleService programRuleService,
         ProgramService programService, DhisConfigurationProvider config )
     {
         checkNotNull( programRuleEngine );
-        checkNotNull( programRuleEngineNew );
         checkNotNull( ruleActionImplementers );
         checkNotNull( programInstanceService );
         checkNotNull( programStageInstanceService );
@@ -96,7 +93,6 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         checkNotNull( config );
 
         this.programRuleEngine = programRuleEngine;
-        this.programRuleEngineNew = programRuleEngineNew;
         this.ruleActionImplementers = ruleActionImplementers;
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
@@ -107,14 +103,14 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long programInstanceId )
+    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
             return Lists.newArrayList();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( programInstanceId );
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
 
         if ( programInstance == null )
         {
@@ -138,21 +134,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( long programStageInstanceId )
-    {
-        if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
-        {
-            return Lists.newArrayList();
-        }
-
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( programStageInstanceId );
-
-        return evaluateEventAndRunEffects( psi );
-    }
-
-    @Override
-    @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( String event )
+    public List<RuleEffect> evaluateEventAndRunEffects( long event )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
@@ -169,7 +151,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
     {
         Program program = programService.getProgram( programId );
 
-        return programRuleEngineNew.getDescription( condition, program );
+        return programRuleEngine.getDescription( condition, program );
     }
 
     private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
@@ -182,7 +164,7 @@ public class DefaultProgramRuleEngineService implements ProgramRuleEngineService
         ProgramInstance programInstance = programInstanceService.getProgramInstance( psi.getProgramInstance().getId() );
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, psi,
-                programInstance.getProgramStageInstances() );
+            programInstance.getProgramStageInstances() );
 
         for ( RuleEffect effect : ruleEffects )
         {
