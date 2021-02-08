@@ -61,8 +61,8 @@ public enum TrackerBundleReportMode
 
     public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
     {
-        return TrackerBundleReportMode.stream().filter(rm -> rm.name().equals( reportMode.toUpperCase() ) )
-                .findFirst().orElseThrow( () -> new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                        "Value " + reportMode + " is not a valid report mode" ) );
+        return TrackerBundleReportMode.stream().filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
+            .findFirst().orElseThrow( () -> new HttpClientErrorException( HttpStatus.BAD_REQUEST,
+                "Value " + reportMode + " is not a valid report mode" ) );
     }
 }
