@@ -191,6 +191,7 @@ public class EventImportDataValueValidationTests
             .addPropertyByJsonPath( "programs[0].id", programId )
             .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
             .addPropertyByJsonPath( "programStages[0].id", programStageId )
+            .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
             .build();
 
         new MetadataActions().importAndValidateMetadata( jsonObject );
