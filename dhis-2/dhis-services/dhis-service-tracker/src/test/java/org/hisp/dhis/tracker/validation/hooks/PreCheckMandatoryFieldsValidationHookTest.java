@@ -30,6 +30,7 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -80,6 +81,20 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
+    public void verifyTrackedEntityValidationSuccess()
+    {
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntityType( CodeGenerator.generateUid() )
+            .orgUnit( CodeGenerator.generateUid() )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, trackedEntity );
+        validationHook.validateTrackedEntity( reporter, trackedEntity );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
     public void verifyTrackedEntityValidationFailsOnMissingOrgUnit()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
@@ -105,6 +120,21 @@ public class PreCheckMandatoryFieldsValidationHookTest
         validationHook.validateTrackedEntity( reporter, trackedEntity );
 
         assertMissingPropertyForTrackedEntity( reporter, "trackedEntityType" );
+    }
+
+    @Test
+    public void verifyEnrollmentValidationSuccess()
+    {
+        Enrollment enrollment = Enrollment.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .program( CodeGenerator.generateUid() )
+            .trackedEntity( CodeGenerator.generateUid() )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, enrollment );
+        validationHook.validateEnrollment( reporter, enrollment );
+
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test
@@ -153,6 +183,20 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
+    public void verifyEventValidationSuccess()
+    {
+        Event event = Event.builder()
+            .orgUnit( CodeGenerator.generateUid() )
+            .trackedEntity( CodeGenerator.generateUid() )
+            .build();
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
+        validationHook.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+    }
+
+    @Test
     public void verifyEventValidationFailsOnMissingOrgUnit()
     {
         Event event = Event.builder()
@@ -167,17 +211,23 @@ public class PreCheckMandatoryFieldsValidationHookTest
     }
 
     @Test
-    public void verifyEventValidationFailsOnMissingTrackedEntity()
+    public void verifyRelationshipValidationSuccess()
     {
-        Event event = Event.builder()
-            .orgUnit( CodeGenerator.generateUid() )
-            .trackedEntity( null )
+        Relationship relationship = Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .relationshipType( CodeGenerator.generateUid() )
+            .from( RelationshipItem.builder()
+                .trackedEntity( CodeGenerator.generateUid() )
+                .build() )
+            .to( RelationshipItem.builder()
+                .trackedEntity( CodeGenerator.generateUid() )
+                .build() )
             .build();
 
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
-        validationHook.validateEvent( reporter, event );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, relationship );
+        validationHook.validateRelationship( reporter, relationship );
 
-        assertMissingPropertyForEvent( reporter, "trackedEntity" );
+        assertFalse( reporter.hasErrors() );
     }
 
     @Test

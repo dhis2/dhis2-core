@@ -44,18 +44,20 @@ import org.springframework.stereotype.Component;
 public class PreCheckMandatoryFieldsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
+    private static final String ORG_UNIT = "orgUnit";
+
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getTrackedEntityType() ), reporter, E1121,
             "trackedEntityType" );
-        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), reporter, E1121, "orgUnit" );
+        addErrorIf( () -> StringUtils.isEmpty( trackedEntity.getOrgUnit() ), reporter, E1121, ORG_UNIT );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), reporter, E1122, "orgUnit" );
+        addErrorIf( () -> StringUtils.isEmpty( enrollment.getOrgUnit() ), reporter, E1122, ORG_UNIT );
         addErrorIf( () -> StringUtils.isEmpty( enrollment.getProgram() ), reporter, E1122, "program" );
         addErrorIf( () -> StringUtils.isEmpty( enrollment.getTrackedEntity() ), reporter, E1122, "trackedEntity" );
     }
@@ -63,8 +65,7 @@ public class PreCheckMandatoryFieldsValidationHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, E1123, "orgUnit" );
-        addErrorIf( () -> StringUtils.isEmpty( event.getTrackedEntity() ), reporter, E1123, "trackedEntity" );
+        addErrorIf( () -> StringUtils.isEmpty( event.getOrgUnit() ), reporter, E1123, ORG_UNIT );
     }
 
     @Override
