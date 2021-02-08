@@ -114,12 +114,11 @@ public class TrackerImportController
         TrackerImportReport trackerImportReportResponse = trackerImportService.buildImportReport( trackerImportReport,
             trackerBundleReportMode );
 
-        ResponseEntity.BodyBuilder builder =
-                trackerImportReportResponse.getStatus() == TrackerStatus.ERROR ?
-                        ResponseEntity.status(HttpStatus.CONFLICT) :
-                        ResponseEntity.ok();
+        ResponseEntity.BodyBuilder builder = trackerImportReportResponse.getStatus() == TrackerStatus.ERROR
+            ? ResponseEntity.status( HttpStatus.CONFLICT )
+            : ResponseEntity.ok();
 
-        return builder.body(trackerImportReportResponse);
+        return builder.body( trackerImportReportResponse );
     }
 
     @SneakyThrows
