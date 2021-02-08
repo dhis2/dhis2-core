@@ -67,9 +67,6 @@ public class Enrollment implements TrackerDto
     private Instant updatedAtClient;
 
     @JsonProperty
-    private String trackedEntityType;
-
-    @JsonProperty
     private String trackedEntity;
 
     @JsonProperty
@@ -80,9 +77,6 @@ public class Enrollment implements TrackerDto
 
     @JsonProperty
     private String orgUnit;
-
-    @JsonProperty
-    private String orgUnitName;
 
     @JsonProperty
     private Instant enrolledAt;

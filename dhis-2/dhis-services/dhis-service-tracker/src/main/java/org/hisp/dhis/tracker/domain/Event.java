@@ -77,13 +77,7 @@ public class Event
     private String enrollment;
 
     @JsonProperty
-    private EnrollmentStatus enrollmentStatus;
-
-    @JsonProperty
     private String orgUnit;
-
-    @JsonProperty
-    private String orgUnitName;
 
     @JsonProperty
     private String trackedEntity;
