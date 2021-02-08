@@ -25,30 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.configuration;
+package org.hisp.dhis.tracker.report;
 
-import org.hisp.dhis.condition.RedisEnabledCondition;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.session.data.redis.config.ConfigureRedisAction;
-import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
+import static org.junit.Assert.assertNotNull;
+
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.junit.Test;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
- * Configuration registered if {@link RedisEnabledCondition} matches to true.
- * Redis backed Spring Session will be configured due to the
- * {@link EnableRedisHttpSession} annotation.
- *
- * @author Ameen Mohamed
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Configuration
-@Conditional( RedisEnabledCondition.class )
-@EnableRedisHttpSession
-public class RedisSpringSessionConfiguration
+public class TrackerBundleReportModeTest
 {
-    @Bean
-    public static ConfigureRedisAction configureRedisAction()
+    @Test
+    public void shouldFindReportMode()
     {
-        return ConfigureRedisAction.NO_OP;
+        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
+    }
+
+    @Test( expected = HttpClientErrorException.class )
+    public void shouldThrowWhenReportModeNotFound()
+    {
+        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
     }
 }
