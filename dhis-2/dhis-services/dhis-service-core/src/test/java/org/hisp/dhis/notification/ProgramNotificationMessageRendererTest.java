@@ -84,6 +84,10 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
 
     private String programStageUid = CodeGenerator.generateUid();
 
+    private String orgUnitUid = CodeGenerator.generateUid();
+
+    private String enrollmentUid = CodeGenerator.generateUid();
+
     private Program programA;
 
     private ProgramStage programStageA;
@@ -191,6 +195,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         attributeService.addTrackedEntityAttribute( trackedEntityAttributeB );
 
         organisationUnitA = createOrganisationUnit( 'A' );
+        organisationUnitA.setUid( orgUnitUid );
         organisationUnitService.addOrganisationUnit( organisationUnitA );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
@@ -237,11 +242,12 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         // ProgramInstance to be provided in message renderer
         programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
-        programInstanceA.setUid( "PI-UID" );
+        programInstanceA.setUid( enrollmentUid );
         programInstanceService.updateProgramInstance( programInstanceA );
 
         // ProgramStageInstance to be provided in message renderer
         programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
+        programStageInstanceA.setOrganisationUnit( organisationUnitA );
         programStageInstanceA.setDueDate( enrollmentDate );
         programStageInstanceA.setExecutionDate( new Date() );
         programStageInstanceA.setUid( "PSI-UID" );
@@ -312,26 +318,26 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
     @Test
     public void testRendererForMessageWithVariableName()
     {
-        programNotificationTemplate.setMessageTemplate( "V{org_unit_name}" );
-        programNotificationTemplate.setSubjectTemplate( "V{program_name}" );
+        programNotificationTemplate.setMessageTemplate( "message is V{org_unit_name}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is V{program_name}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
 
         NotificationMessage notificationMessage = programNotificationMessageRenderer.render( programInstanceA,
             programNotificationTemplate );
-        assertEquals( "OrganisationUnitA", notificationMessage.getMessage() );
-        assertEquals( "ProgramA", notificationMessage.getSubject() );
+        assertEquals( "message is OrganisationUnitA", notificationMessage.getMessage() );
+        assertEquals( "subject is ProgramA", notificationMessage.getSubject() );
     }
 
     @Test
-    public void testRendererForMessageWithVariableUid()
+    public void testRendererForMessageWithVariableId()
     {
-        programNotificationTemplate.setMessageTemplate( "message is V{program_id}" );
-        programNotificationTemplate.setSubjectTemplate( "subject is V{program_stage_id}" );
+        programNotificationTemplate.setMessageTemplate( "message is V{program_id} and V{org_unit_id}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is V{program_stage_id} and V{enrollment_id}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
 
         NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
             programNotificationTemplate );
-        assertEquals( "message is " + programA.getUid(), notificationMessage.getMessage() );
-        assertEquals( "subject is " + programStageA.getUid(), notificationMessage.getSubject() );
+        assertEquals( "message is " + programA.getUid() + " and " + orgUnitUid, notificationMessage.getMessage() );
+        assertEquals( "subject is " + programStageA.getUid() + " and " + enrollmentUid, notificationMessage.getSubject() );
     }
 }
