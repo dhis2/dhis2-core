@@ -2,7 +2,7 @@ name: Run api tests
 
 on:
   pull_request:
-    types: [labeled]
+    types: [labeled, synchronize ]
 jobs:
   api-test:
     env:
