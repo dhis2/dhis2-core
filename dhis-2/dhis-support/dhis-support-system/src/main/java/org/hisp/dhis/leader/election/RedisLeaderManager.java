@@ -28,16 +28,16 @@ package org.hisp.dhis.leader.election;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import java.util.Calendar;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
-import java.util.Calendar;
-import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
-import org.springframework.data.redis.connection.RedisStringCommands.SetOption;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.types.Expiration;
+import org.springframework.data.redis.core.StringRedisTemplate;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Takes care of the leader election implementation backed by redis.
@@ -47,7 +47,7 @@ import org.springframework.data.redis.core.types.Expiration;
 @Slf4j
 public class RedisLeaderManager implements LeaderManager
 {
-    private static final String key = "dhis2:leader";
+    private static final String KEY = "dhis2:leader";
 
     private static final String CLUSTER_LEADER_RENEWAL = "Cluster leader renewal";
 
@@ -57,9 +57,9 @@ public class RedisLeaderManager implements LeaderManager
 
     private SchedulingManager schedulingManager;
 
-    private RedisTemplate<String, ?> redisTemplate;
+    private StringRedisTemplate redisTemplate;
 
-    public RedisLeaderManager( Long timeToLiveMinutes, RedisTemplate<String, ?> redisTemplate )
+    public RedisLeaderManager( Long timeToLiveMinutes, StringRedisTemplate redisTemplate )
     {
         this.nodeId = UUID.randomUUID().toString();
         log.info( "Setting up redis based leader manager on NodeId:" + this.nodeId );
@@ -73,7 +73,7 @@ public class RedisLeaderManager implements LeaderManager
         if ( isLeader() )
         {
             log.debug( "Renewing leader with nodeId:" + this.nodeId );
-            redisTemplate.getConnectionFactory().getConnection().expire( key.getBytes(), timeToLiveSeconds );
+            redisTemplate.expire( KEY, timeToLiveSeconds, TimeUnit.SECONDS );
         }
     }
 
@@ -81,8 +81,7 @@ public class RedisLeaderManager implements LeaderManager
     public void electLeader()
     {
         log.debug( "Election attempt by nodeId:" + this.nodeId );
-        redisTemplate.getConnectionFactory().getConnection().set( key.getBytes(), nodeId.getBytes(),
-            Expiration.from( timeToLiveSeconds, TimeUnit.SECONDS ), SetOption.SET_IF_ABSENT );
+        redisTemplate.opsForValue().setIfAbsent( KEY, this.nodeId, timeToLiveSeconds, TimeUnit.SECONDS );
         if ( isLeader() )
         {
             renewLeader();
@@ -99,19 +98,19 @@ public class RedisLeaderManager implements LeaderManager
     @Override
     public boolean isLeader()
     {
-        byte[] leaderIdBytes = redisTemplate.getConnectionFactory().getConnection().get( key.getBytes() );
-        String leaderId = null;
-        if ( leaderIdBytes != null )
-        {
-            leaderId = new String( leaderIdBytes );
-        }
-        return nodeId.equals( leaderId );
+        String leaderId = getLeaderNodeIdFromRedis();
+        return this.nodeId.equals( leaderId );
     }
 
     @Override
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
         this.schedulingManager = schedulingManager;
+    }
+    
+    private String getLeaderNodeIdFromRedis()
+    {
+        return redisTemplate.boundValueOps( KEY ).get();
     }
 
 }

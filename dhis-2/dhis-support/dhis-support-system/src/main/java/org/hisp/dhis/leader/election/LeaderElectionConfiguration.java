@@ -37,7 +37,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 /**
  * Configures leaderManager that takes care of node leader elections. 
@@ -48,26 +48,21 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Configuration
 public class LeaderElectionConfiguration
 {
-    @Autowired( required = false )
-    private RedisTemplate<String, ?> redisTemplate;
-
-    @Bean
-    @Qualifier( "leaderTimeToLive" )
+    @Bean( "leaderTimeToLive" )
     public ConfigurationPropertyFactoryBean leaderTimeToLive()
     {
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.LEADER_TIME_TO_LIVE );
     }
 
-    @Bean
-    @Qualifier( "leaderManager" )
+    @Bean( "leaderManager" )
     @Conditional( RedisEnabledCondition.class )
-    public LeaderManager redisLeaderManager()
+    public LeaderManager redisLeaderManager(
+        @Autowired( required = false ) @Qualifier( "stringRedisTemplate" ) StringRedisTemplate stringRedisTemplate )
     {
-        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), redisTemplate );
+        return new RedisLeaderManager( Long.parseLong( (String) leaderTimeToLive().getObject() ), stringRedisTemplate );
     }
 
-    @Bean
-    @Qualifier( "leaderManager" )
+    @Bean( "leaderManager" )
     @Conditional( RedisDisabledCondition.class )
     public LeaderManager noOpLeaderManager()
     {
