@@ -30,8 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -147,6 +146,9 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
+        verify( trackerImportService ).buildImportReport( any(), any() );
+        verify( trackerImportService ).importTracker( any() );
+
         try
         {
             renderService.fromJson( contentAsString, TrackerImportReport.class );
@@ -187,6 +189,9 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
+        verify( trackerImportService ).buildImportReport( any(), any() );
+        verify( trackerImportService ).importTracker( any() );
+
         try
         {
             renderService.fromJson( contentAsString, TrackerImportReport.class );
@@ -196,5 +201,4 @@ public class TrackerImportControllerTest
             fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
         }
     }
-
 }

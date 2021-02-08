@@ -86,7 +86,6 @@ public class TrackerImportController
         @RequestBody TrackerBundleParams trackerBundleParams )
         throws IOException
     {
-
         String jobId = trackerMessageManager.addJob(
             buildTrackerImportParams( request, currentUser, trackerBundleParams ) );
 
@@ -107,7 +106,6 @@ public class TrackerImportController
         @RequestParam( defaultValue = "full", required = false ) String reportMode,
         HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
     {
-
         TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
             .getTrackerBundleReportMode( reportMode );
 
@@ -116,12 +114,12 @@ public class TrackerImportController
         TrackerImportReport trackerImportReportResponse = trackerImportService.buildImportReport( trackerImportReport,
             trackerBundleReportMode );
 
-        return trackerImportReportResponse.getStatus() == TrackerStatus.ERROR ? new ResponseEntity<>(
-            trackerImportReportResponse,
-            HttpStatus.CONFLICT )
-            : new ResponseEntity<>(
-                trackerImportReportResponse,
-                HttpStatus.OK );
+        ResponseEntity.BodyBuilder builder =
+                trackerImportReportResponse.getStatus() == TrackerStatus.ERROR ?
+                        ResponseEntity.status(HttpStatus.CONFLICT) :
+                        ResponseEntity.ok();
+
+        return builder.body(trackerImportReportResponse);
     }
 
     @SneakyThrows
