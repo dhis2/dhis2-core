@@ -29,7 +29,18 @@ package org.hisp.dhis.scheduling;
 
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.parameters.*;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -89,6 +100,8 @@ public enum JobType
     EVENT_IMPORT( null, false ),
     ENROLLMENT_IMPORT( null, false ),
     TEI_IMPORT( null, false ),
+    DISABLE_INACTIVE_USERS( "disableInactiveUsersJob", true, SchedulingType.CRON,
+        DisableInactiveUsersJobParameters.class, null ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),

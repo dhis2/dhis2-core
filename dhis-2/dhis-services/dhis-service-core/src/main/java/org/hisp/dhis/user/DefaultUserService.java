@@ -28,10 +28,13 @@
 package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.time.ZoneId.systemDefault;
+import static java.time.ZonedDateTime.now;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -41,8 +44,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditLogUtil;
@@ -65,6 +66,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Chau Thu Tran
@@ -793,5 +796,17 @@ public class DefaultUserService
         List<SessionInformation> sessions = sessionRegistry.getAllSessions( credentials, false );
 
         sessions.forEach( SessionInformation::expireNow );
+    }
+
+    @Override
+    @Transactional
+    public int disableUsersInactiveSince( Date inactiveSince )
+    {
+        if ( ZonedDateTime.ofInstant( inactiveSince.toInstant(), systemDefault() ).plusMonths( 1 ).isAfter( now() ) )
+        {
+            // we never disable users that have been active during last month
+            return 0;
+        }
+        return userStore.disableUsersInactiveSince( inactiveSince );
     }
 }

@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -43,10 +44,9 @@ import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
@@ -73,6 +73,8 @@ import org.hisp.dhis.user.UserStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Nguyen Hong Duc
@@ -471,5 +473,19 @@ public class HibernateUserStore
         }
 
         return currentUserGroupInfo;
+    }
+
+    @Override
+    public int disableUsersInactiveSince( Date inactiveSince )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaUpdate<UserCredentials> update = builder.createCriteriaUpdate( UserCredentials.class );
+        Root<UserCredentials> uc = update.from( UserCredentials.class );
+        update.where( builder.and(
+            // just so we do not count rows already disabled
+            builder.equal( uc.get( "disabled" ), false ),
+            builder.lessThanOrEqualTo( uc.get( "lastLogin" ), inactiveSince ) ) );
+        update.set( "disabled", true );
+        return getSession().createQuery( update ).executeUpdate();
     }
 }
