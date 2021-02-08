@@ -108,7 +108,8 @@ public class TrackerImportController
         HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
     {
 
-        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
+        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
+            .getTrackerBundleReportMode( reportMode );
 
         TrackerImportParams trackerImportParams = buildTrackerImportParams( request, currentUser, trackerBundleParams );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
@@ -155,7 +156,8 @@ public class TrackerImportController
         HttpServletResponse response )
         throws HttpStatusCodeException
     {
-        TrackerBundleReportMode trackerBundleReportMode = getTrackerBundleReportMode( reportMode );
+        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
+            .getTrackerBundleReportMode( reportMode );
 
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
@@ -168,21 +170,4 @@ public class TrackerImportController
 
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
     }
-
-    private TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
-    {
-
-        TrackerBundleReportMode trackerBundleReportMode;
-        try
-        {
-            trackerBundleReportMode = TrackerBundleReportMode.valueOf( reportMode.toUpperCase() );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new HttpClientErrorException( HttpStatus.BAD_REQUEST,
-                "Value " + reportMode + " is not a valid report mode" );
-        }
-        return trackerBundleReportMode;
-    }
-
 }
