@@ -31,16 +31,11 @@ package org.hisp.dhis.sms.config;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.jasypt.encryption.pbe.PBEStringEncryptor;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,13 +47,6 @@ import java.util.stream.Collectors;
 public class BulkSmsHttpGateway
     extends SmsGateway
 {
-    private final PBEStringEncryptor pbeStringEncryptor;
-
-    public BulkSmsHttpGateway( @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
-    {
-        this.pbeStringEncryptor = pbeStringEncryptor;
-    }
-
     // -------------------------------------------------------------------------
     // Implementation
     // -------------------------------------------------------------------------
@@ -83,28 +71,10 @@ public class BulkSmsHttpGateway
         BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
 
         HttpEntity<BulkSmsRequestEntity> request =
-            new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getRequestHeaderParameters( bulkSmsGatewayConfig ) );
+            new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getAuthenticationHeaderParameters( bulkSmsGatewayConfig ) );
 
         HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class );
 
         return wrapHttpStatus( httpStatus );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    private HttpHeaders getRequestHeaderParameters( BulkSmsGatewayConfig bulkSmsGatewayConfig )
-    {
-        String credentials = bulkSmsGatewayConfig.getUsername().trim() + ":" +
-            pbeStringEncryptor.decrypt( bulkSmsGatewayConfig.getPassword().trim());
-        String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
-        headers.set( HttpHeaders.AUTHORIZATION, BASIC + encodedCredentials );
-
-        return headers;
     }
 }
