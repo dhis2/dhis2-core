@@ -65,7 +65,7 @@ public class PublishEventPostProcessor
         if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
         {
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, event.getId() ) );
+                new DataValueUpdatedEvent( this, event.getEvent() ) );
         }
     }
 }
