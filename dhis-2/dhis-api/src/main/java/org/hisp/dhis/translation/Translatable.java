@@ -54,8 +54,6 @@ public @interface Translatable
     /**
      * Translation key for storing translation in json format. If not defined
      * then property name is used as the key.
-     *
-     * @return
      */
     String translationKey();
 }
