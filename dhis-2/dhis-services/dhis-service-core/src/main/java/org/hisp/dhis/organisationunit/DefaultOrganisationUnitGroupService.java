@@ -136,6 +136,10 @@ public class DefaultOrganisationUnitGroupService
     @Transactional
     public long addOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
+        if ( organisationUnitGroupSet.getShortName() == null )
+        {
+            organisationUnitGroupSet.setShortName( organisationUnitGroupSet.getName() );
+        }
         organisationUnitGroupSetStore.save( organisationUnitGroupSet );
 
         return organisationUnitGroupSet.getId();
