@@ -50,10 +50,10 @@ public interface ProgramRuleEngineService
      * Call rule engine to evaluate the target event and get a list of rule
      * effects, then run the actions present in these effects.
      *
-     * @param event identifier of the target event.
+     * @param event identifier (uid) of the target event.
      * @return the list of rule effects calculated by rule engine
      */
-    List<RuleEffect> evaluateEventAndRunEffects( long event );
+    List<RuleEffect> evaluateEventAndRunEffects( String event );
 
     RuleValidationResult getDescription( String condition, String programId );
 }
