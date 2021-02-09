@@ -214,7 +214,7 @@ public class EmailMessageSender
                 emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
             email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( text );
-            email.setHtmlMsg( renderHtmlContent( text, null, serverBaseUrl,null ) );
+            email.setHtmlMsg( renderHtmlContent( text, null, serverBaseUrl, null ) );
 
             boolean hasRecipients = false;
 
