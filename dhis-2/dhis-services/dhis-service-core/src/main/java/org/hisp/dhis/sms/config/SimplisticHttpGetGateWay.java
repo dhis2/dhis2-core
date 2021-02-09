@@ -177,7 +177,7 @@ public class SimplisticHttpGetGateWay
             }
         }
 
-        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         return valueStore;
