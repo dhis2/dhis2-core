@@ -39,8 +39,6 @@ import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,8 +57,8 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.domain.mapper.EventMapper;
-import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -75,6 +73,8 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
@@ -130,9 +130,10 @@ public class TrackerEventsExportController
 
         PagingWrapper<org.hisp.dhis.tracker.domain.Event> eventPagingWrapper = new PagingWrapper<>();
 
-        if ( events.getPager() != null )
+        if ( eventCriteria.isPagingRequest() )
         {
-            eventPagingWrapper = eventPagingWrapper.withPager( events.getPager() );
+            eventPagingWrapper = eventPagingWrapper.withPager(
+                PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
         }
 
         return eventPagingWrapper.withInstances( EVENTS_MAPPER.fromCollection( events.getEvents() ) );
