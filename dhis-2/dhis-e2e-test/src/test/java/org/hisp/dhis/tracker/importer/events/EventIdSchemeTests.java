@@ -69,7 +69,7 @@ public class EventIdSchemeTests
 
     private static final String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
 
-    private static final String PROGRAM_STAGE_ID = "jKLB23QZS4I";
+    private static final String PROGRAM_STAGE_ID = Constants.EVENT_PROGRAM_STAGE_ID;
 
     private static String ATTRIBUTE_ID;
 
