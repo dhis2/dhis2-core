@@ -33,8 +33,7 @@ import org.hamcrest.Matchers;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 
 /**
@@ -74,7 +73,6 @@ public class TrackerApiResponse
         validate()
             .statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
-            .body( "stats.created", greaterThanOrEqualTo( 1 ) )
             .body( "stats.ignored", equalTo( 0 ) )
             .body( "stats.total", greaterThanOrEqualTo( 1 ) )
             .body( "bundleReport.typeReportMap", notNullValue() );

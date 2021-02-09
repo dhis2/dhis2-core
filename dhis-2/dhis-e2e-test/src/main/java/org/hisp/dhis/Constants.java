@@ -43,6 +43,8 @@ public class Constants
 
     public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
 
+    public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
+
     public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
 
     public static String[] ORG_UNIT_IDS = {
