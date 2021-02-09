@@ -27,13 +27,27 @@
  */
 package org.hisp.dhis.db.migration.helper;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+
+import org.flywaydb.core.api.migration.Context;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author Jan Bernitt
  */
 public class UniqueUtils
 {
+
+    private static final Logger log = LoggerFactory.getLogger( UniqueUtils.class );
 
     /**
      * Finds a value with the provided maximum length that is not already
@@ -77,6 +91,70 @@ public class UniqueUtils
             }
         }
         return unique;
+    }
+
+    /**
+     * Copies values from the source column to a destination column while making
+     * sure they are unique and within a maximum length for the destination
+     * column.
+     */
+    public static void copyUniqueValue( Context context, String table, String idColumn, String srcColumn,
+        String destColumn, int destColumnMaxLength )
+        throws SQLException
+    {
+        Map<Long, String> srcById = new HashMap<>();
+        Map<Long, String> destById = new HashMap<>();
+        Set<String> uniqueDestValues = new HashSet<>();
+        try ( Statement statement = context.getConnection().createStatement() )
+        {
+            ResultSet results = statement
+                .executeQuery(
+                    String.format( "select %s, %s, %s from %s;", idColumn, srcColumn, destColumn, table ) );
+            while ( results.next() )
+            {
+                long id = results.getLong( 1 );
+                srcById.put( id, results.getString( 2 ) );
+                String destValue = results.getString( 3 );
+                if ( destValue != null && !uniqueDestValues.contains( destValue ) )
+                {
+                    uniqueDestValues.add( destValue );
+                    destById.put( id, destValue );
+                }
+            }
+        }
+        if ( srcById.isEmpty() || destById.size() == srcById.size() )
+        {
+            // either no entries or all entries already have a unique name
+            return;
+        }
+        for ( Entry<Long, String> idAndSrcValue : srcById.entrySet() )
+        {
+            long id = idAndSrcValue.getKey();
+            String srcValue = idAndSrcValue.getValue();
+            if ( !destById.containsKey( id ) )
+            {
+                String destValue = addUnique( srcValue, destColumnMaxLength, uniqueDestValues );
+                try ( PreparedStatement statement = context.getConnection()
+                    .prepareStatement(
+                        String.format( "update %s set %s = ? where %s = ?", table, destColumn, idColumn ) ) )
+                {
+                    statement.setLong( 2, id );
+                    statement.setString( 1, destValue );
+
+                    if ( log.isInfoEnabled() )
+                    {
+                        log.info( String.format( "Executing %s => %s migration update: [%s]", srcColumn, destColumn,
+                            statement ) );
+                    }
+                    statement.executeUpdate();
+                }
+                catch ( SQLException ex )
+                {
+                    log.error( ex.getMessage() );
+                    throw ex;
+                }
+            }
+        }
     }
 
     private UniqueUtils()
