@@ -38,15 +38,20 @@ import org.hisp.dhis.scheduling.AbstractJob;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.UserService;
 import org.springframework.stereotype.Component;
 
+/**
+ * @author Jan Bernitt
+ */
 @AllArgsConstructor
 @Component( "disableInactiveUsersJob" )
 public class DisableInactiveUsersJob extends AbstractJob
 {
-
     private final UserService userService;
+
+    private final Notifier notifier;
 
     @Override
     public JobType getJobType()
@@ -61,6 +66,8 @@ public class DisableInactiveUsersJob extends AbstractJob
             .getJobParameters();
         LocalDate today = LocalDate.now();
         LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
-        userService.disableUsersInactiveSince( Date.from( since.atStartOfDay( systemDefault() ).toInstant() ) );
+        Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
+        int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
+        notifier.notify( jobConfiguration, String.format( "Disabled %d users", disabledUserCount ) );
     }
 }

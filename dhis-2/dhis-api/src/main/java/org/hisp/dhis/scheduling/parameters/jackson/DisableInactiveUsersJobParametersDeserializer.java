@@ -31,6 +31,9 @@ import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+/**
+ * @author Jan Bernitt
+ */
 public class DisableInactiveUsersJobParametersDeserializer
     extends AbstractJobParametersDeserializer<DisableInactiveUsersJobParameters>
 {

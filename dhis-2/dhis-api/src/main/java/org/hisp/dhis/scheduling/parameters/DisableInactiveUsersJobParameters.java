@@ -40,6 +40,9 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+/**
+ * @author Jan Bernitt
+ */
 @JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
 @JsonDeserialize( using = DisableInactiveUsersJobParametersDeserializer.class )
 public class DisableInactiveUsersJobParameters implements JobParameters
@@ -58,7 +61,7 @@ public class DisableInactiveUsersJobParameters implements JobParameters
         this.inactiveMonths = inactiveMonths;
     }
 
-    @JsonProperty
+    @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public int getInactiveMonths()
     {
