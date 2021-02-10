@@ -68,6 +68,7 @@ public class DisableInactiveUsersJob extends AbstractJob
         LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
         Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
         int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
-        notifier.notify( jobConfiguration, String.format( "Disabled %d users", disabledUserCount ) );
+        notifier.notify( jobConfiguration, String.format( "Disabled %d users with %d months of inactivity",
+            disabledUserCount,  parameters.getInactiveMonths() ) );
     }
 }
