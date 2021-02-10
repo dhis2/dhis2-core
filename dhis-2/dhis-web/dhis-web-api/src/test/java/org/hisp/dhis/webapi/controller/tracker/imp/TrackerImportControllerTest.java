@@ -25,9 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.imp;
 
-import static org.hisp.dhis.webapi.controller.tracker.TrackerImportController.TRACKER_JOB_ADDED;
+import static org.hisp.dhis.webapi.controller.tracker.imp.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -51,6 +51,8 @@ import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.tracker.report.TrackerTimingsStats;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
+import org.hisp.dhis.webapi.controller.tracker.imp.TrackerImportController;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.junit.Before;
 import org.junit.Rule;
