@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
+import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRelationshipKey;
+
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -44,6 +47,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
+import org.hisp.dhis.relationship.RelationshipKey;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -460,29 +465,63 @@ public class TrackerPreheat
         return Optional.ofNullable( notes.getOrDefault( TrackerIdScheme.UID, new HashMap<>() ).get( uid ) );
     }
 
-    public Relationship getRelationship( TrackerIdScheme identifier, String relationship )
+    public Relationship getRelationship( TrackerIdScheme identifier,
+        org.hisp.dhis.tracker.domain.Relationship relationship )
     {
         if ( !relationships.containsKey( identifier ) )
         {
             return null;
         }
 
-        return relationships.get( identifier ).get( relationship );
+        Optional<RelationshipType> relationshipTypeFromPreheated = relationships.get( identifier ).values()
+            .stream()
+            .map( Relationship::getRelationshipType )
+            .filter( rt -> rt.getUid().equals( relationship.getRelationshipType() ) )
+            .findFirst();
+
+        if ( relationshipTypeFromPreheated.isPresent() )
+        {
+
+            RelationshipType relationshipType = relationshipTypeFromPreheated.get();
+
+            RelationshipKey relationshipKey = getRelationshipKey( relationship );
+
+            RelationshipKey inverseKey = null;
+            if ( relationshipType.isBidirectional() )
+            {
+                inverseKey = relationshipKey.inverseKey();
+            }
+            return Stream.of( relationshipKey, inverseKey )
+                .filter( Objects::nonNull )
+                .map( key -> relationships.get( identifier ).get( key.asString() ) )
+                .findFirst()
+                .orElse( null );
+        }
+        return null;
     }
 
     public void putRelationships( TrackerIdScheme identifier, List<Relationship> relationships )
     {
-        relationships.forEach( r -> putRelationship( identifier, r.getUid(), r ) );
+        relationships.forEach( r -> putRelationship( identifier, r ) );
     }
 
-    public void putRelationship( TrackerIdScheme identifier, String relationshipUid, Relationship relationship )
+    public void putRelationship( TrackerIdScheme identifier, Relationship relationship )
     {
         if ( !relationships.containsKey( identifier ) )
         {
             relationships.put( identifier, new HashMap<>() );
         }
+        if ( Objects.nonNull( relationship ) )
+        {
+            RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
-        relationships.get( identifier ).put( relationshipUid, relationship );
+            if ( relationship.getRelationshipType().isBidirectional() )
+            {
+                relationships.get( identifier ).put( relationshipKey.inverseKey().asString(), relationship );
+            }
+
+            relationships.get( identifier ).put( relationshipKey.asString(), relationship );
+        }
     }
 
     public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
