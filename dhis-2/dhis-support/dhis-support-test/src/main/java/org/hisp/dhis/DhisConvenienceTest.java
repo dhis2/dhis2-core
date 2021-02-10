@@ -52,6 +52,8 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -183,8 +185,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.Hashing;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland

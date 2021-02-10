@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.category;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -96,7 +98,9 @@ public class CategoryOptionComboStoreTest
         categoryService.addCategoryOption( categoryOptionD );
 
         categoryA = new Category( "Gender", DataDimensionType.DISAGGREGATION );
+        categoryA.setShortName( categoryA.getName() );
         categoryB = new Category( "Agegroup", DataDimensionType.DISAGGREGATION );
+        categoryB.setShortName( categoryB.getName() );
 
         categoryA.addCategoryOption( categoryOptionA );
         categoryA.addCategoryOption( categoryOptionB );
