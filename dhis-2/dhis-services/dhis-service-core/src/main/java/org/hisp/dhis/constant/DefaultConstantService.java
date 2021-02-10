@@ -62,7 +62,7 @@ public class DefaultConstantService
 
     private final CacheProvider cacheProvider;
 
-    private Cache<List> ALL_CONSTANTS_CACHE;
+    private static Cache<List> ALL_CONSTANTS_CACHE;
 
     private static final String ALL_CONSTANTS_KEY = "x";
 
