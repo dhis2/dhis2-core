@@ -107,6 +107,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
             }
         }
 
+        preheat.createReferenceTree();
+
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;

@@ -136,6 +136,7 @@ public class EventDefaultEnrollmentPreProcessorTest
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.putEnrollments( TrackerIdScheme.UID, new ArrayList<>(), Collections.singletonList( enrollment ) );
         preheat.putEvents( TrackerIdScheme.UID, new ArrayList<>(), Collections.singletonList( event ) );
+        preheat.createReferenceTree();
 
         TrackerBundle bundle = TrackerBundle.builder()
             .preheat( preheat )
