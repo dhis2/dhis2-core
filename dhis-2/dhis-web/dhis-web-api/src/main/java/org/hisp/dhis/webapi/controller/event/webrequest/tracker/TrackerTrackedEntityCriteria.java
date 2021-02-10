@@ -38,7 +38,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-import org.hisp.dhis.webapi.controller.tracker.exp.TrackerTrackedEntitiesExportController;
+import org.hisp.dhis.webapi.controller.tracker.export.TrackerTrackedEntitiesExportController;
 
 /**
  * This class represent a container to hold parameters from new tracker GET
