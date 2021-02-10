@@ -123,7 +123,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
         }
         else
         {
-            log.error( message, e );
+            log.warn( message, e );
         }
     }
 

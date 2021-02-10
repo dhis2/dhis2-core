@@ -65,6 +65,7 @@ public class TrackerImportValidationConfig
 
         PreCheckValidateAndGenerateUidHook.class,
         PreCheckExistenceValidationHook.class,
+        PreCheckMandatoryFieldsValidationHook.class,
         PreCheckMetaValidationHook.class,
         PreCheckSecurityValidationHook.class,
         PreCheckDataRelationsValidationHook.class,
