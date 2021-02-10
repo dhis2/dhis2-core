@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -46,6 +47,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import javax.annotation.PostConstruct;
 import javax.xml.xpath.XPath;
@@ -1382,6 +1385,7 @@ public abstract class DhisConvenienceTest
         credentials.setPassword( "Password" + uniqueCharacter );
         credentials.setUserInfo( user );
         user.setUserCredentials( credentials );
+        credentials.setUser( user );
 
         return credentials;
     }
@@ -2429,5 +2433,40 @@ public abstract class DhisConvenienceTest
         group.setDescription( username );
         group.setAuthorities( Sets.newHashSet( authorities ) );
         return group;
+    }
+
+    protected final User addUser( char uniqueCharacter )
+    {
+        return addUser( uniqueCharacter, (Consumer<UserCredentials>) null );
+    }
+
+    protected final <T> User addUser( char uniqueCharacter, BiConsumer<UserCredentials, T> setter, T value )
+    {
+        return addUser( uniqueCharacter, credentials -> setter.accept( credentials, value ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
+    {
+        return addUser( uniqueCharacter,
+            credentials -> credentials.getUser().getOrganisationUnits().addAll( asList( units ) ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
+    {
+        return addUser( uniqueCharacter,
+            credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> init )
+    {
+        User user = createUser( uniqueCharacter );
+        UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
+        if ( init != null )
+        {
+            init.accept( credentials );
+        }
+        userService.addUser( user );
+        userService.addUserCredentials( credentials );
+        return user;
     }
 }

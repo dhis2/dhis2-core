@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.user;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,8 +38,9 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.time.ZonedDateTime;
+import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -46,8 +51,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -87,6 +90,8 @@ public class UserServiceTest
     public void setUpTest()
         throws Exception
     {
+        super.userService = userService;
+
         unitA = createOrganisationUnit( 'A' );
         unitB = createOrganisationUnit( 'B' );
         unitC = createOrganisationUnit( 'C', unitA );
@@ -121,93 +126,54 @@ public class UserServiceTest
     @Test
     public void testAddGetUser()
     {
-        Set<OrganisationUnit> units = new HashSet<>();
+        User userA = addUser( 'A', unitA, unitB );
+        User userB = addUser( 'B', unitA, unitB );
 
-        units.add( unitA );
-        units.add( unitB );
-
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-
-        userA.setOrganisationUnits( units );
-        userB.setOrganisationUnits( units );
-
-        long idA = userService.addUser( userA );
-        long idB = userService.addUser( userB );
-
-        assertEquals( userA, userService.getUser( idA ) );
-        assertEquals( userB, userService.getUser( idB ) );
-
-        assertEquals( units, userService.getUser( idA ).getOrganisationUnits() );
-        assertEquals( units, userService.getUser( idB ).getOrganisationUnits() );
+        Set<OrganisationUnit> expected = new HashSet<>( asList( unitA, unitB ) );
+        assertEquals( expected, userService.getUser( userA.getId() ).getOrganisationUnits() );
+        assertEquals( expected, userService.getUser( userB.getId() ).getOrganisationUnits() );
     }
 
     @Test
     public void testGetUserCredentialsByUsernames()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-
-        List<String> usernames = new ArrayList<>();
-        usernames.add( "UsernameA" );
-        usernames.add( "UsernameB" );
-
-        assertEquals( usernames.size(), userService.getUserCredentialsByUsernames( usernames ).size() );
-
-        usernames.add( "usernameX" );
-        assertEquals( 2, userService.getUserCredentialsByUsernames( usernames ).size() );
-
-        usernames.clear();
-
-        usernames.add( "usernameC" );
-
-        assertEquals( 0, userService.getUserCredentialsByUsernames( usernames ).size() );
+        assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB" ) ).size() );
+        assertEquals( 2,
+            userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB", "usernameX" ) ).size() );
+        assertEquals( 0, userService.getUserCredentialsByUsernames( asList( "usernameC" ) ).size() );
     }
 
     @Test
     public void testUpdateUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
 
-        long idA = userService.addUser( userA );
-        long idB = userService.addUser( userB );
-
-        assertEquals( userA, userService.getUser( idA ) );
-        assertEquals( userB, userService.getUser( idB ) );
+        assertEquals( userA, userService.getUser( userA.getId() ) );
+        assertEquals( userB, userService.getUser( userB.getId() ) );
 
         userA.setSurname( "UpdatedSurnameA" );
-
         userService.updateUser( userA );
 
-        assertEquals( userService.getUser( idA ).getSurname(), "UpdatedSurnameA" );
+        assertEquals( "UpdatedSurnameA", userService.getUser( userA.getId() ).getSurname() );
     }
 
     @Test
     public void testDeleteUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
 
-        long idA = userService.addUser( userA );
-        long idB = userService.addUser( userB );
-
-        assertEquals( userA, userService.getUser( idA ) );
-        assertEquals( userB, userService.getUser( idB ) );
+        assertEquals( userA, userService.getUser( userA.getId() ) );
+        assertEquals( userB, userService.getUser( userB.getId() ) );
 
         userService.deleteUser( userA );
 
-        assertNull( userService.getUser( idA ) );
-        assertNotNull( userService.getUser( idB ) );
+        assertNull( userService.getUser( userA.getId() ) );
+        assertNotNull( userService.getUser( userB.getId() ) );
     }
 
     @Test
@@ -215,55 +181,16 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
+        User userA = addUser( 'A', credentials -> credentials.getUser().setFirstName( "Chris" ) );
+        User userB = addUser( 'B', credentials -> credentials.getUser().setFirstName( "Chris" ) );
 
-        userA.setFirstName( "Chris" );
-        userB.setFirstName( "Chris" );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-
-        userService.addUserCredentials( userA.getUserCredentials() );
-        userService.addUserCredentials( userB.getUserCredentials() );
-
-        List<User> users = userService.getUsers( new UserQueryParams().setQuery( "Chris" ) );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "hris SURNAM" ) );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "hris SurnameA" ) );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userA ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "urnameB" ) );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userB ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "MAilA" ) );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userA ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "userNAME" ) );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-
-        users = userService.getUsers( new UserQueryParams().setQuery( "ernameA" ) );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userA ) );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "Chris" ) ), userA, userB );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "hris SURNAM" ) ), userA, userB );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "hris SurnameA" ) ), userA );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "urnameB" ) ), userB );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "MAilA" ) ), userA );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "userNAME" ) ), userA, userB );
+        assertContainsOnly( userService.getUsers( new UserQueryParams().setQuery( "ernameA" ) ), userA );
     }
 
     @Test
@@ -272,50 +199,21 @@ public class UserServiceTest
         // Set to avoid the "disjoint" user role constraint internally
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-
-        userA.getOrganisationUnits().add( unitA );
-        userB.getOrganisationUnits().add( unitB );
-        userC.getOrganisationUnits().add( unitC );
-        userD.getOrganisationUnits().add( unitD );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
+        User userA = addUser( 'A', unitA );
+        User userB = addUser( 'B', unitB );
+        User userC = addUser( 'C', unitC );
+        User userD = addUser( 'D', unitD );
 
         UserQueryParams params = new UserQueryParams()
             .addOrganisationUnit( unitA )
             .setUser( userA );
-
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userA ) );
+        assertContainsOnly( userService.getUsers( params ), userA );
 
         params = new UserQueryParams()
             .addOrganisationUnit( unitA )
             .setIncludeOrgUnitChildren( true )
             .setUser( userA );
-
-        users = userService.getUsers( params );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userC ) );
+        assertContainsOnly( userService.getUsers( params ), userA, userC );
     }
 
     @Test
@@ -323,56 +221,30 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
+        User userC = addUser( 'C' );
+        User userD = addUser( 'D' );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
-
-        UserGroup ugA = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
-        UserGroup ugB = createUserGroup( 'B', Sets.newHashSet( userB, userC ) );
-        UserGroup ugC = createUserGroup( 'C', Sets.newHashSet( userD ) );
+        UserGroup ugA = createUserGroup( 'A', newHashSet( userA, userB ) );
+        UserGroup ugB = createUserGroup( 'B', newHashSet( userB, userC ) );
+        UserGroup ugC = createUserGroup( 'C', newHashSet( userD ) );
 
         userGroupService.addUserGroup( ugA );
         userGroupService.addUserGroup( ugB );
         userGroupService.addUserGroup( ugC );
 
-        List<User> users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA ) ) );
+        assertContainsOnly(
+            userService.getUsers( new UserQueryParams().setUserGroups( newHashSet( ugA ) ) ),
+            userA, userB );
 
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
+        assertContainsOnly(
+            userService.getUsers( new UserQueryParams().setUserGroups( newHashSet( ugA, ugB ) ) ),
+            userA, userB, userC );
 
-        users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA, ugB ) ) );
-
-        assertEquals( 3, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userC ) );
-
-        users = userService.getUsers( new UserQueryParams()
-            .setUserGroups( Sets.newHashSet( ugA, ugC ) ) );
-
-        assertEquals( 3, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userD ) );
+        assertContainsOnly(
+            userService.getUsers( new UserQueryParams().setUserGroups( newHashSet( ugA, ugC ) ) ),
+            userA, userB, userD );
     }
 
     @Test
@@ -380,66 +252,23 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User currentUser = createUser( 'Z' );
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-        User userE = createUser( 'E' );
-
-        currentUser.getOrganisationUnits().add( unitA );
-        currentUser.getOrganisationUnits().add( unitB );
-        userA.addOrganisationUnit( unitA );
-        userB.addOrganisationUnit( unitB );
-        userC.addOrganisationUnit( unitC );
-        userD.addOrganisationUnit( unitD );
-        userE.addOrganisationUnit( unitE );
-
-        UserCredentials currentCredentials = createUserCredentials( 'Z', currentUser );
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-        UserCredentials credentialsE = createUserCredentials( 'E', userE );
-
-        userService.addUser( currentUser );
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-        userService.addUser( userE );
-
-        userService.addUserCredentials( currentCredentials );
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
-        userService.addUserCredentials( credentialsE );
+        User currentUser = addUser( 'Z', unitA, unitB );
+        User userA = addUser( 'A', unitA );
+        User userB = addUser( 'B', unitB );
+        User userC = addUser( 'C', unitC );
+        User userD = addUser( 'D', unitD );
+        User userE = addUser( 'E', unitE );
 
         UserQueryParams params = new UserQueryParams()
             .setUser( currentUser )
             .setUserOrgUnits( true );
-
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 3, users.size() );
-        assertTrue( users.contains( currentUser ) );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
+        assertContainsOnly( userService.getUsers( params ), currentUser, userA, userB );
 
         params = new UserQueryParams()
             .setUser( currentUser )
             .setUserOrgUnits( true )
             .setIncludeOrgUnitChildren( true );
-
-        users = userService.getUsers( params );
-
-        assertEquals( 5, users.size() );
-        assertTrue( users.contains( currentUser ) );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userC ) );
-        assertTrue( users.contains( userD ) );
+        assertContainsOnly( userService.getUsers( params ), currentUser, userA, userB, userC, userD );
     }
 
     @Test
@@ -449,25 +278,20 @@ public class UserServiceTest
 
         // TODO find way to override in parameters
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
+        User userC = addUser( 'C' );
+        User userD = addUser( 'D' );
 
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        UserGroup userGroup1 = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
-        UserGroup userGroup2 = createUserGroup( 'B', Sets.newHashSet( userC, userD ) );
+        UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
+        UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD ) );
         userA.getGroups().add( userGroup1 );
         userB.getGroups().add( userGroup1 );
         userC.getGroups().add( userGroup2 );
         userD.getGroups().add( userGroup2 );
 
-        userGroup1.setManagedGroups( Sets.newHashSet( userGroup2 ) );
-        userGroup2.setManagedByGroups( Sets.newHashSet( userGroup1 ) );
+        userGroup1.setManagedGroups( newHashSet( userGroup2 ) );
+        userGroup2.setManagedByGroups( newHashSet( userGroup1 ) );
 
         long group1 = userGroupService.addUserGroup( userGroup1 );
         long group2 = userGroupService.addUserGroup( userGroup2 );
@@ -507,25 +331,9 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-
-        userA.setPhoneNumber( "73647271" );
-        userB.setPhoneNumber( "23452134" );
-        userC.setPhoneNumber( "14543232" );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
+        User userA = addUser( 'A', credentials -> credentials.getUser().setPhoneNumber( "73647271" ) );
+        User userB = addUser( 'B', credentials -> credentials.getUser().setPhoneNumber( "23452134" ) );
+        User userC = addUser( 'C', credentials -> credentials.getUser().setPhoneNumber( "14543232" ) );
 
         List<User> users = userService.getUsersByPhoneNumber( "23452134" );
 
@@ -536,17 +344,8 @@ public class UserServiceTest
     @Test
     public void testGetByUuid()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
 
         assertEquals( userA, userService.getUserByUuid( userA.getUuid() ) );
         assertEquals( userB, userService.getUserByUuid( userB.getUuid() ) );
@@ -555,24 +354,11 @@ public class UserServiceTest
     @Test
     public void testGetByIdentifier()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
+        User userC = addUser( 'C' );
 
         // Match
-
         assertEquals( userA, userService.getUserByIdentifier( userA.getUid() ) );
         assertEquals( userA, userService.getUserByIdentifier( userA.getUuid().toString() ) );
         assertEquals( userA, userService.getUserByIdentifier( userA.getUsername() ) );
@@ -582,7 +368,6 @@ public class UserServiceTest
         assertEquals( userB, userService.getUserByIdentifier( userB.getUsername() ) );
 
         // No match
-
         assertNull( userService.getUserByIdentifier( "hYg6TgAfN71" ) );
         assertNull( userService.getUserByIdentifier( "cac39761-3ef9-4774-8b1e-b96cedbc57a9" ) );
         assertNull( userService.getUserByIdentifier( "johndoe" ) );
@@ -593,54 +378,41 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
+        User userA = addUser( 'A', credentials -> {
+            User user = credentials.getUser();
+            user.setSurname( "Yong" );
+            user.setFirstName( "Anne" );
+            user.setEmail( "lost@space.com" );
+            user.getOrganisationUnits().add( unitA );
+        } );
+        User userB = addUser( 'B', credentials -> {
+            User user = credentials.getUser();
+            user.setSurname( "Arden" );
+            user.setFirstName( "Jenny" );
+            user.setEmail( "Inside@other.com" );
+            user.getOrganisationUnits().add( unitA );
+        } );
+        User userC = addUser( 'C', credentials -> {
+            User user = credentials.getUser();
+            user.setSurname( "Smith" );
+            user.setFirstName( "Igor" );
+            user.setEmail( "home@other.com" );
+            user.getOrganisationUnits().add( unitA );
+        } );
 
-        userA.setSurname( "Yong" );
-        userA.setFirstName( "Anne" );
-        userA.setEmail( "lost@space.com" );
-        userA.getOrganisationUnits().add( unitA );
-        userB.setSurname( "Arden" );
-        userB.setFirstName( "Jenny" );
-        userB.setEmail( "Inside@other.com" );
-        userB.getOrganisationUnits().add( unitA );
-        userC.setSurname( "Smith" );
-        userC.setFirstName( "Igor" );
-        userC.setEmail( "home@other.com" );
-        userC.getOrganisationUnits().add( unitA );
+        UserQueryParams params = new UserQueryParams().addOrganisationUnit( unitA );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
+        assertEquals(
+            userService.getUsers( params, singletonList( "email:idesc" ) ),
+            asList( userA, userB, userC ) );
 
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
+        assertEquals(
+            userService.getUsers( params, null ),
+            asList( userB, userC, userA ) );
 
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-
-        List<User> users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ),
-            Collections.singletonList( "email:idesc" ) );
-        assertEquals( 3, users.size() );
-        assertEquals( userA, users.get( 0 ) );
-        assertEquals( userB, users.get( 1 ) );
-        assertEquals( userC, users.get( 2 ) );
-
-        users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ), null );
-        assertEquals( 3, users.size() );
-        assertEquals( userA, users.get( 2 ) );
-        assertEquals( userB, users.get( 0 ) );
-        assertEquals( userC, users.get( 1 ) );
-
-        users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ),
-            Collections.singletonList( "firstName:asc" ) );
-        assertEquals( 3, users.size() );
-        assertEquals( userA, users.get( 0 ) );
-        assertEquals( userB, users.get( 2 ) );
-        assertEquals( userC, users.get( 1 ) );
+        assertEquals(
+            userService.getUsers( params, singletonList( "firstName:asc" ) ),
+            asList( userA, userC, userB ) );
     }
 
     @Test
@@ -648,46 +420,15 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, false );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-        User userE = createUser( 'E' );
-        User userF = createUser( 'F' );
+        User userA = addUser( 'A', roleA );
+        User userB = addUser( 'B', roleB, roleC );
+        User userC = addUser( 'C', roleA, roleC );
+        User userD = addUser( 'D', roleC );
+        User userE = addUser( 'E', roleA );
+        User userF = addUser( 'F', roleC );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-        UserCredentials credentialsE = createUserCredentials( 'E', userE );
-        UserCredentials credentialsF = createUserCredentials( 'F', userF );
-
-        credentialsA.getUserAuthorityGroups().add( roleA );
-        credentialsB.getUserAuthorityGroups().add( roleB );
-        credentialsB.getUserAuthorityGroups().add( roleC );
-        credentialsC.getUserAuthorityGroups().add( roleA );
-        credentialsC.getUserAuthorityGroups().add( roleB );
-        credentialsD.getUserAuthorityGroups().add( roleC );
-        credentialsE.getUserAuthorityGroups().add( roleA );
-        credentialsE.getUserAuthorityGroups().add( roleB );
-        credentialsF.getUserAuthorityGroups().add( roleC );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-        userService.addUser( userE );
-        userService.addUser( userF );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
-        userService.addUserCredentials( credentialsE );
-        userService.addUserCredentials( credentialsF );
-
-        UserGroup userGroup1 = createUserGroup( 'A', Sets.newHashSet( userA, userB ) );
-        UserGroup userGroup2 = createUserGroup( 'B', Sets.newHashSet( userC, userD, userE, userF ) );
+        UserGroup userGroup1 = createUserGroup( 'A', newHashSet( userA, userB ) );
+        UserGroup userGroup2 = createUserGroup( 'B', newHashSet( userC, userD, userE, userF ) );
         userA.getGroups().add( userGroup1 );
         userB.getGroups().add( userGroup1 );
         userC.getGroups().add( userGroup2 );
@@ -695,8 +436,8 @@ public class UserServiceTest
         userE.getGroups().add( userGroup2 );
         userF.getGroups().add( userGroup2 );
 
-        userGroup1.setManagedGroups( Sets.newHashSet( userGroup2 ) );
-        userGroup2.setManagedByGroups( Sets.newHashSet( userGroup1 ) );
+        userGroup1.setManagedGroups( newHashSet( userGroup2 ) );
+        userGroup2.setManagedByGroups( newHashSet( userGroup1 ) );
 
         userGroupService.addUserGroup( userGroup1 );
         userGroupService.addUserGroup( userGroup2 );
@@ -705,29 +446,15 @@ public class UserServiceTest
         params.setCanManage( true );
         params.setAuthSubset( true );
         params.setUser( userA );
-
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userD ) );
-        assertTrue( users.contains( userF ) );
-
+        assertContainsOnly( userService.getUsers( params ), userD, userF );
         assertEquals( 2, userService.getUserCount( params ) );
 
         params.setUser( userB );
-
-        users = userService.getUsers( params );
-
-        assertEquals( 0, users.size() );
-
+        assertContainsOnly( userService.getUsers( params ) );
         assertEquals( 0, userService.getUserCount( params ) );
 
         params.setUser( userC );
-
-        users = userService.getUsers( params );
-
-        assertEquals( 0, users.size() );
-
+        assertContainsOnly( userService.getUsers( params ) );
         assertEquals( 0, userService.getUserCount( params ) );
     }
 
@@ -736,42 +463,17 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-        User userE = createUser( 'E' );
-        User userF = createUser( 'F' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-        UserCredentials credentialsE = createUserCredentials( 'E', userE );
-        UserCredentials credentialsF = createUserCredentials( 'F', userF );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-        userService.addUser( userE );
-        userService.addUser( userF );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
-        userService.addUserCredentials( credentialsE );
-        userService.addUserCredentials( credentialsF );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B' );
+        User userC = addUser( 'C' );
+        User userD = addUser( 'D' );
+        User userE = addUser( 'E' );
+        User userF = addUser( 'F' );
 
         UserQueryParams params = new UserQueryParams();
         params.setQuery( "rstnameA" );
 
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 1, users.size() );
-        assertTrue( users.contains( userA ) );
-
+        assertContainsOnly( userService.getUsers( params ), userA );
         assertEquals( 1, userService.getUserCount( params ) );
     }
 
@@ -780,38 +482,15 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        credentialsA.setSelfRegistered( true );
-        credentialsC.setSelfRegistered( true );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
+        User userA = addUser( 'A', UserCredentials::setSelfRegistered, true );
+        User userB = addUser( 'B' );
+        User userC = addUser( 'C', UserCredentials::setSelfRegistered, true );
+        User userD = addUser( 'D' );
 
         UserQueryParams params = new UserQueryParams();
         params.setSelfRegistered( true );
 
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userC ) );
-
+        assertContainsOnly( userService.getUsers( params ), userA, userC );
         assertEquals( 2, userService.getUserCount( params ) );
     }
 
@@ -820,41 +499,15 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-
-        userA.getOrganisationUnits().add( unitA );
-        userA.getOrganisationUnits().add( unitB );
-        userB.getOrganisationUnits().add( unitB );
-        userC.getOrganisationUnits().add( unitA );
-        userD.getOrganisationUnits().add( unitB );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
+        User userA = addUser( 'A', unitA, unitB );
+        User userB = addUser( 'B', unitB );
+        User userC = addUser( 'C', unitA );
+        User userD = addUser( 'D', unitB );
 
         UserQueryParams params = new UserQueryParams();
         params.getOrganisationUnits().add( unitA );
 
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userA ) );
-        assertTrue( users.contains( userC ) );
-
+        assertContainsOnly( userService.getUsers( params ), userA, userC );
         assertEquals( 2, userService.getUserCount( params ) );
     }
 
@@ -863,77 +516,73 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
-
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
-
-        credentialsB.setInvitation( true );
-        credentialsD.setInvitation( true );
-
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
-
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B', UserCredentials::setInvitation, true );
+        User userC = addUser( 'C' );
+        User userD = addUser( 'D', UserCredentials::setInvitation, true );
 
         UserQueryParams params = new UserQueryParams();
         params.setInvitationStatus( UserInvitationStatus.ALL );
 
-        List<User> users = userService.getUsers( params );
-
-        assertEquals( 2, users.size() );
-        assertTrue( users.contains( userB ) );
-        assertTrue( users.contains( userD ) );
-
+        assertContainsOnly( userService.getUsers( params ), userB, userD );
         assertEquals( 2, userService.getUserCount( params ) );
 
         params.setInvitationStatus( UserInvitationStatus.EXPIRED );
 
-        users = userService.getUsers( params );
-
-        assertEquals( 0, users.size() );
-
+        assertContainsOnly( userService.getUsers( params ) );
         assertEquals( 0, userService.getUserCount( params ) );
     }
 
     @Test
     public void testGetExpiringUser()
     {
-        User userA = createUser( 'A' );
-        User userB = createUser( 'B' );
-        User userC = createUser( 'C' );
-        User userD = createUser( 'D' );
+        User userA = addUser( 'A' );
+        User userB = addUser( 'B', UserCredentials::setDisabled, true );
+        User userC = addUser( 'C' );
+        User userD = addUser( 'D', UserCredentials::setDisabled, true );
 
-        UserCredentials credentialsA = createUserCredentials( 'A', userA );
-        UserCredentials credentialsB = createUserCredentials( 'B', userB );
-        UserCredentials credentialsC = createUserCredentials( 'C', userC );
-        UserCredentials credentialsD = createUserCredentials( 'D', userD );
+        assertContainsOnly( userService.getExpiringUsers(), userA, userC );
+    }
 
-        credentialsB.setDisabled( true );
-        credentialsD.setDisabled( true );
+    @Test
+    public void testDisableUsersInactiveSince()
+    {
+        ZonedDateTime now = ZonedDateTime.now();
+        Date twoMonthsAgo = Date.from( now.minusMonths( 2 ).toInstant() );
+        Date threeMonthAgo = Date.from( now.minusMonths( 3 ).toInstant() );
+        Date fourMonthAgo = Date.from( now.minusMonths( 4 ).toInstant() );
+        Date twentyTwoDaysAgo = Date.from( now.minusDays( 22 ).toInstant() );
 
-        userService.addUser( userA );
-        userService.addUser( userB );
-        userService.addUser( userC );
-        userService.addUser( userD );
+        User userA = addUser( 'A', UserCredentials::setLastLogin, threeMonthAgo );
+        User userB = addUser( 'B', credentials -> {
+            credentials.setDisabled( true );
+            credentials.setLastLogin( fourMonthAgo );
+        } );
+        User userC = addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        User userD = addUser( 'D' );
 
-        userService.addUserCredentials( credentialsA );
-        userService.addUserCredentials( credentialsB );
-        userService.addUserCredentials( credentialsC );
-        userService.addUserCredentials( credentialsD );
+        // User A gets disabled, B would but already was, C is active, D last
+        // login is still null
+        assertEquals( 1, userService.disableUsersInactiveSince( twoMonthsAgo ) );
 
-        List<User> users = userService.getExpiringUsers();
+        // being a super-user is the simplest way to filter purely on the set
+        // parameters
+        createAndInjectAdminUser();
 
-        assertEquals( 2, users.size() );
+        UserQueryParams params = new UserQueryParams();
+        params.setDisabled( true );
+        List<User> users = userService.getUsers( params );
+        assertEquals( new HashSet<>( asList( userA.getUid(), userB.getUid() ) ),
+            users.stream().map( User::getUid ).collect( toSet() ) );
+    }
+
+    @SafeVarargs
+    private static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    {
+        assertEquals( expected.length, actual.size() );
+        for ( E e : expected )
+        {
+            assertTrue( actual.contains( e ) );
+        }
     }
 }
