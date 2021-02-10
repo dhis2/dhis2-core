@@ -206,6 +206,7 @@ public class EmailMessageSender
         OutboundMessageResponse status = new OutboundMessageResponse();
 
         String errorMessage = "No recipient found";
+        String serverBaseUrl = configurationProvider.getServerBaseUrl();
 
         if ( emailConfig.getHostName() == null )
         {
@@ -221,6 +222,7 @@ public class EmailMessageSender
                 emailConfig.getPassword(), emailConfig.isTls(), emailConfig.getFrom() );
             email.setSubject( getPrefixedSubject( subject ) );
             email.setTextMsg( text );
+            email.setHtmlMsg( renderHtmlContent( text, null, serverBaseUrl, null ) );
 
             boolean hasRecipients = false;
 
