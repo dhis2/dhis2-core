@@ -290,7 +290,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         verify( incomingSmsService, times( 1 ) ).update( incomingSmsCaptor.capture() );
 
         assertEquals( incomingSmsCaptor.getValue().getText(), incomingSms.getText() );
-        assertEquals( incomingSmsCaptor.getValue().isParsed(), incomingSms.isParsed() );
+        assertFalse( incomingSmsCaptor.getValue().isParsed() );
     }
 
     @Test
