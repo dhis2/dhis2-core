@@ -119,6 +119,8 @@ public class GenericSmsGatewayTest
 
     private GenericGatewayParameter password;
 
+    private GenericGatewayParameter authorization;
+
     private StrSubstitutor strSubstitutor;
 
     private String body;
@@ -141,7 +143,7 @@ public class GenericSmsGatewayTest
         username.setKey( "user" );
         username.setValue( "user_uio" );
         username.setEncode( false );
-        username.setHeader( true );
+        username.setHeader( false );
         username.setConfidential( false );
 
         password = new GenericGatewayParameter();
@@ -150,6 +152,13 @@ public class GenericSmsGatewayTest
         password.setEncode( false );
         password.setHeader( true );
         password.setConfidential( true );
+
+        authorization = new GenericGatewayParameter();
+        authorization.setKey( "Authorization" );
+        authorization.setValue( "user_uio:abc123" );
+        authorization.setEncode( true );
+        authorization.setHeader( true );
+        authorization.setConfidential( true );
 
         valueStore.put( SmsGateway.KEY_TEXT, SmsUtils.encode( TEXT ) );
         valueStore.put( SmsGateway.KEY_RECIPIENT, StringUtils.join( RECIPIENTS, "," ) );
@@ -162,11 +171,13 @@ public class GenericSmsGatewayTest
         body = strSubstitutor.replace( CONFIG_TEMPLATE_JSON );
 
         gatewayConfig.getParameters().clear();
-        gatewayConfig.setParameters( Arrays.asList( username, password ) );
+        gatewayConfig.setParameters( Arrays.asList( username, password, authorization ) );
         gatewayConfig.setContentType( ContentType.APPLICATION_JSON );
         gatewayConfig.setConfigurationTemplate( CONFIG_TEMPLATE_JSON );
 
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
+
+        when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( "decryptedText" );
 
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ) , any( HttpEntity.class ), eq( String.class ) ) )
             .thenReturn( responseEntity );
@@ -190,14 +201,11 @@ public class GenericSmsGatewayTest
 
         List<GenericGatewayParameter> parameters = gatewayConfig.getParameters();
 
-        for ( GenericGatewayParameter parameter : parameters )
+        parameters.stream().filter( p -> p.isEncode() && p.isConfidential() && p.isHeader() ).forEach( p ->
         {
-            if ( parameter.isHeader() )
-            {
-                assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
-            }
-        }
+            assertTrue( httpHeaders.containsKey( p.getKey() ) );
+            assertEquals( "ZGVjcnlwdGVkVGV4dA==", httpHeaders.get( p.getKey() ).get( 0 ) );
+        });
     }
 
     @Test
