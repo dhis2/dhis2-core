@@ -185,7 +185,14 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.add( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
+                if ( parameter.getKey().equals( HttpHeaders.AUTHORIZATION ) )
+                {
+                    httpHeaders.add( parameter.getKey(), BASIC + encodeAndDecryptParameter( parameter ) );
+                }
+                else
+                {
+                    httpHeaders.add( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
+                }
             }
         }
 
