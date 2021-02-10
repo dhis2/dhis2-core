@@ -87,6 +87,7 @@ public class TrackerEntityInstanceStrategyTest
 
         // when
         strategy.add( params, uids, preheat );
+        preheat.createReferenceTree();
 
         assertTrue( preheat.getReference( trackedEntities.get( 0 ).getTrackedEntity() ).isPresent() );
         assertTrue( preheat.getReference( trackedEntities.get( 1 ).getTrackedEntity() ).isPresent() );
@@ -123,6 +124,7 @@ public class TrackerEntityInstanceStrategyTest
 
         // when
         strategy.add( params, uids, preheat );
+        preheat.createReferenceTree();
 
         assertFalse( preheat.getReference( trackedEntities.get( 0 ).getTrackedEntity() ).isPresent() );
         assertTrue( preheat.getReference( trackedEntities.get( 1 ).getTrackedEntity() ).isPresent() );

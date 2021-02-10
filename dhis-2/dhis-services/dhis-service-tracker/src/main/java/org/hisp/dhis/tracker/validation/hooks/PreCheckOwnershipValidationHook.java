@@ -43,6 +43,7 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import java.util.Optional;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -218,7 +219,21 @@ public class PreCheckOwnershipValidationHook
             Optional<ReferenceTrackerEntity> reference = context.getReference( event.getEnrollment() );
             if ( reference.isPresent() )
             {
-                teiUid = reference.get().getParentUid();
+                if ( !reference.get().isRoot() )
+                {
+                    teiUid = reference.get().getParentUid();
+                }
+                else
+                {
+                    // This is happening when creating a new enrollment linked
+                    // to an already existing TEI
+
+                    Optional<Enrollment> enrollment = bundle.getEnrollment( reference.get().getUid() );
+                    teiUid = enrollment
+                        .flatMap( e -> Optional.ofNullable( context.getTrackedEntityInstance( e.getTrackedEntity() ) ) )
+                        .map( BaseIdentifiableObject::getUid )
+                        .orElse( null );
+                }
             }
         }
         else
