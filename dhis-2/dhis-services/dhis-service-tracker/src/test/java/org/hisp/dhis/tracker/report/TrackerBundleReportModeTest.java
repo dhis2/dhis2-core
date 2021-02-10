@@ -25,32 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.webdomain;
+package org.hisp.dhis.tracker.report;
 
-import lombok.Data;
+import static org.junit.Assert.assertNotNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.junit.Test;
+import org.springframework.web.client.HttpClientErrorException;
 
 /**
- * Class representing the unique properties of a data value.
- *
- * @author Lars Helge Overland
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-public class DataValueRequest
+public class TrackerBundleReportModeTest
 {
-    @JsonProperty
-    private String dataElement;
+    @Test
+    public void shouldFindReportMode()
+    {
+        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
+    }
 
-    @JsonProperty
-    private String period;
-
-    @JsonProperty
-    private String orgUnit;
-
-    @JsonProperty
-    private String categoryOptionCombo;
-
-    @JsonProperty
-    private String attributeOptionCombo;
+    @Test( expected = HttpClientErrorException.class )
+    public void shouldThrowWhenReportModeNotFound()
+    {
+        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
+    }
 }

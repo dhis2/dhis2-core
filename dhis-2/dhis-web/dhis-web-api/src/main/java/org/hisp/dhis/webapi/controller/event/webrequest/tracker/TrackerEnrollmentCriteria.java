@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,31 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.Date;
 
-import java.util.List;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
-@Component
-public class NewImplementableRuleService implements ImplementableRuleService
+@Data
+@NoArgsConstructor
+public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
-    private final ProgramRuleService programRuleService;
+    private String orgUnit;
 
-    public NewImplementableRuleService( ProgramRuleService programRuleService )
-    {
-        checkNotNull( programRuleService );
-        this.programRuleService = programRuleService;
-    }
+    private OrganisationUnitSelectionMode ouMode;
 
-    @Override
-    public List<ProgramRule> getImplementableRules( Program program )
-    {
-        return programRuleService.getProgramRule( program );
-    }
+    private String program;
+
+    private ProgramStatus programStatus;
+
+    private Boolean followUp;
+
+    private Date updatedAfter;
+
+    private String updatedWithin;
+
+    private Date enrolledAfter;
+
+    private Date enrolledBefore;
+
+    private String trackedEntityType;
+
+    private String trackedEntity;
+
+    private String enrollment;
+
+    private boolean includeDeleted;
 }

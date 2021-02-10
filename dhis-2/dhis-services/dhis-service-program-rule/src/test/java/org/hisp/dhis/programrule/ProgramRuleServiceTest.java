@@ -389,11 +389,11 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     }
 
     @Test
-    public void testGetImplementableProgramRules()
+    public void testGetProgramRulesByActionTypes()
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        // Add a rule that is not part of programB....
+        // Add a rule that is not part of programB
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -409,8 +409,8 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
         programRuleService.updateProgramRule( ruleD );
 
         // Get all the 3 rules for programB
-        List<ProgramRule> rules = programRuleService.getImplementableProgramRules( programB,
-            ProgramRuleActionType.getImplementedActions() );
+        List<ProgramRule> rules = programRuleService.getProgramRulesByActionTypes( programB,
+            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
         assertEquals( 1, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertFalse( rules.contains( ruleG ) );

@@ -29,7 +29,7 @@ package org.hisp.dhis.node.config;
 
 import java.util.Collection;
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -78,7 +78,7 @@ public interface InclusionStrategy
                 }
                 else if ( String.class.isAssignableFrom( object.getClass() ) )
                 {
-                    return !StringUtils.isEmpty( object );
+                    return !ObjectUtils.isEmpty( object );
                 }
 
                 return true;

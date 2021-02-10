@@ -44,9 +44,9 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.mapper.EnrollmentMapper;
-import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.EnrollmentCriteriaMapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEnrollmentCriteria;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.mapstruct.factory.Mappers;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -68,21 +68,22 @@ public class TrackerEnrollmentsExportController
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<Enrollment> getInstances( EnrollmentCriteria enrollmentCriteria )
+    PagingWrapper<Enrollment> getInstances( TrackerEnrollmentCriteria trackerEnrollmentCriteria )
     {
         PagingWrapper<Enrollment> enrollmentPagingWrapper = new PagingWrapper<>();
 
         List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollmentList;
 
-        if ( enrollmentCriteria.getEnrollment() == null )
+        if ( trackerEnrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( enrollmentCriteria );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl( trackerEnrollmentCriteria );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
-            if ( enrollments.getPager() != null )
+            if ( trackerEnrollmentCriteria.isPagingRequest() )
             {
-                enrollmentPagingWrapper.withPager( enrollments.getPager() );
+                enrollmentPagingWrapper = enrollmentPagingWrapper.withPager(
+                    PagingWrapper.Pager.fromLegacy( trackerEnrollmentCriteria, enrollments.getPager() ) );
             }
 
             enrollmentList = enrollments.getEnrollments();
@@ -90,7 +91,7 @@ public class TrackerEnrollmentsExportController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToArray( enrollmentCriteria.getEnrollment(),
+            Set<String> enrollmentIds = TextUtils.splitToArray( trackerEnrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream().map( enrollmentService::getEnrollment ).collect( Collectors.toList() )

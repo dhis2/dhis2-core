@@ -139,6 +139,11 @@ public class ValidationErrorReporter
         return !this.reportList.isEmpty();
     }
 
+    public boolean hasWarnings()
+    {
+        return !this.warningsReportList.isEmpty();
+    }
+
     public static TrackerErrorReport.TrackerErrorReportBuilder newReport( TrackerErrorCode errorCode )
     {
         return TrackerErrorReport.builder().errorCode( errorCode );

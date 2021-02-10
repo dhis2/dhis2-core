@@ -25,55 +25,52 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
-
-import lombok.AllArgsConstructor;
+package org.hisp.dhis.webapi.controller.cluster;
 
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.datavalue.DataValue;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.webapi.controller.datavalue.DataValidator;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.leader.election.LeaderNodeInfo;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.DataValueRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * @author Ameen Mohamed
+ */
 @RestController
-@AllArgsConstructor
+@RequestMapping( "/cluster" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class FollowUpController
+public class ClusterController
 {
-    private final DataValidator dataValidator;
 
-    private final DataValueService dataValueService;
+    @Autowired
+    private LeaderManager leaderManager;
 
-    @PostMapping( value = "/followup/dataValues" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void setDataValueFollowUp( @RequestBody DataValueRequest dataValueRequest )
+    @Autowired
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
+    // -------------------------------------------------------------------------
+    // Resources
+    // -------------------------------------------------------------------------
+
+    @GetMapping( value = "/leader" )
+    public @ResponseBody LeaderNodeInfo getLeaderInfo()
+        throws WebMessageException
     {
-        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueRequest );
+        LeaderNodeInfo leaderInfo = new LeaderNodeInfo();
 
-        if ( !dataValue.isFollowup() )
-        {
-            dataValue.setFollowup( true );
-            dataValueService.updateDataValue( dataValue );
-        }
-    }
+        leaderInfo.setLeaderNodeId( leaderManager.getLeaderNodeId() );
+        leaderInfo.setLeaderNodeUuid( leaderManager.getLeaderNodeUuid() );
+        leaderInfo.setLeader( leaderManager.isLeader() );
+        leaderInfo.setCurrentNodeUuid( leaderManager.getCurrentNodeUuid() );
+        leaderInfo.setCurrentNodeId( dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID ) );
 
-    @DeleteMapping( value = "/followup/dataValues" )
-    @ResponseStatus( value = HttpStatus.OK )
-    public void removeDataValueFollowUp( @RequestBody DataValueRequest dataValueRequest )
-    {
-        DataValue dataValue = dataValidator.getAndValidateDataValue( dataValueRequest );
-
-        if ( dataValue.isFollowup() )
-        {
-            dataValue.setFollowup( false );
-            dataValueService.updateDataValue( dataValue );
-        }
+        return leaderInfo;
     }
 }

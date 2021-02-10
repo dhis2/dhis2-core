@@ -37,6 +37,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
 /**
@@ -62,7 +63,8 @@ public class MetadataActions
         return response;
     }
 
-    public ApiResponse importMetadata( JsonObject object, String... queryParams ) {
+    public ApiResponse importMetadata( JsonObject object, String... queryParams )
+    {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
         queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
@@ -73,9 +75,12 @@ public class MetadataActions
         return response;
     }
 
-    public ApiResponse importAndValidateMetadata( JsonObject object, String... queryParams) {
+    public ApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
+    {
         ApiResponse response = importMetadata( object, queryParams );
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
+
+        response.validate().body( "stats.ignored", not(
+            equalTo( response.extract( "stats.total" ) ) ) );
 
         return response;
     }
@@ -84,7 +89,8 @@ public class MetadataActions
     {
         ApiResponse response = importMetadata( file, queryParams );
 
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
+        response.validate().body( "stats.ignored", not(
+            equalTo( response.extract( "stats.total" ) ) ) );
 
         return response;
     }

@@ -23,7 +23,44 @@
         "id": "BJ42SUrAvHo"
       },
       "notificationTemplates": [],
-      "programStageDataElements": [],
+      "programStageDataElements": [
+        {
+          "id": "ASc37t1TzTj",
+          "dataElement": {
+            "id": "BuZ5LGNfGEU"
+          }
+        },
+        {
+          "id": "B6AIyOWCnxW",
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          }
+        },
+        {
+          "id": "CMP1n58QvwT",
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          }
+        },
+        {
+          "id": "DSc37t1TzTj",
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          }
+        },
+        {
+          "id": "E6AIyOWCnxW",
+          "dataElement":  {
+            "id": "z3Z4TD3oBCP"
+          }
+        },
+        {
+          "id": "FMP1n58QvwT",
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          }
+        }
+      ],
       "translations": [],
       "userGroupAccesses": [
         {

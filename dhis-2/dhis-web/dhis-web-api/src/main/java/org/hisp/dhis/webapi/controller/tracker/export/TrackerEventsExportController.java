@@ -59,9 +59,9 @@ import org.hisp.dhis.query.Order;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.tracker.domain.mapper.EventMapper;
-import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.RequestToSearchParamsMapper;
-import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerEventCriteria;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -109,7 +109,7 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<org.hisp.dhis.tracker.domain.Event> getEvents(
-        EventCriteria eventCriteria, @RequestParam Map<String, String> parameters, HttpServletRequest request )
+        TrackerEventCriteria eventCriteria, @RequestParam Map<String, String> parameters, HttpServletRequest request )
         throws WebMessageException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -130,9 +130,10 @@ public class TrackerEventsExportController
 
         PagingWrapper<org.hisp.dhis.tracker.domain.Event> eventPagingWrapper = new PagingWrapper<>();
 
-        if ( events.getPager() != null )
+        if ( eventCriteria.isPagingRequest() )
         {
-            eventPagingWrapper = eventPagingWrapper.withPager( events.getPager() );
+            eventPagingWrapper = eventPagingWrapper.withPager(
+                PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
         }
 
         return eventPagingWrapper.withInstances( EVENTS_MAPPER.fromCollection( events.getEvents() ) );

@@ -25,43 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest;
+package org.hisp.dhis.db.migration;
 
-import java.util.Date;
+import static org.junit.Assert.assertEquals;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.function.UnaryOperator;
 
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
+import org.junit.Test;
 
-@Data
-@NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+/**
+ * Tests database migration changes connected to use of JSONB columns and
+ * changes of values in these columns.
+ *
+ * @author Jan Bernitt
+ */
+public class JsonbTest
 {
-    private String ou;
 
-    private OrganisationUnitSelectionMode ouMode;
-
-    private String program;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private Date lastUpdated;
-
-    private String lastUpdatedDuration;
-
-    private Date programStartDate;
-
-    private Date programEndDate;
-
-    private String trackedEntityType;
-
-    private String trackedEntityInstance;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+    /**
+     * Note that the update of the sharing access strings itself is tested more
+     * thorough in dedicated tests for
+     * {@link Sharing#withAccess(UnaryOperator)}. Here we only want to verify
+     * that the mapping from and to JSON happening around it also works.
+     */
+    @Test
+    public void updateSharing()
+        throws Exception
+    {
+        String actual = SharingUtils.withAccess(
+            "{\"owner\": \"Rbh43X53NBP\", \"users\": {}, \"public\": \"rw------\", \"external\": false, \"userGroups\": {}}",
+            Sharing::copyMetadataToData );
+        assertEquals(
+            "{\"external\":false,\"owner\":\"Rbh43X53NBP\",\"public\":\"rwrw----\",\"userGroups\":{},\"users\":{}}",
+            actual );
+    }
 }

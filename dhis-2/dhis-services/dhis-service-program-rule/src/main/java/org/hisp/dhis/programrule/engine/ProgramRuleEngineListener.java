@@ -52,7 +52,7 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstanceUid() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

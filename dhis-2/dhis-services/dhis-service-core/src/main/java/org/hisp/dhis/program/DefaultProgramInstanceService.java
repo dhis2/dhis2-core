@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ALL;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
@@ -43,19 +44,16 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,35 +70,41 @@ public class DefaultProgramInstanceService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    @Autowired
-    private ProgramInstanceStore programInstanceStore;
+    private final ProgramInstanceStore programInstanceStore;
 
-    @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @Autowired
-    private ProgramService programService;
-
-    @Autowired
     private CurrentUserService currentUserService;
 
-    @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
-
-    @Autowired
     private ApplicationEventPublisher eventPublisher;
 
-    @Autowired
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    @Autowired
     private AclService aclService;
+
+    public DefaultProgramInstanceService( ProgramInstanceStore programInstanceStore,
+        ProgramStageInstanceStore programStageInstanceStore, CurrentUserService currentUserService,
+        TrackedEntityInstanceService trackedEntityInstanceService, ApplicationEventPublisher eventPublisher,
+        TrackerOwnershipManager trackerOwnershipAccessManager, AclService aclService )
+    {
+        checkNotNull( programInstanceStore );
+        checkNotNull( programStageInstanceStore );
+        checkNotNull( currentUserService );
+        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( eventPublisher );
+        checkNotNull( trackerOwnershipAccessManager );
+        checkNotNull( aclService );
+
+        this.programInstanceStore = programInstanceStore;
+        this.programStageInstanceStore = programStageInstanceStore;
+        this.currentUserService = currentUserService;
+        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.eventPublisher = eventPublisher;
+        this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
+        this.aclService = aclService;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods

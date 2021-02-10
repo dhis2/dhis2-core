@@ -33,7 +33,6 @@ import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
@@ -49,7 +48,6 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  *
  */
 @Configuration
-@DependsOn( "dhisConfigurationProvider" )
 @Conditional( RedisDisabledCondition.class )
 public class DefaultSessionConfiguration
 {
@@ -59,7 +57,7 @@ public class DefaultSessionConfiguration
      *
      * @return a {@link CharacterEncodingFilter} without specifying encoding.
      */
-    @Bean
+    @Bean( "springSessionRepositoryFilter" )
     public Filter springSessionRepositoryFilter()
     {
         return new CharacterEncodingFilter();

@@ -31,6 +31,8 @@ import java.util.UUID;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
@@ -42,10 +44,16 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 @Slf4j
 public class NoOpLeaderManager implements LeaderManager
 {
-    public NoOpLeaderManager()
+
+    private String nodeUuid;
+
+    private String nodeId;
+
+    public NoOpLeaderManager( DhisConfigurationProvider dhisConfigurationProvider )
     {
-        String nodeId = UUID.randomUUID().toString();
-        log.info( "Setting up noop leader manager using dummy NodeId:" + nodeId );
+        this.nodeId = dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID );
+        this.nodeUuid = UUID.randomUUID().toString();
+        log.info( "Initialized NoOp leader manager with NodeUuid:%s and nodeId:%s", nodeUuid, nodeId );
     }
 
     @Override
@@ -70,6 +78,24 @@ public class NoOpLeaderManager implements LeaderManager
     public void setSchedulingManager( SchedulingManager schedulingManager )
     {
         // No operation
+    }
+
+    @Override
+    public String getCurrentNodeUuid()
+    {
+        return this.nodeUuid;
+    }
+
+    @Override
+    public String getLeaderNodeUuid()
+    {
+        return this.nodeUuid;
+    }
+
+    @Override
+    public String getLeaderNodeId()
+    {
+        return this.nodeId;
     }
 
 }

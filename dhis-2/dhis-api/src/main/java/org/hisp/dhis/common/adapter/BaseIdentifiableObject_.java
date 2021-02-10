@@ -25,43 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.common.adapter;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.List;
-
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
-
-@Component
-public class OldImplementableRuleService implements ImplementableRuleService
+/**
+ * This class defines metadata model property's names of
+ * {@link org.hisp.dhis.common.BaseIdentifiableObject} Those constants will help
+ * supporting type-safe queries with JPA Criteria API. TODO: This should be
+ * replaced with JPAMetaModelEntityProcessor's auto generated class
+ */
+public class BaseIdentifiableObject_
 {
-    private final ProgramRuleService programRuleService;
-
-    public OldImplementableRuleService( ProgramRuleService programRuleService )
-    {
-        checkNotNull( programRuleService );
-        this.programRuleService = programRuleService;
-    }
-
-    @Override
-    public List<ProgramRule> getImplementableRules( Program program )
-    {
-        List<ProgramRule> permittedRules;
-
-        permittedRules = programRuleService.getImplementableProgramRules( program,
-            ProgramRuleActionType.getNotificationLinkedTypes() );
-
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return programRuleService.getImplementableProgramRules( program,
-            ProgramRuleActionType.getImplementedActions() );
-    }
+    public static final String CREATED_BY = "createdBy";
 }

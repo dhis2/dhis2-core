@@ -30,8 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -86,16 +85,6 @@ public class TrackerImportControllerTest
 
     private RenderService renderService;
 
-    private final static TrackerImportReport TRACKER_IMPORT_REPORT = TrackerImportReport.withImportCompleted(
-        TrackerStatus.OK,
-        TrackerBundleReport.builder()
-            .status( TrackerStatus.OK )
-            .build(),
-        TrackerValidationReport.builder()
-            .build(),
-        new TrackerTimingsStats(),
-        new HashMap<>() );
-
     @Before
     public void setUp()
     {
@@ -129,11 +118,20 @@ public class TrackerImportControllerTest
     }
 
     @Test
-    public void verifySync()
+    public void verifySyncResponseShouldBeOkWhenImportReportStatusIsOk()
         throws Exception
     {
         // When
-        when( trackerImportService.importTracker( any() ) ).thenReturn( TRACKER_IMPORT_REPORT );
+        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+            TrackerStatus.OK,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.OK )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
         when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
 
         // Then
@@ -148,6 +146,9 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
+        verify( trackerImportService ).buildImportReport( any(), any() );
+        verify( trackerImportService ).importTracker( any() );
+
         try
         {
             renderService.fromJson( contentAsString, TrackerImportReport.class );
@@ -158,4 +159,46 @@ public class TrackerImportControllerTest
         }
     }
 
+    @Test
+    public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
+        throws Exception
+    {
+
+        // When
+        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+            TrackerStatus.ERROR,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.ERROR )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() ) );
+
+        when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
+
+        // Then
+        String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isConflict() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( trackerImportService ).buildImportReport( any(), any() );
+        verify( trackerImportService ).importTracker( any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
 }

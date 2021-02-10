@@ -85,7 +85,7 @@ public class UserKeyJsonValue
         this.key = key;
         this.value = value;
         this.encrypted = encrypted;
-        this.setUser( user );
+        this.setCreatedBy( user );
     }
 
     // -------------------------------------------------------------------------
