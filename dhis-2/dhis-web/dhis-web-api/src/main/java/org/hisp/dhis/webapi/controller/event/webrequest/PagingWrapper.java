@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,16 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.web;
+package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Collection;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.With;
-
-import org.hisp.dhis.common.Pager;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
@@ -50,4 +49,37 @@ public class PagingWrapper<T>
 
     @JsonUnwrapped
     private Pager pager;
+
+    @Data
+    @Builder
+    public static class Pager
+    {
+        @Builder.Default
+        @JsonProperty
+        private Integer page = 1;
+
+        @JsonProperty
+        private Long total;
+
+        @Builder.Default
+        @JsonProperty
+        private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+
+        @JsonProperty
+        private String nextPage;
+
+        @JsonProperty
+        private String prevPage;
+
+        public static Pager fromLegacy( PagingCriteria pagingCriteria, org.hisp.dhis.common.Pager pager )
+        {
+            return Pager.builder()
+                .prevPage( pager.getPrevPage() )
+                .page( pager.getPage() )
+                .pageSize( pager.getPageSize() )
+                .total( pagingCriteria.isTotalPages() ? pager.getTotal() : null )
+                .nextPage( pager.getNextPage() )
+                .build();
+        }
+    }
 }
