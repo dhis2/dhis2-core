@@ -264,10 +264,6 @@ public class DefaultDataElementService
     @Transactional
     public long addDataElementGroupSet( DataElementGroupSet groupSet )
     {
-        if ( groupSet.getShortName() == null )
-        {
-            groupSet.setShortName( groupSet.getName() );
-        }
         dataElementGroupSetStore.save( groupSet );
 
         return groupSet.getId();
