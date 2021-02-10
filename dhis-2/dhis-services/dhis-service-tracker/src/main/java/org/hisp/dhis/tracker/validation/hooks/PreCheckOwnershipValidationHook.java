@@ -221,7 +221,6 @@ public class PreCheckOwnershipValidationHook
             {
                 if ( !reference.get().isRoot() )
                 {
-                    teiUid = reference.get().getParentUid();
                 }
                 else
                 {
