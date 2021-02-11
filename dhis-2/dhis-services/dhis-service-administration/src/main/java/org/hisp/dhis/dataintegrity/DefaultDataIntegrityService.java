@@ -32,10 +32,17 @@ import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryCombo;
@@ -56,20 +63,31 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -478,11 +496,7 @@ public class DefaultDataIntegrityService
     @Override
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
-        List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
-
-        return units.stream()
-            .filter( ou -> ou.getParent() == null && (ou.getChildren() == null || ou.getChildren().size() == 0) )
-            .collect( Collectors.toList() );
+        return organisationUnitService.getOrphanedOrganisationUnits();
     }
 
     @Override

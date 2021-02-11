@@ -37,8 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -60,6 +58,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.Assert;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Kristian Nordal
@@ -103,6 +103,20 @@ public class HibernateOrganisationUnitStore
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    {
+        return getQuery(
+            "from OrganisationUnit o where o.parent is null and not exists (select 1 from from OrganisationUnit io where io.parent = o.id)" )
+                .list();
+    }
+
+    @Override
+    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    {
+        return null;
     }
 
     @Override

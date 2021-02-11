@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
@@ -36,6 +40,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegritySupport;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -48,7 +53,7 @@ import org.hisp.dhis.validation.ValidationRule;
 /**
  * @author Fredrik Fjeld
  */
-public interface DataIntegrityService
+public interface DataIntegrityService extends OrganisationUnitDataIntegritySupport
 {
     String ID = DataIntegrityService.class.getName();
 
@@ -135,22 +140,6 @@ public interface DataIntegrityService
     // -------------------------------------------------------------------------
     // OrganisationUnit
     // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation units which are related to each other in a cyclic
-     * reference.
-     */
-    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
-
-    /**
-     * Gets all organisation units with no parents or children.
-     */
-    List<OrganisationUnit> getOrphanedOrganisationUnits();
-
-    /**
-     * Gets all organisation units which are not assigned to any groups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
     /**
      * Gets all organisation units which are members of more than one group

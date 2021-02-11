@@ -31,7 +31,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -409,6 +416,20 @@ public class DefaultOrganisationUnitService
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return organisationUnitStore.getOrganisationUnitsWithoutGroups();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    {
+        return organisationUnitStore.getOrganisationUnitsWithCyclicReferences();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    {
+        return organisationUnitStore.getOrphanedOrganisationUnits();
     }
 
     @Override
