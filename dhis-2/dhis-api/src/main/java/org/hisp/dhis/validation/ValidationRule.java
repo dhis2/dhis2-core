@@ -233,7 +233,7 @@ public class ValidationRule
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "instruction", translationKey = "NSTRUCTION" )
+    @Translatable( propertyName = "instruction", key = "NSTRUCTION" )
     public String getDisplayInstruction()
     {
         return getTranslation( "INSTRUCTION", getInstruction() );

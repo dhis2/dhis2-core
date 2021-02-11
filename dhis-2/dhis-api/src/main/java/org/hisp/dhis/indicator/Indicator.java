@@ -237,7 +237,7 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "numeratorDescription", translationKey = "NUMERATOR_DESCRIPTION" )
+    @Translatable( propertyName = "numeratorDescription", key = "NUMERATOR_DESCRIPTION" )
     public String getDisplayNumeratorDescription()
     {
         return getTranslation( "NUMERATOR_DESCRIPTION", getNumeratorDescription() );
@@ -280,7 +280,7 @@ public class Indicator
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "denominatorDescription", translationKey = "DENOMINATOR_DESCRIPTION" )
+    @Translatable( propertyName = "denominatorDescription", key = "DENOMINATOR_DESCRIPTION" )
     public String getDisplayDenominatorDescription()
     {
         return getTranslation( "DENOMINATOR_DESCRIPTION", getDenominatorDescription() );

@@ -447,7 +447,7 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "enrollmentDateLabel", translationKey = "ENROLLMENT_DATE_LABEL" )
+    @Translatable( propertyName = "enrollmentDateLabel", key = "ENROLLMENT_DATE_LABEL" )
     public String getDisplayEnrollmentDateLabel()
     {
         return getTranslation( "ENROLLMENT_DATE_LABEL", getEnrollmentDateLabel() );
@@ -468,7 +468,7 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "incidentDateLabel", translationKey = "INCIDENT_DATE_LABEL" )
+    @Translatable( propertyName = "incidentDateLabel", key = "INCIDENT_DATE_LABEL" )
     public String getDisplayIncidentDateLabel()
     {
         return getTranslation( "INCIDENT_DATE_LABEL", getIncidentDateLabel() );

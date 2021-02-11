@@ -398,7 +398,7 @@ public class ProgramRuleAction
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "content", translationKey = "CONTENT" )
+    @Translatable( propertyName = "content", key = "CONTENT" )
     public String getDisplayContent()
     {
         return getTranslation( "CONTENT", getContent() );

@@ -287,7 +287,7 @@ public class BaseIdentifiableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "name", translationKey = "NAME" )
+    @Translatable( propertyName = "name", key = "NAME" )
     public String getDisplayName()
     {
         return getTranslation( "NAME", getName() );

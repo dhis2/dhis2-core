@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.system.util;
 
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.hisp.dhis.translation.Translatable;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -34,10 +38,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Lars Helge Overland
@@ -135,7 +135,7 @@ public class AnnotationUtils
             if ( translatableAnnotation != null )
             {
                 mapFields.put( translatableAnnotation.propertyName(),
-                    translatableAnnotation.translationKey() != null ? translatableAnnotation.translationKey()
+                    translatableAnnotation.key() != null ? translatableAnnotation.key()
                         : translatableAnnotation.propertyName() );
             }
         } );

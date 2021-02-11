@@ -131,7 +131,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "fromToName", translationKey = "RELATIONSHIP_FROM_TO_NAME" )
+    @Translatable( propertyName = "fromToName", key = "RELATIONSHIP_FROM_TO_NAME" )
     public String getDisplayFromToName()
     {
         return getTranslation( "RELATIONSHIP_FROM_TO_NAME", getFromToName() );
@@ -151,7 +151,7 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "toFromName", translationKey = "RELATIONSHIP_TO_FROM_NAME" )
+    @Translatable( propertyName = "toFromName", key = "RELATIONSHIP_TO_FROM_NAME" )
     public String getDisplayToFromName()
     {
         return getTranslation( "RELATIONSHIP_TO_FROM_NAME", getToFromName() );

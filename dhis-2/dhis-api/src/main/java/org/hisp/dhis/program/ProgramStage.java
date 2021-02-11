@@ -353,7 +353,7 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "executionDateLabel", translationKey = "EXECUTION_DATE_LABEL" )
+    @Translatable( propertyName = "executionDateLabel", key = "EXECUTION_DATE_LABEL" )
     public String getDisplayExecutionDateLabel()
     {
         return getTranslation( "EXECUTION_DATE_LABEL", getExecutionDateLabel() );
@@ -374,7 +374,7 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "dueDateLabel", translationKey = "DUE_DATE_LABEL" )
+    @Translatable( propertyName = "dueDateLabel", key = "DUE_DATE_LABEL" )
     public String getDisplayDueDateLabel()
     {
         return getTranslation( "DUE_DATE_LABEL", getDueDateLabel() );

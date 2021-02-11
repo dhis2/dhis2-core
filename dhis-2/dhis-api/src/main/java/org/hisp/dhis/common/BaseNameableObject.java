@@ -205,7 +205,7 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "shortName", translationKey = "SHORT_NAME" )
+    @Translatable( propertyName = "shortName", key = "SHORT_NAME" )
     public String getDisplayShortName()
     {
         return getTranslation( "SHORT_NAME", getShortName() );
@@ -228,7 +228,7 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "description", translationKey = "DESCRIPTION" )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
     public String getDisplayDescription()
     {
         return getTranslation( "DESCRIPTION", getDescription() );
@@ -236,7 +236,7 @@ public class BaseNameableObject
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Translatable( propertyName = "formName", translationKey = "FORM_NAME" )
+    @Translatable( propertyName = "formName", key = "FORM_NAME" )
     public String getDisplayFormName()
     {
         return getTranslation( "FORM_NAME", getFormNameFallback() );
