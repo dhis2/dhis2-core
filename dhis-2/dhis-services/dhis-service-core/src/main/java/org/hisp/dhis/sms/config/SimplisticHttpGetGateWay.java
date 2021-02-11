@@ -164,16 +164,9 @@ public class SimplisticHttpGetGateWay
 
         for ( GenericGatewayParameter parameter : parameters )
         {
-            if ( parameter.isEncode() )
-            {
-                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
-                continue;
-            }
-
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(), parameter.isConfidential() ?
-                    pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue() );
+                valueStore.put( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
             }
         }
 
@@ -194,20 +187,23 @@ public class SimplisticHttpGetGateWay
             {
                 if ( parameter.getKey().equals( HttpHeaders.AUTHORIZATION ) )
                 {
-                    String encodedCredentials = Base64.getEncoder().encodeToString( parameter.getValue().getBytes() );
-
-                    httpHeaders.put( HttpHeaders.AUTHORIZATION, Collections.singletonList( BASIC + encodedCredentials ) );
-
-                    continue;
+                    httpHeaders.add( parameter.getKey(), BASIC + encodeAndDecryptParameter( parameter ) );
                 }
-
-                httpHeaders.put( parameter.getKey(),
-                    parameter.isEncode() ? Collections.singletonList( SmsUtils.encode( parameter.getValue() ) ):
-                    Collections.singletonList( parameter.getValue() ) );
+                else
+                {
+                    httpHeaders.add( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
+                }
             }
         }
 
         return httpHeaders;
+    }
+
+    private String encodeAndDecryptParameter( GenericGatewayParameter parameter )
+    {
+        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue();
+
+        return parameter.isEncode() ? Base64.getEncoder().encodeToString( value.getBytes() ) : value;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )
