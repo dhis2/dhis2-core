@@ -27,8 +27,14 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -466,5 +472,60 @@ public class OrganisationUnitStoreTest
         orgUnitStore.save( ouG );
 
         assertEquals( 3, orgUnitStore.getMaxLevel() );
+    }
+
+    @Test
+    public void testGetOrganisationUnitsWithCyclicReferences_DirectCycle()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA ); // 2
+        ouA.setParent( ouB );
+        ouB.getChildren().add( ouA );
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+
+        assertEquals( new HashSet<>( asList( ouA, ouB ) ), orgUnitStore.getOrganisationUnitsWithCyclicReferences() );
+    }
+
+    @Test
+    public void testGetOrganisationUnitsWithCyclicReferences_DistantCycle()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = createOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouB ); // 3
+        OrganisationUnit ouD = createOrganisationUnit( 'D', ouC ); // 4
+        ouA.setParent( ouD );
+        ouD.getChildren().add( ouA );
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+        orgUnitStore.save( ouD );
+
+        assertEquals( new HashSet<>( asList( ouA, ouB, ouC, ouD ) ),
+            orgUnitStore.getOrganisationUnitsWithCyclicReferences() );
+    }
+
+    @Test
+    public void testGetOrphanedOrganisationUnits1()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+
+        assertEquals( asList( ouA, ouB ), orgUnitStore.getOrphanedOrganisationUnits() );
+    }
+
+    @Test
+    public void testGetOrphanedOrganisationUnits2()
+    {
+        OrganisationUnit ouA = createOrganisationUnit( 'A' );
+        OrganisationUnit ouB = createOrganisationUnit( 'B' );
+        OrganisationUnit ouC = createOrganisationUnit( 'C', ouA );
+        orgUnitStore.save( ouA );
+        orgUnitStore.save( ouB );
+        orgUnitStore.save( ouC );
+
+        assertEquals( singletonList( ouB ), orgUnitStore.getOrphanedOrganisationUnits() );
     }
 }

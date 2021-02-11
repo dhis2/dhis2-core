@@ -44,6 +44,8 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -86,8 +88,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -457,40 +457,7 @@ public class DefaultDataIntegrityService
     @Override
     public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
     {
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
-
-        Set<OrganisationUnit> cyclic = new HashSet<>();
-
-        Set<OrganisationUnit> visited = new HashSet<>();
-
-        OrganisationUnit parent;
-
-        for ( OrganisationUnit unit : organisationUnits )
-        {
-            parent = unit;
-
-            while ( (parent = parent.getParent()) != null )
-            {
-                if ( parent.equals( unit ) ) // Cyclic reference
-                {
-                    cyclic.add( unit );
-
-                    break;
-                }
-                else if ( visited.contains( parent ) ) // Ends in cyclic ref
-                {
-                    break;
-                }
-                else
-                {
-                    visited.add( parent ); // Remember visited
-                }
-            }
-
-            visited.clear();
-        }
-
-        return cyclic;
+        return organisationUnitService.getOrganisationUnitsWithCyclicReferences();
     }
 
     @Override
