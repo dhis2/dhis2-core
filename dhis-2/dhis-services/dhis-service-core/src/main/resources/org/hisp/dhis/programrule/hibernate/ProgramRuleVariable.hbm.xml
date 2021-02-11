@@ -17,6 +17,8 @@
 
     <property name="name" column="name" not-null="true" length="230" />
 
+    <property name="translations" type="jblTranslations" />
+
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" foreign-key="fk_programrulevariable_program" not-null="true" />
 

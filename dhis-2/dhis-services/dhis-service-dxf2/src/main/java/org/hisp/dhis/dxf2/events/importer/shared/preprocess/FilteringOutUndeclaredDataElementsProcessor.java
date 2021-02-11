@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -64,17 +65,6 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
         Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
             ctx );
 
-        // we're filtering data values in event as well to make it "homogeneus"
-        // with the
-        // main logic of preprocessors,
-        // even if these changes are not reflected in database, since data
-        // values to be
-        // stored are eventually taken from context
-        event.setDataValues(
-            event.getDataValues().stream()
-                .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
-                .collect( Collectors.toSet() ) );
-
         Set<EventDataValue> ctxEventDataValues = ctx.getEventDataValueMap().get( event.getUid() );
 
         ctx.getEventDataValueMap().put( event.getUid(), ctxEventDataValues.stream()
@@ -82,7 +72,15 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
             .collect( Collectors.toSet() ) );
     }
 
-    private Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
+    public static Set<DataValue> getFilteredDataValues( Set<DataValue> dataValues,
+        Set<String> programStageDataElementUids )
+    {
+        return Optional.ofNullable( dataValues ).orElse( Collections.emptySet() ).stream()
+            .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
+            .collect( Collectors.toSet() );
+    }
+
+    public static Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );

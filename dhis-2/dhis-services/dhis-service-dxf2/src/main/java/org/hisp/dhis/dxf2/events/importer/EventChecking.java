@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.events.importer;
 
 import static org.apache.commons.logging.LogFactory.getLog;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -87,10 +88,13 @@ public interface EventChecking
                         final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
                             workContext );
 
-                        if ( importSummary.isStatus( ERROR ) )
+                        if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
                         {
                             importSummaries.add( importSummary );
-                            break;
+                            if ( importSummary.isStatus( ERROR ) )
+                            {
+                                break;
+                            }
                         }
                     }
                     catch ( InstantiationException | IllegalAccessException e )

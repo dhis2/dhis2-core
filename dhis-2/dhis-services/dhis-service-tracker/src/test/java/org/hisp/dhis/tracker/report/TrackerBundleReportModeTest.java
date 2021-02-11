@@ -25,29 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.domain.web;
+package org.hisp.dhis.tracker.report;
 
-import java.util.Collection;
+import static org.junit.Assert.assertNotNull;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.With;
+import org.hisp.dhis.tracker.TrackerBundleReportMode;
+import org.junit.Test;
+import org.springframework.web.client.HttpClientErrorException;
 
-import org.hisp.dhis.common.Pager;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
-
-@Data
-@With
-@AllArgsConstructor
-@NoArgsConstructor
-public class PagingWrapper<T>
+/**
+ * @author Luca Cambi <luca@dhis2.org>
+ */
+public class TrackerBundleReportModeTest
 {
-    @JsonProperty
-    private Collection<T> instances;
+    @Test
+    public void shouldFindReportMode()
+    {
+        assertNotNull( TrackerBundleReportMode.getTrackerBundleReportMode( TrackerBundleReportMode.ERRORS.name() ) );
+    }
 
-    @JsonUnwrapped
-    private Pager pager;
+    @Test( expected = HttpClientErrorException.class )
+    public void shouldThrowWhenReportModeNotFound()
+    {
+        TrackerBundleReportMode.getTrackerBundleReportMode( "Not a valid Enum" );
+    }
 }

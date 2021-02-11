@@ -55,11 +55,11 @@ public class EventImportValidationTests
 {
     private static String ouId = Constants.ORG_UNIT_IDS[0];
 
-    private static String eventProgramId;
+    private static String eventProgramId = Constants.EVENT_PROGRAM_ID;
 
     private static String eventProgramStageId;
 
-    private static String trackerProgramId;
+    private static String trackerProgramId = Constants.TRACKER_PROGRAM_ID;
 
     private static String ouIdWithoutAccess;
 
@@ -121,25 +121,11 @@ public class EventImportValidationTests
 
     private void setupData()
     {
-        eventProgramId = programActions
-            .get( "", new QueryParamsBuilder()
-                .addAll( "filter=programType:eq:WITHOUT_REGISTRATION", "filter=name:$like:TA", "pageSize=1" ) )
-            .extractString( "programs.id[0]" );
-
-        assertNotNull( eventProgramId, "Failed to find a suitable event program" );
-
         eventProgramStageId = programActions.programStageActions.get( "", new QueryParamsBuilder().add( "filter=program.id:eq:" +
             eventProgramId ) )
             .extractString( "programStages.id[0]" );
 
         assertNotNull( eventProgramStageId, "Failed to find a program stage" );
-
-        trackerProgramId = programActions
-            .get( "",
-                new QueryParamsBuilder().addAll( "filter=programType:eq:WITH_REGISTRATION", "filter=name:$like:TA", "pageSize=1" ) )
-            .extractString( "programs.id[0]" );
-
-        assertNotNull( trackerProgramId, "Failed to find a suitable tracker program" );
 
         ouIdWithoutAccess = new OrgUnitActions().createOrgUnit();
     }

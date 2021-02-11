@@ -30,11 +30,13 @@ package org.hisp.dhis.tracker.events;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
@@ -93,8 +95,8 @@ public class UserAssignmentFilterTests
 
         userId = userActions.addUser( userUsername, userPassword );
         userActions.grantUserAccessToOrgUnit( userId, orgUnit );
-        userActions.addUserToUserGroup( userId, "OPVIvvXzNTw" );
-        userActions.addRoleToUser( userId, "yrB6vc5Ip7r" );
+        userActions.addUserToUserGroup( userId, Constants.USER_GROUP_ID );
+        userActions.addRoleToUser( userId, Constants.USER_ROLE_ID);
 
         eventsBody = getEventsBody( programId, "l8oDIfJJhtg", userId );
     }
@@ -202,7 +204,6 @@ public class UserAssignmentFilterTests
     private Object getEventsBody( String programId, String programStageId, String assignedUserId )
         throws Exception
     {
-
         Object body = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "program", programId )

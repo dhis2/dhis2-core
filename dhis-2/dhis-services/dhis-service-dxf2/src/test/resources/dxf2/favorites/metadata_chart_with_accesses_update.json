@@ -5,9 +5,10 @@
       "code": "Gender",
       "publicAccess": "rw------",
       "dataDimensionType": "DISAGGREGATION",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "XFgfIO1qQmd",
       "name": "Gender",
+      "shortName": "Gender",
       "created": "2016-03-17T01:53:56.097+0000",
       "user": {
         "id": "M5zQapPyTZI"

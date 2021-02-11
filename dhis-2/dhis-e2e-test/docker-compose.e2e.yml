@@ -4,4 +4,4 @@ services:
   e2e-test:
     stdin_open: true
     image: "${IMAGE_NAME}"
-    command: ./wait-for-it.sh web:8080 -t 0 -- mvn test -Dinstance.url=http://web:8080/api -Duser.default.username=admin -Duser.default.password=district
+    command: ./wait-for-it.sh web:8080 -t 0 -- mvn test -Dinstance.url=http://web:8080/api -Dtest.cleanup=false -Duser.default.username=admin -Duser.default.password=district

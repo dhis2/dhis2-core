@@ -38,7 +38,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = { DebugMapper.class, OrganisationUnitMapper.class, UserGroupAccessMapper.class,
-    UserAccessMapper.class } )
+    UserAccessMapper.class, TrackedEntityTypeMapper.class } )
 public interface ProgramMapper extends PreheatMapper<Program>
 {
     ProgramMapper INSTANCE = Mappers.getMapper( ProgramMapper.class );

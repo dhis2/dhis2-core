@@ -67,19 +67,19 @@ public class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
 
     private String assignedUser;
 
-    private Date occurredAtFrom;
+    private Date occurredAfter;
 
-    private Date occurredAtTo;
+    private Date occurredBefore;
 
-    private Date scheduledAtFrom;
+    private Date scheduledAfter;
 
-    private Date scheduledAtTo;
+    private Date scheduledBefore;
 
-    private Date updatedAtFrom;
+    private Date updatedAfter;
 
-    private Date updatedAtTo;
+    private Date updatedBefore;
 
-    private String updatedAtWithin;
+    private String updatedWithin;
 
     private EventStatus status;
 

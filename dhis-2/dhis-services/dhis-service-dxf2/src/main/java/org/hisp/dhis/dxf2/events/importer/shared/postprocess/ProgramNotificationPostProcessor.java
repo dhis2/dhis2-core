@@ -64,13 +64,13 @@ public class ProgramNotificationPostProcessor implements Processor
                 applicationEventPublisher
                     .publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
                 applicationEventPublisher
-                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getUid() ) );
             }
 
             if ( SCHEDULE.equals( programStageInstance.getStatus() ) )
             {
                 applicationEventPublisher
-                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
+                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getUid() ) );
             }
         }
     }

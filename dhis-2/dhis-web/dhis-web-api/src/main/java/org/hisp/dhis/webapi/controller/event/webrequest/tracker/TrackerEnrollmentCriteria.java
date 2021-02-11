@@ -50,13 +50,13 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 
     private Boolean followUp;
 
-    private Date updatedAt;
+    private Date updatedAfter;
 
     private String updatedWithin;
 
-    private Date enrolledAtFrom;
+    private Date enrolledAfter;
 
-    private Date enrolledAtTo;
+    private Date enrolledBefore;
 
     private String trackedEntityType;
 

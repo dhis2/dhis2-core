@@ -97,14 +97,14 @@ public class AssignValueImplementer
             {
                 addOrOverwriteDataValue( actionRule, bundle );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1308, actionRule.getDataValue().get().getDataElement(),
+                    .formatMessage( TrackerErrorCode.E1308, actionRule.getField(),
                         actionRule.getEvent() ),
                     IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1307, actionRule.getDataValue().get().getDataElement(),
+                    .formatMessage( TrackerErrorCode.E1307, actionRule.getField(),
                         actionRule.getEvent() ),
                     IssueType.ERROR ) );
             }
@@ -130,14 +130,14 @@ public class AssignValueImplementer
             {
                 addOrOverwriteAttribute( actionRule, bundle );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
+                    .formatMessage( TrackerErrorCode.E1310, actionRule.getField(),
                         actionRule.getEnrollment() ),
                     IssueType.WARNING ) );
             }
             else
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1310, actionRule.getAttribute().get().getAttribute(),
+                    .formatMessage( TrackerErrorCode.E1310, actionRule.getField(),
                         actionRule.getEnrollment() ),
                     IssueType.ERROR ) );
             }

@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -43,6 +44,7 @@ import javax.annotation.Nullable;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.CriteriaUpdate;
 import javax.persistence.criteria.JoinType;
 import javax.persistence.criteria.Root;
 
@@ -83,6 +85,8 @@ public class HibernateUserStore
     extends HibernateIdentifiableObjectStore<User>
     implements UserStore
 {
+    public static final String DISABLED_COLUMN = "disabled";
+
     private final SchemaService schemaService;
 
     public HibernateUserStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
@@ -334,7 +338,7 @@ public class HibernateUserStore
 
         if ( params.getDisabled() != null )
         {
-            query.setParameter( "disabled", params.getDisabled() );
+            query.setParameter( DISABLED_COLUMN, params.getDisabled() );
         }
 
         if ( params.isAuthSubset() && params.getUser() != null )
@@ -471,5 +475,19 @@ public class HibernateUserStore
         }
 
         return currentUserGroupInfo;
+    }
+
+    @Override
+    public int disableUsersInactiveSince( Date inactiveSince )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+        CriteriaUpdate<UserCredentials> update = builder.createCriteriaUpdate( UserCredentials.class );
+        Root<UserCredentials> uc = update.from( UserCredentials.class );
+        update.where( builder.and(
+            // just so we do not count rows already disabled
+            builder.equal( uc.get( DISABLED_COLUMN ), false ),
+            builder.lessThanOrEqualTo( uc.get( "lastLogin" ), inactiveSince ) ) );
+        update.set( DISABLED_COLUMN, true );
+        return getSession().createQuery( update ).executeUpdate();
     }
 }

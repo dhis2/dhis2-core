@@ -71,7 +71,23 @@ public class JsonObjectBuilder
         Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
             .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
 
-        JsonPath.using( conf ).parse(jsonObject).set( path, value);
+        JsonPath.using( conf ).parse(jsonObject).set( path, value );
+
+        return this;
+    }
+
+    /**
+     * Adds additional property to the path.
+     * @param path eg "events[0]
+     * @param propertyName eg "event"
+     * @param value
+     * @return
+     */
+    public JsonObjectBuilder addPropertyByJsonPath( String path, String propertyName, String value ) {
+        Configuration conf = Configuration.builder().jsonProvider(new GsonJsonProvider())
+            .options(Option.ALWAYS_RETURN_LIST, Option.SUPPRESS_EXCEPTIONS).build();
+
+        JsonPath.using( conf ).parse(jsonObject).put( path, propertyName, value );
 
         return this;
     }
