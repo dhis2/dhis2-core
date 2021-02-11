@@ -70,6 +70,7 @@
   ],
   "organisationUnitGroupSets": [
     {
+      "shortName": "TA OU_DELETION_TESTS_GROUP_SET",
       "name": "TA OU_DELETION_TESTS_GROUP_SET",
       "id": "XcKGktFuGFj",
       "publicAccess": "rw------",
