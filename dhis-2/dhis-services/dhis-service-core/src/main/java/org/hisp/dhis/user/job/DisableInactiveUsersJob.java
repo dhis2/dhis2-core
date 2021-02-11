@@ -25,22 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.user.job;
 
-import org.hisp.dhis.user.UserGroup;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import static java.time.ZoneId.systemDefault;
 
-@Mapper( uses = { DebugMapper.class } )
-public interface UserGroupMapper extends PreheatMapper<UserGroup>
+import java.time.LocalDate;
+import java.util.Date;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.scheduling.AbstractJob;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.UserService;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Jan Bernitt
+ */
+@AllArgsConstructor
+@Component( "disableInactiveUsersJob" )
+public class DisableInactiveUsersJob extends AbstractJob
 {
-    UserGroupMapper INSTANCE = Mappers.getMapper( UserGroupMapper.class );
+    private final UserService userService;
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    UserGroup map( UserGroup userGroupAccess );
+    private final Notifier notifier;
+
+    @Override
+    public JobType getJobType()
+    {
+        return JobType.DISABLE_INACTIVE_USERS;
+    }
+
+    @Override
+    public void execute( JobConfiguration jobConfiguration )
+    {
+        DisableInactiveUsersJobParameters parameters = (DisableInactiveUsersJobParameters) jobConfiguration
+            .getJobParameters();
+        LocalDate today = LocalDate.now();
+        LocalDate since = today.minusMonths( parameters.getInactiveMonths() );
+        Date nMonthsAgo = Date.from( since.atStartOfDay( systemDefault() ).toInstant() );
+        int disabledUserCount = userService.disableUsersInactiveSince( nMonthsAgo );
+        notifier.notify( jobConfiguration, String.format( "Disabled %d users with %d months of inactivity",
+            disabledUserCount, parameters.getInactiveMonths() ) );
+    }
 }

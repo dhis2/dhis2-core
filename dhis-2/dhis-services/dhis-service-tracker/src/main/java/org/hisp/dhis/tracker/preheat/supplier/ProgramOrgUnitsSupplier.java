@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
@@ -66,9 +63,17 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
     {
         // fetch all existing Org Units from payload
         final List<Long> orgUnitIds = preheat.getMap()
-            .get( OrganisationUnit.class ).values().stream()
-            .map( IdentifiableObject::getId ).distinct()
+            .getOrDefault( OrganisationUnit.class, Collections.emptyMap() )
+            .values()
+            .stream()
+            .map( IdentifiableObject::getId )
+            .distinct()
             .collect( Collectors.toList() );
+
+        if ( orgUnitIds.isEmpty() )
+        {
+            return;
+        }
 
         final String sql = "select po.programid, po.organisationunitid from program_organisationunits po where po.organisationunitid in ( :ids )";
 

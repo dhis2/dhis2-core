@@ -45,4 +45,9 @@ public class ReferenceTrackerEntity
      * populated if uid references a ProgramStage or a Program Stage Instance
      */
     private final String parentUid;
+
+    public boolean isRoot()
+    {
+        return this.parentUid.equals( "ROOT" );
+    }
 }

@@ -267,7 +267,7 @@ public class TrackedEntityImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1049 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1121 ) ) ) );
 
         printReport( report );
     }

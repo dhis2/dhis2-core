@@ -25,22 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.scheduling.parameters.jackson;
 
-import org.hisp.dhis.user.UserGroup;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 
-@Mapper( uses = { DebugMapper.class } )
-public interface UserGroupMapper extends PreheatMapper<UserGroup>
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
+/**
+ * @author Jan Bernitt
+ */
+public class DisableInactiveUsersJobParametersDeserializer
+    extends AbstractJobParametersDeserializer<DisableInactiveUsersJobParameters>
 {
-    UserGroupMapper INSTANCE = Mappers.getMapper( UserGroupMapper.class );
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    UserGroup map( UserGroup userGroupAccess );
+    public DisableInactiveUsersJobParametersDeserializer()
+    {
+        super( DisableInactiveUsersJobParameters.class, CustomJobParameters.class );
+    }
+
+    @JsonDeserialize
+    public static class CustomJobParameters extends DisableInactiveUsersJobParameters
+    {
+    }
 }

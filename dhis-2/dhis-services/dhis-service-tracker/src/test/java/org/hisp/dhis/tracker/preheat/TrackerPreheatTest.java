@@ -308,6 +308,7 @@ public class TrackerPreheatTest
         } );
 
         preheat.putEvents( TrackerIdScheme.UID, psiList, allEvents );
+        preheat.createReferenceTree();
 
         Optional<ReferenceTrackerEntity> reference = preheat.getReference( allEvents.get( 0 ).getUid() );
         assertThat( reference.get().getUid(), is( allEvents.get( 0 ).getUid() ) );
