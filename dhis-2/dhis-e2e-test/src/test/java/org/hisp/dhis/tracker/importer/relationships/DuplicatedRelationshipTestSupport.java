@@ -36,45 +36,5 @@ import com.google.gson.JsonObject;
 public class DuplicatedRelationshipTestSupport
 {
 
-    static JsonObject invertRelationship( JsonObject jsonObject )
-    {
-        JsonObject inverseJsonObject = jsonObject.deepCopy();
-        JsonObject relationship = (JsonObject) jsonObject.getAsJsonArray( "relationships" ).get( 0 );
-        JsonArray relationships = new JsonArray();
-        relationships.add( buildBidirectionalRelationship(
-            relationship.getAsJsonObject( "to" ).get( "trackedEntity" ).getAsString(),
-            relationship.getAsJsonObject( "from" ).get( "trackedEntity" ).getAsString() ) );
-        inverseJsonObject.add( "relationships", relationships );
-        return inverseJsonObject;
-    }
 
-    static JsonObject buildNonBidirectionalRelationship( String trackedEntity_1, String trackedEntity_2 )
-    {
-        return buildRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /* a non bidirectional relationship type*/ );
-    }
-
-    static JsonObject buildBidirectionalRelationship( String trackedEntity_1, String trackedEntity_2 )
-    {
-        return buildRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks"  /* a bidirectional relationship type*/  );
-    }
-
-    static JsonObject buildRelationship( String trackedEntity_1, String trackedEntity_2, String relationshipType )
-    {
-        return new JsonObjectBuilder()
-            .addProperty( "relationshipType", relationshipType )
-            .addObject( "from", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_1 ) )
-            .addObject( "to", new JsonObjectBuilder()
-                .addProperty( "trackedEntity", trackedEntity_2 ) )
-            .build();
-    }
-
-    static JsonObject buildTrackedEntity( String trackedEntity )
-    {
-        return new JsonObjectBuilder()
-            .addProperty( "trackedEntity", trackedEntity )
-            .addProperty( "trackedEntityType", "Q9GufDoplCL" )
-            .addProperty( "orgUnit", "g8upMTyEZGZ" )
-            .build();
-    }
 }
