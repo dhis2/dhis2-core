@@ -70,6 +70,11 @@ public class ProgramOrgUnitsSupplier extends JdbcAbstractPreheatSupplier
             .distinct()
             .collect( Collectors.toList() );
 
+        if ( orgUnitIds.isEmpty() )
+        {
+            return;
+        }
+
         final String sql = "select po.programid, po.organisationunitid from program_organisationunits po where po.organisationunitid in ( :ids )";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();
