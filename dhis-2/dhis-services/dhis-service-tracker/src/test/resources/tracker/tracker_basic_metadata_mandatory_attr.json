@@ -1467,6 +1467,7 @@
       "userAccesses": [],
       "translations": [],
       "name": "default",
+      "shortName": "default",
       "code": "default",
       "created": "2019-03-25T13:40:24.762",
       "lastUpdated": "2019-03-29T08:54:32.360",

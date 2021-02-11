@@ -169,10 +169,11 @@
       ],
       "created": "2016-03-08T07:28:58.738+0000",
       "name": "Gender",
+      "shortName": "Gender",
       "lastUpdated": "2016-03-08T07:28:58.740+0000",
       "dataDimension": true,
       "dataDimensionType": "DISAGGREGATION",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "XJGLlMAMCcn"
     }
   ],

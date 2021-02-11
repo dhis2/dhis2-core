@@ -27,15 +27,17 @@
  */
 package org.hisp.dhis.category;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.DataDimensionType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -211,16 +213,9 @@ public class CategoryOptionServiceTest
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
 
-        List<CategoryOption> optionsA = new ArrayList<>();
-        List<CategoryOption> optionsB = new ArrayList<>();
-
-        optionsA.add( categoryOptionA );
-        optionsA.add( categoryOptionB );
-        optionsB.add( categoryOptionC );
-
-        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, optionsA );
-        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, optionsB );
-        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC );
+        categoryC = createCategory( 'C' );
 
         Set<Category> categoriesA = new HashSet<>();
         Set<Category> categoriesB = new HashSet<>();
