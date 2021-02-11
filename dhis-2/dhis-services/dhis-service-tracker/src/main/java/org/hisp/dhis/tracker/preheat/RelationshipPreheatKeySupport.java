@@ -31,7 +31,8 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.util.Objects;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -39,7 +40,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.tracker.domain.Relationship;
 
-@RequiredArgsConstructor
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class RelationshipPreheatKeySupport
 {
 

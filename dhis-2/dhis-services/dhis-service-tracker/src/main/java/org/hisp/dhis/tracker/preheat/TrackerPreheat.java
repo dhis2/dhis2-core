@@ -29,7 +29,15 @@ package org.hisp.dhis.tracker.preheat;
 
 import static org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport.getRelationshipKey;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -473,16 +481,10 @@ public class TrackerPreheat
             return null;
         }
 
-        Optional<RelationshipType> relationshipTypeFromPreheated = relationships.get( identifier ).values()
-            .stream()
-            .map( Relationship::getRelationshipType )
-            .filter( rt -> rt.getUid().equals( relationship.getRelationshipType() ) )
-            .findFirst();
+        RelationshipType relationshipType = get( RelationshipType.class, relationship.getRelationshipType() );
 
-        if ( relationshipTypeFromPreheated.isPresent() )
+        if ( Objects.nonNull( relationshipType ) )
         {
-
-            RelationshipType relationshipType = relationshipTypeFromPreheated.get();
 
             RelationshipKey relationshipKey = getRelationshipKey( relationship );
 
