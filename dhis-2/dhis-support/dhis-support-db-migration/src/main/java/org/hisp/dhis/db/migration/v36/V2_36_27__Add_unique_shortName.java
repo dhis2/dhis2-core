@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.db.migration.v36;
 
-import static org.hisp.dhis.db.migration.helper.UniqueUtils.copyUniqueValue;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.copyUniqueValue;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;

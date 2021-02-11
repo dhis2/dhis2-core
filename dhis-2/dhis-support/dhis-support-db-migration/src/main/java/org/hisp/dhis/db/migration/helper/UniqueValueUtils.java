@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jan Bernitt
  */
-public class UniqueUtils
+public class UniqueValueUtils
 {
 
-    private static final Logger log = LoggerFactory.getLogger( UniqueUtils.class );
+    private static final Logger log = LoggerFactory.getLogger( UniqueValueUtils.class );
 
     /**
      * Finds a value with the provided maximum length that is not already
@@ -62,31 +62,31 @@ public class UniqueUtils
      *        unique, otherwise we try to make it unique
      * @param maxLength the maximum number of characters the value is allowed to
      *        have
-     * @param uniques the set of unique values the provided value should be
-     *        added to
+     * @param values the set of unique values the provided value should be added
+     *        to
      * @return the found unique value, which also was added to the set
      */
-    public static String addUnique( String value, int maxLength, Set<String> uniques )
+    public static String addValue( String value, int maxLength, Set<String> values )
     {
         String unique = value;
         if ( unique.length() > maxLength )
         {
             unique = unique.substring( 0, maxLength );
         }
-        if ( !uniques.contains( unique ) )
+        if ( !values.contains( unique ) )
         {
-            uniques.add( unique );
+            values.add( unique );
             return unique;
         }
-        for ( int i = 1; i <= uniques.size() + 1; i++ )
+        for ( int i = 1; i <= values.size() + 1; i++ )
         {
             String nr = String.valueOf( i );
             String attempt = unique.length() + nr.length() <= maxLength
                 ? unique + nr
                 : unique.substring( 0, maxLength - nr.length() ) + nr;
-            if ( !uniques.contains( attempt ) )
+            if ( !values.contains( attempt ) )
             {
-                uniques.add( attempt );
+                values.add( attempt );
                 return attempt;
             }
         }
@@ -133,7 +133,7 @@ public class UniqueUtils
             String srcValue = idAndSrcValue.getValue();
             if ( !destById.containsKey( id ) )
             {
-                String destValue = addUnique( srcValue, destColumnMaxLength, uniqueDestValues );
+                String destValue = addValue( srcValue, destColumnMaxLength, uniqueDestValues );
                 try ( PreparedStatement statement = context.getConnection()
                     .prepareStatement(
                         String.format( "update %s set %s = ? where %s = ?", table, destColumn, idColumn ) ) )
@@ -157,7 +157,7 @@ public class UniqueUtils
         }
     }
 
-    private UniqueUtils()
+    private UniqueValueUtils()
     {
         throw new UnsupportedOperationException( "util" );
     }

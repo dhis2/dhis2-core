@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.db.migration.helper;
 
-import static org.hisp.dhis.db.migration.helper.UniqueUtils.addUnique;
+import static org.hisp.dhis.db.migration.helper.UniqueValueUtils.addValue;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -37,11 +37,11 @@ import java.util.Set;
 import org.junit.Test;
 
 /**
- * Tests the {@link UniqueUtils}.
+ * Tests the {@link UniqueValueUtils}.
  *
  * @author Jan Bernitt
  */
-public class UniqueUtilsTest
+public class UniqueValueUtilsTest
 {
 
     @Test
@@ -49,18 +49,18 @@ public class UniqueUtilsTest
     {
         Set<String> uniques = new HashSet<>( Arrays.asList( "abc", "ab1", "bcd", "bc2" ) );
 
-        assertEquals( "ab2", addUnique( "abc", 3, uniques ) );
-        assertEquals( "ab3", addUnique( "ab2", 3, uniques ) );
-        assertEquals( "new", addUnique( "new", 3, uniques ) );
-        assertEquals( "bc1", addUnique( "bc1", 3, uniques ) );
-        assertEquals( "bc3", addUnique( "bc1d", 3, uniques ) );
+        assertEquals( "ab2", addValue( "abc", 3, uniques ) );
+        assertEquals( "ab3", addValue( "ab2", 3, uniques ) );
+        assertEquals( "new", addValue( "new", 3, uniques ) );
+        assertEquals( "bc1", addValue( "bc1", 3, uniques ) );
+        assertEquals( "bc3", addValue( "bc1d", 3, uniques ) );
         for ( int i = 4; i <= 9; i++ )
         {
-            assertEquals( "bc" + i, addUnique( "bc1" + i, 3, uniques ) );
+            assertEquals( "bc" + i, addValue( "bc1" + i, 3, uniques ) );
         }
-        assertEquals( "b10", addUnique( "bc1x", 3, uniques ) );
-        assertEquals( "b11", addUnique( "bc1z", 3, uniques ) );
-        assertEquals( "a", addUnique( "a", 3, uniques ) );
-        assertEquals( "a1", addUnique( "a", 3, uniques ) );
+        assertEquals( "b10", addValue( "bc1x", 3, uniques ) );
+        assertEquals( "b11", addValue( "bc1z", 3, uniques ) );
+        assertEquals( "a", addValue( "a", 3, uniques ) );
+        assertEquals( "a1", addValue( "a", 3, uniques ) );
     }
 }
