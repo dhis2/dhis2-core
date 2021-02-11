@@ -57,11 +57,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.DataType;
@@ -206,6 +209,17 @@ public class DefaultExpressionService
     private final static Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
 
     // -------------------------------------------------------------------------
+    // Cache
+    // -------------------------------------------------------------------------
+
+    /**
+     * Supplier (cache) for the constant map.
+     */
+    private Supplier<Map<String, Constant>> constantMapSupplier;
+
+    private final static long CONSTANT_MAP_REFRESH_MINUTES = 2;
+
+    // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
@@ -229,6 +243,10 @@ public class DefaultExpressionService
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
+
+        constantMapSupplier = Suppliers.synchronizedSupplier(
+            Suppliers.memoizeWithExpiration( constantService::getConstantMap,
+                CONSTANT_MAP_REFRESH_MINUTES, TimeUnit.MINUTES ) );
     }
 
     // -------------------------------------------------------------------------
@@ -417,7 +435,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_DESCRIPTIONS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, constantMapSupplier.get(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -526,7 +544,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_GET_ORG_UNIT_GROUPS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, constantMapSupplier.get(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -660,7 +678,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_IDS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, constantMapSupplier.get(), NEVER_SKIP );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
