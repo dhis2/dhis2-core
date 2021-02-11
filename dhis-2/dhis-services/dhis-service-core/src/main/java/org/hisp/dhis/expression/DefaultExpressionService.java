@@ -58,6 +58,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -108,7 +109,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.google.common.collect.ImmutableMap;
 
@@ -148,7 +148,7 @@ public class DefaultExpressionService
     // Static data
     // -------------------------------------------------------------------------
 
-    private final static ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( COMMON_EXPRESSION_ITEMS )
         .put( HASH_BRACE, new DimItemDataElementAndOperand() )
@@ -160,7 +160,7 @@ public class DefaultExpressionService
         .put( DAYS, new ItemDays() )
         .build();
 
-    private final static ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( AVG, new VectorAvg() )
@@ -175,13 +175,13 @@ public class DefaultExpressionService
         .put( SUM, new VectorSum() )
         .build();
 
-    private final static ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
         .build();
 
-    private final static ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
         .<ParseType, ImmutableMap<Integer, ExpressionItem>> builder()
         .put( INDICATOR_EXPRESSION, INDICATOR_EXPRESSION_ITEMS )
         .put( VALIDATION_RULE_EXPRESSION, VALIDATION_RULE_EXPRESSION_ITEMS )
@@ -190,23 +190,23 @@ public class DefaultExpressionService
         .put( SIMPLE_TEST, COMMON_EXPRESSION_ITEMS )
         .build();
 
-    private final static String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    private static final String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
 
-    private final static String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    private static final String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
 
-    private final static String GROUP_ID = "id";
+    private static final String GROUP_ID = "id";
 
-    private final static String NULL_REPLACEMENT = "0";
+    private static final String NULL_REPLACEMENT = "0";
 
     /**
      * Constant pattern. Contains the named group {@code id}.
      */
-    private final static Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
+    private static final Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
 
     /**
      * Organisation unit groups pattern. Contains the named group {@code id}.
      */
-    private final static Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
+    private static final Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
 
     // -------------------------------------------------------------------------
     // Cache
@@ -217,7 +217,7 @@ public class DefaultExpressionService
      */
     private Supplier<Map<String, Constant>> constantMapSupplier;
 
-    private final static long CONSTANT_MAP_REFRESH_MINUTES = 2;
+    private static final long CONSTANT_MAP_REFRESH_MINUTES = 2;
 
     // -------------------------------------------------------------------------
     // Constructor
