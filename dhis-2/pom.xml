@@ -136,12 +136,12 @@
     <jts-io-common.version>1.16.0</jts-io-common.version>
 
     <!-- AMQP -->
-    <artemis.version>2.14.0</artemis.version>
+    <artemis.version>2.16.0</artemis.version>
     <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
-    <netty-all.version>4.1.51.Final</netty-all.version>
+    <netty-all.version>4.1.59.Final</netty-all.version>
     <classgraph.version>4.8.90</classgraph.version>
-    <qpid-jms-client.version>0.53.0</qpid-jms-client.version>
-    <proton-j.version>0.33.6</proton-j.version>
+    <qpid-jms-client.version>0.56.0</qpid-jms-client.version>
+    <proton-j.version>0.33.8</proton-j.version>
 
     <!-- SMS/SMPP -->
     <ant-compress.version>1.5</ant-compress.version>
