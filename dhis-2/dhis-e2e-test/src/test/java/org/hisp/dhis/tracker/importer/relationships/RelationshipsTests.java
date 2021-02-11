@@ -31,6 +31,7 @@ package org.hisp.dhis.tracker.importer.relationships;
 import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.ApiTest;
+import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
@@ -59,6 +60,10 @@ import java.util.stream.Stream;
 import static org.hamcrest.CoreMatchers.*;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.tracker.importer.relationships.DuplicatedRelationshipTestSupport.buildBidirectionalRelationship;
+import static org.hisp.dhis.tracker.importer.relationships.DuplicatedRelationshipTestSupport.buildNonBidirectionalRelationship;
+import static org.hisp.dhis.tracker.importer.relationships.DuplicatedRelationshipTestSupport.buildTrackedEntity;
+import static org.hisp.dhis.tracker.importer.relationships.DuplicatedRelationshipTestSupport.invertRelationship;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -163,6 +168,102 @@ public class RelationshipsTests
                 .validate().statusCode( 200 )
                 .body( "relationships.relationship", contains( createdRelationships.get( 0 ) ) );
         } );
+    }
+
+    @Test
+    public void shouldNotDuplicateNonBidirectionalRelationship()
+    {
+        // Given 2 existing tracked entities and a bidirectional relationship
+        // between them
+        IdGenerator idGenerator = new IdGenerator();
+
+        String trackedEntity_1 = idGenerator.generateUniqueId();
+        String trackedEntity_2 = idGenerator.generateUniqueId();
+
+        JsonObject jsonObject = new JsonObjectBuilder()
+            .addArray( "trackedEntities",
+                buildTrackedEntity( trackedEntity_1 ),
+                buildTrackedEntity( trackedEntity_2 ) )
+            .addArray( "relationships",
+                buildNonBidirectionalRelationship( trackedEntity_1, trackedEntity_2 ) )
+            .build();
+
+        TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( jsonObject )
+            .validateSuccessfulImport();
+
+        trackerApiResponse
+            .validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.created", equalTo( 1 ) );
+
+        String createdRelationshipUid = trackerApiResponse.extractImportedRelationships().get( 0 );
+
+        // when posting the same payload, then relationship is ignored when in
+        // the same way
+        trackerActions.postAndGetJobReport( jsonObject )
+            .validateSuccessfulImport()
+            .validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.ignored", equalTo( 1 ) );
+
+        // and is imported again if the relation is in inverse order
+        trackerActions.postAndGetJobReport( invertRelationship( jsonObject ) )
+            .validateSuccessfulImport()
+            .validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.ignored", equalTo( 0 ) )
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.created", equalTo( 1 ) );
+
+        // and relationship is not duplicated
+        ApiResponse relationshipResponse = trackerActions.get( "/relationships?tei=" + trackedEntity_1 );
+
+        relationshipResponse
+            .validate()
+            .statusCode( 200 )
+            .body( "size()", is( 2 ) );
+    }
+
+    @Test
+    public void shouldNotDuplicateBidirectionalRelationship()
+    {
+        // Given 2 existing tracked entities and a bidirectional relationship
+        // between them
+        IdGenerator idGenerator = new IdGenerator();
+
+        String trackedEntity_1 = idGenerator.generateUniqueId();
+        String trackedEntity_2 = idGenerator.generateUniqueId();
+
+        JsonObject jsonObject = new JsonObjectBuilder()
+            .addArray( "trackedEntities",
+                buildTrackedEntity( trackedEntity_1 ),
+                buildTrackedEntity( trackedEntity_2 ) )
+            .addArray( "relationships",
+                buildBidirectionalRelationship( trackedEntity_1, trackedEntity_2 ) )
+            .build();
+
+        TrackerApiResponse trackerApiResponse = trackerActions.postAndGetJobReport( jsonObject )
+            .validateSuccessfulImport();
+
+        trackerApiResponse
+            .validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.created", equalTo( 1 ) );
+
+        String createdRelationshipUid = trackerApiResponse.extractImportedRelationships().get( 0 );
+
+        // when posting the same payload, then relationship is ignored both ways
+        Stream.of( jsonObject, invertRelationship( jsonObject ) )
+            .map( trackerActions::postAndGetJobReport )
+            .map( TrackerApiResponse::validateSuccessfulImport )
+            .map( ApiResponse::validate )
+            .forEach( validatableResponse -> validatableResponse
+                .body( "bundleReport.typeReportMap.RELATIONSHIP.stats.ignored", equalTo( 1 ) ) );
+
+        // and relationship is not duplicated
+        ApiResponse relationshipResponse = trackerActions.get( "/relationships?tei=" + trackedEntity_1 );
+
+        relationshipResponse
+            .validate()
+            .statusCode( 200 )
+            .body( "[0].relationship", is( createdRelationshipUid ) )
+            .body( "size()", is( 1 ) );
+
     }
 
     @Test

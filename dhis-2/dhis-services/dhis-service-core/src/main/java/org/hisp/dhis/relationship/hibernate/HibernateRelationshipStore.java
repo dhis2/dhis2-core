@@ -165,7 +165,7 @@ public class HibernateRelationshipStore
     {
         return criteriaBuilder.and(
             criteriaBuilder.equal(
-                root.join( "relationshipType" ).get( "bidirectional" ), false ),
+                root.join( "relationshipType" ).get( "bidirectional" ), true ),
             criteriaBuilder.or(
                 criteriaBuilder.and(
                     getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
@@ -188,7 +188,7 @@ public class HibernateRelationshipStore
     {
         return criteriaBuilder.and(
             criteriaBuilder.equal(
-                root.join( "relationshipType" ).get( "bidirectional" ), true ),
+                root.join( "relationshipType" ).get( "bidirectional" ), false ),
             criteriaBuilder.and(
                 getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
                 getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ) );

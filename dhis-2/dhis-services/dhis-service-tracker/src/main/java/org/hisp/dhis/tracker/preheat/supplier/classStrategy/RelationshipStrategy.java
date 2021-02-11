@@ -32,6 +32,7 @@ import static org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier.SPLIT_LI
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -77,6 +78,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
             .collect( Collectors.partitioningBy( RelationshipPreheatKeySupport::isRelationshipPreheatKey ) )
             .entrySet().stream()
             .flatMap( this::getRelationships )
+            .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
 

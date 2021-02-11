@@ -494,6 +494,7 @@ public class TrackerPreheat
             return Stream.of( relationshipKey, inverseKey )
                 .filter( Objects::nonNull )
                 .map( key -> relationships.get( identifier ).get( key.asString() ) )
+                .filter( Objects::nonNull )
                 .findFirst()
                 .orElse( null );
         }
