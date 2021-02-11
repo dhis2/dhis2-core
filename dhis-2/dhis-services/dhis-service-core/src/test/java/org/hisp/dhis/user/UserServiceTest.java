@@ -39,7 +39,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -576,13 +575,4 @@ public class UserServiceTest
             users.stream().map( User::getUid ).collect( toSet() ) );
     }
 
-    @SafeVarargs
-    private static <E> void assertContainsOnly( Collection<E> actual, E... expected )
-    {
-        assertEquals( expected.length, actual.size() );
-        for ( E e : expected )
-        {
-            assertTrue( actual.contains( e ) );
-        }
-    }
 }

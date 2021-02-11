@@ -110,8 +110,9 @@ public class HibernateOrganisationUnitStore
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
         return getQuery(
-            "from OrganisationUnit o where o.parent is null and not exists (select 1 from OrganisationUnit io where io.parent = o.id)" )
-                .list();
+            "from OrganisationUnit o where o.parent is null and not exists " +
+                "(select 1 from OrganisationUnit io where io.parent = o.id)" )
+                    .list();
     }
 
     @Override

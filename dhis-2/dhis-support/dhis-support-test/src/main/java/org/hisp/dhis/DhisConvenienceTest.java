@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -2471,5 +2473,15 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( credentials );
         return user;
+    }
+
+    @SafeVarargs
+    public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
+    {
+        assertEquals( expected.length, actual.size() );
+        for ( E e : expected )
+        {
+            assertTrue( actual.contains( e ) );
+        }
     }
 }

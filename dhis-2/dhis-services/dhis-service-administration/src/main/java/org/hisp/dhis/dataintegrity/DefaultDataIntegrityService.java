@@ -496,9 +496,7 @@ public class DefaultDataIntegrityService
     @Override
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
-        Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-
-        return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
+        return organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets();
     }
 
     // -------------------------------------------------------------------------

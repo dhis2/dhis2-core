@@ -34,6 +34,8 @@ import java.util.Set;
  * A number of data integrity tests are solely related to
  * {@link OrganisationUnit}s. They are contained in this interface to avoid
  * duplication.
+ *
+ * @author Jan Bernitt
  */
 public interface OrganisationUnitDataIntegritySupport
 {
