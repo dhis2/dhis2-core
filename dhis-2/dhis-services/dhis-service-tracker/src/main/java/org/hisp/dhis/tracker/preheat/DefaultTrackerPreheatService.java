@@ -107,6 +107,8 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
             }
         }
 
+        preheat.createReferenceTree();
+
         log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;
@@ -121,7 +123,7 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
         }
         else
         {
-            log.error( message, e );
+            log.warn( message, e );
         }
     }
 

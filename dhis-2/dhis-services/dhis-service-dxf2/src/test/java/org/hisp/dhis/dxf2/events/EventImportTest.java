@@ -189,6 +189,7 @@ public class EventImportTest
         manager.save( Lists.newArrayList( categoryOption1, categoryOption2 ) );
 
         Category cat1 = new Category( "cat1", DataDimensionType.DISAGGREGATION );
+        cat1.setShortName( cat1.getName() );
         cat1.setCategoryOptions( Lists.newArrayList( categoryOption1, categoryOption2 ) );
         manager.save( Lists.newArrayList( cat1 ) );
 

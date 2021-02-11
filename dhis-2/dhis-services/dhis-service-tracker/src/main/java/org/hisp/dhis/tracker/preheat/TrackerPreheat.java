@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.tracker.preheat;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.StringJoiner;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,6 +57,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 
 import com.google.api.client.util.Lists;
+import com.google.common.collect.ArrayListMultimap;
 import com.scalified.tree.TreeNode;
 import com.scalified.tree.multinode.ArrayMultiTreeNode;
 
@@ -86,6 +80,14 @@ public class TrackerPreheat
      */
     @Getter
     private Map<Class<? extends IdentifiableObject>, Map<String, IdentifiableObject>> map = new HashMap<>();
+
+    /**
+     * List of all payload references by tracker type which are not present in
+     * thedatabase. This will be used to create the reference tree that
+     * represents the hierarchical structure of the references.
+     */
+    private ArrayListMultimap<TrackerType, ReferenceTrackerEntity> referenceTrackerEntities = ArrayListMultimap
+        .create();
 
     /**
      * Internal tree of all payload references which are not present in the
@@ -263,7 +265,6 @@ public class TrackerPreheat
      * Fetch all the metadata objects from the pre-heat, by object type
      *
      * @param klass The metadata class to fetch
-     *
      * @return a List of pre-heated object or empty list
      */
     @SuppressWarnings( "unchecked" )
@@ -494,26 +495,35 @@ public class TrackerPreheat
         this.programInstancesWithoutRegistration.put( programUid, programInstance );
     }
 
+    public void createReferenceTree()
+    {
+        referenceTrackerEntities.get( TrackerType.TRACKED_ENTITY )
+            .forEach( r -> referenceTree.add( new ArrayMultiTreeNode<>( r.getUid() ) ) );
+
+        referenceTrackerEntities.get( TrackerType.ENROLLMENT )
+            .forEach( this::addElementInReferenceTree );
+
+        referenceTrackerEntities.get( TrackerType.EVENT )
+            .forEach( this::addElementInReferenceTree );
+    }
+
     private void addReference( TrackerType trackerType, ReferenceTrackerEntity referenceTrackerEntity )
     {
-        if ( trackerType.equals( TrackerType.TRACKED_ENTITY ) )
+        referenceTrackerEntities.put( trackerType, referenceTrackerEntity );
+    }
+
+    private void addElementInReferenceTree( ReferenceTrackerEntity referenceTrackerEntity )
+    {
+        final TreeNode<String> node = referenceTree.find( referenceTrackerEntity.getParentUid() );
+
+        if ( node != null )
+        {
+            node.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
+        }
+        else
         {
             referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
-
         }
-        else if ( trackerType.equals( TrackerType.ENROLLMENT ) || trackerType.equals( TrackerType.EVENT ) )
-        {
-            final TreeNode<String> node = referenceTree.find( referenceTrackerEntity.getParentUid() );
-
-            if ( node != null )
-            {
-                node.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
-            }
-            else
-            {
-                referenceTree.add( new ArrayMultiTreeNode<>( referenceTrackerEntity.getUid() ) );
-            }
-        } // TODO luciano what about relationship?
     }
 
     public Optional<ReferenceTrackerEntity> getReference( String uid )

@@ -454,4 +454,15 @@ public interface UserService
      * @return true, if the provided account is already expired, otherwise false
      */
     boolean isAccountExpired( UserCredentials credentials );
+
+    /**
+     * Sets {@link UserCredentials#setDisabled(boolean)} to {@code true} for all
+     * users where the {@link UserCredentials#getLastLogin()} is before or equal
+     * to the provided pivot {@link Date}.
+     *
+     * @param inactiveSince the most recent point in time that is considered
+     *        inactive together with accounts only active further in the past.#
+     * @return number of users disabled
+     */
+    int disableUsersInactiveSince( Date inactiveSince );
 }

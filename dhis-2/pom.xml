@@ -136,12 +136,12 @@
     <jts-io-common.version>1.16.0</jts-io-common.version>
 
     <!-- AMQP -->
-    <artemis.version>2.14.0</artemis.version>
+    <artemis.version>2.16.0</artemis.version>
     <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
-    <netty-all.version>4.1.51.Final</netty-all.version>
+    <netty-all.version>4.1.59.Final</netty-all.version>
     <classgraph.version>4.8.90</classgraph.version>
-    <qpid-jms-client.version>0.53.0</qpid-jms-client.version>
-    <proton-j.version>0.33.6</proton-j.version>
+    <qpid-jms-client.version>0.56.0</qpid-jms-client.version>
+    <proton-j.version>0.33.8</proton-j.version>
 
     <!-- SMS/SMPP -->
     <ant-compress.version>1.5</ant-compress.version>
@@ -221,7 +221,7 @@
     <extra-enforcer-rules.version>1.3</extra-enforcer-rules.version>
     <jacoco-maven-plugin.version>0.8.5</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.6</jrebel-x-maven-plugin.version>
-    <dhis-antlr-expression-parser.version>1.0.13</dhis-antlr-expression-parser.version>
+    <dhis-antlr-expression-parser.version>1.0.14</dhis-antlr-expression-parser.version>
     <ow2.asm.version>9.0</ow2.asm.version>
   </properties>
 
