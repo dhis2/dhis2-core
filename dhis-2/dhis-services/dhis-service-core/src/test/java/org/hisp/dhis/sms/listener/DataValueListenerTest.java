@@ -298,7 +298,7 @@ public class DataValueListenerTest extends DhisConvenienceTest
         assertTrue( updatedIncomingSms.isParsed() );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test
     public void testIfDataSetIsLocked()
     {
         ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass( IncomingSms.class );
