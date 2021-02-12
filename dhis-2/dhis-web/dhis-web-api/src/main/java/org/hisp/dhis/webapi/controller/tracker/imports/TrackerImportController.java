@@ -33,29 +33,29 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
-import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
-import org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder;
+import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
+import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,13 +73,13 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
+    private final ImportStrategy trackerImportStrategy;
+
     private final TrackerImportService trackerImportService;
 
     private final RenderService renderService;
 
     private final ContextService contextService;
-
-    private final TrackerMessageManager trackerMessageManager;
 
     private final Notifier notifier;
 
@@ -88,8 +88,15 @@ public class TrackerImportController
         @RequestBody TrackerBundleParams trackerBundleParams )
         throws IOException
     {
-        String jobId = trackerMessageManager.addJob(
-            buildTrackerImportParams( request, currentUser, trackerBundleParams ) );
+        String jobId = CodeGenerator.generateUid();
+
+        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
+            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).currentUser( currentUser )
+            .isAsync( true )
+            .build();
+
+        trackerImportStrategy
+            .importReport( trackerImportReportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
         response.setHeader( "Location", location );
@@ -105,38 +112,24 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
     public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
-        @RequestParam( defaultValue = "full", required = false ) String reportMode,
-        HttpServletRequest request, User currentUser, @RequestBody TrackerBundleParams trackerBundleParams )
+        @RequestParam( defaultValue = "full", required = false ) String reportMode, User currentUser,
+        @RequestBody TrackerBundleParams trackerBundleParams )
     {
-        TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
-            .getTrackerBundleReportMode( reportMode );
+        TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
+            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).currentUser( currentUser )
+            .trackerBundleReportMode( TrackerBundleReportMode
+                .getTrackerBundleReportMode( reportMode ) )
+            .jobId( CodeGenerator.generateUid() )
+            .build();
 
-        TrackerImportParams trackerImportParams = buildTrackerImportParams( request, currentUser, trackerBundleParams );
-        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
-        TrackerImportReport trackerImportReportResponse = trackerImportService.buildImportReport( trackerImportReport,
-            trackerBundleReportMode );
+        TrackerImportReport trackerImportReport = trackerImportStrategy
+            .importReport( trackerImportReportRequest );
 
-        ResponseEntity.BodyBuilder builder = trackerImportReportResponse.getStatus() == TrackerStatus.ERROR
+        ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
             ? ResponseEntity.status( HttpStatus.CONFLICT )
             : ResponseEntity.ok();
 
-        return builder.body( trackerImportReportResponse );
-    }
-
-    @SneakyThrows
-    private TrackerImportParams buildTrackerImportParams( HttpServletRequest request, User currentUser,
-        TrackerBundleParams trackerBundleParams )
-    {
-        TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
-            .builder( contextService.getParameterValuesMap() );
-
-        return paramsBuilder
-            .userId( currentUser.getUid() )
-            .trackedEntities( trackerBundleParams.getTrackedEntities() )
-            .enrollments( trackerBundleParams.getEnrollments() )
-            .events( trackerBundleParams.getEvents() )
-            .relationships( trackerBundleParams.getRelationships() )
-            .build();
+        return builder.body( trackerImportReport );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )
@@ -158,15 +151,12 @@ public class TrackerImportController
         TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
             .getTrackerBundleReportMode( reportMode );
 
-        Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
 
-        if ( importReport != null )
-        {
-            return trackerImportService.buildImportReport( (TrackerImportReport) importReport,
-                trackerBundleReportMode );
-        }
-
-        throw new HttpClientErrorException( HttpStatus.NOT_FOUND );
+        return Optional.ofNullable( notifier
+            .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
+            .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report,
+                trackerBundleReportMode ) )
+            .orElseThrow( () -> new HttpClientErrorException( HttpStatus.NOT_FOUND ) );
     }
 }

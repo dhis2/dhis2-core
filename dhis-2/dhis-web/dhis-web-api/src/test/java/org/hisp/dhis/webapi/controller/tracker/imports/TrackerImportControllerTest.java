@@ -37,22 +37,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.DefaultTrackerImportService;
-import org.hisp.dhis.tracker.job.TrackerMessageManager;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerTimingsStats;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
+import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
+import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,7 +71,7 @@ public class TrackerImportControllerTest
     private DefaultTrackerImportService trackerImportService;
 
     @Mock
-    private TrackerMessageManager trackerMessageManager;
+    private ImportStrategy importStrategy;
 
     @Mock
     private Notifier notifier;
@@ -94,19 +89,17 @@ public class TrackerImportControllerTest
             mock( SchemaService.class ) );
 
         // Controller under test
-        final TrackerImportController controller = new TrackerImportController( trackerImportService, renderService,
-            new DefaultContextService(), trackerMessageManager, notifier );
+        final TrackerImportController controller = new TrackerImportController( importStrategy, trackerImportService,
+            renderService,
+            new DefaultContextService(), notifier );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
-
     }
 
     @Test
     public void verifyAsync()
         throws Exception
     {
-        // When
-        when( trackerMessageManager.addJob( any() ) ).thenReturn( UUID.randomUUID().toString() );
 
         // Then
         mockMvc.perform( post( ENDPOINT )
@@ -123,7 +116,7 @@ public class TrackerImportControllerTest
         throws Exception
     {
         // When
-        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
             TrackerStatus.OK,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.OK )
@@ -132,8 +125,6 @@ public class TrackerImportControllerTest
                 .build(),
             new TrackerTimingsStats(),
             new HashMap<>() ) );
-
-        when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
 
         // Then
         String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
@@ -147,8 +138,7 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( trackerImportService ).buildImportReport( any(), any() );
-        verify( trackerImportService ).importTracker( any() );
+        verify( importStrategy ).importReport( any() );
 
         try
         {
@@ -164,9 +154,8 @@ public class TrackerImportControllerTest
     public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
-
         // When
-        when( trackerImportService.importTracker( any() ) ).thenReturn( TrackerImportReport.withImportCompleted(
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
             TrackerStatus.ERROR,
             TrackerBundleReport.builder()
                 .status( TrackerStatus.ERROR )
@@ -175,8 +164,6 @@ public class TrackerImportControllerTest
                 .build(),
             new TrackerTimingsStats(),
             new HashMap<>() ) );
-
-        when( trackerImportService.buildImportReport( any(), any() ) ).thenCallRealMethod();
 
         // Then
         String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
@@ -190,8 +177,7 @@ public class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( trackerImportService ).buildImportReport( any(), any() );
-        verify( trackerImportService ).importTracker( any() );
+        verify( importStrategy ).importReport( any() );
 
         try
         {
