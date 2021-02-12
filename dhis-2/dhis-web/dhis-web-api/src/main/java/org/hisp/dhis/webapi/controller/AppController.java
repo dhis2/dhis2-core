@@ -182,7 +182,7 @@ public class AppController
             throw new WebMessageException( WebMessageUtils.notFound( "App '" + app + "' not found." ) );
         }
 
-        if ( application.getIsBundledApp() )
+        if ( application.isBundled() )
         {
             String redirectPath = application.getBaseUrl() + "/" + pageName;
 
