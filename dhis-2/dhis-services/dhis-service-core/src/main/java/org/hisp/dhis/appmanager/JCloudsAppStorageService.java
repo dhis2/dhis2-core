@@ -274,7 +274,8 @@ public class JCloudsAppStorageService
     private boolean validateApp( App app, Cache<App> appCache )
     {
         // -----------------------------------------------------------------
-        // Check if app with same key is currently being deleted (deletion_in_progress)
+        // Check if app with same key is currently being deleted
+        // (deletion_in_progress)
         // -----------------------------------------------------------------
         Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
         if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
