@@ -66,8 +66,8 @@ public class SimplisticHttpGetGateWay
     // Dependencies
     // -------------------------------------------------------------------------
 
-
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate,
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
         checkNotNull( pbeStringEncryptor );
@@ -90,9 +90,9 @@ public class SimplisticHttpGetGateWay
     public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig )
     {
         return batch.getMessages()
-                .parallelStream()
-                .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
-                .collect( Collectors.toList() );
+            .parallelStream()
+            .map( m -> send( m.getSubject(), m.getText(), m.getRecipients(), gatewayConfig ) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -114,7 +114,8 @@ public class SimplisticHttpGetGateWay
 
             if ( genericConfig.isSendUrlParameters() )
             {
-                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
+                uriBuilder = UriComponentsBuilder
+                    .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
             }
             else
             {
@@ -123,7 +124,8 @@ public class SimplisticHttpGetGateWay
 
             uri = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
+                requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -147,7 +149,9 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches
+                                                                                                                   // on
+                                                                                                                   // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
@@ -199,7 +203,8 @@ public class SimplisticHttpGetGateWay
 
     private String encodeAndDecryptParameter( GenericGatewayParameter parameter )
     {
-        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue();
+        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+            : parameter.getValue();
 
         return parameter.isEncode() ? Base64.getEncoder().encodeToString( value.getBytes() ) : value;
     }
