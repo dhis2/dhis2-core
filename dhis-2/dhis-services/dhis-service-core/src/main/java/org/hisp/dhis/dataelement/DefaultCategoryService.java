@@ -538,6 +538,7 @@ public class DefaultCategoryService
         Category category = new Category( Category.DEFAULT_NAME, DataDimensionType.DISAGGREGATION );
         category.setUid( "GLevLNI9wkl" );
         category.setCode( "default" );
+        category.setShortName( "default" );
         category.setDataDimension( false );
 
         category.addCategoryOption( categoryOption );

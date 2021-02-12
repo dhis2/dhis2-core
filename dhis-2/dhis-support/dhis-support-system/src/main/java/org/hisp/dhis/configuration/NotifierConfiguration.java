@@ -33,7 +33,6 @@ import org.hisp.dhis.system.notification.InMemoryNotifier;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.notification.RedisNotifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
@@ -54,16 +53,14 @@ public class NotifierConfiguration
     private RedisTemplate<?, ?> redisTemplate;
 
     @SuppressWarnings( "unchecked" )
-    @Bean
-    @Qualifier( "notifier" )
+    @Bean( "notifier" )
     @Conditional( RedisEnabledCondition.class )
     public Notifier redisNotifier( ObjectMapper objectMapper )
     {
         return new RedisNotifier( (RedisTemplate<String, String>) redisTemplate, objectMapper );
     }
 
-    @Bean
-    @Qualifier( "notifier" )
+    @Bean( "notifier" )
     @Conditional( RedisDisabledCondition.class )
     public Notifier inMemoryNotifier()
     {

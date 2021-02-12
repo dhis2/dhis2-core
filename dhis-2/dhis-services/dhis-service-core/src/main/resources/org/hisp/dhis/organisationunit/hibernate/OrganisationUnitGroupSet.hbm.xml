@@ -8,22 +8,26 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" table="orgunitgroupset">
 
-    <cache usage="read-write" />
+    <cache usage="read-write"/>
 
     <id name="id" column="orgunitgroupsetid">
-      <generator class="native" />
+      <generator class="native"/>
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="true"
+              length="230"/>
 
-    <property name="description" type="text" />
+    <property name="shortName" column="shortname" not-null="true" unique="true"
+              length="50"/>
 
-    <property name="compulsory" not-null="true" />
+    <property name="description" type="text"/>
 
-    <property name="includeSubhierarchyInAnalytics" not-null="false" />
+    <property name="compulsory" not-null="true"/>
 
-    <property name="dataDimension" column="datadimension" not-null="true" />
+    <property name="includeSubhierarchyInAnalytics" not-null="false"/>
+
+    <property name="dataDimension" column="datadimension" not-null="true"/>
 
     <property name="translations" type="jblTranslations"/>
 

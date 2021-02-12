@@ -63,4 +63,25 @@ public interface LeaderManager
      */
     void setSchedulingManager( SchedulingManager schedulingManager );
 
+    /**
+     * Get the nodeID that was generated for the current instance.
+     *
+     * @return the nodeID
+     */
+    String getCurrentNodeUuid();
+
+    /**
+     * Get the nodeID for the current leader instance in the cluster.
+     *
+     * @return the nodeID of the leader instance.
+     */
+    String getLeaderNodeUuid();
+
+    /**
+     * Get the nodeID for the current leader instance in the cluster.
+     *
+     * @return the nodeID of the leader instance.
+     */
+    String getLeaderNodeId();
+
 }

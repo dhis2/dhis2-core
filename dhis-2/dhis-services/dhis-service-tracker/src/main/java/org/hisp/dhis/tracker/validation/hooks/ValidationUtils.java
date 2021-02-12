@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1012;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1119;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
@@ -90,10 +89,10 @@ public class ValidationUtils
             if ( isNotEmpty( note.getValue() ) ) // Ignore notes with no text
             {
                 // If a note having the same UID already exist in the db, raise
-                // error
+                // warning, ignore the note and continue
                 if ( isNotEmpty( note.getNote() ) && context.getNote( note.getNote() ).isPresent() )
                 {
-                    reporter.addError( newReport( E1119 ).addArgs( note.getNote() ) );
+                    reporter.addWarning( newWarningReport( TrackerErrorCode.E1119 ).addArg( note.getNote() ) );
                 }
                 else
                 {

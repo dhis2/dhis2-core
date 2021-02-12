@@ -123,7 +123,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             TrackedEntityAttribute teAttribute = reporter.getValidationContext()
                 .getTrackedEntityAttribute( attribute.getAttribute() );
 
-            addErrorIfNull( teAttribute, reporter, E1017, attribute );
+            addErrorIfNull( teAttribute, reporter, E1017, attribute.getAttribute() );
         }
     }
 

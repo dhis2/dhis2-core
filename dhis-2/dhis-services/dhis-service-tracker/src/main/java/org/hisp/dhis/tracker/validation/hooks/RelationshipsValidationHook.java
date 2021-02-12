@@ -33,9 +33,6 @@ import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTAN
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4000;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4001;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4004;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4007;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4008;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4009;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E4011;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -47,7 +44,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -132,10 +128,6 @@ public class RelationshipsValidationHook
     private boolean validateMandatoryData( ValidationErrorReporter reporter, Relationship relationship,
         List<RelationshipType> relationshipsTypes )
     {
-        addErrorIfNull( relationship.getFrom(), reporter, E4007 );
-        addErrorIfNull( relationship.getTo(), reporter, E4008 );
-        addErrorIf( () -> StringUtils.isEmpty( relationship.getRelationshipType() ), reporter, E4004 );
-
         addErrorIf( () -> !getRelationshipType( relationshipsTypes, relationship.getRelationshipType() ).isPresent(),
             reporter, E4009,
             relationship.getRelationshipType() );

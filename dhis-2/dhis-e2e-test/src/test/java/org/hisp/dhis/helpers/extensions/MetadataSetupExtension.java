@@ -76,7 +76,6 @@ public class MetadataSetupExtension
 
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
-                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
                 "src/test/resources/setup/users.json"
@@ -137,13 +136,14 @@ public class MetadataSetupExtension
 
     @Override
     public void close()
-        throws Throwable
     {
-        TestCleanUp testCleanUp = new TestCleanUp();
+        if ( TestConfiguration.get().shouldCleanUp() ) {
+            TestCleanUp testCleanUp = new TestCleanUp();
 
-        iterateCreatedData( id -> {
-            testCleanUp.deleteEntity( createdData.get( id ), id );
-        } );
+            iterateCreatedData( id -> {
+                testCleanUp.deleteEntity( createdData.get( id ), id );
+            } );
+        }
 
     }
 }

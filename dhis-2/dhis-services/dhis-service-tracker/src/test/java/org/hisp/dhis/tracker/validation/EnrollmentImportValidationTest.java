@@ -675,8 +675,8 @@ public class EnrollmentImportValidationTest
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
 
-        assertEquals( 1, validationReport.getErrorReports().size() );
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
+        assertEquals( 1, validationReport.getWarningReports().size() );
+        assertThat( validationReport.getWarningReports(),
+            everyItem( hasProperty( "warningCode", equalTo( TrackerErrorCode.E1119 ) ) ) );
     }
 }

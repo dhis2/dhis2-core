@@ -390,4 +390,10 @@ public class MockUserService
     {
         return null;
     }
+
+    @Override
+    public int disableUsersInactiveSince( Date inactiveSince )
+    {
+        throw new UnsupportedOperationException( "Not supported by this mock!" );
+    }
 }

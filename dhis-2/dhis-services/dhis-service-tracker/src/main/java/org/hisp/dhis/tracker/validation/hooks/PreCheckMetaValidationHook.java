@@ -203,7 +203,7 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1089, event, programStage, program );
         }
 
-        if ( strategy.isUpdate() )
+        if ( program != null && strategy.isUpdate() )
         {
             validateNotChangingProgram( reporter, event, context, program );
         }

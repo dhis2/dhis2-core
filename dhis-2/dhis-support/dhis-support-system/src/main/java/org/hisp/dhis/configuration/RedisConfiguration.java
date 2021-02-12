@@ -33,12 +33,13 @@ import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration.LettuceClientConfigurationBuilder;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 /**
@@ -50,7 +51,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
  *
  */
 @Configuration
-@DependsOn( "dhisConfigurationProvider" )
 @Conditional( RedisEnabledCondition.class )
 public class RedisConfiguration
 {
@@ -94,13 +94,22 @@ public class RedisConfiguration
         return new ConfigurationPropertyFactoryBean( ConfigurationKey.REDIS_USE_SSL );
     }
 
-    @Bean
+    @Bean( name = "redisTemplate" )
+    @Primary
     public RedisTemplate<?, ?> redisTemplate()
     {
         RedisTemplate<?, ?> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory( lettuceConnectionFactory() );
         redisTemplate.setKeySerializer( new StringRedisSerializer() );
         return redisTemplate;
+    }
+
+    @Bean( name = "stringRedisTemplate" )
+    public StringRedisTemplate stringRedisTemplate()
+    {
+        StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
+        stringRedisTemplate.setConnectionFactory( lettuceConnectionFactory() );
+        return stringRedisTemplate;
     }
 
 }

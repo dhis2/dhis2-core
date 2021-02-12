@@ -175,19 +175,6 @@ public class Category
     // Getters and setters
     // ------------------------------------------------------------------------
 
-    @Override
-    public String getShortName()
-    {
-        if ( getName() == null || getName().length() <= 50 )
-        {
-            return getName();
-        }
-        else
-        {
-            return getName().substring( 0, 49 );
-        }
-    }
-
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptions", namespace = DxfNamespaces.DXF_2_0 )

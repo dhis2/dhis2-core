@@ -41,6 +41,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -69,6 +70,8 @@ public class AssignedUserValidationHookTest
     private TrackerImportService trackerImportService;
 
     private TrackedEntityType teta;
+
+    private TrackedEntityInstance trackedEntityInstance;
 
     private OrganisationUnit organisationUnitA;
 
@@ -103,6 +106,9 @@ public class AssignedUserValidationHookTest
 
         teta = createTrackedEntityType( 'A' );
         manager.save( teta );
+
+        trackedEntityInstance = createTrackedEntityInstance( organisationUnitA );
+        manager.save( trackedEntityInstance );
 
         programA = createProgram( 'A' );
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
@@ -139,6 +145,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
+        event.setTrackedEntity( trackedEntityInstance.getUid() );
         event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
         event.setCreatedAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
         event.setScheduledAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
@@ -172,6 +179,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
+        event.setTrackedEntity( trackedEntityInstance.getUid() );
         event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
         event.setScheduledAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
         event.setCreatedAt( DateUtils.instantFromDateAsString( "2010-10-22" ) );
@@ -203,6 +211,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
+        event.setTrackedEntity( trackedEntityInstance.getUid() );
         event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
@@ -228,6 +237,7 @@ public class AssignedUserValidationHookTest
         event.setProgramStage( programStageA.getUid() );
         event.setOrgUnit( organisationUnitA.getUid() );
         event.setEnrollment( pi.getUid() );
+        event.setTrackedEntity( trackedEntityInstance.getUid() );
         event.setOccurredAt( DateUtils.instantFromDateAsString( "1990-10-22" ) );
 
         TrackerImportParams params = TrackerImportParams.builder()
