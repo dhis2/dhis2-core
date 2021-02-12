@@ -924,7 +924,6 @@ public abstract class ReportTableFacadeController {
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -938,7 +937,6 @@ public abstract class ReportTableFacadeController {
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -952,7 +950,6 @@ public abstract class ReportTableFacadeController {
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -979,14 +976,14 @@ public abstract class ReportTableFacadeController {
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
-    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void addCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        @PathVariable( "itemId" ) String pvItemId )
-        throws Exception
+        @PathVariable( "itemId" ) String pvItemId,
+        HttpServletRequest request, HttpServletResponse response ) throws Exception
     {
         List<Visualization> objects = ( List<Visualization> ) getEntity( pvUid );
+        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
 
         if ( objects.isEmpty() )
         {
