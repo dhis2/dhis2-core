@@ -353,7 +353,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         programNotificationTemplateStore.update( programNotificationTemplate );
 
         NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
-                programNotificationTemplate );
+            programNotificationTemplate );
         assertEquals( "message is " + trackedEntityInstanceA.getUid(), notificationMessage.getMessage() );
         assertEquals( "subject is " + trackedEntityInstanceA.getUid(), notificationMessage.getSubject() );
     }
