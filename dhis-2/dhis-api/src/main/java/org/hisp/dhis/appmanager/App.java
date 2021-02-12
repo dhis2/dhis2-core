@@ -94,6 +94,8 @@ public class App
 
     private Set<String> authorities = new HashSet<>();
 
+    private AppSettings settings;
+    
     private boolean coreApp = false;
 
     /**
