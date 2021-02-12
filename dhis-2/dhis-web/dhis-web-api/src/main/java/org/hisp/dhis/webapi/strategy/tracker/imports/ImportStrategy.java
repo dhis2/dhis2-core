@@ -25,32 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report.imports;
+package org.hisp.dhis.webapi.strategy.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImportService
+public interface ImportStrategy
 {
-    /**
-     * Import object using provided params. Takes the objects through all phases
-     * of the importer from preheating to validation, and then finished with a
-     * commit (unless its validate only)
-     *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
-     */
-    TrackerImportReport importTracker( TrackerImportParams params );
-
-    /**
-     * Build the report based on the mode selected by the client.
-     *
-     * @param importReport report with all the data collected during import
-     * @return TrackerImportReport report with filtered data based on reportMode
-     */
-    TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );
+    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
 }

@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report.imports;
+package org.hisp.dhis.webapi.controller.tracker;
+
+import lombok.Builder;
+import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.service.ContextService;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackerImportService
+@Data
+@Builder
+public class TrackerImportReportRequest
 {
-    /**
-     * Import object using provided params. Takes the objects through all phases
-     * of the importer from preheating to validation, and then finished with a
-     * commit (unless its validate only)
-     *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
-     */
-    TrackerImportReport importTracker( TrackerImportParams params );
+    ContextService contextService;
 
-    /**
-     * Build the report based on the mode selected by the client.
-     *
-     * @param importReport report with all the data collected during import
-     * @return TrackerImportReport report with filtered data based on reportMode
-     */
-    TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );
+    User currentUser;
+
+    TrackerBundleParams trackerBundleParams;
+
+    TrackerImportParams trackerImportParams;
+
+    boolean isAsync;
+
+    TrackerBundleReportMode trackerBundleReportMode;
+
+    String jobId;
 }

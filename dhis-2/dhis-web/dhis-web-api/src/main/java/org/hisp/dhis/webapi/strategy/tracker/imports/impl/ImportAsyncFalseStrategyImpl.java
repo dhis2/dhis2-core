@@ -25,32 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report.imports;
+package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImportService
+@Component
+@RequiredArgsConstructor
+public class ImportAsyncFalseStrategyImpl implements ImportStrategy
 {
-    /**
-     * Import object using provided params. Takes the objects through all phases
-     * of the importer from preheating to validation, and then finished with a
-     * commit (unless its validate only)
-     *
-     * @param params Parameters for import, including objects
-     * @return Report giving status of import (and any errors)
-     */
-    TrackerImportReport importTracker( TrackerImportParams params );
+    private final TrackerImportService trackerImportService;
 
-    /**
-     * Build the report based on the mode selected by the client.
-     *
-     * @param importReport report with all the data collected during import
-     * @return TrackerImportReport report with filtered data based on reportMode
-     */
-    TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );
+    @Override
+    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    {
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
+
+        return trackerImportService.buildImportReport( trackerImportReport,
+            trackerImportReportRequest.getTrackerBundleReportMode() );
+    }
 }
