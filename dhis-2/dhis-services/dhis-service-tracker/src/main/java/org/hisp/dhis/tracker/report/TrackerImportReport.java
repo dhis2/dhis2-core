@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.report;
 
-import lombok.Builder;
-import lombok.Value;
+import lombok.*;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -40,10 +40,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Luciano Fiandesio
  */
-@Builder
-@Value
+@Getter
+@Builder( access = AccessLevel.PROTECTED )
+@AllArgsConstructor( access = AccessLevel.PROTECTED )
+@NoArgsConstructor( access = AccessLevel.PROTECTED )
 public class TrackerImportReport
 {
+
     /**
      * The global status of the Import operation.
      *
