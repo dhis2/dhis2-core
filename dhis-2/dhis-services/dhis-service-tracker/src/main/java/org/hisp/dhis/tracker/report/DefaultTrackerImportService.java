@@ -41,6 +41,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.*;
 import org.hisp.dhis.tracker.TrackerImportService;
@@ -285,6 +286,41 @@ public class DefaultTrackerImportService
         return trackerBundleService.delete( trackerBundle );
     }
 
+    private void startImport( TrackerImportParams params )
+    {
+        notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
+    }
+
+    private void notifyOps( TrackerImportParams params, String validationOps, TrackerTimingsStats opsTimer )
+    {
+        notifier
+            .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
+                "(" + params.getUsername() + ") Import:" + validationOps + " took "
+                    + opsTimer.get( validationOps ) );
+    }
+
+    private void endImport( TrackerImportParams params, TrackerImportReport importReport )
+    {
+        notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " +
+            importReport.getTimingsStats().get( TOTAL_OPS ), true );
+
+        if ( params.getJobConfiguration().isInMemoryJob() )
+        {
+            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+        }
+    }
+
+    private void endImportWithError( TrackerImportParams params, TrackerImportReport importReport, Exception e )
+    {
+        notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
+            "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+
+        if ( params.getJobConfiguration().isInMemoryJob() )
+        {
+            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+        }
+    }
+
     /**
      * Clone the TrackerImportReport and filters out validation data based on
      * the provided {@link TrackerBundleReport}.
@@ -326,33 +362,5 @@ public class DefaultTrackerImportService
         trackerImportReportClone.validationReport( validationReport );
 
         return trackerImportReportClone.build();
-    }
-
-    private void startImport( TrackerImportParams params )
-    {
-        notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
-    }
-
-    private void notifyOps( TrackerImportParams params, String validationOps, TrackerTimingsStats opsTimer )
-    {
-        notifier
-            .update( params.getJobConfiguration(),
-                "(" + params.getUsername() + ") Import:" + validationOps + " took "
-                    + opsTimer.get( validationOps ) );
-    }
-
-    private void endImport( TrackerImportParams params, TrackerImportReport importReport )
-    {
-        notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " +
-            importReport.getTimingsStats().get( TOTAL_OPS ), true );
-
-        notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
-    }
-
-    private void endImportWithError( TrackerImportParams params, TrackerImportReport importReport, Exception e )
-    {
-        notifier.update( params.getJobConfiguration(),
-            "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
-        notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
     }
 }
