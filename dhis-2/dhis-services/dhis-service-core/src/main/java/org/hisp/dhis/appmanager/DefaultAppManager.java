@@ -201,7 +201,7 @@ public class DefaultAppManager
         {
             apps.retainAll( getAppsByShortName( value, apps, operator ) );
         }
-        else if ( "isBundled".equalsIgnoreCase( key ) )
+        else if ( "bundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
             apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
