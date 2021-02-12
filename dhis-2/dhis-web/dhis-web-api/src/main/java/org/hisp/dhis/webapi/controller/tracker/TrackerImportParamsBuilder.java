@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker;
 import static org.hisp.dhis.tracker.AtomicMode.ALL;
 import static org.hisp.dhis.tracker.FlushMode.AUTO;
 import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategyEnum.CREATE_AND_UPDATE;
 import static org.hisp.dhis.tracker.ValidationMode.FULL;
 import static org.hisp.dhis.tracker.bundle.TrackerBundleMode.COMMIT;
 import static org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder.TrackerImportParamKey.ATOMIC_MODE_KEY;
@@ -60,7 +60,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 
@@ -85,7 +85,8 @@ public class TrackerImportParamsBuilder
             .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
             .identifiers( getTrackerIdentifiers( parameters ) )
             .importStrategy(
-                getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
+                getEnumWithDefault( TrackerImportStrategyEnum.class, parameters, IMPORT_STRATEGY_KEY,
+                    CREATE_AND_UPDATE ) )
             .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
             .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
             .skipSideEffects( getBooleanValueOrDefault( parameters, SKIP_SIDE_EFFECTS ) )

@@ -75,7 +75,7 @@ public class TrackerBundle
      * Sets import strategy (create, update, etc).
      */
     @Builder.Default
-    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
+    private TrackerImportStrategyEnum importStrategy = TrackerImportStrategyEnum.CREATE;
 
     /**
      * Should text pattern validation be skipped or not, default is not.

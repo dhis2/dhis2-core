@@ -40,7 +40,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -62,7 +62,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategyEnum importStrategy = bundle.getImportStrategy();
 
         TrackedEntityInstance existingTe = context
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
@@ -78,11 +78,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingTe == null )
             {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.CREATE );
+                context.setStrategy( trackedEntity, TrackerImportStrategyEnum.CREATE );
             }
             else
             {
-                context.setStrategy( trackedEntity, TrackerImportStrategy.UPDATE );
+                context.setStrategy( trackedEntity, TrackerImportStrategyEnum.UPDATE );
             }
         }
         else if ( existingTe != null && importStrategy.isCreate() )
@@ -104,7 +104,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategyEnum importStrategy = bundle.getImportStrategy();
 
         ProgramInstance existingPi = context.getProgramInstance( enrollment.getEnrollment() );
 
@@ -119,11 +119,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingPi == null )
             {
-                context.setStrategy( enrollment, TrackerImportStrategy.CREATE );
+                context.setStrategy( enrollment, TrackerImportStrategyEnum.CREATE );
             }
             else
             {
-                context.setStrategy( enrollment, TrackerImportStrategy.UPDATE );
+                context.setStrategy( enrollment, TrackerImportStrategyEnum.UPDATE );
             }
         }
         else if ( existingPi != null && importStrategy.isCreate() )
@@ -145,7 +145,7 @@ public class PreCheckExistenceValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerBundle bundle = context.getBundle();
-        TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+        TrackerImportStrategyEnum importStrategy = bundle.getImportStrategy();
 
         ProgramStageInstance existingPsi = context.getProgramStageInstance( event.getEvent() );
 
@@ -160,11 +160,11 @@ public class PreCheckExistenceValidationHook
         {
             if ( existingPsi == null )
             {
-                context.setStrategy( event, TrackerImportStrategy.CREATE );
+                context.setStrategy( event, TrackerImportStrategyEnum.CREATE );
             }
             else
             {
-                context.setStrategy( event, TrackerImportStrategy.UPDATE );
+                context.setStrategy( event, TrackerImportStrategyEnum.UPDATE );
             }
         }
         else if ( existingPsi != null && importStrategy.isCreate() )

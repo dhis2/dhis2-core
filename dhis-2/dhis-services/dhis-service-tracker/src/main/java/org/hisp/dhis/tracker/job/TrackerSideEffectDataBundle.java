@@ -38,7 +38,7 @@ import org.hisp.dhis.artemis.Message;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -76,7 +76,7 @@ public class TrackerSideEffectDataBundle implements Message
     private Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
 
     @JsonProperty
-    private TrackerImportStrategy importStrategy;
+    private TrackerImportStrategyEnum importStrategy;
 
     @JsonProperty
     private String accessedBy;

@@ -40,7 +40,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
@@ -61,7 +61,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
         this.teAttrService = teAttrService;
     }
 
-    public <T extends TrackerDto> AttributeValidationHook( TrackerImportStrategy strategy,
+    public <T extends TrackerDto> AttributeValidationHook( TrackerImportStrategyEnum strategy,
         TrackedEntityAttributeService teAttrService )
     {
         super( strategy );

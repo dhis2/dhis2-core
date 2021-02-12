@@ -33,8 +33,8 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategyEnum.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategyEnum.UPDATE;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -66,7 +66,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -168,7 +168,7 @@ public class EventImportValidationTest
         TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -186,7 +186,7 @@ public class EventImportValidationTest
             "tracker/validations/events-invalid-uid-format.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -207,7 +207,7 @@ public class EventImportValidationTest
         trackerImportParams.setUser( user );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerImportParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -234,7 +234,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-orgunit-missing.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -252,7 +252,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-program-pstage-missing.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -270,7 +270,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-pstage-missing-isreg.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -288,7 +288,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-pstage-missing-withoutreg.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -306,7 +306,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-pstage-program-different.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -326,7 +326,7 @@ public class EventImportValidationTest
         trackerBundleParams.setUser( user );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -356,7 +356,7 @@ public class EventImportValidationTest
         // Commit the validated bundle...
         trackerBundleService.commit( trackerBundle );
 
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategyEnum.CREATE );
         trackerBundle = trackerBundleService.create( trackerBundleParams );
         // Re-validate, should now contain 13 errors...
         report = trackerValidationService.validate( trackerBundle );
@@ -379,7 +379,7 @@ public class EventImportValidationTest
         User user = userService.getUser( ADMIN_USER_UID );
         trackerBundleParams.setUserId( user.getUid() );
 
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategyEnum.UPDATE );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
 
@@ -403,7 +403,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-missing-date.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -422,7 +422,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-missing-tei.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -441,7 +441,7 @@ public class EventImportValidationTest
             userService.getUser( ADMIN_USER_UID ) );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerImportParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -453,7 +453,7 @@ public class EventImportValidationTest
             "tracker/validations/events_non-repeatable-programstage_part2.json",
             userService.getUser( ADMIN_USER_UID ) );
 
-        createAndUpdate = validateAndCommit( trackerImportParams, TrackerImportStrategy.CREATE );
+        createAndUpdate = validateAndCommit( trackerImportParams, TrackerImportStrategyEnum.CREATE );
         assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
 
         validationReport = createAndUpdate.getValidationReport();
@@ -476,7 +476,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-no-completed-date.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -495,7 +495,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-missing-schedule-date_part1.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -509,7 +509,7 @@ public class EventImportValidationTest
             "tracker/validations/events_error-missing-schedule-date_part2.json" );
 
         createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
 
@@ -539,7 +539,7 @@ public class EventImportValidationTest
             "tracker/validations/events_non-default-combo.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -558,7 +558,7 @@ public class EventImportValidationTest
             "tracker/validations/events_cant-find-cat-opt-combo.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -576,7 +576,7 @@ public class EventImportValidationTest
             "tracker/validations/events_cant-find-cat-option.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -594,7 +594,7 @@ public class EventImportValidationTest
             "tracker/validations/events_cant-find-cat-option-combo-set.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -612,7 +612,7 @@ public class EventImportValidationTest
             "tracker/validations/events_combo-date-wrong.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -634,7 +634,7 @@ public class EventImportValidationTest
             "tracker/validations/events_tei-not-enrolled.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -652,7 +652,7 @@ public class EventImportValidationTest
             "tracker/validations/event_with_wrong_de_for_data_value.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -671,7 +671,7 @@ public class EventImportValidationTest
             "tracker/validations/events_tei-multiple-enrollments.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -722,11 +722,11 @@ public class EventImportValidationTest
         assertEquals( 0, createAndUpdate.getValidationReport().getErrorReports().size() );
 
         ValidateAndCommitTestUnit delete = validateAndCommit( params,
-            TrackerImportStrategy.DELETE );
+            TrackerImportStrategyEnum.DELETE );
         assertEquals( 0, delete.getValidationReport().getErrorReports().size() );
 
         ValidateAndCommitTestUnit deleteAgain = validateAndCommit( params,
-            TrackerImportStrategy.DELETE );
+            TrackerImportStrategyEnum.DELETE );
         assertEquals( 1, deleteAgain.getValidationReport().getErrorReports().size() );
 
         assertThat( deleteAgain.getValidationReport().getErrorReports(),
@@ -789,7 +789,7 @@ public class EventImportValidationTest
         ProgramStageInstance psi = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
         programStageServiceInstance.deleteProgramStageInstance( psi );
 
-        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategyEnum.UPDATE );
         trackerBundle = trackerBundleService.create( trackerBundleParams );
         report = trackerValidationService.validate( trackerBundle );
 
@@ -905,7 +905,7 @@ public class EventImportValidationTest
     }
 
     @SneakyThrows
-    private void testDeletedEventFails( TrackerImportStrategy importStrategy )
+    private void testDeletedEventFails( TrackerImportStrategyEnum importStrategy )
     {
         // Given -> Creates an event
         createEvent( "tracker/validations/events-with-notes-data.json" );

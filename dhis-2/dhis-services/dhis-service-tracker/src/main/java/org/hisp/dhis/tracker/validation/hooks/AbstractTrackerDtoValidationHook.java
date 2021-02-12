@@ -35,7 +35,7 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import java.util.Iterator;
 import java.util.function.Supplier;
 
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -68,7 +68,7 @@ public abstract class AbstractTrackerDtoValidationHook
         this.order = order;
     }
 
-    private final TrackerImportStrategy strategy;
+    private final TrackerImportStrategyEnum strategy;
 
     /**
      * This constructor is used by the PreCheck* hooks
@@ -78,7 +78,7 @@ public abstract class AbstractTrackerDtoValidationHook
         this.strategy = null;
     }
 
-    public AbstractTrackerDtoValidationHook( TrackerImportStrategy strategy )
+    public AbstractTrackerDtoValidationHook( TrackerImportStrategyEnum strategy )
     {
         checkNotNull( strategy );
         this.strategy = strategy;
@@ -182,7 +182,7 @@ public abstract class AbstractTrackerDtoValidationHook
         // it implies it is for all strategies; create/update/delete
         if ( this.strategy != null )
         {
-            TrackerImportStrategy importStrategy = bundle.getImportStrategy();
+            TrackerImportStrategyEnum importStrategy = bundle.getImportStrategy();
             // If there is a strategy set and it is not delete and the importing
             // strategy is
             // delete,

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report.imports.impl;
+package org.hisp.dhis.tracker.report;
 
 import static org.hisp.dhis.tracker.report.TrackerTimingsStats.*;
 
@@ -43,12 +43,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.*;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preprocess.TrackerPreprocessService;
-import org.hisp.dhis.tracker.report.*;
-import org.hisp.dhis.tracker.report.imports.TrackerImportService;
 import org.hisp.dhis.tracker.validation.TrackerValidationService;
 import org.springframework.stereotype.Service;
 
@@ -104,7 +103,8 @@ public class DefaultTrackerImportService
 
             bundleReport = commit( params, opsTimer, trackerBundle );
 
-            TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK,
+            TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
+                TrackerStatus.OK,
                 bundleReport, validationReport,
                 opsTimer.stopTimer(), bundleSize );
 
@@ -295,12 +295,10 @@ public class DefaultTrackerImportService
     public TrackerImportReport buildImportReport( TrackerImportReport trackerImportReport,
         TrackerBundleReportMode reportMode )
     {
-        TrackerImportReport trackerImportReportBuilder = new TrackerImportReport();
-
-        trackerImportReportBuilder.status = trackerImportReport.getStatus() ;
+        TrackerImportReport.TrackerImportReportBuilder trackerImportReportClone = TrackerImportReport.builder()
+            .status( trackerImportReport.getStatus() )
             .stats( trackerImportReport.getStats() )
-            .bundleReport( trackerImportReport.getBundleReport() )
-            .message( trackerImportReport.getMessage() );
+            .bundleReport( trackerImportReport.getBundleReport() ).message( trackerImportReport.getMessage() );
 
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
@@ -321,13 +319,13 @@ public class DefaultTrackerImportService
             validationReport.setPerformanceReport( null );
             break;
         case FULL:
-            trackerImportReportBuilder.timingsStats( trackerImportReport.getTimingsStats() );
+            trackerImportReportClone.timingsStats( trackerImportReport.getTimingsStats() );
             break;
         }
 
-        trackerImportReportBuilder.validationReport( validationReport );
+        trackerImportReportClone.validationReport( validationReport );
 
-        return trackerImportReportBuilder.build();
+        return trackerImportReportClone.build();
     }
 
     private void startImport( TrackerImportParams params )

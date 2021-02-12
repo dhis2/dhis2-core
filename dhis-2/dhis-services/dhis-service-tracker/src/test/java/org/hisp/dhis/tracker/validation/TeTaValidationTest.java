@@ -47,7 +47,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -242,7 +242,7 @@ public class TeTaValidationTest
 
         TrackerValidationReport report = validate(
             "tracker/validations/te-program_with_tea_unique_data_in_country.json",
-            TrackerImportStrategy.CREATE_AND_UPDATE );
+            TrackerImportStrategyEnum.CREATE_AND_UPDATE );
 
         assertEquals( 0, report.getErrorReports().size() );
         printReport( report );
@@ -340,7 +340,7 @@ public class TeTaValidationTest
         return trackerValidationService.validate( trackerBundle );
     }
 
-    private TrackerValidationReport validate( String path, TrackerImportStrategy importStrategy )
+    private TrackerValidationReport validate( String path, TrackerImportStrategyEnum importStrategy )
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson(

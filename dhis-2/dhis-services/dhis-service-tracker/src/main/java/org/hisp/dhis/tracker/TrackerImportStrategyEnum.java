@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerImportStrategy
+public enum TrackerImportStrategyEnum
 {
     /**
      * Create/import objects that don't match any existing objects.

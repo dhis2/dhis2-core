@@ -49,7 +49,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
@@ -195,7 +195,7 @@ public class ProgramRuleIntegrationTest
 
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
         trackerImportReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportReport );

@@ -39,7 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -93,7 +93,7 @@ public class EnrollmentAttrValidationTests
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-uuid.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -111,7 +111,7 @@ public class EnrollmentAttrValidationTests
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-value.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -137,7 +137,7 @@ public class EnrollmentAttrValidationTests
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-data.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
@@ -156,7 +156,7 @@ public class EnrollmentAttrValidationTests
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-missing-mandatory.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );
@@ -174,7 +174,7 @@ public class EnrollmentAttrValidationTests
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_attr-only-program-attr.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
 
         TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
         printReport( validationReport );

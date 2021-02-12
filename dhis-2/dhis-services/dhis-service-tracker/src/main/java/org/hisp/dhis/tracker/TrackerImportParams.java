@@ -84,7 +84,7 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
+    private TrackerImportStrategyEnum importStrategy = TrackerImportStrategyEnum.CREATE;
 
     /**
      * Should import be treated as a atomic import (all or nothing).
@@ -132,7 +132,7 @@ public class TrackerImportParams
     private String filename;
 
     /**
-     * Job id to use for threaded imports.
+     * Job id to use.
      */
     private JobConfiguration jobConfiguration;
 

@@ -53,7 +53,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -86,7 +86,7 @@ public class PreCheckOwnershipValidationHook
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
+        TrackerImportStrategyEnum strategy = context.getStrategy( trackedEntity );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
@@ -123,7 +123,7 @@ public class PreCheckOwnershipValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerImportStrategyEnum strategy = context.getStrategy( enrollment );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
@@ -200,7 +200,7 @@ public class PreCheckOwnershipValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerImportStrategyEnum strategy = context.getStrategy( event );
         TrackerBundle bundle = context.getBundle();
         User user = bundle.getUser();
 
@@ -301,7 +301,7 @@ public class PreCheckOwnershipValidationHook
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage,
         String teiUid, OrganisationUnit organisationUnit )
     {
-        TrackerImportStrategy strategy = reporter.getValidationContext().getStrategy( event );
+        TrackerImportStrategyEnum strategy = reporter.getValidationContext().getStrategy( event );
         User user = reporter.getValidationContext().getBundle().getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );

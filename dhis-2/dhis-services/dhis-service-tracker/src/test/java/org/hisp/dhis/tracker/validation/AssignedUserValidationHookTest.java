@@ -46,7 +46,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
@@ -153,7 +153,7 @@ public class AssignedUserValidationHookTest
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
-            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .importStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE )
             .userId( user.getUid() )
             .user( user )
             .build();
@@ -187,7 +187,7 @@ public class AssignedUserValidationHookTest
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
-            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .importStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE )
             .userId( user.getUid() )
             .user( user )
             .build();
@@ -217,7 +217,7 @@ public class AssignedUserValidationHookTest
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
-            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .importStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE )
             .userId( user.getUid() )
             .user( user )
             .build();
@@ -243,7 +243,7 @@ public class AssignedUserValidationHookTest
         TrackerImportParams params = TrackerImportParams.builder()
             .atomicMode( AtomicMode.ALL )
             .events( Lists.newArrayList( event ) )
-            .importStrategy( TrackerImportStrategy.CREATE_AND_UPDATE )
+            .importStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE )
             .userId( user.getUid() )
             .user( user )
             .build();

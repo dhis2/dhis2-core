@@ -48,7 +48,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -93,7 +93,7 @@ public class RelationshipsValidationHookTest
         validationHook = new RelationshipsValidationHook();
 
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
     }

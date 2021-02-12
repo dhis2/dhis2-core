@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
@@ -75,7 +75,7 @@ public class PreCheckMandatoryFieldsValidationHookTest
         validationHook = new PreCheckMandatoryFieldsValidationHook();
 
         when( ctx.getBundle() ).thenReturn( bundle );
-        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( ctx.getBundle().getImportStrategy() ).thenReturn( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( bundle.getPreheat() ).thenReturn( preheat );
     }

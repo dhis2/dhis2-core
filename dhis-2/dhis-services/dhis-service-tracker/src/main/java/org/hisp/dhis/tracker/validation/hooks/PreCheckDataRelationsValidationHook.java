@@ -54,7 +54,7 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
@@ -120,7 +120,7 @@ public class PreCheckDataRelationsValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerImportStrategyEnum strategy = context.getStrategy( event );
 
         Program program = context.getProgram( event.getProgram() );
 

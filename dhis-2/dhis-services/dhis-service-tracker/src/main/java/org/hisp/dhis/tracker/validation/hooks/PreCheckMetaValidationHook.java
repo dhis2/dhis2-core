@@ -56,7 +56,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdentifier;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -97,7 +97,7 @@ public class PreCheckMetaValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
+        TrackerImportStrategyEnum strategy = context.getStrategy( enrollment );
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
         addErrorIfNull( organisationUnit, reporter, E1070, enrollment.getOrgUnit() );
@@ -126,7 +126,7 @@ public class PreCheckMetaValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( event );
+        TrackerImportStrategyEnum strategy = context.getStrategy( event );
         TrackerBundle bundle = context.getBundle();
 
         OrganisationUnit organisationUnit = context.getOrganisationUnit( event.getOrgUnit() );
@@ -175,7 +175,8 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+        TrackerImportValidationContext context, TrackerImportStrategyEnum strategy, TrackerBundle bundle,
+        Program program,
         ProgramStage programStage )
     {
         if ( program == null && programStage == null )

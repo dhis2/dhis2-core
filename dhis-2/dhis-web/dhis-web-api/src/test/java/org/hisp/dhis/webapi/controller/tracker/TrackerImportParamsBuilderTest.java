@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.junit.Test;
@@ -109,7 +109,7 @@ public class TrackerImportParamsBuilderTest
     @Test
     public void testImportStrategy()
     {
-        Arrays.stream( TrackerImportStrategy.values() ).forEach( e -> {
+        Arrays.stream( TrackerImportStrategyEnum.values() ).forEach( e -> {
             paramMap.put( IMPORT_STRATEGY_KEY.getKey(), Collections.singletonList( e.name() ) );
             TrackerImportParams params = TrackerImportParamsBuilder.build( paramMap );
             assertThat( params.getImportStrategy(), is( e ) );
@@ -160,7 +160,7 @@ public class TrackerImportParamsBuilderTest
     {
         assertThat( params.getValidationMode(), is( ValidationMode.FULL ) );
         assertThat( params.getImportMode(), is( TrackerBundleMode.COMMIT ) );
-        assertThat( params.getImportStrategy(), is( TrackerImportStrategy.CREATE_AND_UPDATE ) );
+        assertThat( params.getImportStrategy(), is( TrackerImportStrategyEnum.CREATE_AND_UPDATE ) );
         assertThat( params.getAtomicMode(), is( AtomicMode.ALL ) );
         assertThat( params.getFlushMode(), is( FlushMode.AUTO ) );
 

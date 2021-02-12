@@ -37,7 +37,7 @@ import java.util.Map;
 import org.hisp.dhis.artemis.MessageType;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.sideeffect.TrackerRuleEngineSideEffect;
@@ -65,7 +65,7 @@ public class TrackerSideEffectDataBundleTest
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
             .enrollmentRuleEffects( enrollmentRuleEffects )
             .accessedBy( "testUser" )
-            .importStrategy( TrackerImportStrategy.CREATE )
+            .importStrategy( TrackerImportStrategyEnum.CREATE )
             .object( programInstance.getUid() )
             .klass( ProgramInstance.class )
             .build();
@@ -74,7 +74,7 @@ public class TrackerSideEffectDataBundleTest
         assertEquals( ProgramInstance.class, bundle.getKlass() );
         assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
         assertTrue( bundle.getEventRuleEffects().isEmpty() );
-        assertEquals( TrackerImportStrategy.CREATE, bundle.getImportStrategy() );
+        assertEquals( TrackerImportStrategyEnum.CREATE, bundle.getImportStrategy() );
         assertEquals( MessageType.TRACKER_SIDE_EFFECT, bundle.getMessageType() );
     }
 

@@ -32,8 +32,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategyEnum.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategyEnum.UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -58,7 +58,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -135,7 +135,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_invalid_uids.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -150,7 +150,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
@@ -166,7 +166,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( USER_2 );
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
@@ -186,7 +186,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( USER_2 );
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
@@ -206,7 +206,7 @@ public class TrackedEntityImportValidationTest
         User user = userService.getUser( USER_1 );
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
@@ -229,7 +229,7 @@ public class TrackedEntityImportValidationTest
         user.getUserCredentials().setPassword( "user4password" );
         injectSecurityContext( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
@@ -243,7 +243,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_teType-non-existing.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -261,7 +261,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_orgunit-null.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -279,7 +279,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_orgunit-non-existing.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -295,7 +295,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_geo-ok.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
 
         printReport( report );
@@ -341,7 +341,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/te-data_error_attr-non-existing.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 2, report.getErrorReports().size() );
@@ -372,7 +372,7 @@ public class TrackedEntityImportValidationTest
 
         manager.clear();
 
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
+        trackerImportParams.setImportStrategy( TrackerImportStrategyEnum.UPDATE );
 
         TrackerBundle updateBundle = trackerBundleService.create( trackerImportParams );
 
@@ -426,7 +426,7 @@ public class TrackedEntityImportValidationTest
 
         trackerBundleParamsUpdate.setUserId( user.getUid() );
 
-        trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategy.DELETE );
+        trackerBundleParamsUpdate.setImportStrategy( TrackerImportStrategyEnum.DELETE );
         TrackerBundle trackerBundleUpdate = trackerBundleService.create( trackerBundleParamsUpdate );
         assertEquals( 1, trackerBundleUpdate.getTrackedEntities().size() );
 
@@ -452,7 +452,7 @@ public class TrackedEntityImportValidationTest
         throws IOException
     {
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( "tracker/validations/te-data_ok.json",
-            TrackerImportStrategy.DELETE );
+            TrackerImportStrategyEnum.DELETE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
@@ -467,7 +467,7 @@ public class TrackedEntityImportValidationTest
     {
         TrackerImportParams params = createBundleFromJson( "tracker/validations/te-data_ok.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.DELETE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.DELETE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 13, report.getErrorReports().size() );
@@ -477,7 +477,7 @@ public class TrackedEntityImportValidationTest
     }
 
     @SneakyThrows
-    private void testDeletedTrackedEntityFails( TrackerImportStrategy importStrategy )
+    private void testDeletedTrackedEntityFails( TrackerImportStrategyEnum importStrategy )
     {
         // Given -> Creates a tracked entity
         createTrackedEntityInstance( "tracker/validations/te-data_ok_soft_deleted_test.json" );
@@ -538,7 +538,7 @@ public class TrackedEntityImportValidationTest
     {
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
             "tracker/validations/enrollments_te_te-data.json",
-            TrackerImportStrategy.CREATE );
+            TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
@@ -554,7 +554,7 @@ public class TrackedEntityImportValidationTest
 
         User user2 = userService.getUser( USER_4 );
         params.setUser( user2 );
-        params.setImportStrategy( TrackerImportStrategy.DELETE );
+        params.setImportStrategy( TrackerImportStrategyEnum.DELETE );
 
         TrackerBundle trackerBundle = trackerBundleService.create( params );
         assertEquals( 5, trackerBundle.getTrackedEntities().size() );
@@ -573,7 +573,7 @@ public class TrackedEntityImportValidationTest
         TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );

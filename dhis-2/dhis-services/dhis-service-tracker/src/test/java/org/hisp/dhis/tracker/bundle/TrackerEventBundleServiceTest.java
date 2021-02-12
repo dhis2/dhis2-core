@@ -46,7 +46,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +110,7 @@ public class TrackerEventBundleServiceTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_events_and_enrollment.json" );
-        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
+        trackerImportParams.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
 
