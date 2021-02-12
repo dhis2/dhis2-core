@@ -35,7 +35,7 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportParamsBuilder;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
@@ -45,12 +45,12 @@ import org.springframework.stereotype.Component;
 @Component
 @Primary
 @RequiredArgsConstructor
-public class ImportStrategyImpl implements ImportStrategy
+public class TrackerImportStrategyImpl implements TrackerImportStrategy
 {
 
-    private final ImportAsyncFalseStrategyImpl importAsyncFalseStrategy;
+    private final TrackerImportAsyncFalseStrategyImpl importAsyncFalseStrategy;
 
-    private final ImportAsyncStrategyImpl importAsyncStrategy;
+    private final TrackerImportAsyncStrategyImpl importAsyncStrategy;
 
     @Override
     public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )

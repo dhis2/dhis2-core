@@ -25,15 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.strategy.tracker.imports;
+package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public interface ImportStrategy
+@Component
+@RequiredArgsConstructor
+public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategy
 {
-    TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
+    private final MessageManager messageManager;
+
+    @Override
+    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
+    {
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
+            .build();
+
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
+
+        return null; // empty report is
+                     // returned
+                     // in async creation
+    }
 }

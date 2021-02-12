@@ -55,7 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +73,7 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
-    private final ImportStrategy trackerImportStrategy;
+    private final TrackerImportStrategy trackerImportStrategy;
 
     private final TrackerImportService trackerImportService;
 

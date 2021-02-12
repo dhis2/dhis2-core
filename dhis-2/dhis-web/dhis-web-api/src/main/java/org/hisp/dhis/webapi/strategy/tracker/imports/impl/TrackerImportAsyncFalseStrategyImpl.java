@@ -29,12 +29,10 @@ package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.artemis.MessageManager;
-import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.tracker.job.TrackerMessage;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.ImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,21 +40,17 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ImportAsyncStrategyImpl implements ImportStrategy
+public class TrackerImportAsyncFalseStrategyImpl implements TrackerImportStrategy
 {
-    private final MessageManager messageManager;
+    private final TrackerImportService trackerImportService;
 
     @Override
     public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
     {
-        TrackerMessage trackerMessage = TrackerMessage.builder()
-            .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
-            .build();
+        TrackerImportReport trackerImportReport = trackerImportService
+            .importTracker( trackerImportReportRequest.getTrackerImportParams() );
 
-        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
-
-        return null; // empty report is
-                     // returned
-                     // in async creation
+        return trackerImportService.buildImportReport( trackerImportReport,
+            trackerImportReportRequest.getTrackerBundleReportMode() );
     }
 }
