@@ -50,9 +50,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 public class TrackerMessage implements SerializableMessage
 {
     @JsonProperty
-    private final String uid;
-
-    @JsonProperty
     private final TrackerImportParams trackerImportParams;
 
     @Override
