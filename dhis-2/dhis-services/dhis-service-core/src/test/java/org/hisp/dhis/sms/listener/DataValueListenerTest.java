@@ -61,7 +61,6 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
