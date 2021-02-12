@@ -88,6 +88,8 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
 
     private String enrollmentUid = CodeGenerator.generateUid();
 
+    private String trackedEntityUid = CodeGenerator.generateUid();
+
     private Program programA;
 
     private ProgramStage programStageA;
@@ -230,6 +232,7 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         programService.updateProgram( programA );
 
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityInstanceA.setUid( trackedEntityUid );
         entityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
         trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityInstanceA,
@@ -340,5 +343,18 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
         assertEquals( "message is " + programA.getUid() + " and " + orgUnitUid, notificationMessage.getMessage() );
         assertEquals( "subject is " + programStageA.getUid() + " and " + enrollmentUid,
             notificationMessage.getSubject() );
+    }
+
+    @Test
+    public void testRendererForMessageWithTrackedEntity()
+    {
+        programNotificationTemplate.setMessageTemplate( "message is V{tracked_entity_id}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is V{tracked_entity_id}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+                programNotificationTemplate );
+        assertEquals( "message is " + trackedEntityInstanceA.getUid(), notificationMessage.getMessage() );
+        assertEquals( "subject is " + trackedEntityInstanceA.getUid(), notificationMessage.getSubject() );
     }
 }

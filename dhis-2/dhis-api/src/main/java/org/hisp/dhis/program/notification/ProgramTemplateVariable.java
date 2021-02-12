@@ -62,7 +62,8 @@ public enum ProgramTemplateVariable
     INCIDENT_DATE( "incident_date" ),
     PROGRAM_ID( "program_id" ),
     ENROLLMENT_ORG_UNIT_ID( "enrollment_org_unit_id" ),
-    ENROLLMENT_ID( "enrollment_id" );
+    ENROLLMENT_ID( "enrollment_id" ),
+    TRACKED_ENTITY_ID( "tracked_entity_id" );
 
     private static final Map<String, ProgramTemplateVariable> variableNameMap = EnumSet
         .allOf( ProgramTemplateVariable.class ).stream()

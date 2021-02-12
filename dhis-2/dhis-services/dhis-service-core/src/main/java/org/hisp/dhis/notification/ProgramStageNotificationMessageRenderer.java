@@ -66,6 +66,7 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.PROGRAM_ID, psi -> psi.getProgramStage().getProgram().getUid() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_ID, psi -> psi.getProgramStage().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ID, psi -> psi.getProgramInstance().getUid() )
+        .put( ProgramStageTemplateVariable.TRACKED_ENTITY_ID, psi -> psi.getProgramInstance().getEntityInstance().getUid() )
         .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
