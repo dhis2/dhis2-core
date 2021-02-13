@@ -143,4 +143,23 @@ public interface OrganisationUnitStore
      * @return number of levels, 0 if no organisation units are present.
      */
     int getMaxLevel();
+
+    /**
+     * Count the number of orgunits that satisfies the conditions in the
+     * queryParams. Note: groups, maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @return the count of the number of org units satisfying the params
+     *         criteria
+     */
+    int countOrganisationUnits( OrganisationUnitQueryParams params );
+
+    /**
+     * Get list of organisation unit uids satisfying the query params. Note:
+     * groups, maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @return the list of org unit uids satisfying the params criteria
+     */
+    List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params );
 }

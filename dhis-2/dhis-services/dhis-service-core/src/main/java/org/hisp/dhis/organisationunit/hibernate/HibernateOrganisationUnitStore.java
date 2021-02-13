@@ -326,6 +326,55 @@ public class HibernateOrganisationUnitStore
         return maxLength != null ? maxLength : 0;
     }
 
+    @Override
+    public int countOrganisationUnits( OrganisationUnitQueryParams params )
+    {
+        String sql = buildOrganisationUnitCountDistinctUidsSql( params );
+
+        return jdbcTemplate.queryForObject( sql, Integer.class );
+    }
+
+    @Override
+    public List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params )
+    {
+        String sql = buildOrganisationUnitDistinctUidsSql( params );
+        return jdbcTemplate.queryForList( sql, String.class );
+    }
+
+    private String buildOrganisationUnitDistinctUidsSql( OrganisationUnitQueryParams params )
+    {
+        SqlHelper hlp = new SqlHelper();
+
+        String sql = "select distinct o.uid from organisationunit o ";
+
+        if ( params.isFetchChildren() )
+        {
+            sql += " left outer join organisationunit c ON o.organisationunitid = c.parentid ";
+        }
+
+        if ( params.hasParents() )
+        {
+            sql += hlp.whereAnd() + " (";
+
+            for ( OrganisationUnit parent : params.getParents() )
+            {
+                sql += "o.path like '" + parent.getPath() + "%'" + " or ";
+            }
+
+            sql = TextUtils.removeLastOr( sql ) + ") ";
+        }
+
+        // TODO: Support Groups + Query + Hierarchy + MaxLevels in this sql
+
+        return sql;
+    }
+
+    private String buildOrganisationUnitCountDistinctUidsSql( OrganisationUnitQueryParams params )
+    {
+        String sql = buildOrganisationUnitDistinctUidsSql( params );
+        return sql.replaceFirst( "select distinct o.uid from", "select count(distinct o.uid) from" );
+    }
+
     private void updatePaths( List<OrganisationUnit> organisationUnits )
     {
         Session session = getSession();

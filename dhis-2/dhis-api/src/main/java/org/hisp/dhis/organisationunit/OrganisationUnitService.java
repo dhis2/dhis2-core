@@ -502,4 +502,33 @@ public interface OrganisationUnitService
      * Update all OUs (thus forcing update of path).
      */
     void forceUpdatePaths();
+
+    /**
+     * Get the count of the organisation units in the capture scope of current
+     * user
+     *
+     * @return the count of the organisation units in capture scope of current
+     *         user
+     */
+    int getCaptureOrganisationUnitCount();
+
+    /**
+     * Get the full list of organisation unit uids that falls under the capture
+     * scope of the current user
+     *
+     * @return list of org unit uids in capture scope of current user.
+     */
+    List<String> getCaptureOrganisationUnitUidsWithChildren();
+
+    /**
+     * Cached version of {@link #getCaptureOrganisationUnitCount()
+     * getCaptureOrganisationUnitCount} method If not in cache it populates it
+     * using the {@link #getCaptureOrganisationUnitCount()
+     * getCaptureOrganisationUnitCount} method
+     *
+     * @return the count of the organisation units in capture scope of current
+     *         user
+     */
+    int getCaptureOrganisationUnitCountCached();
+
 }

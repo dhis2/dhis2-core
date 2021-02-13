@@ -31,10 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.OrganisationUnitAssignable;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
@@ -122,7 +120,7 @@ public class DefaultJpaQueryParser
         {
             User user = currentUserService.getCurrentUser();
 
-            if ( user != null )
+            if ( user != null && !user.isSuper() )
             {
                 handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
                 query.setUser( user );
@@ -133,13 +131,15 @@ public class DefaultJpaQueryParser
 
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
 
-        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream()
-            .map( orgUnit -> orgUnit.getUid() ).collect(
-                Collectors.toList() );
+        int count = organisationUnitService.getCaptureOrganisationUnitCount();
+        if ( count > 10 )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
 
         disjunction
             .add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
