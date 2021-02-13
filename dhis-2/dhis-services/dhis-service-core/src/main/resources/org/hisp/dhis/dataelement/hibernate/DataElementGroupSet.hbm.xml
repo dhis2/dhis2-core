@@ -6,22 +6,27 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.dataelement.DataElementGroupSet" table="dataelementgroupset">
+  <class name="org.hisp.dhis.dataelement.DataElementGroupSet"
+         table="dataelementgroupset">
 
-    <cache usage="read-write" />
+    <cache usage="read-write"/>
 
     <id name="id" column="dataelementgroupsetid">
-      <generator class="native" />
+      <generator class="native"/>
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="true"
+              length="230"/>
 
-    <property name="description" type="text" />
+    <property name="shortName" column="shortname" not-null="true" unique="true"
+              length="50"/>
 
-    <property name="compulsory" />
+    <property name="description" type="text"/>
 
-    <property name="dataDimension" column="datadimension" not-null="true" />
+    <property name="compulsory"/>
+
+    <property name="dataDimension" column="datadimension" not-null="true"/>
 
     <property name="translations" type="jblTranslations"/>
 

@@ -620,6 +620,7 @@ public abstract class DhisConvenienceTest
     {
         Category category = new Category( "Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION );
         category.setAutoFields();
+        category.setShortName( category.getName() );
 
         for ( CategoryOption categoryOption : categoryOptions )
         {
@@ -723,6 +724,7 @@ public abstract class DhisConvenienceTest
 
         groupSet.setUid( BASE_UID + uniqueCharacter );
         groupSet.setName( "DataElementGroupSet" + uniqueCharacter );
+        groupSet.setShortName( groupSet.getName() );
 
         return groupSet;
     }
@@ -956,6 +958,7 @@ public abstract class DhisConvenienceTest
         groupSet.setAutoFields();
 
         groupSet.setName( "OrganisationUnitGroupSet" + uniqueCharacter );
+        groupSet.setShortName( "OrganisationUnitGroupSet" + uniqueCharacter );
         groupSet.setCode( "OrganisationUnitGroupSetCode" + uniqueCharacter );
         groupSet.setDescription( "Description" + uniqueCharacter );
         groupSet.setCompulsory( true );

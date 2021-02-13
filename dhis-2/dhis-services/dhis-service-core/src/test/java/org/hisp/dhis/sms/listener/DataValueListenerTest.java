@@ -61,13 +61,13 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
@@ -297,9 +297,13 @@ public class DataValueListenerTest extends DhisConvenienceTest
         assertTrue( updatedIncomingSms.isParsed() );
     }
 
-    @Test( expected = SMSParserException.class )
+    @Test
     public void testIfDataSetIsLocked()
     {
+        ArgumentCaptor<IncomingSms> incomingSmsCaptor = ArgumentCaptor.forClass( IncomingSms.class );
+
+        mockSmsSender();
+
         // Mock for userService
         when( userService.getUser( anyString() ) ).thenReturn( user );
 
@@ -309,13 +313,15 @@ public class DataValueListenerTest extends DhisConvenienceTest
         // Mock for smsCommandService
         when( smsCommandService.getSMSCommand( anyString(), any() ) ).thenReturn( keyValueCommand );
 
-        incomingSms.setCreatedBy( user );
+        incomingSms.setUser( user );
         when( dataSetService.isLocked( any(), any( DataSet.class ), any(), any(), any(), any() ) ).thenReturn( true );
         subject.receive( incomingSms );
 
         verify( smsCommandService, times( 1 ) ).getSMSCommand( anyString(), any() );
-        verify( dataSetService, times( 1 ) ).isLocked( user, any( DataSet.class ), any(), any(), any(), any() );
-        verify( incomingSmsService, never() ).update( any() );
+        verify( incomingSmsService, times( 1 ) ).update( incomingSmsCaptor.capture() );
+
+        assertEquals( incomingSmsCaptor.getValue().getText(), incomingSms.getText() );
+        assertFalse( incomingSmsCaptor.getValue().isParsed() );
     }
 
     @Test

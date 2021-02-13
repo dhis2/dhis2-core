@@ -5,6 +5,7 @@
       "created": "2019-02-05T13:45:02.304",
       "lastUpdated": "2019-02-05T13:45:02.405",
       "name": "default",
+      "shortName": "default",
       "id": "GLevLNI9wkl",
       "dataDimensionType": "DISAGGREGATION",
       "publicAccess": "rw------",
