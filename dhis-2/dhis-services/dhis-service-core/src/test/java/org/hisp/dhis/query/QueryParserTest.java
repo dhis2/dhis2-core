@@ -34,19 +34,29 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.mock.MockCurrentUserService;
+import org.hisp.dhis.organisationunit.DefaultOrganisationUnitService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevelStore;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.query.operators.EmptyOperator;
 import org.hisp.dhis.query.operators.EqualOperator;
 import org.hisp.dhis.query.operators.InOperator;
 import org.hisp.dhis.query.operators.NullOperator;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,11 +66,34 @@ public class QueryParserTest
 {
     private QueryParser queryParser;
 
-    @Autowired
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
     private SchemaService schemaService;
+
+    @Autowired
+    private IdentifiableObjectManager identifiableObjectManager;
+
+    @Autowired
+    private OrganisationUnitStore organisationUnitStore;
+
+    @Autowired
+    private DataSetService dataSetService;
+
+    @Autowired
+    private OrganisationUnitLevelStore organisationUnitLevelStore;
+
+    @Autowired
+    private ConfigurationService configurationService;
+
+    @Autowired
+    private UserSettingService userSettingService;
+
+    @Autowired
+    private Environment env;
+
+    @Autowired
+    private CacheProvider cacheProvider;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -72,12 +105,15 @@ public class QueryParserTest
     protected void setUpTest()
         throws Exception
     {
-
         OrganisationUnit orgUnitA = createOrganisationUnit( 'A' );
-        organisationUnitService.addOrganisationUnit( orgUnitA );
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
-        queryParser = new DefaultJpaQueryParser( schemaService, new MockCurrentUserService( user ),
+        CurrentUserService currentUserService = new MockCurrentUserService( user );
+        this.organisationUnitService = new DefaultOrganisationUnitService( env, organisationUnitStore, dataSetService,
+            organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
+        organisationUnitService.addOrganisationUnit( orgUnitA );
+        identifiableObjectManager.save( orgUnitA );
+        queryParser = new DefaultJpaQueryParser( schemaService, currentUserService,
             organisationUnitService );
     }
 
