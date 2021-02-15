@@ -25,82 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.artemis.MessageManager;
+import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.tracker.job.TrackerMessage;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class TrackerStats
+@Component
+@RequiredArgsConstructor
+public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategyHandler
 {
-    @JsonProperty
-    private int created = 0;
+    private final MessageManager messageManager;
 
-    @JsonProperty
-    private int updated = 0;
-
-    @JsonProperty
-    private int deleted = 0;
-
-    @JsonProperty
-    private int ignored = 0;
-
-    @JsonProperty
-    public int getTotal()
+    @Override
+    public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
     {
-        return created + updated + deleted + ignored;
-    }
+        TrackerMessage trackerMessage = TrackerMessage.builder()
+            .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
+            .uid( trackerImportReportRequest.getUid() )
+            .build();
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
 
-    public void merge( TrackerStats stats )
-    {
-        created += stats.getCreated();
-        updated += stats.getUpdated();
-        deleted += stats.getDeleted();
-        ignored += stats.getIgnored();
-    }
-
-    public void ignored()
-    {
-        ignored += created;
-        ignored += updated;
-        ignored += deleted;
-
-        created = 0;
-        updated = 0;
-        deleted = 0;
-    }
-
-    public void incCreated()
-    {
-        created++;
-    }
-
-    public void incUpdated()
-    {
-        updated++;
-    }
-
-    public void incDeleted()
-    {
-        deleted++;
-    }
-
-    public void incIgnored()
-    {
-        ignored++;
+        return null; // empty report is not
+                     // returned
+                     // in async creation
     }
 }

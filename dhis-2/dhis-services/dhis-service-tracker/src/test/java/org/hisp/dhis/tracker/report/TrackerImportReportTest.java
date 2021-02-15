@@ -69,7 +69,7 @@ public class TrackerImportReportTest
         originalPayload.put( TrackerType.ENROLLMENT, 8 );
 
         // Method under test
-        TrackerImportReport rep = TrackerImportReport.withImportCompleted( TrackerStatus.OK, bundleReport,
+        TrackerImportReport rep = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, bundleReport,
             validationReport, timingsStats, originalPayload );
 
         assertThat( rep.getStats().getCreated(), is( 8 ) );

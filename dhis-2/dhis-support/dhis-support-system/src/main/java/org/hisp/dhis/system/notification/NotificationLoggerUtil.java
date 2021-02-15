@@ -25,82 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.report;
+package org.hisp.dhis.system.notification;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import javax.validation.constraints.NotNull;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Luca Cambi <luca@dhis2.org>
  */
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class TrackerStats
+public class NotificationLoggerUtil
 {
-    @JsonProperty
-    private int created = 0;
 
-    @JsonProperty
-    private int updated = 0;
-
-    @JsonProperty
-    private int deleted = 0;
-
-    @JsonProperty
-    private int ignored = 0;
-
-    @JsonProperty
-    public int getTotal()
+    @NotNull
+    public static void log( Logger logger, NotificationLevel notificationLevel, String message )
     {
-        return created + updated + deleted + ignored;
-    }
-
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
-
-    public void merge( TrackerStats stats )
-    {
-        created += stats.getCreated();
-        updated += stats.getUpdated();
-        deleted += stats.getDeleted();
-        ignored += stats.getIgnored();
-    }
-
-    public void ignored()
-    {
-        ignored += created;
-        ignored += updated;
-        ignored += deleted;
-
-        created = 0;
-        updated = 0;
-        deleted = 0;
-    }
-
-    public void incCreated()
-    {
-        created++;
-    }
-
-    public void incUpdated()
-    {
-        updated++;
-    }
-
-    public void incDeleted()
-    {
-        deleted++;
-    }
-
-    public void incIgnored()
-    {
-        ignored++;
+        switch ( notificationLevel )
+        {
+        case DEBUG:
+            logger.debug( message );
+            break;
+        case INFO:
+            logger.info( message );
+            break;
+        case WARN:
+            logger.warn( message );
+            break;
+        case ERROR:
+            logger.error( message );
+            break;
+        case OFF:
+            break;
+        }
     }
 }
