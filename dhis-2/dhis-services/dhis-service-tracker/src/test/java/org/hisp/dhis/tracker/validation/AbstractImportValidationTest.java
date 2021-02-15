@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
@@ -104,7 +104,7 @@ public abstract class AbstractImportValidationTest
         }
     }
 
-    protected ValidateAndCommitTestUnit validateAndCommit( String jsonFileName, TrackerImportStrategyEnum strategy )
+    protected ValidateAndCommitTestUnit validateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
         throws IOException
     {
         return ValidateAndCommitTestUnit.builder()
@@ -117,7 +117,7 @@ public abstract class AbstractImportValidationTest
     }
 
     protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params,
-        TrackerImportStrategyEnum strategy )
+        TrackerImportStrategy strategy )
     {
         return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )

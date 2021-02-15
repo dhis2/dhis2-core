@@ -50,7 +50,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
@@ -137,7 +137,7 @@ public class ReportSummaryIntegrationTest
         inputStream = new ClassPathResource( "tracker/one_update_tei_and_one_new_tei.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
@@ -164,7 +164,7 @@ public class ReportSummaryIntegrationTest
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.OBJECT );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportTeiReport );
@@ -189,7 +189,7 @@ public class ReportSummaryIntegrationTest
         inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
@@ -214,7 +214,7 @@ public class ReportSummaryIntegrationTest
         inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
@@ -228,7 +228,7 @@ public class ReportSummaryIntegrationTest
         inputStream = new ClassPathResource( "tracker/single_enrollment.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
@@ -260,7 +260,7 @@ public class ReportSummaryIntegrationTest
             .getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
@@ -293,7 +293,7 @@ public class ReportSummaryIntegrationTest
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.OBJECT );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEnrollmentReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEnrollmentReport );
@@ -357,7 +357,7 @@ public class ReportSummaryIntegrationTest
         inputStream = new ClassPathResource( "tracker/one_update_event_and_one_new_event.json" ).getInputStream();
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEventReport );
@@ -394,7 +394,7 @@ public class ReportSummaryIntegrationTest
         params = renderService.fromJson( inputStream, TrackerImportParams.class );
         params.setUserId( userA.getUid() );
         params.setAtomicMode( AtomicMode.OBJECT );
-        params.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        params.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport trackerImportEventReport = trackerImportService.importTracker( params );
 
         assertNotNull( trackerImportEventReport );

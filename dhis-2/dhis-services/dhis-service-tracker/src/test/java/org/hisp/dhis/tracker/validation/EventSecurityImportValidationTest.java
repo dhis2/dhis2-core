@@ -59,7 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -304,7 +304,7 @@ public class EventSecurityImportValidationTest
         setupMetadata();
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategyEnum.CREATE );
+            "tracker/validations/events_error-no-uncomplete.json", TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
 
         printReport( report );
@@ -329,7 +329,7 @@ public class EventSecurityImportValidationTest
         User user = userService.getUser( USER_4 );
 
         trackerBundleParams.setUserId( user.getUid() );
-        trackerBundleParams.setImportStrategy( TrackerImportStrategyEnum.UPDATE );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );

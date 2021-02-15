@@ -39,7 +39,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -153,7 +153,7 @@ public class TrackerObjectDeletionServiceTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/non_existent_enrollment_basic_data_for_deletion.json" );
-        params.setImportStrategy( TrackerImportStrategyEnum.DELETE );
+        params.setImportStrategy( TrackerImportStrategy.DELETE );
         TrackerImportReport importReport = trackerImportService.importTracker( params );
 
         assertEquals( TrackerStatus.ERROR, importReport.getStatus() );

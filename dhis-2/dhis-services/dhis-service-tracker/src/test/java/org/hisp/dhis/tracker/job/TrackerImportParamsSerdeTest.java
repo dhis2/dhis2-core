@@ -40,7 +40,7 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
@@ -79,7 +79,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
             .atomicMode( AtomicMode.OBJECT )
             .flushMode( FlushMode.OBJECT )
             .skipRuleEngine( true )
-            .importStrategy( TrackerImportStrategyEnum.DELETE )
+            .importStrategy( TrackerImportStrategy.DELETE )
             .validationMode( ValidationMode.SKIP )
             .build();
 
@@ -137,7 +137,7 @@ public class TrackerImportParamsSerdeTest extends TrackerTest
         final TrackerImportParams trackerImportParams = renderService.fromJson( json, TrackerImportParams.class );
 
         assertThat( trackerImportParams.getImportMode(), is( TrackerBundleMode.COMMIT ) );
-        assertThat( trackerImportParams.getImportStrategy(), is( TrackerImportStrategyEnum.DELETE ) );
+        assertThat( trackerImportParams.getImportStrategy(), is( TrackerImportStrategy.DELETE ) );
         assertThat( trackerImportParams.getAtomicMode(), is( AtomicMode.OBJECT ) );
         assertThat( trackerImportParams.getFlushMode(), is( FlushMode.OBJECT ) );
         assertThat( trackerImportParams.getValidationMode(), is( ValidationMode.SKIP ) );

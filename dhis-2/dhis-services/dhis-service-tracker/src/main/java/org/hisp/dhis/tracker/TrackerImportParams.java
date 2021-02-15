@@ -81,7 +81,7 @@ public class TrackerImportParams
      */
     @JsonProperty
     @Builder.Default
-    private TrackerImportStrategyEnum importStrategy = TrackerImportStrategyEnum.CREATE;
+    private TrackerImportStrategy importStrategy = TrackerImportStrategy.CREATE;
 
     /**
      * Should import be treated as a atomic import (all or nothing).

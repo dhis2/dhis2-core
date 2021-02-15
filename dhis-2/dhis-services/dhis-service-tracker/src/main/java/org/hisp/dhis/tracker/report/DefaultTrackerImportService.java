@@ -165,7 +165,7 @@ public class DefaultTrackerImportService
         TrackerBundle trackerBundle )
     {
         TrackerBundleReport bundleReport;
-        if ( TrackerImportStrategyEnum.DELETE == params.getImportStrategy() )
+        if ( TrackerImportStrategy.DELETE == params.getImportStrategy() )
         {
             bundleReport = opsTimer.exec( COMMIT_OPS, () -> deleteBundle( trackerBundle ) );
         }

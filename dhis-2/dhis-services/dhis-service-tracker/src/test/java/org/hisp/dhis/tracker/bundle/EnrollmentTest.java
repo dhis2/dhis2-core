@@ -41,7 +41,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
@@ -160,7 +160,7 @@ public class EnrollmentTest
         updatedEnrollment.setEnrolledAt( Instant.now() );
         updatedEnrollment.setOccurredAt( Instant.now() );
 
-        enrollmentParams.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        enrollmentParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         TrackerImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoImportErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getUpdated() );

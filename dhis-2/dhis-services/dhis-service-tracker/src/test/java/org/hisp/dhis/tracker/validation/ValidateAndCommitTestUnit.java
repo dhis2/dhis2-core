@@ -32,7 +32,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -66,7 +66,7 @@ public class ValidateAndCommitTestUnit
     private boolean forceCommit;
 
     @Builder.Default
-    private final TrackerImportStrategyEnum trackerImportStrategy = TrackerImportStrategyEnum.CREATE_AND_UPDATE;
+    private final TrackerImportStrategy trackerImportStrategy = TrackerImportStrategy.CREATE_AND_UPDATE;
 
     /**
      * Runs the work

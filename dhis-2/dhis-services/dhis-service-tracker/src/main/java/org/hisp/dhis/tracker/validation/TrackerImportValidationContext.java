@@ -51,7 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -69,7 +69,7 @@ import com.google.common.base.Preconditions;
 @Data
 public class TrackerImportValidationContext
 {
-    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategyEnum>> resolvedStrategyMap = new HashMap<>();
+    private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
 
@@ -87,7 +87,7 @@ public class TrackerImportValidationContext
         // Create a copy of the bundle
         this.bundle = bundle;
 
-        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategyEnum>> resolvedMap = this
+        Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
             .getResolvedStrategyMap();
 
         resolvedMap.put( Event.class, new HashMap<>() );
@@ -96,32 +96,32 @@ public class TrackerImportValidationContext
         this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
-    public TrackerImportStrategyEnum getStrategy( Enrollment enrollment )
+    public TrackerImportStrategy getStrategy( Enrollment enrollment )
     {
         return getResolvedStrategyMap().get( Enrollment.class ).get( enrollment.getEnrollment() );
     }
 
-    public TrackerImportStrategyEnum setStrategy( Enrollment enrollment, TrackerImportStrategyEnum strategy )
+    public TrackerImportStrategy setStrategy( Enrollment enrollment, TrackerImportStrategy strategy )
     {
         return getResolvedStrategyMap().get( Enrollment.class ).put( enrollment.getEnrollment(), strategy );
     }
 
-    public TrackerImportStrategyEnum getStrategy( Event event )
+    public TrackerImportStrategy getStrategy( Event event )
     {
         return getResolvedStrategyMap().get( Event.class ).get( event.getEvent() );
     }
 
-    public TrackerImportStrategyEnum setStrategy( Event event, TrackerImportStrategyEnum strategy )
+    public TrackerImportStrategy setStrategy( Event event, TrackerImportStrategy strategy )
     {
         return getResolvedStrategyMap().get( Event.class ).put( event.getEvent(), strategy );
     }
 
-    public TrackerImportStrategyEnum getStrategy( TrackedEntity tei )
+    public TrackerImportStrategy getStrategy( TrackedEntity tei )
     {
         return getResolvedStrategyMap().get( TrackedEntity.class ).get( tei.getTrackedEntity() );
     }
 
-    public TrackerImportStrategyEnum setStrategy( TrackedEntity trackedEntity, TrackerImportStrategyEnum strategy )
+    public TrackerImportStrategy setStrategy( TrackedEntity trackedEntity, TrackerImportStrategy strategy )
     {
         return getResolvedStrategyMap().get( TrackedEntity.class ).put( trackedEntity.getTrackedEntity(), strategy );
     }

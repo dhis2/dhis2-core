@@ -42,7 +42,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -124,7 +124,7 @@ public class EventDataValueTest
         // update will
         // not work
         trackerImportParams.getEvents().get( 0 ).setUid( trackerImportParams.getEvents().get( 0 ).getEvent() );
-        trackerImportParams.setImportStrategy( TrackerImportStrategyEnum.CREATE_AND_UPDATE );
+        trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );

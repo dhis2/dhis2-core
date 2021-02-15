@@ -37,7 +37,7 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
@@ -68,7 +68,7 @@ public class PreCheckSecurityValidationHook
         TrackedEntity trackedEntity )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategyEnum strategy = context.getStrategy( trackedEntity );
+        TrackerImportStrategy strategy = context.getStrategy( trackedEntity );
 
         checkNotNull( context.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
@@ -88,7 +88,7 @@ public class PreCheckSecurityValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategyEnum strategy = validationContext.getStrategy( enrollment );
+        TrackerImportStrategy strategy = validationContext.getStrategy( enrollment );
 
         checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
@@ -108,7 +108,7 @@ public class PreCheckSecurityValidationHook
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext validationContext = reporter.getValidationContext();
-        TrackerImportStrategyEnum strategy = validationContext.getStrategy( event );
+        TrackerImportStrategy strategy = validationContext.getStrategy( event );
 
         checkNotNull( validationContext.getBundle().getUser(), USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );

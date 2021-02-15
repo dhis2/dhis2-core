@@ -65,7 +65,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportStrategyEnum;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
@@ -265,7 +265,7 @@ public class EnrollmentSecurityImportValidationTest
         User user = userService.getUser( USER_2 );
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -294,7 +294,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUserId( user.getUid() );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
@@ -324,7 +324,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -359,7 +359,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -389,7 +389,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
 
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -419,7 +419,7 @@ public class EnrollmentSecurityImportValidationTest
 
         params.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategyEnum.CREATE );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
         assertEquals( 1, report.getErrorReports().size() );
