@@ -83,7 +83,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getName() + " " + metricName;
+        return dataSet.getName() + " - " + metricName;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getShortName() + " " + metricName;
+        return dataSet.getShortName() + " - " + metricName;
     }
 
     @Override
