@@ -205,7 +205,7 @@ public class ProgramRuleIntegrationTest
         assertEquals( 1, errorReports.size() );
         assertEquals( TrackerErrorCode.E1200, errorReports.get( 0 ).getErrorCode() );
         assertEquals(
-            "Rule engine error: `DataElement `DATAEL00001` is already present in event `EVENT123456` and cannot be overwritten`",
+            "Rule engine error: `DataElement `DATAEL00001` is already present in event `EVENT123456`",
             errorReports.get( 0 ).getErrorMessage() );
     }
 }
