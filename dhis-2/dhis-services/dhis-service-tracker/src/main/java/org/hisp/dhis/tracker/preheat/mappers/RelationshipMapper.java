@@ -42,8 +42,15 @@ public interface RelationshipMapper extends PreheatMapper<Relationship>
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "relationshipType", qualifiedByName = "typeMapper" )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
     @Mapping( target = "from" )
     @Mapping( target = "to" )
+    @Mapping( target = "created" )
+    @Mapping( target = "createdBy" )
+    @Mapping( target = "lastUpdated" )
+    @Mapping( target = "lastUpdatedBy" )
     Relationship map( Relationship relationship );
 
     @Named( "typeMapper" )
@@ -51,6 +58,7 @@ public interface RelationshipMapper extends PreheatMapper<Relationship>
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
+    @Mapping( target = "bidirectional" )
     RelationshipType mapType( RelationshipType type );
 
 }
