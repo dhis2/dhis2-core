@@ -42,8 +42,6 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
-
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -81,9 +79,9 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    private final Cache<Boolean> inUserOrgUnitHierarchyCache;
 
-    private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
+    private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -126,6 +124,12 @@ public class DefaultOrganisationUnitService
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
         this.cacheProvider = cacheProvider;
+        this.inUserOrgUnitHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+        this.inUserOrgUnitSearchHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     /**
@@ -135,18 +139,6 @@ public class DefaultOrganisationUnitService
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-
-        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -497,7 +489,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
+        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
             .orElse( false );
     }
 
@@ -533,7 +525,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE
+        return inUserOrgUnitSearchHierarchyCache
             .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
     }
 
