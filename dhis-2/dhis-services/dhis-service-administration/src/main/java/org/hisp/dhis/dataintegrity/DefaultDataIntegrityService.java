@@ -71,7 +71,6 @@ import org.hisp.dhis.indicator.IndicatorService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
@@ -462,24 +461,9 @@ public class DefaultDataIntegrityService
     }
 
     @Override
-    public SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets()
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
     {
-        Collection<OrganisationUnitGroupSet> groupSets = organisationUnitGroupService.getAllOrganisationUnitGroupSets();
-
-        TreeMap<OrganisationUnit, Collection<OrganisationUnitGroup>> targets = new TreeMap<>();
-
-        for ( OrganisationUnitGroupSet groupSet : groupSets )
-        {
-            Collection<OrganisationUnit> duplicates = getDuplicates(
-                new ArrayList<>( groupSet.getOrganisationUnits() ) );
-
-            for ( OrganisationUnit duplicate : duplicates )
-            {
-                targets.put( duplicate, new HashSet<>( duplicate.getGroups() ) );
-            }
-        }
-
-        return targets;
+        return organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets();
     }
 
     @Override
@@ -566,7 +550,8 @@ public class DefaultDataIntegrityService
             .setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
         report.setOrphanedOrganisationUnits( new ArrayList<>( getOrphanedOrganisationUnits() ) );
         report.setOrganisationUnitsWithoutGroups( new ArrayList<>( getOrganisationUnitsWithoutGroups() ) );
-        report.setOrganisationUnitsViolatingExclusiveGroupSets( getOrganisationUnitsViolatingExclusiveGroupSets() );
+        report.setOrganisationUnitsViolatingExclusiveGroupSets(
+            groupsByUnit( getOrganisationUnitsViolatingExclusiveGroupSets() ) );
         report.setOrganisationUnitGroupsWithoutGroupSets(
             new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
         report.setValidationRulesWithoutGroups( new ArrayList<>( getValidationRulesWithoutGroups() ) );
@@ -613,6 +598,17 @@ public class DefaultDataIntegrityService
         Collections.sort( report.getValidationRulesWithoutGroups() );
 
         return report;
+    }
+
+    private static SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> groupsByUnit(
+        Collection<OrganisationUnit> units )
+    {
+        SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> groupsByUnit = new TreeMap<>();
+        for ( OrganisationUnit unit : units )
+        {
+            groupsByUnit.put( unit, new HashSet<>( unit.getGroups() ) );
+        }
+        return groupsByUnit;
     }
 
     @Override

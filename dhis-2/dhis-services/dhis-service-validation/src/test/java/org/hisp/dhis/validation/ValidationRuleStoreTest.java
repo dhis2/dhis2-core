@@ -67,6 +67,15 @@ public class ValidationRuleStoreTest
 
     private final PeriodType periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
 
+    private void assertValidationRule( char uniqueCharacter, ValidationRule actual )
+    {
+        assertEquals( "ValidationRule" + uniqueCharacter, actual.getName() );
+        assertEquals( "Description" + uniqueCharacter, actual.getDescription() );
+        assertNotNull( actual.getLeftSide().getExpression() );
+        assertNotNull( actual.getRightSide().getExpression() );
+        assertEquals( periodType, actual.getPeriodType() );
+    }
+
     // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
@@ -78,12 +87,8 @@ public class ValidationRuleStoreTest
 
         ruleA = validationRuleStore.get( ruleA.getId() );
 
-        assertEquals( ruleA.getName(), "ValidationRuleA" );
-        assertEquals( ruleA.getDescription(), "DescriptionA" );
-        assertEquals( ruleA.getOperator(), equal_to );
-        assertNotNull( ruleA.getLeftSide().getExpression() );
-        assertNotNull( ruleA.getRightSide().getExpression() );
-        assertEquals( ruleA.getPeriodType(), periodType );
+        assertValidationRule( 'A', ruleA );
+        assertEquals( equal_to, ruleA.getOperator() );
     }
 
     @Test
@@ -93,9 +98,8 @@ public class ValidationRuleStoreTest
 
         ruleA = validationRuleStore.get( ruleA.getId() );
 
-        assertEquals( ruleA.getName(), "ValidationRuleA" );
-        assertEquals( ruleA.getDescription(), "DescriptionA" );
-        assertEquals( ruleA.getOperator(), equal_to );
+        assertValidationRule( 'A', ruleA );
+        assertEquals( equal_to, ruleA.getOperator() );
 
         ruleA.setName( "ValidationRuleB" );
         ruleA.setDescription( "DescriptionB" );
@@ -105,9 +109,8 @@ public class ValidationRuleStoreTest
 
         ruleA = validationRuleStore.get( ruleA.getId() );
 
-        assertEquals( ruleA.getName(), "ValidationRuleB" );
-        assertEquals( ruleA.getDescription(), "DescriptionB" );
-        assertEquals( ruleA.getOperator(), greater_than );
+        assertValidationRule( 'B', ruleA );
+        assertEquals( greater_than, ruleA.getOperator() );
     }
 
     @Test
@@ -190,8 +193,7 @@ public class ValidationRuleStoreTest
 
         // Add one more
         template = addValidationNotificationTemplate( 'B', ruleB );
-        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA,
-            ruleB );
+        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA, ruleB );
     }
 
     @Test

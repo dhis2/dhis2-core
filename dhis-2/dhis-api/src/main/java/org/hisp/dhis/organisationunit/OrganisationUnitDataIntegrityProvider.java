@@ -59,4 +59,10 @@ public interface OrganisationUnitDataIntegrityProvider
      *         OrganisationUnitGroups.
      */
     List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+
+    /**
+     * Gets all organisation units which are members of more than one group
+     * which enter into an exclusive group set.
+     */
+    List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets();
 }

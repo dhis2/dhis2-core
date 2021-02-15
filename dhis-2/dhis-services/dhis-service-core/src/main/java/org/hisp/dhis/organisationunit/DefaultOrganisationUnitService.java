@@ -434,6 +434,13 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        return organisationUnitStore.getOrganisationUnitsViolatingExclusiveGroupSets();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
         return organisationUnitStore.getOrganisationUnitHierarchyMemberCount( parent, member, collectionName );

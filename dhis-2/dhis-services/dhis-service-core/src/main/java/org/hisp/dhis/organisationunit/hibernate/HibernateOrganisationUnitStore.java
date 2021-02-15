@@ -125,6 +125,16 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        // OBS: size(o.groups) > 1 is just to narrow search right away
+        return getQuery( "from OrganisationUnit o where size(o.groups) > 1 and exists " +
+            "(select 1 from OrganisationUnitGroupSet s where " +
+            "(select count(*) from OrganisationUnitGroup g where o in elements(g.members) and s in elements(g.groupSets)) > 1)" )
+                .list();
+    }
+
+    @Override
     public List<OrganisationUnit> getOrganisationUnitsWithProgram( Program program )
     {
         final String jpql = "select distinct o from OrganisationUnit o " +

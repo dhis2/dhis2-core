@@ -310,6 +310,27 @@ public class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         assertContainsOnly( unitStore.getOrphanedOrganisationUnits(), ouB );
     }
 
+    @Test
+    public void testGetOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' );
+        OrganisationUnit ouB = addOrganisationUnit( 'B' );
+        OrganisationUnit ouC = addOrganisationUnit( 'C' );
+        OrganisationUnit ouD = addOrganisationUnit( 'D' );
+
+        OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', ouA );
+        OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', ouB );
+        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', ouC );
+        OrganisationUnitGroup groupD = addOrganisationUnitGroup( 'D', ouD );
+        OrganisationUnitGroup groupE = addOrganisationUnitGroup( 'E', ouD );
+
+        addOrganisationUnitGroupSet( 'K', groupA );
+        addOrganisationUnitGroupSet( 'X', groupC, groupD, groupE );
+
+        // unit D is in group D and E which are both in set X
+        assertContainsOnly( unitStore.getOrganisationUnitsViolatingExclusiveGroupSets(), ouD );
+    }
+
     private Program addProgram( char uniqueCharacter, OrganisationUnit... units )
     {
         Program program = createProgram( uniqueCharacter );

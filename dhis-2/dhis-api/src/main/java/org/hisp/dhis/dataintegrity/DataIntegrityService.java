@@ -40,9 +40,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetDataIntegrityProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegrityProvider;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupDataIntegrityProvider;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
@@ -132,16 +130,6 @@ public interface DataIntegrityService
      * enter into an exclusive group set.
      */
     SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets();
-
-    // -------------------------------------------------------------------------
-    // OrganisationUnit
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation units which are members of more than one group
-     * which enter into an exclusive group set.
-     */
-    SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets();
 
     // -------------------------------------------------------------------------
     // Period
