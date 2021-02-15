@@ -48,7 +48,6 @@ public interface TrackerImportService
      * Build the report based on the mode selected by the client.
      *
      * @param importReport report with all the data collected during import
-     * @param reportMode type of report to be created
      * @return TrackerImportReport report with filtered data based on reportMode
      */
     TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );

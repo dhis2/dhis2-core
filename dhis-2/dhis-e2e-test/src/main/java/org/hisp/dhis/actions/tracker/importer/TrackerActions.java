@@ -38,6 +38,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 import java.time.Instant;
+import java.util.function.BiFunction;
 import java.util.logging.Logger;
 
 import static org.hamcrest.Matchers.notNullValue;
@@ -218,5 +219,58 @@ public class TrackerActions
             .addObjectByJsonPath( "trackedEntities[0].enrollments[0]", "events", events );
 
         return object;
+    }
+
+    public JsonObject invertRelationship( JsonObject jsonObject )
+    {
+        JsonObject inverseJsonObject = jsonObject.deepCopy();
+        JsonObject relationship = (JsonObject) jsonObject.getAsJsonArray( "relationships" ).get( 0 );
+        JsonArray relationships = new JsonArray();
+        relationships.add( buildTrackedEntityRelationship(
+                relationship.getAsJsonObject( "to" ).get( "trackedEntity" ).getAsString(),
+                relationship.getAsJsonObject( "from" ).get( "trackedEntity" ).getAsString(),
+                relationship.get("relationshipType").getAsString() ) );
+        inverseJsonObject.add( "relationships", relationships );
+        return inverseJsonObject;
+    }
+
+    public JsonObject buildTrackedEntityAndRelationships(String trackedEntity_1, String trackedEntity_2, BiFunction<String, String, JsonObject> relationshipArray) {
+        return new JsonObjectBuilder()
+                .addArray("trackedEntities",
+                        buildTrackedEntity(trackedEntity_1),
+                        buildTrackedEntity(trackedEntity_2))
+                .addArray("relationships",
+                        relationshipArray.apply(trackedEntity_1, trackedEntity_2))
+                .build();
+    }
+
+    public JsonObject buildNonBidirectionalTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2 )
+    {
+        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "TV9oB9LT3sh" /* a non bidirectional relationship type*/ );
+    }
+
+    public JsonObject buildBidirectionalTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2 )
+    {
+        return buildTrackedEntityRelationship( trackedEntity_1, trackedEntity_2, "xLmPUYJX8Ks"  /* a bidirectional relationship type*/  );
+    }
+
+    public JsonObject buildTrackedEntityRelationship(String trackedEntity_1, String trackedEntity_2, String relationshipType )
+    {
+        return new JsonObjectBuilder()
+                .addProperty( "relationshipType", relationshipType )
+                .addObject( "from", new JsonObjectBuilder()
+                        .addProperty( "trackedEntity", trackedEntity_1 ) )
+                .addObject( "to", new JsonObjectBuilder()
+                        .addProperty( "trackedEntity", trackedEntity_2 ) )
+                .build();
+    }
+
+    public JsonObject buildTrackedEntity( String trackedEntity )
+    {
+        return new JsonObjectBuilder()
+                .addProperty( "trackedEntity", trackedEntity )
+                .addProperty( "trackedEntityType", "Q9GufDoplCL" )
+                .addProperty( "orgUnit", "g8upMTyEZGZ" )
+                .build();
     }
 }

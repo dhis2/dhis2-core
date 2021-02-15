@@ -83,11 +83,11 @@ public class DefaultOrganisationUnitService
 
     private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
 
+    private final Cache<Boolean> userCaptureOrgCountThresholdCache;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final Environment env;
 
     private final OrganisationUnitStore organisationUnitStore;
 
@@ -101,8 +101,6 @@ public class DefaultOrganisationUnitService
 
     private final UserSettingService userSettingService;
 
-    private final CacheProvider cacheProvider;
-
     public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
@@ -115,20 +113,23 @@ public class DefaultOrganisationUnitService
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
         checkNotNull( userSettingService );
+        checkNotNull( cacheProvider );
 
-        this.env = env;
         this.organisationUnitStore = organisationUnitStore;
         this.dataSetService = dataSetService;
         this.organisationUnitLevelStore = organisationUnitLevelStore;
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
-        this.cacheProvider = cacheProvider;
         this.inUserOrgUnitHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
             .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
         this.inUserOrgUnitSearchHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+        this.userCaptureOrgCountThresholdCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "userCaptureOuCountThreshold" ).expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
             .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
@@ -549,6 +550,40 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getCaptureOrganisationUnitUidsWithChildren()
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return new ArrayList<>();
+        }
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+        return organisationUnitStore.getOrganisationUnitUids( params );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isCaptureOrgUnitCountAboveThreshold( int threshold )
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return false;
+        }
+        return userCaptureOrgCountThresholdCache.get( user.getUsername(), ou -> {
+
+            OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+            params.setParents( user.getOrganisationUnits() );
+            params.setFetchChildren( true );
+            return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
+        } )
+            .orElse( false );
     }
 
     // -------------------------------------------------------------------------

@@ -31,8 +31,7 @@ import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import java.util.*;
@@ -67,6 +66,8 @@ import com.google.common.collect.Sets;
 public class AssignValueImplementerTest
     extends DhisConvenienceTest
 {
+    private final static String TRACKED_ENTITY_ID = "TrackedEntityUid";
+
     private final static String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
     private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
@@ -251,7 +252,9 @@ public class AssignValueImplementerTest
     @Test
     public void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
     {
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeNOTSet() );
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        bundle.setTrackedEntities( trackedEntities );
         bundle.setEnrollments( enrollments );
         bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
         Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
@@ -286,6 +289,33 @@ public class AssignValueImplementerTest
         assertEquals( 1, enrollmentIssues.size() );
         assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
         assertEquals( ERROR, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTei()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setTrackedEntities( trackedEntities );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            SECOND_ENROLLMENT_ID ) ).findAny().get();
+        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream().filter( e -> e.getTrackedEntity().equals(
+            TRACKED_ENTITY_ID ) ).findAny().get();
+        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertFalse( enrollmentAttribute.isPresent() );
+        assertTrue( teiAttribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
+        assertEquals( ERROR, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
     }
 
     @Test
@@ -414,12 +444,32 @@ public class AssignValueImplementerTest
         return enrollment;
     }
 
+    private TrackedEntity getTrackedEntitiesWithAttributeSet()
+    {
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_ID );
+        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
+        trackedEntity.setAttributes( getAttributes() );
+
+        return trackedEntity;
+    }
+
+    private TrackedEntity getTrackedEntitiesWithAttributeNOTSet()
+    {
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_ID );
+        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
+
+        return trackedEntity;
+    }
+
     private Enrollment getEnrollmentWithAttributeNOTSet()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( SECOND_ENROLLMENT_ID );
         enrollment.setEnrollment( SECOND_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
+        enrollment.setTrackedEntity( TRACKED_ENTITY_ID );
 
         return enrollment;
     }

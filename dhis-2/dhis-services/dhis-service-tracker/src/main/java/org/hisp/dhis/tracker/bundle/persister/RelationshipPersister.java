@@ -97,9 +97,27 @@ public class RelationshipPersister
     }
 
     @Override
+    protected boolean isUpdatable()
+    {
+        // We don't want to update relationships. Only CREATE/DELETE is
+        // supported
+        // so this method will inform AbstractTrackerPersister to not proceed
+        // with merge.
+        return false;
+    }
+
+    @Override
+    protected boolean isNew( TrackerPreheat preheat, Relationship trackerDto )
+    {
+        return preheat.getRelationship( TrackerIdScheme.UID, trackerDto ) == null;
+    }
+
+    @Override
     protected boolean isNew( TrackerPreheat preheat, String uid )
     {
-        return preheat.getRelationship( TrackerIdScheme.UID, uid ) == null;
+        // Normally this method is never invoked, since for Relationships
+        // isNew( TrackerPreheat, Relationship ) is invoked instead
+        throw new UnsupportedOperationException( "use isNew(TrackerPreheat preheat, Relationship trackerDto) instead" );
     }
 
     @Override

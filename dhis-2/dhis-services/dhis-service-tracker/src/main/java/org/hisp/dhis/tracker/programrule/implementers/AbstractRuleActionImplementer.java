@@ -32,19 +32,17 @@ import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 import static org.hisp.dhis.rules.models.AttributeType.UNKNOWN;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.needsToValidateDataValues;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.AttributeType;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAttribute;
 import org.hisp.dhis.rules.models.RuleEffect;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -55,8 +53,12 @@ import org.hisp.dhis.tracker.programrule.EnrollmentActionRule;
 import org.hisp.dhis.tracker.programrule.EventActionRule;
 import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
 
+import com.google.api.client.util.Lists;
 import com.google.common.collect.Maps;
 
+// TODO: Completely refactor the whole logic around implementers.
+// This was done while understanding the requirements,
+// so there is a lot of technical debt to remove.
 abstract public class AbstractRuleActionImplementer<T extends RuleAction>
 {
     /**
@@ -192,25 +194,33 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
         return mergedDataValues;
     }
 
-    private List<Attribute> mergeAttributes( List<Attribute> attributes, ProgramInstance programInstance )
+    private List<Attribute> mergeAttributes(
+        List<Attribute> enrollmentAttributes, List<Attribute> attributes,
+        TrackedEntityInstance tei )
     {
-        if ( programInstance == null )
-        {
-            return attributes;
-        }
+
         List<String> payloadAttributes = attributes.stream()
             .map( Attribute::getAttribute )
             .collect( Collectors.toList() );
-        List<Attribute> mergedAttributes = programInstance.getAttributeValues().stream()
-            .filter( at -> !payloadAttributes.contains( at.getAttribute().getUid() ) )
-            .map( at -> {
-                Attribute attribute = new Attribute();
-                attribute.setAttribute( at.getAttribute().getUid() );
-                attribute.setValue( at.getValue() );
-                return attribute;
-            } )
-            .collect( Collectors.toList() );
+        payloadAttributes
+            .addAll( enrollmentAttributes.stream().map( Attribute::getAttribute ).collect( Collectors.toList() ) );
+
+        List<Attribute> mergedAttributes = Lists.newArrayList();
+        if ( tei != null )
+        {
+            mergedAttributes = tei.getAttributeValues().stream()
+                .filter( at -> !payloadAttributes.contains( at.getAttribute().getUid() ) )
+                .map( at -> {
+                    Attribute attribute = new Attribute();
+                    attribute.setAttribute( at.getAttribute().getUid() );
+                    attribute.setValue( at.getValue() );
+                    return attribute;
+                } )
+                .collect( Collectors.toList() );
+        }
+
         mergedAttributes.addAll( attributes );
+        mergedAttributes.addAll( enrollmentAttributes );
         return mergedAttributes;
     }
 
@@ -231,10 +241,15 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
             .collect( Collectors.toMap( Map.Entry::getKey,
                 e -> {
                     Enrollment enrollment = getEnrollment( bundle, e.getKey() ).get();
-                    ProgramInstance programInstance = bundle.getPreheat().get( ProgramInstance.class,
-                        enrollment.getEnrollment() );
+                    TrackedEntityInstance tei = bundle.getPreheat()
+                        .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), programInstance );
+                    List<Attribute> payloadTeiAttributes = getTrackedEntity( bundle, enrollment.getTrackedEntity() )
+                        .map( te -> te.getAttributes() )
+                        .orElse( Collections.emptyList() );
+
+                    List<Attribute> attributes = mergeAttributes( enrollment.getAttributes(), payloadTeiAttributes,
+                        tei );
 
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()

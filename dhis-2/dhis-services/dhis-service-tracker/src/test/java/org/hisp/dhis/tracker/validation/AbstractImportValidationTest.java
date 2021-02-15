@@ -116,7 +116,8 @@ public abstract class AbstractImportValidationTest
             .invoke();
     }
 
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params, TrackerImportStrategy strategy )
+    protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params,
+        TrackerImportStrategy strategy )
     {
         return ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )

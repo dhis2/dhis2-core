@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.system.notification;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -81,14 +75,8 @@ public class NotificationMap
 
     public LinkedList<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        if ( notificationsWithType.get( jobType ).containsKey( jobId ) )
-        {
-            return notificationsWithType.get( jobType ).get( jobId );
-        }
-        else
-        {
-            return new LinkedList<>();
-        }
+        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> n.get( jobId ) )
+            .orElse( new LinkedList<>() );
     }
 
     public Map<String, LinkedList<Notification>> getNotificationsWithType( JobType jobType )

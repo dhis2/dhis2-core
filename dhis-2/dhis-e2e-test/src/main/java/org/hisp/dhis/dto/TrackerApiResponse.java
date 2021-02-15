@@ -113,4 +113,11 @@ public class TrackerApiResponse
             .rootPath( "bundleReport.typeReportMap.ENROLLMENT" );
     }
 
+    public ValidatableResponse validateRelationships()
+    {
+        return validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.RELATIONSHIP" );
+    }
+
 }
