@@ -288,36 +288,61 @@ public class DefaultTrackerImportService
 
     private void startImport( TrackerImportParams params )
     {
-        notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
+        if ( null != params.getJobConfiguration() )
+        {
+            notifier.notify( params.getJobConfiguration(),
+                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
+                    " In memory: " + params.getJobConfiguration().isInMemoryJob() +
+                    " Import:Start" );
+        }
     }
 
     private void notifyOps( TrackerImportParams params, String validationOps, TrackerTimingsStats opsTimer )
     {
-        notifier
-            .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
-                "(" + params.getUsername() + ") Import:" + validationOps + " took "
-                    + opsTimer.get( validationOps ) );
+        if ( null != params.getJobConfiguration() )
+        {
+            notifier
+                .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
+                    "User: ( " + params.getUsername() + " )  Job id: " + params.getJobConfiguration().getUid() +
+                        " In memory: " + params.getJobConfiguration().isInMemoryJob() +
+                        " Import:"
+                        + validationOps + " took "
+                        + opsTimer.get( validationOps ) );
+        }
     }
 
     private void endImport( TrackerImportParams params, TrackerImportReport importReport )
     {
-        notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Done took " +
-            importReport.getTimingsStats().get( TOTAL_OPS ), true );
-
-        if ( null != params.getJobConfiguration() && params.getJobConfiguration().isInMemoryJob() )
+        if ( null != params.getJobConfiguration() )
         {
-            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            notifier.update( params.getJobConfiguration(),
+                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
+                    " In memory: " + params.getJobConfiguration().isInMemoryJob() + " Import:Done took "
+                    +
+                    importReport.getTimingsStats().get( TOTAL_OPS ),
+                true );
+
+            if ( params.getJobConfiguration().isInMemoryJob() )
+            {
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
         }
     }
 
     private void endImportWithError( TrackerImportParams params, TrackerImportReport importReport, Exception e )
     {
-        notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
-            "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
-
         if ( null != params.getJobConfiguration() && params.getJobConfiguration().isInMemoryJob() )
         {
-            notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
+                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
+                    " In memory: " + params.getJobConfiguration().isInMemoryJob() + " Import:Failed with exception: "
+                    + e.getMessage(),
+                true );
+
+            if ( params.getJobConfiguration().isInMemoryJob() )
+            {
+                notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
+            }
         }
     }
 

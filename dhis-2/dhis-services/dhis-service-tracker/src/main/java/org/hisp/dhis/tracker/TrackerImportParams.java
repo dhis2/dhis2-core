@@ -132,7 +132,7 @@ public class TrackerImportParams
     private String filename;
 
     /**
-     * Job id to use.
+     * Job configuration
      */
     private JobConfiguration jobConfiguration;
 

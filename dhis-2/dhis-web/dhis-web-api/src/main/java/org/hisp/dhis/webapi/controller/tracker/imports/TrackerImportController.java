@@ -119,7 +119,6 @@ public class TrackerImportController
             .trackerBundleParams( trackerBundleParams ).contextService( contextService ).currentUser( currentUser )
             .trackerBundleReportMode( TrackerBundleReportMode
                 .getTrackerBundleReportMode( reportMode ) )
-            .jobId( CodeGenerator.generateUid() )
             .build();
 
         TrackerImportReport trackerImportReport = trackerImportStrategy

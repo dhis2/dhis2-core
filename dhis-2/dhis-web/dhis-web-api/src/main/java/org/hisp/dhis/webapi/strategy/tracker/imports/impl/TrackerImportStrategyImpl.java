@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -55,7 +56,7 @@ public class TrackerImportStrategyImpl implements TrackerImportStrategy
     @Override
     public TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest )
     {
-        setTrackerImportParams( trackerImportReportRequest, trackerImportReportRequest.getJobId() );
+        setTrackerImportParams( trackerImportReportRequest );
 
         if ( trackerImportReportRequest.isAsync() )
         {
@@ -63,26 +64,26 @@ public class TrackerImportStrategyImpl implements TrackerImportStrategy
         }
         else
         {
+            JobConfiguration jobConfiguration = new JobConfiguration(
+                "",
+                JobType.TRACKER_IMPORT_JOB,
+                trackerImportReportRequest.getCurrentUser().getUid(),
+                trackerImportReportRequest.isAsync() );
+
+            jobConfiguration.setUid( CodeGenerator.generateUid() );
+
+            trackerImportReportRequest.getTrackerImportParams().setJobConfiguration( jobConfiguration );
             return importAsyncFalseStrategy.importReport( trackerImportReportRequest );
         }
     }
 
-    private void setTrackerImportParams( TrackerImportReportRequest trackerImportReportRequest, String jobId )
+    private void setTrackerImportParams( TrackerImportReportRequest trackerImportReportRequest )
     {
         TrackerImportParams.TrackerImportParamsBuilder paramsBuilder = TrackerImportParamsBuilder
             .builder( trackerImportReportRequest.getContextService().getParameterValuesMap() );
 
-        JobConfiguration jobConfiguration = new JobConfiguration(
-            "",
-            JobType.TRACKER_IMPORT_JOB,
-            trackerImportReportRequest.getCurrentUser().getUid(),
-            trackerImportReportRequest.isAsync() );
-
-        jobConfiguration.setUid( jobId );
-
         trackerImportReportRequest.setTrackerImportParams(
             paramsBuilder
-                .jobConfiguration( jobConfiguration )
                 .userId( trackerImportReportRequest.getCurrentUser().getUid() )
                 .trackedEntities( trackerImportReportRequest.getTrackerBundleParams().getTrackedEntities() )
                 .enrollments( trackerImportReportRequest.getTrackerBundleParams().getEnrollments() )

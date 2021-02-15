@@ -31,6 +31,8 @@ import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.Topics;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.springframework.beans.factory.ObjectFactory;
@@ -71,6 +73,14 @@ public class TrackerMessageManager
 
         TrackerMessage trackerMessage = objectMapper.readValue( payload, TrackerMessage.class );
         TrackerImportParams trackerImportParams = trackerMessage.getTrackerImportParams();
+
+        JobConfiguration jobConfiguration = new JobConfiguration(
+            "",
+            JobType.TRACKER_IMPORT_JOB,
+            trackerImportParams.getUserId(),
+            true );
+
+        trackerImportParams.setJobConfiguration( jobConfiguration );
 
         TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();
         trackerImportThread.setTrackerImportParams( trackerImportParams );

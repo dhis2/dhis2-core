@@ -50,6 +50,4 @@ public class TrackerImportReportRequest
     boolean isAsync;
 
     TrackerBundleReportMode trackerBundleReportMode;
-
-    String jobId;
 }

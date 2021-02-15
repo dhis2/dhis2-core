@@ -55,7 +55,7 @@ public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategy
 
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
 
-        return null; // empty report is
+        return null; // empty report is not
                      // returned
                      // in async creation
     }
