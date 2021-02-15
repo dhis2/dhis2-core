@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.tracker.report.TrackerStatus;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -60,7 +61,6 @@ import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
 /**
@@ -73,7 +73,7 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
-    private final TrackerImportStrategyHandler trackerImportStrategyHandler;
+    private final TrackerImportStrategyHandler trackerImportStrategy;
 
     private final TrackerImportService trackerImportService;
 
@@ -95,7 +95,7 @@ public class TrackerImportController
             .isAsync( true ).uid( jobId )
             .build();
 
-        trackerImportStrategyHandler
+        trackerImportStrategy
             .importReport( trackerImportReportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -122,7 +122,7 @@ public class TrackerImportController
             .uid( CodeGenerator.generateUid() )
             .build();
 
-        TrackerImportReport trackerImportReport = trackerImportStrategyHandler
+        TrackerImportReport trackerImportReport = trackerImportStrategy
             .importReport( trackerImportReportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
@@ -136,17 +136,16 @@ public class TrackerImportController
     public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
         throws HttpStatusCodeException
     {
-        List<Notification> notifications = notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
-
-        return notifications;
+        return notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = APPLICATION_JSON_VALUE )
     public TrackerImportReport getJobReport( @PathVariable String uid,
         @RequestParam( defaultValue = "errors", required = false ) String reportMode,
         HttpServletResponse response )
-        throws HttpStatusCodeException
+        throws HttpStatusCodeException,
+        NotFoundException
     {
         TrackerBundleReportMode trackerBundleReportMode = TrackerBundleReportMode
             .getTrackerBundleReportMode( reportMode );
@@ -157,6 +156,6 @@ public class TrackerImportController
             .getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
             .map( report -> trackerImportService.buildImportReport( (TrackerImportReport) report,
                 trackerBundleReportMode ) )
-            .orElseThrow( () -> new HttpClientErrorException( HttpStatus.NOT_FOUND ) );
+            .orElseThrow( () -> new NotFoundException( uid ) );
     }
 }

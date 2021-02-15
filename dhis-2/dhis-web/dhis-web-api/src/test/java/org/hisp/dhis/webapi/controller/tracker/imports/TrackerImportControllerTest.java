@@ -27,24 +27,32 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Collections;
 import java.util.HashMap;
 
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
 import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
@@ -154,16 +162,12 @@ public class TrackerImportControllerTest
     public void verifySyncResponseShouldBeConflictWhenImportReportStatusIsError()
         throws Exception
     {
+        String errorMessage = "errorMessage";
         // When
-        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withImportCompleted(
-            TrackerStatus.ERROR,
-            TrackerBundleReport.builder()
-                .status( TrackerStatus.ERROR )
-                .build(),
+        when( importStrategy.importReport( any() ) ).thenReturn( TrackerImportReportFinalizer.withError( "errorMessage",
             TrackerValidationReport.builder()
                 .build(),
-            new TrackerTimingsStats(),
-            new HashMap<>() ) );
+            new TrackerTimingsStats() ) );
 
         // Then
         String contentAsString = mockMvc.perform( post( ENDPOINT + "?async=false" )
@@ -171,7 +175,7 @@ public class TrackerImportControllerTest
             .contentType( MediaType.APPLICATION_JSON )
             .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isConflict() )
-            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( jsonPath( "$.message" ).value( errorMessage ) )
             .andExpect( content().contentType( "application/json" ) )
             .andReturn()
             .getResponse()
@@ -187,5 +191,97 @@ public class TrackerImportControllerTest
         {
             fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
         }
+    }
+
+    @Test
+    public void verifyShouldFindJob()
+        throws Exception
+    {
+        String uid = CodeGenerator.generateUid();
+        // When
+        when( notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
+            .thenReturn( Collections.singletonList( new Notification() ) );
+
+        // Then
+        mockMvc.perform( get( ENDPOINT + "/jobs/" + uid )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( jsonPath( "$" ).isArray() )
+            .andExpect( jsonPath( "$", hasSize( 1 ) ) )
+            .andExpect( jsonPath( "$.[0].uid" ).isNotEmpty() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( notifier ).getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
+    }
+
+    @Test
+    public void verifyShouldFindJobReport()
+        throws Exception
+    {
+        String uid = CodeGenerator.generateUid();
+
+        TrackerImportReport trackerImportReport = TrackerImportReportFinalizer.withImportCompleted(
+            TrackerStatus.OK,
+            TrackerBundleReport.builder()
+                .status( TrackerStatus.OK )
+                .build(),
+            TrackerValidationReport.builder()
+                .build(),
+            new TrackerTimingsStats(),
+            new HashMap<>() );
+
+        // When
+        when( notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
+            .thenReturn( trackerImportReport );
+
+        when( trackerImportService.buildImportReport( any(), any() ) ).thenReturn( trackerImportReport );
+
+        // Then
+        String contentAsString = mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) )
+            .andExpect( status().isOk() )
+            .andExpect( jsonPath( "$.message" ).doesNotExist() )
+            .andExpect( content().contentType( "application/json" ) )
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        verify( notifier ).getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
+        verify( trackerImportService ).buildImportReport( any(), any() );
+
+        try
+        {
+            renderService.fromJson( contentAsString, TrackerImportReport.class );
+        }
+        catch ( Exception e )
+        {
+            fail( "response content : " + contentAsString + "\n" + " is not of TrackerImportReport type" );
+        }
+    }
+
+    @Test
+    public void verifyShouldThrowWhenJobReportNotFound()
+        throws Exception
+    {
+        String uid = CodeGenerator.generateUid();
+
+        // When
+        when( notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
+            .thenReturn( null );
+
+        // Then
+        mockMvc.perform( get( ENDPOINT + "/jobs/" + uid + "/report" )
+            .content( "{}" )
+            .contentType( MediaType.APPLICATION_JSON )
+            .accept( MediaType.APPLICATION_JSON ) ).andExpect( status().isNotFound() )
+            .andExpect( result -> assertTrue( result.getResolvedException() instanceof NotFoundException ) );
     }
 }
