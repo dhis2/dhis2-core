@@ -33,7 +33,7 @@ import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 /**
  * @author Luca Cambi <luca@dhis2.org>
  */
-public interface TrackerImportStrategy
+public interface TrackerImportStrategyHandler
 {
     TrackerImportReport importReport( TrackerImportReportRequest trackerImportReportRequest );
 }

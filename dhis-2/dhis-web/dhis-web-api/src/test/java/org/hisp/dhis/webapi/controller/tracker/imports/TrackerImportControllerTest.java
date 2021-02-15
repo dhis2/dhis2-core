@@ -47,7 +47,7 @@ import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -71,7 +71,7 @@ public class TrackerImportControllerTest
     private DefaultTrackerImportService trackerImportService;
 
     @Mock
-    private TrackerImportStrategy importStrategy;
+    private TrackerImportStrategyHandler importStrategy;
 
     @Mock
     private Notifier notifier;

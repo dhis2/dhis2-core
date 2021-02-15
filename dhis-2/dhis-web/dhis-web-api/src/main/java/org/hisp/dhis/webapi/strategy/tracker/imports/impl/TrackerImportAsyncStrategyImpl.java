@@ -34,7 +34,7 @@ import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.tracker.job.TrackerMessage;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,7 +42,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategy
+public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategyHandler
 {
     private final MessageManager messageManager;
 

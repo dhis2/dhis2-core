@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.springframework.stereotype.Component;
 
 /**
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackerImportAsyncFalseStrategyImpl implements TrackerImportStrategy
+public class TrackerImportSyncStrategyImpl implements TrackerImportStrategyHandler
 {
     private final TrackerImportService trackerImportService;
 

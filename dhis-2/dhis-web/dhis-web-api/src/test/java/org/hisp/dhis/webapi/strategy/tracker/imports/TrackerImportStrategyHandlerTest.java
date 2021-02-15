@@ -34,9 +34,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncFalseStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportAsyncStrategyImpl;
 import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportStrategyImpl;
+import org.hisp.dhis.webapi.strategy.tracker.imports.impl.TrackerImportSyncStrategyImpl;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;
@@ -44,7 +44,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-public class TrackerImportStrategyTest
+public class TrackerImportStrategyHandlerTest
 {
     @Rule
     public MockitoRule rule = MockitoJUnit.rule();
@@ -56,7 +56,7 @@ public class TrackerImportStrategyTest
     TrackerImportAsyncStrategyImpl importAsyncStrategy;
 
     @Mock
-    TrackerImportAsyncFalseStrategyImpl importAsyncFalseStrategy;
+    TrackerImportSyncStrategyImpl importAsyncFalseStrategy;
 
     @Mock
     ContextService contextService;

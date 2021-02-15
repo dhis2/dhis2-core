@@ -55,7 +55,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategy;
+import org.hisp.dhis.webapi.strategy.tracker.imports.TrackerImportStrategyHandler;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -73,7 +73,7 @@ public class TrackerImportController
 {
     static final String TRACKER_JOB_ADDED = "Tracker job added";
 
-    private final TrackerImportStrategy trackerImportStrategy;
+    private final TrackerImportStrategyHandler trackerImportStrategyHandler;
 
     private final TrackerImportService trackerImportService;
 
@@ -95,7 +95,7 @@ public class TrackerImportController
             .isAsync( true ).uid( jobId )
             .build();
 
-        trackerImportStrategy
+        trackerImportStrategyHandler
             .importReport( trackerImportReportRequest );
 
         String location = ContextUtils.getRootPath( request ) + "/tracker/jobs/" + jobId;
@@ -122,7 +122,7 @@ public class TrackerImportController
             .uid( CodeGenerator.generateUid() )
             .build();
 
-        TrackerImportReport trackerImportReport = trackerImportStrategy
+        TrackerImportReport trackerImportReport = trackerImportStrategyHandler
             .importReport( trackerImportReportRequest );
 
         ResponseEntity.BodyBuilder builder = trackerImportReport.getStatus() == TrackerStatus.ERROR
