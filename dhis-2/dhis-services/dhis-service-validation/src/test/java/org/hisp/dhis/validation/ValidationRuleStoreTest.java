@@ -30,6 +30,7 @@ package org.hisp.dhis.validation;
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.greater_than;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -189,7 +190,8 @@ public class ValidationRuleStoreTest
 
         // Add one more
         template = addValidationNotificationTemplate( 'B', ruleB );
-        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA, ruleB );
+        assertContainsOnly( validationRuleStore.getValidationRulesWithNotificationTemplates(), ruleA,
+            ruleB );
     }
 
     @Test

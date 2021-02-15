@@ -25,37 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.utils;
 
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
+import java.util.Collection;
 
 /**
  * @author Jan Bernitt
  */
-public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
+public final class Assertions
 {
-
-    @Test
-    public void testGetOrganisationUnitGroupsWithoutGroupSets()
+    private Assertions()
     {
-        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
-        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
-        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
-
-        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithoutGroupSets(), noSet );
+        throw new UnsupportedOperationException( "util" );
     }
 
-    @Test
-    public void testGetOrganisationUnitGroupsWithGroupSets()
+    @SafeVarargs
+    public static <E> void assertContainsOnly( Collection<E> actual, E... expected )
     {
-        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
-        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
-        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
-
-        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
+        assertEquals( expected.length, actual.size() );
+        for ( E e : expected )
+        {
+            assertTrue( actual.contains( e ) );
+        }
     }
 }
