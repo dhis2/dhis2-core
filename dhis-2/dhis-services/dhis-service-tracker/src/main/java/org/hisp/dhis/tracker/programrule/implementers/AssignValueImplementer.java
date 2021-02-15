@@ -102,7 +102,7 @@ public class AssignValueImplementer
             {
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1307, actionRule.getField(),
-                        actionRule.getEvent() ),
+                        actionRule.getValue() ),
                     IssueType.ERROR ) );
             }
         }
@@ -128,7 +128,7 @@ public class AssignValueImplementer
                 addOrOverwriteAttribute( actionRule, bundle );
                 issues.add( new ProgramRuleIssue( TrackerReportUtils
                     .formatMessage( TrackerErrorCode.E1310, actionRule.getField(),
-                        actionRule.getEnrollment() ),
+                        actionRule.getValue() ),
                     IssueType.WARNING ) );
             }
             else
