@@ -99,7 +99,7 @@ public class DefaultTrackerImportService
 
             preProcess( opsTimer, trackerBundle );
 
-            if ( addToValidationReport( params, opsTimer, validationReport, trackerBundle, bundleSize ) )
+            if ( addToValidationReport( params, opsTimer, validationReport, trackerBundle ) )
                 return buildReportAndNotify( params, validationReport, opsTimer, bundleSize );
 
             bundleReport = commit( params, opsTimer, trackerBundle );
@@ -128,8 +128,12 @@ public class DefaultTrackerImportService
 
     private TrackerBundle preHeat( TrackerImportParams params, TrackerTimingsStats opsTimer )
     {
-        return opsTimer.exec( PREHEAT_OPS,
+        TrackerBundle trackerBundle = opsTimer.exec( PREHEAT_OPS,
             () -> preheatBundle( params ) );
+
+        notifyOps( params, PREHEAT_OPS, opsTimer );
+
+        return trackerBundle;
     }
 
     private void preProcess( TrackerTimingsStats opsTimer, TrackerBundle trackerBundle )
@@ -139,7 +143,7 @@ public class DefaultTrackerImportService
     }
 
     private boolean addToValidationReport( TrackerImportParams params, TrackerTimingsStats opsTimer,
-        TrackerValidationReport validationReport, TrackerBundle trackerBundle, Map<TrackerType, Integer> bundleSize )
+        TrackerValidationReport validationReport, TrackerBundle trackerBundle )
     {
         validationReport.add( opsTimer.exec( VALIDATION_OPS,
             () -> validateBundle( params, trackerBundle, opsTimer ) ) );
