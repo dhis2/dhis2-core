@@ -32,9 +32,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javafx.util.Pair;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -127,7 +127,7 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
                     stringBuilder.append( " (" ).append( field ).append( ")" );
                 }
 
-                return new Pair<>( actionRule.getRuleUid(), stringBuilder.toString() );
+                return Pair.of( actionRule.getRuleUid(), stringBuilder.toString() );
             } )
             .map( message -> new ProgramRuleIssue( message.getKey(), TrackerErrorCode.E1300,
                 Lists.newArrayList( message.getValue() ), getIssueType() ) )
