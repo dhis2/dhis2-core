@@ -574,7 +574,7 @@ public class DefaultOrganisationUnitService
             return 0;
         }
         return USER_CAPTURE_ORG_UNIT_COUNT_CACHE.get( user.getUsername(), ou -> getCaptureOrganisationUnitCount() )
-            .get();
+            .orElse( 0 );
     }
 
     // -------------------------------------------------------------------------

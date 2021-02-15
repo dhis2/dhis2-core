@@ -119,21 +119,21 @@ public class DefaultJpaQueryParser
         if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
         {
             User user = currentUserService.getCurrentUser();
-
-            if ( user != null && !user.isSuper() )
-            {
-                handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
-                query.setUser( user );
-            }
+            handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
+            query.setUser( user );
         }
         return query;
     }
 
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
+        if ( user != null && !user.isSuper() )
+        {
+            return;
+        }
 
-        int count = organisationUnitService.getCaptureOrganisationUnitCount();
-        if ( count > 10 )
+        int count = organisationUnitService.getCaptureOrganisationUnitCountCached();
+        if ( count > 100 )
         {
             // skipping restriction to capture scope due to high number of
             // capture scope org units for the current user.
