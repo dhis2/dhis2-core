@@ -230,7 +230,7 @@ public class DefaultAppManager
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "isBundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+            if ( "bundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
                 && !"false".equalsIgnoreCase( split[2] ) )
             {
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
