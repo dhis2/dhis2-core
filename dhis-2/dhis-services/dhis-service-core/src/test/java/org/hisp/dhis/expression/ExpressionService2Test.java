@@ -46,6 +46,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.Constant;
@@ -75,11 +77,12 @@ import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ExpressionService2Test
+public class ExpressionService2Test extends DhisSpringTest
 {
     @Mock
     private HibernateGenericStore<Expression> hibernateGenericStore;
@@ -98,6 +101,9 @@ public class ExpressionService2Test
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
+
+    @Autowired
+    private CacheProvider cacheProvider;
 
     private DefaultExpressionService target;
 
@@ -170,7 +176,9 @@ public class ExpressionService2Test
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService, idObjectManager );
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
+
+        target.init();
 
         rnd = new BeanRandomizer();
 
