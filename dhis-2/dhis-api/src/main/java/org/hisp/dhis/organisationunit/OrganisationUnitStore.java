@@ -143,4 +143,25 @@ public interface OrganisationUnitStore
      * @return number of levels, 0 if no organisation units are present.
      */
     int getMaxLevel();
+
+    /**
+     * Check if the number of orgunits that satisfies the conditions in the
+     * queryParams is greater than the threshold provided. Note: groups,
+     * maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @param threshold the threshold count to check against
+     * @return true if the org units satisfying the params criteria is above the
+     *         threshold, false otherwise.
+     */
+    boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold );
+
+    /**
+     * Get list of organisation unit uids satisfying the query params. Note:
+     * groups, maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @return the list of org unit uids satisfying the params criteria
+     */
+    List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params );
 }
