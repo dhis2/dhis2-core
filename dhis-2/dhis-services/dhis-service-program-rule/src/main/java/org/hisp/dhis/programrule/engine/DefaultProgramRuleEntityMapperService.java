@@ -371,7 +371,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
             rule = Rule.create(
                 programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
-                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
+                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName(),
+                programRule.getUid() );
         }
         catch ( Exception e )
         {

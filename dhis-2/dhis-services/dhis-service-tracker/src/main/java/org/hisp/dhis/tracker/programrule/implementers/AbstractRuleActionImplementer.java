@@ -159,7 +159,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EventActionRule> eventActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .map( effect -> new EventActionRule( event.getEvent(), effect.data(),
+                        .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
                         .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
@@ -254,7 +254,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .map( effect -> new EnrollmentActionRule(
+                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )

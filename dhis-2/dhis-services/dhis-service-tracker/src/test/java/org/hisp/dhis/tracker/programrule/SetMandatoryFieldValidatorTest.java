@@ -29,8 +29,7 @@ package org.hisp.dhis.tracker.programrule;
 
 import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
 import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
 
 import java.util.Collection;
@@ -51,7 +50,6 @@ import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.implementers.SetMandatoryFieldValidator;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -153,13 +151,14 @@ public class SetMandatoryFieldValidatorTest
 
         assertFalse( errorMessages.isEmpty() );
 
-        boolean isErrorMessageCorrect = errorMessages
-            .stream()
-            .allMatch(
-                e -> e.getMessage()
-                    .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, dataElementA.getUid() ) ) );
-
-        assertTrue( isErrorMessageCorrect );
+        errorMessages
+            .forEach(
+                e -> {
+                    assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
+                    assertEquals( TrackerErrorCode.E1303, e.getIssueCode() );
+                    assertEquals( IssueType.ERROR, e.getIssueType() );
+                    assertEquals( Lists.newArrayList( dataElementA.getUid() ), e.getArgs() );
+                } );
     }
 
     @Test
@@ -198,13 +197,14 @@ public class SetMandatoryFieldValidatorTest
 
         assertFalse( errorMessages.isEmpty() );
 
-        boolean isErrorMessageCorrect = errorMessages
-            .stream()
-            .allMatch(
-                e -> e.getMessage()
-                    .equals( TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, ATTRIBUTE_ID ) ) );
-
-        assertTrue( isErrorMessageCorrect );
+        errorMessages
+            .forEach(
+                e -> {
+                    assertEquals( "RULE_ATTRIBUTE", e.getRuleUid() );
+                    assertEquals( TrackerErrorCode.E1306, e.getIssueCode() );
+                    assertEquals( IssueType.ERROR, e.getIssueType() );
+                    assertEquals( Lists.newArrayList( ATTRIBUTE_ID ), e.getArgs() );
+                } );
     }
 
     private Event getEventWithMandatoryValueSet()
@@ -303,7 +303,7 @@ public class SetMandatoryFieldValidatorTest
         RuleAction ruleActionSetMandatoryAttribute = RuleActionSetMandatoryField
             .create( ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
 
-        return Lists.newArrayList( RuleEffect.create( ruleActionSetMandatoryAttribute ),
-            RuleEffect.create( ruleActionSetMandatoryDataValue ) );
+        return Lists.newArrayList( RuleEffect.create( "RULE_ATTRIBUTE", ruleActionSetMandatoryAttribute ),
+            RuleEffect.create( "RULE_DATA_VALUE", ruleActionSetMandatoryDataValue ) );
     }
 }
