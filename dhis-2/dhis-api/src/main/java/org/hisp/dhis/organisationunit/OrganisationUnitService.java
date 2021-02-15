@@ -504,13 +504,15 @@ public interface OrganisationUnitService
     void forceUpdatePaths();
 
     /**
-     * Get the count of the organisation units in the capture scope of current
-     * user
+     * Check if the count of the organisation units in the capture scope of
+     * current user is above a threshold
      *
-     * @return the count of the organisation units in capture scope of current
-     *         user
+     * @param threshold the threshold number to check against.
+     *
+     * @return true if the count of the organisation units in capture scope of
+     *         current user is above the threshold, false otherwise
      */
-    int getCaptureOrganisationUnitCount();
+    boolean isCaptureOrgUnitCountAboveThreshold( int threshold );
 
     /**
      * Get the full list of organisation unit uids that falls under the capture
@@ -519,16 +521,5 @@ public interface OrganisationUnitService
      * @return list of org unit uids in capture scope of current user.
      */
     List<String> getCaptureOrganisationUnitUidsWithChildren();
-
-    /**
-     * Cached version of {@link #getCaptureOrganisationUnitCount()
-     * getCaptureOrganisationUnitCount} method If not in cache it populates it
-     * using the {@link #getCaptureOrganisationUnitCount()
-     * getCaptureOrganisationUnitCount} method
-     *
-     * @return the count of the organisation units in capture scope of current
-     *         user
-     */
-    int getCaptureOrganisationUnitCountCached();
 
 }

@@ -327,11 +327,18 @@ public class HibernateOrganisationUnitStore
     }
 
     @Override
-    public int countOrganisationUnits( OrganisationUnitQueryParams params )
+    public boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold )
     {
         String sql = buildOrganisationUnitCountDistinctUidsSql( params );
 
-        return jdbcTemplate.queryForObject( sql, Integer.class );
+        StringBuilder sb = new StringBuilder();
+        sb.append( "select count(*) from (" );
+        sb.append( sql );
+        sb.append( " limit " );
+        sb.append( threshold + 1 );
+        sb.append( ") as douid" );
+
+        return (jdbcTemplate.queryForObject( sb.toString(), Integer.class ) > threshold);
     }
 
     @Override

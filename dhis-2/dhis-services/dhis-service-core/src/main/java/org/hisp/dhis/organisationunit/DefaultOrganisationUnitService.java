@@ -83,7 +83,7 @@ public class DefaultOrganisationUnitService
 
     private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
-    private static Cache<Integer> USER_CAPTURE_ORG_UNIT_COUNT_CACHE;
+    private static Cache<Boolean> USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -130,8 +130,9 @@ public class DefaultOrganisationUnitService
             .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
             .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
 
-        USER_CAPTURE_ORG_UNIT_COUNT_CACHE = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( "userCaptureOuCount" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+        USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "userCaptureOuCountThreshold" ).expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
             .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
 
     }
@@ -536,21 +537,6 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
-    public int getCaptureOrganisationUnitCount()
-    {
-        User user = currentUserService.getCurrentUser();
-        if ( user == null )
-        {
-            return 0;
-        }
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
-        return organisationUnitStore.countOrganisationUnits( params );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public List<String> getCaptureOrganisationUnitUidsWithChildren()
     {
         User user = currentUserService.getCurrentUser();
@@ -566,15 +552,21 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
-    public int getCaptureOrganisationUnitCountCached()
+    public boolean isCaptureOrgUnitCountAboveThreshold( int threshold )
     {
         User user = currentUserService.getCurrentUser();
         if ( user == null )
         {
-            return 0;
+            return false;
         }
-        return USER_CAPTURE_ORG_UNIT_COUNT_CACHE.get( user.getUsername(), ou -> getCaptureOrganisationUnitCount() )
-            .orElse( 0 );
+        return USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE.get( user.getUsername(), ou -> {
+
+            OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+            params.setParents( user.getOrganisationUnits() );
+            params.setFetchChildren( true );
+            return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
+        } )
+            .orElse( false );
     }
 
     // -------------------------------------------------------------------------

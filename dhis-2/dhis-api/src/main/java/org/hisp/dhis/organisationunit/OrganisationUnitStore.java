@@ -145,14 +145,16 @@ public interface OrganisationUnitStore
     int getMaxLevel();
 
     /**
-     * Count the number of orgunits that satisfies the conditions in the
-     * queryParams. Note: groups, maxLevels and levels are not supported yet.
+     * Check if the number of orgunits that satisfies the conditions in the
+     * queryParams is greater than the threshold provided. Note: groups,
+     * maxLevels and levels are not supported yet.
      *
      * @param params The Org unit query params
-     * @return the count of the number of org units satisfying the params
-     *         criteria
+     * @param threshold the threshold count to check against
+     * @return true if the org units satisfying the params criteria is above the
+     *         threshold, false otherwise.
      */
-    int countOrganisationUnits( OrganisationUnitQueryParams params );
+    boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold );
 
     /**
      * Get list of organisation unit uids satisfying the query params. Note:

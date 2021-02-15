@@ -1312,9 +1312,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             return;
         }
 
-        int count = organisationUnitService.getCaptureOrganisationUnitCountCached();
-
-        if ( count > 100 )
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
         {
             // skipping restriction to capture scope due to high number of
             // capture scope org units for the current user.
