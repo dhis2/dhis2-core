@@ -51,6 +51,7 @@ public class TrackerImportAsyncStrategyImpl implements TrackerImportStrategy
     {
         TrackerMessage trackerMessage = TrackerMessage.builder()
             .trackerImportParams( trackerImportReportRequest.getTrackerImportParams() )
+            .uid( trackerImportReportRequest.getUid() )
             .build();
 
         messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );

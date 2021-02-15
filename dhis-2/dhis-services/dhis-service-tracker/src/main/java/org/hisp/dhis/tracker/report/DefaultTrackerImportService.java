@@ -291,8 +291,7 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() )
         {
             notifier.notify( params.getJobConfiguration(),
-                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
-                    " In memory: " + params.getJobConfiguration().isInMemoryJob() +
+                params.toString() +
                     " Import:Start" );
         }
     }
@@ -303,8 +302,7 @@ public class DefaultTrackerImportService
         {
             notifier
                 .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
-                    "User: ( " + params.getUsername() + " )  Job id: " + params.getJobConfiguration().getUid() +
-                        " In memory: " + params.getJobConfiguration().isInMemoryJob() +
+                    params.toString() +
                         " Import:"
                         + validationOps + " took "
                         + opsTimer.get( validationOps ) );
@@ -316,8 +314,8 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
-                    " In memory: " + params.getJobConfiguration().isInMemoryJob() + " Import:Done took "
+                params.toString() +
+                    " Import:Done took "
                     +
                     importReport.getTimingsStats().get( TOTAL_OPS ),
                 true );
@@ -334,8 +332,8 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() && params.getJobConfiguration().isInMemoryJob() )
         {
             notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
-                "User: ( " + params.getUsername() + " ) Job id: " + params.getJobConfiguration().getUid() +
-                    " In memory: " + params.getJobConfiguration().isInMemoryJob() + " Import:Failed with exception: "
+                params.toString() +
+                    " Import:Failed with exception: "
                     + e.getMessage(),
                 true );
 

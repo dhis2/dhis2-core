@@ -30,10 +30,7 @@ package org.hisp.dhis.tracker;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
@@ -182,8 +179,10 @@ public class TrackerImportParams
         return User.username( user );
     }
 
-    public boolean hasJobConfiguration()
+    @Override
+    public String toString()
     {
-        return jobConfiguration != null;
+        return "User: ( " + this.userId + " ) Job id: " + this.getJobConfiguration().getUid() +
+            " In memory: " + this.getJobConfiguration().isInMemoryJob();
     }
 }

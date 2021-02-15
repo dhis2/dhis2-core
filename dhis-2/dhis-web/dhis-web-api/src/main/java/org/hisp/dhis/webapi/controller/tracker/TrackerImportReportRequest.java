@@ -39,6 +39,8 @@ import org.hisp.dhis.webapi.service.ContextService;
 @Builder
 public class TrackerImportReportRequest
 {
+    String uid;
+
     ContextService contextService;
 
     User currentUser;

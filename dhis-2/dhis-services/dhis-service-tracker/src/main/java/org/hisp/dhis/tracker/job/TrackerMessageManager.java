@@ -80,6 +80,7 @@ public class TrackerMessageManager
             trackerImportParams.getUserId(),
             true );
 
+        jobConfiguration.setUid( trackerMessage.getUid() );
         trackerImportParams.setJobConfiguration( jobConfiguration );
 
         TrackerImportThread trackerImportThread = trackerImportThreadFactory.getObject();

@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.strategy.tracker.imports.impl;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -70,7 +69,7 @@ public class TrackerImportStrategyImpl implements TrackerImportStrategy
                 trackerImportReportRequest.getCurrentUser().getUid(),
                 trackerImportReportRequest.isAsync() );
 
-            jobConfiguration.setUid( CodeGenerator.generateUid() );
+            jobConfiguration.setUid( trackerImportReportRequest.getUid() );
 
             trackerImportReportRequest.getTrackerImportParams().setJobConfiguration( jobConfiguration );
             return importAsyncFalseStrategy.importReport( trackerImportReportRequest );
