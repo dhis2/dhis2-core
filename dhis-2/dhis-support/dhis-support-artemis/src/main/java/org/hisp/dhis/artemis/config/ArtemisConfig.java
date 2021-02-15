@@ -233,6 +233,8 @@ public class ArtemisConfig
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
         artemisEmbeddedConfig.setPersistence(
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
+        artemisEmbeddedConfig.setNioRemotingThreads(
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_THREADS ) ) );
 
         artemisConfigData.setEmbedded( artemisEmbeddedConfig );
 
@@ -259,7 +261,8 @@ public class ArtemisConfig
     public AuditProducerConfiguration producerConfiguration()
     {
         return AuditProducerConfiguration.builder()
-            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) )
+            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) ||
+                dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED ) )
             .build();
     }
 }
