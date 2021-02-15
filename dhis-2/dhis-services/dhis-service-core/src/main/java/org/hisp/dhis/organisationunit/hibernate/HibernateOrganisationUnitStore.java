@@ -329,7 +329,7 @@ public class HibernateOrganisationUnitStore
     @Override
     public boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold )
     {
-        String sql = buildOrganisationUnitCountDistinctUidsSql( params );
+        String sql = buildOrganisationUnitDistinctUidsSql( params );
 
         StringBuilder sb = new StringBuilder();
         sb.append( "select count(*) from (" );
@@ -374,12 +374,6 @@ public class HibernateOrganisationUnitStore
         // TODO: Support Groups + Query + Hierarchy + MaxLevels in this sql
 
         return sql;
-    }
-
-    private String buildOrganisationUnitCountDistinctUidsSql( OrganisationUnitQueryParams params )
-    {
-        String sql = buildOrganisationUnitDistinctUidsSql( params );
-        return sql.replaceFirst( "select distinct o.uid from", "select count(distinct o.uid) from" );
     }
 
     private void updatePaths( List<OrganisationUnit> organisationUnits )
