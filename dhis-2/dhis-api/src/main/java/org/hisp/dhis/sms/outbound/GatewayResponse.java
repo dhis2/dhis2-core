@@ -64,6 +64,7 @@ public enum GatewayResponse
     RESULT_CODE_28( "pstream quota exceeded", "" ),
     RESULT_CODE_40( "temporarily unavailable", "" ),
     RESULT_CODE_201( "maximum batch size exceeded", "" ),
+    RESULT_CODE_403( "Forbidden", "" ),
 
     // -------------------------------------------------------------------------
     // Clickatell response codes
