@@ -35,6 +35,7 @@ import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.leader.election.LeaderNodeInfo;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -60,6 +61,7 @@ public class ClusterController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/leader" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_VIEW_SERVER_INFO')" )
     public @ResponseBody LeaderNodeInfo getLeaderInfo()
         throws WebMessageException
     {
