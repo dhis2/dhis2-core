@@ -123,11 +123,8 @@ public class DefaultQueryParser implements QueryParser
         if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
         {
             User user = currentUserService.getCurrentUser();
-            if ( user != null )
-            {
-                handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
-                query.setUser( user );
-            }
+            handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
+            query.setUser( user );
         }
 
         return query;
@@ -135,15 +132,21 @@ public class DefaultQueryParser implements QueryParser
     
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
+        if ( user == null || user.isSuper() )
+        {
+            return;
+        }
 
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
 
-        List<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
-            Collectors.toList() );
-
-        disjunction.add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
+        disjunction
+            .add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
         disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
 
