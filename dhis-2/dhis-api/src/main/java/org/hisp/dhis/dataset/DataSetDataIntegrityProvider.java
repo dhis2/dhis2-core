@@ -25,38 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit;
+package org.hisp.dhis.dataset;
 
 import java.util.List;
-import java.util.Set;
 
 /**
- * A number of data integrity tests are solely related to
- * {@link OrganisationUnit}s. They are contained in this interface to avoid
- * duplication.
- *
  * @author Jan Bernitt
  */
-public interface OrganisationUnitDataIntegritySupport
+public interface DataSetDataIntegrityProvider
 {
 
     /**
-     * Gets all organisation units which are related to each other in a cyclic
-     * reference.
+     * Gets all data sets which are not assigned to any organisation units.
      */
-    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
-
-    /**
-     * Gets all organisation units with no parents or children.
-     */
-    List<OrganisationUnit> getOrphanedOrganisationUnits();
-
-    /**
-     * Returns all OrganisationUnits which are not a member of any
-     * OrganisationUnitGroups.
-     *
-     * @return all OrganisationUnits which are not a member of any
-     *         OrganisationUnitGroups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
 }

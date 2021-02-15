@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -57,6 +58,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.i18n.I18n;
@@ -299,10 +301,7 @@ public class DefaultDataIntegrityService
     @Override
     public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
     {
-        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-        return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() )
-            .collect( Collectors.toList() );
+        return dataSetService.getDataSetsNotAssignedToOrganisationUnits();
     }
 
     // -------------------------------------------------------------------------
@@ -357,32 +356,23 @@ public class DefaultDataIntegrityService
     @Override
     public SortedMap<Indicator, String> getInvalidIndicatorNumerators()
     {
-        SortedMap<Indicator, String> invalids = new TreeMap<>();
-        I18n i18n = i18nManager.getI18n();
-
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(),
-                INDICATOR_EXPRESSION );
-
-            if ( !result.isValid() )
-            {
-                invalids.put( indicator, i18n.getString( result.getKey() ) );
-            }
-        }
-
-        return invalids;
+        return getInvalidIndicators( Indicator::getNumerator );
     }
 
     @Override
     public SortedMap<Indicator, String> getInvalidIndicatorDenominators()
+    {
+        return getInvalidIndicators( Indicator::getDenominator );
+    }
+
+    private SortedMap<Indicator, String> getInvalidIndicators( Function<Indicator, String> getter )
     {
         SortedMap<Indicator, String> invalids = new TreeMap<>();
         I18n i18n = i18nManager.getI18n();
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(),
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( getter.apply( indicator ),
                 INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
@@ -506,34 +496,23 @@ public class DefaultDataIntegrityService
     @Override
     public List<ValidationRule> getValidationRulesWithoutGroups()
     {
-        Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
-
-        return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() )
-            .collect( Collectors.toList() );
+        return validationRuleService.getValidationRulesWithoutGroups();
     }
 
     @Override
     public SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
     {
-        SortedMap<ValidationRule, String> invalids = new TreeMap<>();
-        I18n i18n = i18nManager.getI18n();
-
-        for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
-        {
-            ExpressionValidationOutcome result = expressionService
-                .expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-
-            if ( !result.isValid() )
-            {
-                invalids.put( rule, i18n.getString( result.getKey() ) );
-            }
-        }
-
-        return invalids;
+        return getInvalidValidationRuleExpressions( ValidationRule::getLeftSide );
     }
 
     @Override
     public SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
+    {
+        return getInvalidValidationRuleExpressions( ValidationRule::getRightSide );
+    }
+
+    private SortedMap<ValidationRule, String> getInvalidValidationRuleExpressions(
+        Function<ValidationRule, Expression> getter )
     {
         SortedMap<ValidationRule, String> invalids = new TreeMap<>();
         I18n i18n = i18nManager.getI18n();
@@ -541,7 +520,7 @@ public class DefaultDataIntegrityService
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
             ExpressionValidationOutcome result = expressionService
-                .expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+                .expressionIsValid( getter.apply( rule ).getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {

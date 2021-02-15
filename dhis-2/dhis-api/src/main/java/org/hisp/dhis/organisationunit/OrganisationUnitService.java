@@ -42,7 +42,7 @@ import org.hisp.dhis.user.User;
  *
  * @author Torgeir Lorange Ostby
  */
-public interface OrganisationUnitService extends OrganisationUnitDataIntegritySupport
+public interface OrganisationUnitService extends OrganisationUnitDataIntegrityProvider
 {
     String ID = OrganisationUnitService.class.getName();
 

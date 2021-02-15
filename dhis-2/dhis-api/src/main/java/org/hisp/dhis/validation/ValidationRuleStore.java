@@ -35,7 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Chau Thu Tran
  */
 public interface ValidationRuleStore
-    extends IdentifiableObjectStore<ValidationRule>
+    extends IdentifiableObjectStore<ValidationRule>, ValidationRuleDataIntegrityProvider
 {
     String ID = ValidationRuleStore.class.getName();
 

@@ -37,12 +37,13 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetDataIntegrityProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegritySupport;
+import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegrityProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupDataIntegritySupport;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupDataIntegrityProvider;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -50,12 +51,14 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleDataIntegrityProvider;
 
 /**
  * @author Fredrik Fjeld
  */
 public interface DataIntegrityService
-    extends OrganisationUnitDataIntegritySupport, OrganisationUnitGroupDataIntegritySupport
+    extends OrganisationUnitDataIntegrityProvider, OrganisationUnitGroupDataIntegrityProvider,
+    ValidationRuleDataIntegrityProvider, DataSetDataIntegrityProvider
 {
     String ID = DataIntegrityService.class.getName();
 
@@ -99,15 +102,6 @@ public interface DataIntegrityService
      * Returns all invalid category combinations.
      */
     List<CategoryCombo> getInvalidCategoryCombos();
-
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all data sets which are not assigned to any organisation units.
-     */
-    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
 
     // -------------------------------------------------------------------------
     // Indicator
@@ -162,11 +156,6 @@ public interface DataIntegrityService
     // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
-
-    /**
-     * Gets all ValidationRules which are not members fo one or more groups.
-     */
-    List<ValidationRule> getValidationRulesWithoutGroups();
 
     /**
      * Gets all ValidationRules with invalid left side expressions.

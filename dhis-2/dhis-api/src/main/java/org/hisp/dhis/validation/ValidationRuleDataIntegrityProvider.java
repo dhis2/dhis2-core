@@ -25,39 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.validation;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.period.PeriodType;
-
 /**
- * @author Kristian Nordal
+ * @author Jan Bernitt
  */
-public interface DataSetStore
-    extends IdentifiableObjectStore<DataSet>, DataSetDataIntegrityProvider
+public interface ValidationRuleDataIntegrityProvider
 {
-    String ID = DataSetStore.class.getName();
-
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
 
     /**
-     * Gets all DataSets associated with the given PeriodType.
-     *
-     * @param periodType the PeriodType.
-     * @return a list of DataSets.
+     * Gets all ValidationRules which are not members fo one or more groups.
      */
-    List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
+    List<ValidationRule> getValidationRulesWithoutGroups();
 
-    /**
-     * Gets all DataSets associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of DataSets.
-     */
-    List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm );
 }

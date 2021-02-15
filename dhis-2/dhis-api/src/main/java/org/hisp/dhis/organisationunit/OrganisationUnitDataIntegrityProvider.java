@@ -25,39 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset;
+package org.hisp.dhis.organisationunit;
 
 import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.period.PeriodType;
+import java.util.Set;
 
 /**
- * @author Kristian Nordal
+ * A number of data integrity tests are solely related to
+ * {@link OrganisationUnit}s. They are contained in this interface to avoid
+ * duplication.
+ *
+ * @author Jan Bernitt
  */
-public interface DataSetStore
-    extends IdentifiableObjectStore<DataSet>, DataSetDataIntegrityProvider
+public interface OrganisationUnitDataIntegrityProvider
 {
-    String ID = DataSetStore.class.getName();
-
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
 
     /**
-     * Gets all DataSets associated with the given PeriodType.
-     *
-     * @param periodType the PeriodType.
-     * @return a list of DataSets.
+     * Gets all organisation units which are related to each other in a cyclic
+     * reference.
      */
-    List<DataSet> getDataSetsByPeriodType( PeriodType periodType );
+    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
 
     /**
-     * Gets all DataSets associated with the given DataEntryForm.
-     *
-     * @param dataEntryForm the DataEntryForm.
-     * @return a list of DataSets.
+     * Gets all organisation units with no parents or children.
      */
-    List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm );
+    List<OrganisationUnit> getOrphanedOrganisationUnits();
+
+    /**
+     * Returns all OrganisationUnits which are not a member of any
+     * OrganisationUnitGroups.
+     *
+     * @return all OrganisationUnits which are not a member of any
+     *         OrganisationUnitGroups.
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 }

@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Program;
  * @version $Id: OrganisationUnitStore.java 5645 2008-09-04 10:01:02Z larshelg $
  */
 public interface OrganisationUnitStore
-    extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegritySupport
+    extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider
 {
     String ID = OrganisationUnitStore.class.getName();
 

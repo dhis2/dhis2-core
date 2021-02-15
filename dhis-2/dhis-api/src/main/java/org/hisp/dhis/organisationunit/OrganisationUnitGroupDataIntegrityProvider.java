@@ -32,7 +32,7 @@ import java.util.List;
 /**
  * @author Jan Bernitt
  */
-public interface OrganisationUnitGroupDataIntegritySupport
+public interface OrganisationUnitGroupDataIntegrityProvider
 {
     /**
      * Gets all organisation unit groups which are not assigned to any group

@@ -51,6 +51,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -407,10 +408,10 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetDataSetsNotAssignedToOrganisationUnits()
     {
-        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSetA, dataSetB ) );
-        Collection<DataSet> expected = subject.getDataSetsNotAssignedToOrganisationUnits();
-        assertThat( expected, hasSize( 1 ) );
-        assertThat( expected, hasItem( dataSetB ) );
+        clearInvocations( dataSetService );
+        subject.getDataSetsNotAssignedToOrganisationUnits();
+        verify( dataSetService ).getDataSetsNotAssignedToOrganisationUnits();
+        verifyNoMoreInteractions( dataSetService );
     }
 
     @Test
