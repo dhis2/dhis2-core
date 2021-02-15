@@ -127,7 +127,7 @@ public class DefaultJpaQueryParser
 
     private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
     {
-        if ( user != null && !user.isSuper() )
+        if ( user == null || user.isSuper() )
         {
             return;
         }
