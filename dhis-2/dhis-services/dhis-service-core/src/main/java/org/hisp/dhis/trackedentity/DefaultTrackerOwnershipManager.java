@@ -106,8 +106,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.organisationUnitService = organisationUnitService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.config = config;
-        this.ownerCache = cacheProvider.createProgramOwnerCache( OrganisationUnit.class );
-        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache( Boolean.class );
+        this.ownerCache = cacheProvider.createProgramOwnerCache();
+        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
     }
 
     /**

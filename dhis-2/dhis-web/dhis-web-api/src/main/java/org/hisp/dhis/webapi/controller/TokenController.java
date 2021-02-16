@@ -68,7 +68,7 @@ public class TokenController
     public TokenController( DhisConfigurationProvider config, CacheProvider cacheProvider )
     {
         this.config = config;
-        this.tokenCache = cacheProvider.createGoogleAccessTokenCache( GoogleAccessToken.class );
+        this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
     }
 
     @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )

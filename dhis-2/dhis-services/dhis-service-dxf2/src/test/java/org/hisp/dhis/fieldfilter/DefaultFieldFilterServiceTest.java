@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,7 +89,7 @@ public class DefaultFieldFilterServiceTest
         throws Exception
     {
         CacheProvider cacheProvider = mock( CacheProvider.class );
-        when( cacheProvider.createPropertyTransformerCache( any() ) ).thenReturn( new NoOpCache<>() );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
             attributeService, cacheProvider, new HashSet<>() );
     }
