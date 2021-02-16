@@ -319,6 +319,35 @@ public class AssignValueImplementerTest
     }
 
     @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
+    {
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setTrackedEntities( trackedEntities );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            SECOND_ENROLLMENT_ID ) ).findAny().get();
+        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream().filter( e -> e.getTrackedEntity().equals(
+            TRACKED_ENTITY_ID ) ).findAny().get();
+        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertFalse( enrollmentAttribute.isPresent() );
+        assertTrue( teiAttribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
     public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndHasTheSameValue()
     {
         List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSetSameValue() );
