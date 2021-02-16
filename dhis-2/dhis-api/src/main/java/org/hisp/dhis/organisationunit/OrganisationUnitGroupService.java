@@ -38,7 +38,7 @@ import java.util.List;
  * @version $Id: OrganisationUnitGroupService.java 3286 2007-05-07 18:05:21Z
  *          larshelg $
  */
-public interface OrganisationUnitGroupService
+public interface OrganisationUnitGroupService extends OrganisationUnitGroupDataIntegrityProvider
 {
     String ID = OrganisationUnitGroupService.class.getName();
 

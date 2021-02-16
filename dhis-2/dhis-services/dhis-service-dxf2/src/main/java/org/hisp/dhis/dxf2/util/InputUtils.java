@@ -29,9 +29,6 @@ package org.hisp.dhis.dxf2.util;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -42,10 +39,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,35 +49,18 @@ import org.springframework.stereotype.Component;
 @Component
 public class InputUtils
 {
-    private static Cache<Long> ATTR_OPTION_COMBO_ID_CACHE;
+    private final Cache<Long> attrOptionComboIdCache;
 
     private final CategoryService categoryService;
 
     private final IdentifiableObjectManager idObjectManager;
 
-    private final Environment env;
-
-    private final CacheProvider cacheProvider;
-
-    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager, Environment env,
+    public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager,
         CacheProvider cacheProvider )
     {
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;
-        this.env = env;
-        this.cacheProvider = cacheProvider;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        ATTR_OPTION_COMBO_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
-            .forRegion( "attrOptionComboIdCache" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
-            .build();
+        this.attrOptionComboIdCache = cacheProvider.createAttrOptionComboIdCache( Long.class );
     }
 
     /**
@@ -101,7 +79,7 @@ public class InputUtils
     {
         String cacheKey = TextUtils.joinHyphen( cc, cp, String.valueOf( skipFallback ) );
 
-        Long id = ATTR_OPTION_COMBO_ID_CACHE.getIfPresent( cacheKey ).orElse( null );
+        Long id = attrOptionComboIdCache.getIfPresent( cacheKey ).orElse( null );
 
         if ( id != null )
         {
@@ -113,7 +91,7 @@ public class InputUtils
 
             if ( aoc != null )
             {
-                ATTR_OPTION_COMBO_ID_CACHE.put( cacheKey, aoc.getId() );
+                attrOptionComboIdCache.put( cacheKey, aoc.getId() );
             }
 
             return aoc;

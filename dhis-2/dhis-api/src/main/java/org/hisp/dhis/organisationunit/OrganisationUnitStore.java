@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Program;
  * @version $Id: OrganisationUnitStore.java 5645 2008-09-04 10:01:02Z larshelg $
  */
 public interface OrganisationUnitStore
-    extends IdentifiableObjectStore<OrganisationUnit>
+    extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider
 {
     String ID = OrganisationUnitStore.class.getName();
 
@@ -69,15 +69,6 @@ public interface OrganisationUnitStore
      *         there are no OrganisationUnits.
      */
     List<OrganisationUnit> getRootOrganisationUnits();
-
-    /**
-     * Returns all OrganisationUnits which are not a member of any
-     * OrganisationUnitGroups.
-     *
-     * @return all OrganisationUnits which are not a member of any
-     *         OrganisationUnitGroups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
     /**
      * Returns OrganisationUnits which are associated with the given Program.
@@ -143,4 +134,25 @@ public interface OrganisationUnitStore
      * @return number of levels, 0 if no organisation units are present.
      */
     int getMaxLevel();
+
+    /**
+     * Check if the number of orgunits that satisfies the conditions in the
+     * queryParams is greater than the threshold provided. Note: groups,
+     * maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @param threshold the threshold count to check against
+     * @return true if the org units satisfying the params criteria is above the
+     *         threshold, false otherwise.
+     */
+    boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold );
+
+    /**
+     * Get list of organisation unit uids satisfying the query params. Note:
+     * groups, maxLevels and levels are not supported yet.
+     *
+     * @param params The Org unit query params
+     * @return the list of org unit uids satisfying the params criteria
+     */
+    List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params );
 }

@@ -42,7 +42,7 @@ import org.hisp.dhis.user.User;
  * @author Lars Helge Overland
  * @version $Id: DataSetService.java 6255 2008-11-10 16:01:24Z larshelg $
  */
-public interface DataSetService
+public interface DataSetService extends DataSetDataIntegrityProvider
 {
     String ID = DataSetService.class.getName();
 

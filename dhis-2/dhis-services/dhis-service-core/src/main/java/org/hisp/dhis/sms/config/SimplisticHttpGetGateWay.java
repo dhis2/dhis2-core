@@ -100,28 +100,29 @@ public class SimplisticHttpGetGateWay
     {
         GenericHttpGatewayConfig genericConfig = (GenericHttpGatewayConfig) config;
 
-        UriComponentsBuilder uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
+        UriComponentsBuilder uriBuilder;
 
         ResponseEntity<String> responseEntity = null;
 
-        HttpEntity<String> requestEntity = null;
+        HttpEntity<String> requestEntity;
 
         URI uri;
 
         try
         {
+            requestEntity = getRequestEntity( genericConfig, text, recipients );
+
             if ( genericConfig.isSendUrlParameters() )
             {
-                uri = uriBuilder.buildAndExpand( getValueStore( genericConfig, text, recipients ) ).encode().toUri();
-
-                requestEntity = new HttpEntity<>( null, getHeaderParameters( genericConfig ) );
+                uriBuilder = UriComponentsBuilder
+                    .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
             }
             else
             {
-                uri = uriBuilder.build().encode().toUri();
-
-                requestEntity = getRequestEntity( genericConfig, text, recipients );
+                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() );
             }
+
+            uri = uriBuilder.build().encode().toUri();
 
             responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
                 requestEntity, String.class );
@@ -148,45 +149,16 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        List<GenericGatewayParameter> parameters = config.getParameters();
-
-        Map<String, String> valueStore = new HashMap<>();
-
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
-
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( parameter.isHeader() )
-            {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
-                continue;
-            }
-
-            if ( parameter.isEncode() )
-            {
-                valueStore.put( parameter.getKey(), SmsUtils.encode( parameter.getValue() ) );
-                continue;
-            }
-
-            valueStore.put( parameter.getKey(),
-                parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
-                    : parameter.getValue() );
-        }
-
-        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
-        valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
-
-        final StringSubstitutor substitutor = new StringSubstitutor( valueStore ); // Matches
-                                                                                   // on
-                                                                                   // ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches
+                                                                                                                   // on
+                                                                                                                   // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
-        return new HttpEntity<>( data, httpHeaders );
+        return new HttpEntity<>( data, getRequestHeaderParameters( config ) );
     }
 
-    private Map<String, String> getValueStore( GenericHttpGatewayConfig config, String text, Set<String> recipients )
+    private Map<String, String> getRequestData( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
         List<GenericGatewayParameter> parameters = config.getParameters();
 
@@ -196,19 +168,17 @@ public class SimplisticHttpGetGateWay
         {
             if ( !parameter.isHeader() )
             {
-                valueStore.put( parameter.getKey(),
-                    parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
-                        : parameter.getValue() );
+                valueStore.put( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
             }
         }
 
-        valueStore.put( KEY_TEXT, text );
+        valueStore.put( KEY_TEXT, SmsUtils.encode( text ) );
         valueStore.put( KEY_RECIPIENT, StringUtils.join( recipients, "," ) );
 
         return valueStore;
     }
 
-    private HttpHeaders getHeaderParameters( GenericHttpGatewayConfig config )
+    private HttpHeaders getRequestHeaderParameters( GenericHttpGatewayConfig config )
     {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.put( "Content-type", Collections.singletonList( config.getContentType().getValue() ) );
@@ -217,11 +187,26 @@ public class SimplisticHttpGetGateWay
         {
             if ( parameter.isHeader() )
             {
-                httpHeaders.put( parameter.getKey(), Collections.singletonList( parameter.getValue() ) );
+                if ( parameter.getKey().equals( HttpHeaders.AUTHORIZATION ) )
+                {
+                    httpHeaders.add( parameter.getKey(), BASIC + encodeAndDecryptParameter( parameter ) );
+                }
+                else
+                {
+                    httpHeaders.add( parameter.getKey(), encodeAndDecryptParameter( parameter ) );
+                }
             }
         }
 
         return httpHeaders;
+    }
+
+    private String encodeAndDecryptParameter( GenericGatewayParameter parameter )
+    {
+        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+            : parameter.getValue();
+
+        return parameter.isEncode() ? Base64.getEncoder().encodeToString( value.getBytes() ) : value;
     }
 
     private OutboundMessageResponse getResponse( ResponseEntity<String> responseEntity )

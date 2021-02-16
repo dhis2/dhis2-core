@@ -41,10 +41,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import lombok.extern.slf4j.Slf4j;
@@ -58,7 +56,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataapproval.DataApproval;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalState;
@@ -78,7 +75,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
@@ -98,13 +94,11 @@ public class HibernateDataApprovalStore
 
     private static final String SQL_CAT = StatementBuilder.QUOTE + SQL_CONCAT + StatementBuilder.QUOTE;
 
-    private Cache<Boolean> IS_APPROVED_CACHE;
+    private final Cache<Boolean> isApprovedCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final CacheProvider cacheProvider;
 
     private final PeriodService periodService;
 
@@ -116,13 +110,11 @@ public class HibernateDataApprovalStore
 
     private final StatementBuilder statementBuilder;
 
-    private final Environment env;
-
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
         CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
-        StatementBuilder statementBuilder, Environment env )
+        StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
 
@@ -132,15 +124,13 @@ public class HibernateDataApprovalStore
         checkNotNull( categoryService );
         checkNotNull( systemSettingManager );
         checkNotNull( statementBuilder );
-        checkNotNull( env );
 
-        this.cacheProvider = cacheProvider;
         this.periodService = periodService;
         this.currentUserService = currentUserService;
         this.categoryService = categoryService;
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
-        this.env = env;
+        this.isApprovedCache = cacheProvider.createIsDataApprovedCache( Boolean.class );
     }
 
     /**
@@ -154,15 +144,6 @@ public class HibernateDataApprovalStore
         this.currentUserService = currentUserService;
     }
 
-    @PostConstruct
-    public void init()
-    {
-        IS_APPROVED_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "isDataApproved" )
-            .expireAfterAccess( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-    }
-
     // -------------------------------------------------------------------------
     // DataApproval
     // -------------------------------------------------------------------------
@@ -170,7 +151,7 @@ public class HibernateDataApprovalStore
     @Override
     public void addDataApproval( DataApproval dataApproval )
     {
-        IS_APPROVED_CACHE.invalidateAll();
+        isApprovedCache.invalidateAll();
 
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
@@ -180,7 +161,7 @@ public class HibernateDataApprovalStore
     @Override
     public void updateDataApproval( DataApproval dataApproval )
     {
-        IS_APPROVED_CACHE.invalidateAll();
+        isApprovedCache.invalidateAll();
 
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
@@ -190,7 +171,7 @@ public class HibernateDataApprovalStore
     @Override
     public void deleteDataApproval( DataApproval dataApproval )
     {
-        IS_APPROVED_CACHE.invalidateAll();
+        isApprovedCache.invalidateAll();
 
         dataApproval.setPeriod( periodService.reloadPeriod( dataApproval.getPeriod() ) );
 
@@ -200,7 +181,7 @@ public class HibernateDataApprovalStore
     @Override
     public void deleteDataApprovals( OrganisationUnit organisationUnit )
     {
-        IS_APPROVED_CACHE.invalidateAll();
+        isApprovedCache.invalidateAll();
 
         String hql = "delete from DataApproval d where d.organisationUnit = :unit";
 
@@ -253,7 +234,7 @@ public class HibernateDataApprovalStore
     @Override
     public boolean dataApprovalExists( DataApproval dataApproval )
     {
-        return IS_APPROVED_CACHE.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) )
+        return isApprovedCache.get( dataApproval.getCacheKey(), key -> dataApprovalExistsInternal( dataApproval ) )
             .orElse( false );
     }
 

@@ -85,7 +85,8 @@ public class TrackerImportParamsBuilder
             .importMode( getEnumWithDefault( TrackerBundleMode.class, parameters, IMPORT_MODE_KEY, COMMIT ) )
             .identifiers( getTrackerIdentifiers( parameters ) )
             .importStrategy(
-                getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY, CREATE_AND_UPDATE ) )
+                getEnumWithDefault( TrackerImportStrategy.class, parameters, IMPORT_STRATEGY_KEY,
+                    CREATE_AND_UPDATE ) )
             .atomicMode( getEnumWithDefault( AtomicMode.class, parameters, ATOMIC_MODE_KEY, ALL ) )
             .flushMode( getEnumWithDefault( FlushMode.class, parameters, FLUSH_MODE_KEY, AUTO ) )
             .skipSideEffects( getBooleanValueOrDefault( parameters, SKIP_SIDE_EFFECTS ) )

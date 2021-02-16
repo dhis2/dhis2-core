@@ -2472,4 +2472,5 @@ public abstract class DhisConvenienceTest
         userService.addUserCredentials( credentials );
         return user;
     }
+
 }

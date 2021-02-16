@@ -102,6 +102,12 @@ public class UnregisteredSMSListener
     }
 
     @Override
+    protected boolean hasCorrectFormat( IncomingSms sms, SMSCommand smsCommand )
+    {
+        return true;
+    }
+
+    @Override
     protected void postProcess( IncomingSms sms, SMSCommand smsCommand, Map<String, String> parsedMessage )
     {
         UserGroup userGroup = smsCommand.getUserGroup();

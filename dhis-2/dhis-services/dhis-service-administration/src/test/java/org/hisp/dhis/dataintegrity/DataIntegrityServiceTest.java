@@ -28,12 +28,42 @@
 package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hamcrest.Matchers.*;
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasKey;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataElementGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createIndicatorType;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
+import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRule;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -378,10 +408,10 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetDataSetsNotAssignedToOrganisationUnits()
     {
-        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSetA, dataSetB ) );
-        Collection<DataSet> expected = subject.getDataSetsNotAssignedToOrganisationUnits();
-        assertThat( expected, hasSize( 1 ) );
-        assertThat( expected, hasItem( dataSetB ) );
+        clearInvocations( dataSetService );
+        subject.getDataSetsNotAssignedToOrganisationUnits();
+        verify( dataSetService ).getDataSetsNotAssignedToOrganisationUnits();
+        verifyNoMoreInteractions( dataSetService );
     }
 
     @Test
@@ -408,21 +438,17 @@ public class DataIntegrityServiceTest
     @Test
     public void testGetOrganisationUnitsWithCyclicReferences()
     {
-        when( organisationUnitService.getAllOrganisationUnits() ).thenReturn( allOrgUnits );
-
-        Collection<OrganisationUnit> expected = subject.getOrganisationUnitsWithCyclicReferences();
-        assertThat( expected, hasSize( 3 ) );
-        assertThat( expected, hasItems( unitA, unitB, unitC ) );
+        subject.getOrganisationUnitsWithCyclicReferences();
+        verify( organisationUnitService ).getOrganisationUnitsWithCyclicReferences();
+        verifyNoMoreInteractions( organisationUnitService );
     }
 
     @Test
     public void testGetOrphanedOrganisationUnits()
     {
-        when( organisationUnitService.getAllOrganisationUnits() ).thenReturn( allOrgUnits );
-
-        Collection<OrganisationUnit> expected = subject.getOrphanedOrganisationUnits();
-        assertThat( expected, hasSize( 1 ) );
-        assertThat( expected, hasItem( unitF ) );
+        subject.getOrphanedOrganisationUnits();
+        verify( organisationUnitService ).getOrphanedOrganisationUnits();
+        verifyNoMoreInteractions( organisationUnitService );
     }
 
     @Test

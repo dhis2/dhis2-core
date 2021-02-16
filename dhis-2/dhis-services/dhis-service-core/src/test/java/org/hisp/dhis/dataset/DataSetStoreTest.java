@@ -27,13 +27,20 @@
  */
 package org.hisp.dhis.dataset;
 
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
+import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,20 +52,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class DataSetStoreTest
     extends DhisSpringTest
 {
+    private static final PeriodType PERIOD_TYPE = PeriodType.getAvailablePeriodTypes().iterator().next();
+
     @Autowired
     private DataSetStore dataSetStore;
 
     @Autowired
     private DataEntryFormService dataEntryFormService;
 
-    private PeriodType periodType;
-
-    @Override
-    public void setUpTest()
-        throws Exception
-    {
-        periodType = PeriodType.getAvailablePeriodTypes().iterator().next();
-    }
+    @Autowired
+    protected OrganisationUnitStore unitStore;
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -68,7 +71,7 @@ public class DataSetStoreTest
     {
         assertEquals( "DataSet" + uniqueCharacter, dataSet.getName() );
         assertEquals( "DataSetShort" + uniqueCharacter, dataSet.getShortName() );
-        assertEquals( periodType, dataSet.getPeriodType() );
+        assertEquals( PERIOD_TYPE, dataSet.getPeriodType() );
     }
 
     // -------------------------------------------------------------------------
@@ -78,95 +81,58 @@ public class DataSetStoreTest
     @Test
     public void testAddDataSet()
     {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B' );
 
-        dataSetStore.save( dataSetA );
-        long idA = dataSetA.getId();
-        dataSetStore.save( dataSetB );
-        long idB = dataSetB.getId();
-
-        dataSetA = dataSetStore.get( idA );
-        dataSetB = dataSetStore.get( idB );
-
-        assertEquals( idA, dataSetA.getId() );
-        assertEq( 'A', dataSetA );
-
-        assertEquals( idB, dataSetB.getId() );
-        assertEq( 'B', dataSetB );
+        assertEq( 'A', dataSetStore.get( dataSetA.getId() ) );
+        assertEq( 'B', dataSetStore.get( dataSetB.getId() ) );
     }
 
     @Test
     public void testUpdateDataSet()
     {
-        DataSet dataSet = createDataSet( 'A', periodType );
+        DataSet dataSetA = addDataSet( 'A' );
+        assertEq( 'A', dataSetStore.get( dataSetA.getId() ) );
 
-        dataSetStore.save( dataSet );
-        long id = dataSet.getId();
+        dataSetA.setName( "DataSetB" );
+        dataSetStore.update( dataSetA );
 
-        dataSet = dataSetStore.get( id );
-
-        assertEq( 'A', dataSet );
-
-        dataSet.setName( "DataSetB" );
-
-        dataSetStore.update( dataSet );
-
-        dataSet = dataSetStore.get( id );
-
-        assertEquals( dataSet.getName(), "DataSetB" );
+        assertEquals( "DataSetB", dataSetStore.get( dataSetA.getId() ).getName() );
     }
 
     @Test
     public void testDeleteAndGetDataSet()
     {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B' );
 
-        dataSetStore.save( dataSetA );
-        long idA = dataSetA.getId();
-        dataSetStore.save( dataSetB );
-        long idB = dataSetB.getId();
+        assertNotNull( dataSetStore.get( dataSetA.getId() ) );
+        assertNotNull( dataSetStore.get( dataSetB.getId() ) );
 
-        assertNotNull( dataSetStore.get( idA ) );
-        assertNotNull( dataSetStore.get( idB ) );
+        dataSetStore.delete( dataSetA );
 
-        dataSetStore.delete( dataSetStore.get( idA ) );
-
-        assertNull( dataSetStore.get( idA ) );
-        assertNotNull( dataSetStore.get( idB ) );
+        assertNull( dataSetStore.get( dataSetA.getId() ) );
+        assertNotNull( dataSetStore.get( dataSetB.getId() ) );
     }
 
     @Test
     public void testGetDataSetByName()
     {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B' );
 
-        dataSetStore.save( dataSetA );
-        long idA = dataSetA.getId();
-        dataSetStore.save( dataSetB );
-        long idB = dataSetB.getId();
-
-        assertEquals( dataSetStore.getByName( "DataSetA" ).getId(), idA );
-        assertEquals( dataSetStore.getByName( "DataSetB" ).getId(), idB );
+        assertEquals( dataSetA.getId(), dataSetStore.getByName( "DataSetA" ).getId() );
+        assertEquals( dataSetB.getId(), dataSetStore.getByName( "DataSetB" ).getId() );
         assertNull( dataSetStore.getByName( "DataSetC" ) );
     }
 
     @Test
     public void testGetAllDataSets()
     {
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B' );
 
-        dataSetStore.save( dataSetA );
-        dataSetStore.save( dataSetB );
-
-        List<DataSet> dataSets = dataSetStore.getAll();
-
-        assertEquals( dataSets.size(), 2 );
-        assertTrue( dataSets.contains( dataSetA ) );
-        assertTrue( dataSets.contains( dataSetB ) );
+        assertContainsOnly( dataSetStore.getAll(), dataSetA, dataSetB );
     }
 
     @Test
@@ -175,55 +141,84 @@ public class DataSetStoreTest
         List<PeriodType> types = PeriodType.getAvailablePeriodTypes();
         PeriodType periodType1 = types.get( 0 );
         PeriodType periodType2 = types.get( 1 );
-        DataSet dataSetA = createDataSet( 'A', periodType1 );
-        DataSet dataSetB = createDataSet( 'B', periodType2 );
+        DataSet dataSetA = addDataSet( 'A', periodType1 );
+        DataSet dataSetB = addDataSet( 'B', periodType2 );
 
-        dataSetStore.save( dataSetA );
-        dataSetStore.save( dataSetB );
-
-        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType1 ).size() );
-        assertEquals( 1, dataSetStore.getDataSetsByPeriodType( periodType2 ).size() );
+        assertContainsOnly( dataSetStore.getDataSetsByPeriodType( periodType1 ), dataSetA );
+        assertContainsOnly( dataSetStore.getDataSetsByPeriodType( periodType2 ), dataSetB );
     }
 
     @Test
     public void testGetByDataEntryForm()
     {
-        DataEntryForm dataEntryFormX = createDataEntryForm( 'X' );
-        DataEntryForm dataEntryFormY = createDataEntryForm( 'Y' );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B' );
+        DataSet dataSetC = addDataSet( 'C' );
 
-        dataEntryFormService.addDataEntryForm( dataEntryFormX );
-        dataEntryFormService.addDataEntryForm( dataEntryFormY );
+        DataEntryForm dataEntryFormX = addDataEntryForm( 'X', dataSetA );
+        DataEntryForm dataEntryFormY = addDataEntryForm( 'Y' );
 
-        DataSet dataSetA = createDataSet( 'A', periodType );
-        DataSet dataSetB = createDataSet( 'B', periodType );
-        DataSet dataSetC = createDataSet( 'C', periodType );
-
-        dataSetA.setDataEntryForm( dataEntryFormX );
-
-        dataSetStore.save( dataSetA );
-        dataSetStore.save( dataSetB );
-        dataSetStore.save( dataSetC );
-
-        List<DataSet> dataSetsWithForm = dataSetStore.getDataSetsByDataEntryForm( dataEntryFormX );
-
-        assertEquals( 1, dataSetsWithForm.size() );
-        assertEquals( dataSetA, dataSetsWithForm.get( 0 ) );
+        assertContainsOnly( dataSetStore.getDataSetsByDataEntryForm( dataEntryFormX ), dataSetA );
 
         dataSetC.setDataEntryForm( dataEntryFormX );
-
         dataSetStore.update( dataSetC );
 
-        dataSetsWithForm = dataSetStore.getDataSetsByDataEntryForm( dataEntryFormX );
-
-        assertEquals( 2, dataSetsWithForm.size() );
-        assertTrue( dataSetsWithForm.contains( dataSetA ) );
-        assertTrue( dataSetsWithForm.contains( dataSetC ) );
+        assertContainsOnly( dataSetStore.getDataSetsByDataEntryForm( dataEntryFormX ), dataSetA, dataSetC );
 
         dataSetB.setDataEntryForm( dataEntryFormY );
         dataSetStore.update( dataSetB );
 
-        dataSetsWithForm = dataSetStore.getDataSetsByDataEntryForm( dataEntryFormY );
-        assertEquals( 1, dataSetsWithForm.size() );
-        assertTrue( dataSetsWithForm.contains( dataSetB ) );
+        assertContainsOnly( dataSetStore.getDataSetsByDataEntryForm( dataEntryFormY ), dataSetB );
+    }
+
+    @Test
+    public void testGetDataSetsNotAssignedToOrganisationUnits()
+    {
+        OrganisationUnit unitX = addOrganisationUnit( 'X' );
+        DataSet dataSetA = addDataSet( 'A' );
+        DataSet dataSetB = addDataSet( 'B', unitX );
+        DataSet dataSetC = addDataSet( 'C' );
+
+        assertContainsOnly( dataSetStore.getDataSetsNotAssignedToOrganisationUnits(), dataSetA, dataSetC );
+    }
+
+    private OrganisationUnit addOrganisationUnit( char uniqueCharacter )
+    {
+        OrganisationUnit unit = createOrganisationUnit( uniqueCharacter );
+        unitStore.save( unit );
+        return unit;
+    }
+
+    private DataSet addDataSet( char uniqueCharacter, OrganisationUnit... sources )
+    {
+        return addDataSet( uniqueCharacter, PERIOD_TYPE, sources );
+    }
+
+    private DataSet addDataSet( char uniqueCharacter, PeriodType periodType, OrganisationUnit... sources )
+    {
+        DataSet dataSet = createDataSet( uniqueCharacter, periodType );
+        if ( sources.length > 0 )
+        {
+            dataSet.setSources( new HashSet<>( asList( sources ) ) );
+        }
+        dataSetStore.save( dataSet );
+        return dataSet;
+    }
+
+    private DataEntryForm addDataEntryForm( char uniqueCharacter )
+    {
+        return addDataEntryForm( uniqueCharacter, null );
+    }
+
+    private DataEntryForm addDataEntryForm( char uniqueCharacter, DataSet dataSet )
+    {
+        DataEntryForm form = createDataEntryForm( uniqueCharacter );
+        dataEntryFormService.addDataEntryForm( form );
+        if ( dataSet != null )
+        {
+            dataSet.setDataEntryForm( form );
+            dataSetStore.update( dataSet );
+        }
+        return form;
     }
 }
