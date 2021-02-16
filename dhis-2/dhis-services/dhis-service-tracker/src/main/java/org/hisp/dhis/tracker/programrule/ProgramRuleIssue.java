@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
 /**
  * A single issue from rule engine that can be either be a Warning or an Error.
@@ -39,7 +43,11 @@ import lombok.RequiredArgsConstructor;
 @Getter
 public class ProgramRuleIssue
 {
-    private final String message;
+    private final String ruleUid;
+
+    private final TrackerErrorCode issueCode;
+
+    private final List<String> args;
 
     private final IssueType issueType;
 }

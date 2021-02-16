@@ -107,7 +107,7 @@ public class HibernateProgramRuleStore
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> types,
         String programStageUid )
     {
-        final String hql = "FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
+        final String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
             "LEFT JOIN FETCH pr.programStage ps " +
             "WHERE pr.program = :programId AND pra.programRuleActionType IN ( :implementableTypes ) " +
             "AND (pr.programStage IS NULL OR ps.uid = :programStageUid )";
