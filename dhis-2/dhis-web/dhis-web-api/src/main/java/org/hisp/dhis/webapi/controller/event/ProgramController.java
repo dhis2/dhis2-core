@@ -73,7 +73,8 @@ public class ProgramController
         boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
 
         List<Program> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
