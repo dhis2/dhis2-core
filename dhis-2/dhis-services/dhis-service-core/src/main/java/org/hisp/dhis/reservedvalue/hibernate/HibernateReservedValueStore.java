@@ -70,6 +70,22 @@ public class HibernateReservedValueStore
     }
 
     @Override
+    public List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue,
+        List<String> values )
+    {
+        List<String> availableValues = getIfAvailable( reservedValue, values );
+        List<ReservedValue> toAdd = getGeneratedValues( reservedValue, availableValues );
+
+        BatchHandler<ReservedValue> batchHandler = batchHandlerFactory
+            .createBatchHandler( ReservedValueBatchHandler.class ).init();
+
+        toAdd.forEach( rv -> batchHandler.addObject( rv ) );
+        batchHandler.flush();
+
+        return toAdd;
+    }
+
+    @Override
     public List<ReservedValue> reserveValues( ReservedValue reservedValue,
         List<String> values )
     {
@@ -101,11 +117,10 @@ public class HibernateReservedValueStore
      */
     private List<ReservedValue> getGeneratedValues( ReservedValue reservedValue, List<String> values )
     {
-        List<String> availableValues = getIfAvailable( reservedValue, values );
 
         List<ReservedValue> generatedValues = new ArrayList<>();
 
-        availableValues.forEach( ( value ) -> {
+        values.forEach( ( value ) -> {
 
             ReservedValue rv = new ReservedValue(
                 reservedValue.getOwnerObject(),
