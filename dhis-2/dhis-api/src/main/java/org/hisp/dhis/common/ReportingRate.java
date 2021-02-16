@@ -48,7 +48,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class ReportingRate
     extends BaseDimensionalItemObject implements EmbeddedObject
 {
-    private static final String SPACED_LONG_DASH = " — ";
+    private static final String SPACED_DASH = " - ";
 
     private DataSet dataSet;
 
@@ -85,7 +85,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getName() + SPACED_LONG_DASH + metricName;
+        return dataSet.getName() + SPACED_DASH + metricName;
     }
 
     @Override
@@ -93,7 +93,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getShortName() + SPACED_LONG_DASH + metricName;
+        return dataSet.getShortName() + SPACED_DASH + metricName;
     }
 
     @Override

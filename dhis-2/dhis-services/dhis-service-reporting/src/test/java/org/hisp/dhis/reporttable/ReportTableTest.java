@@ -879,10 +879,10 @@ public class ReportTableTest
         assertNotNull( columnNames );
         assertEquals( 8, columnNames.size() );
 
-        assertTrue( columnNames.contains( "datasetshorta — reporting rate_year" ) );
-        assertTrue( columnNames.contains( "datasetshorta — reporting rate_reporting_month" ) );
-        assertTrue( columnNames.contains( "datasetshortb — reporting rate_year" ) );
-        assertTrue( columnNames.contains( "datasetshortb — reporting rate_reporting_month" ) );
+        assertTrue( columnNames.contains( "datasetshorta - reporting rate_year" ) );
+        assertTrue( columnNames.contains( "datasetshorta - reporting rate_reporting_month" ) );
+        assertTrue( columnNames.contains( "datasetshortb - reporting rate_year" ) );
+        assertTrue( columnNames.contains( "datasetshortb - reporting rate_reporting_month" ) );
 
         List<List<DimensionalItemObject>> rows = reportTable.getGridRows();
 
@@ -957,10 +957,10 @@ public class ReportTableTest
         assertNotNull( columnNames );
         assertEquals( 4, columnNames.size() );
 
-        assertTrue( columnNames.contains( "datasetshorta — reporting rate_organisationunitshorta" ) );
-        assertTrue( columnNames.contains( "datasetshorta — reporting rate_organisationunitshortb" ) );
-        assertTrue( columnNames.contains( "datasetshortb — reporting rate_organisationunitshorta" ) );
-        assertTrue( columnNames.contains( "datasetshortb — reporting rate_organisationunitshortb" ) );
+        assertTrue( columnNames.contains( "datasetshorta - reporting rate_organisationunitshorta" ) );
+        assertTrue( columnNames.contains( "datasetshorta - reporting rate_organisationunitshortb" ) );
+        assertTrue( columnNames.contains( "datasetshortb - reporting rate_organisationunitshorta" ) );
+        assertTrue( columnNames.contains( "datasetshortb - reporting rate_organisationunitshortb" ) );
 
         List<List<DimensionalItemObject>> rows = reportTable.getGridRows();
 
