@@ -1179,17 +1179,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
+        if ( user == null || user.isSuper() )
         {
             return;
         }
 
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
 
-        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
-            Collectors.toSet() );
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
 
         for ( T entity : entityList )
         {
