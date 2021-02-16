@@ -213,6 +213,14 @@ public class AssignValueImplementer
         if ( trackedEntity.isPresent() )
         {
             attributes = trackedEntity.get().getAttributes();
+            Optional<Attribute> optionalAttribute = attributes.stream()
+                .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+                .findAny();
+            if ( optionalAttribute.isPresent() )
+            {
+                optionalAttribute.get().setValue( actionRule.getData() );
+                return;
+            }
         }
 
         attributes = enrollment.getAttributes();
