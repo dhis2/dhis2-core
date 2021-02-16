@@ -286,6 +286,7 @@ public class DefaultCacheProvider implements CacheProvider
         return newBuilder( valueType )
             .forRegion( "metadataAttributes" )
             .expireAfterWrite( 12, TimeUnit.HOURS )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 10000 ) )
             .build();
     }
@@ -309,6 +310,7 @@ public class DefaultCacheProvider implements CacheProvider
             .forRegion( "analyticsSql" )
             .expireAfterAccess( 10, TimeUnit.HOURS )
             .withInitialCapacity( 10000 )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 50000 ) )
             .build();
     }
@@ -320,6 +322,7 @@ public class DefaultCacheProvider implements CacheProvider
             .forRegion( "dataElementCache" )
             .expireAfterAccess( 60, TimeUnit.MINUTES )
             .withInitialCapacity( 1000 )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 50000 ) )
             .build();
     }
@@ -331,6 +334,7 @@ public class DefaultCacheProvider implements CacheProvider
             .forRegion( "propertyTransformerCache" )
             .expireAfterAccess( 12, TimeUnit.HOURS )
             .withInitialCapacity( 20 )
+            .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 30000 ) )
             .build();
     }
