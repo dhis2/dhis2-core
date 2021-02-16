@@ -44,11 +44,21 @@ import com.google.common.collect.Sets;
  */
 public class NoOpCache<V> implements Cache<V>
 {
-    private V defaultValue;
+    private final V defaultValue;
 
     public NoOpCache( CacheBuilder<V> cacheBuilder )
     {
-        this.defaultValue = cacheBuilder.getDefaultValue();
+        this( cacheBuilder.getDefaultValue() );
+    }
+
+    public NoOpCache()
+    {
+        this( (V) null );
+    }
+
+    public NoOpCache( V defaultValue )
+    {
+        this.defaultValue = defaultValue;
     }
 
     @Override

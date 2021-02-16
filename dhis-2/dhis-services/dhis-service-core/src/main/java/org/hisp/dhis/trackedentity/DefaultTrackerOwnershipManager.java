@@ -30,15 +30,10 @@ package org.hisp.dhis.trackedentity;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -73,8 +68,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-    private final CacheProvider cacheProvider;
-
     private final ProgramTempOwnershipAuditService programTempOwnershipAuditService;
 
     private final ProgramTempOwnerService programTempOwnerService;
@@ -86,8 +79,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final DhisConfigurationProvider config;
-
-    private final Environment env;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
         TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
@@ -109,14 +100,14 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         this.currentUserService = currentUserService;
         this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-        this.cacheProvider = cacheProvider;
         this.programTempOwnershipAuditService = programTempOwnershipAuditService;
         this.programOwnershipHistoryService = programOwnershipHistoryService;
         this.programTempOwnerService = programTempOwnerService;
         this.organisationUnitService = organisationUnitService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.config = config;
-        this.env = env;
+        this.ownerCache = cacheProvider.createProgramOwnerCache( OrganisationUnit.class );
+        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache( Boolean.class );
     }
 
     /**
@@ -132,31 +123,12 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Cache for storing recent ownership checks
      */
-    private Cache<OrganisationUnit> ownerCache;
+    private final Cache<OrganisationUnit> ownerCache;
 
     /**
      * Cache for storing recent temporary ownership checks
      */
-    private Cache<Boolean> tempOwnerCache;
-
-    @PostConstruct
-    public void init()
-    {
-        // TODO proper solution for unit tests, where the cache must not survive
-        // between tests
-
-        ownerCache = cacheProvider.newCacheBuilder( OrganisationUnit.class )
-            .forRegion( "programOwner" )
-            .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000 )
-            .build();
-
-        tempOwnerCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "programTempOwner" )
-            .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
-            .build();
-    }
+    private final Cache<Boolean> tempOwnerCache;
 
     // -------------------------------------------------------------------------
     // Implementation

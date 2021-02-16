@@ -34,13 +34,6 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
@@ -256,8 +249,6 @@ public class ExpressionService2Test extends DhisSpringTest
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
             categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
-
-        target.init();
 
         rnd = new BeanRandomizer();
 

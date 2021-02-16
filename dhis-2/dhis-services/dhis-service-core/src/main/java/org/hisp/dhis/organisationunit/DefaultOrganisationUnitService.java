@@ -39,7 +39,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -48,7 +47,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -63,7 +61,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -101,12 +98,11 @@ public class DefaultOrganisationUnitService
 
     private final UserSettingService userSettingService;
 
-    public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
+    public DefaultOrganisationUnitService( OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
         UserSettingService userSettingService, CacheProvider cacheProvider )
     {
-        checkNotNull( env );
         checkNotNull( organisationUnitStore );
         checkNotNull( dataSetService );
         checkNotNull( organisationUnitLevelStore );
@@ -121,16 +117,9 @@ public class DefaultOrganisationUnitService
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
-        this.inUserOrgUnitHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-        this.inUserOrgUnitSearchHierarchyCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-        this.userCaptureOrgCountThresholdCache = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "userCaptureOuCountThreshold" ).expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+        this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache( Boolean.class );
+        this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache( Boolean.class );
+        this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache( Boolean.class );
     }
 
     /**

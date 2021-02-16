@@ -47,7 +47,24 @@ import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.DAYS;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.I_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
@@ -58,13 +75,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -74,7 +88,11 @@ import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -145,9 +163,7 @@ public class DefaultExpressionService
 
     private final DimensionService dimensionService;
 
-    private IdentifiableObjectManager idObjectManager;
-
-    private final CacheProvider cacheProvider;
+    private final IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Static data
@@ -220,12 +236,13 @@ public class DefaultExpressionService
     /**
      * Cache for the constant map.
      */
-    private Cache<Map<String, Constant>> constantMapCache;
+    private final Cache<Map<String, Constant>> constantMapCache;
 
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
 
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
@@ -247,19 +264,7 @@ public class DefaultExpressionService
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
-        this.cacheProvider = cacheProvider;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        constantMapCache = (Cache) cacheProvider.newCacheBuilder( Map.class )
-            .forRegion( "allConstantsCache" )
-            .expireAfterAccess( 2, TimeUnit.MINUTES )
-            .withInitialCapacity( 1 )
-            .forceInMemory()
-            .withMaximumSize( 1 )
-            .build();
+        this.constantMapCache = (Cache) cacheProvider.createAllConstantsCache( Map.class );
     }
 
     // -------------------------------------------------------------------------

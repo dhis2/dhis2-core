@@ -56,7 +56,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,9 +89,6 @@ public class QueryParserTest
     private UserSettingService userSettingService;
 
     @Autowired
-    private Environment env;
-
-    @Autowired
     private CacheProvider cacheProvider;
 
     @Override
@@ -109,7 +105,7 @@ public class QueryParserTest
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-        this.organisationUnitService = new DefaultOrganisationUnitService( env, organisationUnitStore, dataSetService,
+        this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, dataSetService,
             organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         identifiableObjectManager.save( orgUnitA );
