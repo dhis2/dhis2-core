@@ -1,4 +1,4 @@
--- Add columns restrictfilters and allowedfilterdimensions
+-- Add columns restrictfilters and allowedfilters
 -- to the dashboard table. See Feature DHIS2-7620.
 
 alter table dashboard add column if not exists restrictfilters boolean;
