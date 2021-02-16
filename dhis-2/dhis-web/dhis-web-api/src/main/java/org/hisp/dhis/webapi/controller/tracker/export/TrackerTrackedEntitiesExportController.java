@@ -39,6 +39,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
+import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceController;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
@@ -74,10 +75,17 @@ public class TrackerTrackedEntitiesExportController
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        
+        int teiCount = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
+       
+        if ( teiCount > TrackedEntityInstanceController.TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
+        {
+            queryParams.setUseLegacy( true );
+        }
 
         Collection<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false ) );
+                trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), true ) );
 
         PagingWrapper<TrackedEntity> trackedEntityInstancePagingWrapper = new PagingWrapper<>();
 
@@ -85,7 +93,7 @@ public class TrackerTrackedEntitiesExportController
         {
 
             Long count = criteria.isTotalPages()
-                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false )
+                ? (long) teiCount
                 : null;
 
             trackedEntityInstancePagingWrapper = trackedEntityInstancePagingWrapper.withPager(
