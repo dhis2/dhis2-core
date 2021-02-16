@@ -50,6 +50,7 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class DashboardServiceTest
@@ -107,6 +108,9 @@ public class DashboardServiceTest
         documentService.saveDocument( dcC );
         documentService.saveDocument( dcD );
 
+        List<String> allowedFilters = Lists
+            .newArrayList( "kJuHtg2gkh3", "yH7Yh2jGfFs" );
+
         diA = new DashboardItem();
         diA.setAutoFields();
         diA.setVisualization( vzA );
@@ -133,6 +137,8 @@ public class DashboardServiceTest
 
         dbB = new Dashboard( "B" );
         dbB.setAutoFields();
+        dbB.setRestrictFilters( true );
+        dbB.setAllowedFilters( allowedFilters );
         dbB.getItems().add( diD );
     }
 
@@ -144,6 +150,7 @@ public class DashboardServiceTest
 
         assertEquals( dbA, dashboardService.getDashboard( dAId ) );
         assertEquals( dbB, dashboardService.getDashboard( dBId ) );
+        assertEquals( 2, dbB.getAllowedFilters().size() );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );

@@ -52,6 +52,17 @@ public class Dashboard
 
     private List<DashboardItem> items = new ArrayList<>();
 
+    /**
+     * Whether filter dimensions are restricted for the dashboard. The allowed
+     * filter dimensions are specified by {@link Dashboard#allowedFilters}.
+     */
+    private boolean restrictFilters;
+
+    /**
+     * Allowed filter dimensions (if any) which may be used for the dashboard.
+     */
+    private List<String> allowedFilters = new ArrayList<>();
+
     // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
@@ -170,5 +181,30 @@ public class Dashboard
     public void setItems( List<DashboardItem> items )
     {
         this.items = items;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty
+    public boolean isRestrictFilters()
+    {
+        return restrictFilters;
+    }
+
+    public void setRestrictFilters( boolean restrictFilters )
+    {
+        this.restrictFilters = restrictFilters;
+    }
+
+    @JsonProperty
+    @JacksonXmlElementWrapper( localName = "allowedFilters", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "allowedFilter", namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getAllowedFilters()
+    {
+        return allowedFilters;
+    }
+
+    public void setAllowedFilters( List<String> allowedFilters )
+    {
+        this.allowedFilters = allowedFilters;
     }
 }
