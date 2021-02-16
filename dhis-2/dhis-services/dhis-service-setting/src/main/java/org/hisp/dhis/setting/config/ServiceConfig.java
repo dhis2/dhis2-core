@@ -30,7 +30,7 @@ package org.hisp.dhis.setting.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
 import org.hisp.dhis.setting.SystemSettingStore;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
@@ -50,10 +49,7 @@ public class ServiceConfig
     private SystemSettingStore systemSettingStore;
 
     @Autowired
-    private CacheProvider cacheProvider;
-
-    @Autowired
-    private Environment environment;
+    private CacheContext cacheContext;
 
     @Autowired
     @Qualifier( "tripleDesStringEncryptor" )
@@ -363,7 +359,6 @@ public class ServiceConfig
         flags.add( "zimbabwe" );
         flags.add( "who" );
 
-        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor,
-            cacheProvider, environment, flags );
+        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheContext, flags );
     }
 }

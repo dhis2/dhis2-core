@@ -34,7 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.hisp.dhis.IntegrationTestBase;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,7 +56,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -90,10 +89,7 @@ public class QueryParserTest
     private UserSettingService userSettingService;
 
     @Autowired
-    private Environment env;
-
-    @Autowired
-    private CacheProvider cacheProvider;
+    private CacheContext cacheContext;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -109,8 +105,8 @@ public class QueryParserTest
         User user = createUser( 'A' );
         user.addOrganisationUnit( orgUnitA );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
-        this.organisationUnitService = new DefaultOrganisationUnitService( env, organisationUnitStore, dataSetService,
-            organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheProvider );
+        this.organisationUnitService = new DefaultOrganisationUnitService( organisationUnitStore, dataSetService,
+            organisationUnitLevelStore, currentUserService, configurationService, userSettingService, cacheContext );
         organisationUnitService.addOrganisationUnit( orgUnitA );
         identifiableObjectManager.save( orgUnitA );
         queryParser = new DefaultJpaQueryParser( schemaService, currentUserService,

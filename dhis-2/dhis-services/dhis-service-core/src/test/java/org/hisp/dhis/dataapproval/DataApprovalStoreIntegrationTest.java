@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -63,7 +63,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -107,13 +106,10 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     private ApplicationEventPublisher publisher;
 
     @Autowired
-    private CacheProvider cacheProvider;
+    private CacheContext cacheContext;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
-
-    @Autowired
-    private Environment environment;
 
     @Mock
     private CurrentUserService currentUserService;
@@ -154,10 +150,8 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
         throws Exception
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
-            publisher, cacheProvider, periodService, currentUserService, categoryService,
-            systemSettingManager, new PostgreSQLStatementBuilder(), environment );
-
-        dataApprovalStore.init();
+            publisher, cacheContext, periodService, currentUserService, categoryService,
+            systemSettingManager, new PostgreSQLStatementBuilder() );
 
         // ---------------------------------------------------------------------
         // Add supporting data

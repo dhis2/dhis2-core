@@ -34,13 +34,6 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
-import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
@@ -68,7 +61,7 @@ import java.util.Set;
 import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -143,7 +136,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Autowired
-    private CacheProvider cacheProvider;
+    private CacheContext cacheContext;
 
     private DefaultExpressionService target;
 
@@ -255,9 +248,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
-
-        target.init();
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheContext );
 
         rnd = new BeanRandomizer();
 

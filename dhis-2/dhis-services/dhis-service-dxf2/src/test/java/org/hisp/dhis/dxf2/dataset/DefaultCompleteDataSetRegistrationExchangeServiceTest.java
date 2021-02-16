@@ -49,6 +49,7 @@ import java.util.Collections;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.DefaultCacheContext;
 import org.hisp.dhis.cache.DefaultCacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -202,8 +203,8 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
         CacheProvider cacheProvider = new DefaultCacheProvider();
 
-        InputUtils inputUtils = new InputUtils( categoryService, idObjManager, environment, cacheProvider );
-        inputUtils.init();
+        InputUtils inputUtils = new InputUtils( categoryService, idObjManager,
+            new DefaultCacheContext( cacheProvider, environment ) );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService,
             environment );

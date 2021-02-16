@@ -37,16 +37,13 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-
-import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
@@ -98,17 +95,15 @@ public class DefaultSecurityService
 
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
 
-    private static final int LOGIN_LOCKOUT_MINS = 15;
-
     public static final int RECOVERY_LOCKOUT_MINS = 15;
 
     private static final int RECOVER_MAX_ATTEMPTS = 5;
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
-    private Cache<Integer> userFailedLoginAttemptCache;
+    private final Cache<Integer> userFailedLoginAttemptCache;
 
-    private Cache<Integer> userAccountRecoverAttemptCache;
+    private final Cache<Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -120,8 +115,6 @@ public class DefaultSecurityService
     private final AclService aclService;
 
     private final RestTemplate restTemplate;
-
-    private final CacheProvider cacheProvider;
 
     private final PasswordManager passwordManager;
 
@@ -140,7 +133,7 @@ public class DefaultSecurityService
         UserSettingService userSettingService,
         AclService aclService,
         RestTemplate restTemplate,
-        CacheProvider cacheProvider,
+        CacheContext cacheContext,
         @Lazy PasswordManager passwordManager,
         MessageSender emailMessageSender,
         UserService userService,
@@ -152,7 +145,7 @@ public class DefaultSecurityService
         checkNotNull( userSettingService );
         checkNotNull( aclService );
         checkNotNull( restTemplate );
-        checkNotNull( cacheProvider );
+        checkNotNull( cacheContext );
         checkNotNull( passwordManager );
         checkNotNull( emailMessageSender );
         checkNotNull( userService );
@@ -164,29 +157,14 @@ public class DefaultSecurityService
         this.userSettingService = userSettingService;
         this.aclService = aclService;
         this.restTemplate = restTemplate;
-        this.cacheProvider = cacheProvider;
         this.passwordManager = passwordManager;
         this.emailMessageSender = emailMessageSender;
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
         this.i18nManager = i18nManager;
         this.jsonMapper = jsonMapper;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        this.userFailedLoginAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( "userFailedLoginAttempt" ).expireAfterWrite( LOGIN_LOCKOUT_MINS, TimeUnit.MINUTES )
-            .withDefaultValue( 0 ).build();
-
-        this.userAccountRecoverAttemptCache = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( "userAccountRecoverAttempt" ).expireAfterWrite( RECOVERY_LOCKOUT_MINS, TimeUnit.MINUTES )
-            .withDefaultValue( 0 ).build();
+        this.userFailedLoginAttemptCache = cacheContext.createUserFailedLoginAttemptCache( Integer.class, 0 );
+        this.userAccountRecoverAttemptCache = cacheContext.createUserAccountRecoverAttemptCache( Integer.class, 0 );
     }
 
     // -------------------------------------------------------------------------

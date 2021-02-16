@@ -31,7 +31,14 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -40,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheContext;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
@@ -71,29 +78,27 @@ public class DefaultAppManager
 
     private final KeyJsonValueService keyJsonValueService;
 
-    private final CacheProvider cacheProvider;
+    private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
         LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
+        KeyJsonValueService keyJsonValueService, CacheContext cacheContext )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
-        checkNotNull( cacheProvider );
+        checkNotNull( cacheContext );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.cacheProvider = cacheProvider;
+        this.appCache = cacheContext.createAppCache( App.class );
     }
-
-    private Cache<App> appCache;
 
     // -------------------------------------------------------------------------
     // AppManagerService implementation
@@ -102,7 +107,6 @@ public class DefaultAppManager
     @PostConstruct
     public void initCache()
     {
-        appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
         reloadApps();
     }
 

@@ -52,9 +52,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.cache.CacheBuilder;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataset.DataSet;
@@ -89,7 +88,7 @@ public class ResponseHandlerTest
     private Environment environment;
 
     @Mock
-    private CacheProvider cacheProvider;
+    private CacheContext cacheContext;
 
     @Rule
     public MockitoRule mockitoRule = rule();
@@ -99,8 +98,10 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
-        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, environment,
-            cacheProvider );
+        String[] testEnvironmentVars = { "test" };
+        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
+        when( cacheContext.createDataItemsPaginationCache( Long.class ) ).thenReturn( new NoOpCache<>() );
+        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, cacheContext );
     }
 
     @Test
@@ -134,15 +135,9 @@ public class ResponseHandlerTest
         final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
-        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
-        responseHandler.init();
-        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, anyWebOptions,
-            anyFilters );
+        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, anyWebOptions, anyFilters );
 
         // Then
         assertThat( anyRootNode, is( notNullValue() ) );
@@ -163,15 +158,9 @@ public class ResponseHandlerTest
         final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
-        final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
-        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
-        responseHandler.init();
-        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging,
-            anyFilters );
+        responseHandler.addPaginationToNode( anyRootNode, anyTargetEntities, anyUser, webOptionsNoPaging, anyFilters );
 
         // Then
         assertThat( anyRootNode, is( notNullValue() ) );
@@ -189,15 +178,9 @@ public class ResponseHandlerTest
         final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
-        final String[] testEnvironmentVars = { "test" };
-        final CacheBuilder<Long> testingCacheBuilder = new SimpleCacheBuilder<>();
 
         // When
-        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheProvider.newCacheBuilder( Long.class ) ).thenReturn( testingCacheBuilder );
-        responseHandler.init();
-        responseHandler.addPaginationToNode( anyRootNode, emptyTargetEntities, anyUser, anyWebOptions,
-            anyFilters );
+        responseHandler.addPaginationToNode( anyRootNode, emptyTargetEntities, anyUser, anyWebOptions, anyFilters );
 
         // Then
         assertThat( anyRootNode, is( notNullValue() ) );
