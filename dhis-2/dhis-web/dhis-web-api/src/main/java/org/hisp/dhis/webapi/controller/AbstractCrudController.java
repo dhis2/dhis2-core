@@ -28,11 +28,19 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
@@ -80,7 +88,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
@@ -122,19 +129,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1188,18 +1187,20 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
+        if ( user == null || user.isSuper() )
         {
             return;
         }
 
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
 
-        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream().map( orgUnit -> orgUnit.getUid() ).collect(
-            Collectors.toSet() );
-
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
+        
         for ( T entity : entityList )
         {
             OrganisationUnitAssignable e = (OrganisationUnitAssignable) entity;
