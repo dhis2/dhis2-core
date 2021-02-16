@@ -31,11 +31,16 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 import java.awt.geom.Point2D;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
@@ -78,11 +83,11 @@ public class DefaultOrganisationUnitService
 
     private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
 
+    private static Cache<Boolean> USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final Environment env;
 
     private final OrganisationUnitStore organisationUnitStore;
 
@@ -96,8 +101,6 @@ public class DefaultOrganisationUnitService
 
     private final UserSettingService userSettingService;
 
-    private final CacheProvider cacheProvider;
-
     public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
@@ -110,15 +113,28 @@ public class DefaultOrganisationUnitService
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
         checkNotNull( userSettingService );
+        checkNotNull( cacheProvider );
 
-        this.env = env;
         this.organisationUnitStore = organisationUnitStore;
         this.dataSetService = dataSetService;
         this.organisationUnitLevelStore = organisationUnitLevelStore;
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
-        this.cacheProvider = cacheProvider;
+
+        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
+        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
+        USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "userCaptureOuCountThreshold" ).expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 1000 )
+            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
+
     }
 
     /**
@@ -128,18 +144,6 @@ public class DefaultOrganisationUnitService
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-
-        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -529,6 +533,40 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getCaptureOrganisationUnitUidsWithChildren()
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return new ArrayList<>();
+        }
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+        return organisationUnitStore.getOrganisationUnitUids( params );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isCaptureOrgUnitCountAboveThreshold( int threshold )
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return false;
+        }
+        return USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE.get( user.getUsername(), ou -> {
+
+            OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+            params.setParents( user.getOrganisationUnits() );
+            params.setFetchChildren( true );
+            return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
+        } )
+            .orElse( false );
     }
 
     // -------------------------------------------------------------------------

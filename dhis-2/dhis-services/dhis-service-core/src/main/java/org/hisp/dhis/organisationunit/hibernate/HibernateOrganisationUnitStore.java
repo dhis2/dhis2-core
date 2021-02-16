@@ -326,6 +326,56 @@ public class HibernateOrganisationUnitStore
         return maxLength != null ? maxLength : 0;
     }
 
+    @Override
+    public boolean isOrgUnitCountAboveThreshold( OrganisationUnitQueryParams params, int threshold )
+    {
+        String sql = buildOrganisationUnitDistinctUidsSql( params );
+
+        StringBuilder sb = new StringBuilder();
+        sb.append( "select count(*) from (" );
+        sb.append( sql );
+        sb.append( " limit " );
+        sb.append( threshold + 1 );
+        sb.append( ") as douid" );
+
+        return (jdbcTemplate.queryForObject( sb.toString(), Integer.class ) > threshold);
+    }
+
+    @Override
+    public List<String> getOrganisationUnitUids( OrganisationUnitQueryParams params )
+    {
+        String sql = buildOrganisationUnitDistinctUidsSql( params );
+        return jdbcTemplate.queryForList( sql, String.class );
+    }
+
+    private String buildOrganisationUnitDistinctUidsSql( OrganisationUnitQueryParams params )
+    {
+        SqlHelper hlp = new SqlHelper();
+
+        String sql = "select distinct o.uid from organisationunit o ";
+
+        if ( params.isFetchChildren() )
+        {
+            sql += " left outer join organisationunit c ON o.organisationunitid = c.parentid ";
+        }
+
+        if ( params.hasParents() )
+        {
+            sql += hlp.whereAnd() + " (";
+
+            for ( OrganisationUnit parent : params.getParents() )
+            {
+                sql += "o.path like '" + parent.getPath() + "%'" + " or ";
+            }
+
+            sql = TextUtils.removeLastOr( sql ) + ") ";
+        }
+
+        // TODO: Support Groups + Query + Hierarchy + MaxLevels in this sql
+
+        return sql;
+    }
+
     private void updatePaths( List<OrganisationUnit> organisationUnits )
     {
         Session session = getSession();

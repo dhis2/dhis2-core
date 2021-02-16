@@ -35,7 +35,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -89,7 +88,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
@@ -1309,18 +1307,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
+        if ( user == null || user.isSuper() )
         {
             return;
         }
 
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
 
-        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream()
-            .map( orgUnit -> orgUnit.getUid() ).collect(
-                Collectors.toSet() );
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
 
         for ( T entity : entityList )
         {

@@ -173,7 +173,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
         // Create the TrackerImportReport
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        TrackerImportReport toSerializeReport = TrackerImportReport.withImportCompleted( TrackerStatus.ERROR,
+        TrackerImportReport toSerializeReport = TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.ERROR,
             bundleReport, tvr, timingsStats, bundleSize );
 
         // Serialize TrackerImportReport into String
@@ -271,7 +271,7 @@ public class TrackerBundleImportReportTest extends DhisSpringTest
     {
         final Map<TrackerType, Integer> bundleSize = new HashMap<>();
         bundleSize.put( TRACKED_ENTITY, 1 );
-        return TrackerImportReport.withImportCompleted( TrackerStatus.OK, createBundleReport(),
+        return TrackerImportReportFinalizer.withImportCompleted( TrackerStatus.OK, createBundleReport(),
             createValidationReport(), createTimingStats(), bundleSize );
     }
 

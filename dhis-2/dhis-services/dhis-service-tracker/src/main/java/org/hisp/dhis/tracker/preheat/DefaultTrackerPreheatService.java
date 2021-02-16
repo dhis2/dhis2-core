@@ -40,8 +40,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.timer.SystemTimer;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.preheat.PreheatException;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
@@ -79,8 +77,6 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     @Transactional( readOnly = true )
     public TrackerPreheat preheat( TrackerImportParams params )
     {
-        Timer timer = new SystemTimer().start();
-
         TrackerPreheat preheat = new TrackerPreheat();
         preheat.setIdentifiers( params.getIdentifiers() );
         preheat.setUser( params.getUser() );
@@ -108,8 +104,6 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
         }
 
         preheat.createReferenceTree();
-
-        log.info( "(" + preheat.getUsername() + ") Import:TrackerPreheat took " + timer.toString() );
 
         return preheat;
     }
