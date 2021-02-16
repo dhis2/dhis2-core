@@ -25,44 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.organisationunit;
 
 import java.util.List;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import java.util.Set;
 
 /**
- * @author Lars Helge Overland
+ * A number of data integrity tests are solely related to
+ * {@link OrganisationUnit}s. They are contained in this interface to avoid
+ * duplication.
+ *
+ * @author Jan Bernitt
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" )
-public class HibernateOrganisationUnitGroupStore
-    extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
-    implements OrganisationUnitGroupStore
+public interface OrganisationUnitDataIntegrityProvider
 {
-    public HibernateOrganisationUnitGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroup.class, currentUserService, aclService,
-            true );
-    }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
-    {
-        return getQuery( "from OrganisationUnitGroup o where size(o.groupSets) > 0" ).list();
-    }
+    /**
+     * Gets all organisation units which are related to each other in a cyclic
+     * reference.
+     */
+    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
-    {
-        return getQuery( "from OrganisationUnitGroup g where size(g.groupSets) = 0" ).list();
-    }
+    /**
+     * Gets all organisation units with no parents or children.
+     */
+    List<OrganisationUnit> getOrphanedOrganisationUnits();
+
+    /**
+     * Returns all OrganisationUnits which are not a member of any
+     * OrganisationUnitGroups.
+     *
+     * @return all OrganisationUnits which are not a member of any
+     *         OrganisationUnitGroups.
+     */
+    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
+
+    /**
+     * Gets all organisation units which are members of more than one group
+     * which enter into an exclusive group set.
+     */
+    List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets();
 }

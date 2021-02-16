@@ -114,4 +114,10 @@ public class HibernateValidationRuleStore
             .addPredicate( root -> builder.isNotEmpty( root.get( "notificationTemplates" ) ) )
             .setUseDistinct( true ) );
     }
+
+    @Override
+    public List<ValidationRule> getValidationRulesWithoutGroups()
+    {
+        return getQuery( "from ValidationRule vr where size(vr.groups) = 0" ).list();
+    }
 }

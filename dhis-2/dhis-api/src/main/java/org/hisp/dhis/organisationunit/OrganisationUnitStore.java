@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Program;
  * @version $Id: OrganisationUnitStore.java 5645 2008-09-04 10:01:02Z larshelg $
  */
 public interface OrganisationUnitStore
-    extends IdentifiableObjectStore<OrganisationUnit>
+    extends IdentifiableObjectStore<OrganisationUnit>, OrganisationUnitDataIntegrityProvider
 {
     String ID = OrganisationUnitStore.class.getName();
 
@@ -69,15 +69,6 @@ public interface OrganisationUnitStore
      *         there are no OrganisationUnits.
      */
     List<OrganisationUnit> getRootOrganisationUnits();
-
-    /**
-     * Returns all OrganisationUnits which are not a member of any
-     * OrganisationUnitGroups.
-     *
-     * @return all OrganisationUnits which are not a member of any
-     *         OrganisationUnitGroups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
     /**
      * Returns OrganisationUnits which are associated with the given Program.

@@ -28,6 +28,7 @@
 package org.hisp.dhis.organisationunit.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -103,6 +104,34 @@ public class HibernateOrganisationUnitStore
     public List<OrganisationUnit> getOrganisationUnitsWithoutGroups()
     {
         return getQuery( "from OrganisationUnit o where size(o.groups) = 0" ).list();
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    {
+        return getQuery(
+            "from OrganisationUnit o where o.parent is null and not exists " +
+                "(select 1 from OrganisationUnit io where io.parent = o.id)" )
+                    .list();
+    }
+
+    @Override
+    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    {
+        return getQuery( "from OrganisationUnit o where exists (select 1 from OrganisationUnit i " +
+            "where i.id <> o.id " +
+            "and i.path like concat('%', o.uid, '%') " +
+            "and o.path like concat('%', i.uid, '%'))" ).stream().collect( toSet() );
+    }
+
+    @Override
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        // OBS: size(o.groups) > 1 is just to narrow search right away
+        return getQuery( "from OrganisationUnit o where size(o.groups) > 1 and exists " +
+            "(select 1 from OrganisationUnitGroupSet s where " +
+            "(select count(*) from OrganisationUnitGroup g where o in elements(g.members) and s in elements(g.groupSets)) > 1)" )
+                .list();
     }
 
     @Override

@@ -25,44 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.organisationunit.hibernate;
+package org.hisp.dhis.organisationunit;
 
-import java.util.List;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import org.junit.Test;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
-@Repository( "org.hisp.dhis.organisationunit.OrganisationUnitGroupStore" )
-public class HibernateOrganisationUnitGroupStore
-    extends HibernateIdentifiableObjectStore<OrganisationUnitGroup>
-    implements OrganisationUnitGroupStore
+public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
 {
-    public HibernateOrganisationUnitGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+
+    @Test
+    public void testGetOrganisationUnitGroupsWithoutGroupSets()
     {
-        super( sessionFactory, jdbcTemplate, publisher, OrganisationUnitGroup.class, currentUserService, aclService,
-            true );
+        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
+        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
+        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
+        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
+
+        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithoutGroupSets(), noSet );
     }
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
+    @Test
+    public void testGetOrganisationUnitGroupsWithGroupSets()
     {
-        return getQuery( "from OrganisationUnitGroup o where size(o.groupSets) > 0" ).list();
-    }
+        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
+        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
+        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
+        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
 
-    @Override
-    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
-    {
-        return getQuery( "from OrganisationUnitGroup g where size(g.groupSets) = 0" ).list();
+        assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
     }
 }

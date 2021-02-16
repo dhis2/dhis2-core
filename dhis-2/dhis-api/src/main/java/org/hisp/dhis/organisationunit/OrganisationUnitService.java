@@ -42,7 +42,7 @@ import org.hisp.dhis.user.User;
  *
  * @author Torgeir Lorange Ostby
  */
-public interface OrganisationUnitService
+public interface OrganisationUnitService extends OrganisationUnitDataIntegrityProvider
 {
     String ID = OrganisationUnitService.class.getName();
 
@@ -309,15 +309,6 @@ public interface OrganisationUnitService
      * @return the number of hierarchical levels.
      */
     int getNumberOfOrganisationalLevels();
-
-    /**
-     * Returns all OrganisationUnits which are not a member of any
-     * OrganisationUnitGroups.
-     *
-     * @return all OrganisationUnits which are not a member of any
-     *         OrganisationUnitGroups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
 
     /**
      * Returns the count of OrganisationUnits which are part of the

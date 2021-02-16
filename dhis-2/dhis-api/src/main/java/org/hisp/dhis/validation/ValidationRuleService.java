@@ -37,7 +37,7 @@ import org.hisp.dhis.dataset.DataSet;
 /**
  * @author Margrethe Store
  */
-public interface ValidationRuleService
+public interface ValidationRuleService extends ValidationRuleDataIntegrityProvider
 {
     String ID = ValidationRuleService.class.getName();
 

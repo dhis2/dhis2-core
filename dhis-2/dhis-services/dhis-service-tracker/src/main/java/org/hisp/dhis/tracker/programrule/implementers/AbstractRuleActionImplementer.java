@@ -159,6 +159,8 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EventActionRule> eventActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                            getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
                         .map( effect -> new EventActionRule( event.getEvent(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
@@ -254,12 +256,12 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
+                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                            getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
                         .map( effect -> new EnrollmentActionRule(
                             enrollment.getEnrollment(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
-                        .filter( actionRule -> actionRule.getAttributeType() == UNKNOWN ||
-                            actionRule.getAttributeType() == TRACKED_ENTITY_ATTRIBUTE )
                         .collect( Collectors.toList() );
                     return enrollmentActionRules;
                 } ) );
