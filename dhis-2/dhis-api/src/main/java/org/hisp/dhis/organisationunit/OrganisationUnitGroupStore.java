@@ -35,7 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Lars Helge Overland
  */
 public interface OrganisationUnitGroupStore
-    extends IdentifiableObjectStore<OrganisationUnitGroup>
+    extends IdentifiableObjectStore<OrganisationUnitGroup>, OrganisationUnitGroupDataIntegrityProvider
 {
     List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets();
 }

@@ -315,4 +315,12 @@ public class DefaultValidationRuleService
     {
         return validationRuleGroupStore.getAllLikeName( name, first, max );
     }
+
+    @Transactional( readOnly = true )
+    @Override
+    public List<ValidationRule> getValidationRulesWithoutGroups()
+    {
+        return validationRuleStore.getValidationRulesWithoutGroups();
+    }
+
 }
