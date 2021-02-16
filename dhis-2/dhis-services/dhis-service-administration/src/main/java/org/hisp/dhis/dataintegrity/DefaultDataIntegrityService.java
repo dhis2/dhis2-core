@@ -28,12 +28,23 @@
 package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
 import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +59,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
+import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expression.ExpressionValidationOutcome;
 import org.hisp.dhis.i18n.I18n;
@@ -56,14 +68,22 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.indicator.IndicatorGroupSet;
 import org.hisp.dhis.indicator.IndicatorService;
-import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionService;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.springframework.stereotype.Service;
@@ -256,7 +276,7 @@ public class DefaultDataIntegrityService
 
                 dataSetElements.removeAll( formElements );
 
-                if ( dataSetElements.size() > 0 )
+                if ( !dataSetElements.isEmpty() )
                 {
                     map.put( dataSet, dataSetElements );
                 }
@@ -271,7 +291,7 @@ public class DefaultDataIntegrityService
     {
         List<CategoryCombo> categoryCombos = categoryService.getAllCategoryCombos();
 
-        return categoryCombos.stream().filter( c -> !c.isValid() ).collect( Collectors.toList() );
+        return categoryCombos.stream().filter( c -> !c.isValid() ).collect( toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -281,10 +301,7 @@ public class DefaultDataIntegrityService
     @Override
     public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
     {
-        Collection<DataSet> dataSets = dataSetService.getAllDataSets();
-
-        return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() )
-            .collect( Collectors.toList() );
+        return dataSetService.getDataSetsNotAssignedToOrganisationUnits();
     }
 
     // -------------------------------------------------------------------------
@@ -339,32 +356,23 @@ public class DefaultDataIntegrityService
     @Override
     public SortedMap<Indicator, String> getInvalidIndicatorNumerators()
     {
-        SortedMap<Indicator, String> invalids = new TreeMap<>();
-        I18n i18n = i18nManager.getI18n();
-
-        for ( Indicator indicator : indicatorService.getAllIndicators() )
-        {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(),
-                INDICATOR_EXPRESSION );
-
-            if ( !result.isValid() )
-            {
-                invalids.put( indicator, i18n.getString( result.getKey() ) );
-            }
-        }
-
-        return invalids;
+        return getInvalidIndicators( Indicator::getNumerator );
     }
 
     @Override
     public SortedMap<Indicator, String> getInvalidIndicatorDenominators()
+    {
+        return getInvalidIndicators( Indicator::getDenominator );
+    }
+
+    private SortedMap<Indicator, String> getInvalidIndicators( Function<Indicator, String> getter )
     {
         SortedMap<Indicator, String> invalids = new TreeMap<>();
         I18n i18n = i18nManager.getI18n();
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(),
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( getter.apply( indicator ),
                 INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
@@ -419,10 +427,8 @@ public class DefaultDataIntegrityService
             map.putValue( key, period );
         }
 
-        for ( String key : map.keySet() )
+        for ( List<Period> values : map.values() )
         {
-            List<Period> values = map.get( key );
-
             if ( values != null && values.size() > 1 )
             {
                 duplicates.addAll( values );
@@ -439,50 +445,13 @@ public class DefaultDataIntegrityService
     @Override
     public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
     {
-        List<OrganisationUnit> organisationUnits = organisationUnitService.getAllOrganisationUnits();
-
-        Set<OrganisationUnit> cyclic = new HashSet<>();
-
-        Set<OrganisationUnit> visited = new HashSet<>();
-
-        OrganisationUnit parent;
-
-        for ( OrganisationUnit unit : organisationUnits )
-        {
-            parent = unit;
-
-            while ( (parent = parent.getParent()) != null )
-            {
-                if ( parent.equals( unit ) ) // Cyclic reference
-                {
-                    cyclic.add( unit );
-
-                    break;
-                }
-                else if ( visited.contains( parent ) ) // Ends in cyclic ref
-                {
-                    break;
-                }
-                else
-                {
-                    visited.add( parent ); // Remember visited
-                }
-            }
-
-            visited.clear();
-        }
-
-        return cyclic;
+        return organisationUnitService.getOrganisationUnitsWithCyclicReferences();
     }
 
     @Override
     public List<OrganisationUnit> getOrphanedOrganisationUnits()
     {
-        List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
-
-        return units.stream()
-            .filter( ou -> ou.getParent() == null && (ou.getChildren() == null || ou.getChildren().size() == 0) )
-            .collect( Collectors.toList() );
+        return organisationUnitService.getOrphanedOrganisationUnits();
     }
 
     @Override
@@ -492,32 +461,15 @@ public class DefaultDataIntegrityService
     }
 
     @Override
-    public SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets()
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
     {
-        Collection<OrganisationUnitGroupSet> groupSets = organisationUnitGroupService.getAllOrganisationUnitGroupSets();
-
-        TreeMap<OrganisationUnit, Collection<OrganisationUnitGroup>> targets = new TreeMap<>();
-
-        for ( OrganisationUnitGroupSet groupSet : groupSets )
-        {
-            Collection<OrganisationUnit> duplicates = getDuplicates(
-                new ArrayList<>( groupSet.getOrganisationUnits() ) );
-
-            for ( OrganisationUnit duplicate : duplicates )
-            {
-                targets.put( duplicate, new HashSet<>( duplicate.getGroups() ) );
-            }
-        }
-
-        return targets;
+        return organisationUnitService.getOrganisationUnitsViolatingExclusiveGroupSets();
     }
 
     @Override
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
     {
-        Collection<OrganisationUnitGroup> groups = organisationUnitGroupService.getAllOrganisationUnitGroups();
-
-        return groups.stream().filter( g -> g == null || g.getGroupSets().isEmpty() ).collect( Collectors.toList() );
+        return organisationUnitGroupService.getOrganisationUnitGroupsWithoutGroupSets();
     }
 
     // -------------------------------------------------------------------------
@@ -527,34 +479,23 @@ public class DefaultDataIntegrityService
     @Override
     public List<ValidationRule> getValidationRulesWithoutGroups()
     {
-        Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
-
-        return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() )
-            .collect( Collectors.toList() );
+        return validationRuleService.getValidationRulesWithoutGroups();
     }
 
     @Override
     public SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions()
     {
-        SortedMap<ValidationRule, String> invalids = new TreeMap<>();
-        I18n i18n = i18nManager.getI18n();
-
-        for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
-        {
-            ExpressionValidationOutcome result = expressionService
-                .expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
-
-            if ( !result.isValid() )
-            {
-                invalids.put( rule, i18n.getString( result.getKey() ) );
-            }
-        }
-
-        return invalids;
+        return getInvalidValidationRuleExpressions( ValidationRule::getLeftSide );
     }
 
     @Override
     public SortedMap<ValidationRule, String> getInvalidValidationRuleRightSideExpressions()
+    {
+        return getInvalidValidationRuleExpressions( ValidationRule::getRightSide );
+    }
+
+    private SortedMap<ValidationRule, String> getInvalidValidationRuleExpressions(
+        Function<ValidationRule, Expression> getter )
     {
         SortedMap<ValidationRule, String> invalids = new TreeMap<>();
         I18n i18n = i18nManager.getI18n();
@@ -562,7 +503,7 @@ public class DefaultDataIntegrityService
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
             ExpressionValidationOutcome result = expressionService
-                .expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+                .expressionIsValid( getter.apply( rule ).getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
@@ -609,7 +550,8 @@ public class DefaultDataIntegrityService
             .setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
         report.setOrphanedOrganisationUnits( new ArrayList<>( getOrphanedOrganisationUnits() ) );
         report.setOrganisationUnitsWithoutGroups( new ArrayList<>( getOrganisationUnitsWithoutGroups() ) );
-        report.setOrganisationUnitsViolatingExclusiveGroupSets( getOrganisationUnitsViolatingExclusiveGroupSets() );
+        report.setOrganisationUnitsViolatingExclusiveGroupSets(
+            groupsByUnit( getOrganisationUnitsViolatingExclusiveGroupSets() ) );
         report.setOrganisationUnitGroupsWithoutGroupSets(
             new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
         report.setValidationRulesWithoutGroups( new ArrayList<>( getValidationRulesWithoutGroups() ) );
@@ -658,6 +600,17 @@ public class DefaultDataIntegrityService
         return report;
     }
 
+    private static SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> groupsByUnit(
+        Collection<OrganisationUnit> units )
+    {
+        SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> groupsByUnit = new TreeMap<>();
+        for ( OrganisationUnit unit : units )
+        {
+            groupsByUnit.put( unit, new HashSet<>( unit.getGroups() ) );
+        }
+        return groupsByUnit;
+    }
+
     @Override
     public FlattenedDataIntegrityReport getFlattenedDataIntegrityReport()
     {
@@ -673,119 +626,89 @@ public class DefaultDataIntegrityService
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorExpressions()
     {
-        Map<ProgramIndicator, String> invalidExpressions = new HashMap<>();
-
-        List<ProgramIndicator> programIndicators = programIndicatorService.getAllProgramIndicators()
-            .stream()
-            .filter( pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ) )
-            .collect( Collectors.toList() );
-
-        for ( ProgramIndicator programIndicator : programIndicators )
-        {
-            String description = getInvalidExpressionDescription( programIndicator.getExpression() );
-
-            if ( description != null )
-            {
-                invalidExpressions.put( programIndicator, description );
-            }
-        }
-
-        return invalidExpressions;
+        return getInvalidProgramIndicators( ProgramIndicator::getExpression,
+            pi -> !programIndicatorService.expressionIsValid( pi.getExpression() ) );
     }
 
     @Override
     public Map<ProgramIndicator, String> getInvalidProgramIndicatorFilters()
     {
-        Map<ProgramIndicator, String> invalidFilters = new HashMap<>();
+        return getInvalidProgramIndicators( ProgramIndicator::getFilter,
+            pi -> !programIndicatorService.filterIsValid( pi.getFilter() ) );
+    }
 
+    private Map<ProgramIndicator, String> getInvalidProgramIndicators( Function<ProgramIndicator, String> property,
+        Predicate<ProgramIndicator> filter )
+    {
         List<ProgramIndicator> programIndicators = programIndicatorService.getAllProgramIndicators()
             .stream()
-            .filter( pi -> !programIndicatorService.filterIsValid( pi.getFilter() ) )
-            .collect( Collectors.toList() );
+            .filter( filter )
+            .collect( toList() );
 
+        Map<ProgramIndicator, String> invalids = new HashMap<>();
         for ( ProgramIndicator programIndicator : programIndicators )
         {
-            String description = getInvalidExpressionDescription( programIndicator.getFilter() );
-
+            String description = getInvalidExpressionDescription( property.apply( programIndicator ) );
             if ( description != null )
             {
-                invalidFilters.put( programIndicator, description );
+                invalids.put( programIndicator, description );
             }
         }
-
-        return invalidFilters;
+        return invalids;
     }
 
     @Override
     public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoPriority()
     {
-        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoPriority();
-
-        return groupRulesByProgram( programRules );
+        return groupRulesByProgram( programRuleService.getProgramRulesWithNoPriority() );
     }
 
     @Override
     public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoAction()
     {
-        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoAction();
-
-        return groupRulesByProgram( programRules );
+        return groupRulesByProgram( programRuleService.getProgramRulesWithNoAction() );
     }
 
     @Override
     public Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition()
     {
-        List<ProgramRule> programRules = programRuleService.getProgramRulesWithNoCondition();
-
-        return groupRulesByProgram( programRules );
+        return groupRulesByProgram( programRuleService.getProgramRulesWithNoCondition() );
     }
 
     @Override
     public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject()
     {
-        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToDataObject();
-
-        return groupActionsByProgramRule( ruleActions );
+        return groupActionsByProgramRule( programRuleActionService.getProgramActionsWithNoLinkToDataObject() );
     }
 
     @Override
     public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate()
     {
-        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramActionsWithNoLinkToNotification();
-
-        return groupActionsByProgramRule( ruleActions );
+        return groupActionsByProgramRule( programRuleActionService.getProgramActionsWithNoLinkToNotification() );
     }
 
     @Override
     public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId()
     {
-        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoSectionId();
-
-        return groupActionsByProgramRule( ruleActions );
+        return groupActionsByProgramRule( programRuleActionService.getProgramRuleActionsWithNoSectionId() );
     }
 
     @Override
     public Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId()
     {
-        List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoStageId();
-
-        return groupActionsByProgramRule( ruleActions );
+        return groupActionsByProgramRule( programRuleActionService.getProgramRuleActionsWithNoStageId() );
     }
 
     @Override
     public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
     {
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoDataElement();
-
-        return groupVariablesByProgram( ruleVariables );
+        return groupVariablesByProgram( programRuleVariableService.getVariablesWithNoDataElement() );
     }
 
     @Override
     public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute()
     {
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoAttribute();
-
-        return groupVariablesByProgram( ruleVariables );
+        return groupVariablesByProgram( programRuleVariableService.getVariablesWithNoAttribute() );
     }
 
     private String getInvalidExpressionDescription( String expression )
@@ -802,62 +725,31 @@ public class DefaultDataIntegrityService
         return null;
     }
 
-    private Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> programRules )
+    private static Map<Program, Collection<ProgramRule>> groupRulesByProgram( List<ProgramRule> rules )
     {
-        Map<Program, Collection<ProgramRule>> collectionMap = new HashMap<>();
-
-        for ( ProgramRule rule : programRules )
-        {
-            Program program = rule.getProgram();
-
-            if ( !collectionMap.containsKey( program ) )
-            {
-                collectionMap.put( program, Sets.newHashSet() );
-            }
-
-            collectionMap.get( program ).add( rule );
-        }
-
-        return collectionMap;
+        return groupBy( ProgramRule::getProgram, rules );
     }
 
-    private Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram(
-        List<ProgramRuleVariable> ruleVariables )
+    private static Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram(
+        List<ProgramRuleVariable> variables )
     {
-        Map<Program, Collection<ProgramRuleVariable>> collectionMap = new HashMap<>();
-
-        for ( ProgramRuleVariable variable : ruleVariables )
-        {
-            Program program = variable.getProgram();
-
-            if ( !collectionMap.containsKey( program ) )
-            {
-                collectionMap.put( program, Sets.newHashSet() );
-            }
-
-            collectionMap.get( program ).add( variable );
-        }
-
-        return collectionMap;
+        return groupBy( ProgramRuleVariable::getProgram, variables );
     }
 
-    private Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule(
-        List<ProgramRuleAction> ruleActions )
+    private static Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule(
+        List<ProgramRuleAction> actions )
     {
-        Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = new HashMap<>();
+        return groupBy( ProgramRuleAction::getProgramRule, actions );
+    }
 
-        for ( ProgramRuleAction action : ruleActions )
+    private static <K, V> Map<K, Collection<V>> groupBy( Function<V, K> property,
+        Collection<V> values )
+    {
+        Map<K, Collection<V>> res = new HashMap<>();
+        for ( V value : values )
         {
-            ProgramRule programRule = action.getProgramRule();
-
-            if ( !collectionMap.containsKey( programRule ) )
-            {
-                collectionMap.put( programRule, Sets.newHashSet() );
-            }
-
-            collectionMap.get( programRule ).add( action );
+            res.computeIfAbsent( property.apply( value ), key -> Sets.newHashSet() ).add( value );
         }
-
-        return collectionMap;
+        return res;
     }
 }

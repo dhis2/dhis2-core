@@ -35,6 +35,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -85,13 +86,16 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     @Override
-    protected void persistComments( ProgramStageInstance programStageInstance )
+    protected void persistComments( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
     {
         if ( !programStageInstance.getComments().isEmpty() )
         {
             for ( TrackedEntityComment comment : programStageInstance.getComments() )
             {
-                this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                if ( Objects.isNull( preheat.getNote( comment.getUid() ) ) )
+                {
+                    this.trackedEntityCommentService.addTrackedEntityComment( comment );
+                }
             }
         }
     }

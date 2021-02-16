@@ -31,17 +31,12 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,14 +56,14 @@ public class DefaultCurrentUserService
      * Cache for user IDs. Key is username. Disabled during test phase. Take
      * care not to cache user info which might change during runtime.
      */
-    private static Cache<Long> USERNAME_ID_CACHE;
+    private final Cache<Long> usernameIdCache;
 
     /**
      * Cache contains Set of UserGroup UID for each user. Key is username. This
      * will be used for ACL check in
      * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
      */
-    private static Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
+    private final Cache<CurrentUserGroupInfo> currentUserGroupInfoCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -76,43 +71,21 @@ public class DefaultCurrentUserService
 
     private final UserStore userStore;
 
-    private final Environment env;
-
-    private final CacheProvider cacheProvider;
-
-    public DefaultCurrentUserService( Environment env, CacheProvider cacheProvider,
+    public DefaultCurrentUserService( CacheProvider cacheProvider,
         @Lazy UserStore userStore )
     {
-        checkNotNull( env );
         checkNotNull( cacheProvider );
         checkNotNull( userStore );
 
-        this.env = env;
-        this.cacheProvider = cacheProvider;
         this.userStore = userStore;
+        this.usernameIdCache = cacheProvider.createUserIdCacheCache( Long.class );
+        this.currentUserGroupInfoCache = cacheProvider
+            .createCurrentUserGroupInfoCache( CurrentUserGroupInfo.class );
     }
 
     // -------------------------------------------------------------------------
     // CurrentUserService implementation
     // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
-            .forRegion( "userIdCache" )
-            .expireAfterAccess( 1, TimeUnit.HOURS )
-            .withInitialCapacity( 200 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
-            .build();
-
-        currentUserGroupInfoCache = cacheProvider.newCacheBuilder( CurrentUserGroupInfo.class )
-            .forRegion( "currentUserGroupInfoCache" )
-            .expireAfterWrite( 1, TimeUnit.HOURS )
-            .forceInMemory()
-            .build();
-    }
 
     @Override
     public User getCurrentUser()
@@ -124,7 +97,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
@@ -168,7 +141,7 @@ public class DefaultCurrentUserService
 
         User user = null;
 
-        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
 
         if ( userId != null )
         {
@@ -214,7 +187,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( currentUsername, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( currentUsername, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {
@@ -311,7 +284,7 @@ public class DefaultCurrentUserService
             return null;
         }
 
-        Long userId = USERNAME_ID_CACHE.get( username, this::getUserId ).orElse( null );
+        Long userId = usernameIdCache.get( username, this::getUserId ).orElse( null );
 
         if ( userId == null )
         {

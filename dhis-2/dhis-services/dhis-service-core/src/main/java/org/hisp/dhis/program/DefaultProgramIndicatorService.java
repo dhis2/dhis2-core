@@ -35,7 +35,33 @@ import static org.hisp.dhis.parser.expression.ParserUtils.COMMON_EXPRESSION_ITEM
 import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_CONDITION;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_CONDITION;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_COUNT_IF_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_DAYS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_HAS_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MAX_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MINUTES_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MIN_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_MONTHS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_OIZP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_RELATIONSHIP_COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_WEEKS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_YEARS_BETWEEN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZING;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D2_ZPVC;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PS_EVENTDATE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.VARIANCE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.V_BRACE;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -43,13 +69,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -70,8 +95,23 @@ import org.hisp.dhis.parser.expression.literal.SqlLiteral;
 import org.hisp.dhis.program.dataitem.ProgramItemAttribute;
 import org.hisp.dhis.program.dataitem.ProgramItemPsEventdate;
 import org.hisp.dhis.program.dataitem.ProgramItemStageElement;
-import org.hisp.dhis.program.function.*;
-import org.hisp.dhis.program.variable.*;
+import org.hisp.dhis.program.function.D2Condition;
+import org.hisp.dhis.program.function.D2Count;
+import org.hisp.dhis.program.function.D2CountIfCondition;
+import org.hisp.dhis.program.function.D2CountIfValue;
+import org.hisp.dhis.program.function.D2DaysBetween;
+import org.hisp.dhis.program.function.D2HasValue;
+import org.hisp.dhis.program.function.D2MaxValue;
+import org.hisp.dhis.program.function.D2MinValue;
+import org.hisp.dhis.program.function.D2MinutesBetween;
+import org.hisp.dhis.program.function.D2MonthsBetween;
+import org.hisp.dhis.program.function.D2Oizp;
+import org.hisp.dhis.program.function.D2RelationshipCount;
+import org.hisp.dhis.program.function.D2WeeksBetween;
+import org.hisp.dhis.program.function.D2YearsBetween;
+import org.hisp.dhis.program.function.D2Zing;
+import org.hisp.dhis.program.function.D2Zpvc;
+import org.hisp.dhis.program.variable.ProgramVariableItem;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -91,36 +131,32 @@ public class DefaultProgramIndicatorService
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private ProgramIndicatorStore programIndicatorStore;
+    private final ProgramIndicatorStore programIndicatorStore;
 
-    private ProgramStageService programStageService;
+    private final ProgramStageService programStageService;
 
-    private DataElementService dataElementService;
+    private final DataElementService dataElementService;
 
-    private TrackedEntityAttributeService attributeService;
+    private final TrackedEntityAttributeService attributeService;
 
-    private ConstantService constantService;
+    private final ConstantService constantService;
 
-    private StatementBuilder statementBuilder;
+    private final StatementBuilder statementBuilder;
 
-    private IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
+    private final IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore;
 
-    private I18nManager i18nManager;
+    private final I18nManager i18nManager;
 
-    private RelationshipTypeService relationshipTypeService;
+    private final RelationshipTypeService relationshipTypeService;
 
-    private static Cache<String> ANALYTICS_SQL_CACHE = new SimpleCacheBuilder<String>().forRegion( "analyticsSql" )
-        .expireAfterAccess( 10, TimeUnit.HOURS )
-        .withInitialCapacity( 10000 )
-        .withMaximumSize( 50000 )
-        .build();
+    private final Cache<String> analyticsSqlCache;
 
     public DefaultProgramIndicatorService( ProgramIndicatorStore programIndicatorStore,
         ProgramStageService programStageService, DataElementService dataElementService,
         TrackedEntityAttributeService attributeService, ConstantService constantService,
         StatementBuilder statementBuilder,
         @Qualifier( "org.hisp.dhis.program.ProgramIndicatorGroupStore" ) IdentifiableObjectStore<ProgramIndicatorGroup> programIndicatorGroupStore,
-        I18nManager i18nManager, RelationshipTypeService relationshipTypeService )
+        I18nManager i18nManager, RelationshipTypeService relationshipTypeService, CacheProvider cacheProvider )
     {
         checkNotNull( programIndicatorStore );
         checkNotNull( programStageService );
@@ -141,9 +177,10 @@ public class DefaultProgramIndicatorService
         this.programIndicatorGroupStore = programIndicatorGroupStore;
         this.i18nManager = i18nManager;
         this.relationshipTypeService = relationshipTypeService;
+        this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache( String.class );
     }
 
-    public final static ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap
+    public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
 
         // Common functions
@@ -328,7 +365,7 @@ public class DefaultProgramIndicatorService
 
         String cacheKey = getAnalyticsSqlCacheKey( expression, programIndicator, startDate, endDate, tableAlias );
 
-        return ANALYTICS_SQL_CACHE
+        return analyticsSqlCache
             .get( cacheKey, k -> _getAnalyticsSql( expression, programIndicator, startDate, endDate, tableAlias ) )
             .orElse( null );
     }

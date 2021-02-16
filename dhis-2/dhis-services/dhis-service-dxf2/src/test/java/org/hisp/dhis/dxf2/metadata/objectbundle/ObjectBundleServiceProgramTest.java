@@ -252,7 +252,7 @@ public class ObjectBundleServiceProgramTest
         List<ErrorReport> errorReports = validate1.getErrorReports();
         ErrorReport errorReport = errorReports.get( 0 );
 
-        assertEquals( ErrorCode.E5003, errorReport.getErrorCode() );
+        assertEquals( ErrorCode.E4031, errorReport.getErrorCode() );
     }
 
     @Test

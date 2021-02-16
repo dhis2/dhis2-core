@@ -31,11 +31,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
 
 import java.awt.geom.Point2D;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
@@ -43,7 +47,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
@@ -58,7 +61,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -74,15 +76,15 @@ public class DefaultOrganisationUnitService
 {
     private static final String LEVEL_PREFIX = "Level ";
 
-    private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
+    private final Cache<Boolean> inUserOrgUnitHierarchyCache;
 
-    private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
+    private final Cache<Boolean> inUserOrgUnitSearchHierarchyCache;
+
+    private final Cache<Boolean> userCaptureOrgCountThresholdCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final Environment env;
 
     private final OrganisationUnitStore organisationUnitStore;
 
@@ -96,29 +98,28 @@ public class DefaultOrganisationUnitService
 
     private final UserSettingService userSettingService;
 
-    private final CacheProvider cacheProvider;
-
-    public DefaultOrganisationUnitService( Environment env, OrganisationUnitStore organisationUnitStore,
+    public DefaultOrganisationUnitService( OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
         UserSettingService userSettingService, CacheProvider cacheProvider )
     {
-        checkNotNull( env );
         checkNotNull( organisationUnitStore );
         checkNotNull( dataSetService );
         checkNotNull( organisationUnitLevelStore );
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
         checkNotNull( userSettingService );
+        checkNotNull( cacheProvider );
 
-        this.env = env;
         this.organisationUnitStore = organisationUnitStore;
         this.dataSetService = dataSetService;
         this.organisationUnitLevelStore = organisationUnitLevelStore;
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
-        this.cacheProvider = cacheProvider;
+        this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache( Boolean.class );
+        this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache( Boolean.class );
+        this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache( Boolean.class );
     }
 
     /**
@@ -128,18 +129,6 @@ public class DefaultOrganisationUnitService
     public void setCurrentUserService( CurrentUserService currentUserService )
     {
         this.currentUserService = currentUserService;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        IN_USER_ORG_UNIT_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
-
-        IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE = cacheProvider.newCacheBuilder( Boolean.class )
-            .forRegion( "inUserSearchOuHierarchy" ).expireAfterWrite( 3, TimeUnit.HOURS ).withInitialCapacity( 1000 )
-            .forceInMemory().withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 20000 ).build();
     }
 
     // -------------------------------------------------------------------------
@@ -413,6 +402,27 @@ public class DefaultOrganisationUnitService
 
     @Override
     @Transactional( readOnly = true )
+    public Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences()
+    {
+        return organisationUnitStore.getOrganisationUnitsWithCyclicReferences();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrphanedOrganisationUnits()
+    {
+        return organisationUnitStore.getOrphanedOrganisationUnits();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<OrganisationUnit> getOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        return organisationUnitStore.getOrganisationUnitsViolatingExclusiveGroupSets();
+    }
+
+    @Override
+    @Transactional( readOnly = true )
     public Long getOrganisationUnitHierarchyMemberCount( OrganisationUnit parent, Object member, String collectionName )
     {
         return organisationUnitStore.getOrganisationUnitHierarchyMemberCount( parent, member, collectionName );
@@ -469,7 +479,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_HIERARCHY_CACHE.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
+        return inUserOrgUnitHierarchyCache.get( cacheKey, ou -> isInUserHierarchy( user, organisationUnit ) )
             .orElse( false );
     }
 
@@ -505,7 +515,7 @@ public class DefaultOrganisationUnitService
     {
         String cacheKey = joinHyphen( user.getUsername(), organisationUnit.getUid() );
 
-        return IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE
+        return inUserOrgUnitSearchHierarchyCache
             .get( cacheKey, ou -> isInUserSearchHierarchy( user, organisationUnit ) ).orElse( false );
     }
 
@@ -529,6 +539,40 @@ public class DefaultOrganisationUnitService
         OrganisationUnit organisationUnit = organisationUnitStore.getByUid( uid );
 
         return organisationUnit != null && organisationUnit.isDescendant( organisationUnits );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<String> getCaptureOrganisationUnitUidsWithChildren()
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return new ArrayList<>();
+        }
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        params.setParents( user.getOrganisationUnits() );
+        params.setFetchChildren( true );
+        return organisationUnitStore.getOrganisationUnitUids( params );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isCaptureOrgUnitCountAboveThreshold( int threshold )
+    {
+        User user = currentUserService.getCurrentUser();
+        if ( user == null )
+        {
+            return false;
+        }
+        return userCaptureOrgCountThresholdCache.get( user.getUsername(), ou -> {
+
+            OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+            params.setParents( user.getOrganisationUnits() );
+            params.setFetchChildren( true );
+            return organisationUnitStore.isOrgUnitCountAboveThreshold( params, threshold );
+        } )
+            .orElse( false );
     }
 
     // -------------------------------------------------------------------------

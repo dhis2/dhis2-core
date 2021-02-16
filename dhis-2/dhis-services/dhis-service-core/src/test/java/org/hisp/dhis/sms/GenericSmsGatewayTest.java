@@ -186,14 +186,10 @@ public class GenericSmsGatewayTest
 
         List<GenericGatewayParameter> parameters = gatewayConfig.getParameters();
 
-        for ( GenericGatewayParameter parameter : parameters )
-        {
-            if ( parameter.isHeader() )
-            {
-                assertTrue( httpHeaders.containsKey( parameter.getKey() ) );
-                assertEquals( parameter.getValue(), httpHeaders.get( parameter.getKey() ).get( 0 ) );
-            }
-        }
+        parameters.stream().filter( p -> p.isEncode() && p.isConfidential() && p.isHeader() ).forEach( p -> {
+            assertTrue( httpHeaders.containsKey( p.getKey() ) );
+            assertEquals( " Basic ZGVjcnlwdGVkVGV4dA==", httpHeaders.get( p.getKey() ).get( 0 ) );
+        } );
     }
 
     @Test

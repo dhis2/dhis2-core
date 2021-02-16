@@ -185,10 +185,11 @@
     {
       "dataDimension": true,
       "id": "k3ASmFuqr11",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "lastUpdated": "2016-03-08T07:26:31.729+0000",
       "created": "2016-03-08T07:26:31.543+0000",
       "name": "default",
+      "shortName": "default",
       "categoryOptions": [
         {
           "id": "NS6DGfTR650"

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -102,4 +103,15 @@ public interface UserStore
      * @return
      */
     CurrentUserGroupInfo getCurrentUserGroupInfo( long userId );
+
+    /**
+     * Sets {@link UserCredentials#setDisabled(boolean)} to {@code true} for all
+     * users where the {@link UserCredentials#getLastLogin()} is before or equal
+     * to the provided pivot {@link Date}.
+     *
+     * @param inactiveSince the most recent point in time that is considered
+     *        inactive together with accounts only active further in the past.
+     * @return number of users disabled
+     */
+    int disableUsersInactiveSince( Date inactiveSince );
 }

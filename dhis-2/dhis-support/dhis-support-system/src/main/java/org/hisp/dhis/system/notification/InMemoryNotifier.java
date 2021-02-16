@@ -48,6 +48,8 @@ public class InMemoryNotifier implements Notifier
 {
     private NotificationMap notificationMap = new NotificationMap();
 
+    private NotificationLoggerUtil notificationLogger;
+
     // -------------------------------------------------------------------------
     // Notifier implementation
     // -------------------------------------------------------------------------
@@ -78,7 +80,7 @@ public class InMemoryNotifier implements Notifier
 
             notificationMap.add( id, notification );
 
-            log.info( notification.toString() );
+            NotificationLoggerUtil.log( log, level, message );
         }
 
         return this;

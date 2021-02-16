@@ -27,9 +27,18 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -753,6 +762,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet1 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet1.setName( "ougs1" );
+        organisationUnitGroupSet1.setShortName( "ougs1" );
         organisationUnitGroupSet1.setCompulsory( true );
 
         long id1 = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
@@ -875,6 +885,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet1 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet1.setName( "ougs1" );
+        organisationUnitGroupSet1.setShortName( "ougs1" );
         organisationUnitGroupSet1.setCompulsory( true );
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup1 );
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup2 );
@@ -900,6 +911,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet2 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet2.setName( "ougs2" );
+        organisationUnitGroupSet2.setShortName( "ougs2" );
         organisationUnitGroupSet2.setCompulsory( true );
         organisationUnitGroupSet2.getOrganisationUnitGroups().add( organisationUnitGroup4 );
 

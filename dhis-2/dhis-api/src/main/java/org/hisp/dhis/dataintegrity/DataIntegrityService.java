@@ -27,16 +27,21 @@
  */
 package org.hisp.dhis.dataintegrity;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetDataIntegrityProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegrityProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupDataIntegrityProvider;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -44,11 +49,14 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
+import org.hisp.dhis.validation.ValidationRuleDataIntegrityProvider;
 
 /**
  * @author Fredrik Fjeld
  */
 public interface DataIntegrityService
+    extends OrganisationUnitDataIntegrityProvider, OrganisationUnitGroupDataIntegrityProvider,
+    ValidationRuleDataIntegrityProvider, DataSetDataIntegrityProvider
 {
     String ID = DataIntegrityService.class.getName();
 
@@ -94,15 +102,6 @@ public interface DataIntegrityService
     List<CategoryCombo> getInvalidCategoryCombos();
 
     // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all data sets which are not assigned to any organisation units.
-     */
-    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
-
-    // -------------------------------------------------------------------------
     // Indicator
     // -------------------------------------------------------------------------
 
@@ -133,32 +132,6 @@ public interface DataIntegrityService
     SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets();
 
     // -------------------------------------------------------------------------
-    // OrganisationUnit
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation units which are related to each other in a cyclic
-     * reference.
-     */
-    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
-
-    /**
-     * Gets all organisation units with no parents or children.
-     */
-    List<OrganisationUnit> getOrphanedOrganisationUnits();
-
-    /**
-     * Gets all organisation units which are not assigned to any groups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-
-    /**
-     * Gets all organisation units which are members of more than one group
-     * which enter into an exclusive group set.
-     */
-    SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets();
-
-    // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
 
@@ -169,23 +142,8 @@ public interface DataIntegrityService
     List<Period> getDuplicatePeriods();
 
     // -------------------------------------------------------------------------
-    // OrganisationUnitGroup
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation unit groups which are not assigned to any group
-     * set.
-     */
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets();
-
-    // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
-
-    /**
-     * Gets all ValidationRules which are not members fo one or more groups.
-     */
-    List<ValidationRule> getValidationRulesWithoutGroups();
 
     /**
      * Gets all ValidationRules with invalid left side expressions.

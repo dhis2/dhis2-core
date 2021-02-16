@@ -30,24 +30,24 @@ package org.hisp.dhis.setting;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.ImmutableMap;
@@ -73,7 +73,7 @@ public class DefaultSystemSettingManager
      * Cache for system settings. Does not accept nulls. Disabled during test
      * phase.
      */
-    private Cache<SerializableOptional> settingCache;
+    private final Cache<SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -83,40 +83,21 @@ public class DefaultSystemSettingManager
 
     private final PBEStringEncryptor pbeStringEncryptor;
 
-    private final CacheProvider cacheProvider;
-
-    private final Environment environment;
-
     private final List<String> flags;
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor,
-        CacheProvider cacheProvider, Environment environment, List<String> flags )
+        CacheProvider cacheProvider, List<String> flags )
     {
         checkNotNull( systemSettingStore );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
-        checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
         this.pbeStringEncryptor = pbeStringEncryptor;
-        this.cacheProvider = cacheProvider;
-        this.environment = environment;
         this.flags = flags;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
-            .forRegion( "systemSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
+        this.settingCache = cacheProvider.createSystemSettingCache( SerializableOptional.class );
     }
 
     // -------------------------------------------------------------------------

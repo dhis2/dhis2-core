@@ -30,21 +30,20 @@ package org.hisp.dhis.user;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.SerializableOptional;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,22 +61,18 @@ import com.google.common.collect.Sets;
 public class DefaultUserSettingService
     implements UserSettingService
 {
+    private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
+
     /**
      * Cache for user settings. Does not accept nulls. Disabled during test
      * phase.
      */
-    private Cache<SerializableOptional> userSettingCache;
-
-    private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
+    private final Cache<SerializableOptional> userSettingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final Environment env;
-
-    private final CacheProvider cacheProvider;
 
     private final CurrentUserService currentUserService;
 
@@ -87,36 +82,21 @@ public class DefaultUserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider,
+    public DefaultUserSettingService( CacheProvider cacheProvider,
         CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
-        checkNotNull( env );
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
         checkNotNull( userService );
         checkNotNull( systemSettingManager );
 
-        this.env = env;
-        this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
         this.userSettingStore = userSettingStore;
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        userSettingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
-            .forRegion( "userSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+        this.userSettingCache = cacheProvider.createUserSettingCache( SerializableOptional.class );
     }
 
     // -------------------------------------------------------------------------

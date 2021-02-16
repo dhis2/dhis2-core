@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.category;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,9 +134,10 @@ public class CategoryServiceTest
     @Test
     public void testDelete()
     {
-        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION, categoryOptions );
+        CategoryOption[] allOptions = categoryOptions.toArray( new CategoryOption[0] );
+        categoryA = createCategory( 'A', allOptions );
+        categoryB = createCategory( 'B', allOptions );
+        categoryC = createCategory( 'C', allOptions );
 
         long idA = categoryService.addCategory( categoryA );
         long idB = categoryService.addCategory( categoryB );
@@ -158,8 +163,9 @@ public class CategoryServiceTest
     @Test
     public void testDeleteCategoryOption()
     {
-        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, categoryOptions );
-        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, categoryOptions );
+        CategoryOption[] allOptions = categoryOptions.toArray( new CategoryOption[0] );
+        categoryA = createCategory( 'A', allOptions );
+        categoryB = createCategory( 'B', allOptions );
 
         long idA = categoryService.addCategory( categoryA );
         long idB = categoryService.addCategory( categoryB );

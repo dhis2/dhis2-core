@@ -62,6 +62,7 @@ import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionCombo
 import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.FilteredDataValueCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
@@ -209,6 +210,7 @@ public class ServiceConfig
             AttributeOptionComboDateCheck.class,
             AttributeOptionComboAclCheck.class,
             DataValueCheck.class,
+            FilteredDataValueCheck.class,
             DataValueAclCheck.class,
             ExpirationDaysCheck.class ) );
     }
@@ -228,6 +230,7 @@ public class ServiceConfig
             AttributeOptionComboDateCheck.class,
             EventGeometryCheck.class,
             DataValueCheck.class,
+            FilteredDataValueCheck.class,
             ExpirationDaysCheck.class ) );
     }
 

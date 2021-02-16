@@ -88,7 +88,7 @@ public class TeiValidationTests
 
         // assert
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1005" ) );
+            .body( "errorCode", hasItem( "E1121" ) );
     }
 
     @Test

@@ -87,37 +87,37 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     /**
      * Start date for last updated.
      */
-    private Date updatedAtFrom;
+    private Date updatedAfter;
 
     /**
      * End date for last updated.
      */
-    private Date updatedAtTo;
+    private Date updatedBefore;
 
     /**
      * The last updated duration filter.
      */
-    private String updatedAtWithin;
+    private String updatedWithin;
 
     /**
      * The given Program start date.
      */
-    private Date enrolledAtFrom;
+    private Date enrollmentEnrolledAfter;
 
     /**
      * The given Program end date.
      */
-    private Date enrolledAtTo;
+    private Date enrollmentEnrolledBefore;
 
     /**
      * Start date for incident in the given program.
      */
-    private Date occurredAtFrom;
+    private Date enrollmentOccurredAfter;
 
     /**
      * End date for incident in the given program.
      */
-    private Date occurredAtTo;
+    private Date enrollmentOccurredBefore;
 
     /**
      * Only returns Tracked Entity Instances of this type.
@@ -154,12 +154,12 @@ public class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapte
     /**
      * Start date for Event for the given Program.
      */
-    private Date eventExecutedAtFrom;
+    private Date eventOccurredAfter;
 
     /**
      * End date for Event for the given Program.
      */
-    private Date eventExecutedAtTo;
+    private Date eventOccurredBefore;
 
     /**
      * Indicates whether not to include meta data in the response.

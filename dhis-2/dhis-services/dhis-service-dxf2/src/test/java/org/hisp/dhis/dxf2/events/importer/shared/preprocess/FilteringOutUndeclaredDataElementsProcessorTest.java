@@ -27,30 +27,29 @@
  */
 package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
+import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.DATA_ELEMENT_1;
+import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.DATA_ELEMENT_2;
+import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.PROGRAMSTAGE;
+import static org.hisp.dhis.dxf2.events.importer.shared.DataValueFilteringTestSupport.getProgramMap;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.EventDataValueAggregator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 
 /**
@@ -58,16 +57,6 @@ import com.google.common.collect.Sets;
  */
 public class FilteringOutUndeclaredDataElementsProcessorTest
 {
-    public static final String PROGRAMSTAGE = "programstage";
-
-    public static final String DATA_ELEMENT_1 = "de1";
-
-    public static final String DATA_ELEMENT_2 = "de2";
-
-    public static final String PROGRAM = "program";
-
-    private static final String DATA_ELEMENT_3 = "de3";
-
     private FilteringOutUndeclaredDataElementsProcessor preProcessor;
 
     @Before
@@ -103,47 +92,12 @@ public class FilteringOutUndeclaredDataElementsProcessorTest
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        Set<String> filteredEventDataValues = event.getDataValues().stream()
-            .map( DataValue::getDataElement )
+        Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream()
+            .flatMap( Collection::stream )
+            .map( EventDataValue::getDataElement )
             .collect( Collectors.toSet() );
 
         assertTrue( allowedDataValues.containsAll( filteredEventDataValues ) );
 
-    }
-
-    private Map<String, Program> getProgramMap()
-    {
-        return ImmutableMap.of( PROGRAM, getProgram() );
-    }
-
-    private Program getProgram()
-    {
-        Program program = new Program();
-        program.setProgramStages( getProgramStages() );
-        return program;
-    }
-
-    private Set<ProgramStage> getProgramStages()
-    {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setProgramStageDataElements( getProgramStageDataElements( DATA_ELEMENT_1, DATA_ELEMENT_3 ) );
-        programStage.setUid( PROGRAMSTAGE );
-        return Sets.newHashSet( programStage );
-    }
-
-    private Set<ProgramStageDataElement> getProgramStageDataElements( String... uids )
-    {
-        return Arrays.stream( uids )
-            .map( this::getProgramStageDataElement )
-            .collect( Collectors.toSet() );
-    }
-
-    private ProgramStageDataElement getProgramStageDataElement( String uid )
-    {
-        ProgramStageDataElement programStageDataElement = new ProgramStageDataElement();
-        DataElement dataElement = new DataElement();
-        dataElement.setUid( uid );
-        programStageDataElement.setDataElement( dataElement );
-        return programStageDataElement;
     }
 }

@@ -85,10 +85,10 @@ public class EventValidationTests
         return Stream.of(
             Arguments.of( OU_ID, trackerProgramId, trackerProgramStageId, "E1033" ),
             Arguments.arguments( null, eventProgramId, eventProgramStageId,
-                "E1011" ),
+                "E1123" ),
             Arguments.arguments( ouIdWithoutAccess, eventProgramId, eventProgramStageId,
                 "E1029" ),
-            Arguments.arguments( OU_ID, trackerProgramId, null, "E1086" ),
+            Arguments.arguments( OU_ID, trackerProgramId, null, "E1123" ),
             Arguments.arguments( OU_ID, trackerProgramId, eventProgramStageId, "E1089" ) );
     }
 

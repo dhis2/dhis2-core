@@ -104,10 +104,13 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
         Map<String, List<ProgramInstance>> result = new HashMap<>();
 
         // Build a look-up map
-        final Map<String, Event> idToEventMap = events.stream()
+        final Map<String, List<Event>> idToEventMap = events.stream()
             // filter out events without program or tei
             .filter( e -> StringUtils.isNotEmpty( e.getProgram() ) && StringUtils.isNotEmpty( e.getTrackedEntity() ) )
-            .collect( Collectors.toMap( e -> e.getProgram() + KEY_SEPARATOR + e.getTrackedEntity(), e -> e ) );
+            .map( e -> Pair.of( e.getProgram(), e.getTrackedEntity() ) )
+            .distinct()
+            .collect( Collectors.toMap( e -> e.getLeft() + KEY_SEPARATOR + e.getRight(),
+                e -> filterEventByTeiAndProgram( events, e.getRight(), e.getLeft() ) ) );
 
         // @formatter:off
         final List<ProgramInstance> resultList = programInstanceStore.getByProgramAndTrackedEntityInstance(
@@ -119,16 +122,28 @@ public class ProgramInstanceByTeiSupplier extends AbstractPreheatSupplier
 
         for ( ProgramInstance pi : resultList )
         {
-            final Event event = idToEventMap.get( makeKey( pi ) );
-            if ( event != null )
+            final List<Event> eventList = idToEventMap.get( makeKey( pi ) );
+            if ( eventList != null )
             {
-                final List<ProgramInstance> programInstances = result.getOrDefault( event.getUid(), new ArrayList<>() );
-                programInstances.add( pi );
-                result.put( event.getEvent(), DetachUtils.detach( ProgramInstanceMapper.INSTANCE, programInstances ) );
+                for ( Event event : eventList )
+                {
+                    final List<ProgramInstance> programInstances = result.getOrDefault( event.getEvent(),
+                        new ArrayList<>() );
+                    programInstances.add( pi );
+                    result.put( event.getEvent(),
+                        DetachUtils.detach( ProgramInstanceMapper.INSTANCE, programInstances ) );
+                }
             }
         }
 
         return result;
+    }
+
+    private List<Event> filterEventByTeiAndProgram( List<Event> events, String tei, String program )
+    {
+        return events.stream()
+            .filter( e -> e.getTrackedEntity().equals( tei ) && e.getProgram().equals( program ) )
+            .collect( Collectors.toList() );
     }
 
     private Program getProgram( TrackerPreheat preheat, String uid )

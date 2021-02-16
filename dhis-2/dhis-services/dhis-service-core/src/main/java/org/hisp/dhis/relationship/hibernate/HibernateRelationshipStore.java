@@ -35,12 +35,14 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
@@ -129,6 +131,85 @@ public class HibernateRelationshipStore
             return null;
         }
 
+    }
+
+    @Override
+    public Relationship getByRelationshipKey( String relationshipKeyAsString )
+    {
+        RelationshipKey relationshipKey = RelationshipKey.fromString( relationshipKeyAsString );
+
+        CriteriaBuilder criteriaBuilder = getCriteriaBuilder();
+        CriteriaQuery<Relationship> criteriaQuery = criteriaBuilder.createQuery( Relationship.class );
+
+        Root<Relationship> root = criteriaQuery.from( Relationship.class );
+
+        Pair<String, String> fromFieldValuePair = getFieldValuePair( relationshipKey.getFrom() );
+        Pair<String, String> toFieldValuePair = getFieldValuePair( relationshipKey.getTo() );
+
+        criteriaQuery.where( criteriaBuilder.or(
+            nonBidirectionalCriteria( criteriaBuilder, root, fromFieldValuePair, toFieldValuePair ),
+            bidirectionalCriteria( criteriaBuilder, root, fromFieldValuePair, toFieldValuePair ) ) );
+
+        try
+        {
+            return getSession().createQuery( criteriaQuery ).setMaxResults( 1 ).getSingleResult();
+        }
+        catch ( NoResultException nre )
+        {
+            return null;
+        }
+    }
+
+    private Predicate bidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
+        Pair<String, String> fromFieldValuePair, Pair<String, String> toFieldValuePair )
+    {
+        return criteriaBuilder.and(
+            criteriaBuilder.equal(
+                root.join( "relationshipType" ).get( "bidirectional" ), true ),
+            criteriaBuilder.or(
+                criteriaBuilder.and(
+                    getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
+                    getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ),
+                criteriaBuilder.and(
+                    getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "to" ),
+                    getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "from" ) ) ) );
+    }
+
+    private Predicate getRelatedEntityCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
+        Pair<String, String> fromFieldValuePair, String from )
+    {
+        return criteriaBuilder.equal(
+            root.join( from ).join( fromFieldValuePair.getKey() ).get( "uid" ),
+            fromFieldValuePair.getValue() );
+    }
+
+    private Predicate nonBidirectionalCriteria( CriteriaBuilder criteriaBuilder, Root<Relationship> root,
+        Pair<String, String> fromFieldValuePair, Pair<String, String> toFieldValuePair )
+    {
+        return criteriaBuilder.and(
+            criteriaBuilder.equal(
+                root.join( "relationshipType" ).get( "bidirectional" ), false ),
+            criteriaBuilder.and(
+                getRelatedEntityCriteria( criteriaBuilder, root, fromFieldValuePair, "from" ),
+                getRelatedEntityCriteria( criteriaBuilder, root, toFieldValuePair, "to" ) ) );
+    }
+
+    private Pair<String, String> getFieldValuePair( RelationshipKey.RelationshipItemKey relationshipItemKey )
+    {
+        if ( relationshipItemKey.isTrackedEntity() )
+        {
+            return Pair.of( "trackedEntityInstance", relationshipItemKey.getTrackedEntity() );
+        }
+        if ( relationshipItemKey.isEnrollment() )
+        {
+            return Pair.of( "programInstance", relationshipItemKey.getEnrollment() );
+        }
+        if ( relationshipItemKey.isEvent() )
+        {
+            return Pair.of( "programStageInstance", relationshipItemKey.getEvent() );
+        }
+        throw new IllegalStateException(
+            "Unable to determine relationshipType for relationshipItem: " + relationshipItemKey.asString() );
     }
 
     private Predicate getFromOrToPredicate( String direction, CriteriaBuilder builder, Root<Relationship> root,
