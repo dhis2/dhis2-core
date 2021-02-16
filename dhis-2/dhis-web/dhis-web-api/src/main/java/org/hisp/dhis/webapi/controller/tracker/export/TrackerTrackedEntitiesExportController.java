@@ -75,10 +75,11 @@ public class TrackerTrackedEntitiesExportController
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        
+
         int teiCount = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
-       
-        if ( teiCount > TrackedEntityInstanceController.TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
+
+        if ( teiCount > TrackedEntityInstanceController.TEI_COUNT_THRESHOLD_FOR_USE_LEGACY
+            && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
         }

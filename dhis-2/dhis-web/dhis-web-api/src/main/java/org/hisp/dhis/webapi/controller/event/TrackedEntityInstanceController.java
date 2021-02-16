@@ -157,9 +157,9 @@ public class TrackedEntityInstanceController
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        
+
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
-        
+
         if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
@@ -170,7 +170,7 @@ public class TrackedEntityInstanceController
             getTrackedEntityInstanceParams( fields ), true );
 
         RootNode rootNode = NodeUtils.createMetadata();
-       
+
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
