@@ -47,7 +47,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
@@ -83,21 +83,21 @@ public class DefaultAppManager
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
         LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
-        KeyJsonValueService keyJsonValueService, CacheContext cacheContext )
+        KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
         checkNotNull( dhisConfigurationProvider );
         checkNotNull( currentUserService );
         checkNotNull( localAppStorageService );
         checkNotNull( jCloudsAppStorageService );
         checkNotNull( keyJsonValueService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
 
         this.dhisConfigurationProvider = dhisConfigurationProvider;
         this.currentUserService = currentUserService;
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheContext.createAppCache( App.class );
+        this.appCache = cacheProvider.createAppCache( App.class );
     }
 
     // -------------------------------------------------------------------------

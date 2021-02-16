@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -87,17 +87,17 @@ public class DefaultSystemSettingManager
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
         @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor,
-        CacheContext cacheContext, List<String> flags )
+        CacheProvider cacheProvider, List<String> flags )
     {
         checkNotNull( systemSettingStore );
         checkNotNull( pbeStringEncryptor );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.flags = flags;
-        this.settingCache = cacheContext.createSystemSettingCache( SerializableOptional.class );
+        this.settingCache = cacheProvider.createSystemSettingCache( SerializableOptional.class );
     }
 
     // -------------------------------------------------------------------------

@@ -33,7 +33,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -81,7 +81,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     private final DhisConfigurationProvider config;
 
     public DefaultTrackerOwnershipManager( CurrentUserService currentUserService,
-        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheContext cacheContext,
+        TrackedEntityProgramOwnerService trackedEntityProgramOwnerService, CacheProvider cacheProvider,
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
         ProgramTempOwnerService programTempOwnerService,
         ProgramOwnershipHistoryService programOwnershipHistoryService,
@@ -90,7 +90,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     {
         checkNotNull( currentUserService );
         checkNotNull( trackedEntityProgramOwnerService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( programTempOwnershipAuditService );
         checkNotNull( programTempOwnerService );
         checkNotNull( programOwnershipHistoryService );
@@ -106,8 +106,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.organisationUnitService = organisationUnitService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.config = config;
-        this.ownerCache = cacheContext.createProgramOwnerCache( OrganisationUnit.class );
-        this.tempOwnerCache = cacheContext.createProgramTempOwnerCache( Boolean.class );
+        this.ownerCache = cacheProvider.createProgramOwnerCache( OrganisationUnit.class );
+        this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache( Boolean.class );
     }
 
     /**

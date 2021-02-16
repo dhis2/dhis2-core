@@ -34,19 +34,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -57,7 +52,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultAttributeService
     implements AttributeService
 {
-    private Cache<Attribute> attributeCache;
+    private final Cache<Attribute> attributeCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -67,12 +62,10 @@ public class DefaultAttributeService
 
     private final IdentifiableObjectManager manager;
 
-    private SessionFactory sessionFactory;
-
-    private final Environment env;
+    private final SessionFactory sessionFactory;
 
     public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        SessionFactory sessionFactory, Environment env )
+        SessionFactory sessionFactory, CacheProvider cacheProvider )
     {
         checkNotNull( attributeStore );
         checkNotNull( manager );
@@ -80,16 +73,7 @@ public class DefaultAttributeService
         this.attributeStore = attributeStore;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
-        this.env = env;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        attributeCache = new SimpleCacheBuilder<Attribute>()
-            .forRegion( "metadataAttributes" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+        this.attributeCache = cacheProvider.createMetadataAttributesCache( Attribute.class );
     }
 
     // -------------------------------------------------------------------------

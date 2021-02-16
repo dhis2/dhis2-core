@@ -86,7 +86,7 @@ import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
@@ -247,7 +247,7 @@ public class DefaultExpressionService
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
-        IdentifiableObjectManager idObjectManager, CacheContext cacheContext )
+        IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
@@ -255,7 +255,7 @@ public class DefaultExpressionService
         checkNotNull( categoryService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
 
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
@@ -264,7 +264,7 @@ public class DefaultExpressionService
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
-        this.constantMapCache = (Cache) cacheContext.createAllConstantsCache( Map.class );
+        this.constantMapCache = (Cache) cacheProvider.createAllConstantsCache( Map.class );
     }
 
     // -------------------------------------------------------------------------

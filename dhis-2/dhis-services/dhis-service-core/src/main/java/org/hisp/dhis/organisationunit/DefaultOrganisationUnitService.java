@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.SortProperty;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -101,7 +101,7 @@ public class DefaultOrganisationUnitService
     public DefaultOrganisationUnitService( OrganisationUnitStore organisationUnitStore,
         DataSetService dataSetService, OrganisationUnitLevelStore organisationUnitLevelStore,
         CurrentUserService currentUserService, ConfigurationService configurationService,
-        UserSettingService userSettingService, CacheContext cacheContext )
+        UserSettingService userSettingService, CacheProvider cacheProvider )
     {
         checkNotNull( organisationUnitStore );
         checkNotNull( dataSetService );
@@ -109,7 +109,7 @@ public class DefaultOrganisationUnitService
         checkNotNull( currentUserService );
         checkNotNull( configurationService );
         checkNotNull( userSettingService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
 
         this.organisationUnitStore = organisationUnitStore;
         this.dataSetService = dataSetService;
@@ -117,9 +117,9 @@ public class DefaultOrganisationUnitService
         this.currentUserService = currentUserService;
         this.configurationService = configurationService;
         this.userSettingService = userSettingService;
-        this.inUserOrgUnitHierarchyCache = cacheContext.createInUserOrgUnitHierarchyCache( Boolean.class );
-        this.inUserOrgUnitSearchHierarchyCache = cacheContext.createInUserSearchOrgUnitHierarchyCache( Boolean.class );
-        this.userCaptureOrgCountThresholdCache = cacheContext.createUserCaptureOrgUnitThresholdCache( Boolean.class );
+        this.inUserOrgUnitHierarchyCache = cacheProvider.createInUserOrgUnitHierarchyCache( Boolean.class );
+        this.inUserOrgUnitSearchHierarchyCache = cacheProvider.createInUserSearchOrgUnitHierarchyCache( Boolean.class );
+        this.userCaptureOrgCountThresholdCache = cacheProvider.createUserCaptureOrgUnitThresholdCache( Boolean.class );
     }
 
     /**

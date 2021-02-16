@@ -61,7 +61,7 @@ import java.util.Set;
 import org.apache.commons.math3.util.Precision;
 import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -136,7 +136,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Autowired
-    private CacheContext cacheContext;
+    private CacheProvider cacheProvider;
 
     private DefaultExpressionService target;
 
@@ -248,7 +248,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheContext );
+            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
 
         rnd = new BeanRandomizer();
 

@@ -49,7 +49,7 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -106,21 +106,21 @@ public class DefaultIdentifiableObjectManager
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
         Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
         SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
-        CacheContext cacheContext )
+        CacheProvider cacheProvider )
     {
         checkNotNull( identifiableObjectStores );
         checkNotNull( dimensionalObjectStores );
         checkNotNull( sessionFactory );
         checkNotNull( currentUserService );
         checkNotNull( schemaService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
 
         this.identifiableObjectStores = identifiableObjectStores;
         this.dimensionalObjectStores = dimensionalObjectStores;
         this.sessionFactory = sessionFactory;
         this.currentUserService = currentUserService;
         this.schemaService = schemaService;
-        this.defaultObjectCache = cacheContext.createDefaultObjectCache( IdentifiableObject.class );
+        this.defaultObjectCache = cacheProvider.createDefaultObjectCache( IdentifiableObject.class );
     }
 
     // --------------------------------------------------------------------------

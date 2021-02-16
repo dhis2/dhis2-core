@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -56,7 +56,7 @@ public class InputUtils
     private final IdentifiableObjectManager idObjectManager;
 
     public InputUtils( CategoryService categoryService, IdentifiableObjectManager idObjectManager,
-        CacheContext cacheProvider )
+        CacheProvider cacheProvider )
     {
         this.categoryService = categoryService;
         this.idObjectManager = idObjectManager;

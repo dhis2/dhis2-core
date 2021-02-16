@@ -52,7 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
@@ -88,7 +88,7 @@ public class ResponseHandlerTest
     private Environment environment;
 
     @Mock
-    private CacheContext cacheContext;
+    private CacheProvider cacheProvider;
 
     @Rule
     public MockitoRule mockitoRule = rule();
@@ -100,8 +100,8 @@ public class ResponseHandlerTest
     {
         String[] testEnvironmentVars = { "test" };
         when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
-        when( cacheContext.createDataItemsPaginationCache( Long.class ) ).thenReturn( new NoOpCache<>() );
-        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, cacheContext );
+        when( cacheProvider.createDataItemsPaginationCache( Long.class ) ).thenReturn( new NoOpCache<>() );
+        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, cacheProvider );
     }
 
     @Test

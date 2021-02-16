@@ -37,7 +37,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.A
 import java.util.List;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
@@ -75,17 +75,17 @@ class ResponseHandler
     private final Cache<Long> pageCountingCache;
 
     ResponseHandler( QueryService queryService, LinkService linkService, FieldFilterService fieldFilterService,
-        CacheContext cacheContext )
+        CacheProvider cacheProvider )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
 
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.pageCountingCache = cacheContext.createDataItemsPaginationCache( Long.class );
+        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache( Long.class );
     }
 
     /**

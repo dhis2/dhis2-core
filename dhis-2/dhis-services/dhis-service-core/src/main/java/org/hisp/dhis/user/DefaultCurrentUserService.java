@@ -33,7 +33,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
 import org.springframework.context.annotation.Lazy;
@@ -71,15 +71,15 @@ public class DefaultCurrentUserService
 
     private final UserStore userStore;
 
-    public DefaultCurrentUserService( CacheContext cacheContext,
+    public DefaultCurrentUserService( CacheProvider cacheProvider,
         @Lazy UserStore userStore )
     {
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( userStore );
 
         this.userStore = userStore;
-        this.usernameIdCache = cacheContext.createUserIdCacheCache( Long.class );
-        this.currentUserGroupInfoCache = cacheContext
+        this.usernameIdCache = cacheProvider.createUserIdCacheCache( Long.class );
+        this.currentUserGroupInfoCache = cacheProvider
             .createCurrentUserGroupInfoCache( CurrentUserGroupInfo.class );
     }
 

@@ -51,7 +51,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -111,14 +111,14 @@ public class HibernateDataApprovalStore
     private final StatementBuilder statementBuilder;
 
     public HibernateDataApprovalStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CacheContext cacheContext, PeriodService periodService,
+        ApplicationEventPublisher publisher, CacheProvider cacheProvider, PeriodService periodService,
         CurrentUserService currentUserService, CategoryService categoryService,
         SystemSettingManager systemSettingManager,
         StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataApproval.class, false );
 
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( periodService );
         checkNotNull( currentUserService );
         checkNotNull( categoryService );
@@ -130,7 +130,7 @@ public class HibernateDataApprovalStore
         this.categoryService = categoryService;
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
-        this.isApprovedCache = cacheContext.createIsDataApprovedCache( Boolean.class );
+        this.isApprovedCache = cacheProvider.createIsDataApprovedCache( Boolean.class );
     }
 
     /**

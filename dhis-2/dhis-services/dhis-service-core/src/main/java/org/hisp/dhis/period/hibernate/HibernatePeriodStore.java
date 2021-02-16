@@ -41,7 +41,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hibernate.query.Query;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -73,12 +73,12 @@ public class HibernatePeriodStore
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        CacheContext cacheContext )
+        CacheProvider cacheProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true );
 
         transientIdentifiableProperties = true;
-        this.periodIdCache = cacheContext.createPeriodIdCache( Long.class );
+        this.periodIdCache = cacheProvider.createPeriodIdCache( Long.class );
     }
 
     // -------------------------------------------------------------------------

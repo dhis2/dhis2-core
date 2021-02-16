@@ -37,7 +37,7 @@ import java.util.function.Function;
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
 import org.springframework.stereotype.Component;
 
@@ -55,17 +55,17 @@ public class AnalyticsCache
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    public AnalyticsCache( final CacheContext cacheContext,
+    public AnalyticsCache( final CacheProvider cacheProvider,
         final AnalyticsCacheSettings analyticsCacheSettings )
     {
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( analyticsCacheSettings );
 
         this.analyticsCacheSettings = analyticsCacheSettings;
         // Set a default expiration time to always expire, as the TTL will be
         // always overwritten during "put" operations.
         long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheContext.createAnalyticsResponseCache( Grid.class,
+        this.queryCache = cacheProvider.createAnalyticsResponseCache( Grid.class,
             Duration.ofSeconds( initialExpirationTime ) );
         log.info( String.format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
             initialExpirationTime ) );

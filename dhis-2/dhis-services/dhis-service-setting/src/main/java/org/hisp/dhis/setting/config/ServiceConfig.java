@@ -30,7 +30,7 @@ package org.hisp.dhis.setting.config;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.setting.DefaultSystemSettingManager;
 import org.hisp.dhis.setting.SystemSettingStore;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
@@ -53,7 +53,7 @@ public class ServiceConfig
     private PBEStringEncryptor pbeStringEncryptor;
 
     @Bean( "org.hisp.dhis.setting.SystemSettingManager" )
-    public DefaultSystemSettingManager defaultSystemSettingManager( CacheContext cacheContext )
+    public DefaultSystemSettingManager defaultSystemSettingManager( CacheProvider cacheProvider )
     {
 
         List<String> flags = new ArrayList<>();
@@ -356,6 +356,6 @@ public class ServiceConfig
         flags.add( "zimbabwe" );
         flags.add( "who" );
 
-        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheContext, flags );
+        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheProvider, flags );
     }
 }

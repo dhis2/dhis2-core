@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -82,11 +82,11 @@ public class DefaultUserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( CacheContext cacheContext,
+    public DefaultUserSettingService( CacheProvider cacheProvider,
         CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
         checkNotNull( userService );
@@ -96,7 +96,7 @@ public class DefaultUserSettingService
         this.userSettingStore = userSettingStore;
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
-        this.userSettingCache = cacheContext.createUserSettingCache( SerializableOptional.class );
+        this.userSettingCache = cacheProvider.createUserSettingCache( SerializableOptional.class );
     }
 
     // -------------------------------------------------------------------------

@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.TransactionalIntegrationTest;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -106,7 +106,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     private ApplicationEventPublisher publisher;
 
     @Autowired
-    private CacheContext cacheContext;
+    private CacheProvider cacheProvider;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -150,7 +150,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
         throws Exception
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
-            publisher, cacheContext, periodService, currentUserService, categoryService,
+            publisher, cacheProvider, periodService, currentUserService, categoryService,
             systemSettingManager, new PostgreSQLStatementBuilder() );
 
         // ---------------------------------------------------------------------

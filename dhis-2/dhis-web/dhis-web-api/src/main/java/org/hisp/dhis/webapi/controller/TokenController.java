@@ -37,7 +37,7 @@ import java.util.concurrent.ExecutionException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -65,10 +65,10 @@ public class TokenController
 
     private final DhisConfigurationProvider config;
 
-    public TokenController( DhisConfigurationProvider config, CacheContext cacheContext )
+    public TokenController( DhisConfigurationProvider config, CacheProvider cacheProvider )
     {
         this.config = config;
-        this.tokenCache = cacheContext.createGoogleAccessTokenCache( GoogleAccessToken.class );
+        this.tokenCache = cacheProvider.createGoogleAccessTokenCache( GoogleAccessToken.class );
     }
 
     @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )

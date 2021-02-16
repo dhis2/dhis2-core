@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheContext;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.i18n.I18n;
@@ -133,7 +133,7 @@ public class DefaultSecurityService
         UserSettingService userSettingService,
         AclService aclService,
         RestTemplate restTemplate,
-        CacheContext cacheContext,
+        CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager,
         MessageSender emailMessageSender,
         UserService userService,
@@ -145,7 +145,7 @@ public class DefaultSecurityService
         checkNotNull( userSettingService );
         checkNotNull( aclService );
         checkNotNull( restTemplate );
-        checkNotNull( cacheContext );
+        checkNotNull( cacheProvider );
         checkNotNull( passwordManager );
         checkNotNull( emailMessageSender );
         checkNotNull( userService );
@@ -163,8 +163,8 @@ public class DefaultSecurityService
         this.systemSettingManager = systemSettingManager;
         this.i18nManager = i18nManager;
         this.jsonMapper = jsonMapper;
-        this.userFailedLoginAttemptCache = cacheContext.createUserFailedLoginAttemptCache( Integer.class, 0 );
-        this.userAccountRecoverAttemptCache = cacheContext.createUserAccountRecoverAttemptCache( Integer.class, 0 );
+        this.userFailedLoginAttemptCache = cacheProvider.createUserFailedLoginAttemptCache( Integer.class, 0 );
+        this.userAccountRecoverAttemptCache = cacheProvider.createUserAccountRecoverAttemptCache( Integer.class, 0 );
     }
 
     // -------------------------------------------------------------------------
