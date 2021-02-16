@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-@Component
+@Component( "defaultCacheContext" )
 public class DefaultCacheContext implements CacheContext
 {
 

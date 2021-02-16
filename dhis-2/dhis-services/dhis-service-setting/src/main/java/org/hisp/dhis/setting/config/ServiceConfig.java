@@ -49,14 +49,11 @@ public class ServiceConfig
     private SystemSettingStore systemSettingStore;
 
     @Autowired
-    private CacheContext cacheContext;
-
-    @Autowired
     @Qualifier( "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
 
     @Bean( "org.hisp.dhis.setting.SystemSettingManager" )
-    public DefaultSystemSettingManager defaultSystemSettingManager()
+    public DefaultSystemSettingManager defaultSystemSettingManager( CacheContext cacheContext )
     {
 
         List<String> flags = new ArrayList<>();
