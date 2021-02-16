@@ -99,6 +99,7 @@ public class HibernateDataStatisticsStore
             ads.setEventReportViews( resultSet.getInt( "eventReportViews" ) );
             ads.setEventChartViews( resultSet.getInt( "eventChartViews" ) );
             ads.setDashboardViews( resultSet.getInt( "dashboardViews" ) );
+            ads.setPassiveDashboardViews( resultSet.getInt( "passiveDashboardViews" ) );
             ads.setDataSetReportViews( resultSet.getInt( "dataSetReportViews" ) );
             ads.setTotalViews( resultSet.getInt( "totalViews" ) );
             ads.setAverageViews( resultSet.getInt( "averageViews" ) );
@@ -108,6 +109,7 @@ public class HibernateDataStatisticsStore
             ads.setAverageEventReportViews( resultSet.getInt( "averageEventReportViews" ) );
             ads.setAverageEventChartViews( resultSet.getInt( "averageEventChartViews" ) );
             ads.setAverageDashboardViews( resultSet.getInt( "averageDashboardViews" ) );
+            ads.setAveragePassiveDashboardViews( resultSet.getInt( "averagePassiveDashboardViews" ) );
             ads.setSavedMaps( resultSet.getInt( "savedMaps" ) );
             ads.setSavedCharts( resultSet.getInt( "savedCharts" ) );
             ads.setSavedPivotTables( resultSet.getInt( "savedReportTables" ) );
@@ -229,6 +231,7 @@ public class HibernateDataStatisticsStore
             "cast(round(cast(sum(eventreportviews) as numeric),0) as int) as eventReportViews, " +
             "cast(round(cast(sum(eventchartviews) as numeric),0) as int) as eventChartViews," +
             "cast(round(cast(sum(dashboardviews) as numeric),0) as int) as dashboardViews, " +
+            "cast(round(cast(sum(passivedashboardviews) as numeric),0) as int) as passiveDashboardViews, " +
             "cast(round(cast(sum(datasetreportviews) as numeric),0) as int) as dataSetReportViews, " +
             "max(active_users) as activeUsers," +
             "coalesce(sum(totalviews)/nullif(max(active_users), 0), 0) as averageViews," +
@@ -238,6 +241,7 @@ public class HibernateDataStatisticsStore
             "coalesce(sum(eventreportviews)/nullif(max(active_users), 0), 0) as averageEventReportViews, " +
             "coalesce(sum(eventchartviews)/nullif(max(active_users), 0), 0) as averageEventChartViews, " +
             "coalesce(sum(dashboardviews)/nullif(max(active_users), 0), 0) as averageDashboardViews, " +
+            "coalesce(sum(passivedashboardviews)/nullif(max(active_users), 0), 0) as averagePassiveDashboardViews, " +
             "cast(round(cast(sum(totalviews) as numeric),0) as int) as totalViews," +
             "cast(round(cast(sum(maps) as numeric),0) as int) as savedMaps," +
             "cast(round(cast(sum(charts) as numeric),0) as int) as savedCharts," +

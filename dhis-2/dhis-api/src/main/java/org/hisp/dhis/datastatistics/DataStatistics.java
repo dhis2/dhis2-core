@@ -54,6 +54,8 @@ public class DataStatistics
 
     private Double dashboardViews;
 
+    private Double passiveDashboardViews;
+
     private Double dataSetReportViews;
 
     private Double totalViews;
@@ -85,10 +87,10 @@ public class DataStatistics
     }
 
     public DataStatistics( Double mapViews, Double chartViews, Double reportTableViews, Double visualizationViews,
-        Double eventReportViews, Double eventChartViews, Double dashboardViews, Double dataSetReportViews,
-        Double totalViews, Double savedMaps, Double savedCharts, Double savedReportTables, Double savedVisualizations,
-        Double savedEventReports, Double savedEventCharts, Double savedDashboards, Double savedIndicators,
-        Double savedDataValues, Integer activeUsers, Integer users )
+        Double eventReportViews, Double eventChartViews, Double dashboardViews, Double passiveDashboardViews,
+        Double dataSetReportViews, Double totalViews, Double savedMaps, Double savedCharts, Double savedReportTables,
+        Double savedVisualizations, Double savedEventReports, Double savedEventCharts, Double savedDashboards,
+        Double savedIndicators, Double savedDataValues, Integer activeUsers, Integer users )
     {
         this.mapViews = mapViews;
         this.chartViews = chartViews;
@@ -97,6 +99,7 @@ public class DataStatistics
         this.eventReportViews = eventReportViews;
         this.eventChartViews = eventChartViews;
         this.dashboardViews = dashboardViews;
+        this.passiveDashboardViews = passiveDashboardViews;
         this.dataSetReportViews = dataSetReportViews;
         this.totalViews = totalViews;
         this.savedMaps = savedMaps;
@@ -198,6 +201,17 @@ public class DataStatistics
     public void setDashboardViews( Double dashboardViews )
     {
         this.dashboardViews = dashboardViews;
+    }
+
+    @JsonProperty
+    public Double getPassiveDashboardViews()
+    {
+        return passiveDashboardViews;
+    }
+
+    public void setPassiveDashboardViews( Double passiveDashboardViews )
+    {
+        this.passiveDashboardViews = passiveDashboardViews;
     }
 
     @JsonProperty
@@ -344,6 +358,7 @@ public class DataStatistics
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
             ", dashboardViews=" + dashboardViews +
+            ", passiveDashboardViews=" + passiveDashboardViews +
             ", totalViews=" + totalViews +
             ", savedMaps=" + savedMaps +
             ", savedCharts=" + savedCharts +
