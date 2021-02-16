@@ -132,7 +132,7 @@ public class TrackerImportParams
     private String filename;
 
     /**
-     * Job id to use for threaded imports.
+     * Job configuration
      */
     private JobConfiguration jobConfiguration;
 
@@ -182,8 +182,10 @@ public class TrackerImportParams
         return User.username( user );
     }
 
-    public boolean hasJobConfiguration()
+    @Override
+    public String toString()
     {
-        return jobConfiguration != null;
+        return "User: ( " + this.userId + " ) Job id: " + this.getJobConfiguration().getUid() +
+            " In memory: " + this.getJobConfiguration().isInMemoryJob();
     }
 }

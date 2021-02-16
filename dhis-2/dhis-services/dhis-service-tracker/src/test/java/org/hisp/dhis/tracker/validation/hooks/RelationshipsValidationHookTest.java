@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
@@ -118,53 +117,6 @@ public class RelationshipsValidationHookTest
 
         assertTrue( reporter.hasErrors() );
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4009 ) );
-    }
-
-    @Test
-    public void verifyValidationFailsOnMissingFrom()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
-                .build() )
-            .build();
-
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relationship.getRelationshipType() );
-        when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
-
-        reporter = new ValidationErrorReporter( ctx, relationship );
-        validationHook.validateRelationship( reporter, relationship );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4007 ) );
-    }
-
-    @Test
-    public void verifyValidationFailsOnMissingTo()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .relationshipType( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
-                .build() )
-            .build();
-
-        RelationshipType relationshipType = new RelationshipType();
-        relationshipType.setUid( relationship.getRelationshipType() );
-        when( preheat.getAll( RelationshipType.class ) )
-            .thenReturn( Collections.singletonList( relationshipType ) );
-
-        reporter = new ValidationErrorReporter( ctx, relationship );
-        validationHook.validateRelationship( reporter, relationship );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4008 ) );
     }
 
     @Test
@@ -265,26 +217,6 @@ public class RelationshipsValidationHookTest
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4001 ) );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(), is(
             "Relationship Item `to` for Relationship `nBx6auGDUHG` is invalid: an Item can link only one Tracker entity." ) );
-    }
-
-    @Test
-    public void verifyValidationFailsOnMissingRelationshipType()
-    {
-        Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
-            .from( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
-                .build() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( CodeGenerator.generateUid() )
-                .build() )
-            .build();
-
-        reporter = new ValidationErrorReporter( ctx, relationship );
-        validationHook.validateRelationship( reporter, relationship );
-
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4004 ) );
     }
 
     @Test

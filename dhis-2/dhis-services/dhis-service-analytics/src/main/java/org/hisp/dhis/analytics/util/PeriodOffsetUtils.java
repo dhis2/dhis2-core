@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.util;
 
+import static java.lang.Math.abs;
 import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 
@@ -133,7 +134,7 @@ public class PeriodOffsetUtils
         }
         else
         {
-            p = periodType.getPreviousPeriod( period, periodOffset );
+            p = periodType.getPreviousPeriod( period, abs( periodOffset ) );
         }
 
         p.setShifted( true );

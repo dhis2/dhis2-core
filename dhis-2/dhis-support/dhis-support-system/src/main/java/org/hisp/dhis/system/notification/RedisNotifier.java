@@ -144,7 +144,7 @@ public class RedisNotifier implements Notifier
                 log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
             }
 
-            log.info( notification.toString() );
+            NotificationLoggerUtil.log( log, level, message );
         }
         return this;
     }

@@ -35,13 +35,12 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
-import org.hisp.dhis.tracker.domain.web.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.TrackedEntityInstanceSupportService;
@@ -80,14 +79,21 @@ public class TrackerTrackedEntitiesExportController
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
                 trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false ) );
 
-        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
-
         PagingWrapper<TrackedEntity> trackedEntityInstancePagingWrapper = new PagingWrapper<>();
 
-        if ( queryParams.isPaging() && queryParams.isTotalPages() )
+        if ( criteria.isPagingRequest() )
         {
+
+            Long count = criteria.isTotalPages()
+                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false )
+                : null;
+
             trackedEntityInstancePagingWrapper = trackedEntityInstancePagingWrapper.withPager(
-                new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() ) );
+                PagingWrapper.Pager.builder()
+                    .page( queryParams.getPageWithDefault() )
+                    .total( count )
+                    .pageSize( queryParams.getPageSizeWithDefault() )
+                    .build() );
         }
 
         return trackedEntityInstancePagingWrapper.withInstances( trackedEntityInstances );

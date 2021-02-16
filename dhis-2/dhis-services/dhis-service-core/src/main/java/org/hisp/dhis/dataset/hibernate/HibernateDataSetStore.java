@@ -126,4 +126,10 @@ public class HibernateDataSetStore
 
         return query.setParameter( "dataEntryForm", dataEntryForm ).list();
     }
+
+    @Override
+    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
+    {
+        return getQuery( "from DataSet ds where size(ds.sources) = 0" ).list();
+    }
 }

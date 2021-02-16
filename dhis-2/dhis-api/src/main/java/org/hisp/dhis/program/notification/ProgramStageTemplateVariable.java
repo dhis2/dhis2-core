@@ -62,7 +62,13 @@ public enum ProgramStageTemplateVariable
     DUE_DATE( "due_date" ),
     DAYS_SINCE_DUE_DATE( "days_since_due_date" ),
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
-    CURRENT_DATE( "current_date" );
+    CURRENT_DATE( "current_date" ),
+    PROGRAM_ID( "program_id" ),
+    EVENT_ORG_UNIT_ID( "event_org_unit_id" ),
+    ENROLLMENT_ORG_UNIT_ID( "enrollment_org_unit_id" ),
+    PROGRAM_STAGE_ID( "program_stage_id" ),
+    ENROLLMENT_ID( "enrollment_id" ),
+    TRACKED_ENTITY_ID( "tracked_entity_id" );
 
     private static final Map<String, ProgramStageTemplateVariable> variableNameMap = EnumSet
         .allOf( ProgramStageTemplateVariable.class ).stream()

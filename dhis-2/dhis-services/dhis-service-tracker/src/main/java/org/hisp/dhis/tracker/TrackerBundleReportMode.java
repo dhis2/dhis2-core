@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.tracker;
 
+import java.util.stream.Stream;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.client.HttpClientErrorException;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -47,6 +52,17 @@ public enum TrackerBundleReportMode
      * Returns tracker bundle report with warnings but without errors and
      * timings.
      */
-    WARNINGS,
+    WARNINGS;
 
+    private static Stream<TrackerBundleReportMode> stream()
+    {
+        return Stream.of( TrackerBundleReportMode.values() );
+    }
+
+    public static TrackerBundleReportMode getTrackerBundleReportMode( String reportMode )
+    {
+        return TrackerBundleReportMode.stream().filter( rm -> rm.name().equals( reportMode.toUpperCase() ) )
+            .findFirst().orElseThrow( () -> new HttpClientErrorException( HttpStatus.BAD_REQUEST,
+                "Value " + reportMode + " is not a valid report mode" ) );
+    }
 }

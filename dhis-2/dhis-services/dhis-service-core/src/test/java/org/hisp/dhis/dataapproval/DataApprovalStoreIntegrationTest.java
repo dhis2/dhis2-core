@@ -63,7 +63,6 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
@@ -112,9 +111,6 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     @Autowired
     private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private Environment environment;
-
     @Mock
     private CurrentUserService currentUserService;
 
@@ -155,9 +151,7 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     {
         dataApprovalStore = new HibernateDataApprovalStore( sessionFactory, jdbcTemplate,
             publisher, cacheProvider, periodService, currentUserService, categoryService,
-            systemSettingManager, new PostgreSQLStatementBuilder(), environment );
-
-        dataApprovalStore.init();
+            systemSettingManager, new PostgreSQLStatementBuilder() );
 
         // ---------------------------------------------------------------------
         // Add supporting data

@@ -121,7 +121,7 @@
   "categories": [
     {
       "id": "xO3nVNouT8B",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "dataDimension": true,
       "lastUpdated": "2016-03-12T06:18:23.683+0000",
       "created": "2016-03-12T06:18:23.540+0000",
@@ -131,7 +131,8 @@
         }
       ],
       "publicAccess": "--------",
-      "name": "default"
+      "name": "default",
+      "shortName": "default"
     }
   ],
   "users": [

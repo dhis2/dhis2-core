@@ -74,4 +74,12 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
      */
     private List<OrderCriteria> order;
 
+    public boolean isPagingRequest()
+    {
+        return paging != null && paging ||
+            pageSize != null ||
+            page != null ||
+            totalPages;
+    }
+
 }

@@ -28,6 +28,9 @@
 package org.hisp.dhis.fieldfilter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +46,8 @@ import javax.annotation.Nonnull;
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
@@ -104,8 +109,11 @@ public class DefaultFieldFilterServiceTest
                 return Collections.emptyMap();
             }
         }, sessionFactory );
+
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createPropertyTransformerCache( any() ) ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
-            currentUserService, attributeService, nodeTransformers );
+            currentUserService, attributeService, cacheProvider, nodeTransformers );
         service.init();
     }
 

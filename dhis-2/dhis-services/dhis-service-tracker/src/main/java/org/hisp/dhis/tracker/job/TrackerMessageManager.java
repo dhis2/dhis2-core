@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.job;
 import javax.jms.JMSException;
 import javax.jms.TextMessage;
 
-import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -50,8 +48,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Component
 public class TrackerMessageManager
 {
-    private final MessageManager messageManager;
-
     private final ObjectMapper objectMapper;
 
     private final SchedulingManager schedulingManager;
@@ -59,28 +55,13 @@ public class TrackerMessageManager
     private final ObjectFactory<TrackerImportThread> trackerImportThreadFactory;
 
     public TrackerMessageManager(
-        MessageManager messageManager,
         ObjectMapper objectMapper,
         SchedulingManager schedulingManager,
         ObjectFactory<TrackerImportThread> trackerImportThreadFactory )
     {
-        this.messageManager = messageManager;
         this.objectMapper = objectMapper;
         this.schedulingManager = schedulingManager;
         this.trackerImportThreadFactory = trackerImportThreadFactory;
-    }
-
-    public String addJob( TrackerImportParams params )
-    {
-        String jobId = CodeGenerator.generateUid();
-
-        TrackerMessage trackerMessage = TrackerMessage.builder()
-            .uid( jobId ).trackerImportParams( params )
-            .build();
-
-        messageManager.sendQueue( Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, trackerMessage );
-
-        return jobId;
     }
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_JOB_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )

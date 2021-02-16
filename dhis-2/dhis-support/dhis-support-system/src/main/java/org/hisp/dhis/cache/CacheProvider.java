@@ -27,32 +27,70 @@
  */
 package org.hisp.dhis.cache;
 
-import java.util.Map;
+import java.time.Duration;
 
 /**
- * Provides cache builder to build instances.
+ * The {@link CacheProvider} has a factory method for each {@link Cache} use
+ * case in DHIS2.
  *
- * @author Ameen Mohamed
+ * The {@link Cache} value type is kept generic to not bind this interface to
+ * numerous domain types.
+ *
+ * Names of the factory methods follow the pattern: {@code create{region}Cache}.
+ *
+ * @author Jan Bernitt
  */
 public interface CacheProvider
 {
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the valueType specified.
-     *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <V> CacheBuilder<V> newCacheBuilder( Class<V> valueType );
 
-    /**
-     * Creates a new {@link ExtendedCacheBuilder} that can be used to build a
-     * cache that stores the Map of keyType and valueType specified.
-     *
-     * @param valueType The class type of values to be stored in cache.
-     * @return A cache builder instance for the specified value type. Returns a
-     *         {@link ExtendedCacheBuilder}.
-     */
-    <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType );
+    <V> Cache<V> createAnalyticsResponseCache( Class<V> valueType, Duration initialExpirationTime );
+
+    <V> Cache<V> createAppCache( Class<V> valueType );
+
+    <V> Cache<V> createDefaultObjectCache( Class<V> valueType );
+
+    <V> Cache<V> createIsDataApprovedCache( Class<V> valueType );
+
+    <V> Cache<V> createAllConstantsCache( Class<V> valueType );
+
+    <V> Cache<V> createInUserOrgUnitHierarchyCache( Class<V> valueType );
+
+    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache( Class<V> valueType );
+
+    <V> Cache<V> createUserCaptureOrgUnitThresholdCache( Class<V> valueType );
+
+    <V> Cache<V> createPeriodIdCache( Class<V> valueType );
+
+    <V> Cache<V> createUserFailedLoginAttemptCache( Class<V> valueType, V defaultValue );
+
+    <V> Cache<V> createUserAccountRecoverAttemptCache( Class<V> valueType, V defaultValue );
+
+    <V> Cache<V> createProgramOwnerCache( Class<V> valueType );
+
+    <V> Cache<V> createProgramTempOwnerCache( Class<V> valueType );
+
+    <V> Cache<V> createUserIdCacheCache( Class<V> valueType );
+
+    <V> Cache<V> createCurrentUserGroupInfoCache( Class<V> valueType );
+
+    <V> Cache<V> createUserSettingCache( Class<V> valueType );
+
+    <V> Cache<V> createAttrOptionComboIdCache( Class<V> valueType );
+
+    <V> Cache<V> createSystemSettingCache( Class<V> valueType );
+
+    <V> Cache<V> createGoogleAccessTokenCache( Class<V> valueType );
+
+    <V> Cache<V> createDataItemsPaginationCache( Class<V> valueType );
+
+    <V> Cache<V> createMetadataAttributesCache( Class<V> valueType );
+
+    <V> Cache<V> createCanDataWriteCocCache( Class<V> valueType );
+
+    <V> Cache<V> createAnalyticsSqlCache( Class<V> valueType );
+
+    <V> Cache<V> createDataElementCache( Class<V> valueType );
+
+    <V> Cache<V> createPropertyTransformerCache( Class<V> valueType );
+
 }

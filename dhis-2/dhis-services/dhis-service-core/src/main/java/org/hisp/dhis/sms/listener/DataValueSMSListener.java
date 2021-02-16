@@ -58,7 +58,6 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
@@ -134,7 +133,8 @@ public class DataValueSMSListener
             sendFeedback( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ), sms.getOriginator(),
                 ERROR );
 
-            throw new SMSParserException( String.format( DATASET_LOCKED, dataSet.getUid(), period.getName() ) );
+            update( sms, SmsMessageStatus.FAILED, false );
+            return;
         }
 
         boolean valueStored = false;
@@ -149,31 +149,33 @@ public class DataValueSMSListener
 
         if ( parsedMessage.isEmpty() )
         {
-            if ( StringUtils.isEmpty( smsCommand.getDefaultMessage() ) )
-            {
-                throw new SMSParserException( "No values reported for command '" + smsCommand.getName() + "'" );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getDefaultMessage() );
-            }
+            sendFeedback( org.apache.commons.lang.StringUtils.defaultIfEmpty( smsCommand.getDefaultMessage(),
+                "No values reported for command '" + smsCommand.getName() + "'" ), sms.getOriginator(), ERROR );
+
+            update( sms, SmsMessageStatus.FAILED, false );
+            return;
         }
         else if ( !valueStored )
         {
-            if ( StringUtils.isEmpty( smsCommand.getWrongFormatMessage() ) )
-            {
-                throw new SMSParserException( SMSCommand.WRONG_FORMAT_MESSAGE );
-            }
-            else
-            {
-                throw new SMSParserException( smsCommand.getWrongFormatMessage() );
-            }
+            sendFeedback( org.apache.commons.lang.StringUtils.defaultIfEmpty( smsCommand.getWrongFormatMessage(),
+                SMSCommand.WRONG_FORMAT_MESSAGE ), sms.getOriginator(), ERROR );
+
+            update( sms, SmsMessageStatus.FAILED, false );
+            return;
         }
 
-        markCompleteDataSet( sms, orgUnit, smsCommand, date );
-        sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
+        if ( markCompleteDataSet( sms, orgUnit, smsCommand, date ) )
+        {
+            sendSuccessFeedback( senderPhoneNumber, smsCommand, parsedMessage, date, orgUnit );
 
-        update( sms, SmsMessageStatus.PROCESSED, true );
+            update( sms, SmsMessageStatus.PROCESSED, true );
+        }
+        else
+        {
+            sendFeedback( "Dataset cannot be marked as completed", sms.getOriginator(), ERROR );
+
+            update( sms, SmsMessageStatus.FAILED, false );
+        }
     }
 
     @Override
@@ -364,7 +366,7 @@ public class DataValueSMSListener
         return true;
     }
 
-    private void markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, SMSCommand command, Date date )
+    private boolean markCompleteDataSet( IncomingSms sms, OrganisationUnit orgunit, SMSCommand command, Date date )
     {
         String sender = sms.getOriginator();
 
@@ -390,19 +392,19 @@ public class DataValueSMSListener
         {
             if ( numberOfEmptyValue > 0 )
             {
-                return;
+                return false;
             }
         }
         else if ( command.getCompletenessMethod() == CompletenessMethod.AT_LEAST_ONE_DATAVALUE )
         {
             if ( numberOfEmptyValue == command.getCodes().size() )
             {
-                return;
+                return false;
             }
         }
         else if ( command.getCompletenessMethod() == CompletenessMethod.DO_NOT_MARK_COMPLETE )
         {
-            return;
+            return false;
         }
 
         // Go through the complete process
@@ -417,6 +419,8 @@ public class DataValueSMSListener
         // If new values are submitted re-register as complete
         deregisterCompleteDataSet( command.getDataset(), period, orgunit );
         registerCompleteDataSet( command.getDataset(), period, orgunit, storedBy );
+
+        return true;
     }
 
     protected void sendSuccessFeedback( String sender, SMSCommand command, Map<String, String> parsedMessage, Date date,

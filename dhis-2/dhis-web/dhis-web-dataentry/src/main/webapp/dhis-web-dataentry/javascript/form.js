@@ -729,7 +729,13 @@ dhis2.de.loadForm = function()
 
 	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
 	                {
-	                    $( "#tabs" ).tabs();
+	                    $( "#tabs" ).tabs({
+							activate: function(){
+								//populate section row/column totals
+								dhis2.de.populateRowTotals();
+								dhis2.de.populateColumnTotals();
+							}
+						});
 	                }
 
 	                dhis2.de.enableSectionFilter();	               
@@ -760,7 +766,13 @@ dhis2.de.loadForm = function()
 
        	                if ( dhis2.de.dataSets[dataSetId].renderAsTabs )
        	                {
-       	                    $( "#tabs" ).tabs();
+       	                    $( "#tabs" ).tabs({
+								activate: function(){
+									//populate section row/column totals
+									dhis2.de.populateRowTotals();
+									dhis2.de.populateColumnTotals();
+								}
+							});
        	                }
 
        	                dhis2.de.enableSectionFilter();
@@ -789,7 +801,13 @@ dhis2.de.loadForm = function()
             {
                 if ( dhis2.de.dataSets[dataSetId].renderAsTabs ) 
                 {
-                    $( "#tabs" ).tabs();
+                    $( "#tabs" ).tabs({
+						activate: function(){
+							//populate section row/column totals
+							dhis2.de.populateRowTotals();
+							dhis2.de.populateColumnTotals();
+						}
+					});
                 }
 
                 dhis2.de.enableSectionFilter();

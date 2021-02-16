@@ -72,10 +72,12 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
         Map<TrackedEntityAttribute, List<String>> uniqueAttributes = params.getTrackedEntities()
             .stream()
             .flatMap( tei -> tei.getAttributes().stream() )
-            .filter( tea -> uniqueTrackedEntityAttributes.stream()
-                .anyMatch( uniqueAttr -> uniqueAttr.getUid().equals( tea.getAttribute() ) ) )
-            .collect( Collectors.toMap( a -> extractAttribute( a.getAttribute(), uniqueTrackedEntityAttributes ),
-                a -> extractValues( params.getTrackedEntities(), a.getAttribute() ) ) );
+            .map( Attribute::getAttribute )
+            .distinct()
+            .filter( teaUid -> uniqueTrackedEntityAttributes.stream()
+                .anyMatch( uniqueAttr -> uniqueAttr.getUid().equals( teaUid ) ) )
+            .collect( Collectors.toMap( a -> extractAttribute( a, uniqueTrackedEntityAttributes ),
+                a -> extractValues( params.getTrackedEntities(), a ) ) );
 
         return trackedEntityAttributeValueService.getUniqueAttributeByValues( uniqueAttributes )
             .stream()

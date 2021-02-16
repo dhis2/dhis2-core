@@ -127,7 +127,7 @@ public class DefaultProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEventAndRunEffects( long event )
+    public List<RuleEffect> evaluateEventAndRunEffects( String event )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {

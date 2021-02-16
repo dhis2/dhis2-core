@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.category;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,16 +111,9 @@ public class CategoryComboServiceTest
         categoryService.addCategoryOption( categoryOptionF );
         categoryService.addCategoryOption( categoryOptionG );
 
-        categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION );
-        categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION );
-        categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
-
-        categoryA.addCategoryOption( categoryOptionA );
-        categoryA.addCategoryOption( categoryOptionB );
-        categoryB.addCategoryOption( categoryOptionC );
-        categoryB.addCategoryOption( categoryOptionD );
-        categoryC.addCategoryOption( categoryOptionE );
-        categoryC.addCategoryOption( categoryOptionF );
+        categoryA = createCategory( 'A', categoryOptionA, categoryOptionB );
+        categoryB = createCategory( 'B', categoryOptionC, categoryOptionD );
+        categoryC = createCategory( 'C', categoryOptionE, categoryOptionF );
 
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );

@@ -280,13 +280,14 @@
           "id": "tdaMRD34m8o"
         }
       ],
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "dataDimension": true,
       "dataDimensionType": "DISAGGREGATION",
       "user": {
         "id": "T12jeH7KPzk"
       },
-      "name": "Gender"
+      "name": "Gender",
+      "shortName": "Gender"
     }
   ],
   "sections": [

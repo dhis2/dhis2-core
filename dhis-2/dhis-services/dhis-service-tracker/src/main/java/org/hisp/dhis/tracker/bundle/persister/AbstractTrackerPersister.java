@@ -37,6 +37,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
@@ -56,7 +57,6 @@ import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -124,22 +124,25 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 //
                 // Handle comments persistence, if required
                 //
-                persistComments( convertedDto );
+                persistComments( bundle.getPreheat(), convertedDto );
 
                 updateDataValues( session, bundle.getPreheat(), trackerDto, convertedDto );
 
                 //
                 // Save or update the entity
                 //
-                if ( isNew( bundle.getPreheat(), trackerDto.getUid() ) )
+                if ( isNew( bundle.getPreheat(), trackerDto ) )
                 {
                     session.persist( convertedDto );
                     typeReport.getStats().incCreated();
                 }
                 else
                 {
-                    session.merge( convertedDto );
-                    typeReport.getStats().incUpdated();
+                    if ( isUpdatable() )
+                    {
+                        session.merge( convertedDto );
+                        typeReport.getStats().incUpdated();
+                    }
                 }
 
                 updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );
@@ -213,7 +216,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     /**
      * Persists the comments for the given entity, if the entity has comments
      */
-    protected abstract void persistComments( V entity );
+    protected abstract void persistComments( TrackerPreheat preheat, V entity );
 
     /**
      * Execute the persistence of Data values linked to the entity being
@@ -234,6 +237,23 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
      * persisted
      */
     protected abstract void updatePreheat( TrackerPreheat preheat, V convertedDto );
+
+    /**
+     * informs this persister wether specific entity type should be updated
+     * defaults to true, is known to be false for Relationships
+     */
+    protected boolean isUpdatable()
+    {
+        return true;
+    }
+
+    /**
+     * Determines if the given trackerDto belongs to an existing entity
+     */
+    protected boolean isNew( TrackerPreheat preheat, T trackerDto )
+    {
+        return isNew( preheat, trackerDto.getUid() );
+    }
 
     /**
      * Determines if the given uid belongs to an existing entity

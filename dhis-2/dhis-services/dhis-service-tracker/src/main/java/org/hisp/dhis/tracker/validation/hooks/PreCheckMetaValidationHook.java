@@ -175,7 +175,8 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle,
+        Program program,
         ProgramStage programStage )
     {
         if ( program == null && programStage == null )
@@ -203,7 +204,7 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1089, event, programStage, program );
         }
 
-        if ( strategy.isUpdate() )
+        if ( program != null && strategy.isUpdate() )
         {
             validateNotChangingProgram( reporter, event, context, program );
         }

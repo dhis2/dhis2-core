@@ -1031,6 +1031,7 @@
     "created": "2020-12-17T12:50:44.060",
     "lastUpdated": "2020-12-17T12:50:44.194",
     "name": "default",
+    "shortName": "default",
     "id": "GLevLNI9wkl",
     "dataDimensionType": "DISAGGREGATION",
     "publicAccess": "rw------",
@@ -1039,8 +1040,9 @@
     "attributeValues": [],
     "translations": [],
     "userAccesses": [],
-    "categoryOptions": [{
-      "id": "xYerKDKCefk"
+    "categoryOptions": [
+      {
+        "id": "xYerKDKCefk"
     }]
   }],
   "relationshipTypes": [{

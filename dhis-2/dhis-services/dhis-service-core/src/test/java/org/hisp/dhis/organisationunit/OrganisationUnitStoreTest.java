@@ -27,36 +27,29 @@
  */
 package org.hisp.dhis.organisationunit;
 
-import static org.junit.Assert.*;
+import static java.util.Arrays.asList;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.program.Program;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testcontainers.shaded.com.google.common.collect.Lists;
 
 import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
-public class OrganisationUnitStoreTest
-    extends DhisSpringTest
+public class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
 {
-    @Autowired
-    private OrganisationUnitLevelStore orgUnitLevelStore;
-
-    @Autowired
-    private OrganisationUnitStore orgUnitStore;
-
-    @Autowired
-    private OrganisationUnitGroupStore orgUnitGroupStore;
 
     @Autowired
     private DataSetService dataSetService;
@@ -64,317 +57,146 @@ public class OrganisationUnitStoreTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private OrganisationUnit ouA;
-
-    private OrganisationUnit ouB;
-
-    private OrganisationUnit ouC;
-
-    private OrganisationUnit ouD;
-
-    private OrganisationUnit ouE;
-
-    private OrganisationUnit ouF;
-
-    private OrganisationUnit ouG;
-
-    private OrganisationUnitGroup ougA;
-
-    private OrganisationUnitGroup ougB;
-
-    private CategoryOption coA;
-
-    private CategoryOption coB;
-
-    private DataSet dsA;
-
-    private DataSet dsB;
-
-    private Program prA;
-
-    private Program prB;
-
     // -------------------------------------------------------------------------
     // OrganisationUnit
     // -------------------------------------------------------------------------
 
-    @Override
-    public void setUpTest()
-    {
-        ouA = createOrganisationUnit( 'A' ); // 1
-        ouB = createOrganisationUnit( 'B', ouA ); // 2
-        ouC = createOrganisationUnit( 'C', ouA ); // 2
-        ouD = createOrganisationUnit( 'D', ouB ); // 3
-        ouE = createOrganisationUnit( 'E', ouB ); // 3
-        ouF = createOrganisationUnit( 'F', ouC ); // 3
-        ouG = createOrganisationUnit( 'G', ouC ); // 3
-
-        ougA = createOrganisationUnitGroup( 'A' );
-        ougB = createOrganisationUnitGroup( 'B' );
-
-        coA = createCategoryOption( 'A' );
-        coB = createCategoryOption( 'B' );
-
-        idObjectManager.save( coA );
-        idObjectManager.save( coB );
-
-        dsA = createDataSet( 'A' );
-        dsB = createDataSet( 'B' );
-
-        prA = createProgram( 'A' );
-        prB = createProgram( 'B' );
-    }
-
+    @Test
     public void testGetOrganisationUnitsWithoutGroups()
     {
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        orgUnitStore.save( ouD );
-        orgUnitStore.save( ouE );
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA ); // 2
+        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
+        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
 
-        ougA.addOrganisationUnit( ouA );
-        ougA.addOrganisationUnit( ouB );
+        OrganisationUnitGroup ougA = addOrganisationUnitGroup( 'A', ouA );
+        OrganisationUnitGroup ougB = addOrganisationUnitGroup( 'B', ouB );
 
-        idObjectManager.save( ougA );
-
-        List<OrganisationUnit> orgUnits = orgUnitStore.getOrganisationUnitsWithoutGroups();
-
-        assertEquals( 3, orgUnits.size() );
-        assertTrue( orgUnits.contains( ouC ) );
-        assertTrue( orgUnits.contains( ouD ) );
-        assertTrue( orgUnits.contains( ouE ) );
+        assertContainsOnly( unitStore.getOrganisationUnitsWithoutGroups(), ouC, ouD, ouE );
     }
 
     @Test
     public void testGetOrganisationUnitHierarchyMemberCount()
     {
-        dsA.addOrganisationUnit( ouD );
-        dsA.addOrganisationUnit( ouE );
-        dsA.addOrganisationUnit( ouG );
-        dsB.addOrganisationUnit( ouD );
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA ); // 2
+        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
+        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
+        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC ); // 3
+        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC ); // 3
 
-        dataSetService.addDataSet( dsA );
-        dataSetService.addDataSet( dsB );
+        DataSet dsA = addDataSet( 'A', ouD, ouE, ouG );
+        DataSet dsB = addDataSet( 'B', ouD );
 
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        orgUnitStore.save( ouD );
-        orgUnitStore.save( ouE );
-        orgUnitStore.save( ouF );
-        orgUnitStore.save( ouG );
-
-        assertEquals( new Long( 3 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsA, "dataSets" ) );
-
-        assertEquals( new Long( 2 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouB, dsA, "dataSets" ) );
-
-        assertEquals( new Long( 1 ), orgUnitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsB, "dataSets" ) );
+        assertEquals( 3L, unitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsA, "dataSets" ).longValue() );
+        assertEquals( 2L, unitStore.getOrganisationUnitHierarchyMemberCount( ouB, dsA, "dataSets" ).longValue() );
+        assertEquals( 1L, unitStore.getOrganisationUnitHierarchyMemberCount( ouA, dsB, "dataSets" ).longValue() );
     }
 
     @Test
     public void testGetOrganisationUnitsWithProgram()
     {
-        idObjectManager.save( prA );
-        idObjectManager.save( prB );
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA ); // 2
+        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
+        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
+        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC ); // 3
+        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC ); // 3
 
-        ouA.getPrograms().add( prA );
-        ouA.getPrograms().add( prB );
-        ouB.getPrograms().add( prA );
-        ouC.getPrograms().add( prA );
-        ouD.getPrograms().add( prB );
-        ouE.getPrograms().add( prA );
-        ouE.getPrograms().add( prB );
+        Program prA = addProgram( 'A', ouA, ouB, ouC, ouE );
+        Program prB = addProgram( 'B', ouA, ouD, ouE );
 
-        prA.getOrganisationUnits().addAll(
-            Lists.newArrayList( ouA, ouB, ouC, ouE ) );
-        prB.getOrganisationUnits().addAll(
-            Lists.newArrayList( ouA, ouD, ouE ) );
-
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        orgUnitStore.save( ouD );
-        orgUnitStore.save( ouE );
-        orgUnitStore.save( ouF );
-        orgUnitStore.save( ouG );
-
-        List<OrganisationUnit> orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prA );
-
-        assertEquals( 4, orgUnits.size() );
-
-        assertTrue( orgUnits.contains( ouA ) );
-        assertTrue( orgUnits.contains( ouB ) );
-        assertTrue( orgUnits.contains( ouC ) );
-        assertTrue( orgUnits.contains( ouE ) );
-
-        orgUnits = orgUnitStore.getOrganisationUnitsWithProgram( prB );
-
-        assertEquals( 3, orgUnits.size() );
-        assertTrue( orgUnits.contains( ouA ) );
-        assertTrue( orgUnits.contains( ouD ) );
-        assertTrue( orgUnits.contains( ouE ) );
+        assertContainsOnly( unitStore.getOrganisationUnitsWithProgram( prA ), ouA, ouB, ouC, ouE );
+        assertContainsOnly( unitStore.getOrganisationUnitsWithProgram( prB ), ouA, ouD, ouE );
     }
 
     @Test
     public void testGetOrganisationUnits()
     {
-        orgUnitStore.save( ouA );
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
-        orgUnitStore.save( ouD );
-        orgUnitStore.save( ouE );
-        orgUnitStore.save( ouF );
-        orgUnitStore.save( ouG );
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA ); // 2
+        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
+        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
+        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC ); // 3
+        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC ); // 3
 
-        ougA.getMembers().addAll( Sets.newHashSet( ouD, ouF ) );
-        ougB.getMembers().addAll( Sets.newHashSet( ouE, ouG ) );
-        orgUnitGroupStore.save( ougA );
-        orgUnitGroupStore.save( ougB );
+        OrganisationUnitGroup ougA = addOrganisationUnitGroup( 'A', ouD, ouF );
+        OrganisationUnitGroup ougB = addOrganisationUnitGroup( 'B', ouE, ouG );
 
         // Query
-
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setQuery( "UnitC" );
-
-        List<OrganisationUnit> ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 1, ous.size() );
-        assertTrue( ous.contains( ouC ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setQuery, "UnitC" ) ),
+            ouC );
 
         // Query
-
-        params = new OrganisationUnitQueryParams();
-        params.setQuery( "OrganisationUnitCodeA" );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertTrue( ous.contains( ouA ) );
-        assertEquals( 1, ous.size() );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setQuery, "OrganisationUnitCodeA" ) ),
+            ouA );
 
         // Parents
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouC, ouF ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 3, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouC, ouF, ouG ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setParents, Sets.newHashSet( ouC, ouF ) ) ),
+            ouC, ouF, ouG );
 
         // Groups
-
-        params = new OrganisationUnitQueryParams();
-        params.setGroups( Sets.newHashSet( ougA ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 2, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouD, ouF ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA ) ) ),
+            ouD, ouF );
 
         // Groups
-
-        params = new OrganisationUnitQueryParams();
-        params.setGroups( Sets.newHashSet( ougA ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 2, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouD, ouF ) ) );
-
-        params = new OrganisationUnitQueryParams();
-        params.setGroups( Sets.newHashSet( ougA, ougB ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 4, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouD, ouF, ouE, ouG ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setGroups, Sets.newHashSet( ougA, ougB ) ) ),
+            ouD, ouF, ouE, ouG );
 
         // Levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setLevels( Sets.newHashSet( 2 ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 2, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouB, ouC ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2 ) ) ),
+            ouB, ouC );
 
         // Levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setLevels( Sets.newHashSet( 2, 3 ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 6, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouB, ouC, ouD, ouE, ouF, ouG ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits(
+            createParams( OrganisationUnitQueryParams::setLevels, Sets.newHashSet( 2, 3 ) ) ),
+            ouB, ouC, ouD, ouE, ouF, ouG );
 
         // Levels and groups
-
-        params = new OrganisationUnitQueryParams();
-        params.setLevels( Sets.newHashSet( 3 ) );
-        params.setGroups( Sets.newHashSet( ougA ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 2, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouD, ouF ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setLevels( Sets.newHashSet( 3 ) );
+            params.setGroups( Sets.newHashSet( ougA ) );
+        } ) ), ouD, ouF );
 
         // Parents and groups
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouC ) );
-        params.setGroups( Sets.newHashSet( ougB ) );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 1, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouG ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setParents( Sets.newHashSet( ouC ) );
+            params.setGroups( Sets.newHashSet( ougB ) );
+        } ) ), ouG );
 
         // Parents and max levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouA ) );
-        params.setMaxLevels( 2 );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 3, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouA, ouB, ouC ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setParents( Sets.newHashSet( ouA ) );
+            params.setMaxLevels( 2 );
+        } ) ), ouA, ouB, ouC );
 
         // Parents and max levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouA ) );
-        params.setMaxLevels( 3 );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 7, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouA, ouB, ouC, ouD, ouE, ouF, ouG ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setParents( Sets.newHashSet( ouA ) );
+            params.setMaxLevels( 3 );
+        } ) ), ouA, ouB, ouC, ouD, ouE, ouF, ouG );
 
         // Parents and max levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouA ) );
-        params.setMaxLevels( 1 );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 1, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouA ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setParents( Sets.newHashSet( ouA ) );
+            params.setMaxLevels( 1 );
+        } ) ), ouA );
 
         // Parents and max levels
-
-        params = new OrganisationUnitQueryParams();
-        params.setParents( Sets.newHashSet( ouB ) );
-        params.setMaxLevels( 3 );
-
-        ous = orgUnitStore.getOrganisationUnits( params );
-
-        assertEquals( 3, ous.size() );
-        assertTrue( ous.containsAll( Sets.newHashSet( ouB, ouD, ouE ) ) );
+        assertContainsOnly( unitStore.getOrganisationUnits( createParams( params -> {
+            params.setParents( Sets.newHashSet( ouB ) );
+            params.setMaxLevels( 3 );
+        } ) ), ouB, ouD, ouE );
     }
 
     // -------------------------------------------------------------------------
@@ -384,87 +206,163 @@ public class OrganisationUnitStoreTest
     @Test
     public void testAddGetOrganisationUnitLevel()
     {
-        OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
-        OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
+        OrganisationUnitLevel levelA = addOrganisationUnitLevel( 1, "National" );
+        OrganisationUnitLevel levelB = addOrganisationUnitLevel( 2, "District" );
 
-        orgUnitLevelStore.save( levelA );
-        long idA = levelA.getId();
-        orgUnitLevelStore.save( levelB );
-        long idB = levelB.getId();
-
-        assertEquals( levelA, orgUnitLevelStore.get( idA ) );
-        assertEquals( levelB, orgUnitLevelStore.get( idB ) );
+        assertEquals( levelA, levelStore.get( levelA.getId() ) );
+        assertEquals( levelB, levelStore.get( levelB.getId() ) );
     }
 
     @Test
     public void testGetOrganisationUnitLevels()
     {
-        OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
-        OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
+        OrganisationUnitLevel levelA = addOrganisationUnitLevel( 1, "National" );
+        OrganisationUnitLevel levelB = addOrganisationUnitLevel( 2, "District" );
 
-        orgUnitLevelStore.save( levelA );
-        orgUnitLevelStore.save( levelB );
-
-        List<OrganisationUnitLevel> actual = orgUnitLevelStore.getAll();
-
-        assertNotNull( actual );
-        assertEquals( 2, actual.size() );
-        assertTrue( actual.contains( levelA ) );
-        assertTrue( actual.contains( levelB ) );
+        assertContainsOnly( levelStore.getAll(), levelA, levelB );
     }
 
     @Test
     public void testRemoveOrganisationUnitLevel()
     {
-        OrganisationUnitLevel levelA = new OrganisationUnitLevel( 1, "National" );
-        OrganisationUnitLevel levelB = new OrganisationUnitLevel( 2, "District" );
+        OrganisationUnitLevel levelA = addOrganisationUnitLevel( 1, "National" );
+        OrganisationUnitLevel levelB = addOrganisationUnitLevel( 2, "District" );
 
-        orgUnitLevelStore.save( levelA );
-        long idA = levelA.getId();
-        orgUnitLevelStore.save( levelB );
-        long idB = levelB.getId();
+        assertNotNull( levelStore.get( levelA.getId() ) );
+        assertNotNull( levelStore.get( levelB.getId() ) );
 
-        assertNotNull( orgUnitLevelStore.get( idA ) );
-        assertNotNull( orgUnitLevelStore.get( idB ) );
+        levelStore.delete( levelA );
 
-        orgUnitLevelStore.delete( levelA );
+        assertNull( levelStore.get( levelA.getId() ) );
+        assertNotNull( levelStore.get( levelB.getId() ) );
 
-        assertNull( orgUnitLevelStore.get( idA ) );
-        assertNotNull( orgUnitLevelStore.get( idB ) );
+        levelStore.delete( levelB );
 
-        orgUnitLevelStore.delete( levelB );
-
-        assertNull( orgUnitLevelStore.get( idA ) );
-        assertNull( orgUnitLevelStore.get( idB ) );
+        assertNull( levelStore.get( levelA.getId() ) );
+        assertNull( levelStore.get( levelB.getId() ) );
     }
 
     @Test
     public void testGetMaxLevel()
     {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' ); // 1
+        assertEquals( 0, unitStore.getMaxLevel() );
+
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+
+        assertEquals( 1, unitStore.getMaxLevel() );
+
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA ); // 2
+
+        assertEquals( 2, unitStore.getMaxLevel() );
+
+        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
+        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
+        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC ); // 3
+        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC ); // 3
+
+        assertEquals( 3, unitStore.getMaxLevel() );
+    }
+
+    @Test
+    public void testGetOrganisationUnitsWithCyclicReferences_DirectCycle()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
         OrganisationUnit ouB = createOrganisationUnit( 'B', ouA ); // 2
-        OrganisationUnit ouC = createOrganisationUnit( 'C', ouA ); // 2
-        OrganisationUnit ouD = createOrganisationUnit( 'D', ouB ); // 3
-        OrganisationUnit ouE = createOrganisationUnit( 'E', ouB ); // 3
-        OrganisationUnit ouF = createOrganisationUnit( 'F', ouC ); // 3
-        OrganisationUnit ouG = createOrganisationUnit( 'G', ouC ); // 3
+        ouA.setParent( ouB );
+        ouB.getChildren().add( ouA );
+        unitStore.save( ouB );
 
-        assertEquals( 0, orgUnitStore.getMaxLevel() );
+        assertContainsOnly( unitStore.getOrganisationUnitsWithCyclicReferences(), ouA, ouB );
+    }
 
-        orgUnitStore.save( ouA );
+    @Test
+    public void testGetOrganisationUnitsWithCyclicReferences_DistantCycle()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' ); // 1
+        OrganisationUnit ouB = addOrganisationUnit( 'B', ouA ); // 2
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouB ); // 3
+        OrganisationUnit ouD = createOrganisationUnit( 'D', ouC ); // 4
+        ouA.setParent( ouD );
+        ouD.getChildren().add( ouA );
+        unitStore.save( ouD );
 
-        assertEquals( 1, orgUnitStore.getMaxLevel() );
+        assertContainsOnly( unitStore.getOrganisationUnitsWithCyclicReferences(),
+            ouA, ouB, ouC, ouD );
+    }
 
-        orgUnitStore.save( ouB );
-        orgUnitStore.save( ouC );
+    @Test
+    public void testGetOrphanedOrganisationUnits1()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' );
+        OrganisationUnit ouB = addOrganisationUnit( 'B' );
 
-        assertEquals( 2, orgUnitStore.getMaxLevel() );
+        assertContainsOnly( unitStore.getOrphanedOrganisationUnits(), ouA, ouB );
+    }
 
-        orgUnitStore.save( ouD );
-        orgUnitStore.save( ouE );
-        orgUnitStore.save( ouF );
-        orgUnitStore.save( ouG );
+    @Test
+    public void testGetOrphanedOrganisationUnits2()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' );
+        OrganisationUnit ouB = addOrganisationUnit( 'B' );
+        OrganisationUnit ouC = addOrganisationUnit( 'C', ouA );
 
-        assertEquals( 3, orgUnitStore.getMaxLevel() );
+        assertContainsOnly( unitStore.getOrphanedOrganisationUnits(), ouB );
+    }
+
+    @Test
+    public void testGetOrganisationUnitsViolatingExclusiveGroupSets()
+    {
+        OrganisationUnit ouA = addOrganisationUnit( 'A' );
+        OrganisationUnit ouB = addOrganisationUnit( 'B' );
+        OrganisationUnit ouC = addOrganisationUnit( 'C' );
+        OrganisationUnit ouD = addOrganisationUnit( 'D' );
+
+        OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', ouA );
+        OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', ouB );
+        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', ouC );
+        OrganisationUnitGroup groupD = addOrganisationUnitGroup( 'D', ouD );
+        OrganisationUnitGroup groupE = addOrganisationUnitGroup( 'E', ouD );
+
+        addOrganisationUnitGroupSet( 'K', groupA );
+        addOrganisationUnitGroupSet( 'X', groupC, groupD, groupE );
+
+        // unit D is in group D and E which are both in set X
+        assertContainsOnly( unitStore.getOrganisationUnitsViolatingExclusiveGroupSets(), ouD );
+    }
+
+    private Program addProgram( char uniqueCharacter, OrganisationUnit... units )
+    {
+        Program program = createProgram( uniqueCharacter );
+        for ( OrganisationUnit unit : units )
+        {
+            unit.getPrograms().add( program );
+            program.getOrganisationUnits().add( unit );
+        }
+        idObjectManager.save( program );
+        return program;
+    }
+
+    private DataSet addDataSet( char uniqueCharacter, OrganisationUnit... units )
+    {
+        DataSet dataSet = createDataSet( uniqueCharacter );
+        asList( units ).forEach( dataSet::addOrganisationUnit );
+        dataSetService.addDataSet( dataSet );
+        return dataSet;
+    }
+
+    private static <T> OrganisationUnitQueryParams createParams(
+        BiConsumer<OrganisationUnitQueryParams, T> setter, T value )
+    {
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        setter.accept( params, value );
+        return params;
+    }
+
+    private static OrganisationUnitQueryParams createParams( Consumer<OrganisationUnitQueryParams> init )
+    {
+        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
+        init.accept( params );
+        return params;
     }
 }
