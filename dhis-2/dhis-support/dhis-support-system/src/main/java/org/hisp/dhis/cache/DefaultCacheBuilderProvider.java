@@ -47,9 +47,9 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
     private RedisTemplate<String, ?> redisTemplate;
 
     @Override
-    public <V> ExtendedCacheBuilder<V> newCacheBuilder()
+    public <V> CacheBuilder<V> newCacheBuilder()
     {
-        return new ExtendedCacheBuilder<V>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider );
     }
 
     @Autowired

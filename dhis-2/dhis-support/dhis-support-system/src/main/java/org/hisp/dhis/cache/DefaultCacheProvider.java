@@ -54,6 +54,7 @@ public class DefaultCacheProvider implements CacheProvider
      * Enum is used to make sure we do not use same region twice. Each method
      * should have its own constant.
      */
+    @SuppressWarnings( "squid:S115" ) // allow non enum-ish names
     private enum Region
     {
         analyticsResponse,
