@@ -1,5 +1,8 @@
--- Add columns filterdimensionsarerestricted and allowedfilterdimensions
+-- Add columns restrictfilters and allowedfilterdimensions
 -- to the dashboard table. See Feature DHIS2-7620.
 
-alter table if exists dashboard add column if not exists filterdimensionsarerestricted boolean;
-alter table if exists dashboard add column if not exists allowedfilterdimensions jsonb;
+alter table dashboard add column if not exists restrictfilters boolean;
+update dashboard set restrictfilters = false where restrictfilters is null;
+alter table dashboard alter column restrictfilters set not null;
+
+alter table dashboard add column if not exists allowedfilters jsonb;

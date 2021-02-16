@@ -28,9 +28,7 @@
 package org.hisp.dhis.dashboard;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -55,14 +53,15 @@ public class Dashboard
     private List<DashboardItem> items = new ArrayList<>();
 
     /**
-     * Whether we restrict the filter dimensions the user may select.
+     * Whether filter dimensions are restricted for the dashboard. The allowed
+     * filter dimensions are specified by {@link Dashboard#allowedFilters}.
      */
-    private Boolean filterDimensionsAreRestricted = false;
+    private boolean restrictFilters;
 
     /**
-     * Allowed filter dimensions (if any) the user may select.
+     * Allowed filter dimensions (if any) which may be used for the dashboard.
      */
-    private Set<String> allowedFilterDimensions = new HashSet<>();
+    private List<String> allowedFilters = new ArrayList<>();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -186,26 +185,26 @@ public class Dashboard
 
     @JsonProperty
     @JacksonXmlProperty
-    public Boolean getFilterDimensionsAreRestricted()
+    public boolean isRestrictFilters()
     {
-        return filterDimensionsAreRestricted;
+        return restrictFilters;
     }
 
-    public void setFilterDimensionsAreRestricted( Boolean filterDimensionsAreRestricted )
+    public void setRestrictFilters( boolean restrictFilters )
     {
-        this.filterDimensionsAreRestricted = filterDimensionsAreRestricted;
+        this.restrictFilters = restrictFilters;
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "allowedFilterDimensions", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "allowedFilterDimension", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getAllowedFilterDimensions()
+    @JacksonXmlElementWrapper( localName = "allowedFilters", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "allowedFilter", namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getAllowedFilters()
     {
-        return allowedFilterDimensions;
+        return allowedFilters;
     }
 
-    public void setAllowedFilterDimensions( Set<String> allowedFilterDimensions )
+    public void setAllowedFilters( List<String> allowedFilters )
     {
-        this.allowedFilterDimensions = allowedFilterDimensions;
+        this.allowedFilters = allowedFilters;
     }
 }
