@@ -39,8 +39,9 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -86,7 +87,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -99,8 +99,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -182,7 +180,7 @@ public class UserController
         Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
         params.setFirst( pager.getOffset() );
         params.setMax( pager.getPageSize() );
-        
+
         return pager;
     }
 
@@ -207,7 +205,7 @@ public class UserController
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
-        
+
         return query;
     }
 
@@ -225,7 +223,7 @@ public class UserController
         params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
         params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
         params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
-        
+
         return params;
     }
 
@@ -234,7 +232,7 @@ public class UserController
      * because we have more optimized queries for User, since User has some
      * complicated relationships it can result in less optimized count queries
      * when using the generic one in the AbstractController.
-     * 
+     *
      * @param options
      * @param filters
      * @param orders
