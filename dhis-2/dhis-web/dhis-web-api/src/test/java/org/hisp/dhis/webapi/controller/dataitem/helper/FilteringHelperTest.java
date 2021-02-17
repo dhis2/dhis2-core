@@ -48,9 +48,9 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.junit.Test;
 
 public class FilteringHelperTest

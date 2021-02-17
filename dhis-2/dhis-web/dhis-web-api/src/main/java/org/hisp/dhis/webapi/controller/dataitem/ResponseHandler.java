@@ -82,7 +82,7 @@ class ResponseHandler
     private final Cache<Long> pageCountingCache;
 
     ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
-                     final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )
+        final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )
     {
         checkNotNull( queryExecutor );
         checkNotNull( linkService );
@@ -104,7 +104,7 @@ class ResponseHandler
      * @param fields the list of fields to be returned
      */
     void addResultsToNode( final RootNode rootNode,
-                           final List<DataItem> dimensionalItemsFound, final Set<String> fields )
+        final List<DataItem> dimensionalItemsFound, final Set<String> fields )
     {
         final CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
             new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems",
@@ -125,8 +125,8 @@ class ResponseHandler
      * @param filters the query filters used in the count query
      */
     void addPaginationToNode( final RootNode rootNode,
-                              final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
-                              final WebOptions options, final Set<String> filters )
+        final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
+        final WebOptions options, final Set<String> filters )
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
@@ -155,7 +155,7 @@ class ResponseHandler
     }
 
     private long countEntityRowsTotal( final Class<? extends BaseIdentifiableObject> entity, final WebOptions options,
-                                       final MapSqlParameterSource paramsMap )
+        final MapSqlParameterSource paramsMap )
     {
         // Calculate pagination.
         if ( options.hasPaging() )
@@ -168,7 +168,7 @@ class ResponseHandler
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-                                               final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
+        final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();

@@ -317,7 +317,7 @@ public class FilteringHelper
      * @param currentUser the current user logged
      */
     public static void setFiltering( final Set<String> filters, final WebOptions options,
-                                     final MapSqlParameterSource paramsMap, final User currentUser )
+        final MapSqlParameterSource paramsMap, final User currentUser )
     {
         final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
             getUserSetting( UI_LOCALE ) );
@@ -398,7 +398,7 @@ public class FilteringHelper
      *         non-aggregatable value types
      */
     public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
-                                                                          final Set<String> filters )
+        final Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {

@@ -155,7 +155,7 @@ public class FilterValidator
      * @return true anyone of the prefixes is found, false otherwise.
      */
     public static boolean containsFilterWithOneOfPrefixes( final Set<String> filters, final String withPrefixOne,
-                                                           final String withPrefixTwo )
+        final String withPrefixTwo )
     {
         if ( isNotEmpty( filters ) )
         {
@@ -200,7 +200,7 @@ public class FilterValidator
      *         prefixes, false otherwise
      */
     public static boolean filterHasOneOfPrefixes( final String filter, final String prefixOne,
-                                                  final String prefixTwo )
+        final String prefixTwo )
     {
         return trimToEmpty( filter ).startsWith( prefixOne ) || trimToEmpty( filter ).startsWith( prefixTwo );
     }
