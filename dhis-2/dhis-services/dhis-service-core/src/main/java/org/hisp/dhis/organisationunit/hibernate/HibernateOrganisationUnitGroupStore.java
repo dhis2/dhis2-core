@@ -57,6 +57,6 @@ public class HibernateOrganisationUnitGroupStore
     @Override
     public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithGroupSets()
     {
-        return getQuery( "from OrganisationUnitGroup o where o.groupSet is not null" ).list();
+        return getQuery( "from OrganisationUnitGroup o where size(o.groupSets) > 0" ).list();
     }
 }
