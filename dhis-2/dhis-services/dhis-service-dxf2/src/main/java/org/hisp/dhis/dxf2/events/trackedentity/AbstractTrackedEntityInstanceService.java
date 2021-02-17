@@ -275,9 +275,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
             trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params,
                 queryParams );
-        }
 
-        addSearchAudit( trackedEntityInstances, queryParams.getUser() );
+            addSearchAudit( trackedEntityInstances, queryParams.getUser() );
+        }
 
         return trackedEntityInstances;
     }
