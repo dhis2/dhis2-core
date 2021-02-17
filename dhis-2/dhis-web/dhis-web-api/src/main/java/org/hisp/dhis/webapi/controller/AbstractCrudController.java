@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonList;
+
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -148,7 +150,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
@@ -478,23 +480,24 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Patch patch = null;
-
-        if ( isJson( request ) )
-        {
-            patch = patchService.diff(
-                new PatchParams( jsonMapper.readTree( request.getInputStream() ) ) );
-        }
-        else if ( isXml( request ) )
-        {
-            patch = patchService.diff(
-                new PatchParams( xmlMapper.readTree( request.getInputStream() ) ) );
-        }
+        Patch patch = diff( request );
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
+    }
+
+    private Patch diff( HttpServletRequest request )
+        throws IOException,
+        WebMessageException
+    {
+        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
+        if ( mapper == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+        }
+        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
@@ -540,10 +543,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
         }
 
+        prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
-
         property.getSetterMethod().invoke( persistedObject, value );
-
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -1034,14 +1036,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -1052,14 +1048,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getAdditions() ) );
+    private void addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
+        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -1069,13 +1068,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -1085,13 +1079,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+    private void replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.clearCollectionItems( object, pvProperty );
+        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -1104,15 +1102,18 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
         if ( objects.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        T object = objects.get( 0 );
+        IdentifiableObjects items = new IdentifiableObjects();
+        items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+
+        preUpdateItems( object, items );
+        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -1122,12 +1123,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -1137,12 +1134,16 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+    private void deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
@@ -1161,8 +1162,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        IdentifiableObjects items = new IdentifiableObjects();
+        items.setIdentifiableObjects( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
     @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
@@ -1235,6 +1237,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void preCreateEntity( T entity )
+        throws Exception
     {
     }
 
@@ -1243,6 +1246,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void preUpdateEntity( T entity, T newEntity )
+        throws Exception
     {
     }
 
@@ -1265,6 +1269,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void postPatchEntity( T entity )
+    {
+    }
+
+    protected void preUpdateItems( T entity, IdentifiableObjects items )
+        throws Exception
+    {
+    }
+
+    protected void postUpdateItems( T entity, IdentifiableObjects items )
     {
     }
 

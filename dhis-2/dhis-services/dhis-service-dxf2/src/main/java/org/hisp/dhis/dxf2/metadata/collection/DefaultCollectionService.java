@@ -91,7 +91,8 @@ public class DefaultCollectionService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+    public void addCollectionItems( IdentifiableObject object, String propertyName,
+        List<? extends IdentifiableObject> objects )
         throws Exception
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
@@ -171,7 +172,8 @@ public class DefaultCollectionService
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+    public void delCollectionItems( IdentifiableObject object, String propertyName,
+        List<? extends IdentifiableObject> objects )
         throws Exception
     {
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
