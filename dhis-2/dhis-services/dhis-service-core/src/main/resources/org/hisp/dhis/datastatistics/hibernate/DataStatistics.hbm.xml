@@ -20,6 +20,7 @@
     <property name="eventReportViews" column="eventreportviews" type="double"/>
     <property name="eventChartViews" column="eventchartviews" type="double"/>
     <property name="dashboardViews" column="dashboardviews" type="double"/>
+    <property name="passiveDashboardViews" column="passivedashboardviews" type="double"/>
     <property name="dataSetReportViews" column="datasetreportviews" type="double" />
     <property name="activeUsers" column="active_users" type="int"/>
     <property name="totalViews" column="totalviews" type="double"/>

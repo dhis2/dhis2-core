@@ -31,7 +31,9 @@ import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMan
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,8 +45,9 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * This implementer check if a field is not empty in the {@link TrackerBundle}
@@ -97,15 +100,16 @@ public class SetMandatoryFieldValidator
                     .findAny();
                 if ( !any.isPresent() || StringUtils.isEmpty( any.get().getValue() ) )
                 {
-                    return TrackerReportUtils.formatMessage( TrackerErrorCode.E1306, attributeUid );
+                    return new ProgramRuleIssue( action.getRuleUid(),
+                        TrackerErrorCode.E1306,
+                        Lists.newArrayList( attributeUid ), IssueType.ERROR );
                 }
                 else
                 {
-                    return "";
+                    return null;
                 }
             } )
-            .filter( e -> !e.isEmpty() )
-            .map( e -> new ProgramRuleIssue( e, IssueType.ERROR ) )
+            .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
 
@@ -114,15 +118,16 @@ public class SetMandatoryFieldValidator
     {
         ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
 
-        List<String> mandatoryDataElements = actionRules.stream()
+        Map<String, EventActionRule> mandatoryDataElementsByActionRule = actionRules.stream()
             .filter( eventActionRule -> eventActionRule.getAttributeType() == AttributeType.DATA_ELEMENT )
-            .map( EventActionRule::getField )
-            .collect( Collectors.toList() );
+            .collect( Collectors.toMap( EventActionRule::getField, Function.identity() ) );
 
-        return validateMandatoryDataValue( programStage, event, mandatoryDataElements )
-            .stream()
-            .map( e -> new ProgramRuleIssue( TrackerReportUtils.formatMessage( TrackerErrorCode.E1303, e ),
-                IssueType.ERROR ) )
-            .collect( Collectors.toList() );
+        return validateMandatoryDataValue( programStage, event,
+            Lists.newArrayList( mandatoryDataElementsByActionRule.keySet() ) )
+                .stream()
+                .map( e -> new ProgramRuleIssue( mandatoryDataElementsByActionRule.get( e ).getRuleUid(),
+                    TrackerErrorCode.E1303,
+                    Lists.newArrayList( e ), IssueType.ERROR ) )
+                .collect( Collectors.toList() );
     }
 }

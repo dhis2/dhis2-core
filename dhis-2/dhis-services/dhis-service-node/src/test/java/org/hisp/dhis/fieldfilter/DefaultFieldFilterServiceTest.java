@@ -28,7 +28,6 @@
 package org.hisp.dhis.fieldfilter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -111,7 +110,7 @@ public class DefaultFieldFilterServiceTest
         }, sessionFactory );
 
         CacheProvider cacheProvider = mock( CacheProvider.class );
-        when( cacheProvider.createPropertyTransformerCache( any() ) ).thenReturn( new NoOpCache<>() );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
             currentUserService, attributeService, cacheProvider, nodeTransformers );
         service.init();

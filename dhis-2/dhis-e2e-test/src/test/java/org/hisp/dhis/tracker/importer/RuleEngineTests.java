@@ -151,7 +151,7 @@ public class RuleEngineTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1200" ) )
+            .body( "errorCode", hasItem( "E1303" ) )
             .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) );
     }
 
@@ -166,7 +166,7 @@ public class RuleEngineTests
         response
             .validateSuccessfulImport()
             .validateWarningReport()
-            .body( "warningCode", contains( "E1201" ) );
+            .body( "warningCode", contains( "E1308" ) );
 
         String eventId = response
             .extractImportedEvents().get( 0 );
@@ -256,7 +256,7 @@ public class RuleEngineTests
             .validateWarningReport()
             .body( "", hasSize( greaterThanOrEqualTo( 2 ) ) )
             .body( "trackerType", hasItems( "EVENT", "ENROLLMENT" ) )
-            .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
+            .body( "warningCode", everyItem( equalTo( "E1300" ) ) );
     }
 
     @Test
@@ -290,7 +290,7 @@ public class RuleEngineTests
         response
             .validateWarningReport()
             .body( "message[0]", containsString( "TA warning" ) )
-            .body( "warningCode", everyItem( equalTo( "E1201" ) ) );
+            .body( "warningCode", everyItem( equalTo( "E1300" ) ) );
 
         response.validateSuccessfulImport();
     }
