@@ -379,7 +379,7 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.programRulesCache.name() )
-            .expireAfterAccess( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 20 )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 1000 ) )

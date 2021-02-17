@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
@@ -65,11 +67,18 @@ abstract class ImplementableRuleService
 
     }
 
-    public Boolean hasProgramRules( Program program, String programStageUid )
+    public List<ProgramRule> getProgramRules( Program program, String programStageUid )
     {
-        return getProgramRulesCache()
-            .get( program.getUid(), uid -> !getProgramRulesByActionTypes( program, programStageUid ).isEmpty() )
-            .isPresent();
+        Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
+        if ( optionalCacheValue.isPresent() && Boolean.TRUE.equals( optionalCacheValue.get() ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
+
+        getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+        return programRulesByActionTypes;
     }
 
     @EventListener
@@ -77,4 +86,5 @@ abstract class ImplementableRuleService
     {
         getProgramRulesCache().invalidateAll();
     }
+
 }
