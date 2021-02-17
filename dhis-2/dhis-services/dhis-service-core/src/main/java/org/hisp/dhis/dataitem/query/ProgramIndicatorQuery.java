@@ -117,10 +117,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
         {
             final DataItem viewItem = new DataItem();
 
-            final String programName = trimToEmpty( rowSet.getString( "program_name" ) );
-            final String displayProgramName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
-                programName );
-
             final String name = trimToEmpty(
                 rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
@@ -130,8 +126,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
-            viewItem.setProgramName( programName );
-            viewItem.setProgramDisplayName( displayProgramName );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
