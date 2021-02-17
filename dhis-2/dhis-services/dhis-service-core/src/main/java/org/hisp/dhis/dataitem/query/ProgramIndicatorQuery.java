@@ -115,8 +115,6 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         while ( rowSet.next() )
         {
-            final DataItem viewItem = new DataItem();
-
             final String name = trimToEmpty(
                 rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
@@ -124,20 +122,12 @@ public class ProgramIndicatorQuery implements DataItemQuery
                 + defaultIfBlank( trimToEmpty( rowSet.getString( "pi_i18n_name" ) ),
                     trimToEmpty( rowSet.getString( "name" ) ) );
 
-            viewItem.setName( name );
-            viewItem.setDisplayName( displayName );
-            viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setCode( rowSet.getString( "code" ) );
-            viewItem.setDimensionItemType( PROGRAM_INDICATOR.name() );
-
             // Specific case where we have to force a vale type. Program
             // Indicators don't have a value type but they always evaluate to
             // numbers.
-            viewItem.setValueType( NUMBER.name() );
-            viewItem.setSimplifiedValueType( NUMBER.name() );
-
-            dataItems.add( viewItem );
+            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
+                rowSet.getString( "code" ),
+                PROGRAM_INDICATOR, rowSet.getString( "program_uid" ), NUMBER ) );
         }
 
         return dataItems;

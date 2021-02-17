@@ -35,10 +35,19 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.ValueType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
+/**
+ * This is a pure DTO class and basic constructors in order to make it simple.
+ * It's used only as final output/response to the consumer.
+ *
+ * @author maikel arabori
+ */
 @Data
 @EqualsAndHashCode
 @NoArgsConstructor
@@ -63,7 +72,7 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String dimensionItemType;
+    private DimensionItemType dimensionItemType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -71,9 +80,47 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String valueType;
+    private ValueType valueType;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private String simplifiedValueType;
+    private ValueType simplifiedValueType;
+
+    public DataItem( final String name, final String displayName, final String id, final String code,
+        final DimensionItemType dimensionItemType )
+    {
+        this.name = name;
+        this.displayName = displayName;
+        this.id = id;
+        this.code = code;
+        this.dimensionItemType = dimensionItemType;
+    }
+
+    public DataItem( final String name, final String displayName, final String id, final String code,
+        final DimensionItemType dimensionItemType, final ValueType valueType )
+    {
+        this.name = name;
+        this.displayName = displayName;
+        this.id = id;
+        this.code = code;
+        this.dimensionItemType = dimensionItemType;
+        this.valueType = valueType;
+    }
+
+    public DataItem( final String name, final String displayName, final String id, final String code,
+        final DimensionItemType dimensionItemType, final String programId, final ValueType valueType )
+    {
+        this.name = name;
+        this.displayName = displayName;
+        this.id = id;
+        this.code = code;
+        this.dimensionItemType = dimensionItemType;
+        this.programId = programId;
+        this.valueType = valueType;
+    }
+
+    public ValueType getSimplifiedValueType()
+    {
+        return valueType != null ? valueType.toSimplifiedValueType() : null;
+    }
 }

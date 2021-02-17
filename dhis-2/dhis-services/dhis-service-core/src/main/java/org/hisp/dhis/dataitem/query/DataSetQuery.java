@@ -97,17 +97,11 @@ public class DataSetQuery implements DataItemQuery
 
         while ( rowSet.next() )
         {
-            final DataItem viewItem = new DataItem();
             final String name = trimToNull( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
 
-            viewItem.setName( name );
-            viewItem.setDisplayName( displayName );
-            viewItem.setId( rowSet.getString( "uid" ) );
-            viewItem.setCode( rowSet.getString( "code" ) );
-            viewItem.setDimensionItemType( REPORTING_RATE.name() );
-
-            dataItems.add( viewItem );
+            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
+                rowSet.getString( "code" ), REPORTING_RATE ) );
         }
 
         return dataItems;

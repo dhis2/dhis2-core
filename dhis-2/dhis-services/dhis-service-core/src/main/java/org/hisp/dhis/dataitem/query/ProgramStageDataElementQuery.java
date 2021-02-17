@@ -108,8 +108,6 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         while ( rowSet.next() )
         {
-            final DataItem viewItem = new DataItem();
-
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
 
             final String name = trimToEmpty(
@@ -118,17 +116,11 @@ public class ProgramStageDataElementQuery implements DataItemQuery
                 rowSet.getString( "program_name" ) ) + SPACE
                 + defaultIfBlank( trimToEmpty( rowSet.getString( "de_i18n_name" ) ),
                     trimToEmpty( rowSet.getString( "name" ) ) );
+            final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
 
-            viewItem.setName( name );
-            viewItem.setDisplayName( displayName );
-            viewItem.setValueType( valueType.name() );
-            viewItem.setSimplifiedValueType( valueType.toSimplifiedValueType().name() );
-            viewItem.setProgramId( rowSet.getString( "program_uid" ) );
-            viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
-            viewItem.setCode( rowSet.getString( "code" ) );
-            viewItem.setDimensionItemType( PROGRAM_DATA_ELEMENT.name() );
-
-            dataItems.add( viewItem );
+            dataItems.add( new DataItem( name, displayName, uid,
+                rowSet.getString( "code" ), PROGRAM_DATA_ELEMENT,
+                rowSet.getString( "program_uid" ), valueType ) );
         }
 
         return dataItems;
