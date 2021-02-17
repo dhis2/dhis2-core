@@ -28,14 +28,15 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.springframework.context.event.EventListener;
 
 abstract class ImplementableRuleService
 {
@@ -66,15 +67,14 @@ abstract class ImplementableRuleService
 
     public Boolean hasProgramRules( Program program, String programStageUid )
     {
-        Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
-        if ( optionalCacheValue.isPresent() )
-        {
-            return optionalCacheValue.get();
-        }
-
-        boolean hasProgramRules = !getProgramRulesByActionTypes( program, programStageUid ).isEmpty();
-        getProgramRulesCache().put( program.getUid(), true );
-        return hasProgramRules;
+        return getProgramRulesCache()
+            .get( program.getUid(), uid -> !getProgramRulesByActionTypes( program, programStageUid ).isEmpty() )
+            .isPresent();
     }
 
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        getProgramRulesCache().invalidateAll();
+    }
 }
