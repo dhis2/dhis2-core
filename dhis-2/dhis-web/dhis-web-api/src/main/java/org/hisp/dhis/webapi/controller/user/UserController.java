@@ -202,9 +202,9 @@ public class UserController
 
         List<User> users = userService.getUsers( params, ordersAsString );
 
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+        query.setDefaultOrder();
 
         return query;
     }
