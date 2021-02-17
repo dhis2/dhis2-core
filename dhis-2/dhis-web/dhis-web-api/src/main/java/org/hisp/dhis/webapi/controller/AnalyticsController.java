@@ -247,8 +247,8 @@ public class AnalyticsController
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
-    @GetMapping( value = RESOURCE_PATH + "/tableTypes", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/tableTypes",
+        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody AnalyticsTableType[] getTableTypes()
     {
         return AnalyticsTableType.values();
