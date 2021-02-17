@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -206,8 +207,9 @@ public class PredictionDataValueFetcher
         params.setDataElements( dataElements );
         params.setDataElementOperands( dataElementOperands );
         params.setPeriods( periods );
+        params.setOrganisationUnits( currentUserOrgUnits );
+        params.setOuMode( DESCENDANTS );
         params.setOrgUnitLevel( orgUnitLevel );
-        params.setOrgUnitParents( currentUserOrgUnits );
         params.setCallback( this );
         params.setOrderByOrgUnitPath( true );
         params.setIncludeChildren( includeChildren );

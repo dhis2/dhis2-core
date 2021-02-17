@@ -28,6 +28,7 @@
 package org.hisp.dhis.datavalue.hibernate;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
@@ -330,7 +331,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
         boolean joinOrgUnit = params.isOrderByOrgUnitPath()
             || params.hasOrgUnitLevel()
-            || params.hasOrgUnitParents()
+            || params.getOuMode() == DESCENDANTS
             || params.isIncludeChildren();
 
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid" +
@@ -407,23 +408,25 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
                 "= " + params.getOrgUnitLevel();
         }
 
-        if ( params.hasOrgUnitParents() )
-        {
-            where += sqlHelper.whereAnd() + "(";
-
-            for ( OrganisationUnit parent : params.getOrgUnitParents() )
-            {
-                where += sqlHelper.or() + "ou.path like '" + parent.getPath() + "%'";
-            }
-
-            where += " )";
-        }
-
         if ( params.hasOrganisationUnits() )
         {
-            String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
+            if ( params.getOuMode() == DESCENDANTS )
+            {
+                where += sqlHelper.whereAnd() + "(";
 
-            where += sqlHelper.whereAnd() + "dv.sourceid in (" + orgUnitIdList + ")";
+                for ( OrganisationUnit parent : params.getOrganisationUnits() )
+                {
+                    where += sqlHelper.or() + "ou.path like '" + parent.getPath() + "%'";
+                }
+
+                where += " )";
+            }
+            else
+            {
+                String orgUnitIdList = getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) );
+
+                where += sqlHelper.whereAnd() + "dv.sourceid in (" + orgUnitIdList + ")";
+            }
         }
 
         if ( params.hasAttributeOptionCombos() )

@@ -353,11 +353,6 @@ public class DefaultDataValueService
     @Transactional( readOnly = true )
     public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
-        if ( params.isIncludeChildrenForOrganisationUnits() )
-        {
-            throw new IllegalQueryException( ErrorCode.E2034 );
-        }
-
         return dataValueStore.getDeflatedDataValues( params );
     }
 

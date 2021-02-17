@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -73,7 +76,7 @@ public class DataExportParams
 
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
-    private Set<OrganisationUnit> orgUnitParents = new HashSet<>();
+    private OrganisationUnitSelectionMode ouMode = SELECTED;
 
     private Integer orgUnitLevel;
 
@@ -187,11 +190,6 @@ public class DataExportParams
         return organisationUnits != null && !organisationUnits.isEmpty();
     }
 
-    public boolean hasOrgUnitParents()
-    {
-        return orgUnitParents != null && !orgUnitParents.isEmpty();
-    }
-
     public boolean isIncludeChildrenForOrganisationUnits()
     {
         return includeChildren && hasOrganisationUnits();
@@ -272,7 +270,7 @@ public class DataExportParams
             .add( "end date", endDate )
             .add( "included date", includedDate )
             .add( "org units", organisationUnits )
-            .add( "org unit parents", orgUnitParents )
+            .add( "org unit selection mode", ouMode )
             .add( "org unit level", orgUnitLevel )
             .add( "children", includeChildren )
             .add( "order by org unit path", orderByOrgUnitPath )
@@ -403,14 +401,14 @@ public class DataExportParams
         return this;
     }
 
-    public Set<OrganisationUnit> getOrgUnitParents()
+    public OrganisationUnitSelectionMode getOuMode()
     {
-        return orgUnitParents;
+        return ouMode;
     }
 
-    public DataExportParams setOrgUnitParents( Set<OrganisationUnit> orgUnitParents )
+    public DataExportParams setOuMode( OrganisationUnitSelectionMode ouMode )
     {
-        this.orgUnitParents = orgUnitParents;
+        this.ouMode = ouMode;
         return this;
     }
 
