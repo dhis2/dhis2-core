@@ -66,7 +66,7 @@ public class TrackerImportStrategyImpl implements TrackerImportStrategyHandler
             JobConfiguration jobConfiguration = new JobConfiguration(
                 "",
                 JobType.TRACKER_IMPORT_JOB,
-                trackerImportReportRequest.getCurrentUser().getUid(),
+                trackerImportReportRequest.getUserUid(),
                 trackerImportReportRequest.isAsync() );
 
             jobConfiguration.setUid( trackerImportReportRequest.getUid() );
@@ -83,7 +83,7 @@ public class TrackerImportStrategyImpl implements TrackerImportStrategyHandler
 
         trackerImportReportRequest.setTrackerImportParams(
             paramsBuilder
-                .userId( trackerImportReportRequest.getCurrentUser().getUid() )
+                .userId( trackerImportReportRequest.getUserUid() )
                 .trackedEntities( trackerImportReportRequest.getTrackerBundleParams().getTrackedEntities() )
                 .enrollments( trackerImportReportRequest.getTrackerBundleParams().getEnrollments() )
                 .events( trackerImportReportRequest.getTrackerBundleParams().getEvents() )
