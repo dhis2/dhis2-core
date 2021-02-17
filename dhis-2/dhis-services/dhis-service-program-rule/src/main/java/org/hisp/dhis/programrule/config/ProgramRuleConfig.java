@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.programrule.config;
 
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.engine.*;
@@ -53,9 +52,6 @@ public class ProgramRuleConfig
     @Autowired
     private ConstantService constantService;
 
-    @Autowired
-    private CacheProvider cacheProvider;
-
     /**
      * This bean is used in the system when an event is intercepted by
      * {@link ProgramRuleEngineListener}. Only the notification rule actions are
@@ -66,7 +62,7 @@ public class ProgramRuleConfig
         NotificationImplementableRuleService notificationImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
-            notificationImplementableRuleService, supplementaryDataProvider, cacheProvider );
+            notificationImplementableRuleService, supplementaryDataProvider );
     }
 
     /**
@@ -78,6 +74,6 @@ public class ProgramRuleConfig
         ServerSideImplementableRuleService serverSideImplementableRuleService )
     {
         return new ProgramRuleEngine( programRuleEntityMapperService, programRuleVariableService, constantService,
-            serverSideImplementableRuleService, supplementaryDataProvider, cacheProvider );
+            serverSideImplementableRuleService, supplementaryDataProvider );
     }
 }
