@@ -126,6 +126,8 @@ import com.google.common.collect.Lists;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class TrackedEntityInstanceController
 {
+    private static final int TEI_COUNT_THRESHOLD_FOR_USE_LEGACY = 500;
+
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
@@ -201,21 +203,21 @@ public class TrackedEntityInstanceController
         List<String> fields = getFieldsFromRequest();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        
+        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
 
-        if ( criteria.isUseLegacy() ) // FIXME luciano: this has to be removed!
+        if ( criteria.isUseLegacy() || (count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging()) )
         {
             trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+                getTrackedEntityInstanceParams( fields ), true );
         }
         else
         {
             trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances2( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+                getTrackedEntityInstanceParams( fields ), true );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
-
-        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
