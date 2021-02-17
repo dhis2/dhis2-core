@@ -32,7 +32,6 @@ import lombok.Data;
 
 import org.hisp.dhis.tracker.TrackerBundleReportMode;
 import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
 
 @Data
@@ -41,9 +40,9 @@ public class TrackerImportReportRequest
 {
     String uid;
 
-    ContextService contextService;
+    String userUid;
 
-    User currentUser;
+    ContextService contextService;
 
     TrackerBundleParams trackerBundleParams;
 

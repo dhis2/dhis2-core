@@ -91,7 +91,7 @@ public class TrackerImportController
         String jobId = CodeGenerator.generateUid();
 
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
-            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).currentUser( currentUser )
+            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
             .isAsync( true ).uid( jobId )
             .build();
 
@@ -116,7 +116,7 @@ public class TrackerImportController
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()
-            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).currentUser( currentUser )
+            .trackerBundleParams( trackerBundleParams ).contextService( contextService ).userUid( currentUser.getUid() )
             .trackerBundleReportMode( TrackerBundleReportMode
                 .getTrackerBundleReportMode( reportMode ) )
             .uid( CodeGenerator.generateUid() )
