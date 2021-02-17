@@ -111,7 +111,7 @@ public class DataElementQuery implements DataItemQuery
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
             viewItem.setValueType( valueType.name() );
-            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
+            viewItem.setSimplifiedValueType( valueType.toSimplifiedValueType().name() );
             viewItem.setId( rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );
             viewItem.setDimensionItemType( DATA_ELEMENT.name() );

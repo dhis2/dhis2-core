@@ -121,7 +121,7 @@ public class ProgramAttributeQuery implements DataItemQuery
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
             viewItem.setValueType( valueType.name() );
-            viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
+            viewItem.setSimplifiedValueType( valueType.toSimplifiedValueType().name() );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
             viewItem.setId( rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" ) );
             viewItem.setCode( rowSet.getString( "code" ) );

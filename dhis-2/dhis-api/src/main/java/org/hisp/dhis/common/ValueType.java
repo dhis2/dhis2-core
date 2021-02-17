@@ -202,7 +202,7 @@ public enum ValueType
      *
      * @return a simplified value type.
      */
-    public ValueType asSimplifiedValueType()
+    public ValueType toSimplifiedValueType()
     {
         if ( isNumeric() )
         {
