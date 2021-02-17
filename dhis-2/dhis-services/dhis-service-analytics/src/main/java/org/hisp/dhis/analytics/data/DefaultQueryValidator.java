@@ -181,17 +181,6 @@ public class DefaultQueryValidator
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
         }
-        else if ( !params.getIndicators().isEmpty() )
-        {
-            try
-            {
-                nestedIndicatorCyclicDependencyInspector.inspect( params.getIndicators() );
-            }
-            catch ( CyclicReferenceException cre )
-            {
-                error = new ErrorMessage( ErrorCode.E7116, cre.getMessage() );
-            }
-        }
         else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {
             if ( !params.hasDimension( DATA_X_DIM_ID ) )
