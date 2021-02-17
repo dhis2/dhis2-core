@@ -61,6 +61,14 @@ public interface ProgramRuleService
     void updateProgramRule( ProgramRule programRule );
 
     /**
+     * Check if there are program rules linked to the program
+     *
+     * @param programUid The program to be checked
+     * @return True if there are rules to the program, false otherwise
+     */
+    public Boolean hasProgramRules( String programUid );
+
+    /**
      * Returns a {@link ProgramRule}.
      *
      * @param id the id of the ProgramRule to return.

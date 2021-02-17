@@ -32,10 +32,15 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author markusbekken
@@ -50,11 +55,21 @@ public class DefaultProgramRuleService
 
     private ProgramRuleStore programRuleStore;
 
-    public DefaultProgramRuleService( ProgramRuleStore programRuleStore )
+    private final Cache<Boolean> programRulesCache;
+
+    public DefaultProgramRuleService( ProgramRuleStore programRuleStore, final CacheProvider cacheProvider )
     {
         checkNotNull( programRuleStore );
+        checkNotNull( cacheProvider );
 
         this.programRuleStore = programRuleStore;
+        this.programRulesCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "ProgramRulesCache" )
+            .expireAfterAccess( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( 1000 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -66,6 +81,7 @@ public class DefaultProgramRuleService
     public long addProgramRule( ProgramRule programRule )
     {
         programRuleStore.save( programRule );
+        programRulesCache.put( programRule.getProgram().getUid(), Boolean.TRUE );
         return programRule.getId();
     }
 
@@ -74,13 +90,29 @@ public class DefaultProgramRuleService
     public void deleteProgramRule( ProgramRule programRule )
     {
         programRuleStore.delete( programRule );
+        programRulesCache.invalidate( programRule.getProgram().getUid() );
     }
 
     @Override
     @Transactional
     public void updateProgramRule( ProgramRule programRule )
     {
+        programRulesCache.invalidateAll();
         programRuleStore.update( programRule );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Boolean hasProgramRules( String programUid )
+    {
+        if ( programRulesCache.get( programUid ).isPresent() )
+        {
+            return programRulesCache.get( programUid ).get();
+        }
+
+        boolean hasProgramRules = programRuleStore.getByProgram( Sets.newHashSet( programUid ) ).size() > 0;
+        programRulesCache.put( programUid, true );
+        return hasProgramRules;
     }
 
     @Override

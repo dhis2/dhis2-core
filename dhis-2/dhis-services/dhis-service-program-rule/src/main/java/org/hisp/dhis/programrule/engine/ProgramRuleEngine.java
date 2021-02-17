@@ -108,13 +108,13 @@ public class ProgramRuleEngine
 
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
-        List<ProgramRule> programRules = implementableRuleService
-            .getProgramRulesByActionTypes( program, programStageUid );
-
-        if ( programRules.isEmpty() )
+        if ( !implementableRuleService.hasProgramRules( program.getUid() ) )
         {
             return ruleEffects;
         }
+
+        List<ProgramRule> programRules = implementableRuleService
+            .getProgramRulesByActionTypes( program, programStageUid );
 
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
 
