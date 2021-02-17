@@ -115,8 +115,8 @@ public class DataItemServiceFacadeTest
 
         // Then
         assertThat( actualDimensionalItems, hasSize( 2 ) );
-        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR.name() ) );
-        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR.name() ) );
+        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR ) );
+        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR ) );
     }
 
     @Test

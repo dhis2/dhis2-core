@@ -326,7 +326,7 @@ public class DefaultFieldFilterService implements FieldFilterService
                 final String rename = org.apache.commons.lang3.StringUtils.substringBetween( fieldKey, "(", ")" );
 
                 final Field field = klassInstance.getClass().getDeclaredField( originalName );
-                field.setAccessible( true );
+                field.setAccessible( true ); // NOSONAR
 
                 final Object value = ReflectionUtils.invokeGetterMethod( originalName, klassInstance );
 
