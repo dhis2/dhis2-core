@@ -44,9 +44,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 @Slf4j
 public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
 {
-    private DhisConfigurationProvider configurationProvider;
+    private final DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, ?> redisTemplate;
+    private final RedisTemplate<String, ?> redisTemplate;
 
     private boolean forceInMemory;
 
@@ -96,22 +96,22 @@ public class ExtendedCacheBuilder<V> extends SimpleCacheBuilder<V>
         if ( getMaximumSize() == 0 || isDisabled() )
         {
             log.info( String.format( "NoOp Cache instance created for region:'%s'", getRegion() ) );
-            return new NoOpCache<V>( this );
+            return new NoOpCache<>( this );
         }
         else if ( forceInMemory )
         {
             log.info( String.format( "Local Cache (forced) instance created for region:'%s'", getRegion() ) );
-            return new LocalCache<V>( this );
+            return new LocalCache<>( this );
         }
         else if ( configurationProvider.getProperty( ConfigurationKey.REDIS_ENABLED ).equalsIgnoreCase( "true" ) )
         {
             log.info( String.format( "Redis Cache instance created for region:'%s'", getRegion() ) );
-            return new RedisCache<V>( this );
+            return new RedisCache<>( this );
         }
         else
         {
             log.info( String.format( "Local Cache instance created for region:'%s'", getRegion() ) );
-            return new LocalCache<V>( this );
+            return new LocalCache<>( this );
         }
     }
 

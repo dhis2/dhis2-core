@@ -177,7 +177,7 @@ public class DefaultProgramIndicatorService
         this.programIndicatorGroupStore = programIndicatorGroupStore;
         this.i18nManager = i18nManager;
         this.relationshipTypeService = relationshipTypeService;
-        this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache( String.class );
+        this.analyticsSqlCache = cacheProvider.createAnalyticsSqlCache();
     }
 
     public static final ImmutableMap<Integer, ExpressionItem> PROGRAM_INDICATOR_ITEMS = ImmutableMap

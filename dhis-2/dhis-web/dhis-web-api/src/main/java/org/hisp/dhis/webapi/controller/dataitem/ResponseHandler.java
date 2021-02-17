@@ -85,7 +85,7 @@ class ResponseHandler
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache( Long.class );
+        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
     }
 
     /**
