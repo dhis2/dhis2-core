@@ -112,7 +112,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             final T trackerDto = dtos.get( idx );
 
             TrackerObjectReport objectReport = new TrackerObjectReport( getType(), trackerDto.getUid(), idx );
-            typeReport.addObjectReport( objectReport );
 
             try
             {
@@ -135,6 +134,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                 {
                     session.persist( convertedDto );
                     typeReport.getStats().incCreated();
+                    typeReport.addObjectReport( objectReport );
                 }
                 else
                 {
@@ -142,6 +142,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     {
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
+                        typeReport.addObjectReport( objectReport );
                     }
                     else
                     {
