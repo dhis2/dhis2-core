@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
@@ -97,12 +98,13 @@ public class DefaultProgramRuleService
     @Transactional( readOnly = true )
     public Boolean hasProgramRules( String programUid )
     {
-        if ( programRulesCache.get( programUid ).isPresent() )
+        Optional<Boolean> optionalCacheValue = programRulesCache.get( programUid );
+        if ( optionalCacheValue.isPresent() )
         {
-            return programRulesCache.get( programUid ).get();
+            return optionalCacheValue.get();
         }
 
-        boolean hasProgramRules = programRuleStore.getByProgram( Sets.newHashSet( programUid ) ).size() > 0;
+        boolean hasProgramRules = !programRuleStore.getByProgram( Sets.newHashSet( programUid ) ).isEmpty();
         programRulesCache.put( programUid, true );
         return hasProgramRules;
     }

@@ -66,7 +66,7 @@ public interface ProgramRuleService
      * @param programUid The program to be checked
      * @return True if there are rules to the program, false otherwise
      */
-    public Boolean hasProgramRules( String programUid );
+    Boolean hasProgramRules( String programUid );
 
     /**
      * Returns a {@link ProgramRule}.

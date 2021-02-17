@@ -112,7 +112,7 @@ public class ProgramRuleEngine
 
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
-        if ( !implementableRuleService.hasProgramRules( program.getUid() ) )
+        if ( Boolean.FALSE.equals( implementableRuleService.hasProgramRules( program.getUid() ) ) )
         {
             return ruleEffects;
         }
