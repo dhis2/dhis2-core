@@ -45,6 +45,9 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -81,6 +84,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 
     private static final String JOINS = " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
         + " JOIN program ON program_attributes.programid = program.programid";
+
+    private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " FROM trackedentityattribute ";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -135,7 +140,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( "SELECT COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
             .append( getProgramAttributeQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -153,7 +158,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( "SELECT * FROM (" );
+        sql.append( SPACED_SELECT + "* FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
@@ -162,18 +167,18 @@ public class ProgramAttributeQuery implements DataItemQuery
             // translations at the same time.
             sql.append( selectRowsContainingBothTranslatedNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated programs.
                 .append( selectRowsContainingOnlyTranslatedProgramNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated tracked entity
                 // attributes.
                 .append( selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting ALL rows, not taking into consideration
                 // translations.
@@ -182,16 +187,16 @@ public class ProgramAttributeQuery implements DataItemQuery
                 /// AND excluding ALL translated rows previously selected
                 /// (translated programs and translated tracked entity
                 /// attributes).
-                .append( " WHERE (" + COMMON_UIDS + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") NOT IN (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated programs.
                 .append( selectRowsContainingOnlyTranslatedProgramNames( true ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated tracked entity
                 // attributes.
@@ -214,7 +219,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // Closing the temp table.
         sql.append( " ) t" );
 
-        sql.append( " WHERE" );
+        sql.append( SPACED_WHERE );
 
         // Applying filters, ordering and limits.
 
@@ -249,15 +254,15 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", p_displayname.value AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
         }
 
-        sql.append( " FROM trackedentityattribute " )
+        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -275,20 +280,20 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", p_displayname.value AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" );
         }
 
-        sql.append( " FROM trackedentityattribute " )
+        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
                     + LOCALE + " AND p_displayname.property = 'NAME'" )
-            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
             .append( " NOT IN (" )
 
             // Exclude rows already fully translated.
@@ -304,20 +309,20 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", program.\"name\" AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
         }
 
-        sql.append( " FROM trackedentityattribute " )
+        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
                     + LOCALE + " AND tea_displayname.property = 'NAME'" )
-            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
             .append( " NOT IN (" )
 
             // Exclude rows already fully translated.
@@ -330,9 +335,9 @@ public class ProgramAttributeQuery implements DataItemQuery
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
-            .append( " SELECT " + COMMON_COLUMNS )
+            .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
-            .append( " FROM trackedentityattribute " )
+            .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }
 }

@@ -141,8 +141,6 @@ public class UserAccessStatement
     {
         assertTableAlias( tableName );
 
-        // TODO: MAIKEL: What's the difference between the two functions? Do we
-        // need both?
         return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = TRUE "
             + "AND " + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = TRUE)";
     }

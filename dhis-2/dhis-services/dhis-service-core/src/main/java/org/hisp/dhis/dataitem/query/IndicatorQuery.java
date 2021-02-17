@@ -44,6 +44,9 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -141,7 +144,7 @@ public class IndicatorQuery implements DataItemQuery
 
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( "SELECT COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
             .append( getIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -159,14 +162,14 @@ public class IndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( "SELECT * FROM (" );
+        sql.append( SPACED_SELECT + "* FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
             // Selecting only rows that contains translated names.
             sql.append( selectRowsContainingTranslatedName( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting ALL rows, not taking into consideration
                 // translations.
@@ -174,7 +177,7 @@ public class IndicatorQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated names).
-                .append( " WHERE (" + ITEM_UID + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + ITEM_UID + ") NOT IN (" )
 
                 .append( selectRowsContainingTranslatedName( true ) )
 
@@ -194,7 +197,7 @@ public class IndicatorQuery implements DataItemQuery
         // Closing the temp table.
         sql.append( " ) t" );
 
-        sql.append( " WHERE" );
+        sql.append( SPACED_WHERE );
 
         // Applying filters, ordering and limits.
 
@@ -224,11 +227,11 @@ public class IndicatorQuery implements DataItemQuery
 
         if ( onlyUidColumn )
         {
-            sql.append( " SELECT " + ITEM_UID );
+            sql.append( SPACED_SELECT + ITEM_UID );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", i_displayname.value AS i18n_name" );
         }
 
@@ -243,7 +246,7 @@ public class IndicatorQuery implements DataItemQuery
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
-            .append( " SELECT " + COMMON_COLUMNS )
+            .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", indicator.\"name\" AS i18n_name" )
             .append( " FROM indicator " ).toString();
     }

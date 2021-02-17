@@ -45,6 +45,9 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -82,6 +85,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private static final String JOINS = "JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid"
         + " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid"
         + " JOIN program ON program.programid = programstage.programid";
+
+    private static final String SPACED_FROM_DATA_ELEMENT = " FROM dataelement ";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -136,7 +141,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( "SELECT COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
             .append( getProgramDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -154,7 +159,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( "SELECT * FROM (" );
+        sql.append( SPACED_SELECT + "* FROM (" );
 
         if ( hasStringPresence( paramsMap, LOCALE ) )
         {
@@ -162,17 +167,17 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             // translations at the same time.
             sql.append( selectRowsContainingBothTranslatedNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated programs.
                 .append( selectRowsContainingOnlyTranslatedProgramNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated data elements.
                 .append( selectRowsContainingOnlyTranslatedDataElementNames( false ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting ALL rows, not taking into consideration
                 // translations.
@@ -180,16 +185,16 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated programs and translated data elements).
-                .append( " WHERE (" + COMMON_UIDS + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") NOT IN (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated programs.
                 .append( selectRowsContainingOnlyTranslatedProgramNames( true ) )
 
-                .append( " UNION" )
+                .append( SPACED_UNION )
 
                 // Selecting only rows with translated data elements.
                 .append( selectRowsContainingOnlyTranslatedDataElementNames( true ) )
@@ -210,7 +215,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Closing the temp table.
         sql.append( " ) t" );
 
-        sql.append( " WHERE" );
+        sql.append( SPACED_WHERE );
 
         // Applying filters, ordering and limits.
 
@@ -245,15 +250,15 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", p_displayname.value AS p_i18n_name, de_displayname.value AS de_i18n_name" );
         }
 
-        sql.append( " FROM dataelement " )
+        sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
@@ -271,20 +276,20 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", p_displayname.value AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" );
         }
 
-        sql.append( " FROM dataelement " )
+        sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
                     + LOCALE + " AND p_displayname.property = 'NAME'" )
-            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
             .append( " NOT IN (" )
 
             // Exclude rows already fully translated.
@@ -300,20 +305,20 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         if ( onlyUidColumns )
         {
-            sql.append( " SELECT " + COMMON_UIDS );
+            sql.append( SPACED_SELECT + COMMON_UIDS );
         }
         else
         {
-            sql.append( " SELECT " + COMMON_COLUMNS )
+            sql.append( SPACED_SELECT + COMMON_COLUMNS )
                 .append( ", program.\"name\" AS p_i18n_name, de_displayname.value AS de_i18n_name" );
         }
 
-        sql.append( " FROM dataelement " )
+        sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
                 " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
                     + LOCALE + " AND de_displayname.property = 'NAME'" )
-            .append( " WHERE (" + COMMON_UIDS + ")" )
+            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
             .append( " NOT IN (" )
 
             // Exclude rows already fully translated.
@@ -326,9 +331,9 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
-            .append( " SELECT " + COMMON_COLUMNS )
+            .append( SPACED_SELECT + COMMON_COLUMNS )
             .append( ", program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
-            .append( " FROM dataelement " )
+            .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }
 }

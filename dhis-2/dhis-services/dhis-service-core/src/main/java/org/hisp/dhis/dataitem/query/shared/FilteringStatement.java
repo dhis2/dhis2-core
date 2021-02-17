@@ -128,7 +128,7 @@ public class FilteringStatement
             // Skip WHEN the value type list does NOT contain the given type.
             // This is mainly used for Indicator's types, as they don't have a
             // value type, but are always interpreted as NUMBER.
-            return !valueTypeNames.contains( valueTypeToSkip.name() );
+            return valueTypeNames != null && !valueTypeNames.contains( valueTypeToSkip.name() );
         }
 
         return false;
