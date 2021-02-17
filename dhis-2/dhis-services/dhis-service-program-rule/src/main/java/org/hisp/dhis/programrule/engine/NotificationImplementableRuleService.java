@@ -29,7 +29,10 @@
 package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -40,9 +43,19 @@ import org.springframework.stereotype.Component;
 public class NotificationImplementableRuleService
     extends ImplementableRuleService
 {
-    public NotificationImplementableRuleService( ProgramRuleService programRuleService )
+    private final Cache<Boolean> programRulesCache;
+
+    public NotificationImplementableRuleService( ProgramRuleService programRuleService,
+        final CacheProvider cacheProvider )
     {
         super( programRuleService );
+        this.programRulesCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "ProgramRulesCache" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( 1000 )
+            .build();
     }
 
     @Override
@@ -57,5 +70,11 @@ public class NotificationImplementableRuleService
         }
 
         return getProgramRulesByActionTypes( program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid );
+    }
+
+    @Override
+    Cache<Boolean> getProgramRulesCache()
+    {
+        return this.programRulesCache;
     }
 }
