@@ -60,4 +60,9 @@ abstract class ImplementableRuleService
 
     }
 
+    public Boolean hasProgramRules( String programUid )
+    {
+        return this.programRuleService.hasProgramRules( programUid );
+    }
+
 }

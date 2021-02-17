@@ -34,6 +34,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -73,6 +74,9 @@ public class ProgramRuleEngine
     @NonNull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
+    @NonNull
+    private final CacheProvider cacheProvider;
+
     public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
         return evaluate( enrollment, events, Lists.newArrayList() );
@@ -108,13 +112,13 @@ public class ProgramRuleEngine
 
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
-        List<ProgramRule> programRules = implementableRuleService
-            .getProgramRulesByActionTypes( program, programStageUid );
-
-        if ( programRules.isEmpty() )
+        if ( !implementableRuleService.hasProgramRules( program.getUid() ) )
         {
             return ruleEffects;
         }
+
+        List<ProgramRule> programRules = implementableRuleService
+            .getProgramRulesByActionTypes( program, programStageUid );
 
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
 

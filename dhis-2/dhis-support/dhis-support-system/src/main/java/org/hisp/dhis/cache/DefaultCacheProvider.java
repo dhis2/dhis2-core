@@ -81,7 +81,8 @@ public class DefaultCacheProvider implements CacheProvider
         canDataWriteCocCache,
         analyticsSql,
         dataElementCache,
-        propertyTransformerCache
+        propertyTransformerCache,
+        programRulesCache
     }
 
     private final CacheBuilderProvider cacheBuilderProvider;
@@ -370,6 +371,18 @@ public class DefaultCacheProvider implements CacheProvider
             .withInitialCapacity( 20 )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 30000 ) )
+            .build();
+    }
+
+    @Override
+    public <V> Cache<V> createProgramRulesCache()
+    {
+        return this.<V> newBuilder()
+            .forRegion( Region.programRulesCache.name() )
+            .expireAfterAccess( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( 1000 ) )
             .build();
     }
 }
