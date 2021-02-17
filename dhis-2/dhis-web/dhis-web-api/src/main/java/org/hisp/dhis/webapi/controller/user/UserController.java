@@ -231,7 +231,7 @@ public class UserController
      * Overrides count() method in AbstractController. The reason we override is
      * because we have more optimized queries for User, since User has some
      * complicated relationships it can result in less optimized count queries
-     * when using the generic one in the AbstractController.
+     * when using the generic.
      *
      * @param options
      * @param filters
