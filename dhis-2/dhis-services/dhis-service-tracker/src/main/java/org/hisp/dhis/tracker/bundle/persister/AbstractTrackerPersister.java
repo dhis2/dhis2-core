@@ -143,6 +143,10 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                         session.merge( convertedDto );
                         typeReport.getStats().incUpdated();
                     }
+                    else
+                    {
+                        typeReport.getStats().incIgnored();
+                    }
                 }
 
                 updateAttributes( session, bundle.getPreheat(), trackerDto, convertedDto );

@@ -108,8 +108,10 @@ public class TrackerImportReportFinalizer
         TrackerTimingsStats timingsStats, Map<TrackerType, Integer> bundleSize )
     {
         TrackerStats stats = TrackerStats.builder().build();
-        stats.merge( bundleReport.getStats() );
-        stats.setIgnored( Math.toIntExact( validationReport.size() ) );
+        TrackerStats brs = bundleReport.getStats();
+        stats.merge( brs );
+
+        stats.setIgnored( brs.getTotal() - brs.getUpdated() - brs.getCreated() - brs.getDeleted() );
 
         return TrackerImportReport.builder()
             .status( status )
