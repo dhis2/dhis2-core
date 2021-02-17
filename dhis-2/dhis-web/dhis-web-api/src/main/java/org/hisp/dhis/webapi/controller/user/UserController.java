@@ -39,11 +39,11 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
+
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
@@ -86,6 +86,7 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,6 +99,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -144,18 +147,7 @@ public class UserController
         List<Order> orders )
         throws QueryParserException
     {
-        UserQueryParams params = new UserQueryParams();
-        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
-        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
-        params.setCanManage( options.isTrue( "canManage" ) );
-        params.setAuthSubset( options.isTrue( "authSubset" ) );
-        params.setLastLogin( options.getDate( "lastLogin" ) );
-        params.setInactiveMonths( options.getInt( "inactiveMonths" ) );
-        params.setInactiveSince( options.getDate( "inactiveSince" ) );
-        params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
-        params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
-        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
-        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        UserQueryParams params = makeUserQueryParams( options );
 
         String ou = options.get( "ou" );
 
@@ -170,35 +162,92 @@ public class UserController
             params.setAuthSubset( true );
         }
 
-        params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
+        boolean hasUserGroupFilter = filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) );
+        params.setPrefetchUserGroups( hasUserGroupFilter );
 
-        int count = userService.getUserCount( params );
-
-        if ( options.hasPaging() && filters.isEmpty() )
+        if ( filters.isEmpty() && options.hasPaging() )
         {
-            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-            metadata.setPager( pager );
-            params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );
+            metadata.setPager( makePager( options, params ) );
         }
 
-        List<String> ordersAsString = orders == null ? null
-            : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
+        Query query = makeQuery( options, filters, orders, params );
 
-        List<User> users = userService.getUsers( params, ordersAsString );
+        return (List<User>) queryService.query( query );
+    }
 
+    private Pager makePager( WebOptions options, UserQueryParams params )
+    {
+        long count = userService.getUserCount( params );
+
+        Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+        params.setFirst( pager.getOffset() );
+        params.setMax( pager.getPageSize() );
+        
+        return pager;
+    }
+
+    private Query makeQuery( WebOptions options, List<String> filters,
+        List<Order> orders, UserQueryParams params )
+    {
         Pagination pagination = CollectionUtils.isEmpty( filters ) ? new Pagination() : getPaginationData( options );
+
+        List<String> ordersAsString = (orders == null) ? null
+            : orders.stream()
+                .map( Order::toOrderString )
+                .collect( Collectors.toList() );
 
         /*
          * Keep the memory query on the result
          */
-        Query query = queryService.getQueryFromUrl( getEntityClass(),
-            filters, orders, pagination, options.getRootJunction() );
+        Query query = queryService
+            .getQueryFromUrl( getEntityClass(), filters, orders, pagination, options.getRootJunction() );
+
+        List<User> users = userService.getUsers( params, ordersAsString );
+
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
         query.setObjects( users );
+        
+        return query;
+    }
 
-        return (List<User>) queryService.query( query );
+    private UserQueryParams makeUserQueryParams( WebOptions options )
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
+        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
+        params.setCanManage( options.isTrue( "canManage" ) );
+        params.setAuthSubset( options.isTrue( "authSubset" ) );
+        params.setLastLogin( options.getDate( "lastLogin" ) );
+        params.setInactiveMonths( options.getInt( "inactiveMonths" ) );
+        params.setInactiveSince( options.getDate( "inactiveSince" ) );
+        params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
+        params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
+        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
+        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        
+        return params;
+    }
+
+    /**
+     * Overrides count() method in AbstractController. The reason we override is
+     * because we have more optimized queries for User, since User has some
+     * complicated relationships it can result in less optimized count queries
+     * when using the generic one in the AbstractController.
+     * 
+     * @param options
+     * @param filters
+     * @param orders
+     * @return
+     */
+    protected long count( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        UserQueryParams params = makeUserQueryParams( options );
+        Query query = makeQuery( options, filters, orders, params );
+
+        List<? extends IdentifiableObject> list = queryService.query( query );
+
+        return list.size();
     }
 
     @Override
