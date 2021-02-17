@@ -29,6 +29,7 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
@@ -111,18 +112,15 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
             final ValueType valueType = fromString( rowSet.getString( "valuetype" ) );
 
-            final String programName = trimToEmpty( rowSet.getString( "program_name" ) );
-            final String displayProgramName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
-                programName );
-
-            final String name = trimToEmpty( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "de_i18n_name" ) ),
-                trimToEmpty( rowSet.getString( "name" ) ) );
+            final String name = trimToEmpty(
+                rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
+            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
+                rowSet.getString( "program_name" ) ) + SPACE
+                + defaultIfBlank( trimToEmpty( rowSet.getString( "de_i18n_name" ) ),
+                    trimToEmpty( rowSet.getString( "name" ) ) );
 
             viewItem.setName( name );
             viewItem.setDisplayName( displayName );
-            viewItem.setProgramName( programName );
-            viewItem.setProgramDisplayName( displayProgramName );
             viewItem.setValueType( valueType.name() );
             viewItem.setSimplifiedValueType( valueType.asSimplifiedValueType().name() );
             viewItem.setProgramId( rowSet.getString( "program_uid" ) );
@@ -233,8 +231,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        sql.append(
-            ifSet( ordering( "t.de_i18n_name, t.uid", "t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.p_i18n_name, t.de_i18n_name, t.uid",
+            "t.program_name, t.name, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();
