@@ -161,7 +161,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
-                        .map( effect -> new EventActionRule( event.getEvent(), effect.data(),
+                        .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
                         .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
@@ -258,7 +258,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
                         .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
                             getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
-                        .map( effect -> new EnrollmentActionRule(
+                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )

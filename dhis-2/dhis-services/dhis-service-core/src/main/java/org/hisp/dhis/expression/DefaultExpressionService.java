@@ -242,7 +242,6 @@ public class DefaultExpressionService
     // Constructor
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
@@ -264,7 +263,7 @@ public class DefaultExpressionService
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
-        this.constantMapCache = (Cache) cacheProvider.createAllConstantsCache( Map.class );
+        this.constantMapCache = cacheProvider.createAllConstantsCache();
     }
 
     // -------------------------------------------------------------------------

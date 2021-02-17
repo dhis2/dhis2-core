@@ -548,7 +548,7 @@ public class AssignValueImplementerTest
         RuleAction actionAssign = RuleActionAssign
             .create( null, DATA_ELEMENT_NEW_VALUE, dataElementA.getUid(), DATA_ELEMENT );
 
-        return Lists.newArrayList( RuleEffect.create( actionAssign, DATA_ELEMENT_NEW_VALUE ) );
+        return Lists.newArrayList( RuleEffect.create( "", actionAssign, DATA_ELEMENT_NEW_VALUE ) );
     }
 
     private List<RuleEffect> getRuleEnrollmentEffects()
@@ -556,6 +556,6 @@ public class AssignValueImplementerTest
         RuleAction actionAssign = RuleActionAssign
             .create( null, TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
 
-        return Lists.newArrayList( RuleEffect.create( actionAssign, TEI_ATTRIBUTE_NEW_VALUE ) );
+        return Lists.newArrayList( RuleEffect.create( "", actionAssign, TEI_ATTRIBUTE_NEW_VALUE ) );
     }
 }

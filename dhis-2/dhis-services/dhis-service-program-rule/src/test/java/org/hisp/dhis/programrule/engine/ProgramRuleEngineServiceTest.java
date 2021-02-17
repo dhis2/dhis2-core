@@ -149,7 +149,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
         when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
@@ -189,7 +189,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );

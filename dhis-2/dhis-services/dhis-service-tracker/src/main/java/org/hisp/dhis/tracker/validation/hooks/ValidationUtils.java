@@ -54,7 +54,7 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.locationtech.jts.geom.Geometry;
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -139,11 +139,21 @@ public class ValidationUtils
         programRuleIssues
             .stream()
             .filter( issue -> issue.getIssueType().equals( ERROR ) )
-            .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e.getMessage() ) ) );
+            .forEach( issue -> {
+                List<String> args = Lists.newArrayList( issue.getRuleUid() );
+                args.addAll( issue.getArgs() );
+                reporter.addError( newReport( issue.getIssueCode() ).addArgs( args.toArray() ) );
+            } );
 
         programRuleIssues
             .stream()
             .filter( issue -> issue.getIssueType().equals( WARNING ) )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1201 ).addArg( e.getMessage() ) ) );
+            .forEach(
+                issue -> {
+                    List<String> args = Lists.newArrayList( issue.getRuleUid() );
+                    args.addAll( issue.getArgs() );
+                    reporter.addWarning( newWarningReport( issue.getIssueCode() )
+                        .addArgs( args.toArray() ) );
+                } );
     }
 }

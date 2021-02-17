@@ -120,7 +120,7 @@ public class DefaultIdentifiableObjectManager
         this.sessionFactory = sessionFactory;
         this.currentUserService = currentUserService;
         this.schemaService = schemaService;
-        this.defaultObjectCache = cacheProvider.createDefaultObjectCache( IdentifiableObject.class );
+        this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
     }
 
     // --------------------------------------------------------------------------

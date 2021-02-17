@@ -73,7 +73,7 @@ public class DefaultAttributeService
         this.attributeStore = attributeStore;
         this.manager = manager;
         this.sessionFactory = sessionFactory;
-        this.attributeCache = cacheProvider.createMetadataAttributesCache( Attribute.class );
+        this.attributeCache = cacheProvider.createMetadataAttributesCache();
     }
 
     // -------------------------------------------------------------------------
