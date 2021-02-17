@@ -97,7 +97,7 @@ public class DefaultAppManager
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.appCache = cacheProvider.createAppCache( App.class );
+        this.appCache = cacheProvider.createAppCache();
     }
 
     // -------------------------------------------------------------------------

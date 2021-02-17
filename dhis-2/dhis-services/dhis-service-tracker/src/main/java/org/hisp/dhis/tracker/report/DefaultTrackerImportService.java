@@ -295,8 +295,7 @@ public class DefaultTrackerImportService
         if ( null != params.getJobConfiguration() )
         {
             notifier.notify( params.getJobConfiguration(),
-                params.toString() +
-                    " Import:Start" );
+                params.userStartInfo() + " Import:Start" );
         }
     }
 
@@ -307,9 +306,9 @@ public class DefaultTrackerImportService
             notifier
                 .update( params.getJobConfiguration(), NotificationLevel.DEBUG,
                     params.toString() +
-                        " Import:"
-                        + validationOps + " took "
-                        + opsTimer.get( validationOps ) );
+                        validationOps + " completed in "
+                        + opsTimer.get( validationOps ) + " Import:"
+                        + validationOps );
         }
     }
 
@@ -319,9 +318,8 @@ public class DefaultTrackerImportService
         {
             notifier.update( params.getJobConfiguration(),
                 params.toString() +
-                    " Import:Done took "
-                    +
-                    importReport.getTimingsStats().get( TOTAL_OPS ),
+                    " finished in " +
+                    importReport.getTimingsStats().get( TOTAL_OPS ) + " Import:Done",
                 true );
 
             if ( params.getJobConfiguration().isInMemoryJob() )
@@ -337,8 +335,8 @@ public class DefaultTrackerImportService
         {
             notifier.update( params.getJobConfiguration(), NotificationLevel.ERROR,
                 params.toString() +
-                    " Import:Failed with exception: "
-                    + e.getMessage(),
+                    " failed with exception: "
+                    + e.getMessage() + " Import:Error",
                 true );
 
             if ( params.getJobConfiguration().isInMemoryJob() )

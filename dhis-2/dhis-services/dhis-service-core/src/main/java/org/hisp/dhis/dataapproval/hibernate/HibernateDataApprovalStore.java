@@ -130,7 +130,7 @@ public class HibernateDataApprovalStore
         this.categoryService = categoryService;
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
-        this.isApprovedCache = cacheProvider.createIsDataApprovedCache( Boolean.class );
+        this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
     }
 
     /**

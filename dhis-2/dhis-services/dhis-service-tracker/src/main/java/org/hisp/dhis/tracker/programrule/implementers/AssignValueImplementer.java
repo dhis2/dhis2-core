@@ -126,7 +126,7 @@ public class AssignValueImplementer
             }
             else
             {
-                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1309,
                     Lists.newArrayList( actionRule.getField(), actionRule.getEnrollment() ), IssueType.ERROR ) );
             }
         }

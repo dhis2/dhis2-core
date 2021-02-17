@@ -35,6 +35,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
@@ -90,7 +91,8 @@ public class TrackerNotificationThread extends SecurityContextRunnable
             serviceMapper.get( sideEffectDataBundle.getKlass() ).accept( object.getId() );
         }
 
-        notifier.notify( sideEffectDataBundle.getJobConfiguration(), "Tracker notification side effects completed" );
+        notifier.notify( sideEffectDataBundle.getJobConfiguration(), NotificationLevel.DEBUG,
+            "Tracker notification side effects completed" );
     }
 
     public void setSideEffectDataBundle( TrackerSideEffectDataBundle sideEffectDataBundle )

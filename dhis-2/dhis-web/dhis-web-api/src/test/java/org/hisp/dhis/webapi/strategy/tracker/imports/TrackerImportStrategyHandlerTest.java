@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.strategy.tracker.imports;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.tracker.TrackerBundleParams;
 import org.hisp.dhis.webapi.controller.tracker.TrackerImportReportRequest;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -67,7 +66,8 @@ public class TrackerImportStrategyHandlerTest
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
             .contextService( contextService )
-            .currentUser( new User() )
+            .userUid( "userUid" )
+            .uid( "uid" )
             .trackerBundleParams( TrackerBundleParams.builder().build() )
             .isAsync( true )
             .build();
@@ -84,7 +84,8 @@ public class TrackerImportStrategyHandlerTest
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest
             .builder()
             .contextService( contextService )
-            .currentUser( new User() )
+            .userUid( "userUid" )
+            .uid( "uid" )
             .trackerBundleParams( TrackerBundleParams.builder().build() )
             .build();
 
