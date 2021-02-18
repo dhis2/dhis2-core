@@ -80,7 +80,7 @@ import org.springframework.stereotype.Component;
 public class DataElementQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.\"name\", dataelement.valuetype,"
-        + " dataelement.code, dataelement.sharing AS dataelement_sharing";
+        + " dataelement.code, dataelement.sharing as dataelement_sharing";
 
     private static final String ITEM_UID = "dataelement.uid";
 
@@ -120,7 +120,7 @@ public class DataElementQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -138,7 +138,7 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -153,7 +153,7 @@ public class DataElementQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated data elements).
-                .append( SPACED_WHERE + "(" + ITEM_UID + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + ITEM_UID + ") not in (" )
 
                 .append( selectRowsContainingTranslatedName( true ) )
 
@@ -167,7 +167,7 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY dataelement.\"name\", " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
+            " group by dataelement.\"name\", " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
                 + " dataelement_sharing" );
 
         // Closing the temp table.
@@ -179,7 +179,7 @@ public class DataElementQuery implements DataItemQuery
 
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.dataelement_sharing", paramsMap ) ) );
-        sql.append( " AND" );
+        sql.append( " and" );
         sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
@@ -220,13 +220,13 @@ public class DataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", de_displayname.value AS i18n_name" );
+                .append( ", de_displayname.value as i18n_name" );
         }
 
-        sql.append( " FROM dataelement " )
+        sql.append( " from dataelement " )
             .append(
-                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
-                    + LOCALE + " AND de_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) on de_displayname.locale = :"
+                    + LOCALE + " and de_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -235,7 +235,7 @@ public class DataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataelement.\"name\" AS i18n_name" )
-            .append( " FROM dataelement " ).toString();
+            .append( ", dataelement.\"name\" as i18n_name" )
+            .append( " from dataelement " ).toString();
     }
 }

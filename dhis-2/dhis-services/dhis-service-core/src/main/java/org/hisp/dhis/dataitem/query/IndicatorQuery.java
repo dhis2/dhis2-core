@@ -76,7 +76,7 @@ import org.springframework.stereotype.Component;
 public class IndicatorQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "indicator.uid, indicator.\"name\","
-        + " indicator.code, indicator.sharing AS indicator_sharing";
+        + " indicator.code, indicator.sharing as indicator_sharing";
 
     private static final String ITEM_UID = "indicator.uid";
 
@@ -136,7 +136,7 @@ public class IndicatorQuery implements DataItemQuery
 
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -154,7 +154,7 @@ public class IndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -169,7 +169,7 @@ public class IndicatorQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated names).
-                .append( SPACED_WHERE + "(" + ITEM_UID + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + ITEM_UID + ") not in (" )
 
                 .append( selectRowsContainingTranslatedName( true ) )
 
@@ -183,7 +183,7 @@ public class IndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY indicator.\"name\", " + ITEM_UID + ", indicator.code, i18n_name,"
+            " group by indicator.\"name\", " + ITEM_UID + ", indicator.code, i18n_name,"
                 + " indicator_sharing" );
 
         // Closing the temp table.
@@ -224,13 +224,13 @@ public class IndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", i_displayname.value AS i18n_name" );
+                .append( ", i_displayname.value as i18n_name" );
         }
 
-        sql.append( " FROM indicator " )
+        sql.append( " from indicator " )
             .append(
-                " JOIN jsonb_to_recordset(indicator.translations) AS i_displayname(value TEXT, locale TEXT, property TEXT) ON i_displayname.locale = :"
-                    + LOCALE + " AND i_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(indicator.translations) as i_displayname(value TEXT, locale TEXT, property TEXT) on i_displayname.locale = :"
+                    + LOCALE + " and i_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -239,7 +239,7 @@ public class IndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", indicator.\"name\" AS i18n_name" )
-            .append( " FROM indicator " ).toString();
+            .append( ", indicator.\"name\" as i18n_name" )
+            .append( " from indicator " ).toString();
     }
 }

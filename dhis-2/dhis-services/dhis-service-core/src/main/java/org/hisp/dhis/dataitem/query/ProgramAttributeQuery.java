@@ -78,16 +78,16 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramAttributeQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "program.\"name\" AS program_name, program.uid AS program_uid,"
+    private static final String COMMON_COLUMNS = "program.\"name\" as program_name, program.uid as program_uid,"
         + " trackedentityattribute.uid, trackedentityattribute.\"name\", trackedentityattribute.valuetype, trackedentityattribute.code,"
-        + " trackedentityattribute.sharing AS trackedentityattribute_sharing, program.sharing AS program_sharing";
+        + " trackedentityattribute.sharing as trackedentityattribute_sharing, program.sharing as program_sharing";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 
-    private static final String JOINS = " JOIN program_attributes ON program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
-        + " JOIN program ON program_attributes.programid = program.programid";
+    private static final String JOINS = " join program_attributes on program_attributes.trackedentityattributeid = trackedentityattribute.trackedentityattributeid"
+        + " join program on program_attributes.programid = program.programid";
 
-    private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " FROM trackedentityattribute ";
+    private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " from trackedentityattribute ";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -131,7 +131,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getProgramAttributeQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -149,7 +149,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -178,7 +178,7 @@ public class ProgramAttributeQuery implements DataItemQuery
                 /// AND excluding ALL translated rows previously selected
                 /// (translated programs and translated tracked entity
                 /// attributes).
-                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") not in (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
 
@@ -203,7 +203,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY program.\"name\", trackedentityattribute.\"name\", " + COMMON_UIDS
+            " group by program.\"name\", trackedentityattribute.\"name\", " + COMMON_UIDS
                 + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, tea_i18n_name,"
                 + " program_sharing, trackedentityattribute_sharing" );
 
@@ -217,7 +217,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.program_sharing",
             "t.trackedentityattribute_sharing", paramsMap ) ) );
-        sql.append( " AND" );
+        sql.append( " and" );
         sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
@@ -250,17 +250,17 @@ public class ProgramAttributeQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
+                .append( ", p_displayname.value AS p_i18n_name, tea_displayname.value as tea_i18n_name" );
         }
 
         sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append(
-                " JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
-                    + LOCALE + " AND tea_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) on tea_displayname.locale = :"
+                    + LOCALE + " and tea_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -276,16 +276,16 @@ public class ProgramAttributeQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, trackedentityattribute.\"name\" as tea_i18n_name" );
         }
 
         sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -305,16 +305,16 @@ public class ProgramAttributeQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" AS p_i18n_name, tea_displayname.value AS tea_i18n_name" );
+                .append( ", program.\"name\" as p_i18n_name, tea_displayname.value as tea_i18n_name" );
         }
 
         sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(trackedentityattribute.translations) AS tea_displayname(value TEXT, locale TEXT, property TEXT) ON tea_displayname.locale = :"
-                    + LOCALE + " AND tea_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) on tea_displayname.locale = :"
+                    + LOCALE + " and tea_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -327,7 +327,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" AS p_i18n_name, trackedentityattribute.\"name\" AS tea_i18n_name" )
+            .append( ", program.\"name\" as p_i18n_name, trackedentityattribute.\"name\" as tea_i18n_name" )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }

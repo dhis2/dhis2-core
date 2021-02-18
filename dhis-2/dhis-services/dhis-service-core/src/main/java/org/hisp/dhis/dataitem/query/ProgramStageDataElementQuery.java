@@ -78,17 +78,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramStageDataElementQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "program.\"name\" AS program_name, program.uid AS program_uid,"
+    private static final String COMMON_COLUMNS = "program.\"name\" as program_name, program.uid as program_uid,"
         + " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code,"
-        + " dataelement.sharing AS dataelement_sharing, program.sharing AS program_sharing";
+        + " dataelement.sharing as dataelement_sharing, program.sharing as program_sharing";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
-    private static final String JOINS = "JOIN programstagedataelement ON programstagedataelement.dataelementid = dataelement.dataelementid"
-        + " JOIN programstage ON programstagedataelement.programstageid = programstage.programstageid"
-        + " JOIN program ON program.programid = programstage.programid";
+    private static final String JOINS = "join programstagedataelement on programstagedataelement.dataelementid = dataelement.dataelementid"
+        + " join programstage on programstagedataelement.programstageid = programstage.programstageid"
+        + " join program on program.programid = programstage.programid";
 
-    private static final String SPACED_FROM_DATA_ELEMENT = " FROM dataelement ";
+    private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -132,7 +132,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getProgramDataElementQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -150,7 +150,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -176,7 +176,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated programs and translated data elements).
-                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") not in (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
 
@@ -200,7 +200,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY program.\"name\", dataelement.\"name\", " + COMMON_UIDS
+            " group by program.\"name\", dataelement.\"name\", " + COMMON_UIDS
                 + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program_sharing, dataelement_sharing" );
 
         // Closing the temp table.
@@ -213,7 +213,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.program_sharing",
             "t.dataelement_sharing", paramsMap ) ) );
-        sql.append( " AND" );
+        sql.append( " and" );
         sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
@@ -246,17 +246,17 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, de_displayname.value AS de_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, de_displayname.value as de_i18n_name" );
         }
 
         sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append(
-                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
-                    + LOCALE + " AND de_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) on de_displayname.locale = :"
+                    + LOCALE + " and de_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -272,16 +272,16 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, dataelement.\"name\" as de_i18n_name" );
         }
 
         sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -301,16 +301,16 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" AS p_i18n_name, de_displayname.value AS de_i18n_name" );
+                .append( ", program.\"name\" as p_i18n_name, de_displayname.value as de_i18n_name" );
         }
 
         sql.append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(dataelement.translations) AS de_displayname(value TEXT, locale TEXT, property TEXT) ON de_displayname.locale = :"
-                    + LOCALE + " AND de_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) on de_displayname.locale = :"
+                    + LOCALE + " and de_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -323,7 +323,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" AS p_i18n_name, dataelement.\"name\" AS de_i18n_name" )
+            .append( ", program.\"name\" as p_i18n_name, dataelement.\"name\" as de_i18n_name" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

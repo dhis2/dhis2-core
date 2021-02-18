@@ -49,7 +49,7 @@ public class LimitStatement
     {
         if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )
         {
-            return " LIMIT :" + MAX_LIMIT;
+            return " limit :" + MAX_LIMIT;
         }
 
         return EMPTY;

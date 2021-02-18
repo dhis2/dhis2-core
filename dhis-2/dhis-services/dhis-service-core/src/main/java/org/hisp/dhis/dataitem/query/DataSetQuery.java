@@ -74,7 +74,7 @@ import org.springframework.stereotype.Component;
 public class DataSetQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "dataset.uid, dataset.\"name\","
-        + " dataset.code, dataset.sharing AS dataset_sharing";
+        + " dataset.code, dataset.sharing as dataset_sharing";
 
     private static final String ITEM_UID = "dataset.uid";
 
@@ -113,7 +113,7 @@ public class DataSetQuery implements DataItemQuery
     {
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getDateSetQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -131,7 +131,7 @@ public class DataSetQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -146,7 +146,7 @@ public class DataSetQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated data sets).
-                .append( SPACED_WHERE + "(" + ITEM_UID + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + ITEM_UID + ") not in (" )
 
                 .append( selectRowsContainingTranslatedName( true ) )
 
@@ -160,7 +160,7 @@ public class DataSetQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY dataset.\"name\", " + ITEM_UID + ", dataset.code, i18n_name,"
+            " group by dataset.\"name\", " + ITEM_UID + ", dataset.code, i18n_name,"
                 + " dataset_sharing" );
 
         // Closing the temp table.
@@ -201,13 +201,13 @@ public class DataSetQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", ds_displayname.value AS i18n_name" );
+                .append( ", ds_displayname.value as i18n_name" );
         }
 
-        sql.append( " FROM dataset " )
+        sql.append( " from dataset " )
             .append(
-                " JOIN jsonb_to_recordset(dataset.translations) AS ds_displayname(value TEXT, locale TEXT, property TEXT) ON ds_displayname.locale = :"
-                    + LOCALE + " AND ds_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(dataset.translations) as ds_displayname(value TEXT, locale TEXT, property TEXT) on ds_displayname.locale = :"
+                    + LOCALE + " and ds_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -216,7 +216,7 @@ public class DataSetQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataset.\"name\" AS i18n_name" )
-            .append( " FROM dataset " ).toString();
+            .append( ", dataset.\"name\" as i18n_name" )
+            .append( " from dataset " ).toString();
     }
 }

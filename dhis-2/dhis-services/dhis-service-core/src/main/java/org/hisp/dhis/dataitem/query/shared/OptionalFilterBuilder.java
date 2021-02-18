@@ -66,7 +66,7 @@ public class OptionalFilterBuilder
             if ( first )
             {
                 // Opening AND for optional filters.
-                sb.append( " AND (" );
+                sb.append( " and (" );
                 first = false;
             }
 

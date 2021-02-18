@@ -38,9 +38,9 @@ public class StatementUtil
     {
     }
 
-    public static final String SPACED_SELECT = " SELECT ";
+    public static final String SPACED_SELECT = " select ";
 
-    public static final String SPACED_UNION = " UNION ";
+    public static final String SPACED_UNION = " union ";
 
-    public static final String SPACED_WHERE = " WHERE ";
+    public static final String SPACED_WHERE = " where ";
 }

@@ -86,7 +86,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + NAME + " OR " + columnTwo + ILIKE + NAME
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + NAME + " or " + columnTwo + ILIKE + NAME
                 + SPACED_RIGHT_PARENTHESIS;
         }
 
@@ -108,7 +108,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + DISPLAY_NAME + " OR " + columnTwo + ILIKE
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + DISPLAY_NAME + " or " + columnTwo + ILIKE
                 + DISPLAY_NAME
                 + SPACED_RIGHT_PARENTHESIS;
         }
@@ -120,7 +120,7 @@ public class FilteringStatement
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            return SPACED_LEFT_PARENTHESIS + column + " IN (:" + VALUE_TYPES + ")" + SPACED_RIGHT_PARENTHESIS;
+            return SPACED_LEFT_PARENTHESIS + column + " in (:" + VALUE_TYPES + ")" + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -186,7 +186,7 @@ public class FilteringStatement
 
     public static String rootJunction( final MapSqlParameterSource paramsMap )
     {
-        final String defaultRootJunction = "AND";
+        final String defaultRootJunction = "and";
 
         if ( hasStringNonBlankPresence( paramsMap, ROOT_JUNCTION ) )
         {

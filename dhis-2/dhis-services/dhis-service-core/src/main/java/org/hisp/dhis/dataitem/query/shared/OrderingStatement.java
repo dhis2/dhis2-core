@@ -44,7 +44,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OrderingStatement
 {
-    private static final String ORDER_BY = " ORDER BY ";
+    private static final String ORDER_BY = " order by ";
 
     private OrderingStatement()
     {

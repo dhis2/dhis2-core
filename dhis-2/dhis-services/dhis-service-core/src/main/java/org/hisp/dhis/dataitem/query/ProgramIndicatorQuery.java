@@ -77,14 +77,14 @@ import org.springframework.stereotype.Component;
 public class ProgramIndicatorQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "programindicator.\"name\", programindicator.uid, programindicator.code,"
-        + " program.\"name\" AS program_name, program.uid AS program_uid, program.sharing AS program_sharing,"
-        + " programindicator.sharing AS programindicator_sharing";
+        + " program.\"name\" as program_name, program.uid as program_uid, program.sharing as program_sharing,"
+        + " programindicator.sharing as programindicator_sharing";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 
-    private static final String JOINS = "JOIN program ON program.programid = programindicator.programid";
+    private static final String JOINS = "join program on program.programid = programindicator.programid";
 
-    private static final String SPACED_FROM_PROGRAM_INDICATOR = " FROM programindicator ";
+    private static final String SPACED_FROM_PROGRAM_INDICATOR = " from programindicator ";
 
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
@@ -145,7 +145,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "COUNT(*) FROM (" )
+        sql.append( SPACED_SELECT + "count(*) from (" )
             .append( getProgramIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
             .append( ") t" );
 
@@ -163,7 +163,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* FROM (" );
+        sql.append( SPACED_SELECT + "* from (" );
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
@@ -189,7 +189,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
                 /// AND excluding ALL translated rows previously selected
                 /// (translated programs and translated program indicators).
-                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") NOT IN (" )
+                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") not in (" )
 
                 .append( selectRowsContainingBothTranslatedNames( true ) )
 
@@ -213,7 +213,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " GROUP BY program.\"name\", programindicator.\"name\", " + COMMON_UIDS
+            " group by program.\"name\", programindicator.\"name\", " + COMMON_UIDS
                 + ", programindicator.code, p_i18n_name, pi_i18n_name, program_sharing, programindicator_sharing" );
 
         // Closing the temp table.
@@ -257,17 +257,17 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, pi_displayname.value AS pi_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, pi_displayname.value as pi_i18n_name" );
         }
 
         sql.append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append(
-                " JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON pi_displayname.locale = :"
-                    + LOCALE + " AND pi_displayname.property = 'NAME'" );
+                " join jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) on pi_displayname.locale = :"
+                    + LOCALE + " and pi_displayname.property = 'NAME'" );
 
         return sql.toString();
     }
@@ -283,16 +283,16 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, programindicator.\"name\" AS pi_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, programindicator.\"name\" as pi_i18n_name" );
         }
 
         sql.append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(program.translations) AS p_displayname(value TEXT, locale TEXT, property TEXT) ON p_displayname.locale = :"
-                    + LOCALE + " AND p_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
+                    + LOCALE + " and p_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -312,16 +312,16 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" AS p_i18n_name, pi_displayname.value AS pi_i18n_name" );
+                .append( ", program.\"name\" as p_i18n_name, pi_displayname.value as pi_i18n_name" );
         }
 
         sql.append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
             .append(
-                " JOIN jsonb_to_recordset(programindicator.translations) AS pi_displayname(value TEXT, locale TEXT, property TEXT) ON pi_displayname.locale = :"
-                    + LOCALE + " AND pi_displayname.property = 'NAME'" )
+                " join jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) on pi_displayname.locale = :"
+                    + LOCALE + " and pi_displayname.property = 'NAME'" )
             .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " NOT IN (" )
+            .append( " not in (" )
 
             // Exclude rows already fully translated.
             .append( selectRowsContainingBothTranslatedNames( true ) )
@@ -334,7 +334,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" AS p_i18n_name, programindicator.\"name\" AS pi_i18n_name" )
+            .append( ", program.\"name\" as p_i18n_name, programindicator.\"name\" as pi_i18n_name" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }

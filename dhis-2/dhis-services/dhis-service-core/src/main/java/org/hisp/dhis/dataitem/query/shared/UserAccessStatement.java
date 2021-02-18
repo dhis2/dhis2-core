@@ -67,7 +67,7 @@ public class UserAccessStatement
 
         if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            conditions.append( " OR (" + userGroupAccessCondition( column ) + ")" );
+            conditions.append( " or (" + userGroupAccessCondition( column ) + ")" );
         }
 
         conditions.append( ")" ); // Isolator closing
@@ -86,29 +86,29 @@ public class UserAccessStatement
             .append( " ( " ) // Grouping clauses
             .append( "(" ) // Table 1 conditions
             .append( publicAccessCondition( columnOne ) )
-            .append( " OR " )
+            .append( " or " )
             .append( ownerAccessCondition( columnOne ) )
-            .append( " OR " )
+            .append( " or " )
             .append( userAccessCondition( columnOne ) )
             .append( ")" ) // Table 1 conditions end
-            .append( " AND (" ) // Table 2 conditions
+            .append( " and (" ) // Table 2 conditions
             .append( publicAccessCondition( columnTwo ) )
-            .append( " OR " )
+            .append( " or " )
             .append( ownerAccessCondition( columnTwo ) )
-            .append( " OR " )
+            .append( " or " )
             .append( userAccessCondition( columnTwo ) )
             .append( ")" ) // Table 2 conditions end
             .append( " )" ); // Grouping clauses closing
 
         if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            conditions.append( " OR (" );
+            conditions.append( " or (" );
 
             // Program group access checks
             conditions.append( userGroupAccessCondition( columnOne ) );
 
             // DataElement access checks
-            conditions.append( " AND " + userGroupAccessCondition( columnTwo ) );
+            conditions.append( " and " + userGroupAccessCondition( columnTwo ) );
 
             // Closing OR condition
             conditions.append( ")" );
@@ -123,8 +123,8 @@ public class UserAccessStatement
     {
         assertTableAlias( column );
 
-        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') IS NULL OR "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = 'null' OR "
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') is null or "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = 'null' or "
             + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
     }
 
@@ -132,29 +132,29 @@ public class UserAccessStatement
     {
         assertTableAlias( column );
 
-        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'public') IS NULL OR "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') = 'null' OR "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') LIKE 'r%')";
+        return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'public') is null or "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') = 'null' or "
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') like 'r%')";
     }
 
     static String userAccessCondition( final String tableName )
     {
         assertTableAlias( tableName );
 
-        return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = TRUE "
-            + "AND " + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = TRUE)";
+        return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = true "
+            + "and " + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = true)";
     }
 
     static String userGroupAccessCondition( final String column )
     {
         assertTableAlias( column );
 
-        return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = TRUE " +
-            "AND " + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = TRUE)";
+        return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = true " +
+            "and " + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = true)";
     }
 
-    private static void assertTableAlias( String tableName )
+    private static void assertTableAlias( String columnName )
     {
-        hasText( tableName, "The argument tableName cannot be null/blank." );
+        hasText( columnName, "The argument columnName cannot be null/blank." );
     }
 }
