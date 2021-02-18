@@ -49,7 +49,7 @@ import org.junit.Test;
 
 /**
  * Unit tests for PaginationHelper.
- * 
+ *
  * @author maikel arabori
  */
 public class PaginationHelperTest

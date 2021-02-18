@@ -123,7 +123,8 @@ public class FilterValidator
     }
 
     /**
-     * Simply checks if the given set of filters contains any one of the provided prefixes.
+     * Simply checks if the given set of filters contains any one of the
+     * provided prefixes.
      *
      * @param filters
      * @param withPrefixes
