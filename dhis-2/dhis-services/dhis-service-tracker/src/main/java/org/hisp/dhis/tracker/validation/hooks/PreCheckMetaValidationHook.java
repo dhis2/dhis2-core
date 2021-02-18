@@ -175,7 +175,8 @@ public class PreCheckMetaValidationHook
     }
 
     private void validateEventProgramAndProgramStage( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle, Program program,
+        TrackerImportValidationContext context, TrackerImportStrategy strategy, TrackerBundle bundle,
+        Program program,
         ProgramStage programStage )
     {
         if ( program == null && programStage == null )
