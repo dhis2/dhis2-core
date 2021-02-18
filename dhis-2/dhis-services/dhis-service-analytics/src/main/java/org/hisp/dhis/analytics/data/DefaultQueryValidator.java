@@ -65,16 +65,11 @@ public class DefaultQueryValidator
 {
     private final SystemSettingManager systemSettingManager;
 
-    private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
-
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager,
-        NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
-        checkNotNull( nestedIndicatorCyclicDependencyInspector );
 
         this.systemSettingManager = systemSettingManager;
-        this.nestedIndicatorCyclicDependencyInspector = nestedIndicatorCyclicDependencyInspector;
     }
 
     // -------------------------------------------------------------------------
