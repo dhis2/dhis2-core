@@ -785,5 +785,5 @@ public class Schema implements Ordered, Klass
             .add( "propertyMap", propertyMap )
             .toString();
     }
-    
+
 }
