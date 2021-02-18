@@ -176,7 +176,7 @@ public class DataSetStoreTest
     {
         OrganisationUnit unitX = addOrganisationUnit( 'X' );
         DataSet dataSetA = addDataSet( 'A' );
-        DataSet dataSetB = addDataSet( 'B', unitX );
+        addDataSet( 'B', unitX );
         DataSet dataSetC = addDataSet( 'C' );
 
         assertContainsOnly( dataSetStore.getDataSetsNotAssignedToOrganisationUnits(), dataSetA, dataSetC );

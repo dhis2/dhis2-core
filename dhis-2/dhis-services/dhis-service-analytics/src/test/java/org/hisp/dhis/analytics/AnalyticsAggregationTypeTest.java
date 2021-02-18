@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.analytics.AggregationType.*;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.junit.Assert.*;
@@ -55,7 +54,7 @@ public class AnalyticsAggregationTypeTest
     private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,
         AggregationType aggregationType, AggregationType periodAggregationType )
     {
-        assertThat( analyticsAggregationType.getAggregationType(), is( aggregationType ) );
-        assertThat( analyticsAggregationType.getPeriodAggregationType(), is( periodAggregationType ) );
+        assertEquals( analyticsAggregationType.getAggregationType(), aggregationType );
+        assertEquals( analyticsAggregationType.getPeriodAggregationType(), periodAggregationType );
     }
 }
