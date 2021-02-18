@@ -28,7 +28,7 @@
 package org.hisp.dhis.common;
 
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -205,9 +205,10 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "shortName", key = "SHORT_NAME" )
     public String getDisplayShortName()
     {
-        return getTranslation( TranslationProperty.SHORT_NAME, getShortName() );
+        return getTranslation( "SHORT_NAME", getShortName() );
     }
 
     @Override
@@ -227,16 +228,18 @@ public class BaseNameableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
     public String getDisplayDescription()
     {
-        return getTranslation( TranslationProperty.DESCRIPTION, getDescription() );
+        return getTranslation( "DESCRIPTION", getDescription() );
     }
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "formName", key = "FORM_NAME" )
     public String getDisplayFormName()
     {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
+        return getTranslation( "FORM_NAME", getFormNameFallback() );
     }
 
     /**

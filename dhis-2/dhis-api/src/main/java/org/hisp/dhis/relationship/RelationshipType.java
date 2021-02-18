@@ -32,7 +32,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -131,9 +131,10 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "fromToName", key = "RELATIONSHIP_FROM_TO_NAME" )
     public String getDisplayFromToName()
     {
-        return getTranslation( TranslationProperty.RELATIONSHIP_FROM_TO_NAME, getFromToName() );
+        return getTranslation( "RELATIONSHIP_FROM_TO_NAME", getFromToName() );
     }
 
     public void setFromToName( String fromToName )
@@ -150,9 +151,10 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "toFromName", key = "RELATIONSHIP_TO_FROM_NAME" )
     public String getDisplayToFromName()
     {
-        return getTranslation( TranslationProperty.RELATIONSHIP_TO_FROM_NAME, getToFromName() );
+        return getTranslation( "RELATIONSHIP_TO_FROM_NAME", getToFromName() );
     }
 
     public void setToFromName( String toFromName )

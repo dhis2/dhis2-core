@@ -25,18 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.translation;
 
-public interface NameableObject
-    extends IdentifiableObject
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import javax.validation.constraints.NotNull;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+/**
+ * This annotation is used for indicating that a property of an object is
+ * translatable. It must be applied to the getDisplay*() methods. See
+ * {@link BaseIdentifiableObject#getDisplayName()} for example.
+ */
+@Target( { ElementType.METHOD } )
+@Retention( RetentionPolicy.RUNTIME )
+public @interface Translatable
 {
-    String getShortName();
+    /**
+     * Property name for enabling translation
+     */
+    @NotNull
+    String propertyName();
 
-    String getDisplayShortName();
-
-    String getDescription();
-
-    String getDisplayDescription();
-
-    String getDisplayProperty( DisplayProperty property );
+    /**
+     * Translation key for storing translation in json format. If not defined
+     * then property name is used as the key.
+     */
+    String key();
 }

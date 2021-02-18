@@ -25,18 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.schema;
 
-public interface NameableObject
-    extends IdentifiableObject
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Map;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
-    String getShortName();
+    @Autowired
+    private SchemaService schemaService;
 
-    String getDisplayShortName();
-
-    String getDescription();
-
-    String getDisplayDescription();
-
-    String getDisplayProperty( DisplayProperty property );
+    @Test
+    public void testGetTranslatableProperties()
+    {
+        Schema deSchema = schemaService.getSchema( DataElement.class );
+        Map<String, Property> propertyMap = deSchema.getPropertyMap();
+        assertTrue( propertyMap.containsKey( "name" ) );
+        assertTrue( propertyMap.containsKey( "code" ) );
+        assertTrue( propertyMap.get( "name" ).isTranslatable() );
+        assertFalse( propertyMap.get( "code" ).isTranslatable() );
+    }
 }
