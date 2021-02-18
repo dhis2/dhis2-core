@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
@@ -107,8 +108,7 @@ class ResponseHandler
         final List<DataItem> dimensionalItemsFound, final Set<String> fields )
     {
         final CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
-            new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems",
-            DxfNamespaces.DXF_2_0 );
+            new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems", DXF_2_0 );
 
         rootNode.addChild( collectionNode );
     }

@@ -62,7 +62,7 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is tight to the controller layer and is responsible to encapsulate
- * logic that does not belong to the controller but does not belong to the
+ * logic that does not belong to the controller and does not belong to the
  * service layer either. In other words, these set of methods sit between the
  * controller and service layers. The main goal is to alleviate the controller
  * layer.
