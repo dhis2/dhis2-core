@@ -43,7 +43,7 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
         OrganisationUnit someUnit = addOrganisationUnit( 'A' );
         OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
+        addOrganisationUnitGroupSet( 'S', withSet );
 
         assertContainsOnly( groupStore.getOrganisationUnitGroupsWithoutGroupSets(), noSet );
     }
@@ -52,9 +52,9 @@ public class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTe
     public void testGetOrganisationUnitGroupsWithGroupSets()
     {
         OrganisationUnit someUnit = addOrganisationUnit( 'A' );
-        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
+        addOrganisationUnitGroup( 'X', someUnit );
         OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        OrganisationUnitGroupSet someSet = addOrganisationUnitGroupSet( 'S', withSet );
+        addOrganisationUnitGroupSet( 'S', withSet );
 
         assertContainsOnly( groupStore.getOrganisationUnitGroupsWithGroupSets(), withSet );
     }

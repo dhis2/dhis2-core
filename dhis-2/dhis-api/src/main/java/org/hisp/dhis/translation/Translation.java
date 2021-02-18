@@ -47,7 +47,7 @@ public class Translation
 {
     private String locale;
 
-    private TranslationProperty property;
+    private String property;
 
     private String value;
 
@@ -55,7 +55,7 @@ public class Translation
     {
     }
 
-    public Translation( String locale, TranslationProperty property, String value )
+    public Translation( String locale, String property, String value )
     {
         this.locale = locale;
         this.property = property;
@@ -96,9 +96,9 @@ public class Translation
      * @return a unique cache key valid for a given translated objects, or null
      *         if either locale or property is null.
      */
-    public static String getCacheKey( String locale, TranslationProperty property )
+    public static String getCacheKey( String locale, String property )
     {
-        return locale != null && property != null ? (locale + property.name()) : null;
+        return locale != null && property != null ? (locale + property) : null;
     }
 
     // -------------------------------------------------------------------------------
@@ -119,12 +119,12 @@ public class Translation
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public TranslationProperty getProperty()
+    public String getProperty()
     {
         return property;
     }
 
-    public void setProperty( TranslationProperty property )
+    public void setProperty( String property )
     {
         this.property = property;
     }

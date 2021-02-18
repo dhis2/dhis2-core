@@ -39,13 +39,17 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
-import org.hisp.dhis.node.annotation.*;
+import org.hisp.dhis.node.annotation.NodeAnnotation;
+import org.hisp.dhis.node.annotation.NodeCollection;
+import org.hisp.dhis.node.annotation.NodeComplex;
+import org.hisp.dhis.node.annotation.NodeRoot;
+import org.hisp.dhis.node.annotation.NodeSimple;
 import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

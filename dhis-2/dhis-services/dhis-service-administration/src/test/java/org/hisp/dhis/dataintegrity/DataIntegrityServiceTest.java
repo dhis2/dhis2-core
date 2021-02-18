@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.collect.Lists.newArrayList;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasItem;
@@ -47,7 +48,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleAction;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramRuleVariable;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyString;
@@ -60,7 +60,6 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -199,8 +198,6 @@ public class DataIntegrityServiceTest
 
     private OrganisationUnit unitF;
 
-    private List<OrganisationUnit> allOrgUnits;
-
     private OrganisationUnitGroup unitGroupA;
 
     private OrganisationUnitGroup unitGroupB;
@@ -262,7 +259,6 @@ public class DataIntegrityServiceTest
         unitE = createOrganisationUnit( 'E', unitD );
         unitF = createOrganisationUnit( 'F' );
         unitA.setParent( unitC );
-        allOrgUnits = newArrayList( unitA, unitB, unitC, unitD, unitE, unitF );
 
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new QuarterlyPeriodType() );

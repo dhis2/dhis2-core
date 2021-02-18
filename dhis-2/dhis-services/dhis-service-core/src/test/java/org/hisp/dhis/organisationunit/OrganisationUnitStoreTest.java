@@ -70,8 +70,8 @@ public class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
         OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
         OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
 
-        OrganisationUnitGroup ougA = addOrganisationUnitGroup( 'A', ouA );
-        OrganisationUnitGroup ougB = addOrganisationUnitGroup( 'B', ouB );
+        addOrganisationUnitGroup( 'A', ouA );
+        addOrganisationUnitGroup( 'B', ouB );
 
         assertContainsOnly( unitStore.getOrganisationUnitsWithoutGroups(), ouC, ouD, ouE );
     }
@@ -256,10 +256,10 @@ public class OrganisationUnitStoreTest extends OrganisationUnitBaseSpringTest
 
         assertEquals( 2, unitStore.getMaxLevel() );
 
-        OrganisationUnit ouD = addOrganisationUnit( 'D', ouB ); // 3
-        OrganisationUnit ouE = addOrganisationUnit( 'E', ouB ); // 3
-        OrganisationUnit ouF = addOrganisationUnit( 'F', ouC ); // 3
-        OrganisationUnit ouG = addOrganisationUnit( 'G', ouC ); // 3
+        addOrganisationUnit( 'D', ouB ); // 3
+        addOrganisationUnit( 'E', ouB ); // 3
+        addOrganisationUnit( 'F', ouC ); // 3
+        addOrganisationUnit( 'G', ouC ); // 3
 
         assertEquals( 3, unitStore.getMaxLevel() );
     }
