@@ -216,26 +216,14 @@ public class ProgramMessageStoreTest
 
         channels.add( DeliveryChannel.SMS );
 
-        pmsgA = new ProgramMessage();
-        pmsgA.setText( text );
-        pmsgA.setSubject( subject );
-        pmsgA.setRecipients( recipientsA );
-        pmsgA.setMessageStatus( messageStatus );
-        pmsgA.setDeliveryChannels( channels );
+        pmsgA = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsA )
+            .messageStatus( messageStatus ).deliveryChannels( channels ).build();
 
-        pmsgB = new ProgramMessage();
-        pmsgB.setText( text );
-        pmsgB.setSubject( subject );
-        pmsgB.setRecipients( recipientsB );
-        pmsgB.setMessageStatus( messageStatus );
-        pmsgB.setDeliveryChannels( channels );
+        pmsgB = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsB )
+                .messageStatus( messageStatus ).deliveryChannels( channels ).build();
 
-        pmsgC = new ProgramMessage();
-        pmsgC.setText( text );
-        pmsgC.setSubject( subject );
-        pmsgC.setRecipients( recipientsC );
-        pmsgC.setMessageStatus( messageStatus );
-        pmsgC.setDeliveryChannels( channels );
+        pmsgC = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsC )
+                .messageStatus( messageStatus ).deliveryChannels( channels ).build();
 
         uidA = CodeGenerator.generateCode( 10 );
         uidB = CodeGenerator.generateCode( 10 );

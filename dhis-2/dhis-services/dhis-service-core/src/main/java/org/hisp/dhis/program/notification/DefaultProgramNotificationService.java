@@ -407,21 +407,22 @@ public class DefaultProgramNotificationService
     {
         NotificationMessage message = programStageNotificationRenderer.render( psi, template );
 
-        return new ProgramMessage(
-            message.getSubject(), message.getMessage(),
-            resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(),
-                psi ),
-            Sets.newHashSet( template.getDeliveryChannels() ), psi );
+        return ProgramMessage.builder().subject( message.getSubject() )
+            .text( message.getMessage() )
+            .recipients( resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(), psi ) )
+            .deliveryChannels(  Sets.newHashSet( template.getDeliveryChannels() ) )
+            .programStageInstance( psi ).build();
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
     {
         NotificationMessage message = programNotificationRenderer.render( programInstance, template );
 
-        return new ProgramMessage(
-            message.getSubject(), message.getMessage(),
-            resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ),
-            Sets.newHashSet( template.getDeliveryChannels() ), programInstance );
+        return ProgramMessage.builder().subject( message.getSubject() )
+                .text( message.getMessage() )
+                .recipients( resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(), programInstance ) )
+                .deliveryChannels(  Sets.newHashSet( template.getDeliveryChannels() ) )
+                .programInstance( programInstance ).build();
     }
 
     private Set<User> resolveDhisMessageRecipients(

@@ -16,6 +16,7 @@
     <property name="text" column="text" not-null="true" unique="false" length="500" />
     <property name="subject" column="subject" not-null="false" unique="false" length="200" />
     <property name="processedDate" column= "processeddate" type="timestamp" not-null="false"/>
+    <property name="notificationTemplate" type="text"/>
 
     <property name="translations" type="jblTranslations"/>
     

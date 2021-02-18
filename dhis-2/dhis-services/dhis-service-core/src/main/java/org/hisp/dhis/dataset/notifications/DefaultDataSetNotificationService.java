@@ -442,7 +442,10 @@ public class DefaultDataSetNotificationService
             recipients = resolveExternalRecipients( template, registration );
         }
 
-        ProgramMessage programMessage = new ProgramMessage( message.getSubject(), message.getMessage(), recipients );
+        ProgramMessage programMessage = ProgramMessage.builder().subject( message.getSubject() )
+            .text( message.getMessage() )
+            .recipients( recipients )
+            .build();
 
         programMessage.setDeliveryChannels( template.getDeliveryChannels() );
 
