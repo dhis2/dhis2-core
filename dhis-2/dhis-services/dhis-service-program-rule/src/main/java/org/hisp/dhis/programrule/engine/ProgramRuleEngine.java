@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
@@ -40,7 +43,9 @@ import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.*;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.RuleEngine;
 import org.hisp.dhis.rules.RuleEngineContext;
@@ -108,8 +113,7 @@ public class ProgramRuleEngine
 
         String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
 
-        List<ProgramRule> programRules = implementableRuleService
-            .getProgramRulesByActionTypes( program, programStageUid );
+        List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
 
         if ( programRules.isEmpty() )
         {
