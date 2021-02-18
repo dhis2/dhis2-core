@@ -37,6 +37,8 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.OutputFormat;
 import org.hisp.dhis.analytics.QueryValidator;
@@ -53,8 +55,6 @@ import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
@@ -65,15 +65,11 @@ public class DefaultQueryValidator
 {
     private final SystemSettingManager systemSettingManager;
 
-    private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
-
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager, NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
-        checkNotNull( nestedIndicatorCyclicDependencyInspector );
 
         this.systemSettingManager = systemSettingManager;
-        this.nestedIndicatorCyclicDependencyInspector = nestedIndicatorCyclicDependencyInspector;
     }
 
     // -------------------------------------------------------------------------
@@ -88,7 +84,8 @@ public class DefaultQueryValidator
 
         if ( error != null )
         {
-            log.warn( String.format( "Analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(), error.getMessage() ) );
+            log.warn( String.format( "Analytics validation failed, code: '%s', message: '%s'", error.getErrorCode(),
+                error.getMessage() ) );
 
             throw new IllegalQueryException( error );
         }
@@ -105,8 +102,10 @@ public class DefaultQueryValidator
         }
 
         final List<DimensionalItemObject> dataElements = Lists.newArrayList( params.getDataElements() );
-        params.getProgramDataElements().forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
-        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ), AggregatableDataElementFilter.INSTANCE );
+        params.getProgramDataElements()
+            .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
+        final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
+            AggregatableDataElementFilter.INSTANCE );
 
         if ( !params.isSkipDataDimensionValidation() )
         {
@@ -145,7 +144,8 @@ public class DefaultQueryValidator
 
         if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
-            error = new ErrorMessage( ErrorCode.E7107 );;
+            error = new ErrorMessage( ErrorCode.E7107 );
+            ;
         }
 
         if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
@@ -168,7 +168,8 @@ public class DefaultQueryValidator
             error = new ErrorMessage( ErrorCode.E7111, getDimensions( params.getDuplicateDimensions() ) );
         }
 
-        if ( !params.getAllReportingRates().isEmpty() && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
+        if ( !params.getAllReportingRates().isEmpty()
+            && !params.containsOnlyDimensionsAndFilters( COMPLETENESS_DIMENSION_TYPES ) )
         {
             error = new ErrorMessage( ErrorCode.E7112, COMPLETENESS_DIMENSION_TYPES );
         }
@@ -178,7 +179,8 @@ public class DefaultQueryValidator
             error = new ErrorMessage( ErrorCode.E7113 );
         }
 
-        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID ) && ( params.getAllDataElements().size() != params.getAllDataDimensionItems().size() ) )
+        if ( params.hasDimensionOrFilter( CATEGORYOPTIONCOMBO_DIM_ID )
+            && (params.getAllDataElements().size() != params.getAllDataDimensionItems().size()) )
         {
             error = new ErrorMessage( ErrorCode.E7114 );
         }
@@ -186,18 +188,6 @@ public class DefaultQueryValidator
         if ( !nonAggDataElements.isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
-        }
-
-        if ( !params.getIndicators().isEmpty() )
-        {
-            try
-            {
-                nestedIndicatorCyclicDependencyInspector.inspect( params.getIndicators() );
-            }
-            catch ( CyclicReferenceException cre )
-            {
-                error = new ErrorMessage( ErrorCode.E7116, cre.getMessage() );
-            }
         }
 
         if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
@@ -214,7 +204,8 @@ public class DefaultQueryValidator
 
             if ( !params.hasDimension( ORGUNIT_DIM_ID ) )
             {
-                error = new ErrorMessage( ErrorCode.E7119 );;
+                error = new ErrorMessage( ErrorCode.E7119 );
+                ;
             }
         }
 
