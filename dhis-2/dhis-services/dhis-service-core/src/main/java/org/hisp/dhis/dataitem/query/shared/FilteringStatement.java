@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
@@ -49,8 +50,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringStatement
 {
-
     public static final String ILIKE = " ILIKE :";
+
+    public static final String SPACED_LEFT_PARENTHESIS = " ( ";
+
+    public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
 
     private FilteringStatement()
     {
@@ -60,7 +64,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, UID ) )
         {
-            return " (" + column + " = :" + UID + ")";
+            return SPACED_LEFT_PARENTHESIS + column + " = :" + UID + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -70,7 +74,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " (" + column + ILIKE + NAME + ")";
+            return SPACED_LEFT_PARENTHESIS + column + ILIKE + NAME + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -81,7 +85,8 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
-            return " (" + columnOne + ILIKE + NAME + " OR " + columnTwo + ILIKE + NAME + ")";
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + NAME + " OR " + columnTwo + ILIKE + NAME
+                + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -91,7 +96,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " (" + column + ILIKE + DISPLAY_NAME + ")";
+            return SPACED_LEFT_PARENTHESIS + column + ILIKE + DISPLAY_NAME + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -102,8 +107,9 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
-            return " (" + columnOne + ILIKE + DISPLAY_NAME + " OR " + columnTwo + ILIKE + DISPLAY_NAME
-                + ")";
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + DISPLAY_NAME + " OR " + columnTwo + ILIKE
+                + DISPLAY_NAME
+                + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -113,7 +119,7 @@ public class FilteringStatement
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
-            return " (" + column + " IN (:" + VALUE_TYPES + "))";
+            return SPACED_LEFT_PARENTHESIS + column + " IN (:" + VALUE_TYPES + ")" + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -138,7 +144,7 @@ public class FilteringStatement
     {
         if ( hasStringPresence( paramsMap, PROGRAM_ID ) )
         {
-            return " " + column + " = :" + PROGRAM_ID;
+            return SPACE + column + " = :" + PROGRAM_ID + SPACE;
         }
 
         return EMPTY;

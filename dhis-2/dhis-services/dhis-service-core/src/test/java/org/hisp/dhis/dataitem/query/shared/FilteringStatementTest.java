@@ -58,7 +58,7 @@ public class FilteringStatementTest
         final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " (anyColumn ILIKE :name)";
+        final String expectedStatement = " ( anyColumn ILIKE :name ) ";
 
         // When
         final String resultStatement = nameFiltering( aColumn, theParameterSource );
@@ -119,7 +119,7 @@ public class FilteringStatementTest
         final String column2 = "otherColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " (anyColumn ILIKE :name OR otherColumn ILIKE :name)";
+        final String expectedStatement = " ( anyColumn ILIKE :name OR otherColumn ILIKE :name ) ";
 
         // When
         final String resultStatement = nameFiltering( column1, column2, filtersParameterSource );
@@ -152,7 +152,7 @@ public class FilteringStatementTest
         final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
-        final String expectedStatement = " (anyColumn IN (:valueTypes))";
+        final String expectedStatement = " ( anyColumn IN (:valueTypes) ) ";
 
         // When
         final String resultStatement = valueTypeFiltering( aColumn, theParameterSource );
