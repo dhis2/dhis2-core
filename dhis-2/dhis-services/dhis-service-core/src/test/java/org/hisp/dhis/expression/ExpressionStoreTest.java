@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.expression;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -53,9 +55,6 @@ public class ExpressionStoreTest
 
     @Autowired
     private DataElementService dataElementService;
-
-    @Autowired
-    private CategoryService categoryService;
 
     private long dataElementIdA;
 
