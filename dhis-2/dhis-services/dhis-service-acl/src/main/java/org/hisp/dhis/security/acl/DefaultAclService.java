@@ -41,6 +41,7 @@ import org.hisp.dhis.security.acl.AccessStringHelper.Permission;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroupInfoService;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -60,11 +61,15 @@ public class DefaultAclService implements AclService
 {
     private final SchemaService schemaService;
 
-    public DefaultAclService( SchemaService schemaService )
+    private final UserGroupInfoService userGroupInfoService;
+
+    public DefaultAclService( SchemaService schemaService, UserGroupInfoService userGroupInfoService )
     {
         checkNotNull( schemaService );
+        checkNotNull( userGroupInfoService );
 
         this.schemaService = schemaService;
+        this.userGroupInfoService = userGroupInfoService;
     }
 
     @Override
@@ -654,7 +659,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read this object through group access
 
             if ( AccessStringHelper.isEnabled( userGroupAccess.getAccess(), permission )
-                    && userGroupAccess.getUserGroup().getMembers().contains( user ) )
+                && userGroupInfoService.isMember( userGroupAccess.getUserGroup(), user.getUid() ) )
             {
                 return true;
             }
@@ -665,7 +670,7 @@ public class DefaultAclService implements AclService
             // Check if user is allowed to read to this object through user access
 
             if ( AccessStringHelper.isEnabled( userAccess.getAccess(), permission )
-                    && user.equals( userAccess.getUser() ) )
+                && user.equals( userAccess.getUser() ) )
             {
                 return true;
             }
