@@ -34,9 +34,11 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 
 import org.junit.Test;
@@ -246,5 +248,60 @@ public class FilteringStatementTest
 
         // Then
         assertThat( actualResult, is( expectedResult ) );
+    }
+
+    @Test
+    public void testRootJunctionFilteringWhenRootJunctionSetIsOR()
+    {
+        // Given
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
+            .addValue( ROOT_JUNCTION, "OR" );
+
+        // When
+        final String actualResult = rootJunction( filtersParameterSource );
+
+        // Then
+        assertThat( actualResult, is( "OR" ) );
+    }
+
+    @Test
+    public void testRootJunctionFilteringWhenRootJunctionSetIsAND()
+    {
+        // Given
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
+            .addValue( ROOT_JUNCTION, "AND" );
+
+        // When
+        final String actualResult = rootJunction( filtersParameterSource );
+
+        // Then
+        assertThat( actualResult, is( "AND" ) );
+    }
+
+    @Test
+    public void testRootJunctionFilteringWhenRootJunctionSetIsNotSet()
+    {
+        // Given
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource();
+
+        // When
+        final String actualResult = rootJunction( filtersParameterSource );
+
+        // Then
+        assertThat( actualResult, is( "AND" ) );
+    }
+
+    @Test
+    public void testRootJunctionFilteringWhenRootJunctionSetIsNull()
+    {
+        // Given
+        final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
+            .addValue( ROOT_JUNCTION, null );
+
+        // When
+        final String actualResult = rootJunction( filtersParameterSource );
+
+        // Then
+        assertThat( actualResult, is( "AND" ) );
     }
 }

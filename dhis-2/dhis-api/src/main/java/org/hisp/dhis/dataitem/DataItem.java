@@ -31,9 +31,12 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
 import java.io.Serializable;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.ValueType;
@@ -48,9 +51,12 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  *
  * @author maikel arabori
  */
-@Data
-@EqualsAndHashCode
+@Getter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
 @JacksonXmlRootElement( localName = "dataItem", namespace = DXF_2_0 )
 public class DataItem implements Serializable
 {
@@ -85,39 +91,6 @@ public class DataItem implements Serializable
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private ValueType simplifiedValueType;
-
-    public DataItem( final String name, final String displayName, final String id, final String code,
-        final DimensionItemType dimensionItemType )
-    {
-        this.name = name;
-        this.displayName = displayName;
-        this.id = id;
-        this.code = code;
-        this.dimensionItemType = dimensionItemType;
-    }
-
-    public DataItem( final String name, final String displayName, final String id, final String code,
-        final DimensionItemType dimensionItemType, final ValueType valueType )
-    {
-        this.name = name;
-        this.displayName = displayName;
-        this.id = id;
-        this.code = code;
-        this.dimensionItemType = dimensionItemType;
-        this.valueType = valueType;
-    }
-
-    public DataItem( final String name, final String displayName, final String id, final String code,
-        final DimensionItemType dimensionItemType, final String programId, final ValueType valueType )
-    {
-        this.name = name;
-        this.displayName = displayName;
-        this.id = id;
-        this.code = code;
-        this.dimensionItemType = dimensionItemType;
-        this.programId = programId;
-        this.valueType = valueType;
-    }
 
     public ValueType getSimplifiedValueType()
     {

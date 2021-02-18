@@ -129,9 +129,7 @@ public class OrderingHelperTest
 
         for ( int i = 0; i < totalOfItems; i++ )
         {
-            final DataItem dataItem = new DataItem();
-            dataItem.setName( "d-" + i );
-            dataItem.setId( "d-" + i );
+            final DataItem dataItem = DataItem.builder().name( "d-" + i ).id( "d-" + i ).build();
             dataItemEntities.add( dataItem );
         }
 

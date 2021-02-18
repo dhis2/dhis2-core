@@ -33,6 +33,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
@@ -113,8 +114,8 @@ public class IndicatorQuery implements DataItemQuery
 
             // Specific case where we have to force a vale type. Indicators
             // don't have a value type but they always evaluate to numbers.
-            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
-                rowSet.getString( "code" ), INDICATOR, NUMBER ) );
+            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( INDICATOR ).valueType( NUMBER ).build() );
         }
 
         return dataItems;

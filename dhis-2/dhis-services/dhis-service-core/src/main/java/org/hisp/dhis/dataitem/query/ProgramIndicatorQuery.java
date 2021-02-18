@@ -34,6 +34,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
@@ -125,9 +126,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
             // Specific case where we have to force a vale type. Program
             // Indicators don't have a value type but they always evaluate to
             // numbers.
-            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
-                rowSet.getString( "code" ),
-                PROGRAM_INDICATOR, rowSet.getString( "program_uid" ), NUMBER ) );
+            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( PROGRAM_INDICATOR )
+                .programId( rowSet.getString( "program_uid" ) ).valueType( NUMBER ).build() );
         }
 
         return dataItems;

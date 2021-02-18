@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
@@ -100,8 +101,8 @@ public class DataSetQuery implements DataItemQuery
             final String name = trimToNull( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
 
-            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
-                rowSet.getString( "code" ), REPORTING_RATE ) );
+            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( REPORTING_RATE ).build() );
         }
 
         return dataItems;

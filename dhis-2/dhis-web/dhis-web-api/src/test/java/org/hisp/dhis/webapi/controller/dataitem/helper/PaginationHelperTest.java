@@ -50,7 +50,7 @@ import org.junit.Test;
 public class PaginationHelperTest
 {
     @Test
-    public void testSliceWhenFirstPage()
+    public void testPaginateWhenFirstPage()
     {
         // Given
         final int pageSize = 5;
@@ -69,7 +69,7 @@ public class PaginationHelperTest
     }
 
     @Test
-    public void testSliceWhenIntermediatePage()
+    public void testPaginateWhenIntermediatePage()
     {
         // Given
         final int pageSize = 5;
@@ -88,7 +88,7 @@ public class PaginationHelperTest
     }
 
     @Test
-    public void testSliceWhenLastPage()
+    public void testPaginateWhenLastPage()
     {
         // Given
         final int pageSize = 5;
@@ -107,7 +107,7 @@ public class PaginationHelperTest
     }
 
     @Test
-    public void testSliceWhenPageSizeIsZero()
+    public void testPaginateWhenPageSizeIsZero()
     {
         // Given
         final int pageSize = 0;
@@ -123,7 +123,7 @@ public class PaginationHelperTest
     }
 
     @Test
-    public void testSliceWhenDimensionalItemListIsEmpty()
+    public void testPaginateWhenDimensionalItemListIsEmpty()
     {
         // Given
         final int pageSize = 5;
@@ -141,7 +141,7 @@ public class PaginationHelperTest
     }
 
     @Test
-    public void testSliceWhenPageIsZero()
+    public void testPaginateWhenPageIsZero()
     {
         // Given
         final int pageSize = 5;
@@ -171,9 +171,7 @@ public class PaginationHelperTest
 
         for ( int i = 0; i < totalOfItems; i++ )
         {
-            final DataItem dataItem = new DataItem();
-            dataItem.setName( "d-" + i );
-            dataItem.setId( "d-" + i );
+            final DataItem dataItem = DataItem.builder().name( "d-" + i ).id( "d-" + i ).build();
             dataItemEntities.add( dataItem );
         }
 

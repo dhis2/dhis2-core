@@ -170,77 +170,6 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective ValueType from the filter
-     * provided.
-     *
-     * @param filter should have the format of
-     *        "valueType:in:[TEXT,BOOLEAN,NUMBER,...]", where TEXT and BOOLEAN
-     *        represents the ValueType. The valid types are found at
-     *        {@link ValueType}
-     * @return the respective classes associated with the given IN filter
-     * @throws IllegalQueryException if the filter points to a non supported
-     *         value type
-     */
-    public static Set<String> extractValueTypesFromInFilter( final String filter )
-    {
-        final Set<String> valueTypes = new HashSet<>();
-
-        if ( contains( filter, VALUE_TYPE_IN.getCombination() ) )
-        {
-            final String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
-                "," );
-
-            if ( isNotEmpty( valueTypesInFilter ) )
-            {
-                for ( final String valueType : valueTypesInFilter )
-                {
-                    valueTypes.add( getValueTypeOrThrow( valueType ) );
-                }
-            }
-            else
-            {
-                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
-            }
-        }
-
-        return valueTypes;
-    }
-
-    /**
-     * This method will return the respective ValueType from the filter
-     * provided.
-     *
-     * @param filter should have the format of "valueType:eq:NUMBER", where
-     *        NUMBER represents the ValueType. It could be any value represented
-     *        by {@link ValueType}
-     * @return the respective value type associated with the given filter
-     * @throws IllegalQueryException if the filter points to a non supported
-     *         value type
-     */
-    public static String extractValueTypeFromEqualFilter( final String filter )
-    {
-        final byte VALUE_TYPE = 2;
-        String valueType = null;
-
-        if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getCombination() ) )
-        {
-            final String[] array = filter.split( ":" );
-            final boolean hasValueType = array.length == 3;
-
-            if ( hasValueType )
-            {
-                valueType = getValueTypeOrThrow( array[VALUE_TYPE] );
-            }
-            else
-            {
-                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
-            }
-        }
-
-        return valueType;
-    }
-
-    /**
      * This method will return ALL respective ValueType's from the filter. It
      * will merge both EQ and IN conditions into a single Set object.
      *
@@ -316,7 +245,7 @@ public class FilteringHelper
      * @param paramsMap the map that will receive the filtering params
      * @param currentUser the current user logged
      */
-    public static void setFiltering( final Set<String> filters, final WebOptions options,
+    public static void setFilteringParams( final Set<String> filters, final WebOptions options,
         final MapSqlParameterSource paramsMap, final User currentUser )
     {
         final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
@@ -415,6 +344,77 @@ public class FilteringHelper
         }
     }
 
+    /**
+     * This method will return the respective ValueType from the filter
+     * provided.
+     *
+     * @param filter should have the format of
+     *        "valueType:in:[TEXT,BOOLEAN,NUMBER,...]", where TEXT and BOOLEAN
+     *        represents the ValueType. The valid types are found at
+     *        {@link ValueType}
+     * @return the respective classes associated with the given IN filter
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         value type
+     */
+    private static Set<String> extractValueTypesFromInFilter( final String filter )
+    {
+        final Set<String> valueTypes = new HashSet<>();
+
+        if ( contains( filter, VALUE_TYPE_IN.getCombination() ) )
+        {
+            final String[] valueTypesInFilter = split( deleteWhitespace( substringBetween( filter, "[", "]" ) ),
+                "," );
+
+            if ( isNotEmpty( valueTypesInFilter ) )
+            {
+                for ( final String valueType : valueTypesInFilter )
+                {
+                    valueTypes.add( getValueTypeOrThrow( valueType ) );
+                }
+            }
+            else
+            {
+                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
+            }
+        }
+
+        return valueTypes;
+    }
+
+    /**
+     * This method will return the respective ValueType from the filter
+     * provided.
+     *
+     * @param filter should have the format of "valueType:eq:NUMBER", where
+     *        NUMBER represents the ValueType. It could be any value represented
+     *        by {@link ValueType}
+     * @return the respective value type associated with the given filter
+     * @throws IllegalQueryException if the filter points to a non supported
+     *         value type
+     */
+    private static String extractValueTypeFromEqualFilter( final String filter )
+    {
+        final byte VALUE_TYPE = 2;
+        String valueType = null;
+
+        if ( filterHasPrefix( filter, VALUE_TYPE_EQUAL.getCombination() ) )
+        {
+            final String[] array = filter.split( ":" );
+            final boolean hasValueType = array.length == 3;
+
+            if ( hasValueType )
+            {
+                valueType = getValueTypeOrThrow( array[VALUE_TYPE] );
+            }
+            else
+            {
+                throw new IllegalQueryException( new ErrorMessage( E2014, filter ) );
+            }
+        }
+
+        return valueType;
+    }
+
     private static String getValueTypeOrThrow( final String valueType )
     {
         try
@@ -430,7 +430,6 @@ public class FilteringHelper
 
     private static Class<? extends BaseIdentifiableObject> entityClassFromString( final String dimensionItem )
     {
-
         final QueryableDataItem item = getIfPresent( QueryableDataItem.class, dimensionItem )
             .orNull();
 

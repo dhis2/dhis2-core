@@ -97,7 +97,7 @@ public class OrderingHelper
      * @param orderParams the source of ordering params
      * @param paramsMap the map that will receive the order params
      */
-    public static void setOrdering( final OrderParams orderParams, final MapSqlParameterSource paramsMap )
+    public static void setOrderingParams( final OrderParams orderParams, final MapSqlParameterSource paramsMap )
     {
         if ( orderParams != null && isNotEmpty( orderParams.getOrders() ) )
         {

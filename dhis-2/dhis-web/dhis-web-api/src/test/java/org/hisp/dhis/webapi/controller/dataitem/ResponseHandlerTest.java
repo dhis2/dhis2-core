@@ -112,8 +112,7 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final DataItem anyDataItem = new DataItem();
-        anyDataItem.setName( "any" );
+        final DataItem anyDataItem = DataItem.builder().name( "any" ).build();
         final List<DataItem> anyDimensionalItems = singletonList( anyDataItem );
         final Set<String> anyFields = newHashSet( "name" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );

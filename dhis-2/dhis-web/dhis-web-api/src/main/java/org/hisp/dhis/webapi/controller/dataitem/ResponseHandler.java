@@ -33,7 +33,7 @@ import static java.lang.String.join;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFiltering;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
 
 import java.util.List;
 import java.util.Set;
@@ -134,7 +134,7 @@ class ResponseHandler
             final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( QueryParam.USER_UID,
                 currentUser.getUid() );
 
-            setFiltering( filters, options, paramsMap, currentUser );
+            setFilteringParams( filters, options, paramsMap, currentUser );
 
             final AtomicLong count = new AtomicLong();
 

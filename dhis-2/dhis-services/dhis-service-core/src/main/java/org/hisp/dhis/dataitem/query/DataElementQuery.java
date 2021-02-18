@@ -35,6 +35,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
@@ -107,8 +108,8 @@ public class DataElementQuery implements DataItemQuery
             final String name = trimToNull( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
 
-            dataItems.add( new DataItem( name, displayName, rowSet.getString( "uid" ),
-                rowSet.getString( "code" ), DATA_ELEMENT, valueType ) );
+            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( DATA_ELEMENT ).valueType( valueType ).build() );
         }
 
         return dataItems;

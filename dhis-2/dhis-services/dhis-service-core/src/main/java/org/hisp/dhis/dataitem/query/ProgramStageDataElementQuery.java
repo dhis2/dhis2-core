@@ -34,6 +34,7 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
@@ -118,9 +119,9 @@ public class ProgramStageDataElementQuery implements DataItemQuery
                     trimToEmpty( rowSet.getString( "name" ) ) );
             final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
 
-            dataItems.add( new DataItem( name, displayName, uid,
-                rowSet.getString( "code" ), PROGRAM_DATA_ELEMENT,
-                rowSet.getString( "program_uid" ), valueType ) );
+            dataItems.add( builder().name( name ).displayName( displayName ).id( uid )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( PROGRAM_DATA_ELEMENT )
+                .programId( rowSet.getString( "program_uid" ) ).valueType( valueType ).build() );
         }
 
         return dataItems;
