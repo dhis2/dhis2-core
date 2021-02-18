@@ -32,9 +32,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import lombok.Builder;
 import lombok.Data;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -42,6 +42,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
@@ -51,7 +52,7 @@ import com.google.common.base.MoreObjects;
  */
 
 @Data
-@Builder( builderClassName = "ProgramMessageBuilder")
+@Builder( builderClassName = "ProgramMessageBuilder" )
 @JacksonXmlRootElement( localName = "programMessage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramMessage
     extends BaseIdentifiableObject
@@ -114,13 +115,13 @@ public class ProgramMessage
     public String toString()
     {
         return MoreObjects.toStringHelper( this )
-                .add( "uid", uid )
-                .add( "program stage instance", programStageInstance )
-                .add( "program instance", programInstance )
-                .add( "recipients", recipients )
-                .add( "delivery channels", deliveryChannels )
-                .add( "subject", subject )
-                .add( "text", text )
-                .toString();
+            .add( "uid", uid )
+            .add( "program stage instance", programStageInstance )
+            .add( "program instance", programInstance )
+            .add( "recipients", recipients )
+            .add( "delivery channels", deliveryChannels )
+            .add( "subject", subject )
+            .add( "text", text )
+            .toString();
     }
 }
