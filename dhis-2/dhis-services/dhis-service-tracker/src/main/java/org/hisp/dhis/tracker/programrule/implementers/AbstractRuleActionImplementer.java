@@ -233,6 +233,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @param bundle
      * @return A map of actions by enrollment
      */
+    @SuppressWarnings( "unchecked" )
     public Map<String, List<EnrollmentActionRule>> getEnrollmentEffects(
         Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
     {

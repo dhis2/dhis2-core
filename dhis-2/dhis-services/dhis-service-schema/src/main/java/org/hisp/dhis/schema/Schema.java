@@ -722,6 +722,19 @@ public class Schema implements Ordered, Klass
             .collect( toMap( p -> p.getValue().getFieldName(), Entry::getValue ) );
     }
 
+    /**
+     * Get list of properties marked with
+     * {@link org.hisp.dhis.translation.Translatable}
+     *
+     * @return
+     */
+    public List<Property> getTranslatableProperties()
+    {
+        return this.getProperties().stream()
+            .filter( p -> p.isTranslatable() )
+            .collect( Collectors.toList() );
+    }
+
     @Override
     public int hashCode()
     {

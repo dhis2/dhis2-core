@@ -136,6 +136,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void save( IdentifiableObject object, boolean clearSharing )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -163,6 +164,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void update( IdentifiableObject object, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -227,6 +229,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void delete( IdentifiableObject object, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -1029,6 +1032,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
