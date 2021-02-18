@@ -110,9 +110,7 @@ public class TrackerImportReportFinalizer
         TrackerStats stats = TrackerStats.builder().build();
         TrackerStats brs = bundleReport.getStats();
         stats.merge( brs );
-
-        stats.setIgnored( brs.getTotal() - brs.getUpdated() - brs.getCreated() - brs.getDeleted() );
-
+        stats.setIgnored( Math.toIntExact( validationReport.size() ) + brs.getIgnored() );
         return TrackerImportReport.builder()
             .status( status )
             .validationReport( validationReport )
