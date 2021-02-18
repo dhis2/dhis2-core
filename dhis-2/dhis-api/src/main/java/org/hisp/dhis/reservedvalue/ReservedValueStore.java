@@ -40,6 +40,8 @@ public interface ReservedValueStore
 {
     List<ReservedValue> reserveValues( ReservedValue reservedValue, List<String> values );
 
+    List<ReservedValue> reserveValuesAndCheckUniqueness( ReservedValue reservedValue, List<String> values );
+
     List<ReservedValue> reserveValuesJpa( ReservedValue reservedValue, List<String> values );
 
     List<ReservedValue> getIfReservedValues( ReservedValue reservedValue, List<String> values );
