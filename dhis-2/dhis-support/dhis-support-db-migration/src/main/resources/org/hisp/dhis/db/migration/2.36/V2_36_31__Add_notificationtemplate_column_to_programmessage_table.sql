@@ -1,2 +1,2 @@
 alter table programmessage
-    add column if not exists notificationtemplate varchar(50);
+    add column if not exists notificationtemplate varchar(255);
