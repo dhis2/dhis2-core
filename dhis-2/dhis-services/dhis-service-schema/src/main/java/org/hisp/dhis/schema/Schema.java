@@ -27,14 +27,23 @@
  */
 package org.hisp.dhis.schema;
 
+import static java.util.Collections.unmodifiableList;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -200,33 +209,33 @@ public class Schema implements Ordered, Klass
     /**
      * Map of all readable properties, cached on first request.
      */
-    private Map<String, Property> readableProperties = new HashMap<>();
+    private final Map<String, Property> readableProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> persistedProperties = new HashMap<>();
+    private final Map<String, Property> persistedProperties = new HashMap<>();
 
     /**
      * Map of all persisted properties, cached on first request.
      */
-    private Map<String, Property> nonPersistedProperties = new HashMap<>();
+    private final Map<String, Property> nonPersistedProperties = new HashMap<>();
 
     /**
      * Map of all link object properties, cached on first request.
      */
-    private Map<String, Property> embeddedObjectProperties;
+    private final Map<String, Property> embeddedObjectProperties = new TreeMap<>();
 
     /**
      * Map of all analytical object properties, cached on first request.
      */
-    private Map<String, Property> analyticalObjectProperties;
+    private final Map<String, Property> analyticalObjectProperties = new TreeMap<>();
 
     /**
      * Map containing cached authorities by their type.
      */
     @JsonIgnore
-    private transient volatile Map<AuthorityType, List<String>> cachedAuthoritiesByType;
+    private ConcurrentMap<AuthorityType, List<String>> cachedAuthoritiesByType;
 
     /**
      * Used for sorting of schema list when doing metadata import/export.
@@ -496,7 +505,7 @@ public class Schema implements Ordered, Klass
         return authorities;
     }
 
-    public void setAuthorities( List<Authority> authorities )
+    public synchronized void setAuthorities( List<Authority> authorities )
     {
         this.authorities = authorities;
         this.cachedAuthoritiesByType = null;
@@ -546,6 +555,7 @@ public class Schema implements Ordered, Klass
     public void setPropertyMap( Map<String, Property> propertyMap )
     {
         this.propertyMap = propertyMap;
+        invalidatePropertyCaches();
     }
 
     @SuppressWarnings( "rawtypes" )
@@ -560,76 +570,63 @@ public class Schema implements Ordered, Klass
         if ( references == null )
         {
             references = getProperties().stream()
-                .filter( p -> p.isCollection() ? PropertyType.REFERENCE == p.getItemPropertyType()
-                    : PropertyType.REFERENCE == p.getPropertyType() )
-                .map( p -> p.isCollection() ? p.getItemKlass() : p.getKlass() ).collect( Collectors.toSet() );
+                .filter( Schema::isReferenceType )
+                .map( Schema::getItemType )
+                .collect( toSet() );
         }
-
         return references;
+    }
+
+    private static Class<?> getItemType( Property p )
+    {
+        return p.isCollection() ? p.getItemKlass() : p.getKlass();
+    }
+
+    private static boolean isReferenceType( Property p )
+    {
+        return p.isCollection()
+            ? PropertyType.REFERENCE == p.getItemPropertyType()
+            : PropertyType.REFERENCE == p.getPropertyType();
     }
 
     public Map<String, Property> getReadableProperties()
     {
-        if ( readableProperties.isEmpty() )
-        {
-            getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isReadable() )
-                .forEach( entry -> readableProperties.put( entry.getKey(), entry.getValue() ) );
-        }
-
+        initEmptyCache( readableProperties, Property::isReadable );
         return readableProperties;
     }
 
     public Map<String, Property> getPersistedProperties()
     {
-        if ( persistedProperties.isEmpty() )
-        {
-            getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isPersisted() )
-                .forEach( entry -> persistedProperties.put( entry.getKey(), entry.getValue() ) );
-        }
-
+        initEmptyCache( persistedProperties, Property::isPersisted );
         return persistedProperties;
     }
 
     public Map<String, Property> getNonPersistedProperties()
     {
-        if ( nonPersistedProperties.isEmpty() )
-        {
-            getPropertyMap().entrySet().stream()
-                .filter( entry -> !entry.getValue().isPersisted() )
-                .forEach( entry -> nonPersistedProperties.put( entry.getKey(), entry.getValue() ) );
-        }
-
+        initEmptyCache( nonPersistedProperties, property -> !property.isPersisted() );
         return nonPersistedProperties;
     }
 
     public Map<String, Property> getEmbeddedObjectProperties()
     {
-        if ( embeddedObjectProperties == null )
-        {
-            embeddedObjectProperties = new HashMap<>();
-
-            getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isEmbeddedObject() )
-                .forEach( entry -> embeddedObjectProperties.put( entry.getKey(), entry.getValue() ) );
-        }
-
+        initEmptyCache( embeddedObjectProperties, Property::isEmbeddedObject );
         return embeddedObjectProperties;
     }
 
     public Map<String, Property> getAnalyticalObjectProperties()
     {
-        if ( analyticalObjectProperties == null )
-        {
-            analyticalObjectProperties = new HashMap<>();
-
-            getPropertyMap().entrySet().stream()
-                .filter( entry -> entry.getValue().isAnalyticalObject() )
-                .forEach( entry -> analyticalObjectProperties.put( entry.getKey(), entry.getValue() ) );
-        }
-
+        initEmptyCache( analyticalObjectProperties, Property::isAnalyticalObject );
         return analyticalObjectProperties;
+    }
+
+    private void initEmptyCache( Map<String, Property> map, Predicate<Property> filter )
+    {
+        if ( map.isEmpty() )
+        {
+            getPropertyMap().entrySet().stream()
+                .filter( entry -> filter.test( entry.getValue() ) )
+                .forEach( entry -> map.put( entry.getKey(), entry.getValue() ) );
+        }
     }
 
     public void addProperty( Property property )
@@ -638,8 +635,18 @@ public class Schema implements Ordered, Klass
         {
             return;
         }
-
         propertyMap.put( property.getName(), property );
+        invalidatePropertyCaches();
+    }
+
+    private void invalidatePropertyCaches()
+    {
+        analyticalObjectProperties.clear();
+        embeddedObjectProperties.clear();
+        readableProperties.clear();
+        persistedProperties.clear();
+        nonPersistedProperties.clear();
+        references = null;
     }
 
     @JsonIgnore
@@ -665,35 +672,23 @@ public class Schema implements Ordered, Klass
     {
         if ( cachedAuthoritiesByType == null )
         {
-            cachedAuthoritiesByType = new HashMap<>();
+            cachedAuthoritiesByType = initAuthoritiesByTypeMap();
         }
+        return cachedAuthoritiesByType.computeIfAbsent( type, this::computeAuthoritiesForType );
+    }
 
-        List<String> authorityList = cachedAuthoritiesByType.get( type );
+    private synchronized ConcurrentMap<AuthorityType, List<String>> initAuthoritiesByTypeMap()
+    {
+        return cachedAuthoritiesByType != null ? cachedAuthoritiesByType : new ConcurrentHashMap<>();
+    }
 
-        if ( authorityList != null )
-        {
-            return authorityList;
-        }
-
-        final List<String> list = new ArrayList<>();
+    private List<String> computeAuthoritiesForType( AuthorityType type )
+    {
+        final Set<String> uniqueAuthorities = new LinkedHashSet<>();
         authorities.stream()
-            .filter( authority -> type.equals( authority.getType() ) )
-            .forEach( authority -> list.addAll( authority.getAuthorities() ) );
-        authorityList = Collections.unmodifiableList( list );
-
-        final Map<AuthorityType, List<String>> authoritiesByType = new HashMap<>();
-        authoritiesByType.put( type, authorityList );
-
-        final Map<AuthorityType, List<String>> currentCachedAuthoritiesByType = cachedAuthoritiesByType;
-
-        if ( currentCachedAuthoritiesByType != null )
-        {
-            authoritiesByType.putAll( currentCachedAuthoritiesByType );
-        }
-
-        cachedAuthoritiesByType = authoritiesByType;
-
-        return authorityList;
+            .filter( authority -> authority.getType() == type )
+            .forEach( authority -> uniqueAuthorities.addAll( authority.getAuthorities() ) );
+        return unmodifiableList( new ArrayList<>( uniqueAuthorities ) );
     }
 
     @Override
@@ -718,13 +713,13 @@ public class Schema implements Ordered, Klass
     {
         return this.getProperties().stream()
             .filter( p -> p.isPersisted() && p.isOwner() && p.isUnique() && p.isSimple() )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     public Map<String, Property> getFieldNameMapProperties()
     {
         return this.getPersistedProperties().entrySet().stream()
-            .collect( Collectors.toMap( p -> p.getValue().getFieldName(), p -> p.getValue() ) );
+            .collect( toMap( p -> p.getValue().getFieldName(), Entry::getValue ) );
     }
 
     @Override
