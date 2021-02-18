@@ -38,7 +38,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.set
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.paginate;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.setMaxResultsWhenPaging;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -141,7 +141,7 @@ public class DataItemServiceFacade
     {
         final Set<Class<? extends BaseIdentifiableObject>> targetedEntities = new HashSet<>( 0 );
 
-        if ( containsFilterWithOneOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
+        if ( containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_EQUAL.getCombination(),
             DIMENSION_TYPE_IN.getCombination() ) )
         {
             addFilteredTargetEntities( filters, targetedEntities );

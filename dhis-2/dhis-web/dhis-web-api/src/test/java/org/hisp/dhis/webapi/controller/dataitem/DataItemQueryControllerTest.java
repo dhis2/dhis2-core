@@ -67,6 +67,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Unit tests for DataItemQueryController.
+ *
+ * @author maikel arabori
+ */
 public class DataItemQueryControllerTest
 {
     @Mock

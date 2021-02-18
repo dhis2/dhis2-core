@@ -65,7 +65,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_I
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_IN;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithOneOfPrefixes;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
 
 import java.util.HashSet;
@@ -284,7 +284,7 @@ public class FilteringHelper
             paramsMap.addValue( ROOT_JUNCTION, rootJunction );
         }
 
-        if ( containsFilterWithOneOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),
+        if ( containsFilterWithAnyOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),
             VALUE_TYPE_IN.getCombination() ) )
         {
             final Set<String> valueTypesFilter = extractAllValueTypesFromFilters( filters );

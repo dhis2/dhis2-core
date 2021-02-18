@@ -76,6 +76,11 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
+/**
+ * Unit tests for ResponseHandler.
+ *
+ * @author maikel arabori
+ */
 public class ResponseHandlerTest
 {
     @Mock

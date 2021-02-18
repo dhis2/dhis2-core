@@ -69,6 +69,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
+/**
+ * Unit tests for DataItemServiceFacade.
+ *
+ * @author maikel arabori
+ */
 public class DataItemServiceFacadeTest
 {
     @Mock

@@ -46,6 +46,11 @@ import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.junit.Test;
 
+/**
+ * Unit tests for OrderingHelper.
+ *
+ * @author maikel arabori
+ */
 public class OrderingHelperTest
 {
     @Test

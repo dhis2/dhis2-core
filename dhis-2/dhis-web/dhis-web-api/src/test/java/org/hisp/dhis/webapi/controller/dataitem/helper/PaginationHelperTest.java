@@ -47,6 +47,11 @@ import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Test;
 
+/**
+ * Unit tests for PaginationHelper.
+ * 
+ * @author maikel arabori
+ */
 public class PaginationHelperTest
 {
     @Test

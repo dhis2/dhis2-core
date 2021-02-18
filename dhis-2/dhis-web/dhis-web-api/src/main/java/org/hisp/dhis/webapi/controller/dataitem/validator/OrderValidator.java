@@ -105,7 +105,7 @@ public class OrderValidator
 
     /**
      * Checks if the given of order params can be used in combination with the
-     * given filters. Currently the only valid combinations allowed when useing
+     * given filters. Currently the only valid combinations allowed when using
      * "name" or "displayName" are:
      *
      * 1) "order=displayName:asc => filter=displayName:eq:something" 2)

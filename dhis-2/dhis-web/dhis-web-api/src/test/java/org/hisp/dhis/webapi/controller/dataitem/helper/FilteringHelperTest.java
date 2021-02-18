@@ -39,7 +39,7 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENS
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithPrefix;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
@@ -53,6 +53,11 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.junit.Test;
 
+/**
+ * Unit tests for FilteringHelper.
+ *
+ * @author maikel arabori
+ */
 public class FilteringHelperTest
 {
     @Test
@@ -158,41 +163,39 @@ public class FilteringHelperTest
     public void testContainsDimensionTypeFilterUsingEqualsQuery()
     {
         // Given
-        final Set<String> anyFilters = newHashSet( "dimensionItemType:eq:DATA_SET" );
-        final boolean expectedTrueResult = true;
+        final Set<String> filters = newHashSet( "dimensionItemType:eq:DATA_SET" );
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_EQUAL.getCombination() );
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters,
+            DIMENSION_TYPE_EQUAL.getCombination() );
 
         // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
+        assertThat( actualResult, is( true ) );
     }
 
     @Test
     public void testContainsDimensionTypeFilterUsingInQuery()
     {
         // Given
-        final Set<String> anyFilters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
-        final boolean expectedTrueResult = true;
+        final Set<String> filters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getCombination() );
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
 
         // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
+        assertThat( actualResult, is( true ) );
     }
 
     @Test
     public void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet()
     {
         // Given
-        final Set<String> anyFilters = newHashSet( "displayName:ilike:anc" );
-        final boolean expectedFalseResult = false;
+        final Set<String> filters = newHashSet( "displayName:ilike:anc" );
 
         // When
-        final boolean actualResult = containsFilterWithPrefix( anyFilters, DIMENSION_TYPE_IN.getCombination() );
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
 
         // Then
-        assertThat( actualResult, is( expectedFalseResult ) );
+        assertThat( actualResult, is( false ) );
     }
 }

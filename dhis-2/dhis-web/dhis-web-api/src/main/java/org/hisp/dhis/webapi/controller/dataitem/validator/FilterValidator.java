@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataitem.validator;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2034;
@@ -122,48 +123,24 @@ public class FilterValidator
     }
 
     /**
-     * Simply checks if the given set of filters contains the given filter
-     * prefix.
+     * Simply checks if the given set of filters contains any one of the provided prefixes.
      *
      * @param filters
-     * @param withPrefix
+     * @param withPrefixes
      * @return true if a filter prefix is found, false otherwise.
      */
-    public static boolean containsFilterWithPrefix( final Set<String> filters, final String withPrefix )
+    public static boolean containsFilterWithAnyOfPrefixes( final Set<String> filters, final String... withPrefixes )
     {
-        if ( isNotEmpty( filters ) )
+        if ( isNotEmpty( filters ) && withPrefixes != null && withPrefixes.length > 0 )
         {
             for ( final String filter : filters )
             {
-                if ( filterHasPrefix( filter, withPrefix ) )
+                for ( final String prefix : withPrefixes )
                 {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Simply checks if the given set of filters contains any one of the given
-     * filter prefixes.
-     *
-     * @param filters
-     * @param withPrefixOne
-     * @param withPrefixTwo
-     * @return true anyone of the prefixes is found, false otherwise.
-     */
-    public static boolean containsFilterWithOneOfPrefixes( final Set<String> filters, final String withPrefixOne,
-        final String withPrefixTwo )
-    {
-        if ( isNotEmpty( filters ) )
-        {
-            for ( final String filter : filters )
-            {
-                if ( filterHasOneOfPrefixes( filter, withPrefixOne, withPrefixTwo ) )
-                {
-                    return true;
+                    if ( filterHasPrefix( filter, prefix ) )
+                    {
+                        return true;
+                    }
                 }
             }
         }
@@ -178,30 +155,16 @@ public class FilterValidator
      *        where 'name' is the attribute and 'eq' is the operator
      * @param prefix the prefix to be matched. See {@link Filter.Combination}
      *        for valid ones
-     * @return true if the current filter starts with given prefix, false
+     * @return true if the current filter starts with the given prefix, false
      *         otherwise
      */
     public static boolean filterHasPrefix( final String filter, final String prefix )
     {
-        return trimToEmpty( filter ).startsWith( trimToEmpty( prefix ) );
-    }
+        if ( isNotBlank( prefix ) && isNotBlank( filter ) )
+        {
+            return trimToEmpty( filter ).startsWith( trimToEmpty( prefix ) );
+        }
 
-    /**
-     * Simply checks if a given filter starts with any one of the prefix
-     * provided.
-     *
-     * @param filter the full filter param, in the format: name:eq:someName,
-     *        where 'name' is the attribute and 'eq' is the operator
-     * @param prefixOne the first prefix to be matched. See
-     *        {@link Filter.Combination} for valid ones
-     * @param prefixTwo the second prefix to be matched. See
-     *        {@link Filter.Combination} for valid ones
-     * @return true if the current filter starts with any one of the given
-     *         prefixes, false otherwise
-     */
-    public static boolean filterHasOneOfPrefixes( final String filter, final String prefixOne,
-        final String prefixTwo )
-    {
-        return trimToEmpty( filter ).startsWith( prefixOne ) || trimToEmpty( filter ).startsWith( prefixTwo );
+        return false;
     }
 }

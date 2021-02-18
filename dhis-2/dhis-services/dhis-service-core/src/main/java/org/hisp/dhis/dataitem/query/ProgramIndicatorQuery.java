@@ -29,7 +29,6 @@ package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
@@ -116,12 +115,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         while ( rowSet.next() )
         {
-            final String name = trimToEmpty(
-                rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
-                rowSet.getString( "program_name" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "pi_i18n_name" ) ),
-                    trimToEmpty( rowSet.getString( "name" ) ) );
+            final String name = trimToEmpty( rowSet.getString( "name" ) );
+            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "pi_i18n_name" ) ),
+                name );
 
             // Specific case where we have to force a vale type. Program
             // Indicators don't have a value type but they always evaluate to
