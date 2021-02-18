@@ -64,11 +64,9 @@ public class DefaultQueryValidator
 {
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager,
-        NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
-        checkNotNull( nestedIndicatorCyclicDependencyInspector );
 
         this.systemSettingManager = systemSettingManager;
     }
@@ -142,7 +140,6 @@ public class DefaultQueryValidator
         else if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7107 );
-            ;
         }
         else if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
