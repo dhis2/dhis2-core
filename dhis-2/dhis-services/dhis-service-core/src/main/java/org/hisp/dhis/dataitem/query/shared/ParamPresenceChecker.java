@@ -55,10 +55,25 @@ public class ParamPresenceChecker
      *        paramsMap
      * @return true if the param is a String and is not blank, false otherwise
      */
-    public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
+    public static boolean hasStringNonBlankPresence( final MapSqlParameterSource paramsMap, final String param )
     {
         return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String
             && isNotBlank( (String) paramsMap.getValue( param ) );
+    }
+
+    /**
+     * This will check if the the given param is inside the given paramsMap and
+     * check if the param is a String. It allows the presence of blank and empty
+     * strings.
+     *
+     * @param paramsMap the query params map
+     * @param param the param to be validated, that lives inside the given
+     *        paramsMap
+     * @return true if the param is a String, false otherwise
+     */
+    public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
+    {
+        return paramsMap != null && paramsMap.hasValue( param ) && paramsMap.getValue( param ) instanceof String;
     }
 
     /**

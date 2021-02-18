@@ -44,7 +44,7 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueTy
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
@@ -165,7 +165,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // Creating a temp translated table to be queried.
         sql.append( SPACED_SELECT + "* FROM (" );
 
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
             // Selecting only rows that contains both programs and program
             // indicators translations at the same time.
@@ -229,8 +229,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayFiltering( "t.p_i18n_name", "t.pi_i18n_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayFiltering( "t.pi_i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );

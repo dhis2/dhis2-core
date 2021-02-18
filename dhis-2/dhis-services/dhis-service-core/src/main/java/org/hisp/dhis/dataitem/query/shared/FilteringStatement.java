@@ -30,6 +30,7 @@ package org.hisp.dhis.dataitem.query.shared;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
@@ -62,7 +63,7 @@ public class FilteringStatement
 
     public static String uidFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringPresence( paramsMap, UID ) )
+        if ( hasStringNonBlankPresence( paramsMap, UID ) )
         {
             return SPACED_LEFT_PARENTHESIS + column + " = :" + UID + SPACED_RIGHT_PARENTHESIS;
         }
@@ -142,7 +143,7 @@ public class FilteringStatement
 
     public static String programIdFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringPresence( paramsMap, PROGRAM_ID ) )
+        if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
         {
             return SPACE + column + " = :" + PROGRAM_ID + SPACE;
         }
@@ -187,7 +188,7 @@ public class FilteringStatement
     {
         final String defaultRootJunction = "AND";
 
-        if ( hasStringPresence( paramsMap, ROOT_JUNCTION ) )
+        if ( hasStringNonBlankPresence( paramsMap, ROOT_JUNCTION ) )
         {
             return (String) paramsMap.getValue( ROOT_JUNCTION );
         }

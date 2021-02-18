@@ -205,6 +205,12 @@ public class FilteringHelper
     }
 
     /**
+     * Extracts the actual value, from the set of filters, that matches the
+     * given combination.
+     * 
+     * ie.: from a list of filters: "dimensionItemType:eq:INDICATOR",
+     * "name:ilike:john", extract the value from the combination NAME_ILIKE(
+     * "name:ilike:" ). This will return "john".
      *
      * @param filters
      * @param filterCombination
@@ -225,7 +231,7 @@ public class FilteringHelper
 
                     if ( hasValue )
                     {
-                        return trimToEmpty( array[FILTER_VALUE] );
+                        return array[FILTER_VALUE];
                     }
                     else
                     {
@@ -236,6 +242,28 @@ public class FilteringHelper
         }
 
         return EMPTY;
+    }
+
+    /**
+     * Extracts the actual value (trimmed or not), from the set of filters, that matches the
+     * given combination.
+     *
+     * ie.: from a list of filters: "dimensionItemType:eq:INDICATOR",
+     * "name:ilike:john", extract the value from the combination NAME_ILIKE(
+     * "name:ilike:" ). This will return "john".
+     *
+     * @param filters
+     * @param filterCombination
+     * @param trimmed automatically trims the extracted value returned when this
+     *        flag is set to true
+     * @return the value extracted from the respective filter combination
+     */
+    public static String extractValueFromFilter( final Set<String> filters, final Filter.Combination filterCombination,
+        final boolean trimmed )
+    {
+        final String value = extractValueFromFilter( filters, filterCombination );
+
+        return trimmed ? trimToEmpty( value ) : value;
     }
 
     /**
@@ -267,10 +295,10 @@ public class FilteringHelper
 
         if ( isNotBlank( ilikeDisplayName ) )
         {
-            paramsMap.addValue( DISPLAY_NAME, wrap( trimToEmpty( ilikeDisplayName ), "%" ) );
+            paramsMap.addValue( DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
         }
 
-        final String equalId = extractValueFromFilter( filters, ID_EQUAL );
+        final String equalId = extractValueFromFilter( filters, ID_EQUAL, true );
 
         if ( isNotBlank( equalId ) )
         {
@@ -299,7 +327,7 @@ public class FilteringHelper
                 getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
         }
 
-        final String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL );
+        final String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
 
         // Add program id filtering id, if present.
         if ( isNotBlank( programId ) )

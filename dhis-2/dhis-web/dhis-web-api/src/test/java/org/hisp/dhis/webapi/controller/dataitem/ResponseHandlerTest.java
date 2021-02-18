@@ -106,8 +106,6 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
-        String[] testEnvironmentVars = { "test" };
-        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
         when( cacheProvider.createDataItemsPaginationCache() ).thenReturn( new NoOpCache<>() );
         responseHandler = new ResponseHandler( queryExecutor, linkService, fieldFilterService, cacheProvider );
     }

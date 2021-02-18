@@ -45,7 +45,7 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFilterin
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
@@ -151,7 +151,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // Creating a temp translated table to be queried.
         sql.append( SPACED_SELECT + "* FROM (" );
 
-        if ( hasStringPresence( paramsMap, LOCALE ) )
+        if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
             // Selecting only rows that contains both programs and
             // tracked entity attributes

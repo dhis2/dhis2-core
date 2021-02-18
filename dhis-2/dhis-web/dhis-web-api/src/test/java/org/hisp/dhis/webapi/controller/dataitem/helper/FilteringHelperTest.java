@@ -35,11 +35,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
-import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromFilter;
 import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
@@ -51,6 +49,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.junit.Test;
 
 /**
@@ -160,42 +159,28 @@ public class FilteringHelperTest
     }
 
     @Test
-    public void testContainsDimensionTypeFilterUsingEqualsQuery()
-    {
+    public void testExtractValueFromFilterNoTrimmed() {
         // Given
-        final Set<String> filters = newHashSet( "dimensionItemType:eq:DATA_SET" );
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId " );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters,
-            DIMENSION_TYPE_EQUAL.getCombination() );
+        final String expectedValue = extractValueFromFilter(filters, theCombination);
 
         // Then
-        assertThat( actualResult, is( true ) );
+        assertThat( expectedValue, is("anyId ") );
     }
 
     @Test
-    public void testContainsDimensionTypeFilterUsingInQuery()
-    {
+    public void testExtractValueFromFilterTrimmed() {
         // Given
-        final Set<String> filters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId" );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
+        final String expectedValue = extractValueFromFilter(filters, theCombination, true);
 
         // Then
-        assertThat( actualResult, is( true ) );
-    }
-
-    @Test
-    public void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet()
-    {
-        // Given
-        final Set<String> filters = newHashSet( "displayName:ilike:anc" );
-
-        // When
-        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
-
-        // Then
-        assertThat( actualResult, is( false ) );
+        assertThat( expectedValue, is("anyId") );
     }
 }

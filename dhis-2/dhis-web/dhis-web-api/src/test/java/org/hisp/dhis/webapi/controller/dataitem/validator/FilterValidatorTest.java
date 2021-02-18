@@ -27,11 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.validator;
 
+import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
@@ -40,10 +43,9 @@ import static org.junit.Assert.assertThrows;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.Test;
-
-import com.google.common.collect.Sets;
 
 /**
  * Unit tests for FilterValidator.
@@ -170,7 +172,7 @@ public class FilterValidatorTest
     public void testContainsFilterWithAnyOfPrefixesWhenWeHaveMultiplFiltersAndOneMatch()
     {
         // Given
-        final Set<String> filters = Sets.newHashSet( "attribute:ilike:aWord", "programId:eq:abcderf" );
+        final Set<String> filters = newHashSet( "attribute:ilike:aWord", "programId:eq:abcderf" );
         final String thePrefix = "programId:eq:";
 
         // When
@@ -272,5 +274,45 @@ public class FilterValidatorTest
 
         // Then
         assertThat( actualResult, is( false ) );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterUsingEqualsQuery()
+    {
+        // Given
+        final Set<String> filters = newHashSet( "dimensionItemType:eq:DATA_SET" );
+
+        // When
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters,
+            DIMENSION_TYPE_EQUAL.getCombination() );
+
+        // Then
+        assertThat( actualResult, Matchers.is( true ) );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterUsingInQuery()
+    {
+        // Given
+        final Set<String> filters = newHashSet( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
+
+        // When
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
+
+        // Then
+        assertThat( actualResult, Matchers.is( true ) );
+    }
+
+    @Test
+    public void testContainsDimensionTypeFilterWhenDimensionItemTypeInFilterIsNotSet()
+    {
+        // Given
+        final Set<String> filters = newHashSet( "displayName:ilike:anc" );
+
+        // When
+        final boolean actualResult = containsFilterWithAnyOfPrefixes( filters, DIMENSION_TYPE_IN.getCombination() );
+
+        // Then
+        assertThat( actualResult, Matchers.is( false ) );
     }
 }

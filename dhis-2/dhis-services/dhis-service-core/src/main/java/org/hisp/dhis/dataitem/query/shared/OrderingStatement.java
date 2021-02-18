@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
 
@@ -53,11 +53,11 @@ public class OrderingStatement
     public static String ordering( final String displayOrderingColumns, final String nameOrderingColumns,
         final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumns ) )
+        if ( hasStringNonBlankPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumns ) )
         {
             return buildOrderByStatement( displayOrderingColumns, (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
         }
-        else if ( hasStringPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
+        else if ( hasStringNonBlankPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
         {
             return buildOrderByStatement( nameOrderingColumns, (String) paramsMap.getValue( NAME_ORDER ) );
         }

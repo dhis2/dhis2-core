@@ -89,9 +89,9 @@ public class FilterValidator
 
                         final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
 
-                        final String attributeValue = trimToEmpty( filterAttributeValuePair[FILTER_ATTRIBUTE_VALUE] );
+                        final String attributeValue = filterAttributeValuePair[FILTER_ATTRIBUTE_VALUE];
 
-                        if ( trimToEmpty( attributeValue ).length() < MIN_TEXT_SEARCH_LENGTH )
+                        if ( attributeValue != null && attributeValue.length() < MIN_TEXT_SEARCH_LENGTH )
                         {
                             throw new IllegalQueryException(
                                 new ErrorMessage( E2038, MIN_TEXT_SEARCH_LENGTH, filter ) );
