@@ -51,8 +51,8 @@ public class OrderingStatementTest
         final String aGroupOfColumns = "anyColumn, otherColumn";
         final String otherGroupOfColumns = "anyColumn, otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "ASC" );
-        final String expectedStatement = " ORDER BY anyColumn ASC, otherColumn ASC";
+            .addValue( DISPLAY_NAME_ORDER, "asc" );
+        final String expectedStatement = " order by anyColumn asc, otherColumn asc";
 
         // When
         final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, theParameterSource );
@@ -68,8 +68,8 @@ public class OrderingStatementTest
         final String displayOrderingColumns = "anyColumn, anyColumn2";
         final String nameOrderingColumns = "otherColumn, otherColumn2";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "DESC" );
-        final String expectedStatement = " ORDER BY otherColumn DESC, otherColumn2 DESC";
+            .addValue( NAME_ORDER, "desc" );
+        final String expectedStatement = " order by otherColumn desc, otherColumn2 desc";
 
         // When
         final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, theParameterSource );
@@ -147,8 +147,8 @@ public class OrderingStatementTest
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "DESC" );
-        final String expectedStatement = " ORDER BY otherColumn DESC";
+            .addValue( NAME_ORDER, "desc" );
+        final String expectedStatement = " order by otherColumn desc";
 
         // When
         final String actualStatement = ordering( aNullColumn, otherColumn, theParameterSource );
@@ -164,8 +164,8 @@ public class OrderingStatementTest
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "DESC" );
-        final String expectedStatement = " ORDER BY otherColumn DESC";
+            .addValue( NAME_ORDER, "desc" );
+        final String expectedStatement = " order by otherColumn desc";
 
         // When
         final String actualStatement = ordering( anEmptyColumn, otherColumn, theParameterSource );
@@ -181,7 +181,7 @@ public class OrderingStatementTest
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "ASC" );
+            .addValue( DISPLAY_NAME_ORDER, "asc" );
         final String expectedStatement = EMPTY;
 
         // When
@@ -198,7 +198,7 @@ public class OrderingStatementTest
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( DISPLAY_NAME_ORDER, "ASC" );
+            .addValue( DISPLAY_NAME_ORDER, "asc" );
         final String expectedStatement = EMPTY;
 
         // When
@@ -215,7 +215,7 @@ public class OrderingStatementTest
         final String aNullColumn = null;
         final String anotherNullColumn = null;
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
-            .addValue( NAME_ORDER, "DESC" );
+            .addValue( NAME_ORDER, "desc" );
         final String expectedStatement = EMPTY;
 
         // When

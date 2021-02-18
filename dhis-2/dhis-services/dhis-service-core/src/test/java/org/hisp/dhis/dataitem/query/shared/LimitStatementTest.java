@@ -49,7 +49,7 @@ public class LimitStatementTest
         // Given
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( MAX_LIMIT, 20 );
-        final String expectedStatement = " LIMIT :" + MAX_LIMIT;
+        final String expectedStatement = " limit :" + MAX_LIMIT;
 
         // When
         final String actualStatement = maxLimit( theParameterSource );

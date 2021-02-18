@@ -51,7 +51,7 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringStatement
 {
-    public static final String ILIKE = " ILIKE :";
+    public static final String ILIKE = " ilike :";
 
     public static final String SPACED_LEFT_PARENTHESIS = " ( ";
 

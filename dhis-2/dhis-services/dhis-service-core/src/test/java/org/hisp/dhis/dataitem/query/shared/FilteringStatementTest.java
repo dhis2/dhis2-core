@@ -58,7 +58,7 @@ public class FilteringStatementTest
         final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " ( anyColumn ILIKE :name ) ";
+        final String expectedStatement = " ( anyColumn ilike :name ) ";
 
         // When
         final String resultStatement = nameFiltering( aColumn, theParameterSource );
@@ -119,7 +119,7 @@ public class FilteringStatementTest
         final String column2 = "otherColumn";
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
             .addValue( NAME, "abc" );
-        final String expectedStatement = " ( anyColumn ILIKE :name OR otherColumn ILIKE :name ) ";
+        final String expectedStatement = " ( anyColumn ilike :name or otherColumn ilike :name ) ";
 
         // When
         final String resultStatement = nameFiltering( column1, column2, filtersParameterSource );
@@ -152,7 +152,7 @@ public class FilteringStatementTest
         final String aColumn = "anyColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( VALUE_TYPES, unmodifiableSet( "NUMBER", "INTEGER" ) );
-        final String expectedStatement = " ( anyColumn IN (:valueTypes) ) ";
+        final String expectedStatement = " ( anyColumn in (:valueTypes) ) ";
 
         // When
         final String resultStatement = valueTypeFiltering( aColumn, theParameterSource );
@@ -255,13 +255,13 @@ public class FilteringStatementTest
     {
         // Given
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( ROOT_JUNCTION, "OR" );
+            .addValue( ROOT_JUNCTION, "or" );
 
         // When
         final String actualResult = rootJunction( filtersParameterSource );
 
         // Then
-        assertThat( actualResult, is( "OR" ) );
+        assertThat( actualResult, is( "or" ) );
     }
 
     @Test
@@ -269,13 +269,13 @@ public class FilteringStatementTest
     {
         // Given
         final MapSqlParameterSource filtersParameterSource = new MapSqlParameterSource()
-            .addValue( ROOT_JUNCTION, "AND" );
+            .addValue( ROOT_JUNCTION, "and" );
 
         // When
         final String actualResult = rootJunction( filtersParameterSource );
 
         // Then
-        assertThat( actualResult, is( "AND" ) );
+        assertThat( actualResult, is( "and" ) );
     }
 
     @Test
@@ -288,7 +288,7 @@ public class FilteringStatementTest
         final String actualResult = rootJunction( filtersParameterSource );
 
         // Then
-        assertThat( actualResult, is( "AND" ) );
+        assertThat( actualResult, is( "and" ) );
     }
 
     @Test
@@ -302,6 +302,6 @@ public class FilteringStatementTest
         final String actualResult = rootJunction( filtersParameterSource );
 
         // Then
-        assertThat( actualResult, is( "AND" ) );
+        assertThat( actualResult, is( "and" ) );
     }
 }

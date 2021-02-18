@@ -223,8 +223,8 @@ public class UserAccessStatementTest
     {
         // Given
         String aColumn = "anyColumn";
-        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'owner') IS NULL OR "
-            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = 'null' OR "
+        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'owner') is null or "
+            + "jsonb_extract_path_text(" + aColumn + ", 'owner') = 'null' or "
             + "jsonb_extract_path_text(" + aColumn + ", 'owner') = :userUid)";
 
         // When
@@ -246,7 +246,7 @@ public class UserAccessStatementTest
             () -> ownerAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
@@ -254,9 +254,9 @@ public class UserAccessStatementTest
     {
         // Given
         String aColumn = "anyColumn";
-        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'public') IS NULL OR "
-            + "jsonb_extract_path_text(" + aColumn + ", 'public') = 'null' OR "
-            + "jsonb_extract_path_text(" + aColumn + ", 'public') LIKE 'r%')";
+        final String expectedStatement = "(jsonb_extract_path_text(" + aColumn + ", 'public') is null or "
+            + "jsonb_extract_path_text(" + aColumn + ", 'public') = 'null' or "
+            + "jsonb_extract_path_text(" + aColumn + ", 'public') like 'r%')";
 
         // When
         final String actualStatement = publicAccessCondition( aColumn );
@@ -277,7 +277,7 @@ public class UserAccessStatementTest
             () -> publicAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
@@ -285,8 +285,8 @@ public class UserAccessStatementTest
     {
         // Given
         String aColumn = "anyColumn";
-        final String expectedStatement = "(jsonb_has_user_id(" + aColumn + ", :" + USER_UID + ") = TRUE "
-            + "AND jsonb_check_user_access(" + aColumn + ", :" + USER_UID + ", 'r%') = TRUE)";
+        final String expectedStatement = "(jsonb_has_user_id(" + aColumn + ", :" + USER_UID + ") = true "
+            + "and jsonb_check_user_access(" + aColumn + ", :" + USER_UID + ", 'r%') = true)";
 
         // When
         final String actualStatement = userAccessCondition( aColumn );
@@ -307,7 +307,7 @@ public class UserAccessStatementTest
             () -> userAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 
     @Test
@@ -316,8 +316,8 @@ public class UserAccessStatementTest
         // Given
         String aColumn = "anyColumn";
         final String expectedStatement = "(" + HAS_USER_GROUP_IDS + "(" + aColumn + ", :" + USER_GROUP_UIDS
-            + ") = TRUE " + "AND " + CHECK_USER_GROUPS_ACCESS + "(" + aColumn + ", 'r%', :" + USER_GROUP_UIDS
-            + ") = TRUE)";
+            + ") = true " + "and " + CHECK_USER_GROUPS_ACCESS + "(" + aColumn + ", 'r%', :" + USER_GROUP_UIDS
+            + ") = true)";
 
         // When
         final String actualStatement = userGroupAccessCondition( aColumn );
@@ -338,6 +338,6 @@ public class UserAccessStatementTest
             () -> userGroupAccessCondition( nullTableAlias ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "The argument tableName cannot be null/blank." ) );
+        assertThat( thrown.getMessage(), containsString( "The argument columnName cannot be null/blank." ) );
     }
 }
