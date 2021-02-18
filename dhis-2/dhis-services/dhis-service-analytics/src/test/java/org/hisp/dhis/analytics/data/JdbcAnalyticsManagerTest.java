@@ -76,9 +76,6 @@ public class JdbcAnalyticsManagerTest
     @Mock
     private SqlRowSet rowSet;
 
-    @Mock
-    private NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
-
     @Captor
     private ArgumentCaptor<String> sql;
 
@@ -88,7 +85,7 @@ public class JdbcAnalyticsManagerTest
     public void setUp()
     {
         QueryPlanner queryPlanner = new DefaultQueryPlanner(
-            new DefaultQueryValidator( this.systemSettingManager, nestedIndicatorCyclicDependencyInspector ),
+            new DefaultQueryValidator( this.systemSettingManager ),
             partitionManager );
 
         mockRowSet();
@@ -144,7 +141,8 @@ public class JdbcAnalyticsManagerTest
         when( rowSet.next() ).thenReturn( false );
     }
 
-    private DataQueryParams createParams(AggregationType aggregationType) {
+    private DataQueryParams createParams( AggregationType aggregationType )
+    {
 
         DataElement deA = createDataElement( 'A', ValueType.INTEGER, aggregationType );
         OrganisationUnit ouA = createOrganisationUnit( 'A' );
@@ -158,7 +156,8 @@ public class JdbcAnalyticsManagerTest
             .addDimension( new BaseDimensionalObject( PERIOD_DIM_ID, DimensionType.PERIOD, getList( peA ) ) ).build();
     }
 
-    private void assertExpectedSql(String sortOrder) {
+    private void assertExpectedSql( String sortOrder )
+    {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
@@ -170,7 +169,8 @@ public class JdbcAnalyticsManagerTest
         assertThat( sql.getValue(), containsString( lastAggregationTypeSql ) );
     }
 
-    private void assertExpectedLastSql(String sortOrder) {
+    private void assertExpectedLastSql( String sortOrder )
+    {
 
         String lastAggregationTypeSql = "(select \"year\",\"pestartdate\",\"peenddate\",\"level\",\"daysxvalue\","
             + "\"daysno\",\"value\",\"textvalue\",\"dx\",cast('201501' as text) as \"pe\",\"ou\","
