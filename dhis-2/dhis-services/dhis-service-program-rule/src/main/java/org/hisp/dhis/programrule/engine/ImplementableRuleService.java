@@ -71,7 +71,7 @@ abstract class ImplementableRuleService
     public List<ProgramRule> getProgramRules( Program program, String programStageUid )
     {
         Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
-        if ( optionalCacheValue.isPresent() && Boolean.TRUE.equals( optionalCacheValue.get() ) )
+        if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
         {
             return Collections.EMPTY_LIST;
         }
