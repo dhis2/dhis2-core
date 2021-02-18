@@ -47,6 +47,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
@@ -411,7 +412,9 @@ public class DefaultProgramNotificationService
             .text( message.getMessage() )
             .recipients( resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(), psi ) )
             .deliveryChannels( Sets.newHashSet( template.getDeliveryChannels() ) )
-            .programStageInstance( psi ).build();
+            .programStageInstance( psi )
+            .notificationTemplate( Optional.ofNullable( template.getUid() ).orElse( StringUtils.EMPTY ) )
+            .build();
     }
 
     private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
@@ -423,7 +426,9 @@ public class DefaultProgramNotificationService
             .recipients( resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(),
                 programInstance ) )
             .deliveryChannels( Sets.newHashSet( template.getDeliveryChannels() ) )
-            .programInstance( programInstance ).build();
+            .programInstance( programInstance )
+            .notificationTemplate( Optional.ofNullable( template.getUid() ).orElse( StringUtils.EMPTY ) )
+            .build();
     }
 
     private Set<User> resolveDhisMessageRecipients(
