@@ -25,39 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.schema.introspection;
 
-import java.util.List;
 import java.util.Map;
 
-import com.google.common.collect.Lists;
+import org.hisp.dhis.schema.Property;
 
 /**
- * The {@link PropertyIntrospectorService} is the {@link Property} introspection
- * provider.
+ * A {@link PropertyIntrospector} is a function to extract or modify
+ * {@link Property} information for a given schema {@link Class}.
  *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-public interface PropertyIntrospectorService
+@FunctionalInterface
+public interface PropertyIntrospector
 {
 
     /**
-     * Returns properties as a map property-name => Property class
+     * Adds or modifies the provided {@link Property} map for the provided
+     * {@link Class}.
      *
-     * @param klass Class to get properties for
-     * @return Map with key property-name and value Property
+     * @param klass The type to introspect
+     * @param properties the intermediate and result state.
+     *        {@link PropertyIntrospector} running before this one might already
+     *        have added to the provided map. This {@link PropertyIntrospector}
+     *        can add or modify the {@link Property} entries further.
      */
-    Map<String, Property> getPropertiesMap( Class<?> klass );
-
-    /**
-     * Returns all exposed properties on wanted class.
-     *
-     * @param klass Class to get properties for
-     * @return List of properties for Class
-     */
-    default List<Property> getProperties( Class<?> klass )
-    {
-        return Lists.newArrayList( getPropertiesMap( klass ).values() );
-    }
-
+    void introspect( Class<?> klass, Map<String, Property> properties );
 }

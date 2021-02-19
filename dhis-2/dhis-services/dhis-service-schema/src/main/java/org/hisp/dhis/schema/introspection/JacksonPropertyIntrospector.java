@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.schema.introspection;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -48,65 +48,41 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.AnnotationUtils;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.SchemaUtils;
-import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 
 /**
- * Default PropertyIntrospectorService implementation that uses Reflection and
- * Jackson annotations for reading in properties.
- *
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen <mortenoh@gmail.com> (original author)
+ * @author Jan Bernitt (extraction to this class)
  */
 @Slf4j
-@Service( "org.hisp.dhis.schema.PropertyIntrospectorService" )
-public class Jackson2PropertyIntrospectorService
-    extends AbstractPropertyIntrospectorService
+public class JacksonPropertyIntrospector implements PropertyIntrospector
 {
     @Override
-    protected Map<String, Property> scanClass( Class<?> clazz )
+    public void introspect( Class<?> clazz, Map<String, Property> properties )
     {
-        Map<String, Property> propertyMap = Maps.newHashMap();
-        Map<String, Property> hibernatePropertyMap = getPropertiesFromHibernate( clazz );
         List<String> classFieldNames = ReflectionUtils.getAllFieldNames( clazz );
 
         // TODO this is quite nasty, should find a better way of exposing
         // properties at class-level
         if ( AnnotationUtils.isAnnotationPresent( clazz, JacksonXmlRootElement.class ) )
         {
-            Property property = new Property();
-
-            JacksonXmlRootElement jacksonXmlRootElement = AnnotationUtils.getAnnotation( clazz,
-                JacksonXmlRootElement.class );
-
-            if ( !StringUtils.isEmpty( jacksonXmlRootElement.localName() ) )
-            {
-                property.setName( jacksonXmlRootElement.localName() );
-            }
-
-            if ( !StringUtils.isEmpty( jacksonXmlRootElement.namespace() ) )
-            {
-                property.setNamespace( jacksonXmlRootElement.namespace() );
-            }
-
-            propertyMap.put( "__self__", property );
+            properties.put( "__self__", createSelfProperty( clazz ) );
         }
 
-        Map<String, String> translatablefields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
+        Map<String, String> translatableFields = AnnotationUtils.getTranslatableAnnotatedFields( clazz );
 
-        List<Property> properties = collectProperties( clazz );
-
-        for ( Property property : properties )
+        for ( Property property : collectProperties( clazz ) )
         {
             Method getterMethod = property.getGetterMethod();
             JsonProperty jsonProperty = AnnotationUtils.getAnnotation( getterMethod, JsonProperty.class );
@@ -129,24 +105,25 @@ public class Jackson2PropertyIntrospectorService
                 property.setFieldName( fieldName );
             }
 
-            if ( hibernatePropertyMap.containsKey( fieldName ) )
+            if ( properties.containsKey( fieldName ) )
             {
-                Property hibernateProperty = hibernatePropertyMap.get( fieldName );
+                Property existing = properties.get( fieldName );
                 property.setPersisted( true );
                 property.setWritable( true );
-                property.setUnique( hibernateProperty.isUnique() );
-                property.setRequired( hibernateProperty.isRequired() );
-                property.setLength( hibernateProperty.getLength() );
-                property.setMax( hibernateProperty.getMax() );
-                property.setMin( hibernateProperty.getMin() );
-                property.setCollection( hibernateProperty.isCollection() );
-                property.setCascade( hibernateProperty.getCascade() );
-                property.setOwner( hibernateProperty.isOwner() );
-                property.setManyToMany( hibernateProperty.isManyToMany() );
-                property.setOneToOne( hibernateProperty.isOneToOne() );
-                property.setManyToOne( hibernateProperty.isManyToOne() );
-                property.setOwningRole( hibernateProperty.getOwningRole() );
-                property.setInverseRole( hibernateProperty.getInverseRole() );
+                property.setUnique( existing.isUnique() );
+                property.setRequired( existing.isRequired() );
+                property.setLength( existing.getLength() );
+                property.setMax( existing.getMax() );
+                property.setMin( existing.getMin() );
+                property.setCollection( existing.isCollection() );
+                property.setCascade( existing.getCascade() );
+                property.setOwner( existing.isOwner() );
+                property.setManyToMany( existing.isManyToMany() );
+                property.setOneToOne( existing.isOneToOne() );
+                property.setManyToOne( existing.isManyToOne() );
+                property.setOwningRole( existing.getOwningRole() );
+                property.setInverseRole( existing.getInverseRole() );
+                // the existing is replaced later on with the modified one
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
@@ -189,7 +166,7 @@ public class Jackson2PropertyIntrospectorService
 
                 Type type = property.getGetterMethod().getGenericReturnType();
 
-                if ( ParameterizedType.class.isInstance( type ) )
+                if ( type instanceof ParameterizedType )
                 {
                     Class<?> klass = (Class<?>) getInnerType( (ParameterizedType) type );
                     property.setItemKlass( Primitives.wrap( klass ) );
@@ -213,10 +190,10 @@ public class Jackson2PropertyIntrospectorService
                 }
             }
 
-            if ( translatablefields.containsKey( property.getFieldName() ) )
+            if ( translatableFields.containsKey( property.getFieldName() ) )
             {
                 property.setTranslatable( true );
-                property.setTranslationKey( translatablefields.get( property.getFieldName() ) );
+                property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
             }
 
             if ( property.isCollection() )
@@ -234,11 +211,11 @@ public class Jackson2PropertyIntrospectorService
                     }
                 }
 
-                propertyMap.put( property.getCollectionName(), property );
+                properties.put( property.getCollectionName(), property );
             }
             else
             {
-                propertyMap.put( property.getName(), property );
+                properties.put( property.getName(), property );
             }
 
             if ( Enum.class.isAssignableFrom( property.getKlass() ) )
@@ -256,17 +233,32 @@ public class Jackson2PropertyIntrospectorService
 
             SchemaUtils.updatePropertyTypes( property );
         }
-
-        return propertyMap;
     }
 
-    private String getFieldName( Method method )
+    private static Property createSelfProperty( Class<?> clazz )
+    {
+        Property self = new Property();
+
+        JacksonXmlRootElement jacksonXmlRootElement = AnnotationUtils.getAnnotation( clazz,
+            JacksonXmlRootElement.class );
+
+        if ( !StringUtils.isEmpty( jacksonXmlRootElement.localName() ) )
+        {
+            self.setName( jacksonXmlRootElement.localName() );
+        }
+
+        if ( !StringUtils.isEmpty( jacksonXmlRootElement.namespace() ) )
+        {
+            self.setNamespace( jacksonXmlRootElement.namespace() );
+        }
+        return self;
+    }
+
+    private static String getFieldName( Method method )
     {
         String name;
 
-        String[] getters = new String[] {
-            "is", "has", "get"
-        };
+        String[] getters = new String[] { "is", "has", "get" };
 
         name = method.getName();
 
@@ -281,7 +273,7 @@ public class Jackson2PropertyIntrospectorService
         return StringUtils.uncapitalize( name );
     }
 
-    private List<Property> collectProperties( Class<?> klass )
+    private static List<Property> collectProperties( Class<?> klass )
     {
         boolean isPrimitiveOrWrapped = ClassUtils.isPrimitiveOrWrapper( klass );
 
@@ -295,32 +287,29 @@ public class Jackson2PropertyIntrospectorService
             .collect( Collectors.toList() );
         List<Property> properties = new ArrayList<>();
 
-        Map<String, Method> methodMap = multimap.keySet().stream()
-            .filter( key -> {
-                List<Method> methods = multimap.get( key ).stream()
-                    .filter( method -> AnnotationUtils.isAnnotationPresent( method, JsonProperty.class )
-                        && method.getParameterTypes().length == 0 )
-                    .collect( Collectors.toList() );
+        Map<String, Method> methodMap = multimap.keySet().stream().filter( key -> {
+            List<Method> methods = multimap.get( key ).stream()
+                .filter( method -> AnnotationUtils.isAnnotationPresent( method, JsonProperty.class )
+                    && method.getParameterTypes().length == 0 )
+                .collect( Collectors.toList() );
 
-                if ( methods.size() > 1 )
-                {
-                    log.error( "More than one web-api exposed method with name '" + key + "' found on class '"
-                        + klass.getName()
-                        + "' please fix as this is known to cause issues with Schema / Query services." );
+            if ( methods.size() > 1 )
+            {
+                log.error( "More than one web-api exposed method with name '" + key + "' found on class '"
+                    + klass.getName() + "' please fix as this is known to cause issues with Schema / Query services." );
 
-                    log.debug( "Methods found: " + methods );
-                }
+                log.debug( "Methods found: " + methods );
+            }
 
-                return methods.size() == 1;
-            } )
-            .collect( Collectors.toMap( Function.identity(), key -> {
-                List<Method> collect = multimap.get( key ).stream()
-                    .filter( method -> AnnotationUtils.isAnnotationPresent( method, JsonProperty.class )
-                        && method.getParameterTypes().length == 0 )
-                    .collect( Collectors.toList() );
+            return methods.size() == 1;
+        } ).collect( Collectors.toMap( Function.identity(), key -> {
+            List<Method> collect = multimap.get( key ).stream()
+                .filter( method -> AnnotationUtils.isAnnotationPresent( method, JsonProperty.class )
+                    && method.getParameterTypes().length == 0 )
+                .collect( Collectors.toList() );
 
-                return collect.get( 0 );
-            } ) );
+            return collect.get( 0 );
+        } ) );
 
         methodMap.keySet().forEach( key -> {
             String fieldName = getFieldName( methodMap.get( key ) );
@@ -346,11 +335,11 @@ public class Jackson2PropertyIntrospectorService
         return properties;
     }
 
-    private Type getInnerType( ParameterizedType parameterizedType )
+    private static Type getInnerType( ParameterizedType parameterizedType )
     {
         ParameterizedType innerType = parameterizedType;
 
-        while ( ParameterizedType.class.isInstance( innerType.getActualTypeArguments()[0] ) )
+        while ( innerType.getActualTypeArguments()[0] instanceof ParameterizedType )
         {
             innerType = (ParameterizedType) parameterizedType.getActualTypeArguments()[0];
         }

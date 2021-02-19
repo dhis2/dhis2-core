@@ -27,37 +27,52 @@
  */
 package org.hisp.dhis.schema;
 
-import java.util.List;
-import java.util.Map;
+import org.hisp.dhis.node.annotation.NodeComplex;
+import org.hisp.dhis.node.annotation.NodeSimple;
 
-import com.google.common.collect.Lists;
+class Value
+{
+    @NodeSimple
+    private String value;
+}
+
+class ComplexFields
+{
+    @NodeComplex
+    private Value property;
+
+    @NodeComplex( value = "renamedProperty" )
+    private Value propertyToBeRenamed;
+
+    @NodeComplex( isReadable = true, isWritable = false )
+    private Value readOnly;
+
+    @NodeComplex( isReadable = false, isWritable = true )
+    private Value writeOnly;
+
+    @NodeComplex( namespace = "http://ns.example.org" )
+    private Value propertyWithNamespace;
+
+    public Value getProperty()
+    {
+        return property;
+    }
+
+    public void setProperty( Value property )
+    {
+        this.property = property;
+    }
+}
 
 /**
- * The {@link PropertyIntrospectorService} is the {@link Property} introspection
- * provider.
- *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PropertyIntrospectorService
+public class FieldComplexNodePropertyIntrospectorTest extends AbstractNodePropertyIntrospectorTest
 {
 
-    /**
-     * Returns properties as a map property-name => Property class
-     *
-     * @param klass Class to get properties for
-     * @return Map with key property-name and value Property
-     */
-    Map<String, Property> getPropertiesMap( Class<?> klass );
-
-    /**
-     * Returns all exposed properties on wanted class.
-     *
-     * @param klass Class to get properties for
-     * @return List of properties for Class
-     */
-    default List<Property> getProperties( Class<?> klass )
+    public FieldComplexNodePropertyIntrospectorTest()
     {
-        return Lists.newArrayList( getPropertiesMap( klass ).values() );
+        super( ComplexFields.class );
     }
 
 }
