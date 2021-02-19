@@ -58,7 +58,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
     private static final String SQL = "select distinct ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
         " from programstage as ps " +
-        " join programinstance as pi ON pi.programid = ps.programid " +
+        " join programinstance as pi on pi.programid = ps.programid " +
         " join programstageinstance as psi on pi.programinstanceid = psi.programinstanceid " +
         " where psi.deleted = false " +
         " and psi.status != 'SKIPPED' " +
