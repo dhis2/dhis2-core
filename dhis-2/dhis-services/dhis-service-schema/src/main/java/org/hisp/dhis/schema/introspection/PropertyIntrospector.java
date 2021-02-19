@@ -52,4 +52,17 @@ public interface PropertyIntrospector
      *        can add or modify the {@link Property} entries further.
      */
     void introspect( Class<?> klass, Map<String, Property> properties );
+
+    /**
+     *
+     * @param next
+     * @return
+     */
+    default PropertyIntrospector then( PropertyIntrospector next )
+    {
+        return ( klass, properties ) -> {
+            introspect( klass, properties );
+            next.introspect( klass, properties );
+        };
+    }
 }

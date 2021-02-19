@@ -59,22 +59,12 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
     @Autowired
     public DefaultPropertyIntrospectorService( SessionFactory sessionFactory )
     {
-        this( composeIntrospector( sessionFactory ) );
+        this( new HibernatePropertyIntrospector( sessionFactory ).then( new JacksonPropertyIntrospector() ) );
     }
 
     public DefaultPropertyIntrospectorService( PropertyIntrospector introspector )
     {
         this.introspector = introspector;
-    }
-
-    private static PropertyIntrospector composeIntrospector( SessionFactory sessionFactory )
-    {
-        PropertyIntrospector first = new HibernatePropertyIntrospector( sessionFactory );
-        PropertyIntrospector second = new JacksonPropertyIntrospector();
-        return ( klass, properties ) -> {
-            first.introspect( klass, properties );
-            second.introspect( klass, properties );
-        };
     }
 
     @Override
@@ -92,6 +82,10 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
      */
     private Map<String, Property> scanClass( Class<?> klass )
     {
+        if ( klass.isInterface() )
+        {
+            throw new IllegalArgumentException( "Use SchemaService#getConcreteClass to resolve base type: " + klass );
+        }
         Map<String, Property> properties = new HashMap<>();
         introspector.introspect( klass, properties );
         return unmodifiableMap( properties );

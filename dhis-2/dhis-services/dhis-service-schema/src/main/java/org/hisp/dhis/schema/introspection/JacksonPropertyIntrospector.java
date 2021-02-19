@@ -34,9 +34,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,7 +73,9 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     @Override
     public void introspect( Class<?> clazz, Map<String, Property> properties )
     {
-        List<String> classFieldNames = ReflectionUtils.getAllFieldNames( clazz );
+        Map<String, Property> persistedProperties = new HashMap<>( properties );
+        properties.clear();
+        Set<String> classFieldNames = ReflectionUtils.getAllFieldNames( clazz );
 
         // TODO this is quite nasty, should find a better way of exposing
         // properties at class-level
@@ -105,25 +109,24 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
                 property.setFieldName( fieldName );
             }
 
-            if ( properties.containsKey( fieldName ) )
+            if ( persistedProperties.containsKey( fieldName ) )
             {
-                Property existing = properties.get( fieldName );
+                Property persisted = persistedProperties.get( fieldName );
                 property.setPersisted( true );
                 property.setWritable( true );
-                property.setUnique( existing.isUnique() );
-                property.setRequired( existing.isRequired() );
-                property.setLength( existing.getLength() );
-                property.setMax( existing.getMax() );
-                property.setMin( existing.getMin() );
-                property.setCollection( existing.isCollection() );
-                property.setCascade( existing.getCascade() );
-                property.setOwner( existing.isOwner() );
-                property.setManyToMany( existing.isManyToMany() );
-                property.setOneToOne( existing.isOneToOne() );
-                property.setManyToOne( existing.isManyToOne() );
-                property.setOwningRole( existing.getOwningRole() );
-                property.setInverseRole( existing.getInverseRole() );
-                // the existing is replaced later on with the modified one
+                property.setUnique( persisted.isUnique() );
+                property.setRequired( persisted.isRequired() );
+                property.setLength( persisted.getLength() );
+                property.setMax( persisted.getMax() );
+                property.setMin( persisted.getMin() );
+                property.setCollection( persisted.isCollection() );
+                property.setCascade( persisted.getCascade() );
+                property.setOwner( persisted.isOwner() );
+                property.setManyToMany( persisted.isManyToMany() );
+                property.setOneToOne( persisted.isOneToOne() );
+                property.setManyToOne( persisted.isManyToOne() );
+                property.setOwningRole( persisted.getOwningRole() );
+                property.setInverseRole( persisted.getInverseRole() );
             }
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
