@@ -36,6 +36,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyIntrospector;
@@ -82,7 +83,7 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
      */
     private Map<String, Property> scanClass( Class<?> klass )
     {
-        if ( klass.isInterface() )
+        if ( klass.isInterface() && IdentifiableObject.class.isAssignableFrom( klass ) )
         {
             throw new IllegalArgumentException( "Use SchemaService#getConcreteClass to resolve base type: " + klass );
         }
