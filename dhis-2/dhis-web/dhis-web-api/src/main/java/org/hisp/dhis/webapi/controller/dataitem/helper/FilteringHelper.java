@@ -38,6 +38,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.replaceEach;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -289,14 +290,14 @@ public class FilteringHelper
 
         if ( StringUtils.isNotEmpty( ilikeName ) )
         {
-            paramsMap.addValue( NAME, wrap( ilikeName, "%" ) );
+            paramsMap.addValue( NAME, wrap( addIlikeReplacingCharacters( ilikeName ), "%" ) );
         }
 
         final String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
 
         if ( StringUtils.isNotEmpty( ilikeDisplayName ) )
         {
-            paramsMap.addValue( DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
+            paramsMap.addValue( DISPLAY_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayName ), "%" ) );
         }
 
         final String equalId = extractValueFromFilter( filters, ID_EQUAL, true );
@@ -442,6 +443,19 @@ public class FilteringHelper
         }
 
         return valueType;
+    }
+
+    /**
+     * This method is specific for strings used in "ilike" filters where some
+     * non accepted characters will fail at querying time. It will only replace
+     * common characters by the form accepted in SQL ilike queries.
+     *
+     * @param value the value where characters will ve replaced.
+     * @return the input value with the characters replaced.
+     */
+    private static String addIlikeReplacingCharacters( final String value )
+    {
+        return replaceEach( value, new String[] { "%" }, new String[] { "\\%" } );
     }
 
     private static String getValueTypeOrThrow( final String valueType )
