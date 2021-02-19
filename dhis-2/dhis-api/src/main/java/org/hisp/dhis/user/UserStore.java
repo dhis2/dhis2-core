@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Date;
-import java.util.List;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 import javax.annotation.Nullable;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import java.util.Date;
+import java.util.List;
 
 /**
  * @author Nguyen Hong Duc
@@ -114,4 +113,6 @@ public interface UserStore
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    String getDisplayName( String userUid );
 }

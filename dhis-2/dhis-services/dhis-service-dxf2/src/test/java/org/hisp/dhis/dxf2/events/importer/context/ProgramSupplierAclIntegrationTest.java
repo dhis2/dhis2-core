@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.importer.context;
 
-import static java.util.Collections.singleton;
-import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -57,6 +42,21 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import static java.util.Collections.singleton;
+import static java.util.Collections.singletonList;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.notNullValue;
+import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Luciano Fiandesio
@@ -121,9 +121,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final User user = createUser( "A" );
         final Program program = createProgram( 'A' );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
 
         Set<UserAccess> userAccesses = new HashSet<>();
         userAccesses.add( userAccess );
@@ -151,9 +149,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
 
         program.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( program, false );
@@ -219,9 +215,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         final ProgramStage programStage = createProgramStage( 'B', 1 );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE  );
         programStage.setUserAccesses( singleton( userAccess ) );
 
         manager.save( programStage, false );
@@ -338,9 +332,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
 
         tet.setUserAccesses( Collections.singleton( userAccess ) );
         manager.save( tet, false );
@@ -374,9 +366,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
 
         tet.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( tet, false );
