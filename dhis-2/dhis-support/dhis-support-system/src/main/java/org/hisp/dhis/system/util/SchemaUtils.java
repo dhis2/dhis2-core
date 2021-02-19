@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.system.util;
 
-import static org.hisp.dhis.schema.PropertyType.*;
+import static org.hisp.dhis.schema.PropertyType.BOOLEAN;
+import static org.hisp.dhis.schema.PropertyType.CONSTANT;
+import static org.hisp.dhis.schema.PropertyType.DATE;
+import static org.hisp.dhis.schema.PropertyType.REFERENCE;
 
 import java.util.Collection;
 import java.util.Date;
@@ -53,7 +56,7 @@ public final class SchemaUtils
     public static void updatePropertyTypes( Property property )
     {
         Assert.notNull( property, "Property cannot be null" );
-        Assert.notNull( property.getKlass(), "Property class cannot be null" );
+        Assert.notNull( property.getKlass(), "Property class cannot be null for property: " + property.getName() );
 
         property.setPropertyType( getPropertyType( property.getKlass() ) );
 

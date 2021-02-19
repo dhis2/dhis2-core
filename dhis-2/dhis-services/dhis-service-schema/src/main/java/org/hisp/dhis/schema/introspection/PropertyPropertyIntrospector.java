@@ -48,7 +48,10 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
     {
         for ( Property property : properties.values() )
         {
-            SchemaUtils.updatePropertyTypes( property );
+            if ( property.getKlass() != null )
+            {
+                SchemaUtils.updatePropertyTypes( property );
+            }
         }
     }
 }
