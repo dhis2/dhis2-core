@@ -69,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * Note that it is required for nameable object stores to have concrete implementation
@@ -218,18 +219,14 @@ public class DefaultIdentifiableObjectManager
     public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
     {
         Session session = sessionFactory.getCurrentSession();
-        persistedObject.getTranslations().clear();
-        session.flush();
-
-        translations.forEach( translation ->
-        {
-            if ( StringUtils.isNotEmpty( translation.getValue() ) )
-            {
-                persistedObject.getTranslations().add( translation );
-            }
-        } );
 
         BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+
+        translatedObject.setTranslations(
+            translations.stream()
+                .filter( t -> !StringUtils.isEmpty( t.getValue() ) )
+                .collect( Collectors.toSet() ) );
+
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
