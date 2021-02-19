@@ -56,13 +56,13 @@ public class ProgramStageInstanceProgramStageMapSupplier
 
     private static final String PI_UID = "programInstanceUid";
 
-    private static final String SQL = "SELECT DISTINCT ps.uid AS " + PS_UID + ", pi.uid AS " + PI_UID + " " +
-        " from programstage AS ps " +
-        " JOIN programinstance AS pi ON pi.programid = ps.programid " +
-        " JOIN programstageinstance AS psi ON pi.programinstanceid = psi.programinstanceid " +
-        " WHERE psi.deleted = false " +
-        " AND psi.status != 'SKIPPED' " +
-        " AND ps.programstageid = psi.programstageid ";
+    private static final String SQL = "select distinct ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
+        " from programstage as ps " +
+        " join programinstance as pi ON pi.programid = ps.programid " +
+        " join programstageinstance as psi on pi.programinstanceid = psi.programinstanceid " +
+        " where psi.deleted = false " +
+        " and psi.status != 'SKIPPED' " +
+        " and ps.programstageid = psi.programstageid ";
 
     protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
     {
