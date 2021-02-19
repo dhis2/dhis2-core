@@ -33,11 +33,9 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
- * A {@link PropertyIntrospector} that adds
- * {@link org.hisp.dhis.translation.Translatable} information to existing
- * {@link Property}s.
- *
- * It will not create new {@link Property}s in the map.
+ * A {@link PropertyIntrospector} that adds information to existing
+ * {@link Property} values if they are annotated with
+ * {@link org.hisp.dhis.translation.Translatable}.
  *
  * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */

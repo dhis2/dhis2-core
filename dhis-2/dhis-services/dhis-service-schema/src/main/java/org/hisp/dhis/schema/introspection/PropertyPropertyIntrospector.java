@@ -37,6 +37,7 @@ import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -49,22 +50,28 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Sets;
 import com.google.common.primitives.Primitives;
 
 /**
- * A {@link PropertyIntrospector} that reads
- * {@link org.hisp.dhis.schema.annotation.Property} annotation (if present) to
- * update existing {@link Property} values in the map.
+ * A {@link PropertyIntrospector} adds information to existing {@link Property}
+ * values if they are annotated with one of the following annotations:
  *
- * It will not add {@link Property} values to the map.
+ * <ul>
+ * <li>{@link org.hisp.dhis.schema.annotation.Property}</li>
+ * <li>{@link PropertyRange}</li>
+ * <li>{@link PropertyTransformer}</li>
+ * </ul>
+ *
+ * It will also initialise the {@link Property#getMin()} and
+ * {@link Property#getMax()} based on the overall information available for the
+ * {@link Property}.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com> (original author)
  * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */
 public class PropertyPropertyIntrospector implements PropertyIntrospector
 {
-    private static final Set<PropertyType> PROPS_IGNORE_MIN_MAX = Sets.newHashSet( REFERENCE, BOOLEAN, DATE, CONSTANT );
+    private static final Set<PropertyType> PROPS_IGNORE_MIN_MAX = EnumSet.of( REFERENCE, BOOLEAN, DATE, CONSTANT );
 
     @Override
     public void introspect( Class<?> klass, Map<String, Property> properties )

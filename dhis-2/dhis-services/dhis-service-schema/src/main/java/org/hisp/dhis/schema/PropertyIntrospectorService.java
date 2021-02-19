@@ -38,6 +38,7 @@ import com.google.common.collect.Lists;
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@FunctionalInterface
 public interface PropertyIntrospectorService
 {
 

@@ -56,6 +56,19 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Primitives;
 
 /**
+ * A {@link PropertyIntrospector} adds {@link Property} values to the map for
+ * all fields which are annotated with an {@link Annotation} that itself is
+ * annotated with {@link NodeAnnotation}.
+ *
+ * The added {@link Property} values are initialised based on the present
+ * annotations. Handled are:
+ * <ul>
+ * <li>{@link NodeSimple}</li>
+ * <li>{@link NodeRoot}</li>
+ * <li>{@link NodeComplex}</li>
+ * <li>{@link NodeCollection}</li>
+ * </ul>
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @author Jan Bernitt (extraction to this class)
  */
@@ -114,7 +127,7 @@ public class NodePropertyIntrospector implements PropertyIntrospector
                 handleNodeCollection( nodeCollection, property );
             }
 
-            propertyMap.put( property.isCollection() ? property.getCollectionName() : property.getName(), property );
+            propertyMap.put( property.key(), property );
         }
     }
 

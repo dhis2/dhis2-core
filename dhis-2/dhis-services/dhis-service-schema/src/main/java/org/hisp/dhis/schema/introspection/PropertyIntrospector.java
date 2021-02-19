@@ -33,7 +33,20 @@ import org.hisp.dhis.schema.Property;
 
 /**
  * A {@link PropertyIntrospector} is a function to extract or modify
- * {@link Property} information for a given schema {@link Class}.
+ * {@link Property} values from a {@link Class} or additional information
+ * associated with that {@link Class} to build a
+ * {@link org.hisp.dhis.schema.Schema}.
+ *
+ * The main sources of information are Hibernate, provided by
+ * {@link HibernatePropertyIntrospector} and Jackson, provided by
+ * {@link JacksonPropertyIntrospector}.
+ *
+ * The baseline created by the main sources is enriched by the
+ * {@link PropertyPropertyIntrospector} and
+ * {@link TranslatablePropertyIntrospector} which look for optional annotations.
+ *
+ * The {@link NodePropertyIntrospector} is use independently in other scenarios
+ * where fields are annotated.
  *
  * @author Jan Bernitt
  */

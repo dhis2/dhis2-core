@@ -67,12 +67,21 @@ import com.google.common.collect.Multimap;
 import com.google.common.primitives.Primitives;
 
 /**
- * A {@link PropertyIntrospector} that reads Jackson annotations as well as
- * DHIS2's {@link Description} annotation.
+ * A {@link PropertyIntrospector} that adds or retains those {@link Property}
+ * values in the map for which there is a {@link JsonProperty} annotation
+ * available of the getter method (no argument method).
  *
- * If properties are passed to {@link #introspect(Class, Map)} it will assume
- * these to be persisted {@link Property}s. If they are exposed via Jackson they
- * are kept, otherwise they are removed.
+ * It adds information to these properties from the following annotations:
+ * <ul>
+ * <li>{@link JsonProperty}</li>
+ * <li>{@link JacksonXmlProperty}</li>
+ * <li>{@link JacksonXmlRootElement}</li>
+ * <li>{@link JacksonXmlElementWrapper}</li>
+ * <li>{@link Description}</li>
+ * </ul>
+ *
+ * {@link Property}s already contained in the provided map will be assumed to be
+ * persisted {@link Property}s.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com> (original author)
  * @author Jan Bernitt (extraction to this class)
@@ -127,8 +136,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             initFromJacksonXmlElementWrapper( property );
             initFromEnumConstants( property );
 
-            String name = property.isCollection() ? property.getCollectionName() : property.getName();
-            properties.put( name, property );
+            properties.put( property.key(), property );
         }
     }
 

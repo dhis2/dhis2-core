@@ -1067,6 +1067,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1078,6 +1079,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
