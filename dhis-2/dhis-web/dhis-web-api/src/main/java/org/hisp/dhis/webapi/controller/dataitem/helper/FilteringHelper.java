@@ -208,7 +208,7 @@ public class FilteringHelper
     /**
      * Extracts the actual value, from the set of filters, that matches the
      * given combination.
-     * 
+     *
      * ie.: from a list of filters: "dimensionItemType:eq:INDICATOR",
      * "name:ilike:john", extract the value from the combination NAME_ILIKE(
      * "name:ilike:" ). This will return "john".
@@ -246,8 +246,8 @@ public class FilteringHelper
     }
 
     /**
-     * Extracts the actual value (trimmed or not), from the set of filters, that matches the
-     * given combination.
+     * Extracts the actual value (trimmed or not), from the set of filters, that
+     * matches the given combination.
      *
      * ie.: from a list of filters: "dimensionItemType:eq:INDICATOR",
      * "name:ilike:john", extract the value from the combination NAME_ILIKE(

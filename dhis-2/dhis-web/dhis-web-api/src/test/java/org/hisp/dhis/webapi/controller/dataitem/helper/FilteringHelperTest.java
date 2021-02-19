@@ -159,28 +159,30 @@ public class FilteringHelperTest
     }
 
     @Test
-    public void testExtractValueFromFilterNoTrimmed() {
+    public void testExtractValueFromFilterNoTrimmed()
+    {
         // Given
         final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId " );
         final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final String expectedValue = extractValueFromFilter(filters, theCombination);
+        final String expectedValue = extractValueFromFilter( filters, theCombination );
 
         // Then
-        assertThat( expectedValue, is("anyId ") );
+        assertThat( expectedValue, is( "anyId " ) );
     }
 
     @Test
-    public void testExtractValueFromFilterTrimmed() {
+    public void testExtractValueFromFilterTrimmed()
+    {
         // Given
         final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId" );
         final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final String expectedValue = extractValueFromFilter(filters, theCombination, true);
+        final String expectedValue = extractValueFromFilter( filters, theCombination, true );
 
         // Then
-        assertThat( expectedValue, is("anyId") );
+        assertThat( expectedValue, is( "anyId" ) );
     }
 }
