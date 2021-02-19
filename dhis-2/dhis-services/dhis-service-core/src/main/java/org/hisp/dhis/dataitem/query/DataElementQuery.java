@@ -180,7 +180,7 @@ public class DataElementQuery implements DataItemQuery
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.dataelement_sharing", paramsMap ) ) );
         sql.append( " and" );
-        sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

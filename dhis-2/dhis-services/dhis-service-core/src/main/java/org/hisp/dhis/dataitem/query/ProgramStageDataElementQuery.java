@@ -214,7 +214,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         sql.append( always( sharingConditions( "t.program_sharing",
             "t.dataelement_sharing", paramsMap ) ) );
         sql.append( " and" );
-        sql.append( always( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
