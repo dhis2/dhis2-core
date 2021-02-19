@@ -219,13 +219,16 @@ public class ProgramMessageStoreTest
         channels.add( DeliveryChannel.SMS );
 
         pmsgA = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsA )
-            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate ).build();
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
         pmsgB = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsB )
-            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate ).build();
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
         pmsgC = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsC )
-            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate ).build();
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
         uidA = CodeGenerator.generateCode( 10 );
         uidB = CodeGenerator.generateCode( 10 );
