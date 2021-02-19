@@ -43,54 +43,56 @@ import java.time.Duration;
 public interface CacheProvider
 {
 
-    <V> Cache<V> createAnalyticsResponseCache( Class<V> valueType, Duration initialExpirationTime );
+    <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime );
 
-    <V> Cache<V> createAppCache( Class<V> valueType );
+    <V> Cache<V> createAppCache();
 
-    <V> Cache<V> createDefaultObjectCache( Class<V> valueType );
+    <V> Cache<V> createDefaultObjectCache();
 
-    <V> Cache<V> createIsDataApprovedCache( Class<V> valueType );
+    <V> Cache<V> createIsDataApprovedCache();
 
-    <V> Cache<V> createAllConstantsCache( Class<V> valueType );
+    <V> Cache<V> createAllConstantsCache();
 
-    <V> Cache<V> createInUserOrgUnitHierarchyCache( Class<V> valueType );
+    <V> Cache<V> createInUserOrgUnitHierarchyCache();
 
-    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache( Class<V> valueType );
+    <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
-    <V> Cache<V> createUserCaptureOrgUnitThresholdCache( Class<V> valueType );
+    <V> Cache<V> createUserCaptureOrgUnitThresholdCache();
 
-    <V> Cache<V> createPeriodIdCache( Class<V> valueType );
+    <V> Cache<V> createPeriodIdCache();
 
-    <V> Cache<V> createUserFailedLoginAttemptCache( Class<V> valueType, V defaultValue );
+    <V> Cache<V> createUserFailedLoginAttemptCache( V defaultValue );
 
-    <V> Cache<V> createUserAccountRecoverAttemptCache( Class<V> valueType, V defaultValue );
+    <V> Cache<V> createUserAccountRecoverAttemptCache( V defaultValue );
 
-    <V> Cache<V> createProgramOwnerCache( Class<V> valueType );
+    <V> Cache<V> createProgramOwnerCache();
 
-    <V> Cache<V> createProgramTempOwnerCache( Class<V> valueType );
+    <V> Cache<V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCacheCache( Class<V> valueType );
+    <V> Cache<V> createUserIdCacheCache();
 
-    <V> Cache<V> createCurrentUserGroupInfoCache( Class<V> valueType );
+    <V> Cache<V> createCurrentUserGroupInfoCache();
 
-    <V> Cache<V> createUserSettingCache( Class<V> valueType );
+    <V> Cache<V> createUserSettingCache();
 
-    <V> Cache<V> createAttrOptionComboIdCache( Class<V> valueType );
+    <V> Cache<V> createAttrOptionComboIdCache();
 
-    <V> Cache<V> createSystemSettingCache( Class<V> valueType );
+    <V> Cache<V> createSystemSettingCache();
 
-    <V> Cache<V> createGoogleAccessTokenCache( Class<V> valueType );
+    <V> Cache<V> createGoogleAccessTokenCache();
 
-    <V> Cache<V> createDataItemsPaginationCache( Class<V> valueType );
+    <V> Cache<V> createDataItemsPaginationCache();
 
-    <V> Cache<V> createMetadataAttributesCache( Class<V> valueType );
+    <V> Cache<V> createMetadataAttributesCache();
 
-    <V> Cache<V> createCanDataWriteCocCache( Class<V> valueType );
+    <V> Cache<V> createCanDataWriteCocCache();
 
-    <V> Cache<V> createAnalyticsSqlCache( Class<V> valueType );
+    <V> Cache<V> createAnalyticsSqlCache();
 
-    <V> Cache<V> createDataElementCache( Class<V> valueType );
+    <V> Cache<V> createDataElementCache();
 
-    <V> Cache<V> createPropertyTransformerCache( Class<V> valueType );
+    <V> Cache<V> createPropertyTransformerCache();
+
+    <V> Cache<V> createProgramRulesCache();
 
 }

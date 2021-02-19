@@ -38,7 +38,6 @@ import java.util.List;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.EventImporter;
@@ -157,7 +156,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
-        this.dataElementCache = cacheProvider.createDataElementCache( DataElement.class );
+        this.dataElementCache = cacheProvider.createDataElementCache();
     }
 
     @SuppressWarnings( "unchecked" )

@@ -55,14 +55,13 @@ public class DefaultAggregateAccessManager
 
     private final AclService aclService;
 
-    @SuppressWarnings( { "rawtypes", "unchecked" } )
     public DefaultAggregateAccessManager( AclService aclService, CacheProvider cacheProvider )
     {
         checkNotNull( aclService );
         checkNotNull( cacheProvider );
 
         this.aclService = aclService;
-        this.canDataWriteCocCache = (Cache) cacheProvider.createCanDataWriteCocCache( List.class );
+        this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
     }
 
     // ---------------------------------------------------------------------

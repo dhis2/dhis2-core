@@ -97,7 +97,7 @@ public class DefaultSystemSettingManager
         this.systemSettingStore = systemSettingStore;
         this.pbeStringEncryptor = pbeStringEncryptor;
         this.flags = flags;
-        this.settingCache = cacheProvider.createSystemSettingCache( SerializableOptional.class );
+        this.settingCache = cacheProvider.createSystemSettingCache();
     }
 
     // -------------------------------------------------------------------------

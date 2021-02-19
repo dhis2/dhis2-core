@@ -119,6 +119,8 @@ import com.google.common.collect.Lists;
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController
 {
+    public static final int TEI_COUNT_THRESHOLD_FOR_USE_LEGACY = 500;
+
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
@@ -156,13 +158,18 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
+        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
+
+        if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
+        {
+            queryParams.setUseLegacy( true );
+        }
+
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
             queryParams,
-            getTrackedEntityInstanceParams( fields ), false );
+            getTrackedEntityInstanceParams( fields ), true );
 
         RootNode rootNode = NodeUtils.createMetadata();
-
-        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {

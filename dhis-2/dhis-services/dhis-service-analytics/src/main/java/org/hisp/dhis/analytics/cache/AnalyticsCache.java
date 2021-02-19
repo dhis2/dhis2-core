@@ -65,7 +65,7 @@ public class AnalyticsCache
         // Set a default expiration time to always expire, as the TTL will be
         // always overwritten during "put" operations.
         long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-        this.queryCache = cacheProvider.createAnalyticsResponseCache( Grid.class,
+        this.queryCache = cacheProvider.createAnalyticsResponseCache(
             Duration.ofSeconds( initialExpirationTime ) );
         log.info( String.format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
             initialExpirationTime ) );

@@ -36,4 +36,5 @@ package org.hisp.dhis.common.adapter;
 public class BaseIdentifiableObject_
 {
     public static final String CREATED_BY = "createdBy";
+
 }

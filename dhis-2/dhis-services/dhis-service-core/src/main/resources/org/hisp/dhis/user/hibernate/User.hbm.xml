@@ -62,7 +62,7 @@
 
     <many-to-one name="avatar" class="org.hisp.dhis.fileresource.FileResource" column="avatar" foreign-key="fk_user_fileresourceid" />
 
-    <one-to-one name="userCredentials" class="org.hisp.dhis.user.UserCredentials" foreign-key="fk_userinfo_userid" />
+    <one-to-one name="userCredentials" class="org.hisp.dhis.user.UserCredentials" foreign-key="fk_userinfo_userid" fetch="join" lazy="false" />
 
     <set name="groups" table="usergroupmembers" inverse="true">
       <cache usage="read-write" />

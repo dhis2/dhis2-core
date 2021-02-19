@@ -62,6 +62,7 @@ import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
@@ -86,7 +87,7 @@ public class CrudControllerAdvice
 {
     // Add sensitive exceptions into this array
     private static final Class<?>[] SENSITIVE_EXCEPTIONS = { BadSqlGrammarException.class,
-        org.hibernate.QueryException.class };
+        org.hibernate.QueryException.class, DataAccessResourceFailureException.class };
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error has occured. Please contact your system administrator";
 
