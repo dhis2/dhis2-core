@@ -27,18 +27,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.beans.PropertyDescriptor;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -51,6 +39,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -59,6 +49,18 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import java.beans.PropertyDescriptor;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -79,6 +81,12 @@ public class DefaultFieldFilterServiceTest
     @Mock
     private AttributeService attributeService;
 
+    @Mock
+    private UserGroupService userGroupService;
+
+    @Mock
+    private UserService userService;
+
     private DefaultFieldFilterService service;
 
     @Rule
@@ -91,7 +99,7 @@ public class DefaultFieldFilterServiceTest
         CacheProvider cacheProvider = mock( CacheProvider.class );
         when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
-            attributeService, cacheProvider, new HashSet<>() );
+            attributeService, cacheProvider, userGroupService, userService, new HashSet<>() );
     }
 
     @Test

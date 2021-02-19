@@ -27,18 +27,16 @@
  */
 package org.hisp.dhis.user.sharing;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.UserGroup;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.user.UserGroup;
+
+import java.io.Serializable;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,14 +75,6 @@ public class UserGroupAccess
 
     public org.hisp.dhis.user.UserGroupAccess toDtoObject()
     {
-        org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
-        userGroupAccess.setUid( this.id );
-        userGroupAccess.setAccess( this.access );
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUid( this.id );
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setUid( this.id );
-
-        return userGroupAccess;
+        return new org.hisp.dhis.user.UserGroupAccess( this );
     }
 }

@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.annotation.Property;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.annotation.Property;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,9 +47,9 @@ public class UserAccess
 {
     private String access;
 
-    private transient User user;
-
     private String uid;
+
+    private String displayName;
 
     public UserAccess()
     {
@@ -58,7 +57,14 @@ public class UserAccess
 
     public UserAccess( User user, String access )
     {
-        this.user = user;
+        this.uid = user.getUid();
+        this.displayName = user.getDisplayName();
+        this.access = access;
+    }
+
+    public UserAccess( String uid, String access )
+    {
+        this.uid = uid;
         this.access = access;
     }
 
@@ -84,7 +90,7 @@ public class UserAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUserUid()
     {
-        return user != null ? user.getUid() : null;
+        return uid;
     }
 
     @JsonProperty( "id" )
@@ -92,7 +98,7 @@ public class UserAccess
     @Property( required = Property.Value.TRUE )
     public String getUid()
     {
-        return uid != null ? uid : (user != null ? user.getUid() : null);
+        return uid;
     }
 
     public void setUid( String uid )
@@ -104,26 +110,26 @@ public class UserAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String displayName()
     {
-        return user != null ? user.getDisplayName() : null;
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonIgnore
     public User getUser()
     {
-        if ( user == null )
-        {
-            User user = new User();
-            user.setUid( uid );
-            return user;
-        }
-
+        User user = new User();
+        user.setUid( uid );
         return user;
     }
 
-    @JsonProperty
     public void setUser( User user )
     {
-        this.user = user;
+        this.uid = user.getUid();
+        this.displayName = user.getDisplayName();
     }
 
     @Override

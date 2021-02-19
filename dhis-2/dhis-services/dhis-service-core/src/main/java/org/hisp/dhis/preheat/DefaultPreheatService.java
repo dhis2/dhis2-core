@@ -27,19 +27,8 @@
  */
 package org.hisp.dhis.preheat;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -86,7 +75,16 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -323,7 +321,8 @@ public class DefaultPreheatService implements PreheatService
 
                 if ( user != null )
                 {
-                    ua.setUser( user );
+                    ua.setUid( user.getUid() );
+                    ua.setDisplayName( user.getDisplayName() );
                 }
 
                 // Copy legacy sharing to new jsonb sharing
@@ -335,7 +334,8 @@ public class DefaultPreheatService implements PreheatService
 
                 if ( userGroup != null )
                 {
-                    uga.setUserGroup( userGroup );
+                    uga.setUid( userGroup.getUid() );
+                    uga.setDisplayName( userGroup.getDisplayName() );
                 }
 
                 // Copy legacy sharing to new jsonb sharing

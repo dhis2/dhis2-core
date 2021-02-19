@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.user;
 
-import java.io.Serializable;
-import java.util.Objects;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.schema.annotation.Property;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.schema.annotation.Property;
+
+import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -48,9 +47,9 @@ public class UserGroupAccess
 {
     private String access;
 
-    private transient UserGroup userGroup;
-
     private String uid;
+
+    private String displayName;
 
     public UserGroupAccess()
     {
@@ -58,8 +57,15 @@ public class UserGroupAccess
 
     public UserGroupAccess( UserGroup userGroup, String access )
     {
-        this.userGroup = userGroup;
+        this.uid = userGroup.getUid();
+        this.displayName = userGroup.getDisplayName();
         this.access = access;
+    }
+
+    public UserGroupAccess( org.hisp.dhis.user.sharing.UserGroupAccess userGroupAccess )
+    {
+        this.uid = userGroupAccess.getId();
+        this.access = userGroupAccess.getAccess();
     }
 
     public String getId()
@@ -84,7 +90,7 @@ public class UserGroupAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUserGroupUid()
     {
-        return userGroup != null ? userGroup.getUid() : null;
+        return uid;
     }
 
     @JsonProperty( "id" )
@@ -92,7 +98,7 @@ public class UserGroupAccess
     @Property( required = Property.Value.TRUE )
     public String getUid()
     {
-        return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
+        return uid;
     }
 
     public void setUid( String uid )
@@ -104,42 +110,26 @@ public class UserGroupAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String displayName()
     {
-        return userGroup != null ? userGroup.getDisplayName() : null;
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonIgnore
     public UserGroup getUserGroup()
     {
-        if ( userGroup == null )
-        {
-            UserGroup userGroup = new UserGroup();
-            userGroup.setUid( uid );
-            return userGroup;
-        }
-
+        UserGroup userGroup = new UserGroup();
+        userGroup.setUid( uid );
         return userGroup;
     }
 
-    /**
-     * Check if the given {@link User} is contained in the {@link UserGroup}.
-     *
-     * @param user a {@link User}.
-     * @return true if the {@link User} is part of this UserGroup members list.
-     */
-    public boolean userGroupContainsUser( User user )
-    {
-        if ( userGroup != null )
-        {
-            return userGroup.getMembers().stream().anyMatch( u -> u.getId() == user.getId() );
-        }
-
-        return false;
-    }
-
-    @JsonProperty
     public void setUserGroup( UserGroup userGroup )
     {
-        this.userGroup = userGroup;
+        this.setUid( userGroup.getUid() );
+        this.displayName = userGroup.getDisplayName();
     }
 
     @Override

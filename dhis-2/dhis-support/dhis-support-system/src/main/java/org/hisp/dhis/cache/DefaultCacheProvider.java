@@ -27,17 +27,16 @@
  */
 package org.hisp.dhis.cache;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import lombok.AllArgsConstructor;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import lombok.AllArgsConstructor;
-
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of
@@ -82,7 +81,9 @@ public class DefaultCacheProvider implements CacheProvider
         analyticsSql,
         dataElementCache,
         propertyTransformerCache,
-        programRulesCache
+        programRulesCache,
+        userGroupNameCache,
+        userDisplayNameCache
     }
 
     private final CacheBuilderProvider cacheBuilderProvider;
@@ -383,6 +384,30 @@ public class DefaultCacheProvider implements CacheProvider
             .withInitialCapacity( 20 )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 1000 ) )
+            .build();
+    }
+
+    @Override
+    public <V> Cache<V> createUserGroupNameCache()
+    {
+        return this.<V> newBuilder()
+            .forRegion( Region.userGroupNameCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( 1000 ) )
+            .build();
+    }
+
+    @Override
+    public <V> Cache<V> createUserDisplayNameCache()
+    {
+        return this.<V> newBuilder()
+            .forRegion( Region.userDisplayNameCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( 500000 ) )
             .build();
     }
 }

@@ -27,21 +27,14 @@
  */
 package org.hisp.dhis.schema;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Primitives;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -54,13 +47,18 @@ import org.hisp.dhis.system.util.SchemaUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ClassUtils;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
-import com.google.common.primitives.Primitives;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Default PropertyIntrospectorService implementation that uses Reflection and
@@ -148,6 +146,8 @@ public class Jackson2PropertyIntrospectorService
                 property.setOwningRole( hibernateProperty.getOwningRole() );
                 property.setInverseRole( hibernateProperty.getInverseRole() );
             }
+
+            handleLegacySharingProperties( property );
 
             if ( AnnotationUtils.isAnnotationPresent( property.getGetterMethod(), Description.class ) )
             {
@@ -356,5 +356,17 @@ public class Jackson2PropertyIntrospectorService
         }
 
         return innerType.getActualTypeArguments()[0];
+    }
+
+    /**
+     * Temporary solution to fix DHIS2-10464 TODO remove this after new sharing
+     * column is used by front-end apps
+     */
+    private void handleLegacySharingProperties( Property property )
+    {
+        if ( ReflectionUtils.isSharingProperty( property ) )
+        {
+            property.setOwner( true );
+        }
     }
 }

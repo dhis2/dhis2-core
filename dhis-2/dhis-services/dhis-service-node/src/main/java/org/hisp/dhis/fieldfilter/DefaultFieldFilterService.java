@@ -27,25 +27,11 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -73,15 +59,30 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,6 +116,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final Cache<PropertyTransformer> transformerCache;
 
+    private final UserGroupService userGroupService;
+
+    private final UserService userService;
+
     public DefaultFieldFilterService(
         FieldParser fieldParser,
         SchemaService schemaService,
@@ -122,13 +127,17 @@ public class DefaultFieldFilterService implements FieldFilterService
         CurrentUserService currentUserService,
         AttributeService attributeService,
         CacheProvider cacheProvider,
+        UserGroupService userGroupService,
+        UserService userService,
         @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.userService = userService;
         this.attributeService = attributeService;
+        this.userGroupService = userGroupService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
         this.transformerCache = cacheProvider.createPropertyTransformerCache();
     }
@@ -288,6 +297,18 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             AttributeValue attributeValue = (AttributeValue) object;
             attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
+        }
+
+        if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
+        {
+            UserGroupAccess userGroupAccess = (UserGroupAccess) object;
+            userGroupAccess.setDisplayName( userGroupService.getUserGroupDisplayName( userGroupAccess.getUserGroupUid() ) );
+        }
+
+        if ( UserAccess.class.isAssignableFrom( object.getClass() ) )
+        {
+            UserAccess userAccess = ( UserAccess ) object;
+            userAccess.setDisplayName( userService.getDisplayName( userAccess.getUserUid() ) );
         }
 
         for ( String fieldKey : fieldMap.keySet() )
@@ -533,8 +554,7 @@ public class DefaultFieldFilterService implements FieldFilterService
             else if ( ":owner".equals( fieldKey ) )
             {
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted()
-                        && property.isOwner() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && filterOwnerProperties( property ) )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -717,5 +737,14 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         return returnObject;
+    }
+
+    /**
+     * Temporary solution to fix DHIS2-10464.
+     * TODO remove the isSharingProperty condition after new sharing column is used by front-end apps
+     */
+    private boolean filterOwnerProperties( Property property )
+    {
+        return ((property.isPersisted() && property.isOwner()) || ReflectionUtils.isSharingProperty( property ));
     }
 }

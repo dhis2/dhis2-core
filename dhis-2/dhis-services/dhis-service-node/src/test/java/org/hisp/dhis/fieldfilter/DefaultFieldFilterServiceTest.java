@@ -27,21 +27,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.annotation.Nonnull;
-
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.AttributeService;
@@ -62,6 +47,8 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -69,6 +56,20 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -88,6 +89,12 @@ public class DefaultFieldFilterServiceTest
 
     @Mock
     private AttributeService attributeService;
+
+    @Mock
+    private UserGroupService userGroupService;
+
+    @Mock
+    private UserService userService;
 
     private DefaultFieldFilterService service;
 
@@ -112,7 +119,7 @@ public class DefaultFieldFilterServiceTest
         CacheProvider cacheProvider = mock( CacheProvider.class );
         when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
-            currentUserService, attributeService, cacheProvider, nodeTransformers );
+            currentUserService, attributeService, cacheProvider, userGroupService, userService, nodeTransformers );
         service.init();
     }
 
