@@ -69,21 +69,6 @@ public class FilterValidatorTest
     }
 
     @Test
-    public void testCheckNamesAndOperatorsWhenIlikeComparisonValueLengthIsNotEnough()
-    {
-        // Given
-        final Set<String> filters = new HashSet<>( singletonList( "name:ilike:a" ) );
-
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
-
-        // Then
-        assertThat( thrown.getMessage(),
-            containsString( "Minimum of `2` characters required by the filter: `name:ilike:a`" ) );
-    }
-
-    @Test
     public void testCheckNamesAndOperatorsWhenCombinationIsInvalid()
     {
         // Given

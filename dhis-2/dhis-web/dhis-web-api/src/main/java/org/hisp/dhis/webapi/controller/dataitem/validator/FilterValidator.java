@@ -33,7 +33,6 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2034;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
-import static org.hisp.dhis.feedback.ErrorCode.E2038;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.getCombinations;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
@@ -55,10 +54,6 @@ public class FilterValidator
     public static final byte FILTER_ATTRIBUTE_NAME = 0;
 
     public static final byte FILTER_OPERATOR = 1;
-
-    public static final byte FILTER_ATTRIBUTE_VALUE = 2;
-
-    public static final byte MIN_TEXT_SEARCH_LENGTH = 2;
 
     private FilterValidator()
     {
@@ -88,14 +83,6 @@ public class FilterValidator
                             filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
 
                         final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
-
-                        final String attributeValue = filterAttributeValuePair[FILTER_ATTRIBUTE_VALUE];
-
-                        if ( attributeValue != null && attributeValue.length() < MIN_TEXT_SEARCH_LENGTH )
-                        {
-                            throw new IllegalQueryException(
-                                new ErrorMessage( E2038, MIN_TEXT_SEARCH_LENGTH, filter ) );
-                        }
 
                         if ( !getNames().contains( attributeName ) )
                         {

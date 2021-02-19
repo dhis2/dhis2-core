@@ -75,6 +75,7 @@ import java.util.Locale;
 import java.util.Set;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
@@ -286,14 +287,14 @@ public class FilteringHelper
 
         final String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
 
-        if ( isNotBlank( ilikeName ) )
+        if ( StringUtils.isNotEmpty( ilikeName ) )
         {
             paramsMap.addValue( NAME, wrap( ilikeName, "%" ) );
         }
 
         final String ilikeDisplayName = extractValueFromFilter( filters, DISPLAY_NAME_ILIKE );
 
-        if ( isNotBlank( ilikeDisplayName ) )
+        if ( StringUtils.isNotEmpty( ilikeDisplayName ) )
         {
             paramsMap.addValue( DISPLAY_NAME, wrap( ilikeDisplayName, "%" ) );
         }
