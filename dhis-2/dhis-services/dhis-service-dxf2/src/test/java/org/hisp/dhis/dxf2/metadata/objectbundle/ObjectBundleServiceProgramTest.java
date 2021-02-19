@@ -228,6 +228,27 @@ public class ObjectBundleServiceProgramTest
     }
 
     @Test
+    public void testProgramRuleCreation()
+        throws IOException
+    {
+        createProgramRuleMetadata();
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata1 = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/duplicate_program_rule.json" ).getInputStream(), RenderFormat.JSON );
+
+        ObjectBundleParams params1 = new ObjectBundleParams();
+        params1.setObjectBundleMode( ObjectBundleMode.COMMIT );
+        params1.setImportStrategy( ImportStrategy.CREATE );
+        params1.setObjects( metadata1 );
+
+        ObjectBundle bundle1 = objectBundleService.create( params1 );
+        ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
+
+        assertTrue( validate1.getErrorReports().isEmpty() );
+        assertEquals( 0, validate1.getErrorReports().size() );
+    }
+
+    @Test
     public void testProgramRuleUpdate()
         throws IOException
     {
