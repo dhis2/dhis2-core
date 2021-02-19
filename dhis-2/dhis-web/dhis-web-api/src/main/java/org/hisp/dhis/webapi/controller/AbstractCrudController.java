@@ -276,8 +276,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
             else
             {
-                String cacheKey = makePaginationCountKey( currentUser, filters, options );
-                totalCount = paginationCountCache.computeIfAbsent( cacheKey, () -> count( options, filters, orders ) );
+                String cacheKey = composePaginationCountKey( currentUser, filters, options );
+                totalCount = paginationCountCache.computeIfAbsent( cacheKey,
+                    () -> countTotal( options, filters, orders ) );
             }
 
             pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
@@ -1361,10 +1362,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    protected long count( WebOptions options, List<String> filters, List<Order> orders )
+    private long countTotal( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
             options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+
         return queryService.count( query );
     }
 
@@ -1626,7 +1628,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entitySimpleName;
     }
 
-    private String makePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );

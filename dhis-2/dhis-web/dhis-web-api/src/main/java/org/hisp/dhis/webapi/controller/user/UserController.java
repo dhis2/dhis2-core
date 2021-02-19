@@ -200,6 +200,7 @@ public class UserController
         Query query = queryService
             .getQueryFromUrl( getEntityClass(), filters, orders, pagination, options.getRootJunction() );
 
+        // Fetches all users if there are no query, i.e only filters...
         List<User> users = userService.getUsers( params, ordersAsString );
 
         query.setObjects( users );
@@ -225,27 +226,6 @@ public class UserController
         params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
 
         return params;
-    }
-
-    /**
-     * Overrides count() method in AbstractController. The reason we override is
-     * because we have more optimized queries for User, since User has some
-     * complicated relationships it can result in less optimized count queries
-     * when using the generic.
-     *
-     * @param options
-     * @param filters
-     * @param orders
-     * @return
-     */
-    protected long count( WebOptions options, List<String> filters, List<Order> orders )
-    {
-        UserQueryParams params = makeUserQueryParams( options );
-        Query query = makeQuery( options, filters, orders, params );
-
-        List<? extends IdentifiableObject> list = queryService.query( query );
-
-        return list.size();
     }
 
     @Override
