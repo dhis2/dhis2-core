@@ -40,6 +40,8 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyIntrospector;
+import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
+import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -60,7 +62,10 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
     @Autowired
     public DefaultPropertyIntrospectorService( SessionFactory sessionFactory )
     {
-        this( new HibernatePropertyIntrospector( sessionFactory ).then( new JacksonPropertyIntrospector() ) );
+        this( new HibernatePropertyIntrospector( sessionFactory )
+            .then( new JacksonPropertyIntrospector() )
+            .then( new TranslatablePropertyIntrospector() )
+            .then( new PropertyPropertyIntrospector() ) );
     }
 
     public DefaultPropertyIntrospectorService( PropertyIntrospector introspector )

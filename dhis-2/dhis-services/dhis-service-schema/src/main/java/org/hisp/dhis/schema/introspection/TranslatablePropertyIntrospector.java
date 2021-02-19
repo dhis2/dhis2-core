@@ -30,41 +30,31 @@ package org.hisp.dhis.schema.introspection;
 import java.util.Map;
 
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
- * A {@link PropertyIntrospector} is a function to extract or modify
- * {@link Property} information for a given schema {@link Class}.
+ * A {@link PropertyIntrospector} that adds
+ * {@link org.hisp.dhis.translation.Translatable} information to existing
+ * {@link Property}s.
  *
- * @author Jan Bernitt
+ * It will not create new {@link Property}s in the map.
+ *
+ * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */
-@FunctionalInterface
-public interface PropertyIntrospector
+public class TranslatablePropertyIntrospector implements PropertyIntrospector
 {
-
-    /**
-     * Adds or modifies the provided {@link Property} map for the provided
-     * {@link Class}.
-     *
-     * @param klass The type to introspect
-     * @param properties the intermediate and result state.
-     *        {@link PropertyIntrospector} running before this one might already
-     *        have added to the provided map. This {@link PropertyIntrospector}
-     *        can add or modify the {@link Property} entries further.
-     */
-    void introspect( Class<?> klass, Map<String, Property> properties );
-
-    /**
-     * Allows to chain multiple {@link PropertyIntrospector}s into a sequence.
-     *
-     * @param next the {@link PropertyIntrospector} called after this one
-     * @return A {@link PropertyIntrospector} that first calls this instance and
-     *         then the next instance
-     */
-    default PropertyIntrospector then( PropertyIntrospector next )
+    @Override
+    public void introspect( Class<?> klass, Map<String, Property> properties )
     {
-        return ( klass, properties ) -> {
-            introspect( klass, properties );
-            next.introspect( klass, properties );
-        };
+        Map<String, String> translatableFields = AnnotationUtils.getTranslatableAnnotatedFields( klass );
+
+        for ( Property property : properties.values() )
+        {
+            if ( translatableFields.containsKey( property.getFieldName() ) )
+            {
+                property.setTranslatable( true );
+                property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
+            }
+        }
     }
 }

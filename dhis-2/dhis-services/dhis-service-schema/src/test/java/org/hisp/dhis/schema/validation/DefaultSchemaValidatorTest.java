@@ -49,6 +49,7 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
+import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -67,7 +68,7 @@ public class DefaultSchemaValidatorTest
     public static class SimpleFields
     {
 
-        Boolean optional;
+        String optional;
 
         String string;
 
@@ -88,7 +89,7 @@ public class DefaultSchemaValidatorTest
         List<Integer> list;
 
         @JsonProperty
-        public Boolean getOptional()
+        public String getOptional()
         {
             return optional;
         }
@@ -163,7 +164,7 @@ public class DefaultSchemaValidatorTest
     private final DefaultSchemaValidator validator = new DefaultSchemaValidator( schemaService );
 
     private final PropertyIntrospectorService introspectorService = new DefaultPropertyIntrospectorService(
-        new JacksonPropertyIntrospector() );
+        new JacksonPropertyIntrospector().then( new PropertyPropertyIntrospector() ) );
 
     private final Schema schema = new Schema( SimpleFields.class, "singular", "plural" );
 
