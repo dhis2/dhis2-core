@@ -43,7 +43,6 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -225,14 +224,6 @@ public class CategoryOption
         return dataSet != null
             ? getAdjustedEndDate( dataSet )
             : getAdjustedEndDate( dataElement );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
     }
 
     // -------------------------------------------------------------------------

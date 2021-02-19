@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.schema;
 
+import static java.util.Collections.singletonMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertSame;
@@ -37,6 +39,7 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiConsumer;
 
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.SecondaryMetadataObject;
@@ -141,6 +144,74 @@ public class SchemaTest
         List<String> list2 = schema.getAuthorityByType( AuthorityType.CREATE );
         assertThat( list2, contains( "x1", "x2", "y1", "y2", "a1", "a2" ) );
         assertNotSame( list1, list2 );
+    }
+
+    @Test
+    public void testGetEmbeddedObjectProperties()
+    {
+        Schema schema = new Schema( Metadata.class, "singular", "plural" );
+        Property a = createProperty( 'A', Property::setEmbeddedObject, true );
+        Property b = createProperty( 'B', Property::setEmbeddedObject, false );
+        schema.addProperty( a );
+        schema.addProperty( b );
+
+        assertEquals( singletonMap( "PropertyA", a ), schema.getEmbeddedObjectProperties() );
+    }
+
+    @Test
+    public void testGetAnalyticalObjectProperties()
+    {
+        Schema schema = new Schema( Metadata.class, "singular", "plural" );
+        Property a = createProperty( 'A', Property::setAnalyticalObject, true );
+        Property b = createProperty( 'B', Property::setAnalyticalObject, false );
+        schema.addProperty( a );
+        schema.addProperty( b );
+
+        assertEquals( singletonMap( "PropertyA", a ), schema.getAnalyticalObjectProperties() );
+    }
+
+    @Test
+    public void testGetNonPersistedProperties()
+    {
+        Schema schema = new Schema( Metadata.class, "singular", "plural" );
+        Property a = createProperty( 'A', Property::setPersisted, true );
+        Property b = createProperty( 'B', Property::setPersisted, false );
+        schema.addProperty( a );
+        schema.addProperty( b );
+
+        assertEquals( singletonMap( "PropertyB", b ), schema.getNonPersistedProperties() );
+    }
+
+    @Test
+    public void testGetPersistedProperties()
+    {
+        Schema schema = new Schema( Metadata.class, "singular", "plural" );
+        Property a = createProperty( 'A', Property::setPersisted, true );
+        Property b = createProperty( 'B', Property::setPersisted, false );
+        schema.addProperty( a );
+        schema.addProperty( b );
+
+        assertEquals( singletonMap( "PropertyA", a ), schema.getPersistedProperties() );
+    }
+
+    @Test
+    public void testGetReadableProperties()
+    {
+        Schema schema = new Schema( Metadata.class, "singular", "plural" );
+        Property a = createProperty( 'A', Property::setReadable, true );
+        Property b = createProperty( 'B', Property::setReadable, false );
+        schema.addProperty( a );
+        schema.addProperty( b );
+
+        assertEquals( singletonMap( "PropertyA", a ), schema.getReadableProperties() );
+    }
+
+    private static <T> Property createProperty( char uniqueCharacter, BiConsumer<Property, T> setter, T value )
+    {
+        Property p = new Property();
+        p.setName( "Property" + uniqueCharacter );
+        setter.accept( p, value );
+        return p;
     }
 
     private static class SecondaryMetadata implements SecondaryMetadataObject
