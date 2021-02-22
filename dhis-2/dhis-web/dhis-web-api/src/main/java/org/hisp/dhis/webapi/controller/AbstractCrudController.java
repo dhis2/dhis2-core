@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -459,6 +460,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             return;
         }
 
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.updateTranslations( persistedObject, object.getTranslations() );
         manager.update( persistedObject );
 
@@ -493,6 +495,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -555,19 +558,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
-        validateUpdate( property, object );
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
-    }
-
-    private void validateUpdate( Property property, T object )
-        throws WebMessageException
-    {
-        List<ErrorReport> errors = schemaValidator.validateProperty( property, object );
-        if ( !errors.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.errorReports( errors ) );
-        }
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1663,4 +1656,5 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
+
 }

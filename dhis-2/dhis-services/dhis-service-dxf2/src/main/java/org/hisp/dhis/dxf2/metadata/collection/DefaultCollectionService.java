@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
@@ -45,6 +46,7 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -54,7 +56,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
-@Transactional
 public class DefaultCollectionService
     implements CollectionService
 {
@@ -70,9 +71,11 @@ public class DefaultCollectionService
 
     private final CurrentUserService currentUserService;
 
+    private final SchemaValidator schemaValidator;
+
     public DefaultCollectionService( IdentifiableObjectManager manager, DbmsManager dbmsManager,
         HibernateCacheManager cacheManager, AclService aclService, SchemaService schemaService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, SchemaValidator schemaValidator )
     {
         checkNotNull( manager );
         checkNotNull( dbmsManager );
@@ -80,6 +83,7 @@ public class DefaultCollectionService
         checkNotNull( aclService );
         checkNotNull( schemaService );
         checkNotNull( currentUserService );
+        checkNotNull( schemaValidator );
 
         this.manager = manager;
         this.dbmsManager = dbmsManager;
@@ -87,9 +91,11 @@ public class DefaultCollectionService
         this.aclService = aclService;
         this.schemaService = schemaService;
         this.currentUserService = currentUserService;
+        this.schemaValidator = schemaValidator;
     }
 
     @Override
+    @Transactional
     public void addCollectionItems( IdentifiableObject object, String propertyName,
         List<? extends IdentifiableObject> objects )
         throws Exception
@@ -120,8 +126,7 @@ public class DefaultCollectionService
     }
 
     private void addOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -130,7 +135,7 @@ public class DefaultCollectionService
             if ( !collection.contains( item ) )
                 collection.add( item );
         }
-
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( object );
     }
 
@@ -149,6 +154,7 @@ public class DefaultCollectionService
                 if ( !collection.contains( object ) )
                 {
                     collection.add( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, object ) );
                     manager.update( item );
                 }
             }
@@ -160,6 +166,7 @@ public class DefaultCollectionService
     }
 
     @Override
+    @Transactional
     public void delCollectionItems( IdentifiableObject object, String propertyName,
         List<? extends IdentifiableObject> objects )
         throws Exception
@@ -185,6 +192,7 @@ public class DefaultCollectionService
             delNonOwnedCollectionItems( object, property, itemCodes );
         }
 
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( object );
 
         dbmsManager.clearSession();
@@ -218,6 +226,7 @@ public class DefaultCollectionService
                 if ( collection.contains( object ) )
                 {
                     collection.remove( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
                     manager.update( item );
                 }
             }
@@ -229,6 +238,7 @@ public class DefaultCollectionService
     }
 
     @Override
+    @Transactional
     public void clearCollectionItems( IdentifiableObject object, String pvProperty )
         throws WebMessageException,
         InvocationTargetException,
@@ -243,6 +253,7 @@ public class DefaultCollectionService
         if ( property.isOwner() )
         {
             collection.clear();
+            validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
             manager.update( object );
         }
         else
@@ -253,7 +264,7 @@ public class DefaultCollectionService
                 Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
                 Collection<IdentifiableObject> itemCollection = getCollection( itemObject, itemProperty );
                 itemCollection.remove( object );
-
+                validateAndThrowErrors( () -> schemaValidator.validateProperty( itemProperty, itemObject ) );
                 manager.update( itemObject );
                 manager.refresh( itemObject );
             }
@@ -324,4 +335,5 @@ public class DefaultCollectionService
     {
         return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
     }
+
 }
