@@ -1020,7 +1020,7 @@ public class DataHandler
                 if ( hasPeriod( row, periodIndex )
                     && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
-                    addItemBasedOnPeriodOffset( grid, result, periodIndex, valueIndex, row, dimensionalItem );
+                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row, dimensionalItem );
                 }
                 else
                 {
@@ -1078,6 +1078,7 @@ public class DataHandler
      *
      * @param grid the current Grid.
      * @param result the map where the values will be added to.
+     * @param dataIndex the current grid row data index.
      * @param periodIndex the current grid row period index.
      * @param valueIndex the current grid row value index.
      * @param row the current grid row.
@@ -1088,10 +1089,10 @@ public class DataHandler
      * @return the DimensionalItemObject
      */
     private void addItemBasedOnPeriodOffset( Grid grid, MultiValuedMap<String, DimensionItemObjectValue> result,
-        int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject )
+        int dataIndex, int periodIndex, int valueIndex, List<Object> row, DimensionalItemObject dimensionalItemObject )
     {
         final List<Object> adjustedRow = (dimensionalItemObject.getPeriodOffset() != 0)
-            ? getPeriodOffsetRow( grid, dimensionalItemObject, (String) row.get( periodIndex ),
+            ? getPeriodOffsetRow( grid, dataIndex, periodIndex, dimensionalItemObject, (String) row.get( periodIndex ),
                 dimensionalItemObject.getPeriodOffset() )
             : row;
 

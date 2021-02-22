@@ -199,12 +199,18 @@ public class AnalyticsServiceTest
         Period peFeb = createPeriod( "2017-02" );
         Period peMar = createPeriod( "2017-03" );
         Period peApril = createPeriod( "2017-04" );
+        Period peMay = createPeriod( "2017-05" );
+        Period peJune = createPeriod( "2017-06" );
+        Period peJuly = createPeriod( "2017-07" );
         Period quarter = createPeriod( "2017Q1" );
 
         periodService.addPeriod( peJan );
         periodService.addPeriod( peFeb );
         periodService.addPeriod( peMar );
         periodService.addPeriod( peApril );
+        periodService.addPeriod( peMay );
+        periodService.addPeriod( peJune );
+        periodService.addPeriod( peJuly );
 
         DataElement deA = createDataElement( 'A' );
         DataElement deB = createDataElement( 'B' );
@@ -358,12 +364,11 @@ public class AnalyticsServiceTest
         indicatorF.setNumerator( expressionF );
         indicatorF.setDenominator( "1" );
 
-        // deD + deD.periodOffset(-2) + deD.periodOffset(-3)
+        // deE.periodOffset(-1) + deE.periodOffset(-2)
 
         Indicator indicatorG = createIndicator( 'G', indicatorType_1 );
 
-        String expressionG = "#{" + deE.getUid() + "} + #{"
-        // + deD.getUid() + "}.periodOffset(-1) + #{"
+        String expressionG = "#{" + deE.getUid() + "}.periodOffset(-1) + #{"
             + deE.getUid() + "}.periodOffset(-2)";
         indicatorG.setNumerator( expressionG );
         indicatorG.setDenominator( "1" );
@@ -556,13 +561,13 @@ public class AnalyticsServiceTest
             .withPeriod( quarter )
             .withOutputFormat( OutputFormat.ANALYTICS ).build();
 
-        // indicator G (deA + deA.periodOffset(-1) + dea.periodOffset(-2)) Q1
-        DataQueryParams inG_deE_periodOffsets_2017_04_params = DataQueryParams.newBuilder()
+        // indicator G (deE.periodOffset(-1) + deE.periodOffset(-2)) 2017-07
+        DataQueryParams inG_deE_periodOffsets_2017_07_params = DataQueryParams.newBuilder()
             .withOrganisationUnit( ouA )
             .withIndicators( Lists.newArrayList( indicatorG ) )
             .withAggregationType( AnalyticsAggregationType.SUM )
-            .withPeriod( peApril )
-            .withOutputFormat( OutputFormat.ANALYTICS ).build();
+            .withPeriod( peJuly )
+            /* .withOutputFormat( OutputFormat.DATA_VALUE_SET ) */.build();
 
         // Max value - org unit B and C - data element A - 2017 Feb
         DataQueryParams deA_ouB_ouC_2017_02_params = DataQueryParams.newBuilder()
@@ -639,7 +644,7 @@ public class AnalyticsServiceTest
         dataQueryParams.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_params );
         dataQueryParams.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_params );
         dataQueryParams.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_params );
-        dataQueryParams.put( "inG_deE_periodOffsets_2017_04", inG_deE_periodOffsets_2017_04_params );
+        dataQueryParams.put( "inG_deE_periodOffsets_2017_07", inG_deE_periodOffsets_2017_07_params );
         dataQueryParams.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_params );
         dataQueryParams.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_params );
         dataQueryParams.put( "ouB_2017_01_01_2017_02_20", ouB_2017_01_01_2017_02_20_params );
@@ -686,8 +691,8 @@ public class AnalyticsServiceTest
         Map<String, Double> inF_deA_reRateB_2017_Q01_keyValue = new HashMap<>();
         inF_deA_reRateB_2017_Q01_keyValue.put( "inabcdefghF-ouabcdefghD-2017Q1", 199.4 );
 
-        Map<String, Double> inG_deE_periodOffsets_2017_04_keyvalue = new HashMap<>();
-        inG_deE_periodOffsets_2017_04_keyvalue.put( "inabcdefghG-201704", 8.0 );
+        Map<String, Double> inG_deE_periodOffsets_2017_07_keyvalue = new HashMap<>();
+        inG_deE_periodOffsets_2017_07_keyvalue.put( "inabcdefghG-ouabcdefghA-201707", 3.0 );
 
         Map<String, Double> deA_ouB_ouC_2017_02_keyValue = new HashMap<>();
         deA_ouB_ouC_2017_02_keyValue.put( "deabcdefghA-201702", 233.0 );
@@ -730,7 +735,7 @@ public class AnalyticsServiceTest
         results.put( "inD_deA_deB_deC_2017_Q01", inD_deA_deB_deC_2017_Q01_keyValue );
         results.put( "inE_deA_reRateA_2017_Q01", inE_deA_reRateA_2017_Q01_keyValue );
         results.put( "inF_deA_reRateB_2017_Q01", inF_deA_reRateB_2017_Q01_keyValue );
-        results.put( "inG_deE_periodOffsets_2017_04", inG_deE_periodOffsets_2017_04_keyvalue );
+        results.put( "inG_deE_periodOffsets_2017_07", inG_deE_periodOffsets_2017_07_keyvalue );
         results.put( "deA_ouB_ouC_2017_02", deA_ouB_ouC_2017_02_keyValue );
         results.put( "deA_deB_deD_ouC_ouE_2017_04", deA_deB_deD_ouC_ouE_2017_04_keyValue );
         results.put( "deA_deB_2017_Q01", deA_deB_2017_Q01_keyValue );

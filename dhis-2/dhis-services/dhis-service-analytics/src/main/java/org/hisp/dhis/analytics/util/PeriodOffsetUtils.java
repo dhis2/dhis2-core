@@ -178,13 +178,15 @@ public class PeriodOffsetUtils
      * offset period. If there is no match, null is returned.
      *
      * @param grid a {@link Grid} object
+     * @param dataIndex the current grid row data index.
+     * @param periodIndex the current grid row period index.
      * @param dimItem a DimensionalItemObject object
      * @param isoPeriod a Period, in ISO format (e.g. 202001 - for January 2020)
      * @param offset an offset value
      * @return a row from the Grid (as List of Object) or null
      */
-    public static List<Object> getPeriodOffsetRow( Grid grid, DimensionalItemObject dimItem, String isoPeriod,
-        int offset )
+    public static List<Object> getPeriodOffsetRow( Grid grid, int dataIndex, int periodIndex,
+        DimensionalItemObject dimItem, String isoPeriod, int offset )
     {
         if ( grid == null || dimItem == null )
         {
@@ -193,9 +195,6 @@ public class PeriodOffsetUtils
 
         BiFunction<Integer, Integer, Integer> replaceIndexIfMissing = ( Integer index,
             Integer defaultIndex ) -> index == -1 ? defaultIndex : index;
-
-        final int dataIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( DATA_X_DIM_ID ), 0 );
-        final int periodIndex = replaceIndexIfMissing.apply( grid.getIndexOfHeader( PERIOD_DIM_ID ), 1 );
 
         Period shifted = offset != 0 ? shiftPeriod( PeriodType.getPeriodFromIsoString( isoPeriod ), offset )
             : PeriodType.getPeriodFromIsoString( isoPeriod );

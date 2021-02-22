@@ -206,6 +206,9 @@ public class PeriodOffsetUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
 
+        int dataIndex = 0;
+        int periodIndex = 2;
+
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou2" );
@@ -222,7 +225,7 @@ public class PeriodOffsetUtilsTest
         dataElement.setUid( "de1" );
 
         // When
-        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataElement, "202001", 1 );
+        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement, "202001", 1 );
 
         // Then
         assertThat( row, is( notNullValue() ) );
@@ -241,6 +244,9 @@ public class PeriodOffsetUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
 
+        int dataIndex = 0;
+        int periodIndex = 2;
+
         grid.addRow();
         grid.addValue( "de1" );
         grid.addValue( "ou2" );
@@ -257,7 +263,7 @@ public class PeriodOffsetUtilsTest
         dataElement.setUid( "de1" );
 
         // When
-        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataElement, "202003", 1 );
+        final List<Object> row = PeriodOffsetUtils.getPeriodOffsetRow( grid, dataIndex, periodIndex, dataElement, "202003", 1 );
 
         // Then
         assertThat( row, is( nullValue() ) );
