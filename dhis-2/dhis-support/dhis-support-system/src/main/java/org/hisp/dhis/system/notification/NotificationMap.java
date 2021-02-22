@@ -75,7 +75,7 @@ public class NotificationMap
 
     public LinkedList<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> n.get( jobId ) )
+        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> new LinkedList<>( n.get( jobId ) ) )
             .orElse( new LinkedList<>() );
     }
 
