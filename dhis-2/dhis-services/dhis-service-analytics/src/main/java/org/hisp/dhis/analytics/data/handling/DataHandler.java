@@ -1020,7 +1020,8 @@ public class DataHandler
                 if ( hasPeriod( row, periodIndex )
                     && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
-                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row, dimensionalItem );
+                    addItemBasedOnPeriodOffset( grid, result, dataIndex, periodIndex, valueIndex, row,
+                        dimensionalItem );
                 }
                 else
                 {
