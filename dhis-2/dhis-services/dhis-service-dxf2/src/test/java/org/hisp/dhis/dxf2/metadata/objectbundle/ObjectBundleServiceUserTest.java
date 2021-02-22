@@ -33,6 +33,7 @@ import static org.junit.Assert.assertNotNull;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -40,12 +41,14 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.AtomicMode;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
+import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.Test;
@@ -94,14 +97,8 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/users.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
+            "dxf2/users.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
@@ -114,22 +111,10 @@ public class ObjectBundleServiceUserTest
         User userA = userService.getUser( "sPWjoHSY03y" );
         User userB = userService.getUser( "MwhEJUnTHkn" );
 
-        assertNotNull( userA );
-        assertNotNull( userB );
-
-        assertNotNull( userA.getUserCredentials().getUserInfo() );
-        assertNotNull( userB.getUserCredentials().getUserInfo() );
-        assertNotNull( userA.getUserCredentials().getUserInfo().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUserInfo().getUserCredentials() );
-        assertEquals( "UserA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
-        assertEquals( "UserB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
-
-        assertNotNull( userA.getUserCredentials().getCreatedBy() );
-        assertNotNull( userB.getUserCredentials().getCreatedBy() );
-        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        assertUsernameEquals( userA, UserCredentials::getUserInfo, "UserA" );
+        assertUsernameEquals( userB, UserCredentials::getUserInfo, "UserB" );
+        assertUsernameEquals( userA, UserCredentials::getCreatedBy, "admin" );
+        assertUsernameEquals( userB, UserCredentials::getCreatedBy, "admin" );
 
         assertEquals( 1, userA.getOrganisationUnits().size() );
         assertEquals( 1, userB.getOrganisationUnits().size() );
@@ -141,28 +126,16 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/users.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
+            "dxf2/users.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
         assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
         objectBundleService.commit( bundle );
 
-        metadata = renderService.fromMetadata( new ClassPathResource( "dxf2/users_update.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
+        params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
+            "dxf2/users_update.json" );
 
         bundle = objectBundleService.create( params );
         validate = objectBundleValidationService.validate( bundle );
@@ -175,36 +148,45 @@ public class ObjectBundleServiceUserTest
         User userA = manager.get( User.class, "sPWjoHSY03y" );
         User userB = manager.get( User.class, "MwhEJUnTHkn" );
 
-        assertNotNull( userA );
-        assertNotNull( userB );
+        assertUsernameEquals( userA, UserCredentials::getUserInfo, "UserAA" );
+        assertUsernameEquals( userB, UserCredentials::getUserInfo, "UserBB" );
+        assertUsernameEquals( userA, UserCredentials::getCreatedBy, "admin" );
+        assertUsernameEquals( userB, UserCredentials::getCreatedBy, "admin" );
+    }
 
-        assertNotNull( userA.getUserCredentials().getUserInfo() );
-        assertNotNull( userB.getUserCredentials().getUserInfo() );
-        assertNotNull( userA.getUserCredentials().getUserInfo().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getUserInfo().getUserCredentials() );
-        assertEquals( "UserAA", userA.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
-        assertEquals( "UserBB", userB.getUserCredentials().getUserInfo().getUserCredentials().getUsername() );
+    @Test
+    public void testUpdateUsersRunsSchemaValidation()
+        throws IOException
+    {
+        createUserAndInjectSecurityContext( true );
 
-        assertNotNull( userA.getUserCredentials().getCreatedBy() );
-        assertNotNull( userB.getUserCredentials().getCreatedBy() );
-        assertNotNull( userA.getUserCredentials().getCreatedBy().getUserCredentials() );
-        assertNotNull( userB.getUserCredentials().getCreatedBy().getUserCredentials() );
-        assertEquals( "admin", userA.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
-        assertEquals( "admin", userB.getUserCredentials().getCreatedBy().getUserCredentials().getUsername() );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.NONE,
+            "dxf2/users.json" );
+
+        ObjectBundle bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
+        assertEquals( 1, validate.getErrorReportsByCode( UserAuthorityGroup.class, ErrorCode.E5003 ).size() );
+        objectBundleService.commit( bundle );
+
+        params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.NONE,
+            "dxf2/users_illegal_update.json" );
+
+        bundle = objectBundleService.create( params );
+        ObjectBundleValidationReport report = objectBundleValidationService.validate( bundle );
+        List<ErrorReport> userErrors = report.getErrorReportsByCode( User.class, ErrorCode.E4003 );
+        assertEquals( 1, userErrors.size() );
+        ErrorReport error = userErrors.get( 0 );
+        assertEquals( "email", error.getErrorProperty() );
+        assertEquals( "Property `email` requires a valid email address, was given `notAnEmail`.",
+            error.getMessage() );
     }
 
     @Test
     public void testCreateMetadataWithDuplicateUsername()
         throws IOException
     {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_duplicate_username.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
+            AtomicMode.NONE, "dxf2/user_duplicate_username.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         objectBundleValidationService.validate( bundle );
@@ -219,14 +201,8 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_duplicate_username.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setAtomicMode( AtomicMode.NONE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
+            AtomicMode.NONE, "dxf2/user_duplicate_username.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         objectBundleValidationService.validate( bundle );
@@ -241,14 +217,8 @@ public class ObjectBundleServiceUserTest
     {
         createAndInjectAdminUser();
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_admin.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.UPDATE );
-        params.setAtomicMode( AtomicMode.ALL );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.UPDATE, AtomicMode.ALL,
+            "dxf2/user_admin.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         assertEquals( 0, objectBundleValidationService.validate( bundle ).getErrorReports().size() );
@@ -260,13 +230,8 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/users_passwords.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.VALIDATE, ImportStrategy.CREATE,
+            AtomicMode.ALL, "dxf2/users_passwords.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
         ObjectBundleValidationReport validate = objectBundleValidationService.validate( bundle );
@@ -279,13 +244,8 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_userrole.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE,
+            AtomicMode.ALL, "dxf2/user_userrole.json" );
 
         ObjectBundle bundle = objectBundleService.create( params );
 
@@ -310,13 +270,8 @@ public class ObjectBundleServiceUserTest
         manager.update( userA );
         injectSecurityContext( userA );
 
-        metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_userrole_update.json" ).getInputStream(), RenderFormat.JSON );
-
-        params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
-        params.setObjects( metadata );
+        params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE_AND_UPDATE, AtomicMode.ALL,
+            "dxf2/user_userrole_update.json" );
 
         bundle = objectBundleService.create( params );
         objectBundleService.commit( bundle );
@@ -332,14 +287,9 @@ public class ObjectBundleServiceUserTest
     {
         createUserAndInjectSecurityContext( true );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/user_userrole_code.json" ).getInputStream(), RenderFormat.JSON );
-
-        ObjectBundleParams params = new ObjectBundleParams();
+        ObjectBundleParams params = createBundleParams( ObjectBundleMode.COMMIT, ImportStrategy.CREATE, AtomicMode.ALL,
+            "dxf2/user_userrole_code.json" );
         params.setPreheatIdentifier( PreheatIdentifier.CODE );
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
 
         ObjectBundle bundle = objectBundleService.create( params );
 
@@ -353,5 +303,32 @@ public class ObjectBundleServiceUserTest
 
         UserAuthorityGroup userManagerRole = manager.get( UserAuthorityGroup.class, "xJZBzAHI88H" );
         assertNotNull( userManagerRole );
+    }
+
+    private ObjectBundleParams createBundleParams( ObjectBundleMode bundleMode, ImportStrategy importStrategy,
+        AtomicMode atomicMode, String fileName )
+        throws IOException
+    {
+        ObjectBundleParams params = new ObjectBundleParams();
+        params.setObjectBundleMode( bundleMode );
+        params.setImportStrategy( importStrategy );
+        params.setAtomicMode( atomicMode );
+        params.setObjects( getMetadataFromFile( fileName ) );
+        return params;
+    }
+
+    private Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> getMetadataFromFile( String fileName )
+        throws IOException
+    {
+        return renderService.fromMetadata( new ClassPathResource( fileName ).getInputStream(), RenderFormat.JSON );
+    }
+
+    private static void assertUsernameEquals( User actual, Function<UserCredentials, User> property, String expected )
+    {
+        assertNotNull( actual );
+        User user = property.apply( actual.getUserCredentials() );
+        assertNotNull( user );
+        assertNotNull( user.getUserCredentials() );
+        assertEquals( expected, user.getUserCredentials().getUsername() );
     }
 }
