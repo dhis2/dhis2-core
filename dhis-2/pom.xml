@@ -242,7 +242,7 @@
         <enabled>true</enabled>
       </releases>
       <snapshots>
-        <enabled>true</enabled>
+        <enabled>false</enabled>
         <updatePolicy>daily</updatePolicy>
       </snapshots>
     </repository>
