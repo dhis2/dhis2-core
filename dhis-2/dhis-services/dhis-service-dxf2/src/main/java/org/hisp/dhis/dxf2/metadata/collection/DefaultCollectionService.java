@@ -31,7 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -97,7 +96,7 @@ public class DefaultCollectionService
     @Override
     @Transactional
     public void addCollectionItems( IdentifiableObject object, String propertyName,
-        List<? extends IdentifiableObject> objects )
+        Collection<? extends IdentifiableObject> objects )
         throws Exception
     {
         Property property = validateUpdate( object, propertyName,
@@ -168,7 +167,7 @@ public class DefaultCollectionService
     @Override
     @Transactional
     public void delCollectionItems( IdentifiableObject object, String propertyName,
-        List<? extends IdentifiableObject> objects )
+        Collection<? extends IdentifiableObject> objects )
         throws Exception
     {
         Property property = validateUpdate( object, propertyName,
@@ -200,8 +199,7 @@ public class DefaultCollectionService
     }
 
     private void delOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -239,57 +237,15 @@ public class DefaultCollectionService
 
     @Override
     @Transactional
-    public void clearCollectionItems( IdentifiableObject object, String pvProperty )
-        throws WebMessageException,
-        InvocationTargetException,
-        IllegalAccessException
+    public void replaceCollectionItems( IdentifiableObject object, String propertyName,
+        Collection<? extends IdentifiableObject> objects )
+        throws Exception
     {
-        Property property = validateClear( object, pvProperty );
+        Property property = validateUpdate( object, propertyName,
+            "Only identifiable object collections can be replaced." );
 
-        Collection<IdentifiableObject> collection = getCollection( object, property );
-
-        manager.refresh( object );
-
-        if ( property.isOwner() )
-        {
-            collection.clear();
-            validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-            manager.update( object );
-        }
-        else
-        {
-            for ( IdentifiableObject itemObject : collection )
-            {
-                Schema itemSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
-                Collection<IdentifiableObject> itemCollection = getCollection( itemObject, itemProperty );
-                itemCollection.remove( object );
-                validateAndThrowErrors( () -> schemaValidator.validateProperty( itemProperty, itemObject ) );
-                manager.update( itemObject );
-                manager.refresh( itemObject );
-            }
-        }
-    }
-
-    private Property validateClear( IdentifiableObject object, String pvProperty )
-        throws WebMessageException
-    {
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        if ( !schema.haveProperty( pvProperty ) )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "Property " + pvProperty + " does not exist on " + object.getClass().getName() ) );
-        }
-
-        Property property = schema.getProperty( pvProperty );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
-        }
-        return property;
+        delCollectionItems( object, propertyName, getCollection( object, property ) );
+        addCollectionItems( object, propertyName, objects );
     }
 
     private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
@@ -317,7 +273,7 @@ public class DefaultCollectionService
         return property;
     }
 
-    private Collection<String> getItemCodes( List<? extends IdentifiableObject> objects )
+    private Collection<String> getItemCodes( Collection<? extends IdentifiableObject> objects )
     {
         return objects.stream().map( IdentifiableObject::getUid ).collect( toList() );
     }
@@ -330,8 +286,7 @@ public class DefaultCollectionService
 
     @SuppressWarnings( "unchecked" )
     private Collection<IdentifiableObject> getCollection( IdentifiableObject object, Property property )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
     }

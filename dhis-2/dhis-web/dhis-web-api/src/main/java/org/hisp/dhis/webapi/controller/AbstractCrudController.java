@@ -1102,8 +1102,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         preUpdateItems( object, items );
-        collectionService.clearCollectionItems( object, pvProperty );
-        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        collectionService.replaceCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
         postUpdateItems( object, items );
     }
 
@@ -1132,6 +1131,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1143,6 +1143,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1162,6 +1163,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1170,8 +1172,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
         if ( objects.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
@@ -1401,12 +1401,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected List<T> getEntity( String uid, WebOptions options )
     {
         ArrayList<T> list = new ArrayList<>();
-        java.util.Optional<T> identifiableObject = java.util.Optional
-            .ofNullable( manager.getNoAcl( getEntityClass(), uid ) );
-
-        identifiableObject.ifPresent( list::add );
-
+        getEntity( uid, getEntityClass() ).ifPresent( list::add );
         return list; // TODO consider ACL
+    }
+
+    protected <E extends IdentifiableObject> java.util.Optional<E> getEntity( String uid, Class<E> entityType )
+    {
+        return java.util.Optional.ofNullable( manager.getNoAcl( entityType, uid ) );
     }
 
     private Schema schema;
