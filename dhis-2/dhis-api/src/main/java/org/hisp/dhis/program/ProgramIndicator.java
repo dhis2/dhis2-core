@@ -116,6 +116,21 @@ public class ProgramIndicator
     {
     }
 
+    public ProgramIndicator( ProgramIndicator pi )
+    {
+        super( pi );
+        this.program = pi.program;
+        this.expression = pi.expression;
+        this.filter = pi.filter;
+        this.formName = pi.formName;
+        this.decimals = pi.decimals;
+        this.displayInForm = pi.displayInForm;
+        this.groups = pi.groups;
+        this.analyticsType = pi.analyticsType;
+        this.analyticsPeriodBoundaries = pi.analyticsPeriodBoundaries;
+        this.style = pi.style;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

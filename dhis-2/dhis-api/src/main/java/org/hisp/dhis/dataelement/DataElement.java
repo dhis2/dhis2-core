@@ -172,6 +172,25 @@ public class DataElement extends BaseDimensionalItemObject
         this.name = name;
     }
 
+    public DataElement( DataElement de )
+    {
+        super( de );
+        this.valueType = de.valueType;
+        this.valueTypeOptions = de.valueTypeOptions;
+        this.formName = de.formName;
+        this.domainType = de.domainType;
+        this.categoryCombo = de.categoryCombo;
+        this.url = de.url;
+        this.groups = de.groups;
+        this.dataSetElements = de.dataSetElements;
+        this.aggregationLevels = de.aggregationLevels;
+        this.zeroIsSignificant = de.zeroIsSignificant;
+        this.optionSet = de.optionSet;
+        this.commentOptionSet = de.commentOptionSet;
+        this.style = de.style;
+        this.fieldMask = de.fieldMask;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

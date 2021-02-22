@@ -37,7 +37,6 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -63,7 +62,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.Sets;
 
 /**
@@ -369,36 +367,7 @@ public class DefaultDimensionService
     @Override
     public Set<DimensionalItemObject> getDataDimensionalItemObjects( Set<DimensionalItemId> itemIds )
     {
-        final Map<DimensionalItemId, DimensionalItemObject> map = getDataDimensionalItemObjectMap( itemIds );
-
-        Map<String, DimensionalItemObject> dios = new HashMap<>();
-
-        // Build a key out of the DimItemObject identifier. Replace missing id
-        // with "null" String
-        Function<String[], String> makeKey = strings -> Joiner.on( "-" ).useForNull( "null" ).join( strings );
-
-        for ( DimensionalItemId key : map.keySet() )
-        {
-            final String[] keyIds = { key.getId0(), key.getId1(), key.getId2() };
-            final DimensionalItemObject item = map.get( key );
-
-            final String dimItemIdKey = makeKey.apply( keyIds );
-            if ( dios.containsKey( dimItemIdKey ) )
-            {
-                // Make sure that an Item with a Period Offset > 0 is returned,
-                // if there are multiple Items with the same key
-                if ( dios.get( dimItemIdKey ).getPeriodOffset() == 0 && item.getPeriodOffset() != 0 )
-                {
-                    dios.replace( dimItemIdKey, item );
-                }
-            }
-            else
-            {
-                dios.put( dimItemIdKey, item );
-            }
-        }
-
-        return new HashSet<>( dios.values() );
+        return new HashSet<>( getDataDimensionalItemObjectMap( itemIds ).values() );
     }
 
     @Override
@@ -565,7 +534,7 @@ public class DefaultDimensionService
                 DataElement dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
                 if ( dataElement != null )
                 {
-                    dimensionalItemObject = dataElement;
+                    dimensionalItemObject = new DataElement( dataElement );
                 }
                 break;
 
@@ -573,7 +542,7 @@ public class DefaultDimensionService
                 Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
                 if ( indicator != null )
                 {
-                    dimensionalItemObject = indicator;
+                    dimensionalItemObject = new Indicator( indicator );
                 }
                 break;
 
@@ -624,7 +593,7 @@ public class DefaultDimensionService
                     id.getId0() );
                 if ( programIndicator != null )
                 {
-                    dimensionalItemObject = programIndicator;
+                    dimensionalItemObject = new ProgramIndicator( programIndicator );
                 }
                 break;
 
@@ -633,14 +602,15 @@ public class DefaultDimensionService
                     "Unrecognized DimensionItemType " + id.getDimensionItemType().name() + " in getItemObjectMap" );
                 break;
             }
-            if ( dimensionalItemObject != null && id.getPeriodOffset() != 0 )
+
+            if ( dimensionalItemObject == null )
             {
-                dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+                continue;
             }
-            if ( dimensionalItemObject != null )
-            {
-                itemObjectMap.put( id, dimensionalItemObject );
-            }
+
+            dimensionalItemObject.setPeriodOffset( id.getPeriodOffset() );
+
+            itemObjectMap.put( id, dimensionalItemObject );
         }
 
         return itemObjectMap;

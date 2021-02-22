@@ -91,6 +91,25 @@ public class Indicator
     {
     }
 
+    public Indicator( Indicator i )
+    {
+        super( i );
+        this.annualized = i.annualized;
+        this.formName = i.formName;
+        this.decimals = i.decimals;
+        this.indicatorType = i.indicatorType;
+        this.numerator = i.numerator;
+        this.numeratorDescription = i.numeratorDescription;
+        this.explodedNumerator = i.explodedNumerator;
+        this.denominator = i.denominator;
+        this.denominatorDescription = i.denominatorDescription;
+        this.explodedDenominator = i.explodedDenominator;
+        this.url = i.url;
+        this.groups = i.groups;
+        this.dataSets = i.dataSets;
+        this.style = i.style;
+    }
+
     // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------

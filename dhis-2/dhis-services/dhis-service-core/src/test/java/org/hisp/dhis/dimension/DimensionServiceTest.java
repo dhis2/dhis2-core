@@ -593,28 +593,35 @@ public class DimensionServiceTest
     }
 
     @Test
-    public void testGetDataDimensionalItemObjectsReturnsItemWithOffsetLargerThanZero()
+    public void testGetDataDimensionalItemObjectsReturnsItemWithAllOffsets()
     {
         // Given
-        int offset = 1;
         Set<DimensionalItemId> dimensionalItemIds = new HashSet<>();
 
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid() ) );
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid() ) );
         dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid() ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), offset ) );
-        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), offset ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 1 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deA.getUid(), 2 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deB.getUid(), 2 ) );
+        dimensionalItemIds.add( new DimensionalItemId( DATA_ELEMENT, deC.getUid(), 2 ) );
 
         // When
         Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
 
         // Then
-        assertEquals( 3, objects.size() );
-        for ( DimensionalItemObject object : objects )
-        {
-            assertThat( object.getPeriodOffset(), is( 1 ) );
-        }
+        assertEquals( 9, objects.size() );
+        assertTrue( objects.contains( dataElementWithOffset( deA, 0 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deB, 0 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deC, 0 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deA, 1 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deB, 1 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deC, 1 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deA, 2 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deB, 2 ) ) );
+        assertTrue( objects.contains( dataElementWithOffset( deC, 2 ) ) );
     }
 
     @Test
@@ -668,5 +675,18 @@ public class DimensionServiceTest
 
         assertEquals( lsA, dim.getLegendSet() );
         assertEquals( psA, dim.getProgramStage() );
+    }
+
+    // --------------------------------------------------------------------------
+    // Supportive methods
+    // --------------------------------------------------------------------------
+
+    private DataElement dataElementWithOffset( DataElement dataElement, int periodOffset )
+    {
+        DataElement de = new DataElement( dataElement );
+
+        de.setPeriodOffset( periodOffset );
+
+        return de;
     }
 }

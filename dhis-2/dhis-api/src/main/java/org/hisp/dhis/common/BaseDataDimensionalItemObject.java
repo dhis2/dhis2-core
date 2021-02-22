@@ -49,6 +49,21 @@ public class BaseDataDimensionalItemObject
     protected String aggregateExportAttributeOptionCombo;
 
     // -------------------------------------------------------------------------
+    // Constructors
+    // -------------------------------------------------------------------------
+
+    public BaseDataDimensionalItemObject()
+    {
+    }
+
+    public BaseDataDimensionalItemObject( BaseDataDimensionalItemObject ddio )
+    {
+        super( ddio );
+        this.aggregateExportCategoryOptionCombo = ddio.aggregateExportCategoryOptionCombo;
+        this.aggregateExportAttributeOptionCombo = ddio.aggregateExportAttributeOptionCombo;
+    }
+
+    // -------------------------------------------------------------------------
     // Logic
     // -------------------------------------------------------------------------
 
