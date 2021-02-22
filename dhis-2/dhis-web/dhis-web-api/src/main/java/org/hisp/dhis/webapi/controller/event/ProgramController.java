@@ -28,17 +28,23 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.controller.metadata.MetadataExportControllerUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -50,6 +56,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
@@ -111,4 +118,27 @@ public class ProgramController
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
     }
+
+    @ResponseBody
+    @RequestMapping( value = "orgUnits" )
+    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+        @RequestParam( value = "programs" ) Set<String> programUids, User currentUser )
+    {
+
+        if ( Objects.isNull( programUids ) || programUids.size() == 0 )
+        {
+            throw new IllegalArgumentException( "At least one program uid must be specified" );
+        }
+
+        if ( !aclService.canRead( currentUser, getEntityClass() )
+            || !aclService.canRead( currentUser, OrganisationUnit.class ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
+        }
+
+        return programService.getProgramOrganisationUnitsAssociations( programUids );
+
+    }
+
 }
