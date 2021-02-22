@@ -100,12 +100,12 @@ public class DefaultSchemaValidator implements SchemaValidator
             return emptyList();
         }
 
-        List<ErrorReport> errorReports = new ArrayList<>();
+        List<ErrorReport> errors = new ArrayList<>();
         for ( Property property : schema.getProperties() )
         {
             if ( !persisted || property.isPersisted() )
             {
-                validateProperty( property, object, mainErrorClass, errorReports );
+                validateProperty( property, object, mainErrorClass, errors );
             }
         }
 
@@ -115,14 +115,26 @@ public class DefaultSchemaValidator implements SchemaValidator
 
             if ( user.getUserCredentials() != null )
             {
-                errorReports.addAll( validate( user.getUserCredentials(), persisted ) );
+                errors.addAll( validate( user.getUserCredentials(), persisted ) );
             }
         }
-        return errorReports;
+        return errors;
+    }
+
+    @Override
+    public List<ErrorReport> validateProperty( Property property, Object object )
+    {
+        if ( object == null )
+        {
+            return emptyList();
+        }
+        List<ErrorReport> errors = new ArrayList<>();
+        validateProperty( property, object, object.getClass(), errors );
+        return errors;
     }
 
     private void validateProperty( Property property, Object object, Class<?> mainErrorClass,
-        List<ErrorReport> errorReports )
+        List<ErrorReport> errors )
     {
         Object value = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
@@ -130,16 +142,16 @@ public class DefaultSchemaValidator implements SchemaValidator
         {
             if ( property.isRequired() && !Preheat.isDefaultClass( property.getKlass() ) )
             {
-                errorReports.add( createReport( ErrorCode.E4000, mainErrorClass, property, property.getName() ) );
+                errors.add( createReport( ErrorCode.E4000, mainErrorClass, property, property.getName() ) );
             }
         }
         else
         {
-            errorReports.addAll( validateString( mainErrorClass, value, property ) );
-            errorReports.addAll( validateCollection( mainErrorClass, value, property ) );
-            errorReports.addAll( validateInteger( mainErrorClass, value, property ) );
-            errorReports.addAll( validateFloat( mainErrorClass, value, property ) );
-            errorReports.addAll( validateDouble( mainErrorClass, value, property ) );
+            errors.addAll( validateString( mainErrorClass, value, property ) );
+            errors.addAll( validateCollection( mainErrorClass, value, property ) );
+            errors.addAll( validateInteger( mainErrorClass, value, property ) );
+            errors.addAll( validateFloat( mainErrorClass, value, property ) );
+            errors.addAll( validateDouble( mainErrorClass, value, property ) );
         }
     }
 

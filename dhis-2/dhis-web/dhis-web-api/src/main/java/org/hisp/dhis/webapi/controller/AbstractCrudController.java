@@ -104,6 +104,7 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
@@ -177,6 +178,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected SchemaValidator schemaValidator;
 
     @Autowired
     protected LinkService linkService;
@@ -551,8 +555,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
         property.getSetterMethod().invoke( persistedObject, value );
+        validateUpdate( property, object );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
+    }
+
+    private void validateUpdate( Property property, T object )
+        throws WebMessageException
+    {
+        List<ErrorReport> errors = schemaValidator.validateProperty( property, object );
+        if ( !errors.isEmpty() )
+        {
+            throw new WebMessageException( WebMessageUtils.errorReports( errors ) );
+        }
     }
 
     @SuppressWarnings( "unchecked" )
