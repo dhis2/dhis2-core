@@ -642,14 +642,14 @@ public class DefaultPredictionService
     {
         for ( DimensionalItemObject item : sampleItems )
         {
-            if ( item == outputDataElement )
+            if ( item.equals( outputDataElement ) )
             {
                 return item;
             }
 
             if ( item.getDimensionItemType() == DimensionItemType.DATA_ELEMENT_OPERAND
-                && ((DataElementOperand) item).getDataElement() == outputDataElement
-                && ((DataElementOperand) item).getCategoryOptionCombo() == outputOptionCombo )
+                && ((DataElementOperand) item).getDataElement().equals( outputDataElement )
+                && ((DataElementOperand) item).getCategoryOptionCombo().equals( outputOptionCombo ) )
             {
                 return item;
             }
