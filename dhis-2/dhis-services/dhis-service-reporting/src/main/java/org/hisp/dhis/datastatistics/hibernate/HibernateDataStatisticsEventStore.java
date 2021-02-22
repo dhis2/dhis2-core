@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.datastatistics.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
@@ -41,6 +43,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -58,10 +61,16 @@ public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
+    private final SystemSettingManager systemSettingManager;
+
     public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher )
+        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
+
+        checkNotNull( systemSettingManager );
+
+        this.systemSettingManager = systemSettingManager;
     }
 
     @Override
@@ -106,11 +115,11 @@ public class HibernateDataStatisticsEventStore
 
         String sql = "select c.uid, views, c.name, c.created from ( " +
             "select favoriteuid as uid, count(favoriteuid) as views " +
-            "from datastatisticsevent ";
+            "from datastatisticsevent where eventtype = '" + eventType.name() + "' ";
 
         if ( username != null )
         {
-            sql += "where username = ? ";
+            sql += "and username = ? ";
         }
 
         sql += "group by uid) as events " +
@@ -147,7 +156,12 @@ public class HibernateDataStatisticsEventStore
     {
         String sql = "select count(dse.favoriteuid) " +
             "from datastatisticsevent dse " +
-            "where dse.favoriteuid = ?;";
+            "where dse.favoriteuid = ?";
+
+        if ( !(boolean) systemSettingManager.getSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS ) )
+        {
+            sql += " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
+        }
 
         Object[] args = Lists.newArrayList( uid ).toArray();
 
