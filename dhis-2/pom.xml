@@ -234,7 +234,6 @@
   </distributionManagement>
 
   <repositories>
-
     <repository>
       <id>central</id>
       <url>https://repo1.maven.org/maven2</url>
@@ -270,6 +269,10 @@
       <releases>
         <updatePolicy>never</updatePolicy>
       </releases>
+    </repository>
+    <repository>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
     </repository>
   </repositories>
 
