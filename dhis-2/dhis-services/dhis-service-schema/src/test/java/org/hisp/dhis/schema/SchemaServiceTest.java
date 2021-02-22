@@ -29,9 +29,11 @@ package org.hisp.dhis.schema;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,5 +58,16 @@ public class SchemaServiceTest
         Schema schema = schemaService.getSchema( OrganisationUnit.class );
         assertNotNull( schema );
         assertNotNull( schema.getFieldNameMapProperties() );
+    }
+
+    @Test
+    public void testProgramTrackedEntityAttribute()
+    {
+        Schema schema = schemaService.getSchema( ProgramTrackedEntityAttribute.class );
+        assertNotNull( schema );
+        Property groups = schema.getProperty( "programTrackedEntityAttributeGroups" );
+        assertNotNull( groups );
+        assertFalse( groups.isSimple() );
+        assertTrue( groups.isCollection() );
     }
 }

@@ -269,7 +269,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
             Class<?> klass = (Class<?>) getInnerType( (ParameterizedType) type );
             property.setItemKlass( Primitives.wrap( klass ) );
 
-            if ( hasProperties( klass ) )
+            if ( !hasProperties( klass ) )
             {
                 property.setSimple( true );
             }
