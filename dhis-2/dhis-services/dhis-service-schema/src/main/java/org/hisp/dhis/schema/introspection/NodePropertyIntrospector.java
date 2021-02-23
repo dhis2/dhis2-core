@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
+package org.hisp.dhis.schema.introspection;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -49,26 +49,41 @@ import org.hisp.dhis.node.annotation.NodeCollection;
 import org.hisp.dhis.node.annotation.NodeComplex;
 import org.hisp.dhis.node.annotation.NodeRoot;
 import org.hisp.dhis.node.annotation.NodeSimple;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.ReflectionUtils;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
 
 /**
+ * A {@link PropertyIntrospector} adds {@link Property} values to the map for
+ * all fields which are annotated with an {@link Annotation} that itself is
+ * annotated with {@link NodeAnnotation}.
+ *
+ * The added {@link Property} values are initialised based on the present
+ * annotations. Handled are:
+ * <ul>
+ * <li>{@link NodeSimple}</li>
+ * <li>{@link NodeRoot}</li>
+ * <li>{@link NodeComplex}</li>
+ * <li>{@link NodeCollection}</li>
+ * </ul>
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt (extraction to this class)
  */
 @Slf4j
-public class NodePropertyIntrospectorService extends AbstractPropertyIntrospectorService
+public class NodePropertyIntrospector implements PropertyIntrospector
 {
-    public Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
+
+    public static Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
     {
         property.setCollection( true );
         property.setCollectionName( field.getName() );
 
         Type type = field.getGenericType();
 
-        if ( ParameterizedType.class.isInstance( type ) )
+        if ( type instanceof ParameterizedType )
         {
             ParameterizedType parameterizedType = (ParameterizedType) type;
             Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
@@ -84,35 +99,12 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
     }
 
     @Override
-    protected Map<String, Property> scanClass( Class<?> klass )
+    public void introspect( Class<?> klass, Map<String, Property> propertyMap )
     {
-        Map<String, Property> propertyMap = Maps.newHashMap();
 
         for ( Field field : ReflectionUtils.getAllFields( klass ) )
         {
-            Property property = null;
-
-            for ( Annotation annotation : field.getAnnotations() )
-            {
-                // search for and add all annotations that meta-annotated with
-                // NodeAnnotation
-                if ( annotation.annotationType().isAnnotationPresent( NodeAnnotation.class ) )
-                {
-                    Method getter = getGetter( klass, field );
-                    Method setter = getSetter( klass, field );
-
-                    property = new Property( Primitives.wrap( field.getType() ), getter, setter );
-                    property.setName( field.getName() );
-                    property.setFieldName( field.getName() );
-
-                    if ( Collection.class.isAssignableFrom( field.getType() ) )
-                    {
-                        property = setPropertyIfCollection( property, field, klass );
-                    }
-
-                    break;
-                }
-            }
+            Property property = createProperty( klass, field );
 
             if ( property == null )
             {
@@ -135,21 +127,36 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
                 handleNodeCollection( nodeCollection, property );
             }
 
-            if ( property.isCollection() )
-            {
-                propertyMap.put( property.getCollectionName(), property );
-            }
-            else
-            {
-                propertyMap.put( property.getName(), property );
-            }
-
+            propertyMap.put( property.key(), property );
         }
-
-        return propertyMap;
     }
 
-    private void handleNodeSimple( NodeSimple nodeSimple, Property property )
+    private Property createProperty( Class<?> klass, Field field )
+    {
+        for ( Annotation annotation : field.getAnnotations() )
+        {
+            // search for and add all annotations that meta-annotated with
+            // NodeAnnotation
+            if ( annotation.annotationType().isAnnotationPresent( NodeAnnotation.class ) )
+            {
+                Method getter = getGetter( klass, field );
+                Method setter = getSetter( klass, field );
+
+                Property property = new Property( Primitives.wrap( field.getType() ), getter, setter );
+                property.setName( field.getName() );
+                property.setFieldName( field.getName() );
+
+                if ( Collection.class.isAssignableFrom( field.getType() ) )
+                {
+                    return setPropertyIfCollection( property, field, klass );
+                }
+                return property;
+            }
+        }
+        return null;
+    }
+
+    private static void handleNodeSimple( NodeSimple nodeSimple, Property property )
     {
         property.setSimple( true );
         property.setAttribute( nodeSimple.isAttribute() );
@@ -173,7 +180,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         }
     }
 
-    private void handleNodeComplex( NodeComplex nodeComplex, Property property )
+    private static void handleNodeComplex( NodeComplex nodeComplex, Property property )
     {
         property.setSimple( false );
         property.setNamespace( nodeComplex.namespace() );
@@ -196,7 +203,7 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         }
     }
 
-    private void handleNodeCollection( NodeCollection nodeCollection, Property property )
+    private static void handleNodeCollection( NodeCollection nodeCollection, Property property )
     {
         property.setCollectionWrapping( nodeCollection.useWrapping() );
         property.setNamespace( nodeCollection.namespace() );
@@ -241,17 +248,17 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         }
     }
 
-    private Method getGetter( Class<?> klass, Field field )
+    private static Method getGetter( Class<?> klass, Field field )
     {
         return getMethodWithPrefix( klass, field, Lists.newArrayList( "get", "is", "has" ), false );
     }
 
-    private Method getSetter( Class<?> klass, Field field )
+    private static Method getSetter( Class<?> klass, Field field )
     {
         return getMethodWithPrefix( klass, field, Lists.newArrayList( "set" ), true );
     }
 
-    private Method getMethodWithPrefix( Class<?> klass, Field field, List<String> prefixes, boolean includeType )
+    private static Method getMethodWithPrefix( Class<?> klass, Field field, List<String> prefixes, boolean includeType )
     {
         String name = StringUtils.capitalize( field.getName() );
         List<Method> methods = new ArrayList<>();
@@ -260,16 +267,15 @@ public class NodePropertyIntrospectorService extends AbstractPropertyIntrospecto
         {
             try
             {
-                Method method = includeType ? klass.getMethod( prefix + name, field.getType() )
+                Method method = includeType
+                    ? klass.getMethod( prefix + name, field.getType() )
                     : klass.getMethod( prefix + name );
 
-                if ( method != null )
-                {
-                    methods.add( method );
-                }
+                methods.add( method );
             }
             catch ( NoSuchMethodException ignored )
             {
+                /* ignore */
             }
         }
 

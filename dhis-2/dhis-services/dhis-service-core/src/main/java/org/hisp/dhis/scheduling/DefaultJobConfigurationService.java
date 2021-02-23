@@ -45,8 +45,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.introspection.NodePropertyIntrospector;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -252,7 +252,7 @@ public class DefaultJobConfigurationService
 
             if ( Collection.class.isAssignableFrom( field.getType() ) )
             {
-                property = new NodePropertyIntrospectorService()
+                property = NodePropertyIntrospector
                     .setPropertyIfCollection( property, field, clazz );
             }
 
