@@ -180,12 +180,10 @@ public class DefaultSystemSettingManager
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getSystemSetting( SettingKey key )
     {
-        SerializableOptional value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, key.getDefaultValue() ) ).get();
-
-        return value.get();
+        return getSystemSetting( key, key.getDefaultValue() );
     }
 
     /**
@@ -194,12 +192,14 @@ public class DefaultSystemSettingManager
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
         SerializableOptional value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, defaultValue ) ).get();
+            k -> getSystemSettingOptional( k, defaultValue ) )
+            .orElse( SerializableOptional.of( defaultValue ) );
 
-        return value.get();
+        return !value.isPresent() ? defaultValue : value.get();
     }
 
     /**
@@ -263,6 +263,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
@@ -298,6 +299,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getSystemSettings( Collection<SettingKey> keys )
     {
         Map<String, Serializable> map = new HashMap<>();
@@ -333,6 +335,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getFlagImage()
     {
         String flag = (String) getSystemSetting( SettingKey.FLAG );
@@ -341,48 +344,56 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailHostName()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_HOST_NAME ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int getEmailPort()
     {
         return (Integer) getSystemSetting( SettingKey.EMAIL_PORT );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailUsername()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_USERNAME ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean getEmailTls()
     {
         return (Boolean) getSystemSetting( SettingKey.EMAIL_TLS );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailSender()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_SENDER ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean accountRecoveryEnabled()
     {
         return (Boolean) getSystemSetting( SettingKey.ACCOUNT_RECOVERY );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean selfRegistrationNoRecaptcha()
     {
         return (Boolean) getSystemSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean emailConfigured()
     {
         return StringUtils.isNotBlank( getEmailHostName() )
@@ -390,6 +401,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean systemNotificationEmailValid()
     {
         String address = (String) getSystemSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
@@ -398,6 +410,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean hideUnapprovedDataInAnalytics()
     {
         // -1 means approval is disabled
@@ -405,12 +418,14 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String googleAnalyticsUA()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.GOOGLE_ANALYTICS_UA ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Integer credentialsExpires()
     {
         return (Integer) getSystemSetting( SettingKey.CREDENTIALS_EXPIRES );
