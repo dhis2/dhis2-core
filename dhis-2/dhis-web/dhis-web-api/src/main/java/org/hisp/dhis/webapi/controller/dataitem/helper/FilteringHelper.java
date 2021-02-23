@@ -38,7 +38,6 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.contains;
 import static org.apache.commons.lang3.StringUtils.deleteWhitespace;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.replaceEach;
 import static org.apache.commons.lang3.StringUtils.split;
 import static org.apache.commons.lang3.StringUtils.substringBetween;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
@@ -47,6 +46,7 @@ import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
@@ -54,13 +54,17 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
+import static org.hisp.dhis.query.operators.TokenUtils.getTokens;
+import static org.hisp.dhis.query.operators.TokenUtils.getTokensNoReplacing;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.IDENTIFIABLE_TOKEN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
@@ -314,6 +318,18 @@ public class FilteringHelper
             paramsMap.addValue( ROOT_JUNCTION, rootJunction );
         }
 
+        final String identifiableToken = extractValueFromFilter( filters, IDENTIFIABLE_TOKEN );
+
+        if ( identifiableToken != null )
+        {
+            final List<String> wordsAsTokens = getTokensNoReplacing( identifiableToken );
+
+            if ( CollectionUtils.isNotEmpty( wordsAsTokens ) )
+            {
+                paramsMap.addValue( IDENTIFIABLE_TOKEN_COMPARISON, StringUtils.join( wordsAsTokens, "," ) );
+            }
+        }
+
         if ( containsFilterWithAnyOfPrefixes( filters, VALUE_TYPE_EQUAL.getCombination(),
             VALUE_TYPE_IN.getCombination() ) )
         {
@@ -443,19 +459,6 @@ public class FilteringHelper
         }
 
         return valueType;
-    }
-
-    /**
-     * This method is specific for strings used in "ilike" filters where some
-     * non accepted characters will fail at querying time. It will only replace
-     * common characters by the form accepted in SQL ilike queries.
-     *
-     * @param value the value where characters will ve replaced.
-     * @return the input value with the characters replaced.
-     */
-    private static String addIlikeReplacingCharacters( final String value )
-    {
-        return replaceEach( value, new String[] { "%" }, new String[] { "\\%" } );
     }
 
     private static String getValueTypeOrThrow( final String valueType )

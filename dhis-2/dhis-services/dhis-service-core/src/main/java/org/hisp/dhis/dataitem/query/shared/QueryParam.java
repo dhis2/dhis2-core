@@ -61,4 +61,6 @@ public class QueryParam
     public static final String UID = "uid";
 
     public static final String ROOT_JUNCTION = "rootJunction";
+
+    public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
 }

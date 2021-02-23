@@ -35,6 +35,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E2034;
 import static org.hisp.dhis.feedback.ErrorCode.E2035;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.getCombinations;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Custom.getPropertyNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbreviations;
 
 import java.util.Set;
@@ -84,7 +85,7 @@ public class FilterValidator
 
                         final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
 
-                        if ( !getNames().contains( attributeName ) )
+                        if ( !getNames().contains( attributeName ) && !getPropertyNames().contains( attributeName ) )
                         {
                             throw new IllegalQueryException( new ErrorMessage( E2034, attributeName ) );
                         }

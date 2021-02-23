@@ -31,16 +31,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiableTokenFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
@@ -227,6 +230,15 @@ public class ProgramAttributeQuery implements DataItemQuery
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
+
+        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.tea_i18n_name",
+            "t.p_i18n_name", paramsMap );
+
+        if ( isNotBlank( identifiableStatement ) )
+        {
+            sql.append( rootJunction( paramsMap ) );
+            sql.append( identifiableStatement );
+        }
 
         sql.append( ifSet( ordering( "t.p_i18n_name, t.tea_i18n_name, t.uid",
             "t.program_name, t.name, t.uid", paramsMap ) ) );

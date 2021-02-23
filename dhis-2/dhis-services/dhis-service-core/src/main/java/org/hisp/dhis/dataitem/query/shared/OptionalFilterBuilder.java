@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 
@@ -46,6 +47,10 @@ public class OptionalFilterBuilder
 
     boolean first = true;
 
+    boolean removeUnnecessaryCondition = true;
+
+    String rootJunction = " and ";
+
     public OptionalFilterBuilder( final MapSqlParameterSource paramsMap )
     {
         this.paramsMap = paramsMap;
@@ -54,13 +59,16 @@ public class OptionalFilterBuilder
     /**
      * Appends a new filter to the be current builder. It will add an additional
      * AND string before the first string appended, and will close it once
-     * toString() is invoked.
+     * toString() is invoked. It will automatically handle rootJunctions (AND |
+     * OR).
      *
      * @param filter the filter to be appended
      * @return the current instance of this class
      */
     public OptionalFilterBuilder append( final String filter )
     {
+        rootJunction = rootJunction( paramsMap );
+
         if ( isNotBlank( filter ) && paramsMap != null )
         {
             if ( first )
@@ -72,6 +80,36 @@ public class OptionalFilterBuilder
 
             sb.append( filter );
             sb.append( rootJunction( paramsMap ) );
+        }
+
+        return this;
+    }
+
+    /**
+     * Prefix the filter with AND or OR condition.
+     *
+     * @param filter the filter to be appended
+     * @return the current instance of this class
+     */
+    public OptionalFilterBuilder append( final String filter, final String andOr )
+    {
+        if ( isNotBlank( andOr ) )
+        {
+            rootJunction = andOr;
+        }
+
+        if ( isNotBlank( filter ) && paramsMap != null )
+        {
+            if ( first )
+            {
+                // Opening AND | OR for optional filters.
+                sb.append( andOr + " (" );
+                first = false;
+            }
+
+            sb.append( SPACE + filter + SPACE );
+            sb.append( andOr );
+            removeUnnecessaryCondition = false;
         }
 
         return this;
@@ -94,7 +132,7 @@ public class OptionalFilterBuilder
 
             // Removing the last unnecessary root junction from optional
             // filters and returning.
-            return fullFilterStatement.replace( rootJunction( paramsMap ) + ")", ") " );
+            fullFilterStatement = fullFilterStatement.replace( rootJunction + ")", ") " );
         }
 
         return fullFilterStatement;

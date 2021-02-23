@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.StringUtils.replaceEach;
+
 /**
  * This class keeps basic SQL keywords/constants so they can be reused by the
  * queries. It was created mainly to make SonarQube happy regarding what is
@@ -43,4 +45,21 @@ public class StatementUtil
     public static final String SPACED_UNION = " union ";
 
     public static final String SPACED_WHERE = " where ";
+
+    public static final String SPACED_OR = " or ";
+
+    public static final String SPACED_AND = " and ";
+
+    /**
+     * This method is specific for strings used in "ilike" filters where some
+     * non accepted characters will fail at querying time. It will only replace
+     * common characters by the form accepted in SQL ilike queries.
+     *
+     * @param value the value where characters will ve replaced.
+     * @return the input value with the characters replaced.
+     */
+    public static String addIlikeReplacingCharacters( final String value )
+    {
+        return replaceEach( value, new String[] { "%", "," }, new String[] { "\\%", "\\," } );
+    }
 }

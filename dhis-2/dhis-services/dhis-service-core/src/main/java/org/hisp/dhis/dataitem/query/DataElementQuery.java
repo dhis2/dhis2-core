@@ -38,6 +38,7 @@ import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiableTokenFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
@@ -188,6 +189,15 @@ public class DataElementQuery implements DataItemQuery
         optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
+
+        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
+            null, paramsMap );
+
+        if ( isNotBlank( identifiableStatement ) )
+        {
+            sql.append( rootJunction( paramsMap ) );
+            sql.append( identifiableStatement );
+        }
 
         sql.append( ifSet( ordering( "t.i18n_name, t.uid", "t.name, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );

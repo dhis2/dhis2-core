@@ -30,6 +30,8 @@ package org.hisp.dhis.dataitem.query.shared;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_AND;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_OR;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.CHECK_USER_GROUPS_ACCESS;
 import static org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions.EXTRACT_PATH_TEXT;
@@ -50,6 +52,15 @@ public class UserAccessStatement
     {
     }
 
+    /**
+     * Creates a sharing statement for the given column and on the paramsMap. It
+     * will also take consideration user groups if this is set in the paramsMap.
+     * This statement will check sharing conditions for Metadata ONLY.
+     *
+     * @param column the sharing column
+     * @param paramsMap the parameters map
+     * @return the sharing SQL statement for the current user
+     */
     public static String sharingConditions( final String column, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
@@ -59,9 +70,9 @@ public class UserAccessStatement
 
             .append( " ( " ) // Grouping clauses
             .append( publicAccessCondition( column ) )
-            .append( " OR " )
+            .append( SPACED_OR )
             .append( ownerAccessCondition( column ) )
-            .append( " OR " )
+            .append( SPACED_OR )
             .append( userAccessCondition( column ) )
             .append( " ) " ); // Grouping clauses closing
 
@@ -75,6 +86,17 @@ public class UserAccessStatement
         return conditions.toString();
     }
 
+    /**
+     * Creates a sharing statement for the given columns, based on the
+     * paramsMap. It will also take consideration user groups if this is set in
+     * the paramsMap. This statement will check sharing conditions for Metadata
+     * ONLY.
+     *
+     * @param columnOne a sharing column
+     * @param columnTwo the other sharing column
+     * @param paramsMap the parameters map
+     * @return the sharing SQL statement for the current user
+     */
     public static String sharingConditions( final String columnOne, final String columnTwo,
         final MapSqlParameterSource paramsMap )
     {
@@ -86,16 +108,16 @@ public class UserAccessStatement
             .append( " ( " ) // Grouping clauses
             .append( "(" ) // Table 1 conditions
             .append( publicAccessCondition( columnOne ) )
-            .append( " or " )
+            .append( SPACED_OR )
             .append( ownerAccessCondition( columnOne ) )
-            .append( " or " )
+            .append( SPACED_OR )
             .append( userAccessCondition( columnOne ) )
             .append( ")" ) // Table 1 conditions end
             .append( " and (" ) // Table 2 conditions
             .append( publicAccessCondition( columnTwo ) )
-            .append( " or " )
+            .append( SPACED_OR )
             .append( ownerAccessCondition( columnTwo ) )
-            .append( " or " )
+            .append( SPACED_OR )
             .append( userAccessCondition( columnTwo ) )
             .append( ")" ) // Table 2 conditions end
             .append( " )" ); // Grouping clauses closing
@@ -108,7 +130,7 @@ public class UserAccessStatement
             conditions.append( userGroupAccessCondition( columnOne ) );
 
             // DataElement access checks
-            conditions.append( " and " + userGroupAccessCondition( columnTwo ) );
+            conditions.append( SPACED_AND + userGroupAccessCondition( columnTwo ) );
 
             // Closing OR condition
             conditions.append( ")" );
@@ -142,7 +164,7 @@ public class UserAccessStatement
         assertTableAlias( tableName );
 
         return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = true "
-            + "and " + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = true)";
+            + SPACED_AND + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = true)";
     }
 
     static String userGroupAccessCondition( final String column )
@@ -150,7 +172,7 @@ public class UserAccessStatement
         assertTableAlias( column );
 
         return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = true " +
-            "and " + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = true)";
+            SPACED_AND + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = true)";
     }
 
     private static void assertTableAlias( String columnName )

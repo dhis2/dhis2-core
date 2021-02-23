@@ -29,15 +29,21 @@ package org.hisp.dhis.dataitem.query.shared;
 
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_AND;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_OR;
+import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
 import java.util.Set;
 
@@ -51,11 +57,15 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class FilteringStatement
 {
-    public static final String ILIKE = " ilike :";
+    private static final String EQUALS = " = :";
 
-    public static final String SPACED_LEFT_PARENTHESIS = " ( ";
+    private static final String ILIKE = " ilike :";
 
-    public static final String SPACED_RIGHT_PARENTHESIS = " ) ";
+    private static final String SPACED_LEFT_PARENTHESIS = " ( ";
+
+    private static final String SPACED_RIGHT_PARENTHESIS = " ) ";
+
+    private static final String REGEX_FOR_WORDS_FILTERING = "[\\s@&.?$+-]+";
 
     private FilteringStatement()
     {
@@ -65,7 +75,7 @@ public class FilteringStatement
     {
         if ( hasStringNonBlankPresence( paramsMap, UID ) )
         {
-            return SPACED_LEFT_PARENTHESIS + column + " = :" + UID + SPACED_RIGHT_PARENTHESIS;
+            return SPACED_LEFT_PARENTHESIS + column + EQUALS + UID + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -145,7 +155,125 @@ public class FilteringStatement
     {
         if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
         {
-            return SPACE + column + " = :" + PROGRAM_ID + SPACE;
+            return SPACE + column + EQUALS + PROGRAM_ID + SPACE;
+        }
+
+        return EMPTY;
+    }
+
+    public static String identifiableTokenFiltering( final String idColumn, final String codeColumn,
+        final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringNonBlankPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
+        {
+            final String[] filteringWords = ((String) paramsMap.getValue( IDENTIFIABLE_TOKEN_COMPARISON )).split( "," );
+
+            final OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder( paramsMap );
+
+            optionalFilterBuilder
+                .append( ifAny( createRegexConditionForIdentifier( idColumn, filteringWords, SPACED_OR, ".*" ) ),
+                    SPACED_OR )
+                .append( ifAny( createRegexConditionForPhrase( codeColumn, filteringWords, SPACED_AND, "\\y" ) ),
+                    SPACED_OR )
+                .append( ifAny( createRegexConditionForPhrase( displayNameColumn, filteringWords, SPACED_AND, ".*" ) ),
+                    SPACED_OR )
+                .append( ifAny( createRegexConditionForPhrase( programNameColumn, filteringWords, SPACED_AND, ".*" ) ),
+                    SPACED_OR );
+
+            return optionalFilterBuilder.toString().replaceFirst( SPACED_OR, EMPTY );
+        }
+
+        return EMPTY;
+    }
+
+    public static void main( String[] args )
+    {
+        final MapSqlParameterSource paramsMap = new MapSqlParameterSource();
+        System.out.println( createOrConditionForEachWordInIlikeFilter( "code", "anc tt1 5", paramsMap ) );
+
+        System.out.println( toTsQuery( "code" ) );
+    }
+
+    private static String createRegexConditionForPhrase( final String column, final String[] filteringWords,
+        final String spacedAndOr, final String regexMatch )
+    {
+        if ( filteringWords != null && filteringWords.length > 0 && isNotBlank( column ) )
+        {
+            final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+
+            for ( final String word : filteringWords )
+            {
+                orConditions
+                    .append(
+                        "regexp_replace(" + column + ", '" + REGEX_FOR_WORDS_FILTERING + "', ' ', 'g') ~* '"
+                            + regexMatch + word + "'"
+                            + spacedAndOr );
+            }
+
+            orConditions.append( SPACED_RIGHT_PARENTHESIS );
+
+            // Remove last unused AND/OR condition and returns.
+            return orConditions.toString().replace( spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
+        }
+
+        return EMPTY;
+    }
+
+    private static String createRegexConditionForIdentifier( final String column, final String[] filteringWords,
+        final String spacedAndOr, final String regexMatch )
+    {
+        // Should only trigger when there is no more than one word in the
+        // filtering.
+        if ( filteringWords != null && filteringWords.length == 1 && isNotBlank( column ) )
+        {
+            final StringBuilder condition = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+
+            condition
+                .append(
+                    "regexp_replace(" + column + ", '" + REGEX_FOR_WORDS_FILTERING + "', ' ', 'g') ~* '" + regexMatch
+                        + filteringWords[0] + "'" + spacedAndOr );
+
+            condition.append( SPACED_RIGHT_PARENTHESIS );
+
+            // Remove last unused AND/OR condition and returns.
+            return condition.toString().replace( spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
+        }
+
+        return EMPTY;
+    }
+
+    private static String toTsQuery( final String column )
+    {
+        final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+
+        orConditions.append( column + " @@ to_tsquery(:" + IDENTIFIABLE_TOKEN_COMPARISON + ")" );
+
+        orConditions.append( SPACED_RIGHT_PARENTHESIS );
+
+        return orConditions.toString();
+    }
+
+    private static String createOrConditionForEachWordInIlikeFilter( final String column, String filter,
+        final MapSqlParameterSource paramsMap )
+    {
+        if ( isNotBlank( filter ) )
+        {
+            filter = filter.replaceAll( " +", SPACE );
+
+            final String[] words = filter.split( " " );
+            final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+
+            for ( final String word : words )
+            {
+                // regexp_replace(i."name", '[\s@&.?$+-]+', ' ', 'g') ~* '\mhi'
+                orConditions
+                    .append( column + ILIKE + wrap( word, "_filter_" ) + SPACED_OR );
+                paramsMap.addValue( wrap( word, "_filter_" ), wrap( addIlikeReplacingCharacters( word ), "%" ) );
+            }
+
+            orConditions.append( SPACED_RIGHT_PARENTHESIS );
+
+            return orConditions.toString().replace( SPACED_OR + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
         }
 
         return EMPTY;
