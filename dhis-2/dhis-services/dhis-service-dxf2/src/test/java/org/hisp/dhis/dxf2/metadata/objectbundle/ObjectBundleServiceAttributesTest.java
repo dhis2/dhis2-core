@@ -45,6 +45,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -86,6 +87,9 @@ public class ObjectBundleServiceAttributesTest
 
     @Autowired
     private AttributeService attributeService;
+
+    @Autowired
+    private DataElementService dataElementService;
 
     @Override
     public void setUpTest()
@@ -270,7 +274,7 @@ public class ObjectBundleServiceAttributesTest
         attribute.setMandatory( true );
         attribute.setDataElementAttribute( true );
 
-        manager.save( attribute );
+        attributeService.addAttribute( attribute );
 
         AttributeValue attributeValue1 = new AttributeValue( "Value1", attribute );
         AttributeValue attributeValue2 = new AttributeValue( "Value2", attribute );
@@ -280,13 +284,13 @@ public class ObjectBundleServiceAttributesTest
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
 
+        dataElementService.addDataElement( de1 );
+        dataElementService.addDataElement( de2 );
+        dataElementService.addDataElement( de3 );
+
         attributeService.addAttributeValue( de1, attributeValue1 );
         attributeService.addAttributeValue( de2, attributeValue2 );
         attributeService.addAttributeValue( de3, attributeValue3 );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
 
         User user = createUser( 'A' );
         manager.save( user );
