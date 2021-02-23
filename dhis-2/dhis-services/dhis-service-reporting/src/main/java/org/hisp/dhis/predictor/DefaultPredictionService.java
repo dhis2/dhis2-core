@@ -519,8 +519,7 @@ public class DefaultPredictionService
     }
 
     /**
-     * Returns the value of a datavalue as a
-     * Double, if it can be done.
+     * Returns the value of a datavalue as a Double, if it can be done.
      *
      * @param dv the datavalue
      * @return the Double value

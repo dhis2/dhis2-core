@@ -39,9 +39,7 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -158,9 +156,11 @@ public class PredictionAnalyticsDataFetcherTest
     PredictionAnalyticsDataFetcher fetcher;
 
     MapMapMap<String, Period, DimensionalItemObject, Double> aocExpected;
+
     MapMapMap<String, Period, DimensionalItemObject, Double> aocData;
 
     MapMap<Period, DimensionalItemObject, Double> nonAocExpected;
+
     MapMap<Period, DimensionalItemObject, Double> nonAocData;
 
     // -------------------------------------------------------------------------
