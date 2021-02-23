@@ -25,55 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.validation;
+package org.hisp.dhis.schema;
 
-import java.util.List;
+import org.hisp.dhis.node.annotation.NodeComplex;
+import org.hisp.dhis.node.annotation.NodeSimple;
 
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.schema.Property;
+class Value
+{
+    @NodeSimple
+    private String value;
+}
+
+class ComplexFields
+{
+    @NodeComplex
+    private Value property;
+
+    @NodeComplex( value = "renamedProperty" )
+    private Value propertyToBeRenamed;
+
+    @NodeComplex( isReadable = true, isWritable = false )
+    private Value readOnly;
+
+    @NodeComplex( isReadable = false, isWritable = true )
+    private Value writeOnly;
+
+    @NodeComplex( namespace = "http://ns.example.org" )
+    private Value propertyWithNamespace;
+
+    public Value getProperty()
+    {
+        return property;
+    }
+
+    public void setProperty( Value property )
+    {
+        this.property = property;
+    }
+}
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface SchemaValidator
+public class FieldComplexNodePropertyIntrospectorTest extends AbstractNodePropertyIntrospectorTest
 {
-    /**
-     * Validate embedded object against its schema, the object is required to be
-     * non-null and have a schema associated with it.
-     *
-     * @param object Object to validate
-     * @param parentClass Only include persisted properties
-     * @return list of errors
-     */
-    List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
 
-    /**
-     * Validate object against its schema, the object is required to be non-null
-     * and have a schema associated with it.
-     *
-     * @param object Object to validate
-     * @param persisted Only include persisted properties
-     * @return list of errors
-     */
-    List<ErrorReport> validate( Object object, boolean persisted );
+    public FieldComplexNodePropertyIntrospectorTest()
+    {
+        super( ComplexFields.class );
+    }
 
-    /**
-     * Validate object against its schema, the object is required to be non-null
-     * and have a schema associated with it.
-     * <p>
-     * Only persisted values will be checked.
-     *
-     * @param object Object to validate
-     * @return list of errors
-     */
-    List<ErrorReport> validate( Object object );
-
-    /**
-     * Validate a single {@link Property} of an object.
-     *
-     * @param property {@link Property} of the object to validate
-     * @param object Object to validate
-     * @return list of errors
-     */
-    List<ErrorReport> validateProperty( Property property, Object object );
 }

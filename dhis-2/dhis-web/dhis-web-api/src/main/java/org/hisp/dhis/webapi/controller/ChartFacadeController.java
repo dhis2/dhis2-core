@@ -1008,6 +1008,7 @@ public abstract class ChartFacadeController
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1018,12 +1019,12 @@ public abstract class ChartFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1034,9 +1035,8 @@ public abstract class ChartFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )

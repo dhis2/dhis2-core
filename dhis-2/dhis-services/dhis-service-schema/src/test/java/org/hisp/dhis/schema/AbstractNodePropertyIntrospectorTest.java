@@ -27,71 +27,38 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
 
-import org.hisp.dhis.node.annotation.NodeComplex;
-import org.hisp.dhis.node.annotation.NodeSimple;
-import org.junit.Before;
+import org.hisp.dhis.schema.introspection.NodePropertyIntrospector;
 import org.junit.Test;
 
-class Value
-{
-    @NodeSimple
-    private String value;
-}
-
-class ComplexFields
-{
-    @NodeComplex
-    private Value property;
-
-    @NodeComplex( value = "renamedProperty" )
-    private Value propertyToBeRenamed;
-
-    @NodeComplex( isReadable = true, isWritable = false )
-    private Value readOnly;
-
-    @NodeComplex( isReadable = false, isWritable = true )
-    private Value writeOnly;
-
-    @NodeComplex( namespace = "http://ns.example.org" )
-    private Value propertyWithNamespace;
-
-    public Value getProperty()
-    {
-        return property;
-    }
-
-    public void setProperty( Value property )
-    {
-        this.property = property;
-    }
-}
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Morten Olav Hansen <mortenoh@gmail.com> (original author)
  */
-public class FieldComplexNodePropertyIntrospectorServiceTest
+abstract class AbstractNodePropertyIntrospectorTest
 {
-    private Map<String, Property> propertyMap;
 
-    @Before
-    public void setup()
+    protected final Map<String, Property> propertyMap;
+
+    AbstractNodePropertyIntrospectorTest( Class<?> klass )
     {
-        propertyMap = new NodePropertyIntrospectorService().scanClass( ComplexFields.class );
+        this.propertyMap = new DefaultPropertyIntrospectorService(
+            new NodePropertyIntrospector() ).getPropertiesMap( klass );
     }
 
     @Test
     public void testContainsKey()
     {
-        assertTrue( propertyMap.containsKey( "property" ) );
         assertFalse( propertyMap.containsKey( "propertyToBeRenamed" ) );
-        assertTrue( propertyMap.containsKey( "renamedProperty" ) );
-        assertTrue( propertyMap.containsKey( "readOnly" ) );
-        assertTrue( propertyMap.containsKey( "writeOnly" ) );
-        assertTrue( propertyMap.containsKey( "propertyWithNamespace" ) );
+        assertContainsOnly( propertyMap.keySet(),
+            "property", "renamedProperty", "readOnly", "writeOnly", "propertyWithNamespace" );
     }
 
     @Test

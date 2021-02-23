@@ -25,55 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.validation;
+package org.hisp.dhis.schema.introspection;
 
-import java.util.List;
+import java.util.Map;
 
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.system.util.AnnotationUtils;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A {@link PropertyIntrospector} that adds information to existing
+ * {@link Property} values if they are annotated with
+ * {@link org.hisp.dhis.translation.Translatable}.
+ *
+ * @author Jan Bernitt (extracted from {@link JacksonPropertyIntrospector})
  */
-public interface SchemaValidator
+public class TranslatablePropertyIntrospector implements PropertyIntrospector
 {
-    /**
-     * Validate embedded object against its schema, the object is required to be
-     * non-null and have a schema associated with it.
-     *
-     * @param object Object to validate
-     * @param parentClass Only include persisted properties
-     * @return list of errors
-     */
-    List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
+    @Override
+    public void introspect( Class<?> klass, Map<String, Property> properties )
+    {
+        Map<String, String> translatableFields = AnnotationUtils.getTranslatableAnnotatedFields( klass );
 
-    /**
-     * Validate object against its schema, the object is required to be non-null
-     * and have a schema associated with it.
-     *
-     * @param object Object to validate
-     * @param persisted Only include persisted properties
-     * @return list of errors
-     */
-    List<ErrorReport> validate( Object object, boolean persisted );
-
-    /**
-     * Validate object against its schema, the object is required to be non-null
-     * and have a schema associated with it.
-     * <p>
-     * Only persisted values will be checked.
-     *
-     * @param object Object to validate
-     * @return list of errors
-     */
-    List<ErrorReport> validate( Object object );
-
-    /**
-     * Validate a single {@link Property} of an object.
-     *
-     * @param property {@link Property} of the object to validate
-     * @param object Object to validate
-     * @return list of errors
-     */
-    List<ErrorReport> validateProperty( Property property, Object object );
+        for ( Property property : properties.values() )
+        {
+            if ( translatableFields.containsKey( property.getFieldName() ) )
+            {
+                property.setTranslatable( true );
+                property.setTranslationKey( translatableFields.get( property.getFieldName() ) );
+            }
+        }
+    }
 }
