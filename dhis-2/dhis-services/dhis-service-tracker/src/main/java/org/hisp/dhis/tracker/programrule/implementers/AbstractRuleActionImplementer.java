@@ -159,7 +159,9 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EventActionRule> eventActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .map( effect -> new EventActionRule( event.getEvent(), effect.data(),
+                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                            getAttributeType( effect.ruleAction() ) == DATA_ELEMENT )
+                        .map( effect -> new EventActionRule( effect.ruleId(), event.getEvent(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), dataValues ) )
                         .filter( effect -> effect.getAttributeType() != DATA_ELEMENT ||
@@ -231,6 +233,7 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
      * @param bundle
      * @return A map of actions by enrollment
      */
+    @SuppressWarnings( "unchecked" )
     public Map<String, List<EnrollmentActionRule>> getEnrollmentEffects(
         Map<String, List<RuleEffect>> effects, TrackerBundle bundle )
     {
@@ -254,12 +257,12 @@ abstract public class AbstractRuleActionImplementer<T extends RuleAction>
                     List<EnrollmentActionRule> enrollmentActionRules = e.getValue()
                         .stream()
                         .filter( effect -> getActionClass().isAssignableFrom( effect.ruleAction().getClass() ) )
-                        .map( effect -> new EnrollmentActionRule(
+                        .filter( effect -> getAttributeType( effect.ruleAction() ) == UNKNOWN ||
+                            getAttributeType( effect.ruleAction() ) == TRACKED_ENTITY_ATTRIBUTE )
+                        .map( effect -> new EnrollmentActionRule( effect.ruleId(),
                             enrollment.getEnrollment(), effect.data(),
                             getField( (T) effect.ruleAction() ), getAttributeType( effect.ruleAction() ),
                             getContent( (T) effect.ruleAction() ), attributes ) )
-                        .filter( actionRule -> actionRule.getAttributeType() == UNKNOWN ||
-                            actionRule.getAttributeType() == TRACKED_ENTITY_ATTRIBUTE )
                         .collect( Collectors.toList() );
                     return enrollmentActionRules;
                 } ) );

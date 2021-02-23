@@ -128,6 +128,13 @@ public class DefaultOrganisationUnitGroupService
         return organisationUnitGroupStore.getOrganisationUnitGroupsWithGroupSets();
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets()
+    {
+        return organisationUnitGroupStore.getOrganisationUnitGroupsWithoutGroupSets();
+    }
+
     // -------------------------------------------------------------------------
     // OrganisationUnitGroupSet
     // -------------------------------------------------------------------------

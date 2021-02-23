@@ -96,12 +96,12 @@ public class App
 
     private AppSettings settings;
 
+    private boolean coreApp = false;
+
     /**
      * Generated.
      */
     private AppStatus appState = AppStatus.OK;
-
-    private boolean isBundledApp = false;
 
     // -------------------------------------------------------------------------
     // Logic
@@ -114,9 +114,7 @@ public class App
      */
     public void init( String contextPath )
     {
-        isBundledApp = AppManager.BUNDLED_APPS.contains( getShortName() );
-
-        String appPathPrefix = isBundledApp ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
+        String appPathPrefix = isBundled() ? AppManager.BUNDLED_APP_PREFIX : INSTALLED_APP_PATH;
 
         this.baseUrl = String.join( "/", contextPath, appPathPrefix ) + getUrlFriendlyName();
 
@@ -135,10 +133,29 @@ public class App
         return getUrlFriendlyName();
     }
 
+    /**
+     * Determine if this app will overload a bundled app
+     */
     @JsonProperty
-    public boolean getIsBundledApp()
+    public boolean isBundled()
     {
-        return isBundledApp;
+        return AppManager.BUNDLED_APPS.contains( getShortName() );
+    }
+
+    /**
+     * Determine if the app is configured as a coreApp (to be served at the root
+     * namespace)
+     */
+    @JsonProperty( "core_app" )
+    @JacksonXmlProperty( localName = "core_app", namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isCoreApp()
+    {
+        return coreApp;
+    }
+
+    public void setCoreApp( boolean coreApp )
+    {
+        this.coreApp = coreApp;
     }
 
     // -------------------------------------------------------------------------

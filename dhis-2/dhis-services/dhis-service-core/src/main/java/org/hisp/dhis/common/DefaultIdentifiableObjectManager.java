@@ -40,9 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,7 +56,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -67,7 +64,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserInfo;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -91,7 +87,7 @@ public class DefaultIdentifiableObjectManager
     /**
      * Cache for default category objects. Disabled during test phase.
      */
-    private static Cache<IdentifiableObject> DEFAULT_OBJECT_CACHE;
+    private final Cache<IdentifiableObject> defaultObjectCache;
 
     private final Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores;
 
@@ -103,10 +99,6 @@ public class DefaultIdentifiableObjectManager
 
     protected final SchemaService schemaService;
 
-    private final Environment env;
-
-    private final CacheProvider cacheProvider;
-
     private Map<Class<? extends IdentifiableObject>, IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStoreMap;
 
     private Map<Class<? extends DimensionalObject>, GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStoreMap;
@@ -115,14 +107,13 @@ public class DefaultIdentifiableObjectManager
         Set<IdentifiableObjectStore<? extends IdentifiableObject>> identifiableObjectStores,
         Set<GenericDimensionalObjectStore<? extends DimensionalObject>> dimensionalObjectStores,
         SessionFactory sessionFactory, CurrentUserService currentUserService, SchemaService schemaService,
-        Environment env, CacheProvider cacheProvider )
+        CacheProvider cacheProvider )
     {
         checkNotNull( identifiableObjectStores );
         checkNotNull( dimensionalObjectStores );
         checkNotNull( sessionFactory );
         checkNotNull( currentUserService );
         checkNotNull( schemaService );
-        checkNotNull( env );
         checkNotNull( cacheProvider );
 
         this.identifiableObjectStores = identifiableObjectStores;
@@ -130,20 +121,7 @@ public class DefaultIdentifiableObjectManager
         this.sessionFactory = sessionFactory;
         this.currentUserService = currentUserService;
         this.schemaService = schemaService;
-        this.env = env;
-        this.cacheProvider = cacheProvider;
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        DEFAULT_OBJECT_CACHE = cacheProvider.newCacheBuilder( IdentifiableObject.class )
-            .forRegion( "defaultObjectCache" )
-            .expireAfterAccess( 2, TimeUnit.HOURS )
-            .withInitialCapacity( 4 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10 )
-            .build();
+        this.defaultObjectCache = cacheProvider.createDefaultObjectCache();
     }
 
     // --------------------------------------------------------------------------
@@ -159,6 +137,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void save( IdentifiableObject object, boolean clearSharing )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -186,6 +165,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void update( IdentifiableObject object, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -224,17 +204,14 @@ public class DefaultIdentifiableObjectManager
     public void updateTranslations( IdentifiableObject persistedObject, Set<Translation> translations )
     {
         Session session = sessionFactory.getCurrentSession();
-        persistedObject.getTranslations().clear();
-        session.flush();
-
-        translations.forEach( translation -> {
-            if ( StringUtils.isNotEmpty( translation.getValue() ) )
-            {
-                persistedObject.getTranslations().add( translation );
-            }
-        } );
 
         BaseIdentifiableObject translatedObject = (BaseIdentifiableObject) persistedObject;
+
+        translatedObject.setTranslations(
+            translations.stream()
+                .filter( t -> !StringUtils.isEmpty( t.getValue() ) )
+                .collect( Collectors.toSet() ) );
+
         translatedObject.setLastUpdated( new Date() );
         translatedObject.setLastUpdatedBy( currentUserService.getCurrentUser() );
 
@@ -250,6 +227,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public void delete( IdentifiableObject object, User user )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -1052,6 +1030,7 @@ public class DefaultIdentifiableObjectManager
 
     @Override
     @Transactional
+    @SuppressWarnings( "unchecked" )
     public <T extends IdentifiableObject> void updateNoAcl( T object )
     {
         IdentifiableObjectStore<IdentifiableObject> store = getIdentifiableObjectStore(
@@ -1161,13 +1140,13 @@ public class DefaultIdentifiableObjectManager
     @Override
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
-        Optional<IdentifiableObject> categoryObjects = DEFAULT_OBJECT_CACHE.get( Category.class.getName(),
+        Optional<IdentifiableObject> categoryObjects = defaultObjectCache.get( Category.class.getName(),
             key -> HibernateProxyUtils.unproxy( getByName( Category.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryComboObjects = DEFAULT_OBJECT_CACHE.get( CategoryCombo.class.getName(),
+        Optional<IdentifiableObject> categoryComboObjects = defaultObjectCache.get( CategoryCombo.class.getName(),
             key -> HibernateProxyUtils.unproxy( getByName( CategoryCombo.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionObjects = DEFAULT_OBJECT_CACHE.get( CategoryOption.class.getName(),
+        Optional<IdentifiableObject> categoryOptionObjects = defaultObjectCache.get( CategoryOption.class.getName(),
             key -> HibernateProxyUtils.unproxy( getByName( CategoryOption.class, DEFAULT ) ) );
-        Optional<IdentifiableObject> categoryOptionCombo = DEFAULT_OBJECT_CACHE.get(
+        Optional<IdentifiableObject> categoryOptionCombo = defaultObjectCache.get(
             CategoryOptionCombo.class.getName(),
             key -> HibernateProxyUtils.unproxy( getByName( CategoryOptionCombo.class, DEFAULT ) ) );
 

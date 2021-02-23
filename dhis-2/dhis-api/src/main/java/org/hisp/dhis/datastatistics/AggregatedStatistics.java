@@ -57,6 +57,8 @@ public class AggregatedStatistics
 
     private Integer dashboardViews;
 
+    private Integer passiveDashboardViews;
+
     private Integer dataSetReportViews;
 
     private Integer totalViews;
@@ -74,6 +76,8 @@ public class AggregatedStatistics
     private Integer averageEventChartViews;
 
     private Integer averageDashboardViews;
+
+    private Integer averagePassiveDashboardViews;
 
     private Integer savedMaps;
 
@@ -221,6 +225,17 @@ public class AggregatedStatistics
     }
 
     @JsonProperty
+    public Integer getPassiveDashboardViews()
+    {
+        return passiveDashboardViews;
+    }
+
+    public void setPassiveDashboardViews( Integer passiveDashboardViews )
+    {
+        this.passiveDashboardViews = passiveDashboardViews;
+    }
+
+    @JsonProperty
     public Integer getDataSetReportViews()
     {
         return dataSetReportViews;
@@ -262,6 +277,17 @@ public class AggregatedStatistics
     public void setAverageDashboardViews( Integer averageDashboardViews )
     {
         this.averageDashboardViews = averageDashboardViews;
+    }
+
+    @JsonProperty
+    public Integer getAveragePassiveDashboardViews()
+    {
+        return averagePassiveDashboardViews;
+    }
+
+    public void setAveragePassiveDashboardViews( Integer averagePassiveDashboardViews )
+    {
+        this.averagePassiveDashboardViews = averagePassiveDashboardViews;
     }
 
     @JsonProperty
@@ -432,6 +458,7 @@ public class AggregatedStatistics
             ", eventReportViews=" + eventReportViews +
             ", eventChartViews=" + eventChartViews +
             ", dashboardViews=" + dashboardViews +
+            ", passiveDashboardViews=" + passiveDashboardViews +
             ", dataSetReportViews=" + dataSetReportViews +
             ", totalViews=" + totalViews +
             ", averageViews=" + averageViews +
@@ -441,6 +468,7 @@ public class AggregatedStatistics
             ", averageEventReportViews=" + averageEventReportViews +
             ", averageEventChartViews=" + averageEventChartViews +
             ", averageDashboardViews=" + averageDashboardViews +
+            ", averagePassiveDashboardViews=" + averagePassiveDashboardViews +
             ", savedMaps=" + savedMaps +
             ", savedCharts=" + savedCharts +
             ", savedPivotTables=" + savedPivotTables +

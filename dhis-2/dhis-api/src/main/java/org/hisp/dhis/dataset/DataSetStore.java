@@ -37,7 +37,7 @@ import org.hisp.dhis.period.PeriodType;
  * @author Kristian Nordal
  */
 public interface DataSetStore
-    extends IdentifiableObjectStore<DataSet>
+    extends IdentifiableObjectStore<DataSet>, DataSetDataIntegrityProvider
 {
     String ID = DataSetStore.class.getName();
 

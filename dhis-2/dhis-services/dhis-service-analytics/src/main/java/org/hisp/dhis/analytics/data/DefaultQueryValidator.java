@@ -64,16 +64,11 @@ public class DefaultQueryValidator
 {
     private final SystemSettingManager systemSettingManager;
 
-    private final NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector;
-
-    public DefaultQueryValidator( SystemSettingManager systemSettingManager,
-        NestedIndicatorCyclicDependencyInspector nestedIndicatorCyclicDependencyInspector )
+    public DefaultQueryValidator( SystemSettingManager systemSettingManager )
     {
         checkNotNull( systemSettingManager );
-        checkNotNull( nestedIndicatorCyclicDependencyInspector );
 
         this.systemSettingManager = systemSettingManager;
-        this.nestedIndicatorCyclicDependencyInspector = nestedIndicatorCyclicDependencyInspector;
     }
 
     // -------------------------------------------------------------------------
@@ -145,7 +140,6 @@ public class DefaultQueryValidator
         else if ( params.hasStartEndDate() && !params.getReportingRates().isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7107 );
-            ;
         }
         else if ( !params.getFilterIndicators().isEmpty() && params.getFilterOptions( DATA_X_DIM_ID ).size() > 1 )
         {
@@ -180,17 +174,6 @@ public class DefaultQueryValidator
         else if ( !nonAggDataElements.isEmpty() )
         {
             error = new ErrorMessage( ErrorCode.E7115, getUids( nonAggDataElements ) );
-        }
-        else if ( !params.getIndicators().isEmpty() )
-        {
-            try
-            {
-                nestedIndicatorCyclicDependencyInspector.inspect( params.getIndicators() );
-            }
-            catch ( CyclicReferenceException cre )
-            {
-                error = new ErrorMessage( ErrorCode.E7116, cre.getMessage() );
-            }
         }
         else if ( params.isOutputFormat( OutputFormat.DATA_VALUE_SET ) )
         {

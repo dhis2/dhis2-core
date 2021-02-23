@@ -120,8 +120,7 @@ public abstract class AnalyticsServiceBaseTest
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager,
-            nestedIndicatorCyclicDependencyInspector );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
 
         HeaderHandler headerHandler = new HeaderHandler();
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );

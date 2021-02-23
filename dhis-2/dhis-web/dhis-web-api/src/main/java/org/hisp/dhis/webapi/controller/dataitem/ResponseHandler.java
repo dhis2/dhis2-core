@@ -30,15 +30,11 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.join;
 import static java.util.Collections.emptyList;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 
 import java.util.List;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -54,7 +50,6 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,34 +66,26 @@ import org.springframework.stereotype.Component;
 @Component
 class ResponseHandler
 {
-    private final String CACHE_DATA_ITEMS_PAGINATION = "dataItemsPagination";
-
     private final QueryService queryService;
 
     private final LinkService linkService;
 
     private final FieldFilterService fieldFilterService;
 
-    private final Environment environment;
+    private final Cache<Long> pageCountingCache;
 
-    private final CacheProvider cacheProvider;
-
-    private Cache<Long> PAGE_COUNTING_CACHE;
-
-    ResponseHandler( final QueryService queryService, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
+    ResponseHandler( QueryService queryService, LinkService linkService, FieldFilterService fieldFilterService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
-        checkNotNull( environment );
         checkNotNull( cacheProvider );
 
         this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.environment = environment;
-        this.cacheProvider = cacheProvider;
+        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
     }
 
     /**
@@ -142,9 +129,9 @@ class ResponseHandler
                 // Counting and summing up the results for each entity.
                 for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
                 {
-                    count += PAGE_COUNTING_CACHE.get(
+                    count += pageCountingCache.get(
                         createPageCountingCacheKey( currentUser, entity, filters, options ),
-                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( Long.valueOf( 0 ) );
+                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0L );
                 }
 
                 final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
@@ -171,19 +158,5 @@ class ResponseHandler
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();
-    }
-
-    @PostConstruct
-    void init()
-    {
-        // formatter:off
-        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Long.class )
-            .forRegion( CACHE_DATA_ITEMS_PAGINATION )
-            .expireAfterWrite( 5, MINUTES )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( isTestRun( environment.getActiveProfiles() ) ? 0 : 20000 )
-            .build();
-        // formatter:on
     }
 }

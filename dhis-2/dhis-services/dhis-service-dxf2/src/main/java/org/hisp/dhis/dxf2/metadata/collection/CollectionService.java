@@ -38,10 +38,12 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
  */
 public interface CollectionService
 {
-    void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+    void addCollectionItems( IdentifiableObject object, String propertyName,
+        List<? extends IdentifiableObject> objects )
         throws Exception;
 
-    void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects )
+    void delCollectionItems( IdentifiableObject object, String propertyName,
+        List<? extends IdentifiableObject> objects )
         throws Exception;
 
     void clearCollectionItems( IdentifiableObject object, String pvProperty )

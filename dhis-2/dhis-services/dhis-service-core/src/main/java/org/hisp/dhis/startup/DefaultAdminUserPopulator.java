@@ -80,7 +80,8 @@ public class DefaultAdminUserPopulator
         "F_UNCOMPLETE_EVENT",
         "F_EDIT_EXPIRED",
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
-        "F_TRACKER_IMPORTER_EXPERIMENTAL" );
+        "F_TRACKER_IMPORTER_EXPERIMENTAL",
+        "F_VIEW_SERVER_INFO" );
 
     private final UserService userService;
 

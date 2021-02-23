@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,7 +51,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -114,12 +113,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    private static final Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
-        .forRegion( "propertyTransformerCache" )
-        .expireAfterAccess( 12, TimeUnit.HOURS )
-        .withInitialCapacity( 20 )
-        .withMaximumSize( 30000 )
-        .build();
+    private final Cache<PropertyTransformer> transformerCache;
 
     public DefaultFieldFilterService(
         FieldParser fieldParser,
@@ -127,6 +121,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         AclService aclService,
         CurrentUserService currentUserService,
         AttributeService attributeService,
+        CacheProvider cacheProvider,
         @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
@@ -135,6 +130,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         this.currentUserService = currentUserService;
         this.attributeService = attributeService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
+        this.transformerCache = cacheProvider.createPropertyTransformerCache();
     }
 
     @PostConstruct
@@ -315,7 +311,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property.hasPropertyTransformer() )
             {
-                Optional<PropertyTransformer> propertyTransformer = TRANSFORMER_CACHE
+                Optional<PropertyTransformer> propertyTransformer = transformerCache
                     .get( property.getPropertyTransformer().getName(), s -> {
                         try
                         {

@@ -145,17 +145,17 @@ public class AppOverrideFilter
         throws IOException,
         ServletException
     {
-        String requestURI = req.getRequestURI();
+        String requestPath = req.getServletPath();
 
         Pattern p = Pattern.compile( APP_PATH_PATTERN );
-        Matcher m = p.matcher( requestURI );
+        Matcher m = p.matcher( requestPath );
 
         if ( m.find() )
         {
             String appName = m.group( 1 );
             String resourcePath = m.group( 2 );
 
-            log.debug( "AppOverrideFilter :: Matched for URI " + requestURI );
+            log.debug( "AppOverrideFilter :: Matched for path " + requestPath );
 
             App app = appManager.getApp( appName );
 

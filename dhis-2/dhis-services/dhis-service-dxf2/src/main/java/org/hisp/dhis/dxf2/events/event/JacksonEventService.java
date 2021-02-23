@@ -35,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -101,7 +102,7 @@ public class JacksonEventService extends AbstractEventService
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
         UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, CacheProvider cacheProvider )
     {
         checkNotNull( eventImporter );
         checkNotNull( eventManager );
@@ -155,6 +156,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.dataElementCache = cacheProvider.createDataElementCache();
     }
 
     @SuppressWarnings( "unchecked" )

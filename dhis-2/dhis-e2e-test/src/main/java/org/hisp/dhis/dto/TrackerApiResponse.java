@@ -70,10 +70,15 @@ public class TrackerApiResponse
 
     public TrackerApiResponse validateSuccessfulImport()
     {
+        return validateSuccessfulImportWithIgnored( 0 );
+    }
+
+    public TrackerApiResponse validateSuccessfulImportWithIgnored(int ignoredCount)
+    {
         validate()
             .statusCode( 200 )
             .body( "status", equalTo( "OK" ) )
-            .body( "stats.ignored", equalTo( 0 ) )
+            .body( "stats.ignored", equalTo( ignoredCount ) )
             .body( "stats.total", greaterThanOrEqualTo( 1 ) )
             .body( "bundleReport.typeReportMap", notNullValue() );
 
@@ -111,6 +116,13 @@ public class TrackerApiResponse
         return validate()
             .body( "bundleReport.typeReportMap.ENROLLMENT", notNullValue() )
             .rootPath( "bundleReport.typeReportMap.ENROLLMENT" );
+    }
+
+    public ValidatableResponse validateRelationships()
+    {
+        return validate()
+            .body( "bundleReport.typeReportMap.RELATIONSHIP", notNullValue() )
+            .rootPath( "bundleReport.typeReportMap.RELATIONSHIP" );
     }
 
 }

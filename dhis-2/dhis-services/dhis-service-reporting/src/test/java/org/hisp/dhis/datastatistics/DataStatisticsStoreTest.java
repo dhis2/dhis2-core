@@ -68,14 +68,14 @@ public class DataStatisticsStoreTest
         throws Exception
     {
         ds1 = new DataStatistics();
-        ds2 = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0, 15.0,
-            16.0, 17.0, 11.0, 10, 18 );
-        ds3 = new DataStatistics( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0, 16.0,
-            17.0, 18.0, 11.0, 10, 19 );
-        ds4 = new DataStatistics( 1.0, 1.5, 2.0, 1.0, 6.0, 5.0, 4.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0, 6.0, 4.0,
-            11.9, 3, 2 );
-        ds5 = new DataStatistics( 3.0, 3.5, 6.0, 4.0, 3.0, 5.0, 7.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0, 9.4, 9.6,
-            11.0, 5, 9 );
+        ds2 = new DataStatistics( 1.0, 1.5, 2.0, 3.0, 4.0, 5.0, 6.0, 17.0, 10.0, 8.0, 11.0, 12.0, 13.0, 14.0, 11.0,
+            15.0, 16.0, 17.0, 11.0, 1, 18 );
+        ds3 = new DataStatistics( 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 17.0, 8.0, 11.0, 12.0, 13.0, 14.0, 15.0, 12.0,
+            16.0, 17.0, 18.0, 11.0, 2, 19 );
+        ds4 = new DataStatistics( 1.0, 1.5, 2.0, 1.0, 6.0, 5.0, 4.0, 16.0, 8.0, 10.0, 4.0, 4.0, 5.0, 9.0, 7.0, 14.0,
+            6.0, 4.0, 11.9, 3, 2 );
+        ds5 = new DataStatistics( 3.0, 3.5, 6.0, 4.0, 3.0, 5.0, 7.0, 16.0, 8.0, 10.0, 1.6, 5.5, 6.4, 8.3, 8.2, 16.0,
+            9.4, 9.6, 11.0, 2, 9 );
 
         ds1Id = 0;
         ds2Id = 0;
@@ -182,5 +182,44 @@ public class DataStatisticsStoreTest
         List<AggregatedStatistics> asList = dataStatisticsStore.getSnapshotsInInterval( EventInterval.YEAR,
             getDate( 2015, 3, 21 ), getDate( 2016, 3, 21 ) );
         assertEquals( 1, asList.size() );
+
+        AggregatedStatistics as = asList.get( 0 );
+
+        assertEqualsInt( 6, as.getMapViews() );
+        assertEqualsInt( 9, as.getChartViews() );
+        assertEqualsInt( 13, as.getPivotTableViews() );
+        assertEqualsInt( 18, as.getEventReportViews() );
+        assertEqualsInt( 21, as.getEventChartViews() );
+        assertEqualsInt( 24, as.getDashboardViews() );
+        assertEqualsInt( 66, as.getPassiveDashboardViews() );
+        assertEqualsInt( 34, as.getDataSetReportViews() );
+        assertEqualsInt( 39, as.getTotalViews() );
+        assertEqualsInt( 13, as.getAverageViews() );
+        assertEqualsInt( 2, as.getAverageMapViews() );
+        assertEqualsInt( 3, as.getAverageChartViews() );
+        assertEqualsInt( 4, as.getAveragePivotTableViews() );
+        assertEqualsInt( 6, as.getAverageEventReportViews() );
+        assertEqualsInt( 7, as.getAverageEventChartViews() );
+        assertEqualsInt( 8, as.getAverageDashboardViews() );
+        assertEqualsInt( 22, as.getAveragePassiveDashboardViews() );
+        assertEqualsInt( 29, as.getSavedMaps() );
+        assertEqualsInt( 35, as.getSavedCharts() );
+        assertEqualsInt( 38, as.getSavedPivotTables() );
+        assertEqualsInt( 38, as.getSavedEventReports() );
+        assertEqualsInt( 61, as.getSavedEventCharts() );
+        assertEqualsInt( 48, as.getSavedDashboards() );
+        assertEqualsInt( 49, as.getSavedIndicators() );
+        assertEqualsInt( 45, as.getSavedDataValues() );
+        assertEqualsInt( 3, as.getActiveUsers() );
+        assertEqualsInt( 19, as.getUsers() );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    private void assertEqualsInt( int expected, int actual )
+    {
+        assertEquals( (long) expected, (long) actual );
     }
 }

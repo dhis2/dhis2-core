@@ -46,7 +46,6 @@ import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.programrule.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerReportUtils;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -93,17 +92,13 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteDataValue( actionRule, bundle );
-                issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1308, actionRule.getField(),
-                        actionRule.getEvent() ),
-                    IssueType.WARNING ) );
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1308,
+                    Lists.newArrayList( actionRule.getField(), actionRule.getEvent() ), IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1307, actionRule.getField(),
-                        actionRule.getEvent() ),
-                    IssueType.ERROR ) );
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1307,
+                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ), IssueType.ERROR ) );
             }
         }
 
@@ -126,17 +121,13 @@ public class AssignValueImplementer
                 isTheSameValue( actionRule, bundle.getPreheat() ) )
             {
                 addOrOverwriteAttribute( actionRule, bundle );
-                issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1310, actionRule.getField(),
-                        actionRule.getEnrollment() ),
-                    IssueType.WARNING ) );
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1310,
+                    Lists.newArrayList( actionRule.getField(), actionRule.getValue() ), IssueType.WARNING ) );
             }
             else
             {
-                issues.add( new ProgramRuleIssue( TrackerReportUtils
-                    .formatMessage( TrackerErrorCode.E1310, actionRule.getField(),
-                        actionRule.getEnrollment() ),
-                    IssueType.ERROR ) );
+                issues.add( new ProgramRuleIssue( actionRule.getRuleUid(), TrackerErrorCode.E1309,
+                    Lists.newArrayList( actionRule.getField(), actionRule.getEnrollment() ), IssueType.ERROR ) );
             }
         }
 
@@ -213,6 +204,14 @@ public class AssignValueImplementer
         if ( trackedEntity.isPresent() )
         {
             attributes = trackedEntity.get().getAttributes();
+            Optional<Attribute> optionalAttribute = attributes.stream()
+                .filter( at -> at.getAttribute().equals( actionRule.getField() ) )
+                .findAny();
+            if ( optionalAttribute.isPresent() )
+            {
+                optionalAttribute.get().setValue( actionRule.getData() );
+                return;
+            }
         }
 
         attributes = enrollment.getAttributes();

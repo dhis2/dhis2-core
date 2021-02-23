@@ -44,6 +44,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -53,6 +54,7 @@ import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.springframework.stereotype.Component;
 
 import com.google.common.base.MoreObjects;
@@ -207,7 +209,12 @@ public class TrackerIdentifierCollector
         Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
         relationships.parallelStream().forEach( relationship -> {
+
+            RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
+
+            addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationshipKey.asString() );
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
+
             if ( relationship.getFrom() != null )
             {
                 addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID,
