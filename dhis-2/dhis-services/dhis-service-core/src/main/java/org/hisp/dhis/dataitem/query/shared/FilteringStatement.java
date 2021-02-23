@@ -173,7 +173,7 @@ public class FilteringStatement
             optionalFilterBuilder
                 .append( ifAny( createRegexConditionForIdentifier( idColumn, filteringWords, SPACED_OR, ".*" ) ),
                     SPACED_OR )
-                .append( ifAny( createRegexConditionForPhrase( codeColumn, filteringWords, SPACED_AND, "\\y" ) ),
+                .append( ifAny( createRegexConditionForPhrase( codeColumn, filteringWords, SPACED_AND, ".*" ) ),
                     SPACED_OR )
                 .append( ifAny( createRegexConditionForPhrase( displayNameColumn, filteringWords, SPACED_AND, ".*" ) ),
                     SPACED_OR )

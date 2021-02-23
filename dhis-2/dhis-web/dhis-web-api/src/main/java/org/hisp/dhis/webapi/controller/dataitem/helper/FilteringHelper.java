@@ -58,7 +58,6 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacin
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2016;
 import static org.hisp.dhis.query.operators.TokenUtils.getTokens;
-import static org.hisp.dhis.query.operators.TokenUtils.getTokensNoReplacing;
 import static org.hisp.dhis.user.UserSettingKey.DB_LOCALE;
 import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
@@ -322,7 +321,7 @@ public class FilteringHelper
 
         if ( identifiableToken != null )
         {
-            final List<String> wordsAsTokens = getTokensNoReplacing( identifiableToken );
+            final List<String> wordsAsTokens = getTokens( identifiableToken );
 
             if ( CollectionUtils.isNotEmpty( wordsAsTokens ) )
             {

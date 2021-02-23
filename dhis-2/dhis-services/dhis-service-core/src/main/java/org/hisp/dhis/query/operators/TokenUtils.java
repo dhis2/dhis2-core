@@ -44,11 +44,6 @@ public class TokenUtils
         return Arrays.asList( value.replaceAll( "[^a-zA-Z0-9]", " " ).split( "[\\s@&.?$+-]+" ) );
     }
 
-    public static List<String> getTokensNoReplacing( String value )
-    {
-        return Arrays.asList( value.split( "[\\s@&.?$+-]+" ) );
-    }
-
     public static StringBuilder createRegex( String value )
     {
         StringBuilder regex = new StringBuilder();

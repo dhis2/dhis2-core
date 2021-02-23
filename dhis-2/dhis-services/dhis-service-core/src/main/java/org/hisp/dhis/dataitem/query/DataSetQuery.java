@@ -46,6 +46,7 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
@@ -96,6 +97,16 @@ public class DataSetQuery implements DataItemQuery
     {
         final List<DataItem> dataItems = new ArrayList<>();
 
+        // If we have a program id filter, we should not return any data
+        // set because data sets don't have programs directly
+        // associated with.
+        // Hence we skip this query.
+        // It returns empty in such cases.
+        if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
+        {
+            return dataItems;
+        }
+
         final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
             getDateSetQuery( paramsMap ), paramsMap );
 
@@ -114,6 +125,16 @@ public class DataSetQuery implements DataItemQuery
     @Override
     public int count( final MapSqlParameterSource paramsMap )
     {
+        // If we have a program id filter, we should not return any data
+        // set because data sets don't have programs directly
+        // associated with.
+        // Hence we skip this query.
+        // It returns empty in such cases.
+        if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
+        {
+            return 0;
+        }
+
         final StringBuilder sql = new StringBuilder();
 
         sql.append( SPACED_SELECT + "count(*) from (" )
