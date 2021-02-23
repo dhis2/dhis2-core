@@ -212,7 +212,7 @@ public class DefaultSystemSettingManager
      */
     private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = systemSettingStore.getByNameTx( name );
+        SystemSetting setting = systemSettingStore.getByName( name );
 
         if ( setting != null && setting.hasValue() )
         {
