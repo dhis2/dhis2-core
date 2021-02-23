@@ -130,13 +130,6 @@ public class ProgramController
             throw new IllegalArgumentException( "At least one program uid must be specified" );
         }
 
-        if ( !aclService.canRead( currentUser, getEntityClass() )
-            || !aclService.canRead( currentUser, OrganisationUnit.class ) )
-        {
-            throw new ReadAccessDeniedException(
-                "You don't have the proper permissions to read objects of this type." );
-        }
-
         return programService.getProgramOrganisationUnitsAssociations( programUids );
 
     }
