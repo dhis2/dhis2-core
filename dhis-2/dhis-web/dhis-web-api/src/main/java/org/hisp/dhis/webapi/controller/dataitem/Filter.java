@@ -118,7 +118,7 @@ public class Filter
         DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
         PROGRAM_ID_EQUAL( "programId:eq:" ),
         ID_EQUAL( "id:eq:" ),
-        IDENTIFIABLE_TOKEN("identifiable:token:");
+        IDENTIFIABLE_TOKEN( "identifiable:token:" );
 
         private String combination;
 
