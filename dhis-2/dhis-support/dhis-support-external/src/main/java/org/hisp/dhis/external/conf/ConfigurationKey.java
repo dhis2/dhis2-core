@@ -118,7 +118,7 @@ public enum ConfigurationKey
     CHANGELOG_AGGREGATE( "changelog.aggregate", Constants.ON ),
     CHANGELOG_TRACKER( "changelog.tracker", Constants.ON ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
-    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in-memory-queue.enabled", Constants.OFF ),
+    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory-queue.enabled", Constants.OFF ),
     AUDIT_LOGGER( "audit.logger", Constants.OFF, false ),
     AUDIT_DATABASE( "audit.database", Constants.ON, false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
