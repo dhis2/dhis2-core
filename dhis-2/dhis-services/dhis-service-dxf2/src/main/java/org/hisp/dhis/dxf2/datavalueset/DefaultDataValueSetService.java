@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.datavalueset;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
-import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
-import static org.hisp.dhis.system.notification.NotificationLevel.INFO;
-import static org.hisp.dhis.system.notification.NotificationLevel.WARN;
+import static org.hisp.dhis.system.notification.NotificationLevel.*;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 
 import java.io.InputStream;
@@ -729,7 +727,6 @@ public class DefaultDataValueSetService
     }
 
     @Override
-    @Transactional
     public ImportSummary saveDataValueSetPdf( InputStream in, ImportOptions importOptions )
     {
         return saveDataValueSetPdf( in, importOptions, null );

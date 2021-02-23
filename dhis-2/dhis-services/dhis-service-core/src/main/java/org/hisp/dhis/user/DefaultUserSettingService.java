@@ -212,7 +212,7 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<UserSetting> getAllUserSettings()
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -221,7 +221,6 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user,
         Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
@@ -252,7 +251,7 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional( readOnly = true )
+    @Transactional
     public List<UserSetting> getUserSettings( User user )
     {
         if ( user == null )
@@ -276,7 +275,6 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional( readOnly = true )
     public Map<String, Serializable> getUserSettingsAsMap()
     {
         Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
@@ -307,12 +305,18 @@ public class DefaultUserSettingService
 
         String cacheKey = getCacheKey( key.getName(), username );
 
-        return userSettingCache
-            .get( cacheKey, c -> getUserSettingOptional( key, username ) )
-            .orElseGet( () -> NAME_SETTING_KEY_MAP.containsKey( key.getName() )
-                ? SerializableOptional
-                    .of( systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) )
-                : SerializableOptional.empty() );
+        SerializableOptional result = userSettingCache
+            .get( cacheKey, c -> getUserSettingOptional( key, username ) ).get();
+
+        if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
+        {
+            return SerializableOptional.of(
+                systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
+        }
+        else
+        {
+            return result;
+        }
     }
 
     /**
