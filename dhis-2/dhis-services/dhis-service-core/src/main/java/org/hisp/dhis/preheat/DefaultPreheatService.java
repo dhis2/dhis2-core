@@ -914,6 +914,7 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void refresh( IdentifiableObject object )
     {
         PreheatParams preheatParams = new PreheatParams();
