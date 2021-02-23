@@ -63,9 +63,9 @@ public class PredictionWriter
 
     private PredictionSummary summary;
 
-    String storedBy;
+    private String storedBy;
 
-    CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
+    private CachingMap<String, CategoryOptionCombo> cocMap = new CachingMap<>();
 
     public PredictionWriter( DataValueService dataValueService, BatchHandlerFactory batchHandlerFactory )
     {
@@ -218,16 +218,14 @@ public class PredictionWriter
     {
         for ( DataValue remainingOldPrediction : oldPredictionMap.values() )
         {
-            if ( remainingOldPrediction.isDeleted() )
+            if ( !remainingOldPrediction.isDeleted() )
             {
-                continue;
+                summary.incrementDeleted();
+
+                remainingOldPrediction.setDeleted( true );
+
+                dataValueBatchHandler.updateObject( remainingOldPrediction );
             }
-
-            summary.incrementDeleted();
-
-            remainingOldPrediction.setDeleted( true );
-
-            dataValueBatchHandler.updateObject( remainingOldPrediction );
         }
     }
 

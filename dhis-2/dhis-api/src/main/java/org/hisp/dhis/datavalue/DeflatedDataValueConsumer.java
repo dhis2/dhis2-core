@@ -28,16 +28,16 @@
 package org.hisp.dhis.datavalue;
 
 /**
- * A class that can handle a deflated data value.
+ * A class that can consume a deflated data value.
  *
  * @author Jim Grace
  */
-public interface DeflatedDataValueHandler
+public interface DeflatedDataValueConsumer
 {
     /**
-     * Handles a deflated data value.
+     * Consumes a deflated data value.
      *
-     * @param deflatedDataValue the DeflatedDataValue to handle.
+     * @param deflatedDataValue the DeflatedDataValue to consume.
      */
-    void handle( DeflatedDataValue deflatedDataValue );
+    void consume( DeflatedDataValue deflatedDataValue );
 }

@@ -102,7 +102,7 @@ public class DataExportParams
 
     private IdSchemes outputIdSchemes;
 
-    private DeflatedDataValueHandler callback;
+    private DeflatedDataValueConsumer callback;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -544,12 +544,12 @@ public class DataExportParams
         return this;
     }
 
-    public DeflatedDataValueHandler getCallback()
+    public DeflatedDataValueConsumer getCallback()
     {
         return callback;
     }
 
-    public DataExportParams setCallback( DeflatedDataValueHandler callback )
+    public DataExportParams setCallback( DeflatedDataValueConsumer callback )
     {
         this.callback = callback;
         return this;

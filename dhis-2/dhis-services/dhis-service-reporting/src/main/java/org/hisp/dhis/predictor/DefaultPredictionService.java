@@ -503,29 +503,47 @@ public class DefaultPredictionService
     {
         for ( DataValue dv : dataValues )
         {
-            if ( dv.isDeleted() || dv.getValue() == null )
+            Double value = getDoubleValue( dv );
+
+            if ( value != null )
             {
-                continue;
+                DataElementOperand dataElementOperand = new DataElementOperand(
+                    dv.getDataElement(), dv.getCategoryOptionCombo() );
+
+                addToData( dataElementOperand, items, dv, value, aocData );
+
+                addToData( dv.getDataElement(), items, dv, value, aocData );
+
             }
-
-            Double value;
-
-            try
-            {
-                value = Double.parseDouble( dv.getValue() );
-            }
-            catch ( NumberFormatException e )
-            {
-                continue; // Ignore any non-numeric values.
-            }
-
-            DataElementOperand dataElementOperand = new DataElementOperand(
-                dv.getDataElement(), dv.getCategoryOptionCombo() );
-
-            addToData( dataElementOperand, items, dv, value, aocData );
-
-            addToData( dv.getDataElement(), items, dv, value, aocData );
         }
+    }
+
+    /**
+     * Returns the value of a datavalue as a
+     * Double, if it can be done.
+     *
+     * @param dv the datavalue
+     * @return the Double value
+     */
+    private Double getDoubleValue( DataValue dv )
+    {
+        if ( dv.isDeleted() || dv.getValue() == null )
+        {
+            return null;
+        }
+
+        Double value;
+
+        try
+        {
+            value = Double.parseDouble( dv.getValue() );
+        }
+        catch ( NumberFormatException e )
+        {
+            value = null;
+        }
+
+        return value;
     }
 
     /**

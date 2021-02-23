@@ -391,14 +391,14 @@ public class PredictionDataValueFetcherTest
      */
     private List<DeflatedDataValue> fastDb()
     {
-        fetcher.handle( makeDeflatedDataValue( dataValueA ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
 
         semaphore.release(); // orgUnitB data is about to be complete.
 
         // Returning orgUnitD values causes orgUnitB values to be complete.
-        fetcher.handle( makeDeflatedDataValue( dataValueB ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
 
-        fetcher.handle( makeDeflatedDataValue( dataValueC ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
 
         // Exiting causes orgUnitD values to be complete.
         semaphore.release();
@@ -419,15 +419,15 @@ public class PredictionDataValueFetcherTest
     {
         waitForTheOtherThread(); // Wait until data values are requested.
 
-        fetcher.handle( makeDeflatedDataValue( dataValueA ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
 
         // orgUnitD data causes orgUnitB values to be complete.
-        fetcher.handle( makeDeflatedDataValue( dataValueB ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
 
         // Wait until values after orgUnitB are requested.
         waitForTheOtherThread();
 
-        fetcher.handle( makeDeflatedDataValue( dataValueC ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
 
         return null;
     }
@@ -440,9 +440,9 @@ public class PredictionDataValueFetcherTest
      */
     private List<DeflatedDataValue> unsynchronizedDb()
     {
-        fetcher.handle( makeDeflatedDataValue( dataValueA ) );
-        fetcher.handle( makeDeflatedDataValue( dataValueB ) );
-        fetcher.handle( makeDeflatedDataValue( dataValueC ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
+        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
 
         return null;
     }

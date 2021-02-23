@@ -505,7 +505,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
 
             if ( params.hasCallback() )
             {
-                params.getCallback().handle( ddv );
+                params.getCallback().consume( ddv );
             }
             else
             {

@@ -49,7 +49,7 @@ import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
-import org.hisp.dhis.datavalue.DeflatedDataValueHandler;
+import org.hisp.dhis.datavalue.DeflatedDataValueConsumer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
@@ -93,7 +93,7 @@ import org.hisp.dhis.period.Period;
  * @author Jim Grace
  */
 public class PredictionDataValueFetcher
-    implements Runnable, DeflatedDataValueHandler
+    implements Runnable, DeflatedDataValueConsumer
 {
     private final DataValueService dataValueService;
 
@@ -235,7 +235,7 @@ public class PredictionDataValueFetcher
      * @param ddv the deflated data value fetched.
      */
     @Override
-    public void handle( DeflatedDataValue ddv )
+    public void consume( DeflatedDataValue ddv )
     {
         if ( producerOrgUnitPath.equals( AFTER_PATHS ) )
         {

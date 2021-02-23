@@ -39,7 +39,9 @@ import static org.mockito.Mockito.when;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -154,6 +156,12 @@ public class PredictionAnalyticsDataFetcherTest
     Grid gridWithoutAttributeOptionsC;
 
     PredictionAnalyticsDataFetcher fetcher;
+
+    MapMapMap<String, Period, DimensionalItemObject, Double> aocExpected;
+    MapMapMap<String, Period, DimensionalItemObject, Double> aocData;
+
+    MapMap<Period, DimensionalItemObject, Double> nonAocExpected;
+    MapMap<Period, DimensionalItemObject, Double> nonAocData;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -316,6 +324,16 @@ public class PredictionAnalyticsDataFetcherTest
             .addValue( (Double) 80.0 );
 
         fetcher = new PredictionAnalyticsDataFetcher( analyticsService );
+
+        when( analyticsService.getAggregatedDataValues( any( DataQueryParams.class ) ) )
+            .thenAnswer( p -> getMockGrid( p ) );
+
+        fetcher.init( orgUnits, new HashSet<>( periods ), new HashSet<>( attributeOptionItems ),
+            new HashSet<>( nonAttributeOptionItems ) );
+
+        aocExpected = new MapMapMap<>();
+
+        nonAocExpected = new MapMap<>();
     }
 
     // -------------------------------------------------------------------------
@@ -325,47 +343,36 @@ public class PredictionAnalyticsDataFetcherTest
     @Test
     public void testGetAocData()
     {
-        when( analyticsService.getAggregatedDataValues( any( DataQueryParams.class ) ) )
-            .thenAnswer( p -> getMockGrid( p ) );
-
-        fetcher.init( orgUnits, new HashSet<>( periods ), new HashSet<>( attributeOptionItems ),
-            new HashSet<>( nonAttributeOptionItems ) );
-
         for ( int i = 0; i < TEST_SIZE; i++ )
         {
             MapMapMap<String, Period, DimensionalItemObject, Double> aocData = fetcher.getAocData( orgUnits.get( i ) );
 
-            MapMapMap<String, Period, DimensionalItemObject, Double> expected;
+            MapMapMap<String, Period, DimensionalItemObject, Double> expected = new MapMapMap<>();
 
             switch ( i )
             {
             case TEST_A:
-                expected = new MapMapMap<>();
                 expected.putEntry( attributeOptionComboA.getUid(), periodA, programIndicatorA, 10.0 );
                 expected.putEntry( attributeOptionComboA.getUid(), periodA, programIndicatorB, 20.0 );
                 assertEquals( expected, aocData );
                 break;
 
             case TEST_B:
-                expected = new MapMapMap<>();
                 expected.putEntry( attributeOptionComboA.getUid(), periodB, programIndicatorB, 30.0 );
                 assertEquals( expected, aocData );
                 break;
 
             case TEST_C:
-                expected = new MapMapMap<>();
                 expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 40.0 );
                 assertEquals( expected, aocData );
                 break;
 
             case TEST_D:
-                expected = new MapMapMap<>();
                 expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 50.0 );
                 assertEquals( expected, aocData );
                 break;
 
             case TEST_E:
-                expected = new MapMapMap<>();
                 expected.putEntry( attributeOptionComboA.getUid(), periodA, trackedEntityAttributeA, 60.0 );
                 assertEquals( expected, aocData );
                 break;
@@ -390,18 +397,16 @@ public class PredictionAnalyticsDataFetcherTest
         {
             MapMap<Period, DimensionalItemObject, Double> nonAocData = fetcher.getNonAocData( orgUnits.get( i ) );
 
-            MapMap<Period, DimensionalItemObject, Double> expected;
+            MapMap<Period, DimensionalItemObject, Double> expected = new MapMap<>();
 
             switch ( i )
             {
             case TEST_B:
-                expected = new MapMap<>();
                 expected.putEntry( periodA, programAttributeA, 70.0 );
                 assertEquals( expected, nonAocData );
                 break;
 
             case TEST_E:
-                expected = new MapMap<>();
                 expected.putEntry( periodA, programAttributeA, 80.0 );
                 assertEquals( expected, nonAocData );
                 break;
