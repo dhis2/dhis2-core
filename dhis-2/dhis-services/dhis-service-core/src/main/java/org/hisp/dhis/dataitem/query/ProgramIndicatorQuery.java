@@ -52,6 +52,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -228,7 +229,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.program_sharing",
-            "t.programindicator_sharing", paramsMap ) ) );
+            "t.programindicator_sharing", READ_ACCESS, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

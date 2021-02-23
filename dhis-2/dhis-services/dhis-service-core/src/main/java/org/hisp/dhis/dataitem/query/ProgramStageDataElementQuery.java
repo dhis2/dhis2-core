@@ -53,6 +53,7 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
+import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -215,7 +216,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.program_sharing",
-            "t.dataelement_sharing", paramsMap ) ) );
+            "t.dataelement_sharing", READ_ACCESS, paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 

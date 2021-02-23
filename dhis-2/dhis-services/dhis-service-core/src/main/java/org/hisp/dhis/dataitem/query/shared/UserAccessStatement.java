@@ -48,6 +48,8 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class UserAccessStatement
 {
+    public static final String READ_ACCESS = "r%";
+
     private UserAccessStatement()
     {
     }
@@ -59,9 +61,12 @@ public class UserAccessStatement
      *
      * @param column the sharing column
      * @param paramsMap the parameters map
+     * @param access the access condition we are checking for. ie.: r%, for read
+     *        only access
      * @return the sharing SQL statement for the current user
      */
-    public static String sharingConditions( final String column, final MapSqlParameterSource paramsMap )
+    public static String sharingConditions( final String column, final String access,
+        final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
@@ -69,16 +74,16 @@ public class UserAccessStatement
             .append( " (" ) // Isolator
 
             .append( " ( " ) // Grouping clauses
-            .append( publicAccessCondition( column ) )
+            .append( publicAccessCondition( column, access ) )
             .append( SPACED_OR )
             .append( ownerAccessCondition( column ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( column ) )
+            .append( userAccessCondition( column, access ) )
             .append( " ) " ); // Grouping clauses closing
 
         if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
         {
-            conditions.append( " or (" + userGroupAccessCondition( column ) + ")" );
+            conditions.append( " or (" + userGroupAccessCondition( column, access ) + ")" );
         }
 
         conditions.append( ")" ); // Isolator closing
@@ -94,11 +99,13 @@ public class UserAccessStatement
      *
      * @param columnOne a sharing column
      * @param columnTwo the other sharing column
+     * @param access the access condition we are checking for. ie.: r%, for read
+     *        only access
      * @param paramsMap the parameters map
      * @return the sharing SQL statement for the current user
      */
     public static String sharingConditions( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+        final String access, final MapSqlParameterSource paramsMap )
     {
         final StringBuilder conditions = new StringBuilder();
 
@@ -107,18 +114,18 @@ public class UserAccessStatement
 
             .append( " ( " ) // Grouping clauses
             .append( "(" ) // Table 1 conditions
-            .append( publicAccessCondition( columnOne ) )
+            .append( publicAccessCondition( columnOne, access ) )
             .append( SPACED_OR )
             .append( ownerAccessCondition( columnOne ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( columnOne ) )
+            .append( userAccessCondition( columnOne, access ) )
             .append( ")" ) // Table 1 conditions end
             .append( " and (" ) // Table 2 conditions
-            .append( publicAccessCondition( columnTwo ) )
+            .append( publicAccessCondition( columnTwo, access ) )
             .append( SPACED_OR )
             .append( ownerAccessCondition( columnTwo ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( columnTwo ) )
+            .append( userAccessCondition( columnTwo, access ) )
             .append( ")" ) // Table 2 conditions end
             .append( " )" ); // Grouping clauses closing
 
@@ -127,10 +134,10 @@ public class UserAccessStatement
             conditions.append( " or (" );
 
             // Program group access checks
-            conditions.append( userGroupAccessCondition( columnOne ) );
+            conditions.append( userGroupAccessCondition( columnOne, access ) );
 
             // DataElement access checks
-            conditions.append( SPACED_AND + userGroupAccessCondition( columnTwo ) );
+            conditions.append( SPACED_AND + userGroupAccessCondition( columnTwo, access ) );
 
             // Closing OR condition
             conditions.append( ")" );
@@ -150,29 +157,30 @@ public class UserAccessStatement
             + EXTRACT_PATH_TEXT + "(" + column + ", 'owner') = :userUid)";
     }
 
-    static String publicAccessCondition( final String column )
+    static String publicAccessCondition( final String column, final String access )
     {
         assertTableAlias( column );
 
         return "(" + EXTRACT_PATH_TEXT + "(" + column + ", 'public') is null or "
             + EXTRACT_PATH_TEXT + "(" + column + ", 'public') = 'null' or "
-            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') like 'r%')";
+            + EXTRACT_PATH_TEXT + "(" + column + ", 'public') like '" + access + "')";
     }
 
-    static String userAccessCondition( final String tableName )
+    static String userAccessCondition( final String tableName, final String access )
     {
         assertTableAlias( tableName );
 
         return "(" + HAS_USER_ID + "(" + tableName + ", :" + USER_UID + ") = true "
-            + SPACED_AND + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", 'r%') = true)";
+            + SPACED_AND + CHECK_USER_ACCESS + "(" + tableName + ", :" + USER_UID + ", '" + access + "') = true)";
     }
 
-    static String userGroupAccessCondition( final String column )
+    static String userGroupAccessCondition( final String column, final String access )
     {
         assertTableAlias( column );
 
         return "(" + HAS_USER_GROUP_IDS + "(" + column + ", :" + USER_GROUP_UIDS + ") = true " +
-            SPACED_AND + CHECK_USER_GROUPS_ACCESS + "(" + column + ", 'r%', :" + USER_GROUP_UIDS + ") = true)";
+            SPACED_AND + CHECK_USER_GROUPS_ACCESS + "(" + column + ", '" + access + "', :" + USER_GROUP_UIDS
+            + ") = true)";
     }
 
     private static void assertTableAlias( String columnName )

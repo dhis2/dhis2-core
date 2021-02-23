@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
@@ -43,7 +43,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_AND;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_OR;
-import static org.hisp.dhis.dataitem.query.shared.StatementUtil.addIlikeReplacingCharacters;
 
 import java.util.Set;
 
@@ -166,7 +165,8 @@ public class FilteringStatement
     {
         if ( hasStringNonBlankPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
         {
-            final String[] filteringWords = ((String) paramsMap.getValue( IDENTIFIABLE_TOKEN_COMPARISON )).split( "," );
+            final String[] filteringWords = defaultIfNull(
+                (String) paramsMap.getValue( IDENTIFIABLE_TOKEN_COMPARISON ), EMPTY ).split( "," );
 
             final OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder( paramsMap );
 
@@ -184,14 +184,6 @@ public class FilteringStatement
         }
 
         return EMPTY;
-    }
-
-    public static void main( String[] args )
-    {
-        final MapSqlParameterSource paramsMap = new MapSqlParameterSource();
-        System.out.println( createOrConditionForEachWordInIlikeFilter( "code", "anc tt1 5", paramsMap ) );
-
-        System.out.println( toTsQuery( "code" ) );
     }
 
     private static String createRegexConditionForPhrase( final String column, final String[] filteringWords,
@@ -237,43 +229,6 @@ public class FilteringStatement
 
             // Remove last unused AND/OR condition and returns.
             return condition.toString().replace( spacedAndOr + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
-        }
-
-        return EMPTY;
-    }
-
-    private static String toTsQuery( final String column )
-    {
-        final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
-
-        orConditions.append( column + " @@ to_tsquery(:" + IDENTIFIABLE_TOKEN_COMPARISON + ")" );
-
-        orConditions.append( SPACED_RIGHT_PARENTHESIS );
-
-        return orConditions.toString();
-    }
-
-    private static String createOrConditionForEachWordInIlikeFilter( final String column, String filter,
-        final MapSqlParameterSource paramsMap )
-    {
-        if ( isNotBlank( filter ) )
-        {
-            filter = filter.replaceAll( " +", SPACE );
-
-            final String[] words = filter.split( " " );
-            final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
-
-            for ( final String word : words )
-            {
-                // regexp_replace(i."name", '[\s@&.?$+-]+', ' ', 'g') ~* '\mhi'
-                orConditions
-                    .append( column + ILIKE + wrap( word, "_filter_" ) + SPACED_OR );
-                paramsMap.addValue( wrap( word, "_filter_" ), wrap( addIlikeReplacingCharacters( word ), "%" ) );
-            }
-
-            orConditions.append( SPACED_RIGHT_PARENTHESIS );
-
-            return orConditions.toString().replace( SPACED_OR + SPACED_RIGHT_PARENTHESIS, SPACED_RIGHT_PARENTHESIS );
         }
 
         return EMPTY;
