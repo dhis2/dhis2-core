@@ -409,7 +409,8 @@ public class SharingController
             SharingUserAccess sharingUserAccess = new SharingUserAccess();
             sharingUserAccess.setId( user.getUid() );
             sharingUserAccess.setName( user.getDisplayName() );
-            sharingUserAccess.setDisplayName( user.getDisplayName() + " (" + user.getUsername() + ")" );
+            sharingUserAccess.setDisplayName( user.getDisplayName() );
+            sharingUserAccess.setUsername( user.getUsername() );
 
             sharingUsers.add( sharingUserAccess );
         }
