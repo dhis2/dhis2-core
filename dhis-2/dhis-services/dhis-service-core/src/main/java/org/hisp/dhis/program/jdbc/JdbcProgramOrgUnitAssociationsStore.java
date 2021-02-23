@@ -92,7 +92,18 @@ public class JdbcProgramOrgUnitAssociationsStore
 
         sql += " group by pr.uid";
 
+        sql += " union all " + getUnionQuery( programUids );
+
         return sql;
+    }
+
+    private String getUnionQuery( Set<String> programUids )
+    {
+        return "select pr.uid, '{}' from program pr" +
+            " where " + getProgramUidsFilter( programUids ) + " and not exists(" +
+            "    select 1 from program_organisationunits po" +
+            "        where po.programid = pr.programid" +
+            "    ) ";
     }
 
     private String getProgramUidsFilter( Set<String> programUids )
