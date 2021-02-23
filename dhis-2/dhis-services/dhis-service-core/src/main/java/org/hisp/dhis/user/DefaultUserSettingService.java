@@ -195,6 +195,7 @@ public class DefaultUserSettingService
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key )
     {
         return getUserSetting( key, Optional.empty() ).get();
@@ -206,6 +207,7 @@ public class DefaultUserSettingService
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key, User user )
     {
         return getUserSetting( key, Optional.ofNullable( user ) ).get();
@@ -307,12 +309,18 @@ public class DefaultUserSettingService
 
         String cacheKey = getCacheKey( key.getName(), username );
 
-        return userSettingCache
-            .get( cacheKey, c -> getUserSettingOptional( key, username ) )
-            .orElseGet( () -> NAME_SETTING_KEY_MAP.containsKey( key.getName() )
-                ? SerializableOptional
-                    .of( systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) )
-                : SerializableOptional.empty() );
+        SerializableOptional result = userSettingCache
+            .get( cacheKey, c -> getUserSettingOptional( key, username ) ).get();
+
+        if ( !result.isPresent() && NAME_SETTING_KEY_MAP.containsKey( key.getName() ) )
+        {
+            return SerializableOptional.of(
+                systemSettingManager.getSystemSetting( NAME_SETTING_KEY_MAP.get( key.getName() ) ) );
+        }
+        else
+        {
+            return result;
+        }
     }
 
     /**
