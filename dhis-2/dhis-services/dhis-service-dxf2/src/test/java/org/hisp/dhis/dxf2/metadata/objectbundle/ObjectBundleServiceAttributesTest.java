@@ -238,7 +238,8 @@ public class ObjectBundleServiceAttributesTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
 
-        assertEquals( 0, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
+        assertFalse( objectReports.isEmpty() );
+        assertEquals( 2, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
     }
 
     @Test
@@ -286,6 +287,7 @@ public class ObjectBundleServiceAttributesTest
             attributeService.addAttributeValue( de1, attributeValue1 );
             attributeService.addAttributeValue( de2, attributeValue2 );
             attributeService.addAttributeValue( de3, attributeValue3 );
+            manager.clear();
             return null;
         } );
 
