@@ -70,16 +70,16 @@ public class HeaderHandler
         {
             for ( DimensionalObject col : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader( col.getDimension(), col.getDimensionDisplayName(), TEXT,
-                    false, true ) );
+                grid.addHeader( new GridHeader(
+                    col.getDimension(), col.getDimensionDisplayName(), TEXT, false, true ) );
             }
 
             if ( params.isShowHierarchy() && !params.getOrgUnitLevels().isEmpty() )
             {
                 for ( DimensionalObject level : params.getOrgUnitLevelsAsDimensions() )
                 {
-                    grid.addHeader( new GridHeader( level.getDimension(), level.getDimensionDisplayName(), TEXT,
-                        false, true ) );
+                    grid.addHeader( new GridHeader(
+                        level.getDimension(), level.getDimensionDisplayName(), TEXT, false, true ) );
                 }
             }
 

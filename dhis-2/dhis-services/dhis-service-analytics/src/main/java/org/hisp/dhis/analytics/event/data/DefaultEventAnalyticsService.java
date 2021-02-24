@@ -520,13 +520,11 @@ public class DefaultEventAnalyticsService
                 grid.addHeader( new GridHeader(
                     NUMERATOR_ID, NUMERATOR_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
-                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, false,
-                        false ) )
+                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
                         FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
-                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, false,
-                        false ) )
+                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
                         DIVISOR_ID, DIVISOR_HEADER_NAME, ValueType.NUMBER, false, false ) );
             }
@@ -693,8 +691,7 @@ public class DefaultEventAnalyticsService
                 .addHeader( new GridHeader(
                     ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, false, true ) )
                 .addHeader( new GridHeader(
-                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT,
-                    false, true ) )
+                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, false, true ) )
                 .addHeader( new GridHeader(
                     ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, false, true ) );
         }
