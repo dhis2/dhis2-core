@@ -85,10 +85,11 @@ public class HeaderHandler
 
             if ( params.isIncludePeriodStartEndDates() )
             {
-                grid.addHeader( new GridHeader(
-                    PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, DATETIME, false, false ) );
-                grid.addHeader( new GridHeader(
-                    PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, DATETIME, false, false ) );
+                grid
+                    .addHeader( new GridHeader(
+                        PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, DATETIME, false, false ) )
+                    .addHeader( new GridHeader(
+                        PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, DATETIME, false, false ) );
             }
 
             grid.addHeader(
@@ -96,8 +97,9 @@ public class HeaderHandler
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader(
-                    NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
+                grid
+                    .addHeader( new GridHeader(
+                        NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
                     .addHeader( new GridHeader(
                         DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false ) )
                     .addHeader( new GridHeader(
