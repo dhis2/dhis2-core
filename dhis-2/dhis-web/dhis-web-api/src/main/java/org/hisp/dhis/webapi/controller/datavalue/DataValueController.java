@@ -173,7 +173,8 @@ public class DataValueController
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
         @RequestParam MultipartFile file )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
 
