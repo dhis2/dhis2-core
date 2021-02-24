@@ -82,8 +82,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramStageDataElementQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "program.\"name\" as program_name, program.uid as program_uid,"
-        + " dataelement.uid, dataelement.\"name\", dataelement.valuetype, dataelement.code,"
+    private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
+        + " dataelement.uid, dataelement.name, dataelement.valuetype, dataelement.code,"
         + " dataelement.sharing as dataelement_sharing, program.sharing as program_sharing";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
@@ -204,7 +204,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.\"name\", dataelement.\"name\", " + COMMON_UIDS
+            " group by program.name, dataelement.name, " + COMMON_UIDS
                 + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program_sharing, dataelement_sharing" );
 
         // Closing the temp table.
@@ -285,7 +285,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value as p_i18n_name, dataelement.\"name\" as de_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, dataelement.name as de_i18n_name" );
         }
 
         sql.append( SPACED_FROM_DATA_ELEMENT )
@@ -314,7 +314,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" as p_i18n_name, de_displayname.value as de_i18n_name" );
+                .append( ", program.name as p_i18n_name, de_displayname.value as de_i18n_name" );
         }
 
         sql.append( SPACED_FROM_DATA_ELEMENT )
@@ -336,7 +336,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" as p_i18n_name, dataelement.\"name\" as de_i18n_name" )
+            .append( ", program.name as p_i18n_name, dataelement.name as de_i18n_name" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

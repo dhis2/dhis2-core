@@ -80,8 +80,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramIndicatorQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "programindicator.\"name\", programindicator.uid, programindicator.code,"
-        + " program.\"name\" as program_name, program.uid as program_uid, program.sharing as program_sharing,"
+    private static final String COMMON_COLUMNS = "programindicator.name, programindicator.uid, programindicator.code,"
+        + " program.name as program_name, program.uid as program_uid, program.sharing as program_sharing,"
         + " programindicator.sharing as programindicator_sharing";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
@@ -217,7 +217,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.\"name\", programindicator.\"name\", " + COMMON_UIDS
+            " group by program.name, programindicator.name, " + COMMON_UIDS
                 + ", programindicator.code, p_i18n_name, pi_i18n_name, program_sharing, programindicator_sharing" );
 
         // Closing the temp table.
@@ -296,7 +296,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value as p_i18n_name, programindicator.\"name\" as pi_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, programindicator.name as pi_i18n_name" );
         }
 
         sql.append( SPACED_FROM_PROGRAM_INDICATOR )
@@ -325,7 +325,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" as p_i18n_name, pi_displayname.value as pi_i18n_name" );
+                .append( ", program.name as p_i18n_name, pi_displayname.value as pi_i18n_name" );
         }
 
         sql.append( SPACED_FROM_PROGRAM_INDICATOR )
@@ -347,7 +347,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" as p_i18n_name, programindicator.\"name\" as pi_i18n_name" )
+            .append( ", program.name as p_i18n_name, programindicator.name as pi_i18n_name" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }

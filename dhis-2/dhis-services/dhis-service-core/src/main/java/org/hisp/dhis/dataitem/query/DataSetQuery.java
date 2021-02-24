@@ -78,7 +78,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSetQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "dataset.uid, dataset.\"name\","
+    private static final String COMMON_COLUMNS = "dataset.uid, dataset.name,"
         + " dataset.code, dataset.sharing as dataset_sharing";
 
     private static final String ITEM_UID = "dataset.uid";
@@ -185,7 +185,7 @@ public class DataSetQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by dataset.\"name\", " + ITEM_UID + ", dataset.code, i18n_name,"
+            " group by dataset.name, " + ITEM_UID + ", dataset.code, i18n_name,"
                 + " dataset_sharing" );
 
         // Closing the temp table.
@@ -250,7 +250,7 @@ public class DataSetQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataset.\"name\" as i18n_name" )
+            .append( ", dataset.name as i18n_name" )
             .append( " from dataset " ).toString();
     }
 }

@@ -82,7 +82,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataElementQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.\"name\", dataelement.valuetype,"
+    private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.name, dataelement.valuetype,"
         + " dataelement.code, dataelement.sharing as dataelement_sharing";
 
     private static final String ITEM_UID = "dataelement.uid";
@@ -191,7 +191,7 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by dataelement.\"name\", " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
+            " group by dataelement.name, " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
                 + " dataelement_sharing" );
 
         // Closing the temp table.
@@ -268,7 +268,7 @@ public class DataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataelement.\"name\" as i18n_name" )
+            .append( ", dataelement.name as i18n_name" )
             .append( " from dataelement " ).toString();
     }
 }

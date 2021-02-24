@@ -80,7 +80,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class IndicatorQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "indicator.uid, indicator.\"name\","
+    private static final String COMMON_COLUMNS = "indicator.uid, indicator.name,"
         + " indicator.code, indicator.sharing as indicator_sharing";
 
     private static final String ITEM_UID = "indicator.uid";
@@ -196,7 +196,7 @@ public class IndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by indicator.\"name\", " + ITEM_UID + ", indicator.code, i18n_name,"
+            " group by indicator.name, " + ITEM_UID + ", indicator.code, i18n_name,"
                 + " indicator_sharing" );
 
         // Closing the temp table.
@@ -261,7 +261,7 @@ public class IndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", indicator.\"name\" as i18n_name" )
+            .append( ", indicator.name as i18n_name" )
             .append( " from indicator " ).toString();
     }
 }

@@ -82,8 +82,8 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramAttributeQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "program.\"name\" as program_name, program.uid as program_uid,"
-        + " trackedentityattribute.uid, trackedentityattribute.\"name\", trackedentityattribute.valuetype, trackedentityattribute.code,"
+    private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
+        + " trackedentityattribute.uid, trackedentityattribute.name, trackedentityattribute.valuetype, trackedentityattribute.code,"
         + " trackedentityattribute.sharing as trackedentityattribute_sharing, program.sharing as program_sharing";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
@@ -207,7 +207,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.\"name\", trackedentityattribute.\"name\", " + COMMON_UIDS
+            " group by program.name, trackedentityattribute.name, " + COMMON_UIDS
                 + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, tea_i18n_name,"
                 + " program_sharing, trackedentityattribute_sharing" );
 
@@ -289,7 +289,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value as p_i18n_name, trackedentityattribute.\"name\" as tea_i18n_name" );
+                .append( ", p_displayname.value as p_i18n_name, trackedentityattribute.name as tea_i18n_name" );
         }
 
         sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
@@ -318,7 +318,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         else
         {
             sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.\"name\" as p_i18n_name, tea_displayname.value as tea_i18n_name" );
+                .append( ", program.name as p_i18n_name, tea_displayname.value as tea_i18n_name" );
         }
 
         sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
@@ -340,7 +340,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.\"name\" as p_i18n_name, trackedentityattribute.\"name\" as tea_i18n_name" )
+            .append( ", program.name as p_i18n_name, trackedentityattribute.name as tea_i18n_name" )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }
