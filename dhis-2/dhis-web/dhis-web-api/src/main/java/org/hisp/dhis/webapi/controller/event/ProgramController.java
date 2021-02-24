@@ -79,7 +79,7 @@ public class ProgramController
 
         List<Program> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 

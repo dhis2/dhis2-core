@@ -213,6 +213,6 @@ public class DataElementOperandController
     private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + "DataElementOperand" + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
+            + options.getRootJunction().name();
     }
 }
