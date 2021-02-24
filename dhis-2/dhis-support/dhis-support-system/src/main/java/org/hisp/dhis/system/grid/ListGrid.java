@@ -769,8 +769,11 @@ public class ListGrid
 
             if ( header != null )
             {
-                GridHeader regressionHeader = new GridHeader( header.getName() + REGRESSION_SUFFIX,
-                    header.getColumn() + REGRESSION_SUFFIX, header.getValueType(), header.isHidden(),
+                GridHeader regressionHeader = new GridHeader(
+                    header.getName() + REGRESSION_SUFFIX,
+                    header.getColumn() + REGRESSION_SUFFIX,
+                    header.getValueType(),
+                    header.isHidden(),
                     header.isMeta() );
 
                 addHeader( regressionHeader );
@@ -821,8 +824,11 @@ public class ListGrid
 
             if ( header != null )
             {
-                GridHeader regressionHeader = new GridHeader( header.getName() + CUMULATIVE_SUFFIX,
-                    header.getColumn() + CUMULATIVE_SUFFIX, header.getValueType(), header.isHidden(),
+                GridHeader regressionHeader = new GridHeader(
+                    header.getName() + CUMULATIVE_SUFFIX,
+                    header.getColumn() + CUMULATIVE_SUFFIX,
+                    header.getValueType(),
+                    header.isHidden(),
                     header.isMeta() );
 
                 addHeader( regressionHeader );

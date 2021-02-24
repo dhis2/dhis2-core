@@ -613,12 +613,12 @@ public class ReportTable
 
         if ( reportParamColumns )
         {
-            grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                ValueType.TEXT, true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME,
-                ValueType.TEXT, true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
-                ValueType.TEXT, true, true ) );
+            grid.addHeader( new GridHeader(
+                "Reporting month", REPORTING_MONTH_COLUMN_NAME, ValueType.TEXT, true, true ) );
+            grid.addHeader( new GridHeader(
+                "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, ValueType.TEXT, true, true ) );
+            grid.addHeader( new GridHeader(
+                "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, ValueType.TEXT, true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
