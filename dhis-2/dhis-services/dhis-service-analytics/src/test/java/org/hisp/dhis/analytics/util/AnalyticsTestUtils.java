@@ -72,15 +72,15 @@ public class AnalyticsTestUtils
      * Test if values from keyValue corresponds with values in
      * aggregatedResultMapping. Also test for null values.
      *
-     * @param testName name of test test being run
+     * @param scenario test scenario being run
      * @param aggregatedResultData aggregated results
      * @param keyValue expected results
      */
-    public static void assertResultGrid( String testName, Grid aggregatedResultData, Map<String, Double> keyValue )
+    public static void assertResultGrid( String scenario, Grid aggregatedResultData, Map<String, Double> keyValue )
     {
-        assertNotNull( "Test '" + testName + "' returned null Grid", aggregatedResultData );
+        assertNotNull( "Scenario '" + scenario + "' returned null Grid", aggregatedResultData );
 
-        assertTrue( "Test '" + testName + "' returned no rows in Grid",
+        assertTrue( "Scenario '" + scenario + "' returned no rows in Grid",
             aggregatedResultData.getRows().size() > 0 );
 
         for ( int i = 0; i < aggregatedResultData.getRows().size(); i++ )
@@ -102,9 +102,9 @@ public class AnalyticsTestUtils
             Double expected = keyValue.get( key.toString() );
             Double actual = Double.parseDouble( aggregatedResultData.getValue( i, numberOfDimensions ).toString() );
 
-            assertNotNull( "Test '" + testName + "' did not find '" + key + "' in provided results", expected );
+            assertNotNull( "Scenario '" + scenario + "' did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
-            assertEquals( "Test '" + testName + "' value for key: '" + key + "' not matching expected value: '"
+            assertEquals( "Scenario '" + scenario + "' value for key: '" + key + "' not matching expected value: '"
                 + expected + "'", expected, actual );
         }
     }

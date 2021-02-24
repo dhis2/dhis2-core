@@ -793,12 +793,12 @@ public class AnalyticsServiceTest
         Grid aggregatedDataValueGrid;
         for ( Map.Entry<String, DataQueryParams> entry : dataQueryParams.entrySet() )
         {
-            String testName = entry.getKey();
+            String scenario = entry.getKey();
             DataQueryParams params = entry.getValue();
 
             aggregatedDataValueGrid = analyticsService.getAggregatedDataValues( params );
 
-            AnalyticsTestUtils.assertResultGrid( testName, aggregatedDataValueGrid, results.get( testName ) );
+            AnalyticsTestUtils.assertResultGrid( scenario, aggregatedDataValueGrid, results.get( scenario ) );
         }
     }
 

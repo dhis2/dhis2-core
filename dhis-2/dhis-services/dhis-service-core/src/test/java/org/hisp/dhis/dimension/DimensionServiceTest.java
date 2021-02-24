@@ -40,6 +40,7 @@ import static org.hisp.dhis.expression.ExpressionService.SYMBOL_WILDCARD;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_12_MONTHS;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -612,16 +613,16 @@ public class DimensionServiceTest
         Set<DimensionalItemObject> objects = dimensionService.getDataDimensionalItemObjects( dimensionalItemIds );
 
         // Then
-        assertEquals( 9, objects.size() );
-        assertTrue( objects.contains( dataElementWithOffset( deA, 0 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deB, 0 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deC, 0 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deA, 1 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deB, 1 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deC, 1 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deA, 2 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deB, 2 ) ) );
-        assertTrue( objects.contains( dataElementWithOffset( deC, 2 ) ) );
+        assertContainsOnly( objects,
+            dataElementWithOffset( deA, 0 ),
+            dataElementWithOffset( deB, 0 ),
+            dataElementWithOffset( deC, 0 ),
+            dataElementWithOffset( deA, 1 ),
+            dataElementWithOffset( deB, 1 ),
+            dataElementWithOffset( deC, 1 ),
+            dataElementWithOffset( deA, 2 ),
+            dataElementWithOffset( deB, 2 ),
+            dataElementWithOffset( deC, 2 ) );
     }
 
     @Test
