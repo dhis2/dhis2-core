@@ -551,51 +551,8 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasProgram() )
         {
-            // Using program owner OU instead of registration OU.
-            sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
-            sql += params.getProgram().getId()
-                + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
             teiOuSource = "tepo.organisationunitid";
-
-            sql += "inner join ("
-                + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
-                + "from programinstance pi ";
-
-            if ( params.hasFilterForEvents() )
-            {
-                sql += " inner join (select programinstanceid from programstageinstance psi ";
-
-                sql += addConditionally( params.hasAssignedUsers(),
-                    () -> "left join userinfo au on (psi.assigneduserid=au.userinfoid)" );
-
-                sql += getEventWhereClause( params );
-
-                sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
-            }
-
-            sql += " where pi.programid= " + params.getProgram().getId() + " ";
-
-            sql += addConditionally( params.hasProgramStatus(),
-                () -> "and status = '" + params.getProgramStatus() + "' " );
-
-            sql += addConditionally( params.hasFollowUp(), () -> "and pi.followup = " + params.getFollowUp() );
-
-            sql += addConditionally( params.hasProgramEnrollmentStartDate(), () -> "and pi.enrollmentdate >= '"
-                + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "' " );
-
-            sql += addConditionally( params.hasProgramEnrollmentEndDate(), () -> "and pi.enrollmentdate <= '"
-                + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "' " );
-
-            sql += addConditionally( params.hasProgramIncidentStartDate(),
-                () -> "and pi.incidentdate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "' " );
-
-            sql += addConditionally( params.hasProgramIncidentEndDate(),
-                () -> "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' " );
-
-            sql += addConditionally( !params.isIncludeDeleted(),
-                () -> "and pi.deleted is false" );
-
-            sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
+            sql += withProgramSql( params, hlp );
         }
 
         sql += "inner join organisationunit ou on " + teiOuSource + " = ou.organisationunitid ";
@@ -698,6 +655,54 @@ public class HibernateTrackedEntityInstanceStore
         sql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
 
         return sql;
+    }
+
+    private String withProgramSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
+    {
+        String sql = "";
+        // Using program owner OU instead of registration OU.
+        sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
+        sql += params.getProgram().getId()
+            + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
+        sql += "inner join ("
+            + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
+            + "from programinstance pi ";
+
+        if ( params.hasFilterForEvents() )
+        {
+            sql += " inner join (select programinstanceid from programstageinstance psi ";
+
+            sql += addConditionally( params.hasAssignedUsers(),
+                () -> "left join userinfo au on (psi.assigneduserid=au.userinfoid)" );
+
+            sql += getEventWhereClause( params );
+
+            sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
+        }
+
+        sql += " where pi.programid= " + params.getProgram().getId() + " ";
+
+        sql += addConditionally( params.hasProgramStatus(),
+            () -> "and status = '" + params.getProgramStatus() + "' " );
+
+        sql += addConditionally( params.hasFollowUp(), () -> "and pi.followup = " + params.getFollowUp() );
+
+        sql += addConditionally( params.hasProgramEnrollmentStartDate(), () -> "and pi.enrollmentdate >= '"
+            + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "' " );
+
+        sql += addConditionally( params.hasProgramEnrollmentEndDate(), () -> "and pi.enrollmentdate <= '"
+            + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "' " );
+
+        sql += addConditionally( params.hasProgramIncidentStartDate(),
+            () -> "and pi.incidentdate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "' " );
+
+        sql += addConditionally( params.hasProgramIncidentEndDate(),
+            () -> "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' " );
+
+        sql += addConditionally( !params.isIncludeDeleted(),
+            () -> "and pi.deleted is false" );
+
+        sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
     }
 
     private String getOrderClauseHql( TrackedEntityInstanceQueryParams params )
