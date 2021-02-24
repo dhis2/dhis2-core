@@ -69,9 +69,9 @@ public class GridTest
         gridA = new ListGrid();
         gridB = new ListGrid();
 
-        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, String.class.getName(), false, true );
-        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, String.class.getName(), false, true );
-        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, String.class.getName(), true, false );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true );
+        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
+        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, true, false );
 
         gridA.addHeader( headerA );
         gridA.addHeader( headerB );

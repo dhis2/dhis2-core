@@ -116,15 +116,14 @@ public class GridHeader
      * @param name formal header name.
      * @param column readable header title.
      * @param valueType header value type.
-     * @param type header type (deprecated).
      * @param hidden indicates whether header is hidden.
      * @param meta indicates whether header is meta data.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta )
+    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta )
     {
         this( name, column );
         this.valueType = valueType;
-        this.type = type;
+        this.type = valueType.getJavaClass().getName();
         this.hidden = hidden;
         this.meta = meta;
     }
@@ -133,16 +132,15 @@ public class GridHeader
      * @param name formal header name.
      * @param column readable header title.
      * @param valueType header value type.
-     * @param type header type (deprecated).
      * @param hidden indicates whether header is hidden.
      * @param meta indicates whether header is meta data.
      * @param optionSet option set.
      * @param legendSet legend set.
      */
-    public GridHeader( String name, String column, ValueType valueType, String type, boolean hidden, boolean meta,
+    public GridHeader( String name, String column, ValueType valueType, boolean hidden, boolean meta,
         OptionSet optionSet, LegendSet legendSet )
     {
-        this( name, column, valueType, type, hidden, meta );
+        this( name, column, valueType, hidden, meta );
         this.optionSet = optionSet;
         this.legendSet = legendSet;
     }

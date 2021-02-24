@@ -45,9 +45,6 @@ import org.hisp.dhis.schema.Property;
  * {@link PropertyPropertyIntrospector} and
  * {@link TranslatablePropertyIntrospector} which look for optional annotations.
  *
- * The {@link NodePropertyIntrospector} is use independently in other scenarios
- * where fields are annotated.
- *
  * @author Jan Bernitt
  */
 @FunctionalInterface
