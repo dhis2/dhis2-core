@@ -703,6 +703,8 @@ public class HibernateTrackedEntityInstanceStore
             () -> "and pi.deleted is false" );
 
         sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
+
+        return sql;
     }
 
     private String getOrderClauseHql( TrackedEntityInstanceQueryParams params )
