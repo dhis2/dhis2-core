@@ -124,8 +124,6 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
 
-
-
         @Override
         protected void configure( HttpSecurity http )
             throws Exception
