@@ -39,12 +39,12 @@ import java.util.Map;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -86,9 +86,6 @@ public class ObjectBundleServiceAttributesTest
 
     @Autowired
     private AttributeService attributeService;
-
-    @Autowired
-    private DataElementService dataElementService;
 
     @Override
     public void setUpTest()
@@ -241,8 +238,7 @@ public class ObjectBundleServiceAttributesTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         List<ObjectReport> objectReports = validationReport.getObjectReports( DataElement.class );
 
-        assertFalse( objectReports.isEmpty() );
-        assertEquals( 2, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
+        assertEquals( 0, validationReport.getErrorReportsByCode( DataElement.class, ErrorCode.E4009 ).size() );
     }
 
     @Test
@@ -267,33 +263,33 @@ public class ObjectBundleServiceAttributesTest
 
     private void defaultSetupWithAttributes()
     {
-        User user = createUser( 'A' );
-        userService.addUser( user );
-        injectSecurityContext( user );
-
-        DataElement de1 = createDataElement( 'A' );
-        DataElement de2 = createDataElement( 'B' );
-        DataElement de3 = createDataElement( 'C' );
-
-        dataElementService.addDataElement( de1 );
-        dataElementService.addDataElement( de2 );
-        dataElementService.addDataElement( de3 );
-
         Attribute attribute = new Attribute( "AttributeA", ValueType.TEXT );
         attribute.setUid( "d9vw7V9Mw8W" );
         attribute.setUnique( true );
         attribute.setMandatory( true );
         attribute.setDataElementAttribute( true );
 
-        attributeService.addAttribute( attribute );
+        manager.save( attribute );
 
-        attributeService.addAttributeValue( de1, createAttributeValue( attribute, "Value1" ) );
-        attributeService.addAttributeValue( de2, createAttributeValue( attribute, "Value2" ) );
-        attributeService.addAttributeValue( de3, createAttributeValue( attribute, "Value3" ) );
+        AttributeValue attributeValue1 = new AttributeValue( "Value1", attribute );
+        AttributeValue attributeValue2 = new AttributeValue( "Value2", attribute );
+        AttributeValue attributeValue3 = new AttributeValue( "Value3", attribute );
 
-        dataElementService.updateDataElement( de1 );
-        dataElementService.updateDataElement( de2 );
-        dataElementService.updateDataElement( de3 );
+        DataElement de1 = createDataElement( 'A' );
+        DataElement de2 = createDataElement( 'B' );
+        DataElement de3 = createDataElement( 'C' );
 
+        transactionTemplate.execute( status -> {
+            manager.save( de1 );
+            manager.save( de2 );
+            manager.save( de3 );
+            attributeService.addAttributeValue( de1, attributeValue1 );
+            attributeService.addAttributeValue( de2, attributeValue2 );
+            attributeService.addAttributeValue( de3, attributeValue3 );
+            return null;
+        } );
+
+        User user = createUser( 'A' );
+        manager.save( user );
     }
 }
