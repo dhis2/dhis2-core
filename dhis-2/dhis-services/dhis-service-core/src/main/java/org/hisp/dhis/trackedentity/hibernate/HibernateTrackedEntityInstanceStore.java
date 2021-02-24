@@ -551,35 +551,14 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasProgram() )
         {
+            // Using program owner OU instead of registration OU.
             teiOuSource = "tepo.organisationunitid";
             sql += withProgramSql( params, hlp );
         }
 
         sql += "inner join organisationunit ou on " + teiOuSource + " = ou.organisationunitid ";
 
-        for ( QueryItem item : params.getAttributesAndFilters() )
-        {
-            final String col = statementBuilder.columnQuote( item.getItemId() );
-
-            final String joinClause = item.hasFilter() ? "inner join" : "left join";
-
-            sql += joinClause + " " + "trackedentityattributevalue as " + col + " " + "on " + col
-                + ".trackedentityinstanceid = tei.trackedentityinstanceid " + "and " + col
-                + ".trackedentityattributeid = " + item.getItem().getId() + " ";
-
-            if ( !params.isOrQuery() && item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-
-                    final String queryCol = item.isNumeric() ? (col + ".value") : "lower(" + col + ".value)";
-
-                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                        + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
-                }
-            }
-        }
+        sql += addAttributesAndFiltersClauseSql( params );
 
         sql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
             () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
@@ -624,6 +603,18 @@ public class HibernateTrackedEntityInstanceStore
                 + getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) + ") ";
         }
 
+        sql += addAttributeOrFiltersSql( params, hlp, regexp, wordStart, wordEnd, anyChar );
+
+        sql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
+
+        return sql;
+    }
+
+    private String addAttributeOrFiltersSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp,
+        final String regexp, final String wordStart, final String wordEnd, final String anyChar )
+    {
+        String sql = "";
+
         if ( params.isOrQuery() && params.hasAttributesOrFilters() )
         {
             final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
@@ -651,16 +642,42 @@ public class HibernateTrackedEntityInstanceStore
 
             sql = removeLastAnd( sql ) + ") ";
         }
+        return sql;
+    }
 
-        sql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
+    private String addAttributesAndFiltersClauseSql( TrackedEntityInstanceQueryParams params )
+    {
+        String sql = "";
+        for ( QueryItem item : params.getAttributesAndFilters() )
+        {
+            final String col = statementBuilder.columnQuote( item.getItemId() );
 
+            final String joinClause = item.hasFilter() ? "inner join" : "left join";
+
+            sql += joinClause + " " + "trackedentityattributevalue as " + col + " " + "on " + col
+                + ".trackedentityinstanceid = tei.trackedentityinstanceid " + "and " + col
+                + ".trackedentityattributeid = " + item.getItem().getId() + " ";
+
+            if ( !params.isOrQuery() && item.hasFilter() )
+            {
+                for ( QueryFilter filter : item.getFilters() )
+                {
+                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
+
+                    final String queryCol = item.isNumeric() ? (col + ".value") : "lower(" + col + ".value)";
+
+                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
+                        + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
+                }
+            }
+        }
         return sql;
     }
 
     private String withProgramSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
     {
         String sql = "";
-        // Using program owner OU instead of registration OU.
+
         sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
         sql += params.getProgram().getId()
             + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
