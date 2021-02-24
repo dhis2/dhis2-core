@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.webmessage;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -339,6 +340,24 @@ public final class WebMessageUtils
         }
 
         return webMessage;
+    }
+
+    /**
+     * Runs the provided validation and throws a {@link WebMessageException}
+     * with the {@link #errorReports(List)} in case there are any.
+     *
+     * @param validation a validation computation to run to see if there are
+     *        {@link ErrorReport}s.
+     * @throws WebMessageException In case there were any {@link ErrorReport}s
+     */
+    public static void validateAndThrowErrors( Supplier<List<ErrorReport>> validation )
+        throws WebMessageException
+    {
+        List<ErrorReport> errors = validation.get();
+        if ( !errors.isEmpty() )
+        {
+            throw new WebMessageException( errorReports( errors ) );
+        }
     }
 
     private WebMessageUtils()

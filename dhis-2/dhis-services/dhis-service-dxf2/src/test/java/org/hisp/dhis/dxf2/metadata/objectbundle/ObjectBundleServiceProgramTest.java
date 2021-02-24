@@ -41,8 +41,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -246,13 +244,8 @@ public class ObjectBundleServiceProgramTest
         ObjectBundle bundle1 = objectBundleService.create( params1 );
         ObjectBundleValidationReport validate1 = objectBundleValidationService.validate( bundle1 );
 
-        assertFalse( validate1.getErrorReports().isEmpty() );
-        assertEquals( 1, validate1.getErrorReports().size() );
-
-        List<ErrorReport> errorReports = validate1.getErrorReports();
-        ErrorReport errorReport = errorReports.get( 0 );
-
-        assertEquals( ErrorCode.E4031, errorReport.getErrorCode() );
+        assertTrue( validate1.getErrorReports().isEmpty() );
+        assertEquals( 0, validate1.getErrorReports().size() );
     }
 
     @Test
