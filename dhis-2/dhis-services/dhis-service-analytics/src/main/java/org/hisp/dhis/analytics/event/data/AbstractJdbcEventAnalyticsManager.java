@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -93,9 +91,9 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final StatementBuilder statementBuilder;
 
     protected final ProgramIndicatorService programIndicatorService;
-    
+
     protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
-    
+
     public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
                                              StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
                                              DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
@@ -260,7 +258,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     columns.add( programIndicatorSubqueryBuilder.getAggregateClauseForProgramIndicator( in,
                         getAnalyticsType(), params.getEarliestStartDate(), params.getLatestEndDate() ) + asClause );
                 }
-                
+
             }
             else if ( ValueType.COORDINATE == queryItem.getValueType() )
             {
@@ -468,7 +466,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
-                    return "count(distinct " + quoteAlias( "pi") + ")";
+                    if ( params.hasEnrollmentProgramIndicatorDimension() )
+                    {
+                        return "count(" + quoteAlias( "pi" ) + ")";
+                    }
+                    return "count(distinct " + quoteAlias( "pi" ) + ")";
                 }
                 else // EVENT
                 {
@@ -477,7 +479,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
         }
     }
-    
+
     /**
      * Returns an item value for the given query, query item and value. Assumes that
      * data dimensions are collapsed for the given query. Returns the short name
