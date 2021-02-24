@@ -25,28 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.annotation;
+package org.hisp.dhis.dataitem.query.shared;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.apache.commons.lang3.StringUtils.replaceEach;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class keeps basic SQL keywords/constants so they can be reused by the
+ * queries. It was created mainly to make SonarQube happy regarding what is
+ * considered "code smell".
  */
-@Target( { ElementType.FIELD, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-@NodeAnnotation
-public @interface NodeSimple
+public class StatementUtil
 {
-    String value() default "";
+    private StatementUtil()
+    {
+    }
 
-    String namespace() default "";
+    public static final String SPACED_SELECT = " select ";
 
-    boolean isAttribute() default false;
+    public static final String SPACED_UNION = " union ";
 
-    boolean isWritable() default true;
+    public static final String SPACED_WHERE = " where ";
 
-    boolean isReadable() default true;
+    public static final String SPACED_OR = " or ";
+
+    public static final String SPACED_AND = " and ";
+
+    /**
+     * This method is specific for strings used in "ilike" filters where some
+     * non accepted characters will fail at querying time. It will only replace
+     * common characters by the form accepted in SQL ilike queries.
+     *
+     * @param value the value where characters will ve replaced.
+     * @return the input value with the characters replaced.
+     */
+    public static String addIlikeReplacingCharacters( final String value )
+    {
+        return replaceEach( value, new String[] { "%", "," }, new String[] { "\\%", "\\," } );
+    }
 }

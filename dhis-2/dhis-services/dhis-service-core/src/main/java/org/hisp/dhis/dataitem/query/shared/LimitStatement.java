@@ -25,26 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.annotation;
+package org.hisp.dhis.dataitem.query.shared;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasIntegerPresence;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
+
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class should hold common/general SQL statements used by data item
+ * queries.
+ *
+ * @author maikel arabori
  */
-@Target( { ElementType.FIELD, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-@NodeAnnotation
-public @interface NodeComplex
+public class LimitStatement
 {
-    String value() default "";
+    private LimitStatement()
+    {
+    }
 
-    String namespace() default "";
+    public static String maxLimit( final MapSqlParameterSource paramsMap )
+    {
+        if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )
+        {
+            return " limit :" + MAX_LIMIT;
+        }
 
-    boolean isWritable() default true;
-
-    boolean isReadable() default true;
+        return EMPTY;
+    }
 }

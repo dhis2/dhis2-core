@@ -25,58 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema;
-
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
-import org.hisp.dhis.node.annotation.NodeSimple;
-import org.junit.Test;
-
-class SimpleFields
-{
-    @NodeSimple( isAttribute = false )
-    private String property;
-
-    @NodeSimple( value = "renamedProperty", isAttribute = true )
-    private String propertyToBeRenamed;
-
-    @NodeSimple( isReadable = true, isWritable = false )
-    private String readOnly;
-
-    @NodeSimple( isReadable = false, isWritable = true )
-    private boolean writeOnly;
-
-    @NodeSimple( namespace = "http://ns.example.org" )
-    private String propertyWithNamespace;
-
-    public String getProperty()
-    {
-        return property;
-    }
-
-    public void setProperty( String property )
-    {
-        this.property = property;
-    }
-}
+package org.hisp.dhis.dataitem.query.shared;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This class keeps the list of possible query params.
+ *
+ * @author maikel arabori
  */
-public class FieldSimpleNodePropertyIntrospectorTest extends AbstractNodePropertyIntrospectorTest
+public class QueryParam
 {
-
-    public FieldSimpleNodePropertyIntrospectorTest()
+    private QueryParam()
     {
-        super( SimpleFields.class );
     }
 
-    @Test
-    public void testAttribute()
-    {
-        assertFalse( propertyMap.get( "property" ).isAttribute() );
-        assertTrue( propertyMap.get( "renamedProperty" ).isAttribute() );
-    }
+    public static final String NAME = "name";
 
+    public static final String DISPLAY_NAME = "displayName";
+
+    public static final String LOCALE = "locale";
+
+    public static final String VALUE_TYPES = "valueTypes";
+
+    public static final String USER_GROUP_UIDS = "userGroupUids";
+
+    public static final String USER_UID = "userUid";
+
+    public static final String PROGRAM_ID = "programId";
+
+    public static final String MAX_LIMIT = "maxLimit";
+
+    public static final String NAME_ORDER = "nameOrder";
+
+    public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
+
+    public static final String UID = "uid";
+
+    public static final String ROOT_JUNCTION = "rootJunction";
+
+    public static final String IDENTIFIABLE_TOKEN_COMPARISON = "identifiableTokenComparison";
 }

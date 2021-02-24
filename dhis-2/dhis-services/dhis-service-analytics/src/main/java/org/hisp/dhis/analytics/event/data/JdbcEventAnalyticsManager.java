@@ -643,8 +643,7 @@ public class JdbcEventAnalyticsManager
                 String alias = quote( dim.getDimensionName() );
                 String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
 
-                cols.remove( alias ); // Remove column if already present, i.e.
-                                      // "yearly"
+                cols.remove( alias ); // Remove column if already present
                 cols.add( col );
             }
             else

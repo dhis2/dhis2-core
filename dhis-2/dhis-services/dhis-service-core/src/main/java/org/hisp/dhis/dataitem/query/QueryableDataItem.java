@@ -25,26 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.annotation;
+package org.hisp.dhis.dataitem.query;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import static java.util.stream.Collectors.toSet;
+import static java.util.stream.Stream.of;
+
+import java.util.Set;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This Enum holds the allowed data item types to be queried.
+ *
+ * @author maikel arabori
  */
-@Target( { ElementType.TYPE } )
-@Retention( RetentionPolicy.RUNTIME )
-@NodeAnnotation
-public @interface NodeRoot
+public enum QueryableDataItem
 {
-    String value() default "";
+    INDICATOR( Indicator.class ),
+    DATA_ELEMENT( DataElement.class ),
+    DATA_SET( DataSet.class ),
+    PROGRAM_INDICATOR( ProgramIndicator.class ),
+    PROGRAM_DATA_ELEMENT( ProgramDataElementDimensionItem.class ),
+    PROGRAM_ATTRIBUTE( ProgramTrackedEntityAttributeDimensionItem.class );
 
-    String namespace() default "";
+    private Class<? extends BaseIdentifiableObject> entity;
 
-    boolean isWritable() default true;
+    QueryableDataItem( final Class<? extends BaseIdentifiableObject> entity )
+    {
+        this.entity = entity;
+    }
 
-    boolean isReadable() default true;
+    public Class<? extends BaseIdentifiableObject> getEntity()
+    {
+        return this.entity;
+    }
+
+    public static Set<Class<? extends BaseIdentifiableObject>> getEntities()
+    {
+        return of( QueryableDataItem.values() ).map( QueryableDataItem::getEntity ).collect( toSet() );
+    }
 }

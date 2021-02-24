@@ -25,32 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.node.annotation;
+package org.hisp.dhis.dataitem.query;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.util.List;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.dataitem.DataItem;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Interface responsible for providing the basic and necessary methods regarding
+ * general data item queries.
+ *
+ * @author maikel arabori
  */
-@Target( { ElementType.FIELD, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-@NodeAnnotation
-public @interface NodeCollection
+public interface DataItemQuery
 {
-    String value() default "";
 
-    String namespace() default "";
+    /**
+     * Responsible for building the respective query statement and executing it
+     * in order to find the list of items based on the given parameter map.
+     *
+     * @param paramsMap
+     * @return the data items found
+     */
+    List<DataItem> find( MapSqlParameterSource paramsMap );
 
-    String itemName() default "";
+    /**
+     * Responsible for building the respective count statement and executing it
+     * in order to find the total of data items for the given parameter map.
+     *
+     * @param paramsMap
+     * @return the items found
+     */
+    int count( MapSqlParameterSource paramsMap );
 
-    String itemNamespace() default "";
-
-    boolean useWrapping() default true;
-
-    boolean isWritable() default true;
-
-    boolean isReadable() default true;
+    /**
+     * Simply returns the entity associated with the respective interface/query
+     * implementation.
+     *
+     * @return the entity associated to the interface implementation
+     */
+    Class<? extends BaseIdentifiableObject> getRootEntity();
 }
