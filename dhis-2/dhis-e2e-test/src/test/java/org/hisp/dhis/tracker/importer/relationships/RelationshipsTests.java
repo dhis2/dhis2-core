@@ -190,7 +190,7 @@ public class RelationshipsTests
         // when posting the same payload, then relationship is ignored when in
         // the same way
         trackerActions.postAndGetJobReport( jsonObject )
-            .validateSuccessfulImport()
+            .validateSuccessfulImportWithIgnored( 1 )
             .validateRelationships()
             .body( "stats.ignored", equalTo( 1 ) );
 
@@ -237,7 +237,7 @@ public class RelationshipsTests
         // when posting the same payload, then relationship is ignored both ways
         Stream.of( jsonObject, trackerActions.invertRelationship( jsonObject ) )
             .map( trackerActions::postAndGetJobReport )
-            .map( TrackerApiResponse::validateSuccessfulImport )
+            .map( tar -> tar.validateSuccessfulImportWithIgnored( 1 ) )
             .map( TrackerApiResponse::validateRelationships )
             .forEach( validatableResponse -> validatableResponse.body( "stats.ignored", equalTo( 1 ) ) );
 

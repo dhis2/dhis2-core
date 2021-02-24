@@ -27,12 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.scheduling;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+
 import java.util.Map;
 
+import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.SchedulingManager;
@@ -40,6 +45,7 @@ import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.descriptors.JobConfigurationSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.JobTypes;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,8 +90,11 @@ public class JobConfigurationController
     @RequestMapping( value = "{uid}/execute", method = RequestMethod.GET, produces = { "application/json",
         "application/javascript" } )
     public ObjectReport executeJobConfiguration( @PathVariable( "uid" ) String uid )
+        throws WebMessageException
     {
         JobConfiguration jobConfiguration = jobConfigurationService.getJobConfigurationByUid( uid );
+
+        checkConfigurable( jobConfiguration, HttpStatus.FORBIDDEN, "Job %s is a system job that cannot be executed." );
 
         ObjectReport objectReport = new ObjectReport( JobConfiguration.class, 0 );
 
@@ -101,8 +110,63 @@ public class JobConfigurationController
     }
 
     @Override
+    protected void preCreateEntity( JobConfiguration jobConfiguration )
+        throws WebMessageException
+    {
+        checkConfigurable( jobConfiguration, HttpStatus.BAD_REQUEST, "Job %s must be configurable but was not." );
+    }
+
+    @Override
+    protected void prePatchEntity( JobConfiguration jobConfiguration )
+        throws WebMessageException
+    {
+        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
+            "Job %s is a system job that cannot be modified." );
+    }
+
+    @Override
+    protected void preUpdateEntity( JobConfiguration before, JobConfiguration after )
+        throws WebMessageException
+    {
+        checkConfigurable( before, HttpStatus.UNPROCESSABLE_ENTITY, "Job %s is a system job that cannot be modified." );
+        checkConfigurable( after, HttpStatus.CONFLICT, "Job %s can not be changed into a system job." );
+    }
+
+    @Override
+    protected void preDeleteEntity( JobConfiguration jobConfiguration )
+        throws WebMessageException
+    {
+        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
+            "Job %s is a system job that cannot be deleted." );
+    }
+
+    @Override
+    protected void preUpdateItems( JobConfiguration jobConfiguration, IdentifiableObjects items )
+        throws Exception
+    {
+        checkConfigurable( jobConfiguration, HttpStatus.UNPROCESSABLE_ENTITY,
+            "Job %s is a system job that cannot be modified." );
+    }
+
+    @Override
     protected void postPatchEntity( JobConfiguration jobConfiguration )
     {
         jobConfigurationService.refreshScheduling( jobConfiguration );
     }
+
+    private void checkConfigurable( JobConfiguration configuration, HttpStatus status, String message )
+        throws WebMessageException
+    {
+        if ( !configuration.isConfigurable() )
+        {
+            String identifier = configuration.getUid();
+            if ( identifier == null )
+            {
+                identifier = configuration.getName();
+            }
+            throw new WebMessageException(
+                createWebMessage( String.format( message, identifier ), Status.ERROR, status ) );
+        }
+    }
+
 }

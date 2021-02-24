@@ -27,16 +27,16 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.*;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.hisp.dhis.node.annotation.NodeCollection;
 import org.hisp.dhis.node.annotation.NodeRoot;
 import org.hisp.dhis.node.annotation.NodeSimple;
-import org.junit.Before;
 import org.junit.Test;
 
 @NodeRoot( value = "collectionItem" )
@@ -52,16 +52,16 @@ class CollectionFields
     private List<String> property = new ArrayList<>();
 
     @NodeCollection( value = "renamedProperty" )
-    private List<String> propertyToBeRenamed = new ArrayList<>();
+    private final List<String> propertyToBeRenamed = new ArrayList<>();
 
     @NodeCollection( isReadable = true, isWritable = false )
-    private List<String> readOnly = new ArrayList<>();
+    private final List<String> readOnly = new ArrayList<>();
 
     @NodeCollection( isReadable = false, isWritable = true )
-    private List<String> writeOnly = new ArrayList<>();
+    private final List<String> writeOnly = new ArrayList<>();
 
     @NodeCollection( namespace = "http://ns.example.org" )
-    private List<String> propertyWithNamespace = new ArrayList<>();
+    private final List<String> propertyWithNamespace = new ArrayList<>();
 
     public List<String> getProperty()
     {
@@ -74,77 +74,36 @@ class CollectionFields
     }
 
     @NodeCollection
-    private List<Item> items1 = new ArrayList<>();
+    private final List<Item> items1 = new ArrayList<>();
 
     @NodeCollection( value = "items", itemName = "item" )
-    private List<Item> items2 = new ArrayList<>();
+    private final List<Item> items2 = new ArrayList<>();
 }
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class FieldCollectionNodePropertyIntrospectorServiceTest
+public class FieldCollectionNodePropertyIntrospectorTest extends AbstractNodePropertyIntrospectorTest
 {
-    private Map<String, Property> propertyMap;
 
-    @Before
-    public void setup()
+    public FieldCollectionNodePropertyIntrospectorTest()
     {
-        propertyMap = new NodePropertyIntrospectorService().scanClass( CollectionFields.class );
+        super( CollectionFields.class );
     }
 
     @Test
+    @Override
     public void testContainsKey()
     {
-        assertTrue( propertyMap.containsKey( "property" ) );
         assertFalse( propertyMap.containsKey( "propertyToBeRenamed" ) );
-        assertTrue( propertyMap.containsKey( "renamedProperty" ) );
-        assertTrue( propertyMap.containsKey( "readOnly" ) );
-        assertTrue( propertyMap.containsKey( "writeOnly" ) );
-        assertTrue( propertyMap.containsKey( "propertyWithNamespace" ) );
-        assertTrue( propertyMap.containsKey( "items1" ) );
-        assertTrue( propertyMap.containsKey( "items" ) );
+        assertContainsOnly( propertyMap.keySet(),
+            "property", "renamedProperty", "readOnly", "writeOnly", "propertyWithNamespace", "items1", "items" );
     }
 
     @Test
-    public void testReadWrite()
+    public void testItemFieldName()
     {
-        assertTrue( propertyMap.get( "readOnly" ).isReadable() );
-        assertFalse( propertyMap.get( "readOnly" ).isWritable() );
-
-        assertFalse( propertyMap.get( "writeOnly" ).isReadable() );
-        assertTrue( propertyMap.get( "writeOnly" ).isWritable() );
-
-        assertNull( propertyMap.get( "readOnly" ).getSetterMethod() );
-        assertNull( propertyMap.get( "writeOnly" ).getGetterMethod() );
-    }
-
-    @Test
-    public void testFieldName()
-    {
-        assertEquals( "property", propertyMap.get( "property" ).getFieldName() );
-        assertEquals( "propertyToBeRenamed", propertyMap.get( "renamedProperty" ).getFieldName() );
         assertEquals( "items2", propertyMap.get( "items" ).getFieldName() );
-    }
-
-    @Test
-    public void testNamespace()
-    {
-        assertEquals( "http://ns.example.org", propertyMap.get( "propertyWithNamespace" ).getNamespace() );
-    }
-
-    @Test
-    public void testGetter()
-    {
-        assertNotNull( propertyMap.get( "property" ).getGetterMethod() );
-        assertNull( propertyMap.get( "renamedProperty" ).getGetterMethod() );
-    }
-
-    @Test
-    public void testSetter()
-    {
-        assertNotNull( propertyMap.get( "property" ).getSetterMethod() );
-        assertNull( propertyMap.get( "renamedProperty" ).getSetterMethod() );
     }
 
     @Test
@@ -160,6 +119,6 @@ public class FieldCollectionNodePropertyIntrospectorServiceTest
     @Test
     public void testItemKlass()
     {
-        assertTrue( Item.class.equals( propertyMap.get( "items1" ).getItemKlass() ) );
+        assertEquals( Item.class, propertyMap.get( "items1" ).getItemKlass() );
     }
 }

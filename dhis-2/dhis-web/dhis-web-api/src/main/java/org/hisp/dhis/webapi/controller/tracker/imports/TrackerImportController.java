@@ -112,7 +112,7 @@ public class TrackerImportController
 
     @PostMapping( value = "", consumes = APPLICATION_JSON_VALUE, params = { "async=false" } )
     public ResponseEntity<TrackerImportReport> syncPostJsonTracker(
-        @RequestParam( defaultValue = "full", required = false ) String reportMode, User currentUser,
+        @RequestParam( defaultValue = "errors", required = false ) String reportMode, User currentUser,
         @RequestBody TrackerBundleParams trackerBundleParams )
     {
         TrackerImportReportRequest trackerImportReportRequest = TrackerImportReportRequest.builder()

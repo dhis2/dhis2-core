@@ -79,7 +79,6 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -1579,7 +1578,7 @@ public class ValidationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( validationRule.getTranslations() );
         listObjectTranslation
-            .add( new Translation( locale.getLanguage(), TranslationProperty.INSTRUCTION, instructionTranslated ) );
+            .add( new Translation( locale.getLanguage(), "INSTRUCTION", instructionTranslated ) );
 
         identifiableObjectManager.updateTranslations( validationRule, listObjectTranslation );
 
