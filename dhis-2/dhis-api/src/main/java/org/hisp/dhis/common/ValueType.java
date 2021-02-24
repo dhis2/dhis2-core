@@ -28,17 +28,20 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.opengis.geometry.primitive.Point;
+import static java.util.stream.Collectors.toSet;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.opengis.geometry.primitive.Point;
+
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -70,12 +73,12 @@ public enum ValueType
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class, false ),
-    IMAGE( String.class, false);
+    IMAGE( String.class, false );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
         INTEGER, INTEGER_POSITIVE, INTEGER_NEGATIVE, INTEGER_ZERO_OR_POSITIVE );
 
-    public static final Set<ValueType> DECIMAL_TYPES =ImmutableSet.of(
+    public static final Set<ValueType> DECIMAL_TYPES = ImmutableSet.of(
         NUMBER, UNIT_INTERVAL, PERCENTAGE );
 
     public static final Set<ValueType> BOOLEAN_TYPES = ImmutableSet.of(
@@ -93,7 +96,7 @@ public enum ValueType
     public static final Set<ValueType> GEO_TYPES = ImmutableSet.of(
         COORDINATE );
 
-    public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType>builder().addAll(
+    public static final Set<ValueType> NUMERIC_TYPES = ImmutableSet.<ValueType> builder().addAll(
         INTEGER_TYPES ).addAll( DECIMAL_TYPES ).build();
 
     @Deprecated
@@ -171,9 +174,9 @@ public enum ValueType
     }
 
     /**
-     * Returns a simplified value type. As an example, if the value type is
-     * any numeric type such as integer, percentage, then {@link ValueType#NUMBER}
-     * is returned. Can return any of:
+     * Returns a simplified value type. As an example, if the value type is any
+     * numeric type such as integer, percentage, then {@link ValueType#NUMBER} is
+     * returned. Can return any of:
      *
      * <ul>
      * <li>{@link ValueType#NUMBER} for any numeric types.</li>
@@ -186,7 +189,7 @@ public enum ValueType
      *
      * @return a simplified value type.
      */
-    public ValueType asSimplifiedValueType()
+    public ValueType toSimplifiedValueType()
     {
         if ( isNumeric() )
         {
@@ -219,5 +222,10 @@ public enum ValueType
     {
         return Arrays.stream( ValueType.values() ).filter( v -> v.toString().equals( valueType ) ).findFirst()
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
+    }
+
+    public static Set<ValueType> getAggregatables()
+    {
+        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
     }
 }

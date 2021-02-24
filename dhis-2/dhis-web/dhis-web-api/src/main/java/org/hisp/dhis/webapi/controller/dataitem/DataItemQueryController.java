@@ -90,7 +90,7 @@ public class DataItemQueryController
     private final AclService aclService;
 
     public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
-        final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
+                                    final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
     {
         checkNotNull( dataItemServiceFacade );
         checkNotNull( contextService );
@@ -110,7 +110,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<RootNode> getJson( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+                                             final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
@@ -125,7 +125,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
     public ResponseEntity<RootNode> getXml( @RequestParam
-    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+                                            final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 
@@ -135,15 +135,15 @@ public class DataItemQueryController
     /**
      * Based on the informed arguments, this method will read the URL and based on
      * the give params will retrieve the respective data items.
-     * 
+     *
      * @param currentUser the logged user
      * @param urlParameters the request url params
      * @param orderParams the request order params
      * @return the complete root node
      */
     private ResponseEntity<RootNode> getDimensionalItems( final User currentUser,
-        final Map<String, String> urlParameters,
-        final OrderParams orderParams )
+                                                          final Map<String, String> urlParameters,
+                                                          final OrderParams orderParams )
     {
         // Defining the input params.
         final List<String> fields = newArrayList( contextService.getParameterValues( FIELDS ) );
@@ -181,7 +181,7 @@ public class DataItemQueryController
     }
 
     private void checkAuthorization( final User currentUser,
-        final Set<Class<? extends BaseDimensionalItemObject>> entities )
+                                     final Set<Class<? extends BaseDimensionalItemObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +25,25 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
 
+import static com.google.common.collect.Sets.newHashSet;
+import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
-import static org.junit.rules.ExpectedException.none;
+import static java.util.Collections.emptySet;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.collection.IsEmptyCollection.empty;
+import static org.hisp.dhis.common.DimensionItemType.INDICATOR;
+import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
+import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anySet;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
-import static org.springframework.http.HttpStatus.FOUND;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,126 +51,157 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.dataitem.DataItem;
+import org.hisp.dhis.dataitem.query.QueryExecutor;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
-import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-public class DataItemQueryControllerTest
+/**
+ * Unit tests for DataItemServiceFacade.
+ *
+ * @author maikel arabori
+ */
+public class DataItemServiceFacadeTest
 {
     @Mock
-    private DataItemServiceFacade dataItemServiceFacade;
-
-    @Mock
-    private ContextService contextService;
-
-    @Mock
-    private ResponseHandler responseHandler;
+    private CurrentUserService currentUserService;
 
     @Mock
     private AclService aclService;
 
+    @Mock
+    private QueryExecutor queryExecutor;
+
     @Rule
     public MockitoRule mockitoRule = rule();
 
-    @Rule
-    public ExpectedException expectedException = none();
-
-    private DataItemQueryController dataItemQueryController;
+    private DataItemServiceFacade dataItemServiceFacade;
 
     @Before
     public void setUp()
     {
-        dataItemQueryController = new DataItemQueryController( dataItemServiceFacade, contextService, responseHandler,
-            aclService );
+        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, aclService, queryExecutor );
     }
 
     @Test
-    public void testGetWithSuccess()
+    public void testRetrieveDataItemEntities()
     {
         // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> itemsFound = asList( new Indicator() );
+        final Class<? extends BaseIdentifiableObject> targetEntity = Indicator.class;
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = new HashSet<>(
+            asList( targetEntity ) );
+        final List<DataItem> expectedItemsFound = asList( mockDataItem( INDICATOR ), mockDataItem( INDICATOR ) );
+        final Set<String> anyFilters = newHashSet( "anyFilter" );
+        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+        final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
+        final OrderParams anyOrderParams = new OrderParams( anyOrdering );
+        final User currentUser = new User();
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
-        when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
-
-        final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
-            anyOrderParams, anyUser );
+        when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
+        when( aclService.canRead( currentUser, targetEntity ) ).thenReturn( true );
+        when( queryExecutor.find( any( Class.class ), any( MapSqlParameterSource.class ) ) )
+            .thenReturn( expectedItemsFound );
+        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
+            .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
 
         // Then
-        assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anyList() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
-            anyList() );
+        assertThat( actualDimensionalItems, hasSize( 2 ) );
+        assertThat( actualDimensionalItems.get( 0 ).getDimensionItemType(), is( INDICATOR ) );
+        assertThat( actualDimensionalItems.get( 1 ).getDimensionItemType(), is( INDICATOR ) );
     }
 
     @Test
-    public void testGetWhenItemsAreNotFound()
+    public void testRetrieveDataItemEntitiesWhenTargetEntitiesIsEmpty()
     {
         // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> itemsFound = emptyList();
+        final Set<Class<? extends BaseIdentifiableObject>> anyTargetEntities = emptySet();
+        final Set<String> anyFilters = newHashSet( "anyFilter" );
+        final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
+        final Set<String> anyOrdering = new HashSet<>( asList( "name:desc" ) );
+        final OrderParams anyOrderParams = new OrderParams( anyOrdering );
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
-        when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
-
-        final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
-            anyOrderParams, anyUser );
+        final List<DataItem> actualDimensionalItems = dataItemServiceFacade
+            .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
 
         // Then
-        assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( NOT_FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
+        assertThat( actualDimensionalItems, is( empty() ) );
     }
 
     @Test
-    public void testGetWhenAclIsInvalid()
+    public void testExtractTargetEntitiesUsingEqualsFilter()
     {
         // Given
-        final Map<String, String> anyUrlParameters = new HashMap<>();
-        final OrderParams anyOrderParams = new OrderParams();
-        final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
+        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
             asList( Indicator.class ) );
-        final boolean invalidAcl = false;
-
-        // Then
-        expectedException.expect( IllegalQueryException.class );
-        expectedException
-            .expectMessage( containsString( "does not have read access for object" ) );
+        final Set<String> theFilters = newHashSet( "dimensionItemType:eq:INDICATOR" );
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
-        dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
+            .extractTargetEntities( theFilters );
+
+        // Then
+        assertThat( actualTargetEntities, containsInAnyOrder( expectedTargetEntities.toArray() ) );
+    }
+
+    @Test
+    public void testExtractTargetEntitiesUsingInFilter()
+    {
+        // Given
+        final Set<Class<? extends BaseIdentifiableObject>> expectedTargetEntities = new HashSet<>(
+            asList( Indicator.class, DataSet.class ) );
+        final Set<String> theFilters = newHashSet( "dimensionItemType:in:[INDICATOR, DATA_SET]" );
+
+        // When
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
+            .extractTargetEntities( theFilters );
+
+        // Then
+        assertThat( actualTargetEntities, containsInAnyOrder( expectedTargetEntities.toArray() ) );
+    }
+
+    @Test
+    public void testExtractTargetEntitiesWhenThereIsNoExplicitTargetSet()
+    {
+        // Given
+        final Set<String> noTargetEntitiesFilters = emptySet();
+
+        // When
+        final Set<Class<? extends BaseIdentifiableObject>> actualTargetEntities = dataItemServiceFacade
+            .extractTargetEntities( noTargetEntitiesFilters );
+
+        // Then
+        assertThat( actualTargetEntities, containsInAnyOrder( getEntities().toArray() ) );
+    }
+
+    private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
+    {
+        final Map<String, String> options = new HashMap<>( 0 );
+        options.put( PAGE_SIZE, valueOf( pageSize ) );
+        options.put( PAGE, valueOf( pageNumber ) );
+        options.put( PAGING, "true" );
+
+        return new WebOptions( options );
+    }
+
+    private DataItem mockDataItem( final DimensionItemType dimensionItemType )
+    {
+        final DataItem dataItem = DataItem.builder().dimensionItemType( dimensionItemType ).build();
+
+        return dataItem;
     }
 }

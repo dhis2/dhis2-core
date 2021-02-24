@@ -28,8 +28,6 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import java.io.Serializable;
 import java.util.Date;
 
@@ -40,11 +38,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Item part of meta data analytics response.
  *
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class MetadataItem
     implements Serializable
 {
@@ -157,13 +157,13 @@ public class MetadataItem
         if ( dimensionalItemObject instanceof DataElement )
         {
             DataElement dataElement = (DataElement) dimensionalItemObject;
-            this.valueType = dataElement.getValueType().asSimplifiedValueType();
+            this.valueType = dataElement.getValueType().toSimplifiedValueType();
         }
 
         if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
-            this.valueType = attribute.getValueType().asSimplifiedValueType();
+            this.valueType = attribute.getValueType().toSimplifiedValueType();
         }
 
         // TODO introduce start/end date marker interface instead
