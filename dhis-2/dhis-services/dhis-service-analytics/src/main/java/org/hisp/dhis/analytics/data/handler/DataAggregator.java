@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data.handling;
+package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.DX_INDEX;
@@ -50,7 +50,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataAggregator
 {
-
     private final HeaderHandler headerHandler;
 
     private final MetadataHandler metaDataHandler;

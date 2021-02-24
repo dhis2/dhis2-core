@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.data.handling;
+package org.hisp.dhis.analytics.data.handler;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
@@ -234,9 +234,9 @@ public class DataHandler
 
             List<Indicator> indicators = asTypedList( dataSourceParams.getIndicators() );
 
-            // Try to get filters periods from dimension (pe), or else fallback
-            // to
-            // "startDate/endDate" periods.
+            // Try to get filters periods from dimension (pe), or else fall back
+            // to "startDate/endDate" periods
+
             List<Period> filterPeriods = isNotEmpty( dataSourceParams.getTypedFilterPeriods() )
                 ? dataSourceParams.getTypedFilterPeriods()
                 : dataSourceParams.getStartEndDatesToSingleList();
@@ -729,9 +729,9 @@ public class DataHandler
         {
             value = actual;
         }
-        else if ( !isZero( target ) ) // REPORTING_RATE or
-                                      // REPORTING_RATE_ON_TIME
+        else if ( !isZero( target ) )
         {
+            // REPORTING_RATE or REPORTING_RATE_ON_TIME
             value = min( ((actual * PERCENT) / target), 100d );
         }
 
@@ -982,8 +982,8 @@ public class DataHandler
 
         items = replaceOperandTotalsWithDataElements( items );
 
-        DimensionalObject dimension = new BaseDimensionalObject( DATA_X_DIM_ID, DATA_X, null, DISPLAY_NAME_DATA_X,
-            items );
+        DimensionalObject dimension = new BaseDimensionalObject(
+            DATA_X_DIM_ID, DATA_X, null, DISPLAY_NAME_DATA_X, items );
 
         DataQueryParams dataSourceParams = newBuilder( params )
             .replaceDimension( dimension )
@@ -1003,8 +1003,8 @@ public class DataHandler
         }
 
         // Derive the Grid indexes for data, value and period based on the first
-        // row of
-        // the Grid.
+        // row of the Grid
+
         final int dataIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), items, 0 );
         final int periodIndex = getGridIndexByDimensionItem( grid.getRow( 0 ), params.getPeriods(), 1 );
         final int valueIndex = grid.getWidth() - 1;
@@ -1018,9 +1018,9 @@ public class DataHandler
             if ( isNotEmpty( dimensionalItems ) )
             {
                 // Check if the current row's Period belongs to the list of
-                // periods from the
-                // original Analytics request.
-                // The row may not have a Period if Period is used as filter.
+                // periods from the original Analytics request. The row may
+                // not have a Period if Period is used as filter.
+
                 if ( hasPeriod( row, periodIndex )
                     && isPeriodInPeriods( (String) row.get( periodIndex ), basePeriods ) )
                 {
@@ -1199,10 +1199,8 @@ public class DataHandler
 
                 if ( ex.getCause() instanceof RuntimeException )
                 {
-                    throw (RuntimeException) ex.getCause(); // Throw the real
-                                                            // exception instead
-                                                            // of execution
-                    // exception
+                    // Throw the real exception
+                    throw (RuntimeException) ex.getCause();
                 }
                 else
                 {
