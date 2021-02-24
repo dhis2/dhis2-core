@@ -37,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -56,10 +55,10 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.Jackson2PropertyIntrospectorService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Assert;
@@ -100,14 +99,8 @@ public class DefaultFieldFilterServiceTest
         final Set<NodeTransformer> nodeTransformers = new HashSet<>();
         nodeTransformers.add( new PluckNodeTransformer() );
 
-        final SchemaService schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
-        {
-            @Override
-            protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
-            {
-                return Collections.emptyMap();
-            }
-        }, sessionFactory );
+        final SchemaService schemaService = new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
 
         CacheProvider cacheProvider = mock( CacheProvider.class );
         when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );

@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -101,6 +102,8 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     private static final String USERB_PHONE_NUMBER = "47500000";
 
     private static final String ATT_EMAIL = "attr@test.org";
+
+    private String notificationTemplate = CodeGenerator.generateUid();
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
@@ -333,6 +336,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         assertEquals( OrganisationUnit.class, programMessage.getRecipients().getOrganisationUnit().getClass() );
         assertEquals( lvlTwoLeftLeft, programMessage.getRecipients().getOrganisationUnit() );
+        assertEquals( programMessage.getNotificationTemplate(), notificationTemplate );
     }
 
     @Test
@@ -360,6 +364,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         assertTrue( programMessage.getRecipients().getPhoneNumbers().contains( ATT_PHONE_NUMBER ) );
         assertTrue( programMessage.getDeliveryChannels().contains( DeliveryChannel.SMS ) );
+        assertEquals( programMessage.getNotificationTemplate(), notificationTemplate );
     }
 
     @Test
@@ -387,6 +392,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         assertTrue( programMessage.getRecipients().getEmailAddresses().contains( ATT_EMAIL ) );
         assertTrue( programMessage.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) );
+        assertEquals( programMessage.getNotificationTemplate(), notificationTemplate );
     }
 
     @Test
@@ -627,6 +633,7 @@ public class ProgramNotificationServiceTest extends DhisConvenienceTest
     {
         programNotificationTemplate = createProgramNotificationTemplate( TEMPLATE_NAME, 0,
             NotificationTrigger.ENROLLMENT, ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE );
+        programNotificationTemplate.setUid( notificationTemplate );
 
         java.util.Calendar cal = java.util.Calendar.getInstance();
 

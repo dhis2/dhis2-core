@@ -61,7 +61,6 @@ import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -87,10 +86,6 @@ import com.google.common.collect.Lists;
 public class DataElement extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
-    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(),
-        TranslationProperty.SHORT_NAME.getName(),
-        TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
-
     /**
      * Data element value type (int, boolean, etc)
      */
@@ -462,23 +457,6 @@ public class DataElement extends BaseDimensionalItemObject
     public boolean hasAggregationLevels()
     {
         return aggregationLevels != null && aggregationLevels.size() > 0;
-    }
-
-    /**
-     * Returns the form name, or the name if it does not exist.
-     */
-    @Override
-    public String getFormNameFallback()
-    {
-        return formName != null && !formName.isEmpty() ? getFormName() : getDisplayName();
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
     }
 
     /**

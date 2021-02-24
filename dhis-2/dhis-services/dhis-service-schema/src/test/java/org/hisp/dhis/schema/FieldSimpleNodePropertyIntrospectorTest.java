@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.schema;
 
-import static org.junit.Assert.*;
-
-import java.util.Map;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.node.annotation.NodeSimple;
-import org.junit.Before;
 import org.junit.Test;
 
 class SimpleFields
@@ -66,24 +64,12 @@ class SimpleFields
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class FieldSimpleNodePropertyIntrospectorServiceTest
+public class FieldSimpleNodePropertyIntrospectorTest extends AbstractNodePropertyIntrospectorTest
 {
-    private Map<String, Property> propertyMap;
 
-    @Before
-    public void setup()
+    public FieldSimpleNodePropertyIntrospectorTest()
     {
-        propertyMap = new NodePropertyIntrospectorService().scanClass( SimpleFields.class );
-    }
-
-    @Test
-    public void testContainsKey()
-    {
-        assertTrue( propertyMap.containsKey( "property" ) );
-        assertFalse( propertyMap.containsKey( "propertyToBeRenamed" ) );
-        assertTrue( propertyMap.containsKey( "renamedProperty" ) );
-        assertTrue( propertyMap.containsKey( "readOnly" ) );
-        assertTrue( propertyMap.containsKey( "writeOnly" ) );
+        super( SimpleFields.class );
     }
 
     @Test
@@ -93,43 +79,4 @@ public class FieldSimpleNodePropertyIntrospectorServiceTest
         assertTrue( propertyMap.get( "renamedProperty" ).isAttribute() );
     }
 
-    @Test
-    public void testReadWrite()
-    {
-        assertTrue( propertyMap.get( "readOnly" ).isReadable() );
-        assertFalse( propertyMap.get( "readOnly" ).isWritable() );
-
-        assertFalse( propertyMap.get( "writeOnly" ).isReadable() );
-        assertTrue( propertyMap.get( "writeOnly" ).isWritable() );
-
-        assertNull( propertyMap.get( "readOnly" ).getSetterMethod() );
-        assertNull( propertyMap.get( "writeOnly" ).getGetterMethod() );
-    }
-
-    @Test
-    public void testFieldName()
-    {
-        assertEquals( "property", propertyMap.get( "property" ).getFieldName() );
-        assertEquals( "propertyToBeRenamed", propertyMap.get( "renamedProperty" ).getFieldName() );
-    }
-
-    @Test
-    public void testNamespace()
-    {
-        assertEquals( "http://ns.example.org", propertyMap.get( "propertyWithNamespace" ).getNamespace() );
-    }
-
-    @Test
-    public void testGetter()
-    {
-        assertNotNull( propertyMap.get( "property" ).getGetterMethod() );
-        assertNull( propertyMap.get( "renamedProperty" ).getGetterMethod() );
-    }
-
-    @Test
-    public void testSetter()
-    {
-        assertNotNull( propertyMap.get( "property" ).getSetterMethod() );
-        assertNull( propertyMap.get( "renamedProperty" ).getSetterMethod() );
-    }
 }

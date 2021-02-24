@@ -644,6 +644,27 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         assertEquals( 0, objects.size() );
     }
 
+    @Test
+    public void testCountAndPaging()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        assertEquals( 6, queryEngine.count( query ) );
+        assertEquals( 6, queryEngine.query( query ).size() );
+        query.setMaxResults( 2 );
+        query.setFirstResult( 1 );
+        assertEquals( 2, queryEngine.query( query ).size() );
+
+        query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        assertEquals( 1, queryEngine.count( query ) );
+        assertEquals( 1, queryEngine.query( query ).size() );
+
+        query.add( Restrictions.eq( "name", "not exist" ) );
+        assertEquals( 0, queryEngine.count( query ) );
+        assertEquals( 0, queryEngine.query( query ).size() );
+
+    }
+
     @Override
     public boolean emptyDatabaseAfterTest()
     {

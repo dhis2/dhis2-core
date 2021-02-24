@@ -44,7 +44,6 @@ import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 
 import com.opensymphony.xwork2.Action;
 
@@ -149,13 +148,13 @@ public class TranslateAction
 
         Set<Translation> listObjectTranslation = new HashSet<>( object.getTranslations() );
 
-        for ( TranslationProperty p : TranslationProperty.values() )
+        for ( Translation p : listObjectTranslation )
         {
             Enumeration<String> paramNames = request.getParameterNames();
 
             Collections.list( paramNames ).forEach( paramName -> {
 
-                if ( paramName.equalsIgnoreCase( p.getName() ) )
+                if ( paramName.equalsIgnoreCase( p.getProperty().toString() ) )
                 {
                     String[] paramValues = request.getParameterValues( paramName );
 
@@ -164,7 +163,7 @@ public class TranslateAction
                         listObjectTranslation
                             .removeIf( o -> o.getProperty().equals( p ) && o.getLocale().equalsIgnoreCase( loc ) );
 
-                        listObjectTranslation.add( new Translation( loc, p, paramValues[0] ) );
+                        listObjectTranslation.add( new Translation( loc, p.getProperty(), paramValues[0] ) );
                     }
                 }
             } );

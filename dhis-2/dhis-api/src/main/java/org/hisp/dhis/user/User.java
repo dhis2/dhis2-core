@@ -468,6 +468,7 @@ public class User
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Property( PropertyType.EMAIL )
     public String getEmail()
     {
         return email;

@@ -36,7 +36,6 @@ import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.springframework.core.Ordered;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -278,6 +277,10 @@ public class Property implements Ordered, Klass
      * Default value of the Property
      */
     private Object defaultValue;
+
+    private boolean translatable;
+
+    private String translationKey;
 
     public Property()
     {
@@ -717,14 +720,14 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TranslationProperty getTranslationKey()
+    public String getTranslationKey()
     {
-        if ( !isPersisted() )
-        {
-            return null;
-        }
+        return this.translationKey;
+    }
 
-        return TranslationProperty.fromValue( name );
+    public void setTranslationKey( String translationKey )
+    {
+        this.translationKey = translationKey;
     }
 
     @JsonProperty
@@ -812,6 +815,18 @@ public class Property implements Ordered, Klass
         }
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isTranslatable()
+    {
+        return this.translatable;
+    }
+
+    public void setTranslatable( boolean translatable )
+    {
+        this.translatable = translatable;
+    }
+
     public String key()
     {
         return isCollection() ? collectionName : name;
@@ -820,6 +835,18 @@ public class Property implements Ordered, Klass
     public boolean is( PropertyType propertyType )
     {
         return propertyType != null && propertyType.equals( this.propertyType );
+    }
+
+    public boolean is( PropertyType... anyOf )
+    {
+        for ( PropertyType type : anyOf )
+        {
+            if ( is( type ) )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

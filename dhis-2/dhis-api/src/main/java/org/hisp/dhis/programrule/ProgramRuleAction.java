@@ -40,7 +40,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -398,9 +398,10 @@ public class ProgramRuleAction
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "content", key = "CONTENT" )
     public String getDisplayContent()
     {
-        return getTranslation( TranslationProperty.CONTENT, getContent() );
+        return getTranslation( "CONTENT", getContent() );
     }
 
     public void setContent( String content )
