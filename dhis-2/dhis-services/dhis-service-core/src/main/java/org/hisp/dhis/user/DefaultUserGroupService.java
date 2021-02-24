@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.user;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +62,8 @@ public class DefaultUserGroupService
     private Cache<String> userGroupNameCache;
 
     public DefaultUserGroupService( UserGroupStore userGroupStore,
-        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService, CacheProvider cacheProvider )
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
@@ -264,7 +265,7 @@ public class DefaultUserGroupService
 
     @Override
     @Transactional( readOnly = true )
-    public String getUserGroupDisplayName( String uid )
+    public String getDisplayName( String uid )
     {
         return userGroupNameCache.get( uid, n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).get();
     }

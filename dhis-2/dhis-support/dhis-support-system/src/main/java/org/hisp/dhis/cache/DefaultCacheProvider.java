@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.cache;
 
-import lombok.AllArgsConstructor;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Component;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
+import lombok.AllArgsConstructor;
+
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of

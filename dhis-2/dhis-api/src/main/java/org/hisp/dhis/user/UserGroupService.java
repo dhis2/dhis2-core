@@ -80,5 +80,8 @@ public interface UserGroupService
 
     int getUserGroupCountByName( String name );
 
-    String getUserGroupDisplayName( String uid );
+    /**
+     * Get UserGroup's display name by given userGroup uid
+     */
+    String getDisplayName( String uid );
 }
