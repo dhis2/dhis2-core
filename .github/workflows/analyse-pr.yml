@@ -41,7 +41,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('pom.xml') }}
           restore-keys: ${{ runner.os }}-maven-
 
-      - name: Analyse PR
+      - name: Analyse PR core
         env:
           BASE_BRANCH: ${{ github.base_ref }}
           BRANCH: ${{ github.ref }}
@@ -52,6 +52,18 @@ jobs:
         run: |
           mvn -f dhis-2/pom.xml clean install -Psonarqube -Pjdk11
           mvn -f dhis-2/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
+
+      - name: Analyse PR dhis-web
+        env:
+          BASE_BRANCH: ${{ github.base_ref }}
+          BRANCH: ${{ github.ref }}
+          PR: ${{ github.event.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: github.event_name == 'pull_request'
+        run: |
+          mvn -f dhis-2/dhis-web/pom.xml clean install -Psonarqube -Pjdk11
+          mvn -f dhis-2/dhis-web/pom.xml sonar:sonar -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }} -Dsonar.projectKey=dhis2_dhis2-core -Dsonar.coverage.jacoco.xmlReportPaths=$(find "$(pwd)" -path '*jacoco.xml' | sed 's/.*/&/' | tr '\n' ',')
 
       - name: Analyse long-living branch
         env:
