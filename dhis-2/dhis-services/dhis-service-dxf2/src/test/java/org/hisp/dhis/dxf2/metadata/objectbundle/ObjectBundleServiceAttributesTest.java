@@ -59,7 +59,6 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -182,7 +181,6 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    @Ignore // temporary to see what other tests fail
     public void testValidateMetadataAttributeValuesMandatory()
         throws IOException
     {
@@ -227,7 +225,6 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    @Ignore // temporary to see what other tests fail
     public void testValidateMetadataAttributeValuesUnique()
         throws IOException
     {
@@ -270,7 +267,9 @@ public class ObjectBundleServiceAttributesTest
 
     private void defaultSetupWithAttributes()
     {
-        userService.addUser( createUser( 'A' ) );
+        User user = createUser( 'A' );
+        userService.addUser( user );
+        injectSecurityContext( user );
 
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
@@ -291,6 +290,10 @@ public class ObjectBundleServiceAttributesTest
         attributeService.addAttributeValue( de1, createAttributeValue( attribute, "Value1" ) );
         attributeService.addAttributeValue( de2, createAttributeValue( attribute, "Value2" ) );
         attributeService.addAttributeValue( de3, createAttributeValue( attribute, "Value3" ) );
+
+        dataElementService.updateDataElement( de1 );
+        dataElementService.updateDataElement( de2 );
+        dataElementService.updateDataElement( de3 );
 
     }
 }
