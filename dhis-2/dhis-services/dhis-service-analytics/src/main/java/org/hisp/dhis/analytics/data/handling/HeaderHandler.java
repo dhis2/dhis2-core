@@ -47,8 +47,6 @@ import static org.hisp.dhis.common.ValueType.DATETIME;
 import static org.hisp.dhis.common.ValueType.NUMBER;
 import static org.hisp.dhis.common.ValueType.TEXT;
 
-import java.util.Date;
-
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -72,42 +70,44 @@ public class HeaderHandler
         {
             for ( DimensionalObject col : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader( col.getDimension(), col.getDimensionDisplayName(), TEXT,
-                    String.class.getName(), false, true ) );
+                grid.addHeader( new GridHeader(
+                    col.getDimension(), col.getDimensionDisplayName(), TEXT, false, true ) );
             }
 
             if ( params.isShowHierarchy() && !params.getOrgUnitLevels().isEmpty() )
             {
                 for ( DimensionalObject level : params.getOrgUnitLevelsAsDimensions() )
                 {
-                    grid.addHeader( new GridHeader( level.getDimension(), level.getDimensionDisplayName(), TEXT,
-                        String.class.getName(), false, true ) );
+                    grid.addHeader( new GridHeader(
+                        level.getDimension(), level.getDimensionDisplayName(), TEXT, false, true ) );
                 }
             }
 
             if ( params.isIncludePeriodStartEndDates() )
             {
-                grid.addHeader( new GridHeader( PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, DATETIME,
-                    Date.class.getName(), false, false ) );
-                grid.addHeader( new GridHeader( PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, DATETIME,
-                    Date.class.getName(), false, false ) );
+                grid
+                    .addHeader( new GridHeader(
+                        PERIOD_START_DATE_ID, PERIOD_START_DATE_NAME, DATETIME, false, false ) )
+                    .addHeader( new GridHeader(
+                        PERIOD_END_DATE_ID, PERIOD_END_DATE_NAME, DATETIME, false, false ) );
             }
 
             grid.addHeader(
-                new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) );
+                new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, Double.class.getName(),
-                    false, false ) )
-                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, Double.class.getName(),
-                        false, false ) )
-                    .addHeader(
-                        new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, Double.class.getName(),
-                        false, false ) )
-                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, Double.class.getName(), false,
-                        false ) );
+                grid
+                    .addHeader( new GridHeader(
+                        NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader(
+                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader(
+                        FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader(
+                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader(
+                        DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false ) );
             }
         }
     }

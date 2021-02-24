@@ -317,7 +317,7 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
         grid.addHeader(
-            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
         assertEquals( 4, grid.getHeaders().size() );
         assertEquals( 0, grid.getWidth() );
@@ -369,7 +369,7 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.ORGUNIT_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.PERIOD_DIM_ID ) );
         grid.addHeader(
-            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
         grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghA", "ouA", "peA", 1d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "deabcdefghB", "ouA", "peA", 2d ) );
@@ -436,7 +436,7 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader(
-            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
         DataValueSet dvs = AnalyticsUtils.getDataValueSetFromGrid( DataQueryParams.newBuilder().build(), grid );
 
@@ -456,7 +456,7 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader(
-            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", "coA", "aoA", 1d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
@@ -522,7 +522,7 @@ public class AnalyticsUtilsTest
         grid.addHeader( new GridHeader( DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID ) );
         grid.addHeader( new GridHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) );
         grid.addHeader(
-            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+            new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peA", null, null, 1d ) );
         grid.addRow().addValuesAsList( Lists.newArrayList( "dxA", "ouA", "peB", null, null, 2d ) );
