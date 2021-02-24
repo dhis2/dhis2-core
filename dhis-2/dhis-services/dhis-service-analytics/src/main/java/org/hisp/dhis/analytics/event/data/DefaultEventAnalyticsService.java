@@ -51,7 +51,6 @@ import static org.hisp.dhis.reporttable.ReportTable.SPACE;
 import static org.hisp.dhis.reporttable.ReportTable.TOTAL_COLUMN_PRETTY_NAME;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -311,7 +310,7 @@ public class DefaultEventAnalyticsService
             String name = StringUtils.defaultIfEmpty( metadataItem.getName(), row );
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
-            outputGrid.addHeader( new GridHeader( name, col, ValueType.TEXT, String.class.getName(), false, true ) );
+            outputGrid.addHeader( new GridHeader( name, col, ValueType.TEXT, false, true ) );
         }
 
         columnPermutations.forEach( permutation -> {
@@ -330,7 +329,7 @@ public class DefaultEventAnalyticsService
                 : TOTAL_COLUMN_PRETTY_NAME;
 
             outputGrid.addHeader( new GridHeader( display, display,
-                ValueType.NUMBER, Double.class.getName(), false, false ) );
+                ValueType.NUMBER, false, false ) );
         } );
 
         for ( Map<String, EventAnalyticsDimensionalItem> rowCombination : rowPermutations )
@@ -494,7 +493,7 @@ public class DefaultEventAnalyticsService
             if ( params.isCollapseDataDimensions() || params.isAggregateData() )
             {
                 grid.addHeader( new GridHeader( DimensionalObject.DATA_COLLAPSED_DIM_ID,
-                    DataQueryParams.DISPLAY_NAME_DATA_X, ValueType.TEXT, String.class.getName(), false, true ) );
+                    DataQueryParams.DISPLAY_NAME_DATA_X, ValueType.TEXT, false, true ) );
             }
             else
             {
@@ -502,34 +501,34 @@ public class DefaultEventAnalyticsService
                 {
                     grid.addHeader( new GridHeader( item.getItem().getUid(),
                         item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
-                        item.getTypeAsString(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+                        false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
 
             for ( DimensionalObject dimension : params.getDimensions() )
             {
                 grid.addHeader( new GridHeader( dimension.getDimension(),
-                    dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT, String.class.getName(),
+                    dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT,
                     false, true ) );
             }
 
             grid.addHeader(
-                new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+                new GridHeader( VALUE_ID, VALUE_HEADER_NAME, ValueType.NUMBER, false, false ) );
 
             if ( params.isIncludeNumDen() )
             {
                 grid.addHeader( new GridHeader(
-                    NUMERATOR_ID, NUMERATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                    NUMERATOR_ID, NUMERATOR_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
-                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false,
+                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, ValueType.NUMBER, false,
                         false ) )
                     .addHeader( new GridHeader(
-                        FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) )
+                        FACTOR_ID, FACTOR_HEADER_NAME, ValueType.NUMBER, false, false ) )
                     .addHeader( new GridHeader(
-                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false,
+                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, ValueType.NUMBER, false,
                         false ) )
                     .addHeader( new GridHeader(
-                        DIVISOR_ID, DIVISOR_HEADER_NAME, ValueType.NUMBER, Double.class.getName(), false, false ) );
+                        DIVISOR_ID, DIVISOR_HEADER_NAME, ValueType.NUMBER, false, false ) );
             }
 
             // -----------------------------------------------------------------
@@ -621,13 +620,13 @@ public class DefaultEventAnalyticsService
         // ---------------------------------------------------------------------
 
         grid.addHeader( new GridHeader(
-            ITEM_COUNT, NAME_COUNT, ValueType.NUMBER, Long.class.getName(), false, false ) )
+            ITEM_COUNT, NAME_COUNT, ValueType.NUMBER, false, false ) )
             .addHeader( new GridHeader(
-                ITEM_CENTER, NAME_CENTER, ValueType.TEXT, String.class.getName(), false, false ) )
+                ITEM_CENTER, NAME_CENTER, ValueType.TEXT, false, false ) )
             .addHeader( new GridHeader(
-                ITEM_EXTENT, NAME_EXTENT, ValueType.TEXT, String.class.getName(), false, false ) )
+                ITEM_EXTENT, NAME_EXTENT, ValueType.TEXT, false, false ) )
             .addHeader( new GridHeader(
-                ITEM_POINTS, NAME_POINTS, ValueType.TEXT, String.class.getName(), false, false ) );
+                ITEM_POINTS, NAME_POINTS, ValueType.TEXT, false, false ) );
 
         // ---------------------------------------------------------------------
         // Data
@@ -681,36 +680,35 @@ public class DefaultEventAnalyticsService
         Grid grid = new ListGrid();
 
         grid.addHeader( new GridHeader(
-            ITEM_EVENT, NAME_EVENT, ValueType.TEXT, String.class.getName(), false, true ) )
+            ITEM_EVENT, NAME_EVENT, ValueType.TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, String.class.getName(), false, true ) )
+                ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, ValueType.TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) );
+                ITEM_EVENT_DATE, NAME_EVENT_DATE, ValueType.DATE, false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {
             grid.addHeader( new GridHeader(
-                ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE, false, true ) )
                 .addHeader( new GridHeader(
-                    ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(), false, true ) )
+                    ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, false, true ) )
                 .addHeader( new GridHeader(
-                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT, String.class.getName(),
+                    ITEM_TRACKED_ENTITY_INSTANCE, NAME_TRACKED_ENTITY_INSTANCE, ValueType.TEXT,
                     false, true ) )
                 .addHeader( new GridHeader(
-                    ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, String.class.getName(), false,
-                    true ) );
+                    ITEM_PROGRAM_INSTANCE, NAME_PROGRAM_INSTANCE, ValueType.TEXT, false, true ) );
         }
 
         grid.addHeader( new GridHeader(
-            ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
+            ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+                ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
+                ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(), false, true ) )
+                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, false, true ) )
             .addHeader( new GridHeader(
-                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(), false, true ) );
+                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, false, true ) );
 
         return grid;
     }

@@ -394,12 +394,13 @@ public class EventsAnalyticsManagerTest extends EventAnalyticsTest
 
     private Grid createGrid()
     {
-        Grid grid = new ListGrid();
-        grid.addHeader(
-            new GridHeader( "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, "java.lang.String", false, true ) );
-        grid.addHeader( new GridHeader( "pe", "Period", ValueType.TEXT, "java.lang.String", false, true ) );
-        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, "java.lang.Double", false, true ) );
-        return grid;
+        return new ListGrid()
+            .addHeader( new GridHeader(
+                "fWIAEtYVEGk", "Mode of discharge", ValueType.TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                "pe", "Period", ValueType.TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                "value", "Value", ValueType.NUMBER, false, true ) );
     }
 
     private void mockRowSet()

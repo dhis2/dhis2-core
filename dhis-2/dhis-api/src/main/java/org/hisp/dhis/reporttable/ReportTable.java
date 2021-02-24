@@ -603,22 +603,22 @@ public class ReportTable
             String col = StringUtils.defaultIfEmpty( COLUMN_NAMES.get( row ), row );
 
             grid.addHeader(
-                new GridHeader( name + " ID", col + "id", ValueType.TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, String.class.getName(), false, true ) );
+                new GridHeader( name + " ID", col + "id", ValueType.TEXT, true, true ) );
+            grid.addHeader( new GridHeader( name, col + "name", ValueType.TEXT, false, true ) );
             grid.addHeader(
-                new GridHeader( name + " code", col + "code", ValueType.TEXT, String.class.getName(), true, true ) );
+                new GridHeader( name + " code", col + "code", ValueType.TEXT, true, true ) );
             grid.addHeader( new GridHeader( name + " description", col + "description", ValueType.TEXT,
-                String.class.getName(), true, true ) );
+                true, true ) );
         }
 
         if ( reportParamColumns )
         {
             grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
+                ValueType.TEXT, true, true ) );
             grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
+                ValueType.TEXT, true, true ) );
             grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
-                ValueType.TEXT, String.class.getName(), true, true ) );
+                ValueType.TEXT, true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
@@ -627,7 +627,7 @@ public class ReportTable
         for ( List<DimensionalItemObject> column : gridColumns )
         {
             grid.addHeader( new GridHeader( getColumnName( column ), getPrettyColumnName( column, displayProperty ),
-                ValueType.NUMBER, Double.class.getName(), false, false ) );
+                ValueType.NUMBER, false, false ) );
         }
 
         // ---------------------------------------------------------------------
@@ -752,7 +752,7 @@ public class ReportTable
             String name = String.format( "Org unit level %d", level );
             String column = String.format( "orgunitlevel%d", level );
 
-            headers.add( new GridHeader( name, column, ValueType.TEXT, String.class.getName(), false, true ) );
+            headers.add( new GridHeader( name, column, ValueType.TEXT, false, true ) );
         }
 
         grid.addHeaders( ouIdColumnIndex, headers );
