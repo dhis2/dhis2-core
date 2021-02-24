@@ -675,12 +675,9 @@ public class DefaultEventAnalyticsService
         Grid grid = new ListGrid();
 
         grid
-            .addHeader( new GridHeader(
-                ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
-            .addHeader( new GridHeader(
-                ITEM_EVENT_DATE, NAME_EVENT_DATE, DATE, false, true ) );
+            .addHeader( new GridHeader( ITEM_EVENT, NAME_EVENT, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_PROGRAM_STAGE, NAME_PROGRAM_STAGE, TEXT, false, true ) )
+            .addHeader( new GridHeader( ITEM_EVENT_DATE, NAME_EVENT_DATE, DATE, false, true ) );
 
         if ( params.getProgram().isRegistration() )
         {
