@@ -49,7 +49,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -75,6 +74,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import com.google.common.collect.Lists;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -171,6 +171,17 @@ public class DataElementOperandController
             }
         }
 
+        // This is needed for two reasons:
+        // 1) We are doing in-memory paging;
+        // 2) We have to count all items respecting the filtering and the
+        // initial universe of elements. In this case, the variable
+        // "dataElementOperands".
+        Query queryForCount = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders );
+        queryForCount.setObjects( dataElementOperands );
+
+        List<DataElementOperand> totalOfItems = (List<DataElementOperand>) queryService
+            .query( queryForCount );
+
         Query query = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders,
             PaginationUtils.getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
@@ -181,11 +192,13 @@ public class DataElementOperandController
 
         if ( options.hasPaging() && pager == null )
         {
+            final int countTotal = isNotEmpty( totalOfItems ) ? totalOfItems.size() : 0;
+
             // fetch the count for the current query from a short-lived cache
-            int count = paginationCountCache.computeIfAbsent(
+            int cachedCountTotal = paginationCountCache.computeIfAbsent(
                 calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
-                () -> queryService.count( query ) );
-            pager = new Pager( options.getPage(), count, options.getPageSize() );
+                () -> countTotal );
+            pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
             linkService.generatePagerLinks( pager, DataElementOperand.class );
         }
 
