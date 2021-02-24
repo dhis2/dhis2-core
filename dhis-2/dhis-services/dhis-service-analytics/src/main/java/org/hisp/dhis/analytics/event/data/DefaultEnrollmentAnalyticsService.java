@@ -28,14 +28,18 @@
 package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Date;
+import static org.hisp.dhis.common.ValueType.DATE;
+import static org.hisp.dhis.common.ValueType.NUMBER;
+import static org.hisp.dhis.common.ValueType.TEXT;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.event.*;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
+import org.hisp.dhis.analytics.event.EnrollmentAnalyticsService;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryPlanner;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.util.Timer;
 import org.springframework.stereotype.Service;
@@ -97,25 +101,25 @@ public class DefaultEnrollmentAnalyticsService
     @Override
     protected Grid createGridWithHeaders( EventQueryParams params )
     {
-        Grid grid = new ListGrid();
-
-        grid.addHeader( new GridHeader( ITEM_PI, NAME_PI, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_TEI, NAME_TEI, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, ValueType.DATE,
-                Date.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, ValueType.DATE, Date.class.getName(),
-                false, true ) )
-            .addHeader(
-                new GridHeader( ITEM_GEOMETRY, NAME_GEOMETRY, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_LONGITUDE, NAME_LONGITUDE, ValueType.NUMBER, Double.class.getName(), false,
-                true ) )
-            .addHeader(
-                new GridHeader( ITEM_LATITUDE, NAME_LATITUDE, ValueType.NUMBER, Double.class.getName(), false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, ValueType.TEXT, String.class.getName(),
-                false, true ) )
-            .addHeader( new GridHeader( ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, ValueType.TEXT, String.class.getName(),
-                false, true ) );
-        return grid;
+        return new ListGrid()
+            .addHeader( new GridHeader(
+                ITEM_PI, NAME_PI, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_TEI, NAME_TEI, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_ENROLLMENT_DATE, NAME_ENROLLMENT_DATE, DATE, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_INCIDENT_DATE, NAME_INCIDENT_DATE, DATE, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_GEOMETRY, NAME_GEOMETRY, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LONGITUDE, NAME_LONGITUDE, NUMBER, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_LATITUDE, NAME_LATITUDE, NUMBER, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_ORG_UNIT_NAME, NAME_ORG_UNIT_NAME, TEXT, false, true ) )
+            .addHeader( new GridHeader(
+                ITEM_ORG_UNIT_CODE, NAME_ORG_UNIT_CODE, TEXT, false, true ) );
     }
 
     @Override

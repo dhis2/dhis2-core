@@ -296,7 +296,7 @@ public class DefaultTrackedEntityInstanceService
 
         if ( params.isIncludeDeleted() )
         {
-            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, "boolean", false, false ) );
+            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, false, false ) );
         }
 
         for ( QueryItem item : params.getAttributes() )

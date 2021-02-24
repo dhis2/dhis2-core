@@ -155,10 +155,10 @@ public class DefaultOrgUnitAnalyticsService
 
     private void addHeaders( OrgUnitQueryParams params, Grid grid )
     {
-        grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
+        grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, false, true ) );
         params.getOrgUnitGroupSets().forEach( ougs -> grid
-            .addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, null, false, true ) ) );
-        grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
+            .addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, false, true ) ) );
+        grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, false, false ) );
     }
 
     private void addMetadata( OrgUnitQueryParams params, Grid grid )

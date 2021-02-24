@@ -80,6 +80,8 @@ public class App
 
     private String description;
 
+    private String appHubId;
+
     private AppIcons icons;
 
     private AppDeveloper developer;
@@ -172,6 +174,18 @@ public class App
     public void setVersion( String version )
     {
         this.version = version;
+    }
+
+    @JsonProperty( "app_hub_id" )
+    @JacksonXmlProperty( localName = "app_hub_id", namespace = DxfNamespaces.DXF_2_0 )
+    public String getAppHubId()
+    {
+        return appHubId;
+    }
+
+    public void setAppHubId( String appHubId )
+    {
+        this.appHubId = appHubId;
     }
 
     @JsonProperty( "short_name" )
