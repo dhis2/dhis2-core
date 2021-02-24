@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.TrackerType.*;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -38,6 +37,8 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -46,7 +47,6 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -64,21 +64,11 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@RequiredArgsConstructor
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final ProgramInstanceService programInstanceService;
-
     private final CategoryService categoryService;
-
-    public PreCheckDataRelationsValidationHook(
-        ProgramInstanceService programInstanceService, CategoryService categoryService )
-    {
-        checkNotNull( categoryService );
-
-        this.programInstanceService = programInstanceService;
-        this.categoryService = categoryService;
-    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
