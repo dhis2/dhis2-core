@@ -522,16 +522,11 @@ public class DefaultEventAnalyticsService
             if ( params.isIncludeNumDen() )
             {
                 grid
-                    .addHeader( new GridHeader(
-                        NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader(
-                        DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader(
-                        FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader(
-                        MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false ) )
-                    .addHeader( new GridHeader(
-                        DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false ) );
+                    .addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, false, false ) )
+                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, false, false ) );
             }
 
             // -----------------------------------------------------------------
