@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.preheat;
 
 import java.util.List;
 
@@ -35,7 +35,6 @@ import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceByTeiSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.preheat.supplier.ProgramOrgUnitsSupplier;
@@ -55,7 +54,6 @@ public class TrackerImportPreheatConfig
     public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
         ClassBasedSupplier.class,
         ProgramInstanceSupplier.class,
-        ProgramInstanceByTeiSupplier.class,
         ProgramInstancesWithAtLeastOneEventSupplier.class,
         ProgramStageInstanceProgramStageMapSupplier.class,
         ProgramOrgUnitsSupplier.class,

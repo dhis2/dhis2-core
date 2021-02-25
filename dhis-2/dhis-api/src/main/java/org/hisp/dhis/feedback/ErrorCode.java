@@ -80,6 +80,10 @@ public enum ErrorCode
     E2031( "User does not have write access to category option combo: `{0}`" ),
     E2032( "Data value does not exist" ),
     E2033( "Follow-up must be specified" ),
+    E2034( "Filter not supported: `{0}`" ),
+    E2035( "Operator not supported: `{0}`" ),
+    E2036( "Combination not supported: `{0}`" ),
+    E2037( "Order not supported: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
