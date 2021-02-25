@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.commons.lang3.reflect.MethodUtils;
 import org.hisp.dhis.translation.Translatable;
@@ -135,7 +136,7 @@ public class AnnotationUtils
             if ( translatableAnnotation != null )
             {
                 mapFields.put( translatableAnnotation.propertyName(),
-                    translatableAnnotation.key() != null ? translatableAnnotation.key()
+                    StringUtils.isEmpty( translatableAnnotation.key() ) ? translatableAnnotation.key()
                         : translatableAnnotation.propertyName() );
             }
         } );

@@ -28,10 +28,27 @@
 package org.hisp.dhis.common;
 
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -57,6 +74,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.DefaultValue;
 
@@ -1135,6 +1153,14 @@ public abstract class BaseAnalyticalObject
         return title;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "title" )
+    public String getDisplayTitle()
+    {
+        return getTranslation( "title", getTitle() );
+    }
+
     public void setTitle( String title )
     {
         this.title = title;
@@ -1145,6 +1171,14 @@ public abstract class BaseAnalyticalObject
     public String getSubtitle()
     {
         return subtitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subtitle" )
+    public String getDisplaySubtitle()
+    {
+        return getTranslation( "subtitle", getSubtitle() );
     }
 
     public void setSubtitle( String subtitle )

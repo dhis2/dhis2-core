@@ -52,6 +52,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -273,9 +274,25 @@ public abstract class BaseChart
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "domainAxisLabel" )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( "domainAxisLabel", getDomainAxisLabel() );
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "rangeAxisLabel" )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( "rangeAxisLabel", getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -352,6 +369,14 @@ public abstract class BaseChart
         return targetLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "targetLineLabel" )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( "targetLineLabel", getTargetLineLabel() );
+    }
+
     public void setTargetLineLabel( String targetLineLabel )
     {
         this.targetLineLabel = targetLineLabel;
@@ -374,6 +399,14 @@ public abstract class BaseChart
     public String getBaseLineLabel()
     {
         return baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "baseLineLabel" )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( "baseLineLabel", getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )
