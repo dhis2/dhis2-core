@@ -37,4 +37,6 @@ public class BaseIdentifiableObject_
 {
     public static final String CREATED_BY = "createdBy";
 
+    public static final String TRANSLATIONS = "translations";
+
 }
