@@ -28,7 +28,6 @@
 package org.hisp.dhis.node.transformers;
 
 import java.util.Collections;
-import java.util.Map;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
@@ -37,10 +36,10 @@ import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.Jackson2PropertyIntrospectorService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -71,14 +70,8 @@ public class PluckNodeTransformerTest
     @Before
     public void setUp()
     {
-        schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
-        {
-            @Override
-            protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
-            {
-                return Collections.emptyMap();
-            }
-        }, sessionFactory );
+        schemaService = new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
 
         collectionNode = new CollectionNode( "organisationUnits", 2 );
         collectionNode.setNamespace( "testUrn" );

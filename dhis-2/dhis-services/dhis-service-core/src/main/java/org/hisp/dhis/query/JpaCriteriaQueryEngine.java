@@ -178,11 +178,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         criteriaQuery.select( builder.count( root ) );
 
-        if ( query.isEmpty() )
-        {
-            return sessionFactory.getCurrentSession().createQuery( criteriaQuery ).getSingleResult();
-        }
-
         Predicate predicate = buildPredicates( builder, root, query );
 
         predicate.getExpressions().addAll( store
@@ -200,9 +195,6 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
         }
 
         TypedQuery<Long> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
-
-        typedQuery.setFirstResult( query.getFirstResult() );
-        typedQuery.setMaxResults( query.getMaxResults() );
 
         return typedQuery.getSingleResult();
     }

@@ -42,6 +42,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.BaseAnalyticalObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.schema.descriptors.*;
 import org.hisp.dhis.security.Authority;
@@ -55,6 +65,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.CaseFormat;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -67,6 +78,15 @@ public class DefaultSchemaService
     implements SchemaService
 {
     private static final String PROPERTY_SELF = "__self__";
+
+    // Simple alias map for our concrete implementations of the core interfaces
+    private static final ImmutableMap<Class<?>, Class<?>> BASE_ALIAS_MAP = ImmutableMap.<Class<?>, Class<?>> builder()
+        .put( IdentifiableObject.class, BaseIdentifiableObject.class )
+        .put( NameableObject.class, BaseNameableObject.class )
+        .put( DimensionalObject.class, BaseDimensionalObject.class )
+        .put( DimensionalItemObject.class, BaseDimensionalItemObject.class )
+        .put( AnalyticalObject.class, BaseAnalyticalObject.class )
+        .build();
 
     private static final ImmutableList<SchemaDescriptor> DESCRIPTORS = new ImmutableList.Builder<SchemaDescriptor>()
         .add( new MetadataVersionSchemaDescriptor() ).add( new AnalyticsTableHookSchemaDescriptor() )
@@ -149,6 +169,17 @@ public class DefaultSchemaService
 
         this.propertyIntrospectorService = propertyIntrospectorService;
         this.sessionFactory = sessionFactory;
+    }
+
+    @Override
+    public Class<?> getConcreteClass( Class<?> klass )
+    {
+        if ( BASE_ALIAS_MAP.containsKey( klass ) )
+        {
+            return BASE_ALIAS_MAP.get( klass );
+        }
+
+        return klass;
     }
 
     @EventListener
@@ -244,7 +275,7 @@ public class DefaultSchemaService
 
         // Lookup the implementation class of core interfaces, if the input
         // klass is a core interface
-        klass = propertyIntrospectorService.getConcreteClass( klass );
+        klass = getConcreteClass( klass );
 
         String name = getName( klass );
 

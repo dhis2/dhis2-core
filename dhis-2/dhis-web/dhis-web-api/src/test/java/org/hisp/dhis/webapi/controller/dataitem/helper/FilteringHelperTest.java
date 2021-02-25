@@ -27,29 +27,36 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.helper;
 
-import static java.util.Collections.singletonList;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.apache.commons.lang3.EnumUtils.getEnumMap;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromFilter;
 import static org.junit.Assert.assertThrows;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.junit.Test;
 
+/**
+ * Unit tests for FilteringHelper.
+ *
+ * @author maikel arabori
+ */
 public class FilteringHelperTest
 {
     @Test
@@ -61,7 +68,7 @@ public class FilteringHelperTest
             DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
 
         // Then
         assertThat( actualClasses, hasSize( 2 ) );
@@ -77,7 +84,7 @@ public class FilteringHelperTest
         // Then
         assertThrows(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
             IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
     }
 
@@ -99,10 +106,10 @@ public class FilteringHelperTest
     {
         // Given
         final String filtersNotFullyDefined = "dimensionItemType:in:[,DATA_SET]";
-        final Class<? extends BaseDimensionalItemObject>[] expectedClasses = new Class[] { DataSet.class };
+        final Class<? extends BaseIdentifiableObject>[] expectedClasses = new Class[] { DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter(
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter(
             filtersNotFullyDefined );
 
         // Then
@@ -118,7 +125,7 @@ public class FilteringHelperTest
         final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
 
         // When
-        final Class<? extends BaseDimensionalItemObject> actualClass = extractEntityFromEqualFilter( anyFilter );
+        final Class<? extends BaseIdentifiableObject> actualClass = extractEntityFromEqualFilter( anyFilter );
 
         // Then
         assertThat( actualClass, is( notNullValue() ) );
@@ -134,7 +141,7 @@ public class FilteringHelperTest
         // When
         assertThrows(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ),
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
             IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ) );
 
     }
@@ -152,44 +159,30 @@ public class FilteringHelperTest
     }
 
     @Test
-    public void testContainsDimensionTypeFilterUsingEqualsQuery()
+    public void testExtractValueFromFilterNoTrimmed()
     {
         // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:eq:DATA_SET" );
-        final boolean expectedTrueResult = true;
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId " );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+        final String expectedValue = extractValueFromFilter( filters, theCombination );
 
         // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
+        assertThat( expectedValue, is( "anyId " ) );
     }
 
     @Test
-    public void testContainsDimensionTypeFilterUsingInQuery()
+    public void testExtractValueFromFilterTrimmed()
     {
         // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
-        final boolean expectedTrueResult = true;
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId" );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
 
         // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
+        final String expectedValue = extractValueFromFilter( filters, theCombination, true );
 
         // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
-    }
-
-    @Test
-    public void testContainsDimensionTypeFilterWhenThereDimensionItemTypeFilterIsNotSet()
-    {
-        // Given
-        final List<String> anyFilters = singletonList( "displayName:ilike:anc" );
-        final boolean expectedFalseResult = false;
-
-        // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
-
-        // Then
-        assertThat( actualResult, is( expectedFalseResult ) );
+        assertThat( expectedValue, is( "anyId" ) );
     }
 }

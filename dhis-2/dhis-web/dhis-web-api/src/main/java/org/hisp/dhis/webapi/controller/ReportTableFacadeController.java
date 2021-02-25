@@ -1019,12 +1019,12 @@ public abstract class ReportTableFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1035,9 +1035,8 @@ public abstract class ReportTableFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -1060,6 +1059,7 @@ public abstract class ReportTableFacadeController
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1071,10 +1071,11 @@ public abstract class ReportTableFacadeController
             IdentifiableObjects.class );
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1086,10 +1087,11 @@ public abstract class ReportTableFacadeController
             IdentifiableObjects.class );
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,

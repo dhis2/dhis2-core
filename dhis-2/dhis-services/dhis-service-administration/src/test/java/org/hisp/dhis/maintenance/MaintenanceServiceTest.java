@@ -169,9 +169,10 @@ public class MaintenanceServiceTest
         programMessageRecipients.setOrganisationUnit( organisationUnit );
         programMessageRecipients.setTrackedEntityInstance( entityInstance );
 
-        ProgramMessage message = new ProgramMessage( "subject", "text", programMessageRecipients,
-            Sets.newHashSet( DeliveryChannel.EMAIL ),
-            programInstance );
+        ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
+            .recipients( programMessageRecipients )
+            .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
+            .programInstance( programInstance ).build();
 
         long idA = programInstanceService.addProgramInstance( programInstance );
 
