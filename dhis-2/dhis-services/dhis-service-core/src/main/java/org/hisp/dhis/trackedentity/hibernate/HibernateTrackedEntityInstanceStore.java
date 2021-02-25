@@ -760,6 +760,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         if ( params.hasOrders() )
         {
+            String attributeOrderSuffix = gridQuery ? " " : ".value ";
             ArrayList<String> orderFields = new ArrayList<>();
 
             for ( OrderParam order : params.getOrders() )
@@ -769,23 +770,12 @@ public class HibernateTrackedEntityInstanceStore
                     String columnName = TrackedEntityInstanceQueryParams.OrderColumn.getColumn( order.getField() );
                     orderFields.add( columnName + " " + order.getDirection() );
                 }
-                else if ( isAttributeOrder( params, order.getField() ) )
-                {
-                    if ( gridQuery )
-                    {
-                        orderFields
-                            .add( statementBuilder.columnQuote( order.getField() ) + " " + order.getDirection() );
-                    }
-                    else
-                    {
-                        orderFields
-                            .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
-                    }
-                }
-                else if ( isFilterOrder( params, order.getField() ) && !gridQuery )
+                else if ( isAttributeOrder( params, order.getField() )
+                    || isAttributeFilterOrder( params, order.getField() ) )
                 {
                     orderFields
-                        .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+                        .add( statementBuilder.columnQuote( order.getField() ) + attributeOrderSuffix
+                            + order.getDirection() );
                 }
             }
 
@@ -819,7 +809,7 @@ public class HibernateTrackedEntityInstanceStore
         return false;
     }
 
-    private boolean isFilterOrder( TrackedEntityInstanceQueryParams params, String attributeId )
+    private boolean isAttributeFilterOrder( TrackedEntityInstanceQueryParams params, String attributeId )
     {
         if ( params.hasFilters() )
         {
