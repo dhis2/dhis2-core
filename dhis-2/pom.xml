@@ -135,13 +135,11 @@
     <geotools.version>24.0</geotools.version>
     <jts-io-common.version>1.16.0</jts-io-common.version>
 
-    <!-- AMQP -->
+    <!-- Apache Artemis -->
     <artemis.version>2.17.0</artemis.version>
     <activemq-artemis-native.version>1.0.2</activemq-artemis-native.version>
     <netty-all.version>4.1.59.Final</netty-all.version>
     <classgraph.version>4.8.90</classgraph.version>
-    <qpid-jms-client.version>0.56.0</qpid-jms-client.version>
-    <proton-j.version>0.33.8</proton-j.version>
 
     <!-- SMS/SMPP -->
     <ant-compress.version>1.5</ant-compress.version>
@@ -1917,7 +1915,17 @@
         <type>pom</type>
       </dependency>
 
-      <!-- AMQP -->
+      <!-- Apache Artemis -->
+      <dependency>
+        <groupId>org.apache.geronimo.specs</groupId>
+        <artifactId>geronimo-jms_2.0_spec</artifactId>
+        <version>1.0-alpha-2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.activemq</groupId>
+        <artifactId>artemis-jms-client</artifactId>
+        <version>${artemis.version}</version>
+      </dependency>
       <dependency>
         <groupId>org.apache.activemq</groupId>
         <artifactId>activemq-artemis-native</artifactId>
@@ -1981,21 +1989,6 @@
         </exclusions>
       </dependency>
       <dependency>
-        <groupId>org.apache.activemq</groupId>
-        <artifactId>artemis-amqp-protocol</artifactId>
-        <version>${artemis.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
         <groupId>io.netty</groupId>
         <artifactId>netty-all</artifactId>
         <version>${netty-all.version}</version>
@@ -2004,46 +1997,6 @@
         <groupId>io.github.classgraph</groupId>
         <artifactId>classgraph</artifactId>
         <version>${classgraph.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.qpid</groupId>
-        <artifactId>qpid-jms-client</artifactId>
-        <version>${qpid-jms-client.version}</version>
-        <exclusions>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-buffer</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-codec-http</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-common</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-handler</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-epoll</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-transport-native-kqueue</artifactId>
-          </exclusion>
-        </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.apache.qpid</groupId>
-        <artifactId>proton-j</artifactId>
-        <version>${proton-j.version}</version>
       </dependency>
 
       <!-- SMPP -->

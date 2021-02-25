@@ -43,7 +43,7 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
-import org.apache.qpid.jms.JmsConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
@@ -86,13 +86,20 @@ public class ArtemisConfig
     @Bean
     public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
     {
-        JmsConnectionFactory connectionFactory = new JmsConnectionFactory(
-            String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
-        connectionFactory.setClientIDPrefix( "dhis2" );
-        connectionFactory.setCloseLinksThatFailOnReconnect( false );
-        connectionFactory.setForceAsyncAcks( true );
+        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(
+            "vm://0?broker.persistent=true" );
 
-        return connectionFactory;
+        /*
+         * JmsConnectionFactory connectionFactory = new JmsConnectionFactory(
+         * String.format( "amqp://%s:%d", artemisConfigData.getHost(),
+         * artemisConfigData.getPort() ) ); connectionFactory.setClientIDPrefix(
+         * "dhis2" ); connectionFactory.setCloseLinksThatFailOnReconnect( false
+         * ); connectionFactory.setForceAsyncAcks( true );
+         * 
+         * return connectionFactory;
+         */
+
+        return activeMQConnectionFactory;
     }
 
     @Bean
@@ -161,10 +168,8 @@ public class ArtemisConfig
 
         ArtemisEmbeddedConfig embeddedConfig = artemisConfigData.getEmbedded();
 
-        config.addAcceptorConfiguration( "tcp",
-            String.format( "tcp://%s:%d?protocols=AMQP&jms.useAsyncSend=%s&nioRemotingThreads=%d",
-                artemisConfigData.getHost(),
-                artemisConfigData.getPort(),
+        config.addAcceptorConfiguration( "in-vm",
+            String.format( "vm://0?jms.useAsyncSend=%s&nioRemotingThreads=%d",
                 artemisConfigData.isSendAsync(),
                 embeddedConfig.getNioRemotingThreads() ) );
 
