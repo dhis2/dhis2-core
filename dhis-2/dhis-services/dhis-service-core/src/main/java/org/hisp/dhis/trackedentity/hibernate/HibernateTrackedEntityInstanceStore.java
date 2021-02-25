@@ -756,7 +756,7 @@ public class HibernateTrackedEntityInstanceStore
         return orderQuery;
     }
 
-    private String getOrderClauseSql( TrackedEntityInstanceQueryParams params )
+    private String getOrderClauseSql( TrackedEntityInstanceQueryParams params, boolean gridQuery )
     {
         if ( params.hasOrders() )
         {
@@ -771,7 +771,16 @@ public class HibernateTrackedEntityInstanceStore
                 }
                 else if ( isAttributeOrder( params, order.getField() ) )
                 {
-                    orderFields.add( statementBuilder.columnQuote( order.getField() ) + " " + order.getDirection() );
+                    if ( gridQuery )
+                    {
+                        orderFields
+                            .add( statementBuilder.columnQuote( order.getField() ) + " " + order.getDirection() );
+                    }
+                    else
+                    {
+                        orderFields
+                            .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+                    }
                 }
             }
 
