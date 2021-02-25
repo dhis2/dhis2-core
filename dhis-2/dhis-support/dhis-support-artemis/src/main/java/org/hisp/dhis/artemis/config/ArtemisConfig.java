@@ -95,7 +95,7 @@ public class ArtemisConfig
          * artemisConfigData.getPort() ) ); connectionFactory.setClientIDPrefix(
          * "dhis2" ); connectionFactory.setCloseLinksThatFailOnReconnect( false
          * ); connectionFactory.setForceAsyncAcks( true );
-         * 
+         *
          * return connectionFactory;
          */
 
