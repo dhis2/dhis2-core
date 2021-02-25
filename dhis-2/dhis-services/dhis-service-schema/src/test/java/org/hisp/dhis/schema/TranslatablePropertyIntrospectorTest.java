@@ -30,26 +30,76 @@ package org.hisp.dhis.schema;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 public class TranslatablePropertyIntrospectorTest extends DhisSpringTest
 {
-    @Autowired
-    private SchemaService schemaService;
-
     @Test
     public void testGetTranslatableProperties()
     {
-        Schema deSchema = schemaService.getSchema( DataElement.class );
-        Map<String, Property> propertyMap = deSchema.getPropertyMap();
-        assertTrue( propertyMap.containsKey( "name" ) );
-        assertTrue( propertyMap.containsKey( "code" ) );
+        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
+
+        Property propTranslation = new Property( DataElement.class );
+        propTranslation.setName( "translations" );
+        propTranslation.setFieldName( "translations" );
+        propTranslation.setPersisted( true );
+
+        Property propName = new Property( DataElement.class );
+        propName.setName( "name" );
+        propName.setFieldName( "name" );
+        propName.setPersisted( true );
+
+        Property propCode = new Property( DataElement.class );
+        propCode.setName( "code" );
+        propCode.setFieldName( "code" );
+        propCode.setPersisted( true );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "name", propName );
+        propertyMap.put( "code", propCode );
+        propertyMap.put( "translations", propTranslation );
+
+        assertFalse( propertyMap.get( "name" ).isTranslatable() );
+
+        introspector.introspect( DataElement.class, propertyMap );
+
         assertTrue( propertyMap.get( "name" ).isTranslatable() );
+        assertFalse( propertyMap.get( "code" ).isTranslatable() );
+    }
+
+    /**
+     * If an object doesn't have column translations in database, then none of
+     * properties will have translations = true even if it is marked with
+     * annotation Translatable
+     */
+    @Test
+    public void testNonTranslatableObject()
+    {
+        TranslatablePropertyIntrospector introspector = new TranslatablePropertyIntrospector();
+
+        Property propName = new Property( DataElement.class );
+        propName.setName( "name" );
+        propName.setPersisted( true );
+
+        Property propCode = new Property( DataElement.class );
+        propCode.setName( "code" );
+        propCode.setPersisted( true );
+
+        Map<String, Property> propertyMap = new HashMap<>();
+        propertyMap.put( "name", propName );
+        propertyMap.put( "code", propCode );
+
+        assertFalse( propertyMap.get( "name" ).isTranslatable() );
+
+        introspector.introspect( DataElement.class, propertyMap );
+
+        assertFalse( propertyMap.get( "name" ).isTranslatable() );
         assertFalse( propertyMap.get( "code" ).isTranslatable() );
     }
 }

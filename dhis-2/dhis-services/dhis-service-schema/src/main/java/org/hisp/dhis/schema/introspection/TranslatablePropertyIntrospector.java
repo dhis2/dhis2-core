@@ -29,6 +29,7 @@ package org.hisp.dhis.schema.introspection;
 
 import java.util.Map;
 
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.system.util.AnnotationUtils;
 
@@ -44,6 +45,13 @@ public class TranslatablePropertyIntrospector implements PropertyIntrospector
     @Override
     public void introspect( Class<?> klass, Map<String, Property> properties )
     {
+        Property translationsProperty = properties.get( BaseIdentifiableObject_.TRANSLATIONS );
+
+        if ( translationsProperty == null || !translationsProperty.isPersisted() )
+        {
+            return;
+        }
+
         Map<String, String> translatableFields = AnnotationUtils.getTranslatableAnnotatedFields( klass );
 
         for ( Property property : properties.values() )
