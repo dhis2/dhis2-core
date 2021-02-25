@@ -177,7 +177,7 @@ public class HibernateTrackedEntityInstanceStore
         // Select clause
         String sql = "select tei.trackedentityinstanceid as teiid,row_number() over (";
 
-        String orderByClause = getOrderClauseSql( params );
+        String orderByClause = getOrderClauseSql( params, false );
         sql += orderByClause + ") as rn ";
 
         // From and where clause
@@ -456,7 +456,7 @@ public class HibernateTrackedEntityInstanceStore
         // Order clause
         // ---------------------------------------------------------------------
 
-        sql += getOrderClauseSql( params );
+        sql += getOrderClauseSql( params, true );
 
         // ---------------------------------------------------------------------
         // Paging clause
