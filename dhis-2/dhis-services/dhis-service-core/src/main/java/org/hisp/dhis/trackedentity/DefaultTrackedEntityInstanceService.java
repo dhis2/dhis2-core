@@ -72,6 +72,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -215,6 +216,8 @@ public class DefaultTrackedEntityInstanceService
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
 
+        handleSortAttributes( params );
+
         decideAccess( params );
 
         // AccessValidation should be skipped only and only if it is internal
@@ -236,6 +239,18 @@ public class DefaultTrackedEntityInstanceService
         params.handleCurrentUserSelectionMode();
 
         return trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
+    }
+
+    private void handleSortAttributes( TrackedEntityInstanceQueryParams params )
+    {
+        if ( params.hasAttributeAsOrder() )
+        {
+            List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
+                .filter( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) ).map( orderParam -> {
+                    return attributeService.getTrackedEntityAttribute( orderParam.getField() );
+                } ).collect( Collectors.toList() );
+            params.addAttributes( QueryItem.getQueryItems( sortAttributes ) );
+        }
     }
 
     @Override
