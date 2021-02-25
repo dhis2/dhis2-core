@@ -426,14 +426,14 @@ public class PredictionAnalyticsDataFetcherTest
     {
         Grid grid = new ListGrid();
 
-        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, "java.lang.String", false, true ) );
+        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
         grid.addHeader(
-            new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, "java.lang.String", false, true ) );
+            new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
         grid.addHeader(
-            new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, "java.lang.String", false, true ) );
+            new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
         grid.addHeader(
-            new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, "java.lang.String", false, true ) );
-        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, "java.lang.Double", false, true ) );
+            new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, "AOC", ValueType.TEXT, false, true ) );
+        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
 
         return grid;
     }
@@ -442,12 +442,12 @@ public class PredictionAnalyticsDataFetcherTest
     {
         Grid grid = new ListGrid();
 
-        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, "java.lang.String", false, true ) );
+        grid.addHeader( new GridHeader( PERIOD_DIM_ID, "Period", ValueType.TEXT, false, true ) );
         grid.addHeader(
-            new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, "java.lang.String", false, true ) );
+            new GridHeader( DATA_X_DIM_ID, "DimensionItem", ValueType.TEXT, false, true ) );
         grid.addHeader(
-            new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, "java.lang.String", false, true ) );
-        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, "java.lang.Double", false, true ) );
+            new GridHeader( ORGUNIT_DIM_ID, "OrganisationUnit", ValueType.TEXT, false, true ) );
+        grid.addHeader( new GridHeader( "value", "Value", ValueType.NUMBER, false, true ) );
 
         return grid;
     }
