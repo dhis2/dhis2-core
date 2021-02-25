@@ -249,7 +249,8 @@ public class DefaultEventAnalyticsService
      */
     private Grid getAggregatedEventDataTableLayout( EventQueryParams params, List<String> columns, List<String> rows )
     {
-        params.removeProgramIndicatorItems();
+        params.removeProgramIndicatorItems(); // Not supported as items for
+                                              // aggregate
 
         Grid grid = getAggregatedEventData( params );
 
@@ -476,7 +477,8 @@ public class DefaultEventAnalyticsService
 
     private Grid getAggregatedEventDataGrid( EventQueryParams params )
     {
-        params.removeProgramIndicatorItems();
+        params.removeProgramIndicatorItems(); // Not supported as items for
+                                              // aggregate
 
         Grid grid = new ListGrid();
 
@@ -501,20 +503,21 @@ public class DefaultEventAnalyticsService
             {
                 for ( QueryItem item : params.getItems() )
                 {
-                    grid.addHeader( new GridHeader(
-                        item.getItem().getUid(), item.getItem().getDisplayProperty( params.getDisplayProperty() ),
-                        item.getValueType(), false, true, item.getOptionSet(), item.getLegendSet() ) );
+                    grid.addHeader( new GridHeader( item.getItem().getUid(),
+                        item.getItem().getDisplayProperty( params.getDisplayProperty() ), item.getValueType(),
+                        false, true, item.getOptionSet(), item.getLegendSet() ) );
                 }
             }
 
             for ( DimensionalObject dimension : params.getDimensions() )
             {
-                grid.addHeader( new GridHeader(
-                    dimension.getDimension(), dimension.getDisplayProperty( params.getDisplayProperty() ),
-                    TEXT, false, true ) );
+                grid.addHeader( new GridHeader( dimension.getDimension(),
+                    dimension.getDisplayProperty( params.getDisplayProperty() ), ValueType.TEXT,
+                    false, true ) );
             }
 
-            grid.addHeader( new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
+            grid.addHeader(
+                new GridHeader( VALUE_ID, VALUE_HEADER_NAME, NUMBER, false, false ) );
 
             if ( params.isIncludeNumDen() )
             {
@@ -658,7 +661,6 @@ public class DefaultEventAnalyticsService
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         analyticsCache.invalidateAll();
-
         log.info( "Event analytics cache cleared" );
     }
 

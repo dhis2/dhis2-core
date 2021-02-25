@@ -42,8 +42,9 @@ import org.hisp.dhis.common.Grid;
 import org.springframework.stereotype.Component;
 
 /**
- * This is a wrapper class responsible for keeping and isolating all cache
- * definitions related to the analytics.
+ * This is just a wrapper class responsible for keeping and isolating all
+ * caching definition related to the analytics caching, decoupling it from the
+ * service layer.
  */
 @Component
 public class AnalyticsCache
@@ -54,10 +55,6 @@ public class AnalyticsCache
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    /**
-     * Default constructor. Note that a default expiration time is set, as as
-     * the TTL will always be overwritten during cache put operations.
-     */
     public AnalyticsCache( final CacheProvider cacheProvider,
         final AnalyticsCacheSettings analyticsCacheSettings )
     {
@@ -65,11 +62,12 @@ public class AnalyticsCache
         checkNotNull( analyticsCacheSettings );
 
         this.analyticsCacheSettings = analyticsCacheSettings;
+        // Set a default expiration time to always expire, as the TTL will be
+        // always overwritten during "put" operations.
         long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
         this.queryCache = cacheProvider.createAnalyticsResponseCache(
             Duration.ofSeconds( initialExpirationTime ) );
-
-        log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
+        log.info( String.format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
             initialExpirationTime ) );
     }
 
@@ -115,7 +113,8 @@ public class AnalyticsCache
      * DataQueryParams.
      *
      * The TTL of the cached object will be set accordingly to the cache
-     * settings available at {@link AnalyticsCacheSettings}.
+     * settings available at
+     * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
      *
      * @param params the DataQueryParams.
      * @param grid the associated Grid.
@@ -141,7 +140,7 @@ public class AnalyticsCache
      *
      * @param key the cache key associate with the Grid.
      * @param grid the Grid object to be cached.
-     * @param ttlInSeconds the time to live (expiration time) in seconds.
+     * @param ttlInSeconds the custom time to live (expiration time).
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
@@ -149,12 +148,11 @@ public class AnalyticsCache
     }
 
     /**
-     * Clears the current cache by removing all existing entries.
+     * Clean the current cache by removing all existing entries.
      */
     public void invalidateAll()
     {
         queryCache.invalidateAll();
-
         log.info( "Analytics cache cleared" );
     }
 
@@ -162,4 +160,5 @@ public class AnalyticsCache
     {
         return analyticsCacheSettings.isCachingEnabled();
     }
+
 }

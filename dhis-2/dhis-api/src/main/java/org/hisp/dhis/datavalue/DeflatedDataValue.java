@@ -85,8 +85,6 @@ public class DeflatedDataValue
 
     private String sourceName;
 
-    private String sourcePath;
-
     private String categoryOptionComboName;
 
     // -------------------------------------------------------------------------
@@ -318,17 +316,6 @@ public class DeflatedDataValue
     public void setSourceName( String sourceName )
     {
         this.sourceName = sourceName;
-    }
-
-    @JsonProperty
-    public String getSourcePath()
-    {
-        return sourcePath;
-    }
-
-    public void setSourcePath( String sourcePath )
-    {
-        this.sourcePath = sourcePath;
     }
 
     @JsonProperty

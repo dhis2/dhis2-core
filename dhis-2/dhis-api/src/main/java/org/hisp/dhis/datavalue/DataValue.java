@@ -169,8 +169,8 @@ public class DataValue
      * @param comment the comment.
      */
     public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, String storedBy, Date lastUpdated, String comment )
+        CategoryOptionCombo categoryOptionCombo,
+        CategoryOptionCombo attributeOptionCombo, String value, String storedBy, Date lastUpdated, String comment )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -182,38 +182,6 @@ public class DataValue
         this.created = new Date();
         this.lastUpdated = lastUpdated;
         this.comment = comment;
-    }
-
-    /**
-     * @param dataElement the data element.
-     * @param period the period.
-     * @param source the organisation unit.
-     * @param categoryOptionCombo the category option combo.
-     * @param attributeOptionCombo the attribute option combo.
-     * @param value the value.
-     * @param storedBy the user that stored this data value.
-     * @param lastUpdated the time of the last update to this data value.
-     * @param comment the comment.
-     * @param followup whether followup is set.
-     * @param deleted whether the value is deleted.
-     */
-    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo,
-        String value, String storedBy, Date lastUpdated, String comment,
-        Boolean followup, boolean deleted )
-    {
-        this.dataElement = dataElement;
-        this.period = period;
-        this.source = source;
-        this.categoryOptionCombo = categoryOptionCombo;
-        this.attributeOptionCombo = attributeOptionCombo;
-        this.value = value;
-        this.storedBy = storedBy;
-        this.created = new Date();
-        this.lastUpdated = lastUpdated;
-        this.comment = comment;
-        this.followup = followup;
-        this.deleted = deleted;
     }
 
     // -------------------------------------------------------------------------

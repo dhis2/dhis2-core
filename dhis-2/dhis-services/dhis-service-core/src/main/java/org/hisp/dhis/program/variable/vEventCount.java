@@ -40,6 +40,6 @@ public class vEventCount
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
-        return "psi";
+        return "distinct psi";
     }
 }

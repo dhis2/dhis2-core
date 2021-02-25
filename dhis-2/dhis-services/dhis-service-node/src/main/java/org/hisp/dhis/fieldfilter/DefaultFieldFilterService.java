@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.fieldfilter;
 
-import static java.beans.Introspector.decapitalize;
-
-import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -243,57 +240,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         return collectionNode;
     }
 
-    @Override
-    public CollectionNode toConcreteClassCollectionNode( final Class<?> klass, final FieldFilterParams params,
-        final String collectionName, final String namespace )
-    {
-        final String fields = params.getFields() == null ? "" : Joiner.on( "," ).join( params.getFields() );
-
-        final CollectionNode collectionNode = new CollectionNode( collectionName );
-        collectionNode.setNamespace( namespace );
-
-        final List<?> objects = params.getObjects();
-
-        if ( params.getObjects().isEmpty() )
-        {
-            return collectionNode;
-        }
-
-        FieldMap fieldMap = new FieldMap();
-
-        // If fields not specified OR set as "*", bring all fields.
-        if ( StringUtils.isBlank( fields )
-            || "*".equals( StringUtils.trimToEmpty( fields ) ) )
-        {
-            for ( final Field property : klass.getDeclaredFields() )
-            {
-                fieldMap.put( property.getName(), new FieldMap() );
-            }
-        }
-        else
-        {
-            fieldMap = fieldParser.parse( fields );
-        }
-
-        final FieldMap finalFieldMap = fieldMap;
-
-        if ( params.getUser() == null )
-        {
-            params.setUser( currentUserService.getCurrentUser() );
-        }
-
-        objects.forEach( object -> {
-            final AbstractNode node = buildNode( finalFieldMap, object, namespace );
-
-            if ( node != null )
-            {
-                collectionNode.addChild( node );
-            }
-        } );
-
-        return collectionNode;
-    }
-
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -311,41 +257,6 @@ public class DefaultFieldFilterService implements FieldFilterService
         return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
             Preheat.isDefaultObject( (IdentifiableObject) object )
             && "default".equals( ((IdentifiableObject) object).getName() );
-    }
-
-    private AbstractNode buildNode( final FieldMap fieldMap, final Object klassInstance, final String namespace )
-    {
-        final ComplexNode complexNode = new ComplexNode( decapitalize( klassInstance.getClass().getSimpleName() ) );
-        complexNode.setNamespace( namespace );
-
-        for ( final String fieldKey : fieldMap.keySet() )
-        {
-            try
-            {
-                final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( fieldKey, "~" );
-                final String rename = org.apache.commons.lang3.StringUtils.substringBetween( fieldKey, "(", ")" );
-
-                final Field field = klassInstance.getClass().getDeclaredField( originalName );
-                field.setAccessible( true ); // NOSONAR
-
-                final Object value = ReflectionUtils.invokeGetterMethod( originalName, klassInstance );
-
-                if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
-                {
-                    complexNode.addChild( new SimpleNode( rename, value ) );
-                }
-                else
-                {
-                    complexNode.addChild( new SimpleNode( originalName, value ) );
-                }
-            }
-            catch ( NoSuchFieldException e )
-            {
-                log.warn( "Error reading attribute", e );
-            }
-        }
-
-        return complexNode;
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName,

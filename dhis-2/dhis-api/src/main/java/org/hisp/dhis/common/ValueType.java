@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.common;
 
-import static java.util.stream.Collectors.toSet;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -202,7 +200,7 @@ public enum ValueType
      *
      * @return a simplified value type.
      */
-    public ValueType toSimplifiedValueType()
+    public ValueType asSimplifiedValueType()
     {
         if ( isNumeric() )
         {
@@ -235,10 +233,5 @@ public enum ValueType
     {
         return Arrays.stream( ValueType.values() ).filter( v -> v.toString().equals( valueType ) ).findFirst()
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
-    }
-
-    public static Set<ValueType> getAggregatables()
-    {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
     }
 }

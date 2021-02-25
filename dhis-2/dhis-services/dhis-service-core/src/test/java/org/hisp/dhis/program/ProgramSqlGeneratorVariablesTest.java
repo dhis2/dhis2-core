@@ -202,7 +202,7 @@ public class ProgramSqlGeneratorVariablesTest
     public void testEventCount()
     {
         String sql = castString( test( "V{event_count}", new DefaultLiteral(), eventIndicator ) );
-        assertThat( sql, is( "psi" ) );
+        assertThat( sql, is( "distinct psi" ) );
     }
 
     @Test

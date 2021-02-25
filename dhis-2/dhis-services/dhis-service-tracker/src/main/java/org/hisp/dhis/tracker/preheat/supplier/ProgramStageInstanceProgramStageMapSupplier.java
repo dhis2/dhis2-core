@@ -91,7 +91,8 @@ public class ProgramStageInstanceProgramStageMapSupplier
             .collect( Collectors.toList() );
 
         List<String> programInstanceUids = params.getEvents().stream()
-            .map( Event::getEnrollment )
+            .map( e -> e.getEnrollment() != null ? e.getEnrollment()
+                : preheat.getProgramInstances().get( e.getEvent() ).get( 0 ).getUid() )
             .filter( Objects::nonNull )
             .distinct()
             .collect( Collectors.toList() );

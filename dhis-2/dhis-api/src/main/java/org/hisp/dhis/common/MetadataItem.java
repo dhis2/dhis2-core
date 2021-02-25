@@ -156,13 +156,13 @@ public class MetadataItem
         if ( dimensionalItemObject instanceof DataElement )
         {
             DataElement dataElement = (DataElement) dimensionalItemObject;
-            this.valueType = dataElement.getValueType().toSimplifiedValueType();
+            this.valueType = dataElement.getValueType().asSimplifiedValueType();
         }
 
         if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
-            this.valueType = attribute.getValueType().toSimplifiedValueType();
+            this.valueType = attribute.getValueType().asSimplifiedValueType();
         }
 
         // TODO introduce start/end date marker interface instead

@@ -158,7 +158,7 @@ public class ProgramIndicatorServiceVariableTest
         assertEquals( "distinct pi",
             getSql( "V{enrollment_count}" ) );
 
-        assertEquals( "pi",
+        assertEquals( "distinct pi",
             getSqlEnrollment( "V{enrollment_count}" ) );
     }
 
@@ -196,10 +196,10 @@ public class ProgramIndicatorServiceVariableTest
     @Test
     public void testEventCount()
     {
-        assertEquals( "psi",
+        assertEquals( "distinct psi",
             getSql( "V{event_count}" ) );
 
-        assertEquals( "psi",
+        assertEquals( "distinct psi",
             getSqlEnrollment( "V{event_count}" ) );
     }
 

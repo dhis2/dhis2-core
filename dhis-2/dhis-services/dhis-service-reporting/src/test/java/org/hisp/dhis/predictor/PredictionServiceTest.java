@@ -44,9 +44,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -210,12 +208,6 @@ public class PredictionServiceTest
         dataElements.add( dataElementB );
         dataElements.add( dataElementC );
         dataElements.add( dataElementD );
-
-        // Org unit hierarchy:
-        //
-        // Level 1: A, B, G
-        // Level 2: C, D (children of B)
-        // Level 3: E, F (children of D)
 
         sourceA = createOrganisationUnit( 'A' );
         sourceB = createOrganisationUnit( 'B' );
@@ -556,7 +548,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    public void testPredictSequentialStddevPop()
+    public void testPredictSequentialPop()
     {
         setupTestData();
 
@@ -584,36 +576,6 @@ public class PredictionServiceTest
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
 
         assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary( summary ) );
-    }
-
-    @Test
-    public void testPredictSequentialStddevPopWithLimitedUser()
-    {
-        setupTestData();
-
-        Set<OrganisationUnit> units = newHashSet( sourceA );
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( true, units, units );
-        setDependency( predictionService, "currentUserService", mockCurrentUserService, CurrentUserService.class );
-
-        Predictor p = createPredictor( dataElementX, defaultCombo, "PredictSequential",
-            expressionH, null, periodTypeMonthly, orgUnitLevel1, 3, 1, 0 );
-
-        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
-
-        assertEquals( "Pred 1 Ins 4 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-
-        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) );
-        assertEquals( "5.5", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) );
-        assertEquals( "9.25", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) );
-        assertEquals( "9.0", getDataValue( dataElementX, defaultCombo, sourceA, makeMonth( 2001, 11 ) ) );
-
-        // Make sure we can do it again.
-
-        summary = new PredictionSummary();
-
-        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 12 ), summary );
-
-        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 4", shortSummary( summary ) );
     }
 
     @Test
@@ -669,7 +631,7 @@ public class PredictionServiceTest
     }
 
     @Test
-    public void testPredictMultiLevelsWithDataElementExpression()
+    public void testPredictMultiLevels()
     {
         useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceE, 1 );
         useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceE, 2 );
@@ -682,44 +644,6 @@ public class PredictionServiceTest
 
         Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsMultiLevels",
             new Expression( "sum(#{" + dataElementA.getUid() + "})", "descriptionA" ), null,
-            periodTypeMonthly, orgUnitLevels, 2, 0, 0 );
-
-        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
-
-        assertEquals( "Pred 1 Ins 8 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
-
-        assertEquals( "1.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 7 ) ) );
-        assertEquals( "4.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 7 ) ) );
-        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 7 ) ) );
-        assertEquals( "5.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 7 ) ) );
-
-        assertEquals( "3.0", getDataValue( dataElementX, defaultCombo, sourceE, makeMonth( 2001, 8 ) ) );
-        assertEquals( "12.0", getDataValue( dataElementX, defaultCombo, sourceF, makeMonth( 2001, 8 ) ) );
-        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceD, makeMonth( 2001, 8 ) ) );
-        assertEquals( "15.0", getDataValue( dataElementX, defaultCombo, sourceB, makeMonth( 2001, 8 ) ) );
-
-        summary = new PredictionSummary();
-
-        predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
-
-        assertEquals( "Pred 1 Ins 0 Upd 0 Del 0 Unch 8", shortSummary( summary ) );
-    }
-
-    @Test
-    public void testPredictMultiLevelsWithDataElementOperandExpression()
-    {
-        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceE, 1 );
-        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceE, 2 );
-        useDataValue( dataElementA, makeMonth( 2001, 6 ), sourceF, 4 );
-        useDataValue( dataElementA, makeMonth( 2001, 7 ), sourceF, 8 );
-
-        dataValueBatchHandler.flush();
-
-        Set<OrganisationUnitLevel> orgUnitLevels = Sets.newHashSet( orgUnitLevel1, orgUnitLevel2, orgUnitLevel3 );
-
-        Predictor p = createPredictor( dataElementX, defaultCombo, "GetPredictionsMultiLevels",
-            new Expression( "sum(#{" + dataElementA.getUid() + "." + defaultCombo.getUid() + "})", "descriptionA" ),
-            null,
             periodTypeMonthly, orgUnitLevels, 2, 0, 0 );
 
         predictionService.predict( p, monthStart( 2001, 7 ), monthStart( 2001, 9 ), summary );
@@ -1309,11 +1233,26 @@ public class PredictionServiceTest
 
         assertEquals( "Pred 1 Ins 5 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
 
-        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values_10_20_30_40_50
-        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values_10_20_30_40
-        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values_20_30_40
-        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values_20_30
-        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value_20
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 6 ) ) ); // Values
+                                                                                                         // 10,
+                                                                                                         // 20,
+                                                                                                         // 30,
+                                                                                                         // 40,
+                                                                                                         // 50
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 7 ) ) ); // Values
+                                                                                                         // 10,
+                                                                                                         // 20,
+                                                                                                         // 30,
+                                                                                                         // 40
+        assertEquals( "30", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 8 ) ) ); // Values
+                                                                                                         // 20,
+                                                                                                         // 30,
+                                                                                                         // 40
+        assertEquals( "25", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 9 ) ) ); // Values
+                                                                                                         // 20,
+                                                                                                         // 30
+        assertEquals( "20", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 10 ) ) ); // Value
+                                                                                                          // 20
     }
 
     @Test
@@ -1343,15 +1282,33 @@ public class PredictionServiceTest
 
         assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
 
-        assertEquals( "15", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 25th_percentile_of_10_20_30
-        assertEquals( "23", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 25th_percentile_of_20_30
+        assertEquals( "15", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 25th
+                                                                                                         // percentile
+                                                                                                         // of
+                                                                                                         // 10,
+                                                                                                         // 20,
+                                                                                                         // 30
+        assertEquals( "23", getDataValue( dataElementY, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 25th
+                                                                                                         // percentile
+                                                                                                         // of
+                                                                                                         // 20,
+                                                                                                         // 30
 
         predictionService.predict( predictorP50, monthStart( 2001, 4 ), monthStart( 2001, 6 ), summary );
 
         assertEquals( "Pred 2 Ins 4 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
 
-        assertEquals( "20", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 50th_percentile_of_10_20_30
-        assertEquals( "25", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 50th_percentile_of_20_30
+        assertEquals( "20", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 4 ) ) ); // 50th
+                                                                                                         // percentile
+                                                                                                         // of
+                                                                                                         // 10,
+                                                                                                         // 20,
+                                                                                                         // 30
+        assertEquals( "25", getDataValue( dataElementZ, defaultCombo, sourceA, makeMonth( 2001, 5 ) ) ); // 50th
+                                                                                                         // percentile
+                                                                                                         // of
+                                                                                                         // 20,
+                                                                                                         // 30
     }
 
     @Test

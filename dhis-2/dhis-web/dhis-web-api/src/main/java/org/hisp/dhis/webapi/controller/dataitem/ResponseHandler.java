@@ -28,33 +28,28 @@
 package org.hisp.dhis.webapi.controller.dataitem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
 
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
-import org.hisp.dhis.dataitem.query.shared.QueryParam;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.query.Pagination;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
@@ -67,13 +62,11 @@ import org.springframework.stereotype.Component;
  * IMPORTANT: This cache should be removed once we have a new centralized
  * caching solution in place. At that stage, the new solution should be
  * favoured.
- *
- * @author maikel arabori
  */
 @Component
 class ResponseHandler
 {
-    private final QueryExecutor queryExecutor;
+    private final QueryService queryService;
 
     private final LinkService linkService;
 
@@ -81,15 +74,15 @@ class ResponseHandler
 
     private final Cache<Long> pageCountingCache;
 
-    ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )
+    ResponseHandler( QueryService queryService, LinkService linkService, FieldFilterService fieldFilterService,
+        CacheProvider cacheProvider )
     {
-        checkNotNull( queryExecutor );
+        checkNotNull( queryService );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
         checkNotNull( cacheProvider );
 
-        this.queryExecutor = queryExecutor;
+        this.queryService = queryService;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
         this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
@@ -104,11 +97,11 @@ class ResponseHandler
      * @param fields the list of fields to be returned
      */
     void addResultsToNode( final RootNode rootNode,
-        final List<DataItem> dimensionalItemsFound, final Set<String> fields )
+        final List<BaseDimensionalItemObject> dimensionalItemsFound, final List<String> fields )
     {
-        final CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
-            new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems", DXF_2_0 );
-
+        final CollectionNode collectionNode = fieldFilterService.toCollectionNode( BaseDimensionalItemObject.class,
+            new FieldFilterParams( dimensionalItemsFound, fields ) );
+        collectionNode.setName( "dataItems" );
         rootNode.addChild( collectionNode );
     }
 
@@ -124,50 +117,44 @@ class ResponseHandler
      * @param filters the query filters used in the count query
      */
     void addPaginationToNode( final RootNode rootNode,
-        final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
-        final WebOptions options, final Set<String> filters )
+        final List<Class<? extends BaseDimensionalItemObject>> targetEntities, final User currentUser,
+        final WebOptions options, final List<String> filters )
     {
-        if ( options.hasPaging() && isNotEmpty( targetEntities ) )
+        if ( options.hasPaging() )
         {
-            // Defining query params map and setting common params.
-            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( QueryParam.USER_UID,
-                currentUser.getUid() );
-
-            setFilteringParams( filters, options, paramsMap, currentUser );
-
-            final AtomicLong count = new AtomicLong();
-
-            // Counting and summing up the results for each entity.
-            for ( final Class<? extends BaseIdentifiableObject> entity : targetEntities )
+            if ( isNotEmpty( targetEntities ) )
             {
-                count.addAndGet( pageCountingCache.get(
-                    createPageCountingCacheKey( currentUser, entity, filters, options ),
-                    p -> countEntityRowsTotal( entity, options, paramsMap ) ).orElse( 0L ) );
+                long count = 0;
+
+                // Counting and summing up the results for each entity.
+                for ( final Class<? extends BaseDimensionalItemObject> entity : targetEntities )
+                {
+                    count += pageCountingCache.get(
+                        createPageCountingCacheKey( currentUser, entity, filters, options ),
+                        p -> countEntityRowsTotal( entity, options, filters ) ).orElse( 0L );
+                }
+
+                final Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+
+                linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
+
+                rootNode.addChild( createPager( pager ) );
             }
-
-            final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
-
-            linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
-
-            rootNode.addChild( createPager( pager ) );
         }
     }
 
-    private long countEntityRowsTotal( final Class<? extends BaseIdentifiableObject> entity, final WebOptions options,
-        final MapSqlParameterSource paramsMap )
+    private long countEntityRowsTotal( final Class<? extends BaseDimensionalItemObject> entity,
+        final WebOptions options,
+        final List<String> filters )
     {
-        // Calculate pagination.
-        if ( options.hasPaging() )
-        {
-            final int maxLimit = options.getPage() * options.getPageSize();
-            paramsMap.addValue( QueryParam.MAX_LIMIT, maxLimit );
-        }
+        final Query query = queryService.getQueryFromUrl( entity, filters, emptyList(), new Pagination(),
+            options.getRootJunction() );
 
-        return new Long( queryExecutor.count( entity, paramsMap ) );
+        return queryService.count( query );
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-        final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
+        final Class<? extends BaseDimensionalItemObject> entity, final List<String> filters, final WebOptions options )
     {
         return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();

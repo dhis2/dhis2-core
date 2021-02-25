@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.collect.Sets.newHashSet;
 import static java.lang.String.valueOf;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -52,19 +51,18 @@ import static org.mockito.junit.MockitoJUnit.rule;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.NoOpCache;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.dataitem.DataItem;
-import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -74,17 +72,11 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.core.env.Environment;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
-/**
- * Unit tests for ResponseHandler.
- *
- * @author maikel arabori
- */
 public class ResponseHandlerTest
 {
     @Mock
-    private QueryExecutor queryExecutor;
+    private QueryService queryService;
 
     @Mock
     private LinkService linkService;
@@ -106,8 +98,10 @@ public class ResponseHandlerTest
     @Before
     public void setUp()
     {
+        String[] testEnvironmentVars = { "test" };
+        when( environment.getActiveProfiles() ).thenReturn( testEnvironmentVars );
         when( cacheProvider.createDataItemsPaginationCache() ).thenReturn( new NoOpCache<>() );
-        responseHandler = new ResponseHandler( queryExecutor, linkService, fieldFilterService, cacheProvider );
+        responseHandler = new ResponseHandler( queryService, linkService, fieldFilterService, cacheProvider );
     }
 
     @Test
@@ -115,14 +109,13 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final DataItem anyDataItem = DataItem.builder().name( "any" ).build();
-        final List<DataItem> anyDimensionalItems = singletonList( anyDataItem );
-        final Set<String> anyFields = newHashSet( "name" );
+        final List<BaseDimensionalItemObject> anyDimensionalItems = singletonList(
+            new BaseDimensionalItemObject( "any" ) );
+        final List<String> anyFields = singletonList( "any" );
         final CollectionNode anyCollectionNode = new CollectionNode( "any" );
 
         // When
-        when( fieldFilterService.toConcreteClassCollectionNode( any(), any(), any(), any() ) )
-            .thenReturn( anyCollectionNode );
+        when( fieldFilterService.toCollectionNode( any(), any() ) ).thenReturn( anyCollectionNode );
         responseHandler.addResultsToNode( anyRootNode, anyDimensionalItems, anyFields );
 
         // Then
@@ -137,9 +130,9 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
+        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final Set<String> anyFilters = newHashSet( "any" );
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
 
@@ -160,9 +153,9 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> anyTargetEntities = asList( Indicator.class,
+        final List<Class<? extends BaseDimensionalItemObject>> anyTargetEntities = asList( Indicator.class,
             DataSet.class );
-        final Set<String> anyFilters = newHashSet( "any" );
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions webOptionsNoPaging = mockWebOptionsNoPaging();
 
@@ -181,8 +174,8 @@ public class ResponseHandlerTest
     {
         // Given
         final RootNode anyRootNode = new RootNode( "any" );
-        final List<Class<? extends BaseIdentifiableObject>> emptyTargetEntities = emptyList();
-        final Set<String> anyFilters = newHashSet( "any" );
+        final List<Class<? extends BaseDimensionalItemObject>> emptyTargetEntities = emptyList();
+        final List<String> anyFilters = singletonList( "any" );
         final User anyUser = new User();
         final WebOptions anyWebOptions = mockWebOptions( 10, 1 );
 
@@ -194,7 +187,7 @@ public class ResponseHandlerTest
         assertThat( anyRootNode.getName(), is( equalTo( "any" ) ) );
         assertThat( anyRootNode.getChildren(), is( empty() ) );
         verify( linkService, never() ).generatePagerLinks( any( Pager.class ), anyString() );
-        verify( queryExecutor, never() ).count( any( Class.class ), any( MapSqlParameterSource.class ) );
+        verify( queryService, never() ).count( any( Query.class ) );
     }
 
     private WebOptions mockWebOptions( final int pageSize, final int pageNumber )
