@@ -73,9 +73,19 @@ public class JdbcProgramOrgUnitAssociationsStore
 
     private Set<String> getUserOrgUnitPaths()
     {
-        return currentUserService.getCurrentUserOrganisationUnits().stream()
+        Set<String> allUserOrgUnitPaths = currentUserService.getCurrentUserOrganisationUnits().stream()
             .map( OrganisationUnit::getPath )
             .collect( Collectors.toSet() );
+
+        return allUserOrgUnitPaths.stream()
+            .filter( orgUnitPath -> !existsAnchestor( orgUnitPath, allUserOrgUnitPaths ) )
+            .collect( Collectors.toSet() );
+    }
+
+    private boolean existsAnchestor( String orgUnitPath, Set<String> allUserOrgUnitPaths )
+    {
+        return allUserOrgUnitPaths.stream()
+            .anyMatch( path -> !path.equals( orgUnitPath ) && orgUnitPath.startsWith( path ) );
     }
 
 }
