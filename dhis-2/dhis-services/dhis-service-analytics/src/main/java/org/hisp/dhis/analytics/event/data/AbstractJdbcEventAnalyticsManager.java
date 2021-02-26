@@ -1,3 +1,5 @@
+package org.hisp.dhis.analytics.event.data;
+
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -79,9 +81,13 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class AbstractJdbcEventAnalyticsManager
 {
     private static final String ITEM_NAME_SEP = ": ";
+
     private static final String NA = "[N/A]";
+
     protected static final String COL_COUNT = "count";
+
     protected static final String COL_EXTENT = "extent";
+
     protected static final int COORD_DEC = 6;
 
     protected static final int LAST_VALUE_YEARS_OFFSET = -10;
@@ -95,8 +101,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected final DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder;
 
     public AbstractJdbcEventAnalyticsManager(@Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate,
-                                             StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
-                                             DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
+        StatementBuilder statementBuilder, ProgramIndicatorService programIndicatorService,
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder )
     {
         checkNotNull( jdbcTemplate );
         checkNotNull( statementBuilder );
