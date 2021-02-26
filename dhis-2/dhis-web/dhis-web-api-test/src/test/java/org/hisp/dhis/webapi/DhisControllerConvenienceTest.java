@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.failOnException;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
@@ -73,6 +74,8 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     private MockHttpSession session;
 
+    private User currentUser;
+
     @Before
     public final void setup()
         throws Exception
@@ -83,17 +86,27 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
-        session = startSessionWith( "ALL" );
+        switchToNewUser( null, "ALL" );
     }
 
-    private MockHttpSession startSessionWith( String... authorities )
+    protected final User getCurrentUser()
     {
-        createAndInjectAdminUser( authorities );
+        return currentUser;
+    }
 
-        MockHttpSession session = new MockHttpSession();
+    protected final User switchToNewUser( String username, String... authorities )
+    {
+        currentUser = currentUser == null
+            ? createAdminUser( authorities )
+            : createUser( username, authorities );
+
+        injectSecurityContext( currentUser );
+
+        session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
-        return session;
+
+        return currentUser;
     }
 
     @Override

@@ -176,4 +176,27 @@ public class JsonResponseTest
         assertTrue( response.getArray( "optional" ).isNull() );
     }
 
+    @Test
+    public void testIsArray()
+    {
+        JsonObject response = new JsonResponse( "{'array': [], notAnArray: 42 }" );
+
+        assertTrue( new JsonResponse( "[]" ).isArray() );
+        assertTrue( response.getArray( "array" ).isArray() );
+        assertFalse( response.getArray( "notAnArray" ).isArray() );
+        JsonArray missing = response.getArray( "missing" );
+        assertThrows( NoSuchElementException.class, missing::isArray );
+    }
+
+    @Test
+    public void testIsObject()
+    {
+        JsonObject response = new JsonResponse( "{'object': {}, notAnObject: 42 }" );
+
+        assertTrue( response.isObject() );
+        assertTrue( response.getArray( "object" ).isObject() );
+        assertFalse( response.getArray( "notAnObject" ).isObject() );
+        JsonArray missing = response.getArray( "missing" );
+        assertThrows( NoSuchElementException.class, missing::isObject );
+    }
 }

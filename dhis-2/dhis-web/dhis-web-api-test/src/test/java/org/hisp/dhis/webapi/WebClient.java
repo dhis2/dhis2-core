@@ -28,20 +28,27 @@
 package org.hisp.dhis.webapi;
 
 import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JSON_UTF8;
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.assertSeries;
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.assertStatus;
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.failOnException;
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.substitutePlaceholders;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.plainTextOrJson;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -87,6 +94,26 @@ public interface WebClient
         return webRequest( patch( url ), body );
     }
 
+    default HttpResponse PUT( String url, String... args )
+    {
+        return PUT( substitutePlaceholders( url, args ), "" );
+    }
+
+    default HttpResponse PUT( String url, String body )
+    {
+        return webRequest( put( url ), body );
+    }
+
+    default HttpResponse DELETE( String url, String... args )
+    {
+        return DELETE( substitutePlaceholders( url, args ), "" );
+    }
+
+    default HttpResponse DELETE( String url, String body )
+    {
+        return webRequest( delete( url ), body );
+    }
+
     default HttpResponse webRequest( MockHttpServletRequestBuilder request, String body )
     {
         if ( body != null && body.endsWith( ".json" ) )
@@ -95,24 +122,30 @@ public interface WebClient
                 .contentType( APPLICATION_JSON_UTF8 )
                 .content( ByteStreams.toByteArray( new ClassPathResource( body ).getInputStream() ) ) ) );
         }
+        if ( startWithMediaType( body ) )
+        {
+            return webRequest( request
+                .contentType( body.substring( 0, body.indexOf( ':' ) ) )
+                .content( body.substring( body.indexOf( ':' ) + 1 ) ) );
+        }
         return body == null || body.isEmpty()
             ? webRequest( request )
             : webRequest( request
                 .contentType( APPLICATION_JSON )
-                .content( body.replace( '\'', '"' ) ) );
+                .content( plainTextOrJson( body ) ) );
     }
 
-    default <T> T run( Function<WebClient, ? extends WebTemplate<T>> template )
+    default <T> T run( Function<WebClient, ? extends WebSnippet<T>> snippet )
     {
-        return template.apply( this ).run();
+        return snippet.apply( this ).run();
     }
 
-    default <A, B> B run( BiFunction<WebClient, A, ? extends WebTemplate<B>> template, A argument )
+    default <A, B> B run( BiFunction<WebClient, A, ? extends WebSnippet<B>> snippet, A argument )
     {
-        return template.apply( this, argument ).run();
+        return snippet.apply( this, argument ).run();
     }
 
-    class HttpResponse
+    final class HttpResponse
     {
         private final MockHttpServletResponse response;
 
@@ -151,6 +184,19 @@ public interface WebClient
         {
             assertStatus( expected, this );
             return contentInternal();
+        }
+
+        public JsonError error()
+        {
+            assertTrue( series().value() >= 4 );
+            return contentInternal().as( JsonError.class );
+        }
+
+        public JsonError error( Series expected )
+        {
+            // OBS! cannot use assertSeries as it uses this method
+            assertEquals( expected, series() );
+            return contentInternal().as( JsonError.class );
         }
 
         private JsonResponse contentInternal()

@@ -25,29 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.template;
+package org.hisp.dhis.webapi;
 
-import org.hisp.dhis.webapi.WebClient;
-import org.hisp.dhis.webapi.WebTemplate;
-import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * A simple {@link WebTemplate} that returns a "random" users ID. This is most
- * likely the admin user, as this is the only existing users in many test
- * scenarios.
+ * Base class to create context free reusable snippets.
+ *
+ * The purpose of {@link WebSnippet}s is to allow definition of sequences of
+ * {@link WebClient} usage that become reusable building blocks to create more
+ * complex scenarios.
  *
  * @author Jan Bernitt
+ *
+ * @param <T> optional return type of the snippet to send information back to
+ *        the caller, like IDs, or {@link org.hisp.dhis.webapi.json.JsonValue}s
  */
-public class SomeUserId extends WebTemplate<String>
+public abstract class WebSnippet<T> implements WebClient
 {
-    public SomeUserId( WebClient client )
+
+    private final WebClient client;
+
+    public WebSnippet( WebClient client )
     {
-        super( client );
+        this.client = client;
     }
 
     @Override
-    protected String run()
+    public final HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
-        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
+        return client.webRequest( request );
     }
+
+    /**
+     * Runs the snippet.
+     *
+     * @return a optional result value, like an ID or a
+     *         {@link org.hisp.dhis.webapi.json.JsonValue} that can be used by
+     *         the caller to continue working with data created or used in this
+     *         snippet.
+     */
+    protected abstract T run();
 }

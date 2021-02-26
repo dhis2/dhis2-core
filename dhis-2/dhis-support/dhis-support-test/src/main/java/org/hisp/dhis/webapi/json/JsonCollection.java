@@ -73,6 +73,18 @@ public interface JsonCollection extends JsonValue
             }
 
             @Override
+            public boolean isArray()
+            {
+                return array.isArray();
+            }
+
+            @Override
+            public boolean isObject()
+            {
+                return array.isObject();
+            }
+
+            @Override
             public int size()
             {
                 return array.size();

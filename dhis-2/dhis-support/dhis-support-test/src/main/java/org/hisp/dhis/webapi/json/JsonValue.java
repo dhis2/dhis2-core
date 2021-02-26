@@ -77,6 +77,22 @@ public interface JsonValue
     boolean isNull();
 
     /**
+     * @return true if the value exists and is a JSON array node (empty or not)
+     *         but not JSON {@code null}
+     * @throws java.util.NoSuchElementException in case this value does not
+     *         exist in the content
+     */
+    boolean isArray();
+
+    /**
+     * @return true if the value exists and is an JSON object node (empty or
+     *         not) but not JSON {@code null}
+     * @throws java.util.NoSuchElementException in case this value does not
+     *         exist in the content
+     */
+    boolean isObject();
+
+    /**
      * "Cast" this JSON value to a more specific type. Note that any type can be
      * switched to any other type. Types here are just what we believe to be
      * true. They are only here to guide us, not assert existence.

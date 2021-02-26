@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.MockMvcUtils.assertStatus;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
-import org.hisp.dhis.webapi.template.SomeUserId;
+import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -86,6 +86,12 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.NO_CONTENT, PATCH( "/users/" + id, "{'surname':'Peter'}" ) );
 
         assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
+    }
+
+    @Test
+    public void replaceTranslations()
+    {
+
     }
 
 }

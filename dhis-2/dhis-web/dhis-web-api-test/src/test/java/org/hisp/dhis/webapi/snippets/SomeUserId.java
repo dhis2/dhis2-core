@@ -25,46 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.webapi.snippets;
 
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.hisp.dhis.webapi.WebClient;
+import org.hisp.dhis.webapi.WebSnippet;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
 
 /**
- * Base class to create context free templates.
- *
- * The purpose of templates is to allow definition of sequences of
- * {@link WebClient} usage that become reusable building blocks to create
+ * A simple {@link WebSnippet} that returns a "random" users ID. This is most
+ * likely the admin user, as this is the only existing users in many test
  * scenarios.
  *
  * @author Jan Bernitt
- *
- * @param <T> optional return type of the template to send information back to
- *        the template caller, like ids, or
- *        {@link org.hisp.dhis.webapi.json.JsonValue}s
  */
-public abstract class WebTemplate<T> implements WebClient
+public class SomeUserId extends WebSnippet<String>
 {
-
-    private final WebClient client;
-
-    public WebTemplate( WebClient client )
+    public SomeUserId( WebClient client )
     {
-        this.client = client;
+        super( client );
     }
 
     @Override
-    public final HttpResponse webRequest( MockHttpServletRequestBuilder request )
+    protected String run()
     {
-        return client.webRequest( request );
+        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
     }
-
-    /**
-     * Runs the template.
-     *
-     * @return a optional result value, like an ID or a
-     *         {@link org.hisp.dhis.webapi.json.JsonValue} that can be used by
-     *         the caller to continue working with data created or used in this
-     *         template.
-     */
-    protected abstract T run();
 }

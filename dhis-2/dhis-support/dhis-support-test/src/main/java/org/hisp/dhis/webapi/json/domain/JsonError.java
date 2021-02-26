@@ -25,54 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.json.domain;
 
-import static org.junit.Assert.assertEquals;
-
-import java.util.concurrent.Callable;
-
-import org.hisp.dhis.webapi.WebClient.HttpResponse;
-import org.springframework.http.HttpStatus;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Helpers needed when testing with
- * {@link org.springframework.test.web.servlet.MockMvc}.
+ * A generic error JSON as usually returned by DHIS2.
  *
  * @author Jan Bernitt
  */
-public class MockMvcUtils
+public interface JsonError extends JsonObject
 {
-    private MockMvcUtils()
+    default String getHttpStatus()
     {
-        throw new UnsupportedOperationException( "util" );
+        return getString( "httpStatus" ).string();
     }
 
-    public static void assertStatus( HttpStatus status, HttpResponse response )
+    default int getHttpStatusCode()
     {
-        assertEquals( status, response.status() );
+        return getNumber( "httpStatusCode" ).intValue();
     }
 
-    public static void assertSeries( HttpStatus.Series series, HttpResponse response )
+    default String getStatus()
     {
-        assertEquals( series, response.series() );
+        return getString( "status" ).string();
     }
 
-    public static String substitutePlaceholders( String url, String[] args )
+    default String getMessage()
     {
-        return args.length == 0
-            ? url
-            : String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) args );
-    }
-
-    public static <T> T failOnException( Callable<T> op )
-    {
-        try
-        {
-            return op.call();
-        }
-        catch ( Exception ex )
-        {
-            throw new AssertionError( ex );
-        }
+        return getString( "message" ).string();
     }
 }

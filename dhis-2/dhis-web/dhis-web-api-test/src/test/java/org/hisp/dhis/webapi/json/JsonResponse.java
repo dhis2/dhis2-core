@@ -243,6 +243,19 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     }
 
     @Override
+    public boolean isArray()
+    {
+        Object value = value( this::noSuchValue );
+        return value instanceof JSONArray || value instanceof Object[];
+    }
+
+    @Override
+    public boolean isObject()
+    {
+        return value( this::noSuchValue ) instanceof Map;
+    }
+
+    @Override
     public Number number()
     {
         return (Number) value( ex -> null );
