@@ -30,18 +30,17 @@ package org.hisp.dhis.schema;
 import java.util.List;
 import java.util.Map;
 
+import com.google.common.collect.Lists;
+
 /**
+ * The {@link PropertyIntrospectorService} is the {@link Property} introspection
+ * provider.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@FunctionalInterface
 public interface PropertyIntrospectorService
 {
-    /**
-     * Returns all exposed properties on wanted class.
-     *
-     * @param klass Class to get properties for
-     * @return List of properties for Class
-     */
-    List<Property> getProperties( Class<?> klass );
 
     /**
      * Returns properties as a map property-name => Property class
@@ -51,7 +50,15 @@ public interface PropertyIntrospectorService
      */
     Map<String, Property> getPropertiesMap( Class<?> klass );
 
-    // TODO should probably be moved out of PropertyIntrospectorService, useful
-    // other places also
-    Class<?> getConcreteClass( Class<?> klass );
+    /**
+     * Returns all exposed properties on wanted class.
+     *
+     * @param klass Class to get properties for
+     * @return List of properties for Class
+     */
+    default List<Property> getProperties( Class<?> klass )
+    {
+        return Lists.newArrayList( getPropertiesMap( klass ).values() );
+    }
+
 }

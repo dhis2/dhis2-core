@@ -1081,12 +1081,12 @@ public class ExpressionServiceTest
 
         // Data set reporting rate
 
-        assertEquals( "401 DsA Reporting rate", eval( "R{dataSetUidA.REPORTING_RATE}" ) );
-        assertEquals( "402 DsA Reporting rate on time", eval( "R{dataSetUidA.REPORTING_RATE_ON_TIME}" ) );
-        assertEquals( "403 DsA Actual reports", eval( "R{dataSetUidA.ACTUAL_REPORTS}" ) );
-        assertEquals( "404 DsA Actual reports on time", eval( "R{dataSetUidA.ACTUAL_REPORTS_ON_TIME}" ) );
-        assertEquals( "405 DsA Expected reports", eval( "R{dataSetUidA.EXPECTED_REPORTS}" ) );
-        assertEquals( "406 DsB Reporting rate", eval( "R{dataSetUidB.REPORTING_RATE}" ) );
+        assertEquals( "401 DsA - Reporting rate", eval( "R{dataSetUidA.REPORTING_RATE}" ) );
+        assertEquals( "402 DsA - Reporting rate on time", eval( "R{dataSetUidA.REPORTING_RATE_ON_TIME}" ) );
+        assertEquals( "403 DsA - Actual reports", eval( "R{dataSetUidA.ACTUAL_REPORTS}" ) );
+        assertEquals( "404 DsA - Actual reports on time", eval( "R{dataSetUidA.ACTUAL_REPORTS_ON_TIME}" ) );
+        assertEquals( "405 DsA - Expected reports", eval( "R{dataSetUidA.EXPECTED_REPORTS}" ) );
+        assertEquals( "406 DsB - Reporting rate", eval( "R{dataSetUidB.REPORTING_RATE}" ) );
 
         // Constant
 
@@ -1204,7 +1204,7 @@ public class ExpressionServiceTest
         assertEquals( "PA DeC*PB DeD", desc( "D{programUidA.dataElemenC}*D{programUidB.dataElemenD}" ) );
         assertEquals( "PA TeaA / PB TeaB", desc( "A{programUidA.trakEntAttA} / A{programUidB.trakEntAttB}" ) );
         assertEquals( "PiA % PiB", desc( "I{programIndA} % I{programIndB}" ) );
-        assertEquals( "DsA Reporting rate ^ DsB Actual reports",
+        assertEquals( "DsA - Reporting rate ^ DsB - Actual reports",
             desc( "R{dataSetUidA.REPORTING_RATE} ^ R{dataSetUidB.ACTUAL_REPORTS}" ) );
         assertEquals( "One half + One quarter", desc( "C{xxxxxxxxx05} + C{xxxxxxxx025}" ) );
         assertEquals( "OugA - OugB", desc( "OUG{orgUnitGrpA} - OUG{orgUnitGrpB}" ) );
@@ -1268,7 +1268,7 @@ public class ExpressionServiceTest
 
         String names = String.join( ",", nameList );
 
-        assertEquals( "DeA CocB,DeB CocA,DsA Reporting rate,PA TeaA", names );
+        assertEquals( "DeA CocB,DeB CocA,DsA - Reporting rate,PA TeaA", names );
     }
 
     @Test

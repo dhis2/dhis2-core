@@ -41,7 +41,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
@@ -355,8 +354,8 @@ public class IndicatorServiceTest
         Set<Translation> listObjectTranslation = new HashSet<>( indicatorA.getTranslations() );
 
         listObjectTranslation.add(
-            new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION,
+            new Translation( locale.getLanguage(), "NUMERATOR_DESCRIPTION", numeratorTranslated ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), "DENOMINATOR_DESCRIPTION",
             denominatorTranslated ) );
 
         identifiableObjectManager.updateTranslations( indicatorA, listObjectTranslation );

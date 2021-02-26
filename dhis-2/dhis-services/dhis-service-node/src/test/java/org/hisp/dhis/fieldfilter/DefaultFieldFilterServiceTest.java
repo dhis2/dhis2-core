@@ -28,6 +28,8 @@
 package org.hisp.dhis.fieldfilter;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +37,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
@@ -43,6 +44,8 @@ import javax.annotation.Nonnull;
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
@@ -52,10 +55,10 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.Jackson2PropertyIntrospectorService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.Assert;
@@ -96,16 +99,13 @@ public class DefaultFieldFilterServiceTest
         final Set<NodeTransformer> nodeTransformers = new HashSet<>();
         nodeTransformers.add( new PluckNodeTransformer() );
 
-        final SchemaService schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
-        {
-            @Override
-            protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
-            {
-                return Collections.emptyMap();
-            }
-        }, sessionFactory );
+        final SchemaService schemaService = new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
+
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
-            currentUserService, attributeService, nodeTransformers );
+            currentUserService, attributeService, cacheProvider, nodeTransformers );
         service.init();
     }
 

@@ -53,6 +53,9 @@ import com.scalified.tree.multinode.ArrayMultiTreeNode;
  *
  * See tests for different sequences of nested Indicators
  *
+ * TODO: This test is expensive to do query-time, instead move to integrity
+ * check or metadata import validation.
+ *
  * @author Luciano Fiandesio
  */
 @Component

@@ -36,6 +36,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.tracker.bundle.TrackerBundleMode;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
@@ -132,7 +133,7 @@ public class TrackerImportParams
     private String filename;
 
     /**
-     * Job id to use for threaded imports.
+     * Job configuration
      */
     private JobConfiguration jobConfiguration;
 
@@ -182,8 +183,15 @@ public class TrackerImportParams
         return User.username( user );
     }
 
-    public boolean hasJobConfiguration()
+    @Override
+    public String toString()
     {
-        return jobConfiguration != null;
+        return JobType.TRACKER_IMPORT_JOB + " ( " + this.getJobConfiguration().getUid() + " )";
+    }
+
+    public String userStartInfo()
+    {
+        return toString() + " started by "
+            + this.getUsername() + " ( " + this.userId + " )";
     }
 }

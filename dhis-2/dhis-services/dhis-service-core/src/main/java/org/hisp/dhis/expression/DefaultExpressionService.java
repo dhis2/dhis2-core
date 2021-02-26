@@ -47,10 +47,28 @@ import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_EVALUATE;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_DESCRIPTIONS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_IDS;
 import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_ORG_UNIT_GROUPS;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.AVG;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.A_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.COUNT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.DAYS;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.D_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.HASH_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.I_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MAX;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MEDIAN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.MIN;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.N_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.OUG_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.PERCENTILE_CONT;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.R_BRACE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_POP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.STDDEV_SAMP;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.SUM;
 import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -67,8 +85,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.analytics.DataType;
 import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.DimensionService;
+import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
@@ -139,13 +163,13 @@ public class DefaultExpressionService
 
     private final DimensionService dimensionService;
 
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
     // -------------------------------------------------------------------------
     // Static data
     // -------------------------------------------------------------------------
 
-    private final static ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> VALIDATION_RULE_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( COMMON_EXPRESSION_ITEMS )
         .put( HASH_BRACE, new DimItemDataElementAndOperand() )
@@ -157,7 +181,7 @@ public class DefaultExpressionService
         .put( DAYS, new ItemDays() )
         .build();
 
-    private final static ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> PREDICTOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( AVG, new VectorAvg() )
@@ -172,13 +196,13 @@ public class DefaultExpressionService
         .put( SUM, new VectorSum() )
         .build();
 
-    private final static ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<Integer, ExpressionItem> INDICATOR_EXPRESSION_ITEMS = ImmutableMap
         .<Integer, ExpressionItem> builder()
         .putAll( VALIDATION_RULE_EXPRESSION_ITEMS )
         .put( N_BRACE, new DimItemIndicator() )
         .build();
 
-    private final static ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
+    private static final ImmutableMap<ParseType, ImmutableMap<Integer, ExpressionItem>> PARSE_TYPE_EXPRESSION_ITEMS = ImmutableMap
         .<ParseType, ImmutableMap<Integer, ExpressionItem>> builder()
         .put( INDICATOR_EXPRESSION, INDICATOR_EXPRESSION_ITEMS )
         .put( VALIDATION_RULE_EXPRESSION, VALIDATION_RULE_EXPRESSION_ITEMS )
@@ -187,23 +211,32 @@ public class DefaultExpressionService
         .put( SIMPLE_TEST, COMMON_EXPRESSION_ITEMS )
         .build();
 
-    private final static String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    private static final String CONSTANT_EXPRESSION = "C\\{(?<id>[a-zA-Z]\\w{10})\\}";
 
-    private final static String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
+    private static final String OU_GROUP_EXPRESSION = "OUG\\{(?<id>[a-zA-Z]\\w{10})\\}";
 
-    private final static String GROUP_ID = "id";
+    private static final String GROUP_ID = "id";
 
-    private final static String NULL_REPLACEMENT = "0";
+    private static final String NULL_REPLACEMENT = "0";
 
     /**
      * Constant pattern. Contains the named group {@code id}.
      */
-    private final static Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
+    private static final Pattern CONSTANT_PATTERN = Pattern.compile( CONSTANT_EXPRESSION );
 
     /**
      * Organisation unit groups pattern. Contains the named group {@code id}.
      */
-    private final static Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
+    private static final Pattern OU_GROUP_PATTERN = Pattern.compile( OU_GROUP_EXPRESSION );
+
+    // -------------------------------------------------------------------------
+    // Cache
+    // -------------------------------------------------------------------------
+
+    /**
+     * Cache for the constant map.
+     */
+    private final Cache<Map<String, Constant>> constantMapCache;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -213,7 +246,7 @@ public class DefaultExpressionService
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
         DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
-        IdentifiableObjectManager idObjectManager )
+        IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
@@ -221,6 +254,7 @@ public class DefaultExpressionService
         checkNotNull( categoryService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
+        checkNotNull( cacheProvider );
 
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
@@ -229,6 +263,7 @@ public class DefaultExpressionService
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
+        this.constantMapCache = cacheProvider.createAllConstantsCache();
     }
 
     // -------------------------------------------------------------------------
@@ -417,7 +452,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_DESCRIPTIONS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, false );
 
@@ -526,7 +561,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( INDICATOR_EXPRESSION, ITEM_GET_ORG_UNIT_GROUPS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
 
         visit( expression, parseType.getDataType(), visitor, true );
 
@@ -624,6 +659,17 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     /**
+     * Gets the (possibly cached) constant map.
+     *
+     * @return the constant map.
+     */
+    private Map<String, Constant> getConstantMap()
+    {
+        return constantMapCache.get( "x", key -> constantService.getConstantMap() )
+            .orElse( Collections.emptyMap() );
+    }
+
+    /**
      * Creates a new ExpressionItemsVisitor object.
      */
     private CommonExpressionVisitor newVisitor( ParseType parseType,
@@ -660,7 +706,7 @@ public class DefaultExpressionService
         }
 
         CommonExpressionVisitor visitor = newVisitor( parseType, ITEM_GET_IDS,
-            DEFAULT_SAMPLE_PERIODS, constantService.getConstantMap(), NEVER_SKIP );
+            DEFAULT_SAMPLE_PERIODS, getConstantMap(), NEVER_SKIP );
 
         visitor.setItemIds( itemIds );
         visitor.setSampleItemIds( sampleItemIds );
@@ -805,7 +851,6 @@ public class DefaultExpressionService
                 e -> e.getKey().getDimensionItem()
                     + (e.getKey().getPeriodOffset() == 0 ? "" : "." + e.getKey().getPeriodOffset()),
                 Map.Entry::getValue ) );
-
     }
 
     /**

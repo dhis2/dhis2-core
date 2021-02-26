@@ -60,4 +60,6 @@ public interface RelationshipStore
      *         matching the identifying criterias
      */
     Relationship getByRelationship( Relationship relationship );
+
+    Relationship getByRelationshipKey( String relationshipKey );
 }

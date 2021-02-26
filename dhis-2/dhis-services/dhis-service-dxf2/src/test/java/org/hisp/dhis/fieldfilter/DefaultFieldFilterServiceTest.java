@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.fieldfilter;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
 import java.util.Collections;
@@ -39,6 +42,8 @@ import java.util.stream.Collectors;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.schema.Property;
@@ -83,8 +88,10 @@ public class DefaultFieldFilterServiceTest
     public void setUp()
         throws Exception
     {
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
-            attributeService, new HashSet<>() );
+            attributeService, cacheProvider, new HashSet<>() );
     }
 
     @Test

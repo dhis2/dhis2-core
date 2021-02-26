@@ -28,55 +28,49 @@
 package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.lang.String.format;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.commons.logging.LogFactory.getLog;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Function;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.logging.Log;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.Grid;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 /**
- * This is just a wrapper class responsible for keeping and isolating all
- * caching definition related to the analytics caching, decoupling it from the
- * service layer.
+ * This is a wrapper class responsible for keeping and isolating all cache
+ * definitions related to the analytics.
  */
 @Component
 public class AnalyticsCache
 {
     private static final Log log = getLog( AnalyticsCache.class );
 
-    private Cache<Grid> queryCache;
-
-    private final CacheProvider cacheProvider;
-
-    private final Environment environment;
+    private final Cache<Grid> queryCache;
 
     private final AnalyticsCacheSettings analyticsCacheSettings;
 
-    private static final int MAX_CACHE_ENTRIES = 20000;
-
-    private static final String CACHE_REGION = "analyticsResponse";
-
-    public AnalyticsCache( final CacheProvider cacheProvider, final Environment environment,
+    /**
+     * Default constructor. Note that a default expiration time is set, as as
+     * the TTL will always be overwritten during cache put operations.
+     */
+    public AnalyticsCache( final CacheProvider cacheProvider,
         final AnalyticsCacheSettings analyticsCacheSettings )
     {
         checkNotNull( cacheProvider );
-        checkNotNull( environment );
         checkNotNull( analyticsCacheSettings );
-        this.cacheProvider = cacheProvider;
-        this.environment = environment;
+
         this.analyticsCacheSettings = analyticsCacheSettings;
+        long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
+        this.queryCache = cacheProvider.createAnalyticsResponseCache(
+            Duration.ofSeconds( initialExpirationTime ) );
+
+        log.info( String.format( "Analytics server-side cache is enabled with expiration time: %d s",
+            initialExpirationTime ) );
     }
 
     public Optional<Grid> get( final String key )
@@ -121,8 +115,7 @@ public class AnalyticsCache
      * DataQueryParams.
      *
      * The TTL of the cached object will be set accordingly to the cache
-     * settings available at
-     * {@link org.hisp.dhis.analytics.cache.AnalyticsCacheSettings}.
+     * settings available at {@link AnalyticsCacheSettings}.
      *
      * @param params the DataQueryParams.
      * @param grid the associated Grid.
@@ -148,7 +141,7 @@ public class AnalyticsCache
      *
      * @param key the cache key associate with the Grid.
      * @param grid the Grid object to be cached.
-     * @param ttlInSeconds the custom time to live (expiration time).
+     * @param ttlInSeconds the time to live (expiration time) in seconds.
      */
     public void put( final String key, final Grid grid, final long ttlInSeconds )
     {
@@ -156,33 +149,17 @@ public class AnalyticsCache
     }
 
     /**
-     * Clean the current cache by removing all existing entries.
+     * Clears the current cache by removing all existing entries.
      */
     public void invalidateAll()
     {
         queryCache.invalidateAll();
+
         log.info( "Analytics cache cleared" );
     }
 
     public boolean isEnabled()
     {
         return analyticsCacheSettings.isCachingEnabled();
-    }
-
-    @PostConstruct
-    public void init()
-    {
-        // Set a default expiration time to always expire, as the TTL will be
-        // always overwritten during "put" operations.
-        final long initialExpirationTime = analyticsCacheSettings.fixedExpirationTimeOrDefault();
-
-        final boolean nonTestEnv = !isTestRun( this.environment.getActiveProfiles() );
-
-        queryCache = cacheProvider.newCacheBuilder( Grid.class ).forRegion( CACHE_REGION )
-            .expireAfterWrite( initialExpirationTime, SECONDS ).withMaximumSize( nonTestEnv ? MAX_CACHE_ENTRIES : 0 )
-            .build();
-
-        log.info( format( "Analytics server-side cache is enabled with expiration time (in seconds): %d",
-            initialExpirationTime ) );
     }
 }

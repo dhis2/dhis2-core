@@ -44,6 +44,8 @@ import org.hisp.dhis.tracker.domain.Attribute;
 public class EnrollmentActionRule
     implements ActionRule
 {
+    private final String ruleUid;
+
     private final String enrollment;
 
     private final String data;

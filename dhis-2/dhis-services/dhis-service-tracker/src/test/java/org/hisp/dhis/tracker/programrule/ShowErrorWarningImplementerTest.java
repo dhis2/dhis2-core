@@ -52,6 +52,7 @@ import org.hisp.dhis.tracker.programrule.implementers.ShowErrorOnCompleteValidat
 import org.hisp.dhis.tracker.programrule.implementers.ShowErrorValidator;
 import org.hisp.dhis.tracker.programrule.implementers.ShowWarningOnCompleteValidator;
 import org.hisp.dhis.tracker.programrule.implementers.ShowWarningValidator;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -241,7 +242,12 @@ public class ShowErrorWarningImplementerTest
             .values()
             .stream()
             .flatMap( Collection::stream )
-            .forEach( e -> assertTrue( e.getMessage().contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) ) );
+            .forEach( e -> {
+                assertEquals( "", e.getRuleUid() );
+                assertEquals( issueType, e.getIssueType() );
+                assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+                assertTrue( e.getArgs().get( 0 ).contains( issueType.name() + CONTENT + " " + EVALUATED_DATA ) );
+            } );
     }
 
     public void assertErrorsWithDataElement( Map<String, List<ProgramRuleIssue>> errors )
@@ -250,9 +256,13 @@ public class ShowErrorWarningImplementerTest
             .values()
             .stream()
             .flatMap( Collection::stream )
-            .forEach(
-                e -> assertEquals( e.getMessage(),
-                    IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")" ) );
+            .forEach( e -> {
+                assertEquals( "", e.getRuleUid() );
+                assertEquals( IssueType.ERROR, e.getIssueType() );
+                assertEquals( TrackerErrorCode.E1300, e.getIssueCode() );
+                assertEquals( IssueType.ERROR.name() + CONTENT + " " + EVALUATED_DATA + " (" + DATA_ELEMENT_ID + ")",
+                    e.getArgs().get( 0 ) );
+            } );
     }
 
     private List<Event> getEvents()
@@ -330,10 +340,10 @@ public class ShowErrorWarningImplementerTest
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
             .create( IssueType.ERROR.name() + CONTENT, DATA, "", UNKNOWN );
 
-        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
+        return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
 
     private List<RuleEffect> getRuleEffectsLinkedToDataElement()
@@ -347,10 +357,10 @@ public class ShowErrorWarningImplementerTest
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
             .create( IssueType.ERROR.name() + CONTENT, DATA, DATA_ELEMENT_ID, DATA_ELEMENT );
 
-        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
+        return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
 
     private List<RuleEffect> getRuleEffectsLinkedToDataAnotherElement()
@@ -364,9 +374,9 @@ public class ShowErrorWarningImplementerTest
         RuleAction actionShowErrorOnCompletion = RuleActionErrorOnCompletion
             .create( IssueType.ERROR.name() + CONTENT, DATA, ANOTHER_DATA_ELEMENT_ID, DATA_ELEMENT );
 
-        return Lists.newArrayList( RuleEffect.create( actionShowWarning, EVALUATED_DATA ),
-            RuleEffect.create( actionShowWarningOnComplete, EVALUATED_DATA ),
-            RuleEffect.create( actionShowError, EVALUATED_DATA ),
-            RuleEffect.create( actionShowErrorOnCompletion, EVALUATED_DATA ) );
+        return Lists.newArrayList( RuleEffect.create( "", actionShowWarning, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowWarningOnComplete, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowError, EVALUATED_DATA ),
+            RuleEffect.create( "", actionShowErrorOnCompletion, EVALUATED_DATA ) );
     }
 }

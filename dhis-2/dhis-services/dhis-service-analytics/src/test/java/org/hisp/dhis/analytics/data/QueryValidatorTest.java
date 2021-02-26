@@ -122,8 +122,7 @@ public class QueryValidatorTest
     @Before
     public void setUp()
     {
-        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ),
-            mock( NestedIndicatorCyclicDependencyInspector.class ) );
+        queryValidator = new DefaultQueryValidator( mock( SystemSettingManager.class ) );
         PeriodType pt = new MonthlyPeriodType();
 
         itA = createIndicatorType( 'A' );

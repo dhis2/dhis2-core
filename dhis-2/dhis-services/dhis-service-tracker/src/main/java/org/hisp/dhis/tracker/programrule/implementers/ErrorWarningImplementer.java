@@ -34,6 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -41,8 +42,9 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.programrule.*;
+import org.hisp.dhis.tracker.report.TrackerErrorCode;
 
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 
 /**
  * This implementer check if there are errors or warnings the
@@ -110,10 +112,10 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
     {
         return effects
             .stream()
-            .map( ruleEffect -> {
-                String field = ruleEffect.getField();
-                String content = ruleEffect.getContent();
-                String data = ruleEffect.getData();
+            .map( actionRule -> {
+                String field = actionRule.getField();
+                String content = actionRule.getContent();
+                String data = actionRule.getData();
 
                 StringBuilder stringBuilder = new StringBuilder( content );
                 if ( !StringUtils.isEmpty( data ) )
@@ -125,9 +127,10 @@ public abstract class ErrorWarningImplementer<T extends RuleActionMessage>
                     stringBuilder.append( " (" ).append( field ).append( ")" );
                 }
 
-                return stringBuilder.toString();
+                return Pair.of( actionRule.getRuleUid(), stringBuilder.toString() );
             } )
-            .map( message -> new ProgramRuleIssue( message, getIssueType() ) )
+            .map( message -> new ProgramRuleIssue( message.getKey(), TrackerErrorCode.E1300,
+                Lists.newArrayList( message.getValue() ), getIssueType() ) )
             .collect( Collectors.toList() );
     }
 

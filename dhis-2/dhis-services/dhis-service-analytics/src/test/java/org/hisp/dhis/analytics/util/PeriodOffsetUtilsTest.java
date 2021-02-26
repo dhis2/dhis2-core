@@ -133,6 +133,15 @@ public class PeriodOffsetUtilsTest
 
         Period p3 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), 2 );
         assertThat( p3.getIsoDate(), is( "2020W20" ) );
+
+        Period p4 = PeriodOffsetUtils.shiftPeriod( createMonthlyPeriod( 2020, 1 ), -12 );
+        assertThat( p4.getIsoDate(), is( "201901" ) );
+
+        Period p5 = PeriodOffsetUtils.shiftPeriod( createQuarterPeriod( 2020, 1 ), -12 );
+        assertThat( p5.getIsoDate(), is( "2017Q1" ) );
+
+        Period p6 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), -2 );
+        assertThat( p6.getIsoDate(), is( "2020W16" ) );
     }
 
     @Test

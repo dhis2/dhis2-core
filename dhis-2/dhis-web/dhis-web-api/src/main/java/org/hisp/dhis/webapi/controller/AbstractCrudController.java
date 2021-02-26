@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -35,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -89,7 +91,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
@@ -104,6 +105,7 @@ import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
@@ -150,7 +152,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    private final Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
     {
     }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
@@ -177,6 +179,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected SchemaService schemaService;
+
+    @Autowired
+    protected SchemaValidator schemaValidator;
 
     @Autowired
     protected LinkService linkService;
@@ -264,21 +269,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         if ( options.hasPaging() && pager == null )
         {
-            long count;
+            long totalCount;
+
             if ( options.getOptions().containsKey( "query" ) )
             {
-                count = entities.size();
-                entities = entities.stream().skip( (options.getPage() - 1) * options.getPageSize() )
-                    .limit( options.getPageSize() ).collect( Collectors.toList() );
+                totalCount = entities.size();
+
+                long skip = (long) (options.getPage() - 1) * options.getPageSize();
+                entities = entities.stream()
+                    .skip( skip )
+                    .limit( options.getPageSize() )
+                    .collect( Collectors.toList() );
             }
             else
             {
-                count = paginationCountCache.computeIfAbsent(
-                    calculatePaginationCountKey( currentUser, filters, options ),
-                    () -> count( options, filters, orders ) );
+                String cacheKey = composePaginationCountKey( currentUser, filters, options );
+                totalCount = paginationCountCache.computeIfAbsent( cacheKey,
+                    () -> countTotal( options, filters, orders ) );
             }
 
-            pager = new Pager( options.getPage(), count, options.getPageSize() );
+            pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
         }
 
         restrictToCaptureScope( entities, options, rpParameters );
@@ -450,6 +460,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             return;
         }
 
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.updateTranslations( persistedObject, object.getTranslations() );
         manager.update( persistedObject );
 
@@ -480,23 +491,25 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Patch patch = null;
-
-        if ( isJson( request ) )
-        {
-            patch = patchService.diff(
-                new PatchParams( jsonMapper.readTree( request.getInputStream() ) ) );
-        }
-        else if ( isXml( request ) )
-        {
-            patch = patchService.diff(
-                new PatchParams( xmlMapper.readTree( request.getInputStream() ) ) );
-        }
+        Patch patch = diff( request );
 
         prePatchEntity( persistedObject );
         patchService.apply( patch, persistedObject );
+        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
+    }
+
+    private Patch diff( HttpServletRequest request )
+        throws IOException,
+        WebMessageException
+    {
+        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
+        if ( mapper == null )
+        {
+            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
+        }
+        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
@@ -542,10 +555,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
         }
 
+        prePatchEntity( persistedObject );
         Object value = property.getGetterMethod().invoke( object );
-
         property.getSetterMethod().invoke( persistedObject, value );
-
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
     }
@@ -1036,14 +1049,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -1054,46 +1061,49 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getAdditions() ) );
+    private void addCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.delCollectionItems( object, pvProperty, items.getDeletions() );
+        collectionService.addCollectionItems( object, pvProperty, items.getAdditions() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+    private void replaceCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.replaceCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -1106,48 +1116,54 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
         if ( objects.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        T object = objects.get( 0 );
+        IdentifiableObjects items = new IdentifiableObjects();
+        items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+
+        preUpdateItems( object, items );
+        collectionService.addCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
-            IdentifiableObjects.class );
-
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         HttpServletRequest request )
         throws Exception
     {
-        List<T> objects = getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
-            IdentifiableObjects.class );
+        deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+            renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
+    }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+    private void deleteCollectionItems( String pvProperty, T object, IdentifiableObjects items )
+        throws Exception
+    {
+        preUpdateItems( object, items );
+        collectionService.delCollectionItems( object, pvProperty, items.getIdentifiableObjects() );
+        postUpdateItems( object, items );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1156,15 +1172,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         throws Exception
     {
         List<T> objects = getEntity( pvUid );
-        response.setStatus( HttpServletResponse.SC_NO_CONTENT );
-
         if ( objects.isEmpty() )
         {
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        IdentifiableObjects items = new IdentifiableObjects();
+        items.setIdentifiableObjects( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        deleteCollectionItems( pvProperty, objects.get( 0 ), items );
     }
 
     @PutMapping( value = "/{uid}/sharing", consumes = "application/json" )
@@ -1237,6 +1252,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void preCreateEntity( T entity )
+        throws Exception
     {
     }
 
@@ -1245,6 +1261,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void preUpdateEntity( T entity, T newEntity )
+        throws Exception
     {
     }
 
@@ -1267,6 +1284,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     protected void postPatchEntity( T entity )
+    {
+    }
+
+    protected void preUpdateItems( T entity, IdentifiableObjects items )
+        throws Exception
+    {
+    }
+
+    protected void postUpdateItems( T entity, IdentifiableObjects items )
     {
     }
 
@@ -1309,18 +1335,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         User user = currentUserService.getCurrentUser();
 
-        if ( user == null )
+        if ( user == null || user.isSuper() )
         {
             return;
         }
 
-        OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        params.setParents( user.getOrganisationUnits() );
-        params.setFetchChildren( true );
+        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
+        {
+            // skipping restriction to capture scope due to high number of
+            // capture scope org units for the current user.
+            return;
+        }
 
-        Set<String> orgUnits = organisationUnitService.getOrganisationUnitsByQuery( params ).stream()
-            .map( orgUnit -> orgUnit.getUid() ).collect(
-                Collectors.toSet() );
+        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
 
         for ( T entity : entityList )
         {
@@ -1358,10 +1385,11 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entityList;
     }
 
-    private long count( WebOptions options, List<String> filters, List<Order> orders )
+    private long countTotal( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
             options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+
         return queryService.count( query );
     }
 
@@ -1373,12 +1401,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected List<T> getEntity( String uid, WebOptions options )
     {
         ArrayList<T> list = new ArrayList<>();
-        java.util.Optional<T> identifiableObject = java.util.Optional
-            .ofNullable( manager.getNoAcl( getEntityClass(), uid ) );
-
-        identifiableObject.ifPresent( list::add );
-
+        getEntity( uid, getEntityClass() ).ifPresent( list::add );
         return list; // TODO consider ACL
+    }
+
+    protected <E extends IdentifiableObject> java.util.Optional<E> getEntity( String uid, Class<E> entityType )
+    {
+        return java.util.Optional.ofNullable( manager.getNoAcl( entityType, uid ) );
     }
 
     private Schema schema;
@@ -1623,9 +1652,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return entitySimpleName;
     }
 
-    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
+
 }

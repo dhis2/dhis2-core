@@ -149,8 +149,8 @@ public class OrganisationUnit
 
     public OrganisationUnit()
     {
-        setAutoFields(); // Must be set to get UID and have getPath work
-                         // properly
+        // Must be set to get UID and have getPath work properly
+        setAutoFields();
     }
 
     public OrganisationUnit( String name )
@@ -611,12 +611,10 @@ public class OrganisationUnit
             return Lists.newArrayList();
         }
 
-        String[] ancestors = path.substring( 1 ).split( PATH_SEP ); // Skip
-                                                                    // first
-                                                                    // delimiter,
-                                                                    // root unit
-                                                                    // first
-        int lastIndex = ancestors.length - 2; // Skip this unit
+        // Skip first delimiter, root unit first
+        String[] ancestors = path.substring( 1 ).split( PATH_SEP );
+        // Skip this unit
+        int lastIndex = ancestors.length - 2;
         List<String> uids = Lists.newArrayList();
 
         for ( int i = lastIndex; i >= 0; i-- )

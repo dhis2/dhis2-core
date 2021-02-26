@@ -1621,12 +1621,9 @@ public abstract class DhisConvenienceTest
     public static ProgramMessage createProgramMessage( String text, String subject,
         ProgramMessageRecipients recipients, ProgramMessageStatus status, Set<DeliveryChannel> channels )
     {
-        ProgramMessage message = new ProgramMessage();
-        message.setText( text );
-        message.setSubject( subject );
-        message.setRecipients( recipients );
-        message.setMessageStatus( status );
-        message.setDeliveryChannels( channels );
+        ProgramMessage message = ProgramMessage.builder().text( text )
+            .subject( subject ).recipients( recipients )
+            .messageStatus( status ).deliveryChannels( channels ).build();
 
         return message;
     }
@@ -2472,4 +2469,5 @@ public abstract class DhisConvenienceTest
         userService.addUserCredentials( credentials );
         return user;
     }
+
 }

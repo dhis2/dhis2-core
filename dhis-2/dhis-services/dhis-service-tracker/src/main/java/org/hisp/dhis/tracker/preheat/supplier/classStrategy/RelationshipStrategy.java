@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
+import static org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier.SPLIT_LIST_PARTITION_SIZE;
+
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -37,9 +44,12 @@ import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.preheat.DetachUtils;
+import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -55,12 +65,29 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
     {
-        for ( List<String> ids : splitList )
-        {
-            List<org.hisp.dhis.relationship.Relationship> relationships = relationshipStore
-                .getByUid( ids, preheat.getUser() );
-            preheat.putRelationships( TrackerIdScheme.UID,
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
-        }
+        List<org.hisp.dhis.relationship.Relationship> relationships = retrieveRelationships( splitList );
+
+        preheat.putRelationships( TrackerIdScheme.UID,
+            DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), relationships ) );
+    }
+
+    private List<org.hisp.dhis.relationship.Relationship> retrieveRelationships( List<List<String>> splitList )
+    {
+        return splitList.stream()
+            .flatMap( Collection::stream )
+            .collect( Collectors.partitioningBy( RelationshipPreheatKeySupport::isRelationshipPreheatKey ) )
+            .entrySet().stream()
+            .flatMap( this::getRelationships )
+            .filter( Objects::nonNull )
+            .collect( Collectors.toList() );
+    }
+
+    private Stream<org.hisp.dhis.relationship.Relationship> getRelationships( Map.Entry<Boolean, List<String>> entry )
+    {
+        return entry.getKey() ? entry.getValue().stream()
+            .map( relationshipStore::getByRelationshipKey )
+            : Lists.partition( entry.getValue(), SPLIT_LIST_PARTITION_SIZE ).stream()
+                .map( relationshipStore::getByUid )
+                .flatMap( Collection::stream );
     }
 }

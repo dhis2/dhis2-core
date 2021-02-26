@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.fieldfilter;
 
+import static java.beans.Introspector.decapitalize;
+
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,7 +39,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -52,7 +54,7 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -114,12 +116,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private Property baseIdentifiableIdProperty;
 
-    private static final Cache<PropertyTransformer> TRANSFORMER_CACHE = new SimpleCacheBuilder<PropertyTransformer>()
-        .forRegion( "propertyTransformerCache" )
-        .expireAfterAccess( 12, TimeUnit.HOURS )
-        .withInitialCapacity( 20 )
-        .withMaximumSize( 30000 )
-        .build();
+    private final Cache<PropertyTransformer> transformerCache;
 
     public DefaultFieldFilterService(
         FieldParser fieldParser,
@@ -127,6 +124,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         AclService aclService,
         CurrentUserService currentUserService,
         AttributeService attributeService,
+        CacheProvider cacheProvider,
         @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
@@ -135,6 +133,7 @@ public class DefaultFieldFilterService implements FieldFilterService
         this.currentUserService = currentUserService;
         this.attributeService = attributeService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
+        this.transformerCache = cacheProvider.createPropertyTransformerCache();
     }
 
     @PostConstruct
@@ -244,6 +243,57 @@ public class DefaultFieldFilterService implements FieldFilterService
         return collectionNode;
     }
 
+    @Override
+    public CollectionNode toConcreteClassCollectionNode( final Class<?> klass, final FieldFilterParams params,
+        final String collectionName, final String namespace )
+    {
+        final String fields = params.getFields() == null ? "" : Joiner.on( "," ).join( params.getFields() );
+
+        final CollectionNode collectionNode = new CollectionNode( collectionName );
+        collectionNode.setNamespace( namespace );
+
+        final List<?> objects = params.getObjects();
+
+        if ( params.getObjects().isEmpty() )
+        {
+            return collectionNode;
+        }
+
+        FieldMap fieldMap = new FieldMap();
+
+        // If fields not specified OR set as "*", bring all fields.
+        if ( StringUtils.isBlank( fields )
+            || "*".equals( StringUtils.trimToEmpty( fields ) ) )
+        {
+            for ( final Field property : klass.getDeclaredFields() )
+            {
+                fieldMap.put( property.getName(), new FieldMap() );
+            }
+        }
+        else
+        {
+            fieldMap = fieldParser.parse( fields );
+        }
+
+        final FieldMap finalFieldMap = fieldMap;
+
+        if ( params.getUser() == null )
+        {
+            params.setUser( currentUserService.getCurrentUser() );
+        }
+
+        objects.forEach( object -> {
+            final AbstractNode node = buildNode( finalFieldMap, object, namespace );
+
+            if ( node != null )
+            {
+                collectionNode.addChild( node );
+            }
+        } );
+
+        return collectionNode;
+    }
+
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -261,6 +311,41 @@ public class DefaultFieldFilterService implements FieldFilterService
         return Defaults.EXCLUDE == defaults && object instanceof IdentifiableObject &&
             Preheat.isDefaultObject( (IdentifiableObject) object )
             && "default".equals( ((IdentifiableObject) object).getName() );
+    }
+
+    private AbstractNode buildNode( final FieldMap fieldMap, final Object klassInstance, final String namespace )
+    {
+        final ComplexNode complexNode = new ComplexNode( decapitalize( klassInstance.getClass().getSimpleName() ) );
+        complexNode.setNamespace( namespace );
+
+        for ( final String fieldKey : fieldMap.keySet() )
+        {
+            try
+            {
+                final String originalName = org.apache.commons.lang3.StringUtils.substringBefore( fieldKey, "~" );
+                final String rename = org.apache.commons.lang3.StringUtils.substringBetween( fieldKey, "(", ")" );
+
+                final Field field = klassInstance.getClass().getDeclaredField( originalName );
+                field.setAccessible( true ); // NOSONAR
+
+                final Object value = ReflectionUtils.invokeGetterMethod( originalName, klassInstance );
+
+                if ( org.apache.commons.lang3.StringUtils.isNotBlank( rename ) )
+                {
+                    complexNode.addChild( new SimpleNode( rename, value ) );
+                }
+                else
+                {
+                    complexNode.addChild( new SimpleNode( originalName, value ) );
+                }
+            }
+            catch ( NoSuchFieldException e )
+            {
+                log.warn( "Error reading attribute", e );
+            }
+        }
+
+        return complexNode;
     }
 
     private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName,
@@ -315,7 +400,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property.hasPropertyTransformer() )
             {
-                Optional<PropertyTransformer> propertyTransformer = TRANSFORMER_CACHE
+                Optional<PropertyTransformer> propertyTransformer = transformerCache
                     .get( property.getPropertyTransformer().getName(), s -> {
                         try
                         {

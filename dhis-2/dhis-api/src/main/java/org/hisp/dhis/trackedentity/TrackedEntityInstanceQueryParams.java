@@ -266,6 +266,12 @@ public class TrackedEntityInstanceQueryParams
     private boolean synchronizationQuery;
 
     /**
+     * Indicates to use legacy fetching mechanism in case the tei result count
+     * is high
+     */
+    private boolean useLegacy;
+
+    /**
      * Indicates a point in the time used to decide the data that should not be
      * synchronized
      */
@@ -1174,6 +1180,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
     {
         this.internalSearch = internalSearch;
+        return this;
+    }
+
+    public boolean isUseLegacy()
+    {
+        return useLegacy;
+    }
+
+    public TrackedEntityInstanceQueryParams setUseLegacy( boolean useLegacy )
+    {
+        this.useLegacy = useLegacy;
         return this;
     }
 

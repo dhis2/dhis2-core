@@ -44,6 +44,8 @@ import org.hisp.dhis.tracker.domain.DataValue;
 public class EventActionRule
     implements ActionRule
 {
+    private final String ruleUid;
+
     private final String event;
 
     private final String data;

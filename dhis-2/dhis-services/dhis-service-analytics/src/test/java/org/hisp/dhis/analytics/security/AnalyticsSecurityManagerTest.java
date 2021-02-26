@@ -41,7 +41,6 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.dataelement.DataElement;
@@ -76,9 +75,6 @@ public class AnalyticsSecurityManagerTest
 
     @Autowired
     private UserService _userService;
-
-    @Autowired
-    private IdentifiableObjectManager manager;
 
     private CategoryOption coA;
 

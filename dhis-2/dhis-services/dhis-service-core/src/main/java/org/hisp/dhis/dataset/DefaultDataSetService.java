@@ -197,6 +197,14 @@ public class DefaultDataSetService
 
         return user.isSuper() ? getAllDataSets() : dataSetStore.getDataWriteAll( user );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<DataSet> getDataSetsNotAssignedToOrganisationUnits()
+    {
+        return dataSetStore.getDataSetsNotAssignedToOrganisationUnits();
+    }
+
     // -------------------------------------------------------------------------
     // DataSet LockExceptions
     // -------------------------------------------------------------------------

@@ -65,6 +65,7 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
 import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
 import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
@@ -108,7 +109,7 @@ public class DhisWebApiWebSecurityConfig
      */
     @Configuration
     @Order( 1001 )
-    @Import( { AuthorizationServerEndpointsConfiguration.class, AuthorizationServerEndpointsConfiguration.class } )
+    @Import( { AuthorizationServerEndpointsConfiguration.class } )
     public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter implements AuthorizationServerConfigurer
     {
         @Autowired
@@ -134,6 +135,9 @@ public class DhisWebApiWebSecurityConfig
             AuthorizationServerSecurityConfigurer configurer = new AuthorizationServerSecurityConfigurer();
             FrameworkEndpointHandlerMapping handlerMapping = endpoints.oauth2EndpointHandlerMapping();
             http.setSharedObject( FrameworkEndpointHandlerMapping.class, handlerMapping );
+
+            endpoints.authorizationEndpoint().setUserApprovalPage( "forward:/uaa/oauth/confirm_access" );
+            endpoints.authorizationEndpoint().setErrorPage( "forward:/uaa/oauth/error" );
 
             configure( configurer );
             http.apply( configurer );
@@ -203,12 +207,15 @@ public class DhisWebApiWebSecurityConfig
         {
             ProviderManager providerManager = new ProviderManager(
                 ImmutableList.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
+
             if ( authenticationEventPublisher != null )
             {
                 providerManager.setAuthenticationEventPublisher( authenticationEventPublisher );
             }
+
             endpoints
                 .prefix( "/uaa" )
+                .userApprovalHandler( new DefaultUserApprovalHandler() )
                 .authorizationCodeServices( jdbcAuthorizationCodeServices() )
                 .tokenStore( tokenStore() )
                 .authenticationManager( providerManager );
