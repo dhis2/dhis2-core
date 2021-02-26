@@ -65,7 +65,6 @@ import org.springframework.util.SocketUtils;
  */
 @EnableJms
 @Configuration
-@DependsOn( "artemisPortChecker" )
 public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
