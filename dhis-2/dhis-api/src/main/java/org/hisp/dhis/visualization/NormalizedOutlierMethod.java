@@ -27,39 +27,10 @@
  */
 package org.hisp.dhis.visualization;
 
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
-import java.io.Serializable;
-
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * Class responsible for keeping the settings related to outlier analysis in
- * Visualization.
+ * Holds the normalized method type for OutlierAnalysis.
  */
-@Data
-public class OutlierAnalysis implements Serializable
+public enum NormalizedOutlierMethod
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean enabled;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierMethod outlierMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private NormalizedOutlierMethod normalizationMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double thresholdFactor;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierLine extremeLines;
+    XY_RATIO
 }

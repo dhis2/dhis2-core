@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.query.operators;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -58,20 +57,6 @@ public class TokenUtils
         TokenUtils.getTokens( value ).forEach( token -> regex.append( "(?=.*" ).append( token ).append( ")" ) );
 
         return regex;
-    }
-
-    public static void main( String[] args )
-    {
-        final String tokens = "an 2";
-        final List<String> argsList = new ArrayList<>();
-        argsList.add( tokens );
-
-        // "ANC IPT 2 Coverage" | an 2 = true
-        // "ANC 2 Coverage" | an 2 = true
-        // "ANC IPT 2 Coverage" | an ipt = true
-        final String testValue = "ANC TT2 coverage";
-
-        System.out.println( test( argsList, testValue, tokens, false, MatchMode.START ) );
     }
 
     public static <T> boolean test( List<T> args, T testValue, String targetValue, boolean caseSensitive,

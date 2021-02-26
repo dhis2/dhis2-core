@@ -87,8 +87,7 @@ public class PreCheckDataRelationsValidationHookTest
     @Before
     public void setUp()
     {
-        validatorToTest = new PreCheckDataRelationsValidationHook(
-            programInstanceService, categoryService );
+        validatorToTest = new PreCheckDataRelationsValidationHook( categoryService );
 
         when( ctx.getBundle() ).thenReturn( bundle );
         when( bundle.getValidationMode() ).thenReturn( ValidationMode.FULL );

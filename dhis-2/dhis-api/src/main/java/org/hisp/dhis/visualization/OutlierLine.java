@@ -37,11 +37,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Class responsible for keeping the settings related to outlier analysis in
- * Visualization.
+ * Represents a line object to be used by the OutlierAnalysis class.
  */
 @Data
-public class OutlierAnalysis implements Serializable
+public class OutlierLine implements Serializable
 {
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
@@ -49,17 +48,5 @@ public class OutlierAnalysis implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierMethod outlierMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private NormalizedOutlierMethod normalizationMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double thresholdFactor;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierLine extremeLines;
+    private Double value;
 }

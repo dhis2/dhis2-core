@@ -25,41 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.visualization;
-
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-
-import java.io.Serializable;
-
-import lombok.Data;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+package org.hisp.dhis.datavalue;
 
 /**
- * Class responsible for keeping the settings related to outlier analysis in
- * Visualization.
+ * A class that can consume a deflated data value.
+ *
+ * @author Jim Grace
  */
-@Data
-public class OutlierAnalysis implements Serializable
+public interface DeflatedDataValueConsumer
 {
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private boolean enabled;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierMethod outlierMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private NormalizedOutlierMethod normalizationMethod;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double thresholdFactor;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private OutlierLine extremeLines;
+    /**
+     * Consumes a deflated data value.
+     *
+     * @param deflatedDataValue the DeflatedDataValue to consume.
+     */
+    void consume( DeflatedDataValue deflatedDataValue );
 }
