@@ -53,7 +53,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
@@ -98,10 +97,10 @@ public class ArtemisConfig
             connectionFactory.setBrokerURL(
                 String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
 
-            connectionFactory.setUser(artemisConfigData.getUsername());
-            connectionFactory.setPassword(artemisConfigData.getPassword());
+            connectionFactory.setUser( artemisConfigData.getUsername() );
+            connectionFactory.setPassword( artemisConfigData.getPassword() );
         }
-        
+
         return connectionFactory;
     }
 
