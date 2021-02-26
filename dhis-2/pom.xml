@@ -53,14 +53,14 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine-->
-    <dhis2-rule-engine.version>2.0.16.1-SNAPSHOT</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.0.16</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.3.5</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>1.4</dhis-hisp-staxwax.version>
 
     <!-- Security-->
-    <spring-security.version>5.4.2</spring-security.version>
+    <spring-security.version>5.4.5</spring-security.version>
     <spring-security-oauth2.version>2.5.0.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.66</bcprov-jdk15on.version>
@@ -80,7 +80,7 @@
 
     <!--DBMS -->
     <flyway-core.version>7.0.4</flyway-core.version>
-    <hibernate.version>5.4.27.Final</hibernate.version>
+    <hibernate.version>5.4.28.Final</hibernate.version>
     <!-- Keep in sync with Hibernate! -->
     <byte-buddy.version>1.10.18</byte-buddy.version>
     <!-- Keep in sync with Hibernate! -->
