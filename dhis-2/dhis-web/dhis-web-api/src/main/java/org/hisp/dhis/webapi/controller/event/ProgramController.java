@@ -120,7 +120,7 @@ public class ProgramController
     @ResponseBody
     @RequestMapping( value = "orgUnits" )
     IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
-        @RequestParam( value = "programs" ) Set<String> programUids, User currentUser )
+        @RequestParam( value = "programs" ) Set<String> programUids )
     {
 
         if ( Objects.isNull( programUids ) || programUids.size() == 0 )
