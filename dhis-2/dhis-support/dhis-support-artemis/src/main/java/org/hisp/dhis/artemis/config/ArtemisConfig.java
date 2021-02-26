@@ -99,9 +99,7 @@ public class ArtemisConfig
             connectionFactory.setBrokerURL(
                 String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
         }
-
-        connectionFactory.setClientID( "dhis2" );
-
+        
         return connectionFactory;
     }
 
