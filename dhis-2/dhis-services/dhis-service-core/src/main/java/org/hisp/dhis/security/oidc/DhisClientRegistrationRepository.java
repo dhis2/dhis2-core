@@ -59,10 +59,8 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
-        // Parses the DHIS.conf file for OIDC provider configurations
         GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach(
-            genericOidcProviderConfig -> addRegistration(
-                GenericOidcProviderBuilder.build( genericOidcProviderConfig ) ) );
+            c -> addRegistration( GenericOidcProviderBuilder.build( c ) ) );
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
         addRegistration( Wso2Provider.build( config ) );
@@ -105,7 +103,7 @@ public class DhisClientRegistrationRepository
     {
         return registrationHashMap.values().stream()
             .filter( clientRegistration -> clientRegistration.getClientRegistration().getProviderDetails()
-                .getIssuerUri().equals( issuerUri ) )
+                .getIssuerUri().equalsIgnoreCase( issuerUri ) )
             .findAny().orElse( null );
     }
 }

@@ -56,6 +56,17 @@ public class GoogleProvider extends AbstractOidcProvider
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
+        return DhisOidcClientRegistration.builder()
+            .clientRegistration( buildClientRegistration( config ) )
+            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM ) )
+            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
+            .loginIconPadding( "0px 0px" )
+            .loginText( "login_with_google" )
+            .build();
+    }
+
+    private static ClientRegistration buildClientRegistration( DhisConfigurationProvider config )
+    {
         String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
         String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
 
@@ -69,20 +80,12 @@ public class GoogleProvider extends AbstractOidcProvider
             throw new IllegalArgumentException( "Google client secret is missing!" );
         }
 
-        final ClientRegistration clientRegistration = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
+        return CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
             .clientId( clientId )
             .clientSecret( clientSecret )
             .redirectUri( StringUtils.firstNonBlank(
                 config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI ),
                 DEFAULT_REDIRECT_TEMPLATE_URL ) )
-            .build();
-
-        return DhisOidcClientRegistration.builder()
-            .clientRegistration( clientRegistration )
-            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM ) )
-            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
-            .loginIconPadding( "0px 0px" )
-            .loginText( "login_with_google" )
             .build();
     }
 }

@@ -84,10 +84,8 @@ public class AzureAdProvider extends AbstractOidcProvider
                 continue;
             }
 
-            ClientRegistration.Builder builder = makeBuilder( config, tenant, propertyPrefix );
-
             DhisOidcClientRegistration dhisOidcClientRegistration = DhisOidcClientRegistration.builder()
-                .clientRegistration( builder.build() )
+                .clientRegistration( buildClientRegistration( config.getProperties(), tenant, propertyPrefix ) )
                 .mappingClaimKey( MoreObjects.firstNonNull(
                     properties.getProperty( propertyPrefix + MAPPING_CLAIM ),
                     DEFAULT_MAPPING_CLAIM ) )
@@ -102,11 +100,9 @@ public class AzureAdProvider extends AbstractOidcProvider
         return clients.build();
     }
 
-    private static ClientRegistration.Builder makeBuilder( DhisConfigurationProvider config, String tenant,
+    private static ClientRegistration buildClientRegistration( Properties properties, String tenant,
         String propertyPrefix )
     {
-        Properties properties = config.getProperties();
-
         String clientId = properties.getProperty( propertyPrefix + CLIENT_ID, "" );
         String clientSecret = properties.getProperty( propertyPrefix + CLIENT_SECRET );
 
@@ -140,14 +136,13 @@ public class AzureAdProvider extends AbstractOidcProvider
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
         boolean supportLogout = Boolean.parseBoolean( MoreObjects.firstNonNull(
-            properties.getProperty( propertyPrefix + ENABLE_LOGOUT ),
-            "TRUE" ) );
+            properties.getProperty( propertyPrefix + ENABLE_LOGOUT ), "TRUE" ) );
         if ( supportLogout )
         {
             builder.providerConfigurationMetadata(
                 ImmutableMap.of( "end_session_endpoint", tenantUriStart + "/oauth2/v2.0/logout" ) );
         }
 
-        return builder;
+        return builder.build();
     }
 }

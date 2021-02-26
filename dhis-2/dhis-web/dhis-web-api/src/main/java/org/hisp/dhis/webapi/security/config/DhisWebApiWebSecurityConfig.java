@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
+import java.util.Collection;
 import java.util.Set;
 
 import javax.sql.DataSource;
@@ -60,6 +61,8 @@ import org.springframework.security.config.annotation.authentication.configurers
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -331,6 +334,7 @@ public class DhisWebApiWebSecurityConfig
         {
             auth.authenticationProvider( twoFactorAuthenticationProvider );
             auth.authenticationProvider( customLdapAuthenticationProvider );
+
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
@@ -398,6 +402,46 @@ public class DhisWebApiWebSecurityConfig
                 dhisJwtAuthenticationManagerResolver );
             jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
             jwtFilter.setAuthenticationEntryPoint( new BearerTokenAuthenticationEntryPoint() );
+            jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) ->
+                authenticationEventPublisher.publishAuthenticationFailure( exception, new Authentication()
+                {
+                    @Override public Collection<? extends GrantedAuthority> getAuthorities()
+                    {
+                        return null;
+                    }
+
+                    @Override public Object getCredentials()
+                    {
+                        return null;
+                    }
+
+                    @Override public Object getDetails()
+                    {
+                        return null;
+                    }
+
+                    @Override public Object getPrincipal()
+                    {
+                        return null;
+                    }
+
+                    @Override public boolean isAuthenticated()
+                    {
+                        return false;
+                    }
+
+                    @Override public void setAuthenticated( boolean isAuthenticated )
+                        throws IllegalArgumentException
+                    {
+
+                    }
+
+                    @Override public String getName()
+                    {
+                        return null;
+                    }
+                } ) );
+
 
             http.addFilterAfter( jwtFilter, BasicAuthenticationFilter.class );
 

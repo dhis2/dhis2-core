@@ -73,4 +73,6 @@ public abstract class AbstractOidcProvider
     public final static String ENABLE_PKCE = "enable_pkce";
 
     public final static String EXTRA_REQUEST_PARAMETERS = "extra_request_parameters";
+
+    public final static String EXTERNAL_CLIENT_PREFIX = "ext_client";
 }
