@@ -86,7 +86,7 @@ public class ArtemisConfig
     public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
         throws JMSException
     {
-        final ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
+        ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
 
         if ( artemisConfigData.isEmbedded() )
         {
