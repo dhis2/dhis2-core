@@ -98,6 +98,9 @@ public class ArtemisConfig
         {
             connectionFactory.setBrokerURL(
                 String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+
+            connectionFactory.setUser(artemisConfigData.getUsername());
+            connectionFactory.setPassword(artemisConfigData.getPassword());
         }
         
         return connectionFactory;
