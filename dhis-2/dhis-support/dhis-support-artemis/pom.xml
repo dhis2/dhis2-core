@@ -38,22 +38,18 @@
       <groupId>org.apache.activemq</groupId>
       <artifactId>activemq-artemis-native</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.apache.geronimo.specs</groupId>
+      <artifactId>geronimo-jms_2.0_spec</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.activemq</groupId>
+      <artifactId>artemis-jms-client</artifactId>
+    </dependency>
 
     <dependency>
       <groupId>commons-beanutils</groupId>
       <artifactId>commons-beanutils</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.activemq</groupId>
-      <artifactId>artemis-amqp-protocol</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.qpid</groupId>
-      <artifactId>qpid-jms-client</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.qpid</groupId>
-      <artifactId>proton-j</artifactId>
     </dependency>
     <dependency>
       <groupId>io.netty</groupId>
