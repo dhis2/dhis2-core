@@ -67,8 +67,8 @@ public class ProgramOrganisationUnitAssociationsQueryBuilder
         "    pr.sharing, " +
         "    array_agg(ou.uid) agg_ou_uid " +
         "from program pr " +
-        "    left outer join program_organisationunits po on pr.programid = po.programid " +
-        "    left outer join organisationunit ou on po.organisationunitid = ou.organisationunitid " +
+        "    left join program_organisationunits po on pr.programid = po.programid " +
+        "    left join organisationunit ou on po.organisationunitid = ou.organisationunitid " +
         "where";
 
     private static final String INNER_QUERY_GROUPING_BY = "group by pr.uid, pr.sharing";
