@@ -25,16 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
 
-public interface JsonUserCredentials extends JsonIdentifiableObject
-{
+import org.hisp.dhis.webapi.json.JsonDate;
+import org.hisp.dhis.webapi.json.JsonObject;
 
-    default LocalDateTime getLastLogin()
+/**
+ * Web API equivalent of a {@link org.hisp.dhis.common.BaseIdentifiableObject}.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonIdentifiableObject extends JsonObject
+{
+    default String getId()
     {
-        return get( "lastLogin", JsonDate.class ).date();
+        return getString( "id" ).string();
+    }
+
+    default String getName()
+    {
+        return getString( "name" ).string();
+    }
+
+    default String getDisplayName()
+    {
+        return getString( "displayName" ).string();
+    }
+
+    default String getCode()
+    {
+        return getString( "code" ).string();
+    }
+
+    default JsonUser getLastUpdatedBy()
+    {
+        return get( "lastUpdatedBy", JsonUser.class );
+    }
+
+    default LocalDateTime getLastUpdated()
+    {
+        return get( "lastUpdated", JsonDate.class ).date();
+    }
+
+    default JsonUser getCreatedBy()
+    {
+        return get( "createdBy", JsonUser.class );
+    }
+
+    default LocalDateTime getCreated()
+    {
+        return get( "created", JsonDate.class ).date();
+    }
+
+    default boolean getExternalAccess()
+    {
+        return getBoolean( "externalAccess" ).booleanValue();
     }
 
 }

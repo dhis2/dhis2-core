@@ -28,9 +28,9 @@
 package org.hisp.dhis.webapi.json;
 
 /**
- * The {@link JsonValue} is a read-only access abstraction for JSON responses.
+ * The {@link JsonValue} is a virtual read-only view for JSON responses.
  *
- * As usual there are specific types for the JSON building blocks:
+ * As usual there are specific node types for the JSON building blocks:
  * <ul>
  * <li>{@link JsonObject}</li>
  * <li>{@link JsonArray}</li>
@@ -39,30 +39,31 @@ package org.hisp.dhis.webapi.json;
  * <li>{@link JsonBoolean}</li>
  * </ul>
  * In addition there is {@link JsonCollection} as a common base type of
- * {@link JsonObject} and {@link JsonArray} as well as {@link JsonPrimitive} as
- * common base type of {@link JsonString}, {@link JsonNumber} and
- * {@link JsonBoolean}.
+ * {@link JsonObject} and {@link JsonArray} and {@link JsonPrimitive} as common
+ * base type of {@link JsonString}, {@link JsonNumber} and {@link JsonBoolean}.
  *
  * To allow working with typed arrays there is {@link JsonList} which can be
  * understood as a typed wrapper around a {@link JsonArray}.
  *
- * The API is designed to be:
+ * The API is designed to:
  * <ul>
- * <li>extended by further types extending * {@link JsonValue}, such as
- * {@link JsonDate} but also further specific object * types</li>
- * <li>implemented by a single class which only builds a lookup path and checks
- * or provides the leaf values on demand. Interfaces not directly implemented by
- * this class are dynamically created using a
+ * <li>be extended by further types extending {@link JsonValue}, such as
+ * {@link JsonDate} but also further specific object types</li>
+ * <li>fail at point of assertion. This means traversing the virtual tree does
+ * not cause errors unless explicitly provoked.</li>
+ * <li>be implemented by a single class which only builds a lookup path and
+ * checks or provides the leaf values on demand. Interfaces not directly
+ * implemented by this class are dynamically created using a
  * {@link java.lang.reflect.Proxy}.</li>
  * </ul>
- *
- * The implementation of all interfaces is backed by a single class which
  */
 public interface JsonValue
 {
 
     /**
-     * Existing properties can be JSON {@code null}.
+     * A property exists when it is part of the JSON response. This means it can
+     * be declared JSON {@code null}. Only a path that does not exist returns
+     * false.
      *
      * @return true, if the value exists, else false
      */
@@ -74,4 +75,19 @@ public interface JsonValue
      *         exist in the content
      */
     boolean isNull();
+
+    /**
+     * "Cast" this JSON value to a more specific type. Note that any type can be
+     * switched to any other type. Types here are just what we believe to be
+     * true. They are only here to guide us, not assert existence.
+     *
+     * Whether or not assumptions are actually true is determined when leaf
+     * values are accessed.
+     *
+     * @param as assumed value type
+     * @param <T> value type returned
+     * @return this object as the provided type, this might mean this object is
+     *         wrapped as the provided type or literally cast.
+     */
+    <T extends JsonValue> T as( Class<T> as );
 }

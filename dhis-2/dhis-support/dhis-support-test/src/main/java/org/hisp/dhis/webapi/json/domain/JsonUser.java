@@ -25,25 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
+
+import org.hisp.dhis.webapi.json.JsonList;
 
 /**
- * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
- * uniform elements.
+ * Web API equivalent of a {@link org.hisp.dhis.user.User}.
  *
  * @author Jan Bernitt
- *
- * @param <E> type of the list elements
  */
-public interface JsonList<E extends JsonValue> extends JsonCollection
+public interface JsonUser extends JsonIdentifiableObject
 {
-    /**
-     * A typed variant of {@link JsonArray#get(int)}, equivalent to
-     * {@link JsonArray#get(int, Class)} where 2nd parameter is the type
-     * parameter E.
-     *
-     * @param index index to access
-     * @return element at the provided index
-     */
-    E get( int index );
+    default String getSurname()
+    {
+        return getString( "surname" ).string();
+    }
+
+    default String getFirstName()
+    {
+        return getString( "firstName" ).string();
+    }
+
+    default JsonUserCredentials getUserCredentials()
+    {
+        return get( "userCredentials", JsonUserCredentials.class );
+    }
+
+    default JsonList<JsonUserGroup> getUserGroups()
+    {
+        return getList( "userGroups", JsonUserGroup.class );
+    }
+
+    default JsonList<JsonOrganisationUnit> getOrganisationUnits()
+    {
+        return getList( "organisationUnits", JsonOrganisationUnit.class );
+    }
+
+    default JsonList<JsonOrganisationUnit> getDataViewOrganisationUnits()
+    {
+        return getList( "dataViewOrganisationUnits", JsonOrganisationUnit.class );
+    }
+
+    default JsonList<JsonOrganisationUnit> getTeiSearchOrganisationUnits()
+    {
+        return getList( "teiSearchOrganisationUnits", JsonOrganisationUnit.class );
+    }
+
 }

@@ -25,25 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
+
+import java.time.LocalDateTime;
+
+import org.hisp.dhis.webapi.json.JsonDate;
+import org.hisp.dhis.webapi.json.JsonList;
 
 /**
- * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
- * uniform elements.
+ * Web API equivalent of a
+ * {@link org.hisp.dhis.organisationunit.OrganisationUnit}.
  *
  * @author Jan Bernitt
- *
- * @param <E> type of the list elements
  */
-public interface JsonList<E extends JsonValue> extends JsonCollection
+public interface JsonOrganisationUnit extends JsonIdentifiableObject
 {
-    /**
-     * A typed variant of {@link JsonArray#get(int)}, equivalent to
-     * {@link JsonArray#get(int, Class)} where 2nd parameter is the type
-     * parameter E.
-     *
-     * @param index index to access
-     * @return element at the provided index
-     */
-    E get( int index );
+    default boolean isLeaf()
+    {
+        return getBoolean( "leaf" ).booleanValue();
+    }
+
+    default int getLevel()
+    {
+        return getNumber( "level" ).intValue();
+    }
+
+    default JsonPath getPath()
+    {
+        return get( "path", JsonPath.class );
+    }
+
+    default LocalDateTime getOpeningDate()
+    {
+        return get( "openingDate", JsonDate.class ).date();
+    }
+
+    default LocalDateTime getClosedDate()
+    {
+        return get( "closedDate", JsonDate.class ).date();
+    }
+
+    default JsonOrganisationUnit getParent()
+    {
+        return get( "parent", JsonOrganisationUnit.class );
+    }
+
+    default JsonList<JsonOrganisationUnit> getChildren()
+    {
+        return getList( "children", JsonOrganisationUnit.class );
+    }
+
+    default JsonList<JsonOrganisationUnit> getAncestors()
+    {
+        return getList( "ancestors", JsonOrganisationUnit.class );
+    }
+
+    default JsonList<JsonUser> getUsers()
+    {
+        return getList( "users", JsonUser.class );
+    }
 }

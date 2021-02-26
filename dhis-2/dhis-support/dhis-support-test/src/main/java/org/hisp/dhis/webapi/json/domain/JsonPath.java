@@ -25,25 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
+
+import static java.util.Arrays.asList;
+
+import java.util.List;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.webapi.json.JsonString;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.user.User}.
+ * A utility for an {@link OrganisationUnit#getPath()} value.
+ *
+ * Values use the format (starting with the root):
+ *
+ * <pre>
+ * /{uid}/{uid}
+ * /{uid}/{uid}/{uid}
+ * </pre>
+ *
+ * @author Jan Bernitt
  */
-public interface JsonUser extends JsonIdentifiableObject
+public interface JsonPath extends JsonString
 {
-    default String getSurname()
+    default List<String> ids()
     {
-        return getString( "surname" ).string();
+        return parsed( str -> asList( str.split( "/" ) ) );
     }
 
-    default String getFirstName()
+    default boolean contains( String uid )
     {
-        return getString( "firstName" ).string();
-    }
-
-    default JsonUserCredentials getUserCredentials()
-    {
-        return get( "userCredentials", JsonUserCredentials.class );
+        return ids().contains( uid );
     }
 }

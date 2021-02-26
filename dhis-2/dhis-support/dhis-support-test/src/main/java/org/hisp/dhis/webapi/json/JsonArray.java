@@ -27,10 +27,53 @@
  */
 package org.hisp.dhis.webapi.json;
 
-public interface JsonArray extends JsonCollection, JsonValue
+import java.util.List;
+
+/**
+ * Represents a JSON array node.
+ *
+ * As all nodes are mere views or virtual index access will never throw an
+ * {@link ArrayIndexOutOfBoundsException}. Whether or not an element at an index
+ * exists is determined first when {@link JsonValue#exists()} or other value
+ * accessing operations are performed on a node.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonArray extends JsonCollection
 {
 
+    /**
+     * Index access to the array.
+     *
+     * Note that this will neither check index nor element type.
+     *
+     * @param index index to access (>= 0)
+     * @param as assumed type of the element
+     * @param <T> type of the returned element
+     * @return element at the given index
+     */
     <T extends JsonValue> T get( int index, Class<T> as );
+
+    /**
+     * @return the array elements as a uniform list of {@link String}
+     * @throws IllegalArgumentException in case the node is not an array or the
+     *         array has mixed elements
+     */
+    List<? extends String> stringValues();
+
+    /**
+     * @return the array elements as a uniform list of {@link Number}
+     * @throws IllegalArgumentException in case the node is not an array or the
+     *         array has mixed elements
+     */
+    List<? extends Number> numberValues();
+
+    /**
+     * @return the array elements as a uniform list of {@link Boolean}
+     * @throws IllegalArgumentException in case the node is not an array or the
+     *         array has mixed elements
+     */
+    List<? extends Boolean> boolValues();
 
     default JsonValue get( int index )
     {

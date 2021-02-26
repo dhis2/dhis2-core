@@ -27,10 +27,38 @@
  */
 package org.hisp.dhis.webapi.json;
 
-public interface JsonObject extends JsonCollection, JsonValue
+/**
+ * Represents a JSON object node.
+ *
+ * As all nodes are mere views or virtual field access will never throw a
+ * {@link java.util.NoSuchElementException}. Whether or not a field with a given
+ * name exists is determined first when {@link JsonValue#exists()} or other
+ * value accessing operations are performed on a node.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonObject extends JsonCollection
 {
 
+    /**
+     * Name access to object fields.
+     *
+     * Note that this neither checks if a field exist nor if it has the assumed
+     * type.
+     *
+     * @param name field name
+     * @param as assumed type of the field
+     * @param <T> returned field type
+     * @return field value for the given name
+     */
     <T extends JsonValue> T get( String name, Class<T> as );
+
+    /**
+     *
+     * @param names a set of names that should exist
+     * @return true if this object has (at least) all the given names
+     */
+    boolean has( String... names );
 
     default JsonValue get( String name )
     {

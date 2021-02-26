@@ -27,8 +27,37 @@
  */
 package org.hisp.dhis.webapi.json;
 
-public interface JsonString extends JsonPrimitive, JsonValue
+import java.util.function.Function;
+
+/**
+ * Represents a string JSON node.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonString extends JsonPrimitive
 {
 
+    /**
+     * @return string value of the property or {@code null} when this property
+     *         is undefined or defined as JSON {@code null}.
+     */
     String string();
+
+    /**
+     * In contrast to {@link #mapNonNull(Object, Function)} this function simply
+     * returns {@code null} when {@link #string()} is {@code null}. This
+     * includes the case that this value is not defined in the JSON content.
+     *
+     * @param parser function that parses a given {@link String} to the returned
+     *        type.
+     * @param <T> return type
+     * @return {@code null} when {@link #string()} returns {@code null}
+     *         otherwise the result of calling provided parser with result of
+     *         {@link #string()}.
+     */
+    default <T> T parsed( Function<String, T> parser )
+    {
+        String value = string();
+        return value == null ? null : parser.apply( value );
+    }
 }

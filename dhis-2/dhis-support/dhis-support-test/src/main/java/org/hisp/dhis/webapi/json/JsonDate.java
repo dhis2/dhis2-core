@@ -42,6 +42,6 @@ public interface JsonDate extends JsonString
 {
     default LocalDateTime date()
     {
-        return LocalDateTime.parse( string(), DateTimeFormatter.ISO_LOCAL_DATE_TIME );
+        return parsed( str -> LocalDateTime.parse( str, DateTimeFormatter.ISO_LOCAL_DATE_TIME ) );
     }
 }

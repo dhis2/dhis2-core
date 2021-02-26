@@ -83,6 +83,12 @@ public interface JsonCollection extends JsonValue
             {
                 return array.isEmpty();
             }
+
+            @Override
+            public <T extends JsonValue> T as( Class<T> as )
+            {
+                return array.as( as );
+            }
         }
         return new List();
     }

@@ -27,28 +27,37 @@
  */
 package org.hisp.dhis.webapi.json;
 
-public interface JsonNumber extends JsonValue
+/**
+ * Represents a numeric JSON node.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonNumber extends JsonPrimitive
 {
 
+    /**
+     * @return numeric value of the property or {@code null} when this property
+     *         is undefined or defined as JSON {@code null}.
+     */
     Number number();
 
     default int intValue()
     {
-        return number().intValue();
+        return mapNonNull( number(), Number::intValue );
     }
 
     default long longValue()
     {
-        return number().longValue();
+        return mapNonNull( number(), Number::longValue );
     }
 
     default float floatValue()
     {
-        return number().floatValue();
+        return mapNonNull( number(), Number::floatValue );
     }
 
     default double doubleValue()
     {
-        return number().doubleValue();
+        return mapNonNull( number(), Number::doubleValue );
     }
 }

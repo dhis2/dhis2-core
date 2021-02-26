@@ -27,8 +27,31 @@
  */
 package org.hisp.dhis.webapi.json;
 
-public interface JsonBoolean extends JsonPrimitive, JsonValue
+/**
+ * Represents a boolean JSON node.
+ *
+ * @author Jan Bernitt
+ */
+public interface JsonBoolean extends JsonPrimitive
 {
 
-    boolean booleanValue();
+    /**
+     * @return boolean value of the property or {@code null} when this property
+     *         is undefined or defined as JSON {@code null}.
+     */
+    Boolean bool();
+
+    /**
+     * Same as {@link #bool()} except that this throws an
+     * {@link java.util.NoSuchElementException} in case the value is not
+     * defined.
+     *
+     * @return true of false, nothing else
+     * @throws java.util.NoSuchElementException when this value is not defined
+     *         in the JSON content or defined JSON {@code null}.
+     */
+    default boolean booleanValue()
+    {
+        return mapNonNull( bool(), Boolean::booleanValue );
+    }
 }

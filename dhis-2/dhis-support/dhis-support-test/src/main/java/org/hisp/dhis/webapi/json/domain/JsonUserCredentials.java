@@ -25,25 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
+
+import java.time.LocalDateTime;
+
+import org.hisp.dhis.webapi.json.JsonDate;
 
 /**
- * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
- * uniform elements.
+ * Web API equivalent of a {@link org.hisp.dhis.user.UserCredentials}.
  *
  * @author Jan Bernitt
- *
- * @param <E> type of the list elements
  */
-public interface JsonList<E extends JsonValue> extends JsonCollection
+public interface JsonUserCredentials extends JsonIdentifiableObject
 {
-    /**
-     * A typed variant of {@link JsonArray#get(int)}, equivalent to
-     * {@link JsonArray#get(int, Class)} where 2nd parameter is the type
-     * parameter E.
-     *
-     * @param index index to access
-     * @return element at the provided index
-     */
-    E get( int index );
+
+    default LocalDateTime getLastLogin()
+    {
+        return get( "lastLogin", JsonDate.class ).date();
+    }
+
 }

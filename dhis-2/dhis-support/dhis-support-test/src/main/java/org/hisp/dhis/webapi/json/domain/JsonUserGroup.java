@@ -25,60 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.time.LocalDateTime;
+import org.hisp.dhis.webapi.json.JsonList;
 
 /**
- * JSON equivalent of the {@link org.hisp.dhis.common.BaseIdentifiableObject}
- * class.
+ * Web API equivalent of a {@link org.hisp.dhis.user.UserGroup}.
  *
  * @author Jan Bernitt
  */
-public interface JsonIdentifiableObject extends JsonObject
+public interface JsonUserGroup extends JsonIdentifiableObject
 {
-    default String getId()
+    default JsonList<JsonUser> getUsers()
     {
-        return getString( "id" ).string();
+        return getList( "users", JsonUser.class );
     }
 
-    default String getName()
+    default JsonList<JsonUserGroup> getManagedGroups()
     {
-        return getString( "name" ).string();
+        return getList( "managedGroups", JsonUserGroup.class );
     }
 
-    default String getDisplayName()
+    default JsonList<JsonUserGroup> getManagedByGroups()
     {
-        return getString( "displayName" ).string();
-    }
-
-    default String getCode()
-    {
-        return getString( "code" ).string();
-    }
-
-    default JsonUser getLastUpdatedBy()
-    {
-        return get( "lastUpdatedBy", JsonUser.class );
-    }
-
-    default LocalDateTime getLastUpdated()
-    {
-        return get( "lastUpdated", JsonDate.class ).date();
-    }
-
-    default JsonUser getCreatedBy()
-    {
-        return get( "createdBy", JsonUser.class );
-    }
-
-    default LocalDateTime getCreated()
-    {
-        return get( "created", JsonDate.class ).date();
-    }
-
-    default boolean getExternalAccess()
-    {
-        return getBoolean( "externalAccess" ).booleanValue();
+        return getList( "managedByGroups", JsonUserGroup.class );
     }
 }
