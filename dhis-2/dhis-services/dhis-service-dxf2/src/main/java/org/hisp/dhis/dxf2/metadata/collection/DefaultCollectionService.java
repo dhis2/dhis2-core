@@ -29,8 +29,8 @@ package org.hisp.dhis.dxf2.metadata.collection;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Collection;
 import java.util.List;
 
@@ -45,6 +45,7 @@ import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -54,7 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Service( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
-@Transactional
 public class DefaultCollectionService
     implements CollectionService
 {
@@ -70,9 +70,11 @@ public class DefaultCollectionService
 
     private final CurrentUserService currentUserService;
 
+    private final SchemaValidator schemaValidator;
+
     public DefaultCollectionService( IdentifiableObjectManager manager, DbmsManager dbmsManager,
         HibernateCacheManager cacheManager, AclService aclService, SchemaService schemaService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, SchemaValidator schemaValidator )
     {
         checkNotNull( manager );
         checkNotNull( dbmsManager );
@@ -80,6 +82,7 @@ public class DefaultCollectionService
         checkNotNull( aclService );
         checkNotNull( schemaService );
         checkNotNull( currentUserService );
+        checkNotNull( schemaValidator );
 
         this.manager = manager;
         this.dbmsManager = dbmsManager;
@@ -87,11 +90,13 @@ public class DefaultCollectionService
         this.aclService = aclService;
         this.schemaService = schemaService;
         this.currentUserService = currentUserService;
+        this.schemaValidator = schemaValidator;
     }
 
     @Override
+    @Transactional
     public void addCollectionItems( IdentifiableObject object, String propertyName,
-        List<? extends IdentifiableObject> objects )
+        Collection<? extends IdentifiableObject> objects )
         throws Exception
     {
         Property property = validateUpdate( object, propertyName,
@@ -120,8 +125,7 @@ public class DefaultCollectionService
     }
 
     private void addOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -130,7 +134,7 @@ public class DefaultCollectionService
             if ( !collection.contains( item ) )
                 collection.add( item );
         }
-
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( object );
     }
 
@@ -149,6 +153,7 @@ public class DefaultCollectionService
                 if ( !collection.contains( object ) )
                 {
                     collection.add( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, object ) );
                     manager.update( item );
                 }
             }
@@ -160,8 +165,9 @@ public class DefaultCollectionService
     }
 
     @Override
+    @Transactional
     public void delCollectionItems( IdentifiableObject object, String propertyName,
-        List<? extends IdentifiableObject> objects )
+        Collection<? extends IdentifiableObject> objects )
         throws Exception
     {
         Property property = validateUpdate( object, propertyName,
@@ -185,6 +191,7 @@ public class DefaultCollectionService
             delNonOwnedCollectionItems( object, property, itemCodes );
         }
 
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( object );
 
         dbmsManager.clearSession();
@@ -192,8 +199,7 @@ public class DefaultCollectionService
     }
 
     private void delOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         Collection<IdentifiableObject> collection = getCollection( object, property );
 
@@ -218,6 +224,7 @@ public class DefaultCollectionService
                 if ( collection.contains( object ) )
                 {
                     collection.remove( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
                     manager.update( item );
                 }
             }
@@ -229,56 +236,16 @@ public class DefaultCollectionService
     }
 
     @Override
-    public void clearCollectionItems( IdentifiableObject object, String pvProperty )
-        throws WebMessageException,
-        InvocationTargetException,
-        IllegalAccessException
+    @Transactional
+    public void replaceCollectionItems( IdentifiableObject object, String propertyName,
+        Collection<? extends IdentifiableObject> objects )
+        throws Exception
     {
-        Property property = validateClear( object, pvProperty );
+        Property property = validateUpdate( object, propertyName,
+            "Only identifiable object collections can be replaced." );
 
-        Collection<IdentifiableObject> collection = getCollection( object, property );
-
-        manager.refresh( object );
-
-        if ( property.isOwner() )
-        {
-            collection.clear();
-            manager.update( object );
-        }
-        else
-        {
-            for ( IdentifiableObject itemObject : collection )
-            {
-                Schema itemSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
-                Collection<IdentifiableObject> itemCollection = getCollection( itemObject, itemProperty );
-                itemCollection.remove( object );
-
-                manager.update( itemObject );
-                manager.refresh( itemObject );
-            }
-        }
-    }
-
-    private Property validateClear( IdentifiableObject object, String pvProperty )
-        throws WebMessageException
-    {
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
-
-        if ( !schema.haveProperty( pvProperty ) )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "Property " + pvProperty + " does not exist on " + object.getClass().getName() ) );
-        }
-
-        Property property = schema.getProperty( pvProperty );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
-        }
-        return property;
+        delCollectionItems( object, propertyName, getCollection( object, property ) );
+        addCollectionItems( object, propertyName, objects );
     }
 
     private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
@@ -306,7 +273,7 @@ public class DefaultCollectionService
         return property;
     }
 
-    private Collection<String> getItemCodes( List<? extends IdentifiableObject> objects )
+    private Collection<String> getItemCodes( Collection<? extends IdentifiableObject> objects )
     {
         return objects.stream().map( IdentifiableObject::getUid ).collect( toList() );
     }
@@ -319,9 +286,9 @@ public class DefaultCollectionService
 
     @SuppressWarnings( "unchecked" )
     private Collection<IdentifiableObject> getCollection( IdentifiableObject object, Property property )
-        throws IllegalAccessException,
-        InvocationTargetException
+        throws Exception
     {
         return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
     }
+
 }
