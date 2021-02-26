@@ -32,14 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.common.OrganisationUnitAssignable;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 @Component( "org.hisp.dhis.query.QueryParser" )
@@ -48,22 +44,13 @@ public class DefaultJpaQueryParser
 {
     private static final String IDENTIFIABLE = "identifiable";
 
-    private static final String ORGANISATION_UNITS = "organisationUnits";
-
     private final SchemaService schemaService;
 
-    private final OrganisationUnitService organisationUnitService;
-
-    private final CurrentUserService currentUserService;
-
-    public DefaultJpaQueryParser( SchemaService schemaService, CurrentUserService currentUserService,
-        OrganisationUnitService organisationUnitService )
+    public DefaultJpaQueryParser( SchemaService schemaService )
     {
         checkNotNull( schemaService );
 
         this.schemaService = schemaService;
-        this.currentUserService = currentUserService;
-        this.organisationUnitService = organisationUnitService;
     }
 
     @Override
@@ -75,14 +62,6 @@ public class DefaultJpaQueryParser
 
     @Override
     public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction )
-        throws QueryParserException
-    {
-        return parse( klass, filters, rootJunction, false );
-    }
-
-    @Override
-    public Query parse( Class<?> klass, List<String> filters, Junction.Type rootJunction,
-        boolean restrictToCaptureScope )
         throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( klass );
@@ -115,34 +94,7 @@ public class DefaultJpaQueryParser
                 query.add( getRestriction( schema, split[0], split[1], null ) );
             }
         }
-
-        if ( restrictToCaptureScope && OrganisationUnitAssignable.class.isAssignableFrom( klass ) )
-        {
-            User user = currentUserService.getCurrentUser();
-            handleCaptureScopeOuFiltering( schema, user, query.addDisjunction() );
-            query.setUser( user );
-        }
         return query;
-    }
-
-    private void handleCaptureScopeOuFiltering( Schema schema, User user, Disjunction disjunction )
-    {
-        if ( user == null || user.isSuper() )
-        {
-            return;
-        }
-
-        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
-        {
-            // skipping restriction to capture scope due to high number of
-            // capture scope org units for the current user.
-            return;
-        }
-        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
-
-        disjunction
-            .add( getRestriction( schema, "organisationUnits.id", "in", "[" + String.join( ",", orgUnits ) + "]" ) );
-        disjunction.add( getRestriction( schema, ORGANISATION_UNITS, "empty", null ) );
     }
 
     private void handleIdentifiablePath( Schema schema, String operator, Object arg, Disjunction disjunction )

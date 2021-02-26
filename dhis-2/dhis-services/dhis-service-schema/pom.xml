@@ -38,10 +38,6 @@
       <artifactId>spring-jms</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.apache.qpid</groupId>
-      <artifactId>qpid-jms-client</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>compile</scope>
