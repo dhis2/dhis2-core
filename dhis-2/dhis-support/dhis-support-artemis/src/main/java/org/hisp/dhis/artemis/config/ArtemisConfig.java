@@ -34,6 +34,7 @@ import java.util.Map;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -43,7 +44,7 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
-import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
@@ -85,21 +86,23 @@ public class ArtemisConfig
 
     @Bean
     public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
+        throws JMSException
     {
-        ActiveMQConnectionFactory activeMQConnectionFactory = new ActiveMQConnectionFactory(
-            "vm://0?broker.persistent=true" );
+        final ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
 
-        /*
-         * JmsConnectionFactory connectionFactory = new JmsConnectionFactory(
-         * String.format( "amqp://%s:%d", artemisConfigData.getHost(),
-         * artemisConfigData.getPort() ) ); connectionFactory.setClientIDPrefix(
-         * "dhis2" ); connectionFactory.setCloseLinksThatFailOnReconnect( false
-         * ); connectionFactory.setForceAsyncAcks( true );
-         *
-         * return connectionFactory;
-         */
+        if ( artemisConfigData.isEmbedded() )
+        {
+            connectionFactory.setBrokerURL( "vm://0?broker.persistent=true" );
+        }
+        else
+        {
+            connectionFactory.setBrokerURL(
+                String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+        }
 
-        return activeMQConnectionFactory;
+        connectionFactory.setClientID( "dhis2" );
+
+        return connectionFactory;
     }
 
     @Bean
