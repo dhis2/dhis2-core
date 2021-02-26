@@ -40,11 +40,8 @@ import org.springframework.stereotype.Component;
 public class UsernameSupplier
     implements Supplier<String>
 {
-    private final static String DEFAULT_USERNAME = "system-process"; // TODO
-    // this may
-    // come
-    // from
-    // configuration
+    // TODO this may come from configuration
+    private final static String DEFAULT_USERNAME = "system-process";
 
     private final CurrentUserService currentUserService;
 
