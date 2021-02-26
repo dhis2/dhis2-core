@@ -59,21 +59,21 @@ public interface JsonArray extends JsonCollection
      * @throws IllegalArgumentException in case the node is not an array or the
      *         array has mixed elements
      */
-    List<? extends String> stringValues();
+    List<String> stringValues();
 
     /**
      * @return the array elements as a uniform list of {@link Number}
      * @throws IllegalArgumentException in case the node is not an array or the
      *         array has mixed elements
      */
-    List<? extends Number> numberValues();
+    List<Number> numberValues();
 
     /**
      * @return the array elements as a uniform list of {@link Boolean}
      * @throws IllegalArgumentException in case the node is not an array or the
      *         array has mixed elements
      */
-    List<? extends Boolean> boolValues();
+    List<Boolean> boolValues();
 
     default JsonValue get( int index )
     {

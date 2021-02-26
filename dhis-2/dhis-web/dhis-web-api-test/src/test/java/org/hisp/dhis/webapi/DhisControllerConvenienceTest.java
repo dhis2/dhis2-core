@@ -27,14 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.junit.Assert.assertEquals;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.util.concurrent.Callable;
+import static org.hisp.dhis.webapi.utils.MockMvcUtils.failOnException;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.user.UserService;
@@ -43,9 +36,6 @@ import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -71,7 +61,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest
+public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest implements WebClient
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -106,118 +96,11 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest
         return session;
     }
 
-    public static void assertStatus( HttpStatus status, HttpResponse response )
+    @Override
+    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
-        assertEquals( status, response.status() );
+        return failOnException(
+            () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
-    public static void assertSeries( HttpStatus.Series series, HttpResponse response )
-    {
-        assertEquals( series, response.series() );
-    }
-
-    public static class HttpResponse
-    {
-        private final MockHttpServletResponse response;
-
-        public HttpResponse( MockHttpServletResponse response )
-        {
-            this.response = response;
-        }
-
-        public HttpStatus status()
-        {
-            return HttpStatus.resolve( response.getStatus() );
-        }
-
-        public HttpStatus.Series series()
-        {
-            return status().series();
-        }
-
-        public boolean success()
-        {
-            return series() == Series.SUCCESSFUL;
-        }
-
-        public JsonResponse content()
-        {
-            return content( Series.SUCCESSFUL );
-        }
-
-        public JsonResponse content( HttpStatus.Series expected )
-        {
-            assertSeries( expected, this );
-            return contentInternal();
-        }
-
-        public JsonResponse content( HttpStatus expected )
-        {
-            assertStatus( expected, this );
-            return contentInternal();
-        }
-
-        private JsonResponse contentInternal()
-        {
-            return failUnless( () -> new JsonResponse( response.getContentAsString( StandardCharsets.UTF_8 ) ) );
-        }
-
-    }
-
-    static <T> T failUnless( Callable<T> op )
-    {
-        try
-        {
-            return op.call();
-        }
-        catch ( Exception ex )
-        {
-            throw new AssertionError( ex );
-        }
-    }
-
-    protected final HttpResponse GET( String url )
-    {
-        return GET( url, new String[0] );
-    }
-
-    protected final HttpResponse GET( String url, String... args )
-    {
-        return webRequest( get( substitutePlaceholders( url, args ) ), null );
-    }
-
-    private String substitutePlaceholders( String url, String[] args )
-    {
-        return args.length == 0
-            ? url
-            : String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) args );
-    }
-
-    protected final HttpResponse POST( String url, String body )
-    {
-        return null;
-    }
-
-    protected final HttpResponse POST( String url, Path body )
-    {
-        return null;
-    }
-
-    protected final HttpResponse PATCH( String url, String body )
-    {
-        return webRequest( patch( url ), body );
-    }
-
-    private HttpResponse webRequest( MockHttpServletRequestBuilder builder, String body )
-    {
-        MockHttpServletRequestBuilder request = builder.session( session );
-        if ( body != null && !body.isEmpty() )
-        {
-            request = request.contentType( APPLICATION_JSON )
-                .content( body.replace( '\'', '"' ) );
-        }
-        MockHttpServletRequestBuilder completeRequest = request;
-        return failUnless(
-            () -> new HttpResponse( mvc.perform( completeRequest ).andReturn().getResponse() ) );
-    }
 }

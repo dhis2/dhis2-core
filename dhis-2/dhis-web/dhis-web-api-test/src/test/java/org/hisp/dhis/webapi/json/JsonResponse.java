@@ -184,25 +184,25 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     }
 
     @Override
-    public List<? extends String> stringValues()
+    public List<String> stringValues()
     {
         return arrayList( String.class );
     }
 
     @Override
-    public List<? extends Number> numberValues()
+    public List<Number> numberValues()
     {
         return arrayList( Number.class );
     }
 
     @Override
-    public List<? extends Boolean> boolValues()
+    public List<Boolean> boolValues()
     {
         return arrayList( Boolean.class );
     }
 
     @SuppressWarnings( "unchecked" )
-    private <T> List<? extends T> arrayList( Class<T> elementType )
+    private <T> List<T> arrayList( Class<T> elementType )
     {
         Object value = value( this::noSuchValue );
         if ( value instanceof JSONArray )

@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.utils.MockMvcUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.hisp.dhis.webapi.template.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -58,7 +60,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObject()
     {
-        String id = getSomeUserId();
+        String id = run( SomeUserId::new );
         JsonUser userById = GET( "/users/{id}", id )
             .content( HttpStatus.OK ).as( JsonUser.class );
 
@@ -70,7 +72,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testGetObjectProperty()
     {
         // response will look like: { "surname": <name> }
-        JsonUser userProperty = GET( "/users/{id}/surname", getSomeUserId() )
+        JsonUser userProperty = GET( "/users/{id}/surname", run( SomeUserId::new ) )
             .content( HttpStatus.OK ).as( JsonUser.class );
 
         assertEquals( "admin", userProperty.getSurname() );
@@ -80,14 +82,10 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testPartialUpdateObject()
     {
-        String id = getSomeUserId();
+        String id = run( SomeUserId::new );
         assertStatus( HttpStatus.NO_CONTENT, PATCH( "/users/" + id, "{'surname':'Peter'}" ) );
 
         assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
     }
 
-    private String getSomeUserId()
-    {
-        return GET( "/users/" ).content().getList( "users", JsonUser.class ).get( 0 ).getId();
-    }
 }
