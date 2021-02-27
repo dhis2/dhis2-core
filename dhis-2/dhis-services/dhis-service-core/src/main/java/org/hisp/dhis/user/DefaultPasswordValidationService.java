@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.List;
-
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 /**
@@ -39,27 +39,30 @@ import org.springframework.stereotype.Service;
 public class DefaultPasswordValidationService
     implements PasswordValidationService
 {
+    private final PasswordValidationRule rule;
+
     @Autowired
-    private List<PasswordValidationRule> rules;
+    public DefaultPasswordValidationService( PasswordEncoder passwordEncoder, UserService userService,
+        CurrentUserService currentUserService, SystemSettingManager systemSettings )
+    {
+        this( new PasswordMandatoryValidationRule()
+            .then( new PasswordLengthValidationRule( systemSettings ) )
+            .then( new DigitPatternValidationRule() )
+            .then( new UpperCasePatternValidationRule() )
+            .then( new SpecialCharacterValidationRule() )
+            .then( new PasswordDictionaryValidationRule() )
+            .then( new UserParameterValidationRule() )
+            .then( new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService ) ) );
+    }
+
+    public DefaultPasswordValidationService( PasswordValidationRule rule )
+    {
+        this.rule = rule;
+    }
 
     @Override
-    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    public PasswordValidationResult validate( CredentialsInfo credentials )
     {
-        PasswordValidationResult result;
-
-        for ( PasswordValidationRule rule : rules )
-        {
-            if ( rule.isRuleApplicable( credentialsInfo ) )
-            {
-                result = rule.validate( credentialsInfo );
-
-                if ( !result.isValid() )
-                {
-                    return result;
-                }
-            }
-        }
-
-        return new PasswordValidationResult( true );
+        return rule.validate( credentials );
     }
 }
