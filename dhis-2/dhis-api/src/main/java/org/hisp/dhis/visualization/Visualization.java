@@ -83,6 +83,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -879,6 +880,14 @@ public class Visualization
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "domainAxisLabel" )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( "domainAxisLabel", getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -889,6 +898,14 @@ public class Visualization
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "rangeAxisLabel" )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( "rangeAxisLabel", getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -939,6 +956,14 @@ public class Visualization
         return baseLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "baseLineLabel" )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( "baseLineLabel", getBaseLineLabel() );
+    }
+
     public void setBaseLineLabel( String baseLineLabel )
     {
         this.baseLineLabel = baseLineLabel;
@@ -949,6 +974,14 @@ public class Visualization
     public String getTargetLineLabel()
     {
         return targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "targetLineLabel" )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( "targetLineLabel", getTargetLineLabel() );
     }
 
     public void setTargetLineLabel( String targetLineLabel )
