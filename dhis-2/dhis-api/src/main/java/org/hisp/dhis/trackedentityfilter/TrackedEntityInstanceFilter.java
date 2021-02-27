@@ -28,22 +28,21 @@ package org.hisp.dhis.trackedentityfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStatus;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.translation.TranslationProperty;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -51,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceFilter
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     /**
@@ -63,6 +63,8 @@ public class TrackedEntityInstanceFilter
      * Property indicating description of trackedEntityInstanceFilter
      */
     private String description;
+
+    private transient String displayDescription;
 
     /**
      * Property indicating the filter's order in tracked entity instance search
@@ -129,6 +131,15 @@ public class TrackedEntityInstanceFilter
     {
         return description;
     }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDescription()
+    {
+        displayDescription = getTranslation( TranslationProperty.DESCRIPTION, displayDescription );
+        return displayDescription != null ? displayDescription : getDescription();
+    }
+
 
     public void setDescription( String description )
     {
