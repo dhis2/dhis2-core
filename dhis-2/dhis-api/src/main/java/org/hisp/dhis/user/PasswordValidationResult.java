@@ -40,9 +40,17 @@ public class PasswordValidationResult
 
     public PasswordValidationResult( PasswordValidationError error, Object... args )
     {
-        this.message = error == null ? null
-            : args.length == 0 ? error.getMessage() : String.format( error.getMessage(), args );
+        this.message = getMessage( error, args );
         this.error = error;
+    }
+
+    private String getMessage( PasswordValidationError error, Object[] args )
+    {
+        if ( error == null )
+        {
+            return null;
+        }
+        return args.length == 0 ? error.getMessage() : String.format( error.getMessage(), args );
     }
 
     public String getErrorMessage()

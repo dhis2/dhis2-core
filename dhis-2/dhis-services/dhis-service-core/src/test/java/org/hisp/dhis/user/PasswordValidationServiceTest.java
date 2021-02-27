@@ -38,6 +38,8 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_MUST_HAVE_UPPE
 import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
@@ -164,6 +166,13 @@ public class PasswordValidationServiceTest
         assertInvalid( "Lucky", "$kyWalker2", PASSWORD_ALREADY_USED_BEFORE, 24 );
     }
 
+    @Test
+    public void validPasswords()
+    {
+        assertValid( "Luke", "$kyWalker42" );
+        assertValid( "Lucky", "m@yThe4thBeWithU" );
+    }
+
     private void assertInvalid( String username, String password, PasswordValidationError expected, Object... args )
     {
         assertInvalid( username, password, username + "@force.net", expected, args );
@@ -187,5 +196,21 @@ public class PasswordValidationServiceTest
         assertFalse( actual.isValid() );
         assertEquals( actual.getErrorMessage(), expected.getI18nKey(), actual.getI18ErrorMessage() );
         assertEquals( String.format( expected.getMessage(), args ), actual.getErrorMessage() );
+    }
+
+    private void assertValid( String username, String password )
+    {
+        assertValid( new CredentialsInfo( username, password, username + "@force.net", true ) );
+        assertValid( new CredentialsInfo( username, password, username + "@force.net", false ) );
+        assertValid( new CredentialsInfo( username, password, null, true ) );
+        assertValid( new CredentialsInfo( username, password, null, false ) );
+    }
+
+    private void assertValid( CredentialsInfo credentials )
+    {
+        PasswordValidationResult actual = validation.validate( credentials );
+        assertTrue( actual.isValid() );
+        assertNull( actual.getErrorMessage() );
+        assertNull( actual.getI18ErrorMessage() );
     }
 }
