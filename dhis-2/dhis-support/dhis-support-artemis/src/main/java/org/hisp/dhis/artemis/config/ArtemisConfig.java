@@ -34,6 +34,7 @@ import java.util.Map;
 
 import javax.jms.ConnectionFactory;
 import javax.jms.DeliveryMode;
+import javax.jms.JMSException;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -43,7 +44,7 @@ import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
 import org.apache.activemq.artemis.core.server.JournalType;
 import org.apache.activemq.artemis.core.server.embedded.EmbeddedActiveMQ;
 import org.apache.activemq.artemis.core.settings.impl.AddressSettings;
-import org.apache.qpid.jms.JmsConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQJMSConnectionFactory;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AuditScope;
@@ -52,7 +53,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.location.LocationManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.env.Environment;
 import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
@@ -64,7 +64,6 @@ import org.springframework.util.SocketUtils;
  */
 @EnableJms
 @Configuration
-@DependsOn( "artemisPortChecker" )
 public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
@@ -85,12 +84,22 @@ public class ArtemisConfig
 
     @Bean
     public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
+        throws JMSException
     {
-        JmsConnectionFactory connectionFactory = new JmsConnectionFactory(
-            String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
-        connectionFactory.setClientIDPrefix( "dhis2" );
-        connectionFactory.setCloseLinksThatFailOnReconnect( false );
-        connectionFactory.setForceAsyncAcks( true );
+        ActiveMQJMSConnectionFactory connectionFactory = new ActiveMQJMSConnectionFactory();
+
+        if ( artemisConfigData.isEmbedded() )
+        {
+            connectionFactory.setBrokerURL( "vm://0?broker.persistent=true" );
+        }
+        else
+        {
+            connectionFactory.setBrokerURL(
+                String.format( "tcp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+
+            connectionFactory.setUser( artemisConfigData.getUsername() );
+            connectionFactory.setPassword( artemisConfigData.getPassword() );
+        }
 
         return connectionFactory;
     }
@@ -161,10 +170,8 @@ public class ArtemisConfig
 
         ArtemisEmbeddedConfig embeddedConfig = artemisConfigData.getEmbedded();
 
-        config.addAcceptorConfiguration( "tcp",
-            String.format( "tcp://%s:%d?protocols=AMQP&jms.useAsyncSend=%s&nioRemotingThreads=%d",
-                artemisConfigData.getHost(),
-                artemisConfigData.getPort(),
+        config.addAcceptorConfiguration( "in-vm",
+            String.format( "vm://0?jms.useAsyncSend=%s&nioRemotingThreads=%d",
                 artemisConfigData.isSendAsync(),
                 embeddedConfig.getNioRemotingThreads() ) );
 
@@ -233,6 +240,8 @@ public class ArtemisConfig
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_SECURITY ) ) );
         artemisEmbeddedConfig.setPersistence(
             Boolean.parseBoolean( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_PERSISTENCE ) ) );
+        artemisEmbeddedConfig.setNioRemotingThreads(
+            Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.ARTEMIS_EMBEDDED_THREADS ) ) );
 
         artemisConfigData.setEmbedded( artemisEmbeddedConfig );
 
@@ -259,7 +268,8 @@ public class ArtemisConfig
     public AuditProducerConfiguration producerConfiguration()
     {
         return AuditProducerConfiguration.builder()
-            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) )
+            .useQueue( dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_INMEMORY_QUEUE_ENABLED ) ||
+                dhisConfig.isEnabled( ConfigurationKey.AUDIT_USE_IN_MEMORY_QUEUE_ENABLED ) )
             .build();
     }
 }

@@ -28,7 +28,10 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -50,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
@@ -74,7 +78,7 @@ public class ProgramController
 
         List<Program> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -111,4 +115,20 @@ public class ProgramController
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
     }
+
+    @ResponseBody
+    @RequestMapping( value = "orgUnits" )
+    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+        @RequestParam( value = "programs" ) Set<String> programUids )
+    {
+
+        if ( Objects.isNull( programUids ) || programUids.size() == 0 )
+        {
+            throw new IllegalArgumentException( "At least one program uid must be specified" );
+        }
+
+        return programService.getProgramOrganisationUnitsAssociations( programUids );
+
+    }
+
 }
