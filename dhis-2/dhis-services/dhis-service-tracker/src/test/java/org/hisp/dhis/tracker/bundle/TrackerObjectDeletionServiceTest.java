@@ -166,7 +166,8 @@ public class TrackerObjectDeletionServiceTest extends TrackerTest
     }
 
     @Test
-    public void testDeleteMultipleEntities() throws IOException
+    public void testDeleteMultipleEntities()
+        throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/tracker_data_for_deletion.json" );
 

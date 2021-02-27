@@ -118,7 +118,8 @@ public class DefaultTrackerObjectsDeletionService
                     .addArg( uid )
                     .build( bundle );
 
-                return addErrorToTypeReport( typeReport, trackerObjectReport, Arrays.asList( trackerErrorReport ), idx, uid );
+                return addErrorToTypeReport( typeReport, trackerObjectReport, Arrays.asList( trackerErrorReport ), idx,
+                    uid );
             }
 
             if ( bundle.getUser() != null )
