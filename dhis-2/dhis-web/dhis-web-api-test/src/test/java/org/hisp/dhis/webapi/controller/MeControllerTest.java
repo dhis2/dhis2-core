@@ -120,7 +120,7 @@ public class MeControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testChangePassword_WrongNew()
     {
-        assertEquals( "Password must have at least one digit",
+        assertEquals( "Password must have at least 8, and at most 40 characters",
             PUT( "/me/changePassword", "{'oldPassword':'district','newPassword':'secret'}" )
                 .error( Series.CLIENT_ERROR ).getMessage() );
     }
@@ -179,7 +179,7 @@ public class MeControllerTest extends DhisControllerConvenienceTest
         JsonPasswordValidation result = POST( "/me/validatePassword", "text/plain:secret" )
             .content().as( JsonPasswordValidation.class );
         assertFalse( result.isValidPassword() );
-        assertEquals( "Password must have at least one digit", result.getErrorMessage() );
+        assertEquals( "Password must have at least 8, and at most 40 characters", result.getErrorMessage() );
     }
 
     @Test
