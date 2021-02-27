@@ -164,4 +164,20 @@ public class TrackerObjectDeletionServiceTest extends TrackerTest
         // assertEquals( trackerErrorReports.get( 0 ).getErrorKlass(),
         // PreCheckExistenceValidationHook.class );
     }
+
+    @Test
+    public void testDeleteMultipleEntities() throws IOException
+    {
+        TrackerImportParams trackerImportParams = fromJson( "tracker/tracker_data_for_deletion.json" );
+
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
+
+        TrackerBundleReport bundleReport = trackerBundleService.delete( trackerBundle );
+
+        assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+        assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.ENROLLMENT ) );
+        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.ENROLLMENT ).getStats().getDeleted() );
+        assertTrue( bundleReport.getTypeReportMap().containsKey( TrackerType.TRACKED_ENTITY ) );
+        assertEquals( 1, bundleReport.getTypeReportMap().get( TrackerType.TRACKED_ENTITY ).getStats().getDeleted() );
+    }
 }
