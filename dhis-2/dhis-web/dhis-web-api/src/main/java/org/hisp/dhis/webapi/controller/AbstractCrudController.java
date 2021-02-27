@@ -44,7 +44,6 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
@@ -55,7 +54,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
-import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
@@ -290,8 +288,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             pager = new Pager( options.getPage(), totalCount, options.getPageSize() );
         }
-
-        restrictToCaptureScope( entities, options, rpParameters );
 
         postProcessResponseEntities( entities, options, rpParameters );
 
@@ -1325,42 +1321,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return PaginationUtils.getPaginationData( options );
     }
 
-    private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
-    {
-        if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
-            || !(entityList.get( 0 ) instanceof OrganisationUnitAssignable) )
-        {
-            return;
-        }
-
-        User user = currentUserService.getCurrentUser();
-
-        if ( user == null || user.isSuper() )
-        {
-            return;
-        }
-
-        if ( organisationUnitService.isCaptureOrgUnitCountAboveThreshold( 100 ) )
-        {
-            // skipping restriction to capture scope due to high number of
-            // capture scope org units for the current user.
-            return;
-        }
-
-        List<String> orgUnits = organisationUnitService.getCaptureOrganisationUnitUidsWithChildren();
-
-        for ( T entity : entityList )
-        {
-            OrganisationUnitAssignable e = (OrganisationUnitAssignable) entity;
-            if ( e.getOrganisationUnits() != null && e.getOrganisationUnits().size() > 0 )
-            {
-                e.setOrganisationUnits(
-                    e.getOrganisationUnits().stream().filter( ou -> orgUnits.contains( ou.getUid() ) )
-                        .collect( Collectors.toSet() ) );
-            }
-        }
-    }
-
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
         List<Order> orders )
@@ -1368,8 +1328,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     {
         List<T> entityList;
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
-            options.getRootJunction(),
-            options.isTrue( "restrictToCaptureScope" ) );
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1388,7 +1347,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private long countTotal( WebOptions options, List<String> filters, List<Order> orders )
     {
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
-            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+            options.getRootJunction() );
 
         return queryService.count( query );
     }
@@ -1655,7 +1614,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
+            + options.getRootJunction().name();
     }
 
 }
