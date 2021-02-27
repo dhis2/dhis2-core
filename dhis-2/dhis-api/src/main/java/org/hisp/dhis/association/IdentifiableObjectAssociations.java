@@ -25,19 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.association;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import lombok.Data;
 
-/**
- * @author Ameen Mohamed
- */
-public interface OrganisationUnitAssignable
+@Data
+public class IdentifiableObjectAssociations
+    extends HashMap<String, Set<String>>
 {
-    Set<OrganisationUnit> getOrganisationUnits();
+    public IdentifiableObjectAssociations()
+    {
+        super();
+    }
 
-    void setOrganisationUnits( Set<OrganisationUnit> organisationUnits );
+    public void addAllAssociations( String from, List<String> tos )
+    {
+        Set<String> associated = getCurrentAssociationsOrCreate( from );
+        associated.addAll( tos.stream()
+            .filter( Objects::nonNull )
+            .collect( Collectors.toSet() ) );
+    }
+
+    private Set<String> getCurrentAssociationsOrCreate( String from )
+    {
+        Set<String> associated = get( from );
+        if ( Objects.isNull( associated ) )
+        {
+            associated = new HashSet<>();
+            put( from, associated );
+        }
+        return associated;
+    }
 
 }
