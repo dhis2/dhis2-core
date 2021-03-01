@@ -76,8 +76,8 @@ public class EventAnalyticsController
     // Aggregate
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}",
-        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/aggregate/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getAggregateJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -157,8 +157,8 @@ public class EventAnalyticsController
     // Count / rectangle
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/count/{program}",
-        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/count/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Rectangle getCountJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -176,8 +176,8 @@ public class EventAnalyticsController
     // Clustering
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}",
-        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/cluster/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getClusterJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
@@ -204,8 +204,8 @@ public class EventAnalyticsController
     // Query
     // -------------------------------------------------------------------------
 
-    @GetMapping( value = RESOURCE_PATH + "/query/{program}",
-        produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = RESOURCE_PATH + "/query/{program}", produces = { APPLICATION_JSON_VALUE,
+        "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
         EventsAnalyticsQueryCriteria criteria,
