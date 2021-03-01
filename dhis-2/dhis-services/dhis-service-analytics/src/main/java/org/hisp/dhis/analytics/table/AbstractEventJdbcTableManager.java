@@ -118,8 +118,8 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isBoolean() )
         {
-            return "case when " + columnName + " = 'true' then 1 when " + columnName
-                + " = 'false' then 0 else null end";
+            return "case when " + columnName + " = 'true' then 1 when " +
+                columnName + " = 'false' then 0 else null end";
         }
         else if ( valueType.isDate() )
         {
@@ -127,8 +127,8 @@ public abstract class AbstractEventJdbcTableManager
         }
         else if ( valueType.isGeo() && databaseInfo.isSpatialSupport() )
         {
-            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" + columnName
-                + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
+            return "ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (" +
+                columnName + ") || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}')";
         }
         else if ( valueType.isOrganisationUnit() )
         {
@@ -146,10 +146,11 @@ public abstract class AbstractEventJdbcTableManager
         // Data values might be '{}' / empty object if data values existed
         // and were removed later
 
-        boolean hasData = jdbcTemplate
-            .queryForRowSet(
-                "select programstageinstanceid from programstageinstance where eventdatavalues != '{}' limit 1;" )
-            .next();
+        final String sql = "select programstageinstanceid " +
+            "from programstageinstance " +
+            "where eventdatavalues != '{}' limit 1;";
+
+        boolean hasData = jdbcTemplate.queryForRowSet( sql ).next();
 
         if ( !hasData )
         {
