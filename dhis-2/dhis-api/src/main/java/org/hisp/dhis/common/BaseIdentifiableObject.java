@@ -375,7 +375,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
     public Set<Translation> getTranslations()
     {
-        return translations != null ? translations : new HashSet<>();
+        if ( translations == null )
+        {
+            translations = new HashSet<>();
+        }
+
+        return translations;
     }
 
     /**
