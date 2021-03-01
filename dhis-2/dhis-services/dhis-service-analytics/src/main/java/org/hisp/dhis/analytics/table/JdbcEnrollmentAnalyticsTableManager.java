@@ -170,7 +170,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         columns.addAll( addOrganisationUnitLevels() );
         columns.addAll( addOrganisationUnitGroupSets() );
-        columns.addAll( addPeriodColumns( "dps" ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
         columns.addAll( addTrackedEntityAttributes( program ) );
         columns.addAll( getFixedColumns() );
 

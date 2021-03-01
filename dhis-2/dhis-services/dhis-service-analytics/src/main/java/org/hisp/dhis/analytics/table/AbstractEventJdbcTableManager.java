@@ -143,8 +143,8 @@ public abstract class AbstractEventJdbcTableManager
     @Override
     public String validState()
     {
-        // Data values might be '{}' if there were some data values and all were
-        // later removed
+        // Data values might be '{}' / empty object if data values existed
+        // and were removed later
 
         boolean hasData = jdbcTemplate
             .queryForRowSet(
@@ -212,14 +212,13 @@ public abstract class AbstractEventJdbcTableManager
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
-            String sql = "(select " + select
-                + " from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
-                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" + getClosingParentheses( select )
-                +
-                " as " + quote( attribute.getUid() );
+            String sql = "(select " + select + " " +
+                "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
+                "and trackedentityattributeid=" + attribute.getId() + dataClause + ")" +
+                getClosingParentheses( select ) + " as " + quote( attribute.getUid() );
 
-            columns.add(
-                new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql ).withSkipIndex( skipIndex ) );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
+                .withSkipIndex( skipIndex ) );
         }
 
         return columns;

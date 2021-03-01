@@ -440,7 +440,7 @@ public class JdbcAnalyticsTableManager
                 new AnalyticsTableColumn( column, CHARACTER_11, "ous." + column ).withCreated( level.getCreated() ) );
         }
 
-        columns.addAll( addPeriodColumns( "ps" ) );
+        columns.addAll( addPeriodTypeColumns( "ps" ) );
 
         String approvalCol = isApprovalEnabled( year )
             ? "coalesce(des.datasetapprovallevel, aon.approvallevel, da.minlevel, " + APPROVAL_LEVEL_UNAPPROVED

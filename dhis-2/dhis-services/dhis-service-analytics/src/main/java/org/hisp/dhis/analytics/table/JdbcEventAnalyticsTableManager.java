@@ -359,7 +359,7 @@ public class JdbcEventAnalyticsTableManager
         columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
             .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) )
             .collect( Collectors.toList() ) );
-        columns.addAll( addPeriodColumns( "dps" ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
 
         columns.addAll( program.getDataElements().stream()
             .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )

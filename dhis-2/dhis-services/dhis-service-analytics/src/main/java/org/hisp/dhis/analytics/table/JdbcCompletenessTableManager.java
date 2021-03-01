@@ -273,7 +273,7 @@ public class JdbcCompletenessTableManager
                 "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
-        columns.addAll( addPeriodColumns( "ps" ) );
+        columns.addAll( addPeriodTypeColumns( "ps" ) );
 
         String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate",
             statementBuilder.getCastToDate( "cdr.date" ) );
