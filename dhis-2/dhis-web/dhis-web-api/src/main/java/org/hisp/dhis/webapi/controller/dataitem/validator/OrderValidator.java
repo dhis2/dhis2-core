@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.dataitem.validator;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2015;
-import static org.hisp.dhis.feedback.ErrorCode.E2036;
-import static org.hisp.dhis.feedback.ErrorCode.E2037;
+import static org.hisp.dhis.feedback.ErrorCode.E2019;
+import static org.hisp.dhis.feedback.ErrorCode.E2020;
 import static org.hisp.dhis.webapi.controller.dataitem.Order.Attribute.getNames;
 import static org.hisp.dhis.webapi.controller.dataitem.Order.Nature.getValues;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.FILTER_ATTRIBUTE_NAME;
@@ -85,14 +85,14 @@ public class OrderValidator
                     // attributes are allowed.
                     if ( !getNames().contains( orderAttributeName ) )
                     {
-                        throw new IllegalQueryException( new ErrorMessage( E2037, orderAttributeName ) );
+                        throw new IllegalQueryException( new ErrorMessage( E2020, orderAttributeName ) );
                     }
 
                     // Check for valid ordering. Only "asc" and "desc" are
                     // allowed.
                     if ( !getValues().contains( orderValue ) )
                     {
-                        throw new IllegalQueryException( new ErrorMessage( E2037, orderValue ) );
+                        throw new IllegalQueryException( new ErrorMessage( E2020, orderValue ) );
                     }
                 }
                 else
@@ -144,14 +144,14 @@ public class OrderValidator
                     if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.DISPLAY_NAME.getName() )
                         && trimToEmpty( filterAttributeName ).equalsIgnoreCase( Filter.Attribute.NAME.getName() ) )
                     {
-                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
+                        throw new IllegalQueryException( new ErrorMessage( E2019, orderParam + " + " + filter ) );
                     }
 
                     if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.NAME.getName() )
                         && trimToEmpty( filterAttributeName )
                         .equalsIgnoreCase( Filter.Attribute.DISPLAY_NAME.getName() ) )
                     {
-                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
+                        throw new IllegalQueryException( new ErrorMessage( E2019, orderParam + " + " + filter ) );
                     }
                 }
             }
