@@ -111,17 +111,6 @@ public class DefaultTrackerObjectsDeletionService
 
             ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
 
-            if ( programInstance == null )
-            {
-                TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                    .errorCode( TrackerErrorCode.E1081 )
-                    .addArg( uid )
-                    .build( bundle );
-
-                return addErrorToTypeReport( typeReport, trackerObjectReport, Arrays.asList( trackerErrorReport ), idx,
-                    uid );
-            }
-
             if ( bundle.getUser() != null )
             {
                 // TODO authority check should be part of validation phase. This
