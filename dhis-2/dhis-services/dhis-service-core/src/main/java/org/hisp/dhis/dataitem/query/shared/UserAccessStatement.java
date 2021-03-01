@@ -45,6 +45,10 @@ public class UserAccessStatement
 {
     private static final String READ_ACCESS = "'r%'";
 
+    private static final String USER_ACCESSES = "useraccesses";
+
+    private static final String USER_GROUP_ACCESSES = "usergroupaccesses";
+
     private UserAccessStatement()
     {
     }
@@ -68,13 +72,13 @@ public class UserAccessStatement
             .append( " ( " ) // Grouping clauses
             .append( publicAccessCondition( table ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( table, table + "id", table + "useraccesses" ) )
+            .append( userAccessCondition( table, table + "id", table + USER_ACCESSES ) )
             .append( " ) " ); // Grouping clauses closing
 
         if ( hasStringNonBlankPresence( paramsMap, USER_GROUP_UIDS ) )
         {
             conditions.append( " or (" + userGroupAccessCondition( table, table + "id",
-                table + "usergroupaccesses" ) + ")" );
+                table + USER_GROUP_ACCESSES ) + ")" );
         }
 
         conditions.append( ")" ); // Isolator closing
@@ -104,12 +108,12 @@ public class UserAccessStatement
             .append( "(" ) // Table 1 conditions
             .append( publicAccessCondition( tableOne ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( tableOne, tableOne + "id", tableOne + "useraccesses" ) )
+            .append( userAccessCondition( tableOne, tableOne + "id", tableOne + USER_ACCESSES ) )
             .append( ")" ) // Table 1 conditions end
             .append( " and (" ) // Table 2 conditions
             .append( publicAccessCondition( tableTwo ) )
             .append( SPACED_OR )
-            .append( userAccessCondition( tableTwo, tableTwo + "id", tableTwo + "useraccesses" ) )
+            .append( userAccessCondition( tableTwo, tableTwo + "id", tableTwo + USER_ACCESSES ) )
             .append( ")" ) // Table 2 conditions end
             .append( " )" ); // Grouping clauses closing
 
@@ -119,11 +123,11 @@ public class UserAccessStatement
 
             // Table one group access checks
             conditions.append( userGroupAccessCondition( tableOne, tableOne + "id",
-                tableOne + "usergroupaccesses" ) );
+                tableOne + USER_GROUP_ACCESSES ) );
 
             // Table two access checks
             conditions.append( SPACED_AND + userGroupAccessCondition( tableTwo, tableTwo + "id",
-                tableTwo + "usergroupaccesses" ) );
+                tableTwo + USER_GROUP_ACCESSES ) );
 
             // Closing OR condition
             conditions.append( ")" );
