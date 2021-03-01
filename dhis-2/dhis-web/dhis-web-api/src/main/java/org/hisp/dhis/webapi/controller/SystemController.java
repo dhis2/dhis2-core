@@ -213,7 +213,7 @@ public class SystemController
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
-        Map<String, LinkedList<Notification>> notifications = new HashMap<>();
+        Map<String, List<Notification>> notifications = new HashMap<>();
 
         if ( jobType != null )
         {
