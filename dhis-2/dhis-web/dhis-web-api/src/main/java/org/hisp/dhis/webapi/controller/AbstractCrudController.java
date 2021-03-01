@@ -89,7 +89,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
@@ -165,9 +164,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected CurrentUserService currentUserService;
-
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
 
     @Autowired
     protected FieldFilterService fieldFilterService;
