@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.notification;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -173,40 +172,13 @@ public class RedisNotifier implements Notifier
     }
 
     @Override
-    public List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId )
+    public Map<JobType, Map<String, List<Notification>>> getNotifications()
     {
-        List<Notification> list = new ArrayList<>();
-
-        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1,
-            -1 );
-        if ( !lastJobUidSet.iterator().hasNext() )
-        {
-            return list;
-        }
-
-        String lastJobUid = lastJobUidSet.iterator().next();
-
-        for ( Notification notification : getNotificationsByJobId( jobType, lastJobUid ) )
-        {
-            if ( lastId != null && lastId.equals( notification.getUid() ) )
-            {
-                break;
-            }
-
-            list.add( notification );
-        }
-
-        return list;
-    }
-
-    @Override
-    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications()
-    {
-        Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notifications = new HashMap<>();
+        Map<JobType, Map<String, List<Notification>>> notifications = new HashMap<>();
         for ( JobType jobType : JobType.values() )
         {
-            Map<String, LinkedList<Notification>> uidNotificationMap = getNotificationsByJobType( jobType );
-            notifications.put( jobType, (LinkedHashMap<String, LinkedList<Notification>>) uidNotificationMap );
+            Map<String, List<Notification>> uidNotificationMap = getNotificationsByJobType( jobType );
+            notifications.put( jobType, uidNotificationMap );
         }
         return notifications;
     }
@@ -229,11 +201,11 @@ public class RedisNotifier implements Notifier
     }
 
     @Override
-    public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
+    public Map<String, List<Notification>> getNotificationsByJobType( JobType jobType )
     {
         Set<String> notificationKeys = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0,
             -1 );
-        LinkedHashMap<String, LinkedList<Notification>> uidNotificationMap = new LinkedHashMap<>();
+        LinkedHashMap<String, List<Notification>> uidNotificationMap = new LinkedHashMap<>();
         notificationKeys
             .forEach( j -> uidNotificationMap.put( j, new LinkedList<>( getNotificationsByJobId( jobType, j ) ) ) );
 
@@ -340,39 +312,6 @@ public class RedisNotifier implements Notifier
         }
 
         return jobSummariesForType;
-    }
-
-    @Override
-    public Object getJobSummary( JobType jobType )
-    {
-        String existingSummaryTypeStr = redisTemplate.boundValueOps( generateSummaryTypeKey( jobType ) ).get();
-        if ( existingSummaryTypeStr == null )
-        {
-            return null;
-        }
-
-        try
-        {
-            Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
-
-            Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateSummaryOrderKey( jobType ) ).range( -1,
-                -1 );
-            if ( !lastJobUidSet.iterator().hasNext() )
-            {
-                return null;
-            }
-
-            String lastJobUid = (String) lastJobUidSet.iterator().next();
-            Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( lastJobUid );
-
-            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType )
-                : null;
-        }
-        catch ( IOException | ClassNotFoundException ex )
-        {
-            log.warn( String.format( NOTIFIER_ERROR, ex.getMessage() ) );
-        }
-        return null;
     }
 
     @Override
