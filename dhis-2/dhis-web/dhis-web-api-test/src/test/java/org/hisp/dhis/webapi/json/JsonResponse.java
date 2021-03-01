@@ -33,20 +33,19 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Function;
 
-import net.minidev.json.JSONArray;
-
 import org.springframework.util.ObjectUtils;
 
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.JsonPathException;
 import com.jayway.jsonpath.PathNotFoundException;
+
+import net.minidev.json.JSONArray;
 
 /**
  * Implements the {@link JsonValue} read-only access abstraction for JSON
@@ -227,9 +226,9 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
         {
             return ((String) value).length();
         }
-        if ( value instanceof Collection )
+        if ( value instanceof java.util.Collection )
         {
-            return ((Collection<?>) value).size();
+            return ((java.util.Collection<?>) value).size();
         }
         if ( value instanceof Object[] )
         {
