@@ -27,7 +27,14 @@
  */
 package org.hisp.dhis.schema;
 
+import static java.util.Collections.unmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
@@ -37,12 +44,6 @@ import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.TranslatablePropertyIntrospector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static java.util.Collections.unmodifiableMap;
 
 /**
  * Default {@link PropertyIntrospectorService} implementation that uses
