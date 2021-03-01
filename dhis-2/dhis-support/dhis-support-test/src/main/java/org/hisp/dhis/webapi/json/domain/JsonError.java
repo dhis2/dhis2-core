@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import java.util.function.Consumer;
+
+import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
@@ -73,29 +76,25 @@ public interface JsonError extends JsonObject
     default String summary()
     {
         StringBuilder str = new StringBuilder();
+        Consumer<JsonList<JsonErrorReport>> printer = errors -> {
+            if ( errors.exists() )
+            {
+                for ( JsonErrorReport error : errors )
+                {
+                    str.append( "\n  " ).append( error.getErrorCode() ).append( ' ' ).append( error.getMessage() );
+                }
+            }
+        };
         str.append( getMessage() );
         if ( getTypeReport().exists() )
         {
+            printer.accept( getTypeReport().getErrorReports() );
             if ( getTypeReport().getObjectReports().exists() )
             {
                 for ( JsonObjectReport report : getTypeReport().getObjectReports() )
                 {
-                    str.append( "\n- " ).append( report.getKlass() );
-                    if ( report.getErrorReports().exists() )
-                    {
-                        for ( JsonErrorReport error : report.getErrorReports() )
-                        {
-                            str.append( "\n  - " ).append( error.getErrorCode() ).append( ' ' )
-                                .append( error.getMessage() );
-                        }
-                    }
-                }
-            }
-            else if ( getTypeReport().getErrorReports().exists() )
-            {
-                for ( JsonErrorReport error : getTypeReport().getErrorReports() )
-                {
-                    str.append( "\n- " ).append( error.getErrorCode() ).append( ' ' ).append( error.getMessage() );
+                    str.append( "\n* " ).append( report.getKlass() );
+                    printer.accept( report.getErrorReports() );
                 }
             }
         }

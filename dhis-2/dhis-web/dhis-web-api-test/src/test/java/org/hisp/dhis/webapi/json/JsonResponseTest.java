@@ -37,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
+import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.Test;
 
@@ -64,6 +65,16 @@ public class JsonResponseTest
 
         JsonList<JsonUser> users = response.getList( "users", JsonUser.class );
         assertEquals( "foo", users.get( 0 ).getId() );
+    }
+
+    @Test
+    public void testCustomObjectTypeMap()
+    {
+        JsonObject response = new JsonResponse( "{'users': {'foo':{'id':'foo'}, 'bar':{'id':'bar'}}}" );
+        JsonMap<JsonUser> usersById = response.getMap( "users", JsonUser.class );
+        assertFalse( usersById.isEmpty() );
+        assertEquals( 2, usersById.size() );
+        assertEquals( "foo", usersById.get( "foo" ).getId() );
     }
 
     @Test
@@ -198,5 +209,29 @@ public class JsonResponseTest
         assertFalse( response.getArray( "notAnObject" ).isObject() );
         JsonArray missing = response.getArray( "missing" );
         assertThrows( NoSuchElementException.class, missing::isObject );
+    }
+
+    @Test
+    public void testErrorSummary_MessageOnly()
+    {
+        JsonObject response = new JsonResponse( "{'message':'my message'}" );
+        assertEquals( "my message", response.as( JsonError.class ).summary() );
+    }
+
+    @Test
+    public void testErrorSummary_MessageAndErrorReports()
+    {
+        JsonObject response = new JsonResponse(
+            "{'message':'my message','response':{'errorReports': [{'errorCode':'E4000','message':'m1'}]}}" );
+        assertEquals( "my message\n" + "  E4000 m1", response.as( JsonError.class ).summary() );
+    }
+
+    @Test
+    public void testErrorSummary_MessageAndObjectReports()
+    {
+        JsonObject response = new JsonResponse(
+            "{'message':'my message','response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}}" );
+        assertEquals( "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
+            response.as( JsonError.class ).summary() );
     }
 }

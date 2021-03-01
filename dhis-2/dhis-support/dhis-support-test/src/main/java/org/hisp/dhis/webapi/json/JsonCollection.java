@@ -68,11 +68,11 @@ public interface JsonCollection extends JsonValue
 
     default <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
     {
-        class List extends Collection<JsonArray> implements JsonList<E>
+        class ListView extends CollectionView<JsonArray> implements JsonList<E>
         {
-            List( JsonArray wrapped )
+            ListView( JsonArray viewed )
             {
-                super( wrapped );
+                super( viewed );
             }
 
             @Override
@@ -81,76 +81,76 @@ public interface JsonCollection extends JsonValue
                 return array.get( index, as );
             }
         }
-        return new List( array );
+        return new ListView( array );
     }
 
     default <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
     {
-        class Map extends Collection<JsonObject> implements JsonMap<E>
+        class MapView extends CollectionView<JsonObject> implements JsonMap<E>
         {
-            Map( JsonObject wrapped )
+            MapView( JsonObject viewed )
             {
-                super( wrapped );
+                super( viewed );
             }
 
             @Override
             public E get( String key )
             {
-                return wrapped.get( key, as );
+                return viewed.get( key, as );
             }
         }
-        return new Map( object );
+        return new MapView( object );
     }
 
-    abstract class Collection<T extends JsonCollection> implements JsonCollection
+    abstract class CollectionView<T extends JsonCollection> implements JsonCollection
     {
-        protected final T wrapped;
+        protected final T viewed;
 
-        protected Collection( T wrapped )
+        protected CollectionView( T viewed )
         {
-            this.wrapped = wrapped;
+            this.viewed = viewed;
         }
 
         @Override
         public final boolean isEmpty()
         {
-            return wrapped.isEmpty();
+            return viewed.isEmpty();
         }
 
         @Override
         public final int size()
         {
-            return wrapped.size();
+            return viewed.size();
         }
 
         @Override
         public final boolean exists()
         {
-            return wrapped.exists();
+            return viewed.exists();
         }
 
         @Override
         public final boolean isNull()
         {
-            return wrapped.isNull();
+            return viewed.isNull();
         }
 
         @Override
         public final boolean isArray()
         {
-            return wrapped.isArray();
+            return viewed.isArray();
         }
 
         @Override
         public final boolean isObject()
         {
-            return wrapped.isObject();
+            return viewed.isObject();
         }
 
         @Override
         public final <V extends JsonValue> V as( Class<V> as )
         {
-            return wrapped.as( as );
+            return viewed.as( as );
         }
     }
 }
