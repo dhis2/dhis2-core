@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -110,17 +109,6 @@ public class DefaultTrackerObjectsDeletionService
             TrackerObjectReport trackerObjectReport = new TrackerObjectReport( TrackerType.ENROLLMENT );
 
             ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-
-            if ( programInstance == null )
-            {
-                TrackerErrorReport trackerErrorReport = TrackerErrorReport.builder()
-                    .errorCode( TrackerErrorCode.E1081 )
-                    .addArg( uid )
-                    .build( bundle );
-
-                return addErrorToTypeReport( typeReport, trackerObjectReport, Arrays.asList( trackerErrorReport ), idx,
-                    uid );
-            }
 
             if ( bundle.getUser() != null )
             {
