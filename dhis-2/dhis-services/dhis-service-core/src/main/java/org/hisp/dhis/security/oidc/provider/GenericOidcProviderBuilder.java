@@ -54,7 +54,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static DhisOidcClientRegistration build( Map<String, String> config )
+    public static DhisOidcClientRegistration build( Map<String, String> config,
+        Map<String, Map<String, String>> externalClients )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
@@ -78,6 +79,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
             .loginIcon( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE ), "" ) )
             .loginIconPadding( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE_PADDING ), "0px 0px" ) )
             .loginText( StringUtils.defaultIfEmpty( config.get( DISPLAY_ALIAS ), providerId ) )
+            .externalClients( externalClients )
             .build();
     }
 

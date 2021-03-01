@@ -35,13 +35,6 @@
             <artifactId>dhis-web-api</artifactId>
         </dependency>
 
-        <!--    <dependency>-->
-        <!--      <groupId>org.hisp.dhis</groupId>-->
-        <!--      <artifactId>dhis-web-uaa</artifactId>-->
-        <!--      <version>${project.version}</version>-->
-        <!--      <type>war</type>-->
-        <!--    </dependency>-->
-
         <!-- Web maintenance modules -->
 
         <dependency>

@@ -52,7 +52,7 @@ public class GoogleProvider extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static DhisOidcClientRegistration build( DhisConfigurationProvider config )
+    public static DhisOidcClientRegistration parse( DhisConfigurationProvider config )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 

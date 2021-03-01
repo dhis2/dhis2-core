@@ -35,7 +35,6 @@ import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
-import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,11 +58,11 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
-        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach(
-            c -> addRegistration( GenericOidcProviderBuilder.build( c ) ) );
-        addRegistration( GoogleProvider.build( config ) );
-        AzureAdProvider.buildList( config ).forEach( this::addRegistration );
-        addRegistration( Wso2Provider.build( config ) );
+        GenericOidcProviderConfigParser.parse( config ).forEach( this::addRegistration );
+        AzureAdProvider.parse( config ).forEach( this::addRegistration );
+
+        addRegistration( GoogleProvider.parse( config ) );
+        addRegistration( Wso2Provider.parse( config ) );
     }
 
     public void addRegistration( DhisOidcClientRegistration registration )

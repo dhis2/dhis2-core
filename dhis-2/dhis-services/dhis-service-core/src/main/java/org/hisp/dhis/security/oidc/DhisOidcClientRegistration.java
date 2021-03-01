@@ -27,6 +27,13 @@
  */
 package org.hisp.dhis.security.oidc;
 
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
 import lombok.Builder;
 import lombok.Data;
 
@@ -52,5 +59,22 @@ public class DhisOidcClientRegistration
     public String getRegistrationId()
     {
         return clientRegistration.getRegistrationId();
+    }
+
+    public Map<String, Map<String, String>> externalClients;
+
+    public Collection<String> getClientIds()
+    {
+        Set<String> clientIds = new HashSet<>();
+        externalClients.forEach( ( k, v ) -> v.forEach( ( s, s2 ) -> {
+            if ( s.contains( CLIENT_ID ) )
+            {
+                clientIds.add( s2 );
+            }
+        } ) );
+
+        clientIds.add( clientRegistration.getClientId() );
+
+        return clientIds;
     }
 }

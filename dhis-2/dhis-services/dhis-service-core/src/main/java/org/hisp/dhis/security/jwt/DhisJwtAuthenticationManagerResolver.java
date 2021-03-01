@@ -96,34 +96,34 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             throw new InvalidBearerTokenException( "Invalid issuer" );
         }
 
-        final String mappingClaimKey = clientRegistration.getMappingClaimKey();
-        final String clientId = clientRegistration.getClientRegistration().getClientId();
-
-        return getAuthenticationManager( issuer, mappingClaimKey, clientId );
+        return getAuthenticationManager( issuer, clientRegistration );
     }
 
-    private AuthenticationManager getAuthenticationManager( String issuer, String mappingClaimKey, String clientId )
+    private AuthenticationManager getAuthenticationManager( String issuer,
+        DhisOidcClientRegistration clientRegistration )
     {
         return this.authenticationManagers.computeIfAbsent( issuer, s -> {
 
             JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
 
-            Converter<Jwt, DhisJwtAuthenticationToken> converter = getConverter( mappingClaimKey, clientId );
+            Converter<Jwt, DhisJwtAuthenticationToken> converter = getConverter( clientRegistration );
 
             return new DhisJwtAuthenticationProvider( jwtDecoder, converter )::authenticate;
         } );
     }
 
-    private Converter<Jwt, DhisJwtAuthenticationToken> getConverter( String mappingClaimKey, String clientId )
+    private Converter<Jwt, DhisJwtAuthenticationToken> getConverter( DhisOidcClientRegistration clientRegistration )
     {
         return jwt -> {
             // To support multiple clients/i.e. dynamic reg. Android devices
             // we need indexed db lookup here,
             // restricted on issuer/provider
-            if ( !jwt.getAudience().contains( clientId ) )
+            if ( !jwt.getAudience().retainAll( clientRegistration.getClientIds() ) )
             {
                 throw new InvalidBearerTokenException( "Invalid audience" );
             }
+
+            String mappingClaimKey = "bogus!";
 
             String mappingValue = jwt.getClaim( mappingClaimKey );
 

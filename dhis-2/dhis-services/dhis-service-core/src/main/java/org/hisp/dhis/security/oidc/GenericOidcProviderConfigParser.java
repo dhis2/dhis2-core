@@ -54,19 +54,22 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.UrlValidator;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Parses the DHIS.conf file for valid generic OIDC provider configuration(s).
@@ -121,34 +124,27 @@ public final class GenericOidcProviderConfigParser
      * Parses the DHIS.conf file for valid OIDC provider configuration(s). See
      * the DHIS2 manual for how to configure a OIDC provider correctly.
      *
-     * @param properties The property config file parsed into a Properties
-     *        object
+     * @param config The config
      *
      * @return A List of maps for each successfully parsed provider with
      *         corresponding key/values, the valid configuration property keys
      *         are defined in
      *         {@link org.hisp.dhis.security.oidc.provider.AbstractOidcProvider}
      */
-    public static List<Map<String, String>> parse( Properties properties )
+    public static List<DhisOidcClientRegistration> parse( DhisConfigurationProvider config )
     {
+        Properties properties = config.getProperties();
+
         Objects.requireNonNull( properties, "Properties argument must not be NULL!" );
 
-        // Get/collect all properties that start with the OIDC_PROVIDER_PREFIX
-        List<Map.Entry<Object, Object>> allOidcProps = properties.entrySet().stream()
-            .filter( o -> ((String) o.getKey()).startsWith( OIDC_PROVIDER_PREFIX ) )
-            .collect( Collectors.toList() );
+        List<DhisOidcClientRegistration> allProviderConfigs = new ArrayList<>();
 
-        // Group all the OIDC properties by their provider name
-        Map<String, Set<String>> keysByProvider = allOidcProps.stream()
-            .map( x -> ((String) x.getKey()).split( "\\." ) )
-            .collect( collectProviderKeys() );
-
-        List<Map<String, String>> allProviderConfigs = new ArrayList<>();
+        Map<String, Set<String>> keysByProvider = extractKeysByProvider( properties );
 
         for ( String providerName : keysByProvider.keySet() )
         {
-            // Don't parse the reserved OIDC providers, they have separate
-            // config parser classes
+            // Don't parse the reserved OIDC provider names, they have separate
+            // config parser classes. e.g. GoogleProvider, AzureProvider...
             if ( RESERVED_PROVIDER_IDS.contains( providerName ) )
             {
                 continue;
@@ -156,20 +152,22 @@ public final class GenericOidcProviderConfigParser
 
             Set<String> providerKeys = keysByProvider.get( providerName );
 
-            // Extract external client configs before validating main config
-            Map<String, Set<String>> extClientsKeys = parseExternalClients( providerKeys );
+            // Extract external client configs key/values, before validating the
+            // rest of the configuration.
+            Map<String, Map<String, String>> externalClientConfigs = extractExternalClients( properties,
+                providerKeys );
 
-            // Validate main config keys
+            // Validate config key names
             if ( !validateKeyNames( providerName, providerKeys ) )
             {
                 continue;
             }
 
-
             Map<String, String> providerConfig = new HashMap<>();
             providerConfig.put( PROVIDER_ID, providerName );
 
-            // Extract the property values into our "providerConfig" map with the full keys
+            // Extract the property values into our "providerConfig" map with
+            // the full keys.
             for ( String key : providerKeys )
             {
                 String configKey = OIDC_PROVIDER_PREFIX + providerName + "." + key;
@@ -178,27 +176,62 @@ public final class GenericOidcProviderConfigParser
                 providerConfig.put( key, configValue );
             }
 
-            // Validate we have all required main config properties
+            // Validate we have all the required configuration properties.
             if ( !validateProperties( providerConfig ) )
             {
                 continue;
             }
 
-
-
-
-
-            allProviderConfigs.add( providerConfig );
+            allProviderConfigs.add( GenericOidcProviderBuilder.build( providerConfig, externalClientConfigs ) );
         }
 
         return allProviderConfigs;
     }
 
+    private static Map<String, Set<String>> extractKeysByProvider( Properties properties )
+    {
+        // Get/collect all properties that start with the OIDC_PROVIDER_PREFIX.
+        List<Map.Entry<Object, Object>> allOidcProps = properties.entrySet().stream()
+            .filter( o -> ((String) o.getKey()).startsWith( OIDC_PROVIDER_PREFIX ) )
+            .collect( Collectors.toList() );
+
+        // Group all the OIDC properties by their provider.
+        return allOidcProps.stream()
+            .map( x -> ((String) x.getKey()).split( "\\." ) )
+            .collect( groupByArrayPosition( 2 ) );
+    }
+
+    private static Map<String, Map<String, String>> extractExternalClients( Properties properties,
+        Set<String> providerKeys )
+    {
+
+        Map<String, Set<String>> externalClientKeys = parseExternalClients( providerKeys );
+        Map<String, Map<String, String>> externalClientConfigs = new HashMap<>();
+        for ( String client : externalClientKeys.keySet() )
+        {
+            Map<String, String> hmap = new HashMap<>();
+            externalClientConfigs.put( client, hmap );
+
+            Set<String> clientKeys = externalClientKeys.get( client );
+            for ( String clientKey : clientKeys )
+            {
+                String v = (String) properties.get( clientKey );
+                hmap.put( clientKey, v );
+            }
+        }
+
+        return externalClientConfigs;
+    }
+
+    /**
+     * Extracts the external client configs from the rest of the configuration
+     * into a separate map.
+     */
     private static Map<String, Set<String>> parseExternalClients( Set<String> providerKeys )
     {
         List<String> extClients = new ArrayList<>();
 
-        Predicate<String> isExternalClient = s -> s.equals( EXTERNAL_CLIENT_PREFIX );
+        Predicate<String> isExternalClient = s -> s.contains( EXTERNAL_CLIENT_PREFIX );
 
         providerKeys.stream()
             .filter( isExternalClient )
@@ -207,27 +240,24 @@ public final class GenericOidcProviderConfigParser
         // Remove external clients from main provider set
         extClients.forEach( providerKeys::remove );
 
+        /*
+         * Maps the keys by external client nr., aka. ext_client.>0<.KEY,
+         * ext_client.>1<.KEY... So nr. (0,1...) will become the key in the
+         * output map, hence you can also use a unique String as key/id instead
+         * of a number...
+         */
         return extClients.stream()
-            .map( x -> (x).split( "\\." ) )
-            .collect( collectExternalClients() );
+            .map( k -> (k).split( "\\." ) )
+            .collect( groupByArrayPosition( 1 ) );
     }
 
-    private static Collector<String[], ?, Map<String, Set<String>>> collectExternalClients()
+    // Groups an array on keyPosition, make rest of the key into a set of keys
+    private static Collector<String[], ?, Map<String, Set<String>>> groupByArrayPosition( int keyIndex )
     {
-        return Collectors.groupingBy( x -> x[1],
-            Collectors.mapping( x -> String.join( ".", Arrays.copyOfRange( x, 2, x.length ) ),
-                Collectors.toSet() ) );
-    }
+        Function<String[], String> mappingFunction = a -> String.join( ".",
+            Arrays.copyOfRange( a, keyIndex + 1, a.length ) );
 
-    private static Collector<String[], ?, Map<String, Set<String>>> collectProviderKeys()
-    {
-        // Groups incoming String array on index 2 (provider name), maps the
-        // groups into a map
-        // with the key to provider name
-        // and value to a set of all of that providers property keys.
-        return Collectors.groupingBy( x -> x[2],
-            Collectors.mapping( x -> String.join( ".", Arrays.copyOfRange( x, 3, x.length ) ),
-                Collectors.toSet() ) );
+        return Collectors.groupingBy( a -> a[keyIndex], Collectors.mapping( mappingFunction, Collectors.toSet() ) );
     }
 
     /**
@@ -302,7 +332,7 @@ public final class GenericOidcProviderConfigParser
      * If there is any wrong matches on the valid property names vs input, it
      * tries to be nice and find a possible typo by calculating the Levenshtein
      * distance, and logs it.
-     * 
+     *
      * @param providerId Provider name
      * @param difference Set of differences from the valid key name map
      */

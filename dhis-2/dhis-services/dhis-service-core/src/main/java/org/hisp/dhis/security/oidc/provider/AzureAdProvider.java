@@ -66,7 +66,7 @@ public class AzureAdProvider extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static List<DhisOidcClientRegistration> buildList( DhisConfigurationProvider config )
+    public static List<DhisOidcClientRegistration> parse( DhisConfigurationProvider config )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
