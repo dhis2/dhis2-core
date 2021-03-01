@@ -193,7 +193,7 @@ public class DataItemQueryTests extends ApiTest
         response.validate().body( "httpStatus", is( "Conflict" ) );
         response.validate().body( "httpStatusCode", is( CONFLICT ) );
         response.validate().body( "status", is( "ERROR" ) );
-        response.validate().body( "errorCode", is( "E2034" ) );
+        response.validate().body( "errorCode", is( "E2017" ) );
         response.validate().body( "message", containsString( "Filter not supported: `" + aNonExistingAttr + "`" ) );
     }
 
