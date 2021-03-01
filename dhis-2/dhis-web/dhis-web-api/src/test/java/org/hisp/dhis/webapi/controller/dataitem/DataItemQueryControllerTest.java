@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,14 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
 
-import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
-import static org.hamcrest.CoreMatchers.containsString;
+import static java.util.Collections.singletonList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.not;
-import static org.junit.Assert.assertThat;
 import static org.junit.rules.ExpectedException.none;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -43,8 +41,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
-import static org.springframework.http.HttpStatus.FOUND;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,8 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.node.types.RootNode;
@@ -69,6 +67,11 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
 import org.springframework.http.ResponseEntity;
 
+/**
+ * Unit tests for DataItemQueryController.
+ *
+ * @author maikel arabori
+ */
 public class DataItemQueryControllerTest
 {
     @Mock
@@ -87,7 +90,7 @@ public class DataItemQueryControllerTest
     public MockitoRule mockitoRule = rule();
 
     @Rule
-    public ExpectedException expectedException = none();
+    public final ExpectedException exception = none();
 
     private DataItemQueryController dataItemQueryController;
 
@@ -105,25 +108,25 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> itemsFound = asList( new Indicator() );
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
+            singletonList( Indicator.class ) );
+        final List<DataItem> itemsFound = singletonList( new DataItem() );
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
         when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
             anyOrderParams, anyUser );
 
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anyList() );
+        assertThat( actualResponse.getStatusCode(), is( OK ) );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anySet() );
         verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
-            anyList() );
+            anySet() );
     }
 
     @Test
@@ -133,24 +136,24 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
-        final List<BaseDimensionalItemObject> itemsFound = emptyList();
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
+            singletonList( Indicator.class ) );
+        final List<DataItem> itemsFound = emptyList();
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
         when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( true );
         when( dataItemServiceFacade.retrieveDataItemEntities(
-            anySet(), anyList(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
+            anySet(), anySet(), any( WebOptions.class ), any( OrderParams.class ) ) ).thenReturn( itemsFound );
 
         final ResponseEntity<RootNode> actualResponse = dataItemQueryController.getJson( anyUrlParameters,
             anyOrderParams, anyUser );
 
         // Then
         assertThat( actualResponse, is( not( nullValue() ) ) );
-        assertThat( actualResponse.getStatusCode(), is( NOT_FOUND ) );
-        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anyList() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anyList() );
+        assertThat( actualResponse.getStatusCode(), is( OK ) );
+        verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anySet() );
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anySet() );
     }
 
     @Test
@@ -160,18 +163,18 @@ public class DataItemQueryControllerTest
         final Map<String, String> anyUrlParameters = new HashMap<>();
         final OrderParams anyOrderParams = new OrderParams();
         final User anyUser = new User();
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = new HashSet<>(
-            asList( Indicator.class ) );
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = new HashSet<>(
+            singletonList( Indicator.class ) );
         final boolean invalidAcl = false;
 
-        // Then
-        expectedException.expect( IllegalQueryException.class );
-        expectedException
-            .expectMessage( containsString( "does not have read access for object" ) );
+        when( dataItemServiceFacade.extractTargetEntities( anySet() ) ).thenReturn( targetEntities );
+        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
+
+        // Expect exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "does not have read access for object" );
 
         // When
-        when( dataItemServiceFacade.extractTargetEntities( anyList() ) ).thenReturn( targetEntities );
-        when( aclService.canRead( anyUser, Indicator.class ) ).thenReturn( invalidAcl );
         dataItemQueryController.getJson( anyUrlParameters, anyOrderParams, anyUser );
     }
 }

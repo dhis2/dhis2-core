@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataitem.helper;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +25,44 @@ package org.hisp.dhis.webapi.controller.dataitem.helper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem.helper;
 
-import static java.util.Collections.singletonList;
+import static com.google.common.collect.Sets.newHashSet;
+import static org.apache.commons.lang3.EnumUtils.getEnumMap;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
-import static org.hisp.dhis.webapi.controller.dataitem.DataItemServiceFacade.DATA_TYPE_ENTITY_MAP;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.containsDimensionTypeFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
-import static org.junit.Assert.assertThat;
+import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromFilter;
 import static org.junit.rules.ExpectedException.none;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.webapi.controller.dataitem.Filter;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
+/**
+ * Unit tests for FilteringHelper.
+ *
+ * @author maikel arabori
+ */
 public class FilteringHelperTest
 {
     @Rule
-    public ExpectedException expectedException = none();
+    public final ExpectedException exception = none();
 
     @Test
     public void testExtractEntitiesFromInFilter()
@@ -67,7 +73,7 @@ public class FilteringHelperTest
             DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter( anyFilters );
 
         // Then
         assertThat( actualClasses, hasSize( 2 ) );
@@ -80,11 +86,11 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[INVALID_TYPE,DATA_SET]";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage(
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
 
         // When
         extractEntitiesFromInFilter( filtersWithInvalidType );
@@ -96,9 +102,10 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[,]";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse filter `" + filtersWithInvalidType + "`" );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
+            "Unable to parse filter `" + filtersWithInvalidType + "`" );
 
         // When
         extractEntitiesFromInFilter( filtersWithInvalidType );
@@ -109,10 +116,10 @@ public class FilteringHelperTest
     {
         // Given
         final String filtersNotFullyDefined = "dimensionItemType:in:[,DATA_SET]";
-        final Class<? extends BaseDimensionalItemObject>[] expectedClasses = new Class[] { DataSet.class };
+        final Class<? extends BaseIdentifiableObject>[] expectedClasses = new Class[] { DataSet.class };
 
         // When
-        final Set<Class<? extends BaseDimensionalItemObject>> actualClasses = extractEntitiesFromInFilter(
+        final Set<Class<? extends BaseIdentifiableObject>> actualClasses = extractEntitiesFromInFilter(
             filtersNotFullyDefined );
 
         // Then
@@ -128,7 +135,7 @@ public class FilteringHelperTest
         final Class<? extends BaseDimensionalItemObject> expectedClass = DataSet.class;
 
         // When
-        final Class<? extends BaseDimensionalItemObject> actualClass = extractEntityFromEqualFilter( anyFilter );
+        final Class<? extends BaseIdentifiableObject> actualClass = extractEntityFromEqualFilter( anyFilter );
 
         // Then
         assertThat( actualClass, is( notNullValue() ) );
@@ -141,56 +148,14 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:eq:INVALID_TYPE";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage(
-                "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                        + Arrays.toString( DATA_TYPE_ENTITY_MAP.keySet().toArray() ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
+            "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
 
         // When
         extractEntityFromEqualFilter( filtersWithInvalidType );
-    }
-
-    @Test
-    public void testContainsDimensionTypeFilterUsingEqualsQuery()
-    {
-        // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:eq:DATA_SET" );
-        final boolean expectedTrueResult = true;
-
-        // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
-
-        // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
-    }
-
-    @Test
-    public void testContainsDimensionTypeFilterUsingInQuery()
-    {
-        // Given
-        final List<String> anyFilters = singletonList( "dimensionItemType:in:[DATA_SET,INDICATOR]" );
-        final boolean expectedTrueResult = true;
-
-        // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
-
-        // Then
-        assertThat( actualResult, is( expectedTrueResult ) );
-    }
-
-    @Test
-    public void testContainsDimensionTypeFilterWhenThereDimensionItemTypeFilterIsNotSet()
-    {
-        // Given
-        final List<String> anyFilters = singletonList( "displayName:ilike:anc" );
-        final boolean expectedFalseResult = false;
-
-        // When
-        final boolean actualResult = containsDimensionTypeFilter( anyFilters );
-
-        // Then
-        assertThat( actualResult, is( expectedFalseResult ) );
     }
 
     @Test
@@ -199,11 +164,39 @@ public class FilteringHelperTest
         // Given
         final String invalidFilter = "dimensionItemType:eq:";
 
-        // Expect
-        expectedException.expect( IllegalQueryException.class );
-        expectedException.expectMessage( "Unable to parse filter `" + invalidFilter + "`" );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Unable to parse filter `" + invalidFilter + "`" );
 
         // When
         extractEntityFromEqualFilter( invalidFilter );
+    }
+
+    @Test
+    public void testExtractValueFromFilterNoTrimmed()
+    {
+        // Given
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId " );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
+
+        // When
+        final String expectedValue = extractValueFromFilter( filters, theCombination );
+
+        // Then
+        assertThat( expectedValue, is( "anyId " ) );
+    }
+
+    @Test
+    public void testExtractValueFromFilterTrimmed()
+    {
+        // Given
+        final Set<String> filters = newHashSet( "name:ilike:aWord", "programId:eq:anyId" );
+        final Filter.Combination theCombination = Filter.Combination.PROGRAM_ID_EQUAL;
+
+        // When
+        final String expectedValue = extractValueFromFilter( filters, theCombination, true );
+
+        // Then
+        assertThat( expectedValue, is( "anyId" ) );
     }
 }
