@@ -84,7 +84,7 @@ public class AggregateAnalyticsQueryCriteria
     private Set<String> filter;
 
     /**
-     * The {@see AggregationType}
+     * The {@link AggregationType}
      */
     private AggregationType aggregationType;
 
@@ -111,6 +111,9 @@ public class AggregateAnalyticsQueryCriteria
      */
     private Date endDate;
 
+    /**
+     * The type of user org unit to use.
+     */
     private UserOrgUnitType userOrgUnitType;
 
     /**
