@@ -212,7 +212,7 @@ public class SystemController
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29,
         DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34,
-        DhisApiVersion.V35, DhisApiVersion.V36 } )
+        DhisApiVersion.V35, DhisApiVersion.V36, DhisApiVersion.V37 } )
     public void getTaskJson( @PathVariable( "jobType" ) String jobType, @RequestParam( required = false ) String lastId,
         HttpServletResponse response )
         throws IOException
@@ -233,7 +233,7 @@ public class SystemController
     @RequestMapping( value = "/tasks/{jobType}", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32,
         DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V34, DhisApiVersion.V35,
-        DhisApiVersion.V36 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+        DhisApiVersion.V36, DhisApiVersion.V37 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -277,7 +277,7 @@ public class SystemController
         "application/json" } )
     @ApiVersion( include = { DhisApiVersion.V29, DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32,
         DhisApiVersion.V33, DhisApiVersion.V34, DhisApiVersion.V35,
-        DhisApiVersion.V36 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+        DhisApiVersion.V36, DhisApiVersion.V37 }, exclude = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
     public void getTaskSummaryExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -297,7 +297,7 @@ public class SystemController
         "application/json" } )
     @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL }, exclude = { DhisApiVersion.V29,
         DhisApiVersion.V30, DhisApiVersion.V31, DhisApiVersion.V32, DhisApiVersion.V33, DhisApiVersion.V34,
-        DhisApiVersion.V35, DhisApiVersion.V36 } )
+        DhisApiVersion.V35, DhisApiVersion.V36, DhisApiVersion.V37 } )
     public void getTaskSummaryJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
@@ -333,9 +333,8 @@ public class SystemController
     private void handleSummary( HttpServletResponse response, Object summary )
         throws IOException
     {
-        if ( summary != null && ImportSummary.class.isInstance( summary ) ) // TODO
-                                                                            // improve
-                                                                            // this
+        // TODO improve this
+        if ( summary != null && ImportSummary.class.isInstance( summary ) )
         {
             ImportSummary importSummary = (ImportSummary) summary;
             renderService.toJson( response.getOutputStream(), importSummary );

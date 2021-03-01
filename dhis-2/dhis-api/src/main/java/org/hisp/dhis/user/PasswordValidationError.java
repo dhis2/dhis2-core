@@ -25,35 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.translation;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
-
-import javax.validation.constraints.NotNull;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
+package org.hisp.dhis.user;
 
 /**
- * This annotation is used for indicating that a property of an object is
- * translatable. It must be applied to the getDisplay*() methods. See
- * {@link BaseIdentifiableObject#getDisplayName()} for example.
+ * Possible reasons for passwords to be invalid.
+ *
+ * @author Jan Bernitt
  */
-@Target( { ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface Translatable
+public enum PasswordValidationError
 {
-    /**
-     * Property name for enabling translation
-     */
-    @NotNull
-    String propertyName();
+    PASSWORD_IS_MANDATORY( "mandatory_parameter_missing",
+        "Username or Password is missing" ),
+    PASSWORD_TOO_LONG_TOO_SHORT( "password_length_validation",
+        "Password must have at least %d, and at most %d characters" ),
+    PASSWORD_MUST_HAVE_DIGIT( "password_digit_validation",
+        "Password must have at least one digit" ),
+    PASSWORD_MUST_HAVE_UPPER( "password_uppercase_validation",
+        "Password must have at least one upper case" ),
+    PASSWORD_MUST_HAVE_SPECIAL( "password_specialcharacter_validation",
+        "Password must have at least one special character" ),
+    PASSWORD_CONTAINS_RESERVED_WORD( "password_dictionary_validation",
+        "Password must not have any generic word" ),
+    PASSWORD_CONTAINS_NAME_OR_EMAIL( "password_username_validation",
+        "Username/Email must not be a part of password" ),
+    PASSWORD_ALREADY_USED_BEFORE( "password_history_validation",
+        "Password must not be one of the previous %d passwords" );
 
-    /**
-     * Translation key for storing translation in json format. If not defined
-     * then property name is used as the key.
-     */
-    String key() default "";
+    private final String message;
+
+    private final String i18nKey;
+
+    PasswordValidationError( String i18nKey, String message )
+    {
+        this.message = message;
+        this.i18nKey = i18nKey;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public String getI18nKey()
+    {
+        return i18nKey;
+    }
 }
