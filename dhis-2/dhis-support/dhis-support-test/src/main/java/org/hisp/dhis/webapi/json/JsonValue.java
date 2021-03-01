@@ -42,8 +42,11 @@ package org.hisp.dhis.webapi.json;
  * {@link JsonObject} and {@link JsonArray} and {@link JsonPrimitive} as common
  * base type of {@link JsonString}, {@link JsonNumber} and {@link JsonBoolean}.
  *
- * To allow working with typed arrays there is {@link JsonList} which can be
- * understood as a typed wrapper around a {@link JsonArray}.
+ * In addition {@link JsonList} is a typed JSON array of uniform elements (which
+ * can be understood as a typed wrapper around a {@link JsonArray}.
+ *
+ * Similarly {@link JsonMap} is a typed JSON object map of uniform values (which
+ * can be understood as a typed wrapper around a {@link JsonObject}.
  *
  * The API is designed to:
  * <ul>

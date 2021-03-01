@@ -49,6 +49,7 @@ import java.util.function.Function;
 
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.json.domain.JsonError;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
@@ -69,12 +70,12 @@ public interface WebClient
 
     HttpResponse webRequest( MockHttpServletRequestBuilder request );
 
-    default HttpResponse GET( String url, String... args )
+    default HttpResponse GET( String url, Object... args )
     {
         return webRequest( get( substitutePlaceholders( url, args ) ), "" );
     }
 
-    default HttpResponse POST( String url, String... args )
+    default HttpResponse POST( String url, Object... args )
     {
         return POST( substitutePlaceholders( url, args ), "" );
     }
@@ -84,7 +85,7 @@ public interface WebClient
         return webRequest( post( url ), body );
     }
 
-    default HttpResponse PATCH( String url, String... args )
+    default HttpResponse PATCH( String url, Object... args )
     {
         return PATCH( substitutePlaceholders( url, args ), "" );
     }
@@ -94,7 +95,7 @@ public interface WebClient
         return webRequest( patch( url ), body );
     }
 
-    default HttpResponse PUT( String url, String... args )
+    default HttpResponse PUT( String url, Object... args )
     {
         return PUT( substitutePlaceholders( url, args ), "" );
     }
@@ -104,7 +105,7 @@ public interface WebClient
         return webRequest( put( url ), body );
     }
 
-    default HttpResponse DELETE( String url, String... args )
+    default HttpResponse DELETE( String url, Object... args )
     {
         return DELETE( substitutePlaceholders( url, args ), "" );
     }
@@ -177,31 +178,41 @@ public interface WebClient
         public JsonResponse content( Series expected )
         {
             assertSeries( expected, this );
-            return contentInternal();
+            return contentUnchecked();
         }
 
         public JsonResponse content( HttpStatus expected )
         {
             assertStatus( expected, this );
-            return contentInternal();
+            return contentUnchecked();
         }
 
         public JsonError error()
         {
-            assertTrue( series().value() >= 4 );
-            return contentInternal().as( JsonError.class );
+            assertTrue( "not a client or server error", series().value() >= 4 );
+            return contentUnchecked().as( JsonError.class );
         }
 
         public JsonError error( Series expected )
         {
             // OBS! cannot use assertSeries as it uses this method
             assertEquals( expected, series() );
-            return contentInternal().as( JsonError.class );
+            return contentUnchecked().as( JsonError.class );
         }
 
-        private JsonResponse contentInternal()
+        public JsonResponse contentUnchecked()
         {
             return failOnException( () -> new JsonResponse( response.getContentAsString( StandardCharsets.UTF_8 ) ) );
+        }
+
+        public String location()
+        {
+            return header( ContextUtils.HEADER_LOCATION );
+        }
+
+        public String header( String name )
+        {
+            return response.getHeader( name );
         }
     }
 

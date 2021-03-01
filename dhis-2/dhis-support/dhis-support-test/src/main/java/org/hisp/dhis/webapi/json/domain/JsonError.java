@@ -55,4 +55,50 @@ public interface JsonError extends JsonObject
     {
         return getString( "message" ).string();
     }
+
+    /**
+     * OBS! This property only exists in some error responses.
+     */
+    default JsonTypeReport getTypeReport()
+    {
+        return get( "response", JsonTypeReport.class );
+    }
+
+    /**
+     * OBS! This is not a getter for a property in the response but a helper to
+     * extract a summary description based on the error response.
+     *
+     * @return a error summary suitable to be used as assert message.
+     */
+    default String summary()
+    {
+        StringBuilder str = new StringBuilder();
+        str.append( getMessage() );
+        if ( getTypeReport().exists() )
+        {
+            if ( getTypeReport().getObjectReports().exists() )
+            {
+                for ( JsonObjectReport report : getTypeReport().getObjectReports() )
+                {
+                    str.append( "\n- " ).append( report.getKlass() );
+                    if ( report.getErrorReports().exists() )
+                    {
+                        for ( JsonErrorReport error : report.getErrorReports() )
+                        {
+                            str.append( "\n  - " ).append( error.getErrorCode() ).append( ' ' )
+                                .append( error.getMessage() );
+                        }
+                    }
+                }
+            }
+            else if ( getTypeReport().getErrorReports().exists() )
+            {
+                for ( JsonErrorReport error : getTypeReport().getErrorReports() )
+                {
+                    str.append( "\n- " ).append( error.getErrorCode() ).append( ' ' ).append( error.getMessage() );
+                }
+            }
+        }
+        return str.toString();
+    }
 }

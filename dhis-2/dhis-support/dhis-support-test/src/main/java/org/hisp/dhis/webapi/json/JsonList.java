@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+
+import javax.validation.constraints.NotNull;
+
 /**
  * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
  * uniform elements.
@@ -35,7 +40,7 @@ package org.hisp.dhis.webapi.json;
  *
  * @param <E> type of the list elements
  */
-public interface JsonList<E extends JsonValue> extends JsonCollection
+public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<E>
 {
     /**
      * A typed variant of {@link JsonArray#get(int)}, equivalent to
@@ -46,4 +51,32 @@ public interface JsonList<E extends JsonValue> extends JsonCollection
      * @return element at the provided index
      */
     E get( int index );
+
+    @Override
+    @NotNull
+    default Iterator<E> iterator()
+    {
+        int size = size();
+        return new Iterator<E>()
+        {
+            int index = 0;
+
+            @Override
+            public boolean hasNext()
+            {
+                return index < size;
+            }
+
+            @Override
+            public E next()
+            {
+                E e = get( index++ );
+                if ( !e.exists() )
+                {
+                    throw new NoSuchElementException();
+                }
+                return e;
+            }
+        };
+    }
 }

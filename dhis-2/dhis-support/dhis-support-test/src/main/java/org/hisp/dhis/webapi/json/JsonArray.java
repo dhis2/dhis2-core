@@ -100,8 +100,18 @@ public interface JsonArray extends JsonCollection
         return get( index, JsonBoolean.class );
     }
 
+    default JsonObject getObject( int index )
+    {
+        return get( index, JsonObject.class );
+    }
+
     default <E extends JsonValue> JsonList<E> getList( int index, Class<E> as )
     {
         return asList( getArray( index ), as );
+    }
+
+    default <E extends JsonValue> JsonMap<E> getMap( int index, Class<E> as )
+    {
+        return asMap( getObject( index ), as );
     }
 }

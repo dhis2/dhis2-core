@@ -95,4 +95,9 @@ public interface JsonObject extends JsonCollection
         return asList( getArray( name ), as );
     }
 
+    default <E extends JsonValue> JsonMap<E> getMap( String name, Class<E> as )
+    {
+        return asMap( getObject( name ), as );
+    }
+
 }

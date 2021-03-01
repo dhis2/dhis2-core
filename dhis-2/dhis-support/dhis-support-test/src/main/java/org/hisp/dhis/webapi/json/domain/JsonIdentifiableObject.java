@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.hisp.dhis.webapi.json.JsonDate;
 import org.hisp.dhis.webapi.json.JsonObject;
@@ -52,6 +53,11 @@ public interface JsonIdentifiableObject extends JsonObject
     default String getDisplayName()
     {
         return getString( "displayName" ).string();
+    }
+
+    default String getHref()
+    {
+        return getString( "href" ).string();
     }
 
     default String getCode()
@@ -84,4 +90,18 @@ public interface JsonIdentifiableObject extends JsonObject
         return getBoolean( "externalAccess" ).booleanValue();
     }
 
+    default List<String> getFavorites()
+    {
+        return getArray( "favorites" ).stringValues();
+    }
+
+    default boolean isFavorite()
+    {
+        return getBoolean( "favorite" ).booleanValue();
+    }
+
+    default JsonSharing getSharing()
+    {
+        return get( "sharing", JsonSharing.class );
+    }
 }

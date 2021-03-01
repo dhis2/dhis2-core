@@ -32,7 +32,13 @@ import static org.junit.Assert.assertEquals;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.WebClient.HttpResponse;
+import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonError;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
+import org.hisp.dhis.webapi.json.domain.JsonObjectReport;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatus.Series;
 
@@ -61,27 +67,101 @@ public class WebClientUtils
         return body != null && IS_MEDIA_TYPE.matcher( body ).find();
     }
 
-    public static void assertStatus( HttpStatus expected, HttpResponse response )
+    /**
+     * Asserts that the {@link HttpResponse} has the expected
+     * {@link HttpStatus}.
+     *
+     * If status is {@link HttpStatus#CREATED} the method returns the UID of the
+     * created object in case it is provided by the response. This is based on a
+     * convention used in DHIS2.
+     *
+     * @param expected status we should get
+     * @param actual the response we actually got
+     * @return UID of the created object (if available) or {@code null}
+     */
+    public static String assertStatus( HttpStatus expected, HttpResponse actual )
+    {
+        HttpStatus actualStatus = actual.status();
+        if ( expected != actualStatus )
+        {
+            if ( expected.series() == actualStatus.series() )
+            {
+                assertEquals( expected, actualStatus );
+            }
+            else
+            {
+                // OBS! we use the actual state to not fail the check in error
+                String msg = actual.error( actualStatus.series() ).summary();
+                assertEquals( msg, expected, actualStatus );
+            }
+        }
+        return getCreatedId( actual );
+    }
+
+    /**
+     * Asserts that the {@link HttpResponse} has the expected
+     * {@link HttpStatus.Series}. This is useful on cases where it only matters
+     * that operation was {@link Series#SUCCESSFUL} or say
+     * {@link Series#CLIENT_ERROR} but not which exact code of the series.
+     *
+     * If status is {@link HttpStatus#CREATED} the method returns the UID of the
+     * created object in case it is provided by the response. This is based on a
+     * convention used in DHIS2.
+     *
+     * @param expected status {@link Series} we should get
+     * @param actual the response we actually got
+     * @return UID of the created object (if available) or {@code null}
+     */
+    public static String assertSeries( HttpStatus.Series expected, HttpResponse actual )
+    {
+        Series actualSeries = actual.series();
+        if ( expected != actualSeries )
+        {
+            // OBS! we use the actual state to not fail the check in error
+            String msg = actual.error( actualSeries ).summary();
+            assertEquals( msg, expected, actualSeries );
+        }
+        return getCreatedId( actual );
+    }
+
+    private static String getCreatedId( HttpResponse response )
     {
         HttpStatus actual = response.status();
-        if ( expected != actual )
+        if ( actual == HttpStatus.CREATED )
         {
-            String msg = response.error( actual.series() ).getMessage();
-            assertEquals( msg, expected, actual );
+            JsonObject report = response.contentUnchecked().getObject( "response" );
+            if ( report.exists() )
+            {
+                return report.getString( "uid" ).string();
+            }
+            String location = response.location();
+            return location == null ? null : location.substring( location.lastIndexOf( '/' ) + 1 );
         }
+        return null;
     }
 
-    public static void assertSeries( HttpStatus.Series expected, HttpResponse response )
+    /**
+     * Assumes the {@link org.hisp.dhis.webapi.json.domain.JsonError} has a
+     * {@link org.hisp.dhis.webapi.json.domain.JsonTypeReport} containing a
+     * single {@link org.hisp.dhis.webapi.json.domain.JsonErrorReport} with the
+     * expected properties.
+     *
+     * @param expectedCode The code the single error is expected to have
+     * @param expectedMessage The message the single error is expected to have
+     * @param actual the actual error from the {@link HttpResponse}
+     */
+    public static void assertError( ErrorCode expectedCode, String expectedMessage, JsonError actual )
     {
-        Series actual = response.series();
-        if ( expected != actual )
-        {
-            String msg = response.error( actual ).getMessage();
-            assertEquals( msg, expected, actual );
-        }
+        JsonList<JsonObjectReport> reports = actual.getTypeReport().getObjectReports();
+        assertEquals( 1, reports.size() );
+        JsonList<JsonErrorReport> errors = reports.get( 0 ).getErrorReports();
+        assertEquals( 1, errors.size() );
+        JsonErrorReport error = errors.get( 0 );
+        assertEquals( expectedCode, error.getErrorCode() );
+        assertEquals( expectedMessage, error.getMessage() );
     }
 
-    public static String substitutePlaceholders( String url, String[] args )
+    public static String substitutePlaceholders( String url, Object[] args )
     {
         return args.length == 0
             ? url

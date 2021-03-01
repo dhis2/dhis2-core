@@ -25,51 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
-
-import java.util.function.Function;
+package org.hisp.dhis.webapi.json.domain;
 
 /**
- * Represents a string JSON node.
+ * Web API equivalent of a {@link org.hisp.dhis.common.BaseNameableObject}.
  *
  * @author Jan Bernitt
  */
-public interface JsonString extends JsonPrimitive
+public interface JsonNameableObject extends JsonIdentifiableObject
 {
 
-    /**
-     * @return string value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    String string();
-
-    /**
-     * In contrast to {@link #mapNonNull(Object, Function)} this function simply
-     * returns {@code null} when {@link #string()} is {@code null}. This
-     * includes the case that this value is not defined in the JSON content.
-     *
-     * @param parser function that parses a given {@link String} to the returned
-     *        type.
-     * @param <T> return type
-     * @return {@code null} when {@link #string()} returns {@code null}
-     *         otherwise the result of calling provided parser with result of
-     *         {@link #string()}.
-     */
-    default <T> T parsed( Function<String, T> parser )
+    default String getShortName()
     {
-        String value = string();
-        return value == null ? null : parser.apply( value );
+        return getString( "shortName" ).string();
     }
 
-    default Class<?> parsedClass()
+    default String getDisplayShortName()
     {
-        try
-        {
-            return Class.forName( string() );
-        }
-        catch ( ClassNotFoundException ex )
-        {
-            throw new IllegalArgumentException( ex );
-        }
+        return getString( "displayShortName" ).string();
+    }
+
+    default String getDescription()
+    {
+        return getString( "description" ).string();
+    }
+
+    default String getDisplayDescription()
+    {
+        return getString( "displayDescription" ).string();
+    }
+
+    default String getFormName()
+    {
+        return getString( "formName" ).string();
+    }
+
+    default String getDisplayFormName()
+    {
+        return getString( "displayFormName" ).string();
     }
 }

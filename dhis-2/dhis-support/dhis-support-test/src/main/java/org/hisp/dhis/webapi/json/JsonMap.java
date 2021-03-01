@@ -27,49 +27,23 @@
  */
 package org.hisp.dhis.webapi.json;
 
-import java.util.function.Function;
-
 /**
- * Represents a string JSON node.
+ * {@link JsonMap}s are a special form of a {@link JsonObject} where all
+ * properties have a common uniform value type.
  *
  * @author Jan Bernitt
+ *
+ * @param <E> type of the uniform map values
  */
-public interface JsonString extends JsonPrimitive
+public interface JsonMap<E extends JsonValue> extends JsonCollection
 {
-
     /**
-     * @return string value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    String string();
-
-    /**
-     * In contrast to {@link #mapNonNull(Object, Function)} this function simply
-     * returns {@code null} when {@link #string()} is {@code null}. This
-     * includes the case that this value is not defined in the JSON content.
+     * A typed variant of {@link JsonObject#get(String)}, equivalent to
+     * {@link JsonObject#get(String, Class)} where 2nd parameter is the type
+     * parameter E.
      *
-     * @param parser function that parses a given {@link String} to the returned
-     *        type.
-     * @param <T> return type
-     * @return {@code null} when {@link #string()} returns {@code null}
-     *         otherwise the result of calling provided parser with result of
-     *         {@link #string()}.
+     * @param key property to access
+     * @return value at the provided property
      */
-    default <T> T parsed( Function<String, T> parser )
-    {
-        String value = string();
-        return value == null ? null : parser.apply( value );
-    }
-
-    default Class<?> parsedClass()
-    {
-        try
-        {
-            return Class.forName( string() );
-        }
-        catch ( ClassNotFoundException ex )
-        {
-            throw new IllegalArgumentException( ex );
-        }
-    }
+    E get( String key );
 }

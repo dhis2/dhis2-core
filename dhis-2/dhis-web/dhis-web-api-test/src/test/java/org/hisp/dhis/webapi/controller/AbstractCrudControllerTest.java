@@ -27,16 +27,27 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertError;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
+import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
@@ -91,7 +102,232 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     @Test
     public void replaceTranslations()
     {
+        String id = getCurrentUser().getUid();
+        JsonArray translations = GET( "/users/{id}/translations", id )
+            .content().getArray( "translations" );
 
+        assertTrue( translations.isEmpty() );
+
+        PUT( "/users/" + id + "/translations",
+            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
+                .content( HttpStatus.NO_CONTENT );
+
+        translations = GET( "/users/{id}/translations", id )
+            .content().getArray( "translations" );
+        assertEquals( 1, translations.size() );
+        JsonTranslation translation = translations.get( 0, JsonTranslation.class );
+        assertEquals( "sv", translation.getLocale() );
+        assertEquals( "name", translation.getProperty() );
+        assertEquals( "namn", translation.getValue() );
     }
 
+    @Test
+    public void replaceTranslations_MissingValue()
+    {
+        String id = getCurrentUser().getUid();
+        String translations = "{'translations': [{'locale':'sv', 'property':'name'}]}";
+        assertError( ErrorCode.E4000, "Missing required property `value`.",
+            PUT( "/users/" + id + "/translations", translations ).error() );
+    }
+
+    @Test
+    public void replaceTranslations_MissingProperty()
+    {
+        String id = getCurrentUser().getUid();
+        assertError( ErrorCode.E4000, "Missing required property `property`.",
+            PUT( "/users/" + id + "/translations",
+                "{'translations': [{'locale':'sv', 'value':'namn'}]}" ).error() );
+    }
+
+    @Test
+    public void replaceTranslations_MissingLocale()
+    {
+        String id = getCurrentUser().getUid();
+        String translations = "{'translations': [{'property':'name', 'value':'namn'}]}";
+        assertError( ErrorCode.E4000, "Missing required property `locale`.",
+            PUT( "/users/" + id + "/translations", translations ).error() );
+    }
+
+    @Test
+    public void testUpdateObjectProperty()
+    {
+        String id = getCurrentUser().getUid();
+        assertStatus( HttpStatus.NO_CONTENT,
+            PATCH( "/users/" + id + "/firstName", "{'firstName':'Fancy Mike'}" ) );
+        assertEquals( "Fancy Mike", GET( "/users/{id}", id )
+            .content().as( JsonUser.class ).getFirstName() );
+    }
+
+    @Test
+    public void testUpdateObjectProperty_ReadOnlyProperty()
+    {
+        String id = getCurrentUser().getUid();
+        assertStatus( HttpStatus.FORBIDDEN,
+            PATCH( "/users/" + id + "/displayName", "{'displayName':'Fancy Mike'}" ) );
+    }
+
+    @Test
+    public void testPostJsonObject()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/constants/", "{'name':'answer', 'value': 42}" ) );
+    }
+
+    @Test
+    public void testSetAsFavorite()
+    {
+        // first we need to create an entity that can be marked as favorite
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+
+        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/favorite" ) );
+        JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
+        assertEquals( singletonList( getCurrentUser().getUid() ), map.getFavorites() );
+    }
+
+    @Test
+    public void testRemoveAsFavorite()
+    {
+        // first we need to create an entity that can be marked as favorite
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+        // make it a favorite
+        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/favorite" ) );
+
+        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId + "/favorite" ) );
+        assertEquals( emptyList(), GET( "/maps/{uid}", mapId )
+            .content().as( JsonGeoMap.class ).getFavorites() );
+    }
+
+    @Test
+    public void testSubscribe()
+    {
+        // first we need to create an entity that can be subscribed to
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+
+        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/subscriber" ) );
+        JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
+        assertEquals( singletonList( getCurrentUser().getUid() ), map.getSubscribers() );
+    }
+
+    @Test
+    public void testUnsubscribe()
+    {
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+        assertStatus( HttpStatus.OK, POST( "/maps/" + mapId + "/subscriber" ) );
+
+        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId + "/subscriber" ) );
+        JsonGeoMap map = GET( "/maps/{uid}", mapId ).content().as( JsonGeoMap.class );
+        assertEquals( emptyList(), map.getSubscribers() );
+    }
+
+    @Test
+    public void testPutJsonObject()
+    {
+        // first the updated entity needs to be created
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/maps/" + mapId, "{'name':'Europa'}" ) );
+        assertEquals( "Europa", GET( "/maps/{id}", mapId )
+            .content().as( JsonGeoMap.class ).getName() );
+    }
+
+    @Test
+    public void testDeleteObject()
+    {
+        // first the deleted entity needs to be created
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
+
+        assertStatus( HttpStatus.OK, DELETE( "/maps/" + mapId ) );
+        assertEquals( 0, GET( "/maps" ).content().getArray( "maps" ).size() );
+    }
+
+    @Test
+    public void testGetCollectionItem()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+        // add an item to the collection
+        assertSeries( Series.SUCCESSFUL, POST( "/userGroups/" + groupId + "/users/" + userId ) );
+
+        assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    public void testAddCollectionItemsJson()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            POST( "/userGroups/" + groupId + "/users", "{'additions': [{'id':'" + userId + "'}]}" ) );
+
+        assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    public void testReplaceCollectionItemsJson()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
+        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'userCredentials':{'username':'peter47'}}";
+        String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            PUT( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" ) );
+
+        assertUserGroupHasOnlyUser( groupId, peterUserId );
+    }
+
+    @Test
+    public void testAddCollectionItem()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT, POST( "/userGroups/{uid}/users/{itemId}", groupId, userId ) );
+        assertUserGroupHasOnlyUser( groupId, userId );
+    }
+
+    @Test
+    public void testDeleteCollectionItemsJson()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which has a collection
+        String groupId = assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups/", "{'name':'testers', 'users':[{'id':'" + userId + "'}]}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT,
+            DELETE( "/userGroups/" + groupId + "/users", "{'identifiableObjects':[{'id':'" + userId + "'}]}" ) );
+        assertEquals( 0, GET( "/userGroups/{uid}/users/", groupId ).content().getArray( "users" ).size() );
+    }
+
+    @Test
+    public void testSetSharing()
+    {
+        String userId = getCurrentUser().getUid();
+        // first create an object which can be shared
+        String programId = assertStatus( HttpStatus.CREATED,
+            POST( "/programs/", "{'name':'test', 'shortName':'test', 'programType':'WITHOUT_REGISTRATION'}" ) );
+
+        String sharing = "{'owner':'" + userId + "', 'public':'rwrw----', 'external': true }";
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/programs/" + programId + "/sharing", sharing ) );
+
+        JsonIdentifiableObject program = GET( "/programs/{id}", programId )
+            .content().as( JsonIdentifiableObject.class );
+        assertTrue( program.exists() );
+        assertEquals( "rwrw----", program.getSharing().getPublic().string() );
+        assertFalse( "programs cannot be external", program.getSharing().isExternal() );
+    }
+
+    private void assertUserGroupHasOnlyUser( String groupId, String userId )
+    {
+        JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/{itemId}", groupId, userId ).content()
+            .getList( "users", JsonUser.class );
+        assertEquals( 1, usersInGroup.size() );
+        assertEquals( userId, usersInGroup.get( 0 ).getId() );
+    }
 }

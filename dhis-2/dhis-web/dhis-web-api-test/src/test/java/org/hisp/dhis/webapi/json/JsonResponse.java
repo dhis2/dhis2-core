@@ -168,7 +168,7 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     @Override
     public boolean isEmpty()
     {
-        return ObjectUtils.isEmpty( value( null ) );
+        return ObjectUtils.isEmpty( value( this::noSuchValue ) );
     }
 
     @Override

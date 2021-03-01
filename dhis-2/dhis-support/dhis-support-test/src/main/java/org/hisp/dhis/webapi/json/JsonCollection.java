@@ -27,6 +27,23 @@
  */
 package org.hisp.dhis.webapi.json;
 
+/**
+ * Common base class for JSON nodes that have children.
+ *
+ * These are their
+ * <ul>
+ * <li>{@link JsonArray}s, or</li>
+ * <li>{@link JsonObject}s</li>
+ * </ul>
+ *
+ * Each has their typed wrapper type:
+ * <ul>
+ * <li>{@link JsonList}</li>
+ * <li>{@link JsonMap}</li>
+ * </ul>
+ *
+ * @author Jan Bernitt
+ */
 public interface JsonCollection extends JsonValue
 {
 
@@ -51,57 +68,89 @@ public interface JsonCollection extends JsonValue
 
     default <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
     {
-        class List implements JsonList<E>
+        class List extends Collection<JsonArray> implements JsonList<E>
         {
+            List( JsonArray wrapped )
+            {
+                super( wrapped );
+            }
 
             @Override
             public E get( int index )
             {
                 return array.get( index, as );
             }
+        }
+        return new List( array );
+    }
 
-            @Override
-            public boolean exists()
+    default <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
+    {
+        class Map extends Collection<JsonObject> implements JsonMap<E>
+        {
+            Map( JsonObject wrapped )
             {
-                return array.exists();
+                super( wrapped );
             }
 
             @Override
-            public boolean isNull()
+            public E get( String key )
             {
-                return array.isNull();
-            }
-
-            @Override
-            public boolean isArray()
-            {
-                return array.isArray();
-            }
-
-            @Override
-            public boolean isObject()
-            {
-                return array.isObject();
-            }
-
-            @Override
-            public int size()
-            {
-                return array.size();
-            }
-
-            @Override
-            public boolean isEmpty()
-            {
-                return array.isEmpty();
-            }
-
-            @Override
-            public <T extends JsonValue> T as( Class<T> as )
-            {
-                return array.as( as );
+                return wrapped.get( key, as );
             }
         }
-        return new List();
+        return new Map( object );
+    }
+
+    abstract class Collection<T extends JsonCollection> implements JsonCollection
+    {
+        protected final T wrapped;
+
+        protected Collection( T wrapped )
+        {
+            this.wrapped = wrapped;
+        }
+
+        @Override
+        public final boolean isEmpty()
+        {
+            return wrapped.isEmpty();
+        }
+
+        @Override
+        public final int size()
+        {
+            return wrapped.size();
+        }
+
+        @Override
+        public final boolean exists()
+        {
+            return wrapped.exists();
+        }
+
+        @Override
+        public final boolean isNull()
+        {
+            return wrapped.isNull();
+        }
+
+        @Override
+        public final boolean isArray()
+        {
+            return wrapped.isArray();
+        }
+
+        @Override
+        public final boolean isObject()
+        {
+            return wrapped.isObject();
+        }
+
+        @Override
+        public final <V extends JsonValue> V as( Class<V> as )
+        {
+            return wrapped.as( as );
+        }
     }
 }

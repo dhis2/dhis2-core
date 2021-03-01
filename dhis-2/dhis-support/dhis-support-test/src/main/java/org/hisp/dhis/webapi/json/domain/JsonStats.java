@@ -25,51 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.util.function.Function;
+import org.hisp.dhis.webapi.json.JsonObject;
 
 /**
- * Represents a string JSON node.
+ * Web API equivalent of a {@link org.hisp.dhis.feedback.Stats}.
  *
  * @author Jan Bernitt
  */
-public interface JsonString extends JsonPrimitive
+public interface JsonStats extends JsonObject
 {
-
-    /**
-     * @return string value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    String string();
-
-    /**
-     * In contrast to {@link #mapNonNull(Object, Function)} this function simply
-     * returns {@code null} when {@link #string()} is {@code null}. This
-     * includes the case that this value is not defined in the JSON content.
-     *
-     * @param parser function that parses a given {@link String} to the returned
-     *        type.
-     * @param <T> return type
-     * @return {@code null} when {@link #string()} returns {@code null}
-     *         otherwise the result of calling provided parser with result of
-     *         {@link #string()}.
-     */
-    default <T> T parsed( Function<String, T> parser )
+    default int getCreated()
     {
-        String value = string();
-        return value == null ? null : parser.apply( value );
+        return getNumber( "created" ).intValue();
     }
 
-    default Class<?> parsedClass()
+    default int getUpdated()
     {
-        try
-        {
-            return Class.forName( string() );
-        }
-        catch ( ClassNotFoundException ex )
-        {
-            throw new IllegalArgumentException( ex );
-        }
+        return getNumber( "updated" ).intValue();
+    }
+
+    default int getDeleted()
+    {
+        return getNumber( "deleted" ).intValue();
+    }
+
+    default int getIgnored()
+    {
+        return getNumber( "ignored" ).intValue();
+    }
+
+    default int getTotal()
+    {
+        return getNumber( "total" ).intValue();
     }
 }
