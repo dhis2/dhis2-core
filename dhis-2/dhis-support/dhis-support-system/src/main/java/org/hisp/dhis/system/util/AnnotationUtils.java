@@ -136,7 +136,7 @@ public class AnnotationUtils
             if ( translatableAnnotation != null )
             {
                 mapFields.put( translatableAnnotation.propertyName(),
-                    StringUtils.isEmpty( translatableAnnotation.key() ) ? translatableAnnotation.key()
+                    !StringUtils.isEmpty( translatableAnnotation.key() ) ? translatableAnnotation.key()
                         : translatableAnnotation.propertyName() );
             }
         } );
