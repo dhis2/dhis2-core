@@ -56,14 +56,12 @@ public class OrderValidatorTest
         // Given
         final Set<String> orderings = new HashSet<>( singletonList( "notSupportedAttribute:asc" ) );
 
-        // When throws
-        // final IllegalQueryException thrown = assertThrows(
-        // IllegalQueryException.class,
-        // () -> checkOrderParams( orderings ) );
-        //
-        // // Then
-        // assertThat( thrown.getMessage(), containsString( "Order not supported:
-        // `notSupportedAttribute`" ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Order not supported: `notSupportedAttribute`" );
+
+        // When
+        checkOrderParams( orderings );
     }
 
     @Test
@@ -72,14 +70,12 @@ public class OrderValidatorTest
         // Given
         final Set<String> orderings = new HashSet<>( singletonList( "name:invalidOrdering" ) );
 
-        // When throws
-        // final IllegalQueryException thrown = assertThrows(
-        // IllegalQueryException.class,
-        // () -> checkOrderParams( orderings ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Order not supported: `invalidOrdering`" );
 
-        // Then
-        // assertThat( thrown.getMessage(), containsString( "Order not supported:
-        // `invalidOrdering`" ) );
+        // When
+        checkOrderParams( orderings );
     }
 
     @Test
@@ -88,14 +84,12 @@ public class OrderValidatorTest
         // Given
         final Set<String> orderings = new HashSet<>( singletonList( "name:asc:invalid" ) );
 
-        // When throws
-        // final IllegalQueryException thrown = assertThrows(
-        // IllegalQueryException.class,
-        // () -> checkOrderParams( orderings ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Unable to parse order param: `name:asc:invalid`" );
 
-        // Then
-        // assertThat( thrown.getMessage(), containsString( "Unable to parse order
-        // param: `name:asc:invalid`" ) );
+        // When
+        checkOrderParams( orderings );
     }
 
     @Test( expected = Test.None.class ) /* no exception is expected */
