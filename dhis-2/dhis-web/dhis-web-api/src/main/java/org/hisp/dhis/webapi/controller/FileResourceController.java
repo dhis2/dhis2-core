@@ -51,7 +51,6 @@ import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -71,14 +70,6 @@ import com.google.common.base.MoreObjects;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
 {
-    private static final String DEFAULT_FILENAME = "untitled";
-
-    private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
-
-    // ---------------------------------------------------------------------
-    // Dependencies
-    // ---------------------------------------------------------------------
-
     @Autowired
     private CurrentUserService currentUserService;
 

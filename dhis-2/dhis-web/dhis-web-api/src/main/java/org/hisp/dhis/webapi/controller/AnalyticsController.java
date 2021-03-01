@@ -131,9 +131,8 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toCsv(
-            getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV, "data.csv", response ),
-            response.getWriter() );
+        GridUtils.toCsv( getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_CSV,
+            "data.csv", response ), response.getWriter() );
     }
 
     @GetMapping( value = RESOURCE_PATH + ".xls" )
@@ -143,9 +142,8 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        GridUtils.toXls(
-            getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL, "data.xls", response ),
-            response.getOutputStream() );
+        GridUtils.toXls( getGridWithAttachment( criteria, apiVersion, ContextUtils.CONTENT_TYPE_EXCEL,
+            "data.xls", response ), response.getOutputStream() );
     }
 
     @GetMapping( value = RESOURCE_PATH + ".jrxml" )
@@ -155,8 +153,11 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+        final DataQueryRequest request = DataQueryRequest.newBuilder()
+            .fromCriteria( criteria )
+            .apiVersion( apiVersion )
             .skipMeta( true ).build();
+
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
@@ -176,6 +177,7 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_TEXT, CacheStrategy.NO_CACHE,
             "debug.sql", false, params.getLatestEndDate() );
+
         return AnalyticsUtils.getDebugDataSql( params );
     }
 
@@ -189,13 +191,16 @@ public class AnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+        final DataQueryRequest request = DataQueryRequest.newBuilder()
+            .fromCriteria( criteria )
+            .apiVersion( apiVersion )
             .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+
         return analyticsService.getRawDataValues( params );
     }
 
@@ -206,14 +211,18 @@ public class AnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        final DataQueryRequest request = DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+        final DataQueryRequest request = DataQueryRequest.newBuilder()
+            .fromCriteria( criteria )
+            .apiVersion( apiVersion )
             .allowAllPeriods( true ).build();
 
         DataQueryParams params = dataQueryService.getFromRequest( request );
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_CSV,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+
         Grid grid = analyticsService.getRawDataValues( params );
+
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
@@ -231,6 +240,7 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_XML,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
@@ -244,6 +254,7 @@ public class AnalyticsController
 
         contextUtils.configureAnalyticsResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING, null, false, params.getLatestEndDate() );
+
         return analyticsService.getAggregatedDataValueSet( params );
     }
 
@@ -281,7 +292,9 @@ public class AnalyticsController
 
     private DataQueryRequest mapFromCriteria( AggregateAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion )
     {
-        return DataQueryRequest.newBuilder().fromCriteria( criteria ).apiVersion( apiVersion )
+        return DataQueryRequest.newBuilder()
+            .fromCriteria( criteria )
+            .apiVersion( apiVersion )
             .build();
     }
 }

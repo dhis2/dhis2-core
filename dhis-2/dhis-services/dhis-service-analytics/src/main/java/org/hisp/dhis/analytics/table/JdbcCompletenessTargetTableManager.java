@@ -66,6 +66,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -88,7 +89,7 @@ public class JdbcCompletenessTargetTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "ouopeningdate" ), DATE, "ou.openingdate" ),
         new AnalyticsTableColumn( quote( "oucloseddate" ), DATE, "ou.closeddate" ),
         new AnalyticsTableColumn( quote( "costartdate" ), DATE, "doc.costartdate" ),
