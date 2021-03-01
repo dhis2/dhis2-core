@@ -49,5 +49,17 @@ public class OutlierAnalysis implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
-    private Double stdDevThreshold;
+    private OutlierMethod outlierMethod;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private NormalizedOutlierMethod normalizationMethod;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private Double thresholdFactor;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private OutlierLine extremeLines;
 }

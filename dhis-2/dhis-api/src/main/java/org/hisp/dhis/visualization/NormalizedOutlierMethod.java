@@ -25,19 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
-
-import java.util.Set;
-
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.visualization;
 
 /**
- * @author Ameen Mohamed
+ * Holds the normalized method type for OutlierAnalysis.
  */
-public interface OrganisationUnitAssignable
+public enum NormalizedOutlierMethod
 {
-    Set<OrganisationUnit> getOrganisationUnits();
-
-    void setOrganisationUnits( Set<OrganisationUnit> organisationUnits );
-
+    XY_RATIO
 }

@@ -28,8 +28,10 @@
 package org.hisp.dhis.program;
 
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -153,4 +155,6 @@ public interface ProgramService
      * specified {@link Program}
      */
     boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
+
+    IdentifiableObjectAssociations getProgramOrganisationUnitsAssociations( Set<String> programUids );
 }
