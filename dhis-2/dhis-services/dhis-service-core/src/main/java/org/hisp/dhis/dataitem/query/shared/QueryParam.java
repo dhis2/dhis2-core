@@ -50,6 +50,8 @@ public class QueryParam
 
     public static final String USER_UID = "userUid";
 
+    public static final String USER_ID = "userId";
+
     public static final String PROGRAM_ID = "programId";
 
     public static final String MAX_LIMIT = "maxLimit";

@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.dataitem;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.dataitem.query.QueryableDataItem.getEntities;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_UID;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
@@ -46,9 +48,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
@@ -59,6 +58,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is tight to the controller layer and is responsible to encapsulate
@@ -102,8 +104,8 @@ public class DataItemServiceFacade
         if ( isNotEmpty( targetEntities ) )
         {
             // Defining the query params map, and setting the common params.
-            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( "userUid",
-                currentUser.getUid() );
+            final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID,
+                currentUser.getUid() ).addValue( USER_ID, currentUser.getId() );
 
             setFilteringParams( filters, options, paramsMap, currentUser );
 
@@ -156,7 +158,7 @@ public class DataItemServiceFacade
     }
 
     private void addFilteredTargetEntities( final Set<String> filters,
-                                            final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
+        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
     {
         final Iterator<String> iterator = filters.iterator();
 

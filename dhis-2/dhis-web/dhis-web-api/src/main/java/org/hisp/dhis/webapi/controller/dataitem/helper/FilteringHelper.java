@@ -102,14 +102,13 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class
-     * from the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class from
+     * the filter provided.
      *
      * @param filter should have the format of
-     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR
-     *        and DATA_SET represents the BaseDimensionalItemObject. The valid
-     *        types are found at
-     *        {@link org.hisp.dhis.common.DataDimensionItemType}
+     *        "dimensionItemType:in:[INDICATOR,DATA_SET,...]", where INDICATOR and
+     *        DATA_SET represents the BaseDimensionalItemObject. The valid types are
+     *        found at {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective classes associated with the given IN filter
      * @throws IllegalQueryException if the filter points to a non supported
      *         class/entity
@@ -140,12 +139,12 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective BaseDimensionalItemObject class
-     * from the filter provided.
+     * This method will return the respective BaseDimensionalItemObject class from
+     * the filter provided.
      *
      * @param filter should have the format of "dimensionItemType:eq:INDICATOR",
-     *        where INDICATOR represents the BaseDimensionalItemObject. It could
-     *        be any value represented by
+     *        where INDICATOR represents the BaseDimensionalItemObject. It could be
+     *        any value represented by
      *        {@link org.hisp.dhis.common.DataDimensionItemType}
      * @return the respective class associated with the given filter
      * @throws IllegalQueryException if the filter points to a non supported
@@ -175,13 +174,13 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return ALL respective ValueType's from the filter. It
-     * will merge both EQ and IN conditions into a single Set object.
+     * This method will return ALL respective ValueType's from the filter. It will
+     * merge both EQ and IN conditions into a single Set object.
      *
      * @param filters coming from the URL params/filters
      * @return all respective value type's associated with the given filter
-     * @throws IllegalQueryException if the filter points to a non supported
-     *         value type
+     * @throws IllegalQueryException if the filter points to a non supported value
+     *         type
      */
     public static Set<String> extractAllValueTypesFromFilters( final Set<String> filters )
     {
@@ -210,8 +209,8 @@ public class FilteringHelper
     }
 
     /**
-     * Extracts the actual value, from the set of filters, that matches the
-     * given combination.
+     * Extracts the actual value, from the set of filters, that matches the given
+     * combination.
      *
      * ie.: from a list of filters: "dimensionItemType:eq:INDICATOR",
      * "name:ilike:john", extract the value from the combination NAME_ILIKE(
@@ -264,7 +263,7 @@ public class FilteringHelper
      * @return the value extracted from the respective filter combination
      */
     public static String extractValueFromFilter( final Set<String> filters, final Filter.Combination filterCombination,
-                                                 final boolean trimmed )
+        final boolean trimmed )
     {
         final String value = extractValueFromFilter( filters, filterCombination );
 
@@ -279,9 +278,9 @@ public class FilteringHelper
      * @param currentUser the current user logged
      */
     public static void setFilteringParams( final Set<String> filters, final WebOptions options,
-                                           final MapSqlParameterSource paramsMap, final User currentUser )
+        final MapSqlParameterSource paramsMap, final User currentUser )
     {
-        final Locale currentLocale = defaultIfNull( getUserSetting( DB_LOCALE ),
+        final Locale currentLocale = (Locale) defaultIfNull( getUserSetting( DB_LOCALE ),
             getUserSetting( UI_LOCALE ) );
 
         if ( currentLocale != null && isNotBlank( currentLocale.getLanguage() ) )
@@ -364,15 +363,15 @@ public class FilteringHelper
     }
 
     /**
-     * Simply checks if the given set of ValueType names contains a valid value
-     * type filter. Only aggregatable types are considered valid for this case.
+     * Simply checks if the given set of ValueType names contains a valid value type
+     * filter. Only aggregatable types are considered valid for this case.
      *
      * @param valueTypeNames
      * @throws IllegalQueryException if the given Set<String> contains
      *         non-aggregatable value types
      */
     public static void assertThatValueTypeFilterHasOnlyAggregatableTypes( final Set<String> valueTypeNames,
-                                                                          final Set<String> filters )
+        final Set<String> filters )
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {
@@ -390,16 +389,15 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective ValueType from the filter
-     * provided.
+     * This method will return the respective ValueType from the filter provided.
      *
      * @param filter should have the format of
      *        "valueType:in:[TEXT,BOOLEAN,NUMBER,...]", where TEXT and BOOLEAN
      *        represents the ValueType. The valid types are found at
      *        {@link ValueType}
      * @return the respective classes associated with the given IN filter
-     * @throws IllegalQueryException if the filter points to a non supported
-     *         value type
+     * @throws IllegalQueryException if the filter points to a non supported value
+     *         type
      */
     private static Set<String> extractValueTypesFromInFilter( final String filter )
     {
@@ -427,15 +425,14 @@ public class FilteringHelper
     }
 
     /**
-     * This method will return the respective ValueType from the filter
-     * provided.
+     * This method will return the respective ValueType from the filter provided.
      *
-     * @param filter should have the format of "valueType:eq:NUMBER", where
-     *        NUMBER represents the ValueType. It could be any value represented
-     *        by {@link ValueType}
+     * @param filter should have the format of "valueType:eq:NUMBER", where NUMBER
+     *        represents the ValueType. It could be any value represented by
+     *        {@link ValueType}
      * @return the respective value type associated with the given filter
-     * @throws IllegalQueryException if the filter points to a non supported
-     *         value type
+     * @throws IllegalQueryException if the filter points to a non supported value
+     *         type
      */
     private static String extractValueTypeFromEqualFilter( final String filter )
     {

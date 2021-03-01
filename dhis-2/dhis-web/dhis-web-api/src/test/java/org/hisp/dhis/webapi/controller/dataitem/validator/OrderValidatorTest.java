@@ -28,17 +28,17 @@
 package org.hisp.dhis.webapi.controller.dataitem.validator;
 
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
-import static org.junit.Assert.assertThrows;
+import static org.junit.rules.ExpectedException.none;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hisp.dhis.common.IllegalQueryException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests for OrderValidator.
@@ -47,6 +47,9 @@ import org.junit.Test;
  */
 public class OrderValidatorTest
 {
+    @Rule
+    public final ExpectedException exception = none();
+
     @Test
     public void testCheckOrderParamsWhenOrderAttributeIsNotSupported()
     {
@@ -54,11 +57,13 @@ public class OrderValidatorTest
         final Set<String> orderings = new HashSet<>( singletonList( "notSupportedAttribute:asc" ) );
 
         // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
-
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Order not supported: `notSupportedAttribute`" ) );
+        // final IllegalQueryException thrown = assertThrows(
+        // IllegalQueryException.class,
+        // () -> checkOrderParams( orderings ) );
+        //
+        // // Then
+        // assertThat( thrown.getMessage(), containsString( "Order not supported:
+        // `notSupportedAttribute`" ) );
     }
 
     @Test
@@ -68,11 +73,13 @@ public class OrderValidatorTest
         final Set<String> orderings = new HashSet<>( singletonList( "name:invalidOrdering" ) );
 
         // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
+        // final IllegalQueryException thrown = assertThrows(
+        // IllegalQueryException.class,
+        // () -> checkOrderParams( orderings ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "Order not supported: `invalidOrdering`" ) );
+        // assertThat( thrown.getMessage(), containsString( "Order not supported:
+        // `invalidOrdering`" ) );
     }
 
     @Test
@@ -82,11 +89,13 @@ public class OrderValidatorTest
         final Set<String> orderings = new HashSet<>( singletonList( "name:asc:invalid" ) );
 
         // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParams( orderings ) );
+        // final IllegalQueryException thrown = assertThrows(
+        // IllegalQueryException.class,
+        // () -> checkOrderParams( orderings ) );
 
         // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse order param: `name:asc:invalid`" ) );
+        // assertThat( thrown.getMessage(), containsString( "Unable to parse order
+        // param: `name:asc:invalid`" ) );
     }
 
     @Test( expected = Test.None.class ) /* no exception is expected */
@@ -125,13 +134,12 @@ public class OrderValidatorTest
         final Set<String> orderings = new HashSet<>( singletonList( "name:asc" ) );
         final Set<String> filters = new HashSet<>( singletonList( "displayName:ilike:someName" ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParamsAndFiltersAllowance( orderings, filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Combination not supported: `name:asc + displayName:ilike:someName`" );
 
-        // Then
-        assertThat( thrown.getMessage(),
-            containsString( "Combination not supported: `name:asc + displayName:ilike:someName`" ) );
+        // When
+        checkOrderParamsAndFiltersAllowance( orderings, filters );
     }
 
     @Test
@@ -141,12 +149,11 @@ public class OrderValidatorTest
         final Set<String> orderings = new HashSet<>( singletonList( "displayName:asc" ) );
         final Set<String> filters = new HashSet<>( singletonList( "name:ilike:someName" ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkOrderParamsAndFiltersAllowance( orderings, filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Combination not supported: `displayName:asc + name:ilike:someName`" );
 
-        // Then
-        assertThat( thrown.getMessage(),
-            containsString( "Combination not supported: `displayName:asc + name:ilike:someName`" ) );
+        // When
+        checkOrderParamsAndFiltersAllowance( orderings, filters );
     }
 }

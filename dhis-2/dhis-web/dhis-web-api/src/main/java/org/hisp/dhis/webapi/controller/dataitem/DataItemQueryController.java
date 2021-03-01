@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.webapi.controller.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataitem;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.collect.Lists.newArrayList;
+import static com.google.common.collect.Sets.newHashSet;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DhisApiVersion.ALL;
 import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
-import static org.springframework.http.HttpStatus.FOUND;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
+import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
+import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 
@@ -45,8 +45,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.BaseDimensionalItemObject;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.node.Preset;
@@ -62,16 +66,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * This class is responsible for providing methods responsible for retrieving
  * dimensional items based on the provided URL params and filters.
  *
  * It should expose only query methods.
+ *
+ * @author maikel arabori
  */
 @Slf4j
 @ApiVersion( { DEFAULT, ALL } )
+@RequiredArgsConstructor
 @RestController
 public class DataItemQueryController
 {
@@ -88,20 +93,6 @@ public class DataItemQueryController
     private final ResponseHandler responseHandler;
 
     private final AclService aclService;
-
-    public DataItemQueryController( final DataItemServiceFacade dataItemServiceFacade,
-                                    final ContextService contextService, final ResponseHandler responseHandler, final AclService aclService )
-    {
-        checkNotNull( dataItemServiceFacade );
-        checkNotNull( contextService );
-        checkNotNull( responseHandler );
-        checkNotNull( aclService );
-
-        this.dataItemServiceFacade = dataItemServiceFacade;
-        this.contextService = contextService;
-        this.responseHandler = responseHandler;
-        this.aclService = aclService;
-    }
 
     /**
      * Retrieve all data items based in the URL filters and parameters.
@@ -133,8 +124,8 @@ public class DataItemQueryController
     }
 
     /**
-     * Based on the informed arguments, this method will read the URL and based on
-     * the give params will retrieve the respective data items.
+     * Based on the informed arguments, this method will read the URL and based
+     * on the give params will retrieve the respective data items.
      *
      * @param currentUser the logged user
      * @param urlParameters the request url params
@@ -146,8 +137,8 @@ public class DataItemQueryController
                                                           final OrderParams orderParams )
     {
         // Defining the input params.
-        final List<String> fields = newArrayList( contextService.getParameterValues( FIELDS ) );
-        final List<String> filters = newArrayList( contextService.getParameterValues( FILTER ) );
+        final Set<String> fields = newHashSet( contextService.getParameterValues( FIELDS ) );
+        final Set<String> filters = newHashSet( contextService.getParameterValues( FILTER ) );
         final WebOptions options = new WebOptions( urlParameters );
 
         if ( fields.isEmpty() )
@@ -155,37 +146,37 @@ public class DataItemQueryController
             fields.addAll( Preset.ALL.getFields() );
         }
 
+        checkNamesAndOperators( filters );
+        checkOrderParams( orderParams.getOrders() );
+        checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
+
         // Extracting the target entities to be queried.
-        final Set<Class<? extends BaseDimensionalItemObject>> targetEntities = dataItemServiceFacade
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
             .extractTargetEntities( filters );
 
         // Checking if the user can read all the target entities.
         checkAuthorization( currentUser, targetEntities );
 
         // Retrieving the data items based on the input params.
-        final List<BaseDimensionalItemObject> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
+        final List<DataItem> dimensionalItems = dataItemServiceFacade.retrieveDataItemEntities(
             targetEntities, filters, options, orderParams );
 
         // Creating the response node.
         final RootNode rootNode = createMetadata();
+
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
         responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
             filters );
 
-        if ( isNotEmpty( dimensionalItems ) )
-        {
-            return new ResponseEntity<>( rootNode, FOUND );
-        }
-
-        return new ResponseEntity<>( rootNode, NOT_FOUND );
+        return new ResponseEntity<>( rootNode, OK );
     }
 
     private void checkAuthorization( final User currentUser,
-                                     final Set<Class<? extends BaseDimensionalItemObject>> entities )
+                                     final Set<Class<? extends BaseIdentifiableObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {
-            for ( final Class<? extends BaseDimensionalItemObject> entity : entities )
+            for ( final Class<? extends BaseIdentifiableObject> entity : entities )
             {
                 if ( !aclService.canRead( currentUser, entity ) )
                 {

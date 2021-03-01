@@ -52,7 +52,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -81,7 +80,7 @@ import org.springframework.stereotype.Component;
 public class IndicatorQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "indicator.uid, indicator.name,"
-        + " indicator.code, indicator.sharing as indicator_sharing";
+        + " indicator.code, indicator.indicatorid as id, indicator.publicaccess as indicator_publicaccess";
 
     private static final String ITEM_UID = "indicator.uid";
 
@@ -197,7 +196,7 @@ public class IndicatorQuery implements DataItemQuery
 
         sql.append(
             " group by indicator.name, " + ITEM_UID + ", indicator.code, i18n_name,"
-                + " indicator_sharing" );
+                + " indicator.indicatorid, indicator.publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -207,7 +206,7 @@ public class IndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.indicator_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "indicator", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

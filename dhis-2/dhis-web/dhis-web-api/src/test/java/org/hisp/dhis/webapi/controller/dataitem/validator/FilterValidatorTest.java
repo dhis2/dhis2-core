@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.dataitem.validator;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.emptySet;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
@@ -38,14 +37,16 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENS
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.filterHasPrefix;
-import static org.junit.Assert.assertThrows;
+import static org.junit.rules.ExpectedException.none;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests for FilterValidator.
@@ -54,18 +55,21 @@ import org.junit.Test;
  */
 public class FilterValidatorTest
 {
+    @Rule
+    public final ExpectedException exception = none();
+
     @Test
     public void testCheckNamesAndOperatorsWhenFilterHasInvalidFormat()
     {
         // Given
         final Set<String> filters = new HashSet<>( singletonList( "name:ilike:someName:bla:bla" ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Unable to parse filter `name:ilike:someName:bla:bla`" );
 
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse filter `name:ilike:someName:bla:bla`" ) );
+        // When
+        checkNamesAndOperators( filters );
     }
 
     @Test
@@ -75,12 +79,12 @@ public class FilterValidatorTest
         final String invalidCombination = "dimensionItemType:ilike:";
         final Set<String> filters = new HashSet<>( singletonList( invalidCombination ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Unable to parse filter `dimensionItemType:ilike:`" );
 
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Unable to parse filter `dimensionItemType:ilike:`" ) );
+        // When
+        checkNamesAndOperators( filters );
     }
 
     @Test
@@ -89,12 +93,12 @@ public class FilterValidatorTest
         // Given
         final Set<String> filters = new HashSet<>( singletonList( "name:invalidOperation:aWord" ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Operator not supported: `invalidOperation`" );
 
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Operator not supported: `invalidOperation`" ) );
+        // When
+        checkNamesAndOperators( filters );
     }
 
     @Test
@@ -103,12 +107,12 @@ public class FilterValidatorTest
         // Given
         final Set<String> filters = new HashSet<>( singletonList( "invalidAttribute:ilike:aWord" ) );
 
-        // When throws
-        final IllegalQueryException thrown = assertThrows( IllegalQueryException.class,
-            () -> checkNamesAndOperators( filters ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Filter not supported: `invalidAttribute`" );
 
-        // Then
-        assertThat( thrown.getMessage(), containsString( "Filter not supported: `invalidAttribute`" ) );
+        // When
+        checkNamesAndOperators( filters );
     }
 
     @Test( expected = Test.None.class ) /* no exception is expected */

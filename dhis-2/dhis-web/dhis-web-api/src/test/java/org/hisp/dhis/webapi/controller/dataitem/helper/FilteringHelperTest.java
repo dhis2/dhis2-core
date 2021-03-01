@@ -38,7 +38,7 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntitiesFromInFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractValueFromFilter;
-import static org.junit.Assert.assertThrows;
+import static org.junit.rules.ExpectedException.none;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -50,7 +50,9 @@ import org.hisp.dhis.dataitem.query.QueryableDataItem;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 
 /**
  * Unit tests for FilteringHelper.
@@ -59,6 +61,9 @@ import org.junit.Test;
  */
 public class FilteringHelperTest
 {
+    @Rule
+    public final ExpectedException exception = none();
+
     @Test
     public void testExtractEntitiesFromInFilter()
     {
@@ -81,11 +86,14 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[INVALID_TYPE,DATA_SET]";
 
-        // Then
-        assertThrows(
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
-            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
+
+        // When
+        extractEntitiesFromInFilter( filtersWithInvalidType );
     }
 
     @Test
@@ -94,11 +102,13 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:in:[,]";
 
-        // When
-        assertThrows(
-            "Unable to parse filter `" + filtersWithInvalidType + "`",
-            IllegalQueryException.class, () -> extractEntitiesFromInFilter( filtersWithInvalidType ) );
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
+            "Unable to parse filter `" + filtersWithInvalidType + "`" );
 
+        // When
+        extractEntitiesFromInFilter( filtersWithInvalidType );
     }
 
     @Test
@@ -138,12 +148,14 @@ public class FilteringHelperTest
         // Given
         final String filtersWithInvalidType = "dimensionItemType:eq:INVALID_TYPE";
 
-        // When
-        assertThrows(
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage(
             "Unable to parse element `" + "INVALID_TYPE` on filter `dimensionItemType`. The values available are: "
-                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ),
-            IllegalQueryException.class, () -> extractEntityFromEqualFilter( filtersWithInvalidType ) );
+                + Arrays.toString( getEnumMap( QueryableDataItem.class ).keySet().toArray() ) );
 
+        // When
+        extractEntityFromEqualFilter( filtersWithInvalidType );
     }
 
     @Test
@@ -152,10 +164,12 @@ public class FilteringHelperTest
         // Given
         final String invalidFilter = "dimensionItemType:eq:";
 
+        // Except exception
+        exception.expect( IllegalQueryException.class );
+        exception.expectMessage( "Unable to parse filter `" + invalidFilter + "`" );
+
         // When
-        assertThrows(
-            "Unable to parse filter `" + invalidFilter + "`",
-            IllegalQueryException.class, () -> extractEntityFromEqualFilter( invalidFilter ) );
+        extractEntityFromEqualFilter( invalidFilter );
     }
 
     @Test

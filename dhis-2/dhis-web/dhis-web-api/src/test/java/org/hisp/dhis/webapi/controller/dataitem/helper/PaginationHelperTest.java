@@ -36,7 +36,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.p
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
-import static org.junit.Assert.assertThrows;
 import static org.rnorth.visibleassertions.VisibleAssertions.assertThrows;
 
 import java.util.ArrayList;

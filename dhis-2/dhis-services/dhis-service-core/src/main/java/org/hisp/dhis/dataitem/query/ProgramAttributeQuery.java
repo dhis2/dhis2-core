@@ -53,7 +53,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -84,7 +83,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
         + " trackedentityattribute.uid, trackedentityattribute.name, trackedentityattribute.valuetype, trackedentityattribute.code,"
-        + " trackedentityattribute.sharing as trackedentityattribute_sharing, program.sharing as program_sharing";
+        + " program.programid, program.publicaccess as program_publicaccess,"
+        + " trackedentityattribute.trackedentityattributeid as id, trackedentityattribute.publicaccess as trackedentityattribute_publicaccess";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 
@@ -209,7 +209,8 @@ public class ProgramAttributeQuery implements DataItemQuery
         sql.append(
             " group by program.name, trackedentityattribute.name, " + COMMON_UIDS
                 + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, tea_i18n_name,"
-                + " program_sharing, trackedentityattribute_sharing" );
+                + " program.programid, program.publicaccess,"
+                + " trackedentityattribute.trackedentityattributeid, trackedentityattribute.publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -219,8 +220,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.program_sharing",
-            "t.trackedentityattribute_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "program", "trackedentityattribute", paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 

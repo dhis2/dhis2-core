@@ -53,7 +53,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -84,7 +83,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
         + " dataelement.uid, dataelement.name, dataelement.valuetype, dataelement.code,"
-        + " dataelement.sharing as dataelement_sharing, program.sharing as program_sharing";
+        + " program.publicaccess as program_publicaccess,"
+        + " dataelement.dataelementid as id, dataelement.publicaccess as dataelement_publicaccess";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
@@ -205,7 +205,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         sql.append(
             " group by program.name, dataelement.name, " + COMMON_UIDS
-                + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program_sharing, dataelement_sharing" );
+                + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program.publicaccess,"
+                + " dataelement.dataelementid, dataelement.publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -215,8 +216,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.program_sharing",
-            "t.dataelement_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "program", "dataelement", paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
 

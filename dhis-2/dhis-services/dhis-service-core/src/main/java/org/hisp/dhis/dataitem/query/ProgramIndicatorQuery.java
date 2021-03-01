@@ -52,7 +52,6 @@ import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
-import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
 import java.util.ArrayList;
@@ -81,8 +80,8 @@ import org.springframework.stereotype.Component;
 public class ProgramIndicatorQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "programindicator.name, programindicator.uid, programindicator.code,"
-        + " program.name as program_name, program.uid as program_uid, program.sharing as program_sharing,"
-        + " programindicator.sharing as programindicator_sharing";
+        + " program.name as program_name, program.uid as program_uid, program.publicaccess as program_publicaccess,"
+        + " programindicator.programindicatorid as id, programindicator.publicaccess as programindicator_publicaccess";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 
@@ -218,7 +217,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         sql.append(
             " group by program.name, programindicator.name, " + COMMON_UIDS
-                + ", programindicator.code, p_i18n_name, pi_i18n_name, program_sharing, programindicator_sharing" );
+                + ", programindicator.code, p_i18n_name, pi_i18n_name, program.publicaccess,"
+                + " programindicator.programindicatorid, programindicator.publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -228,8 +228,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.program_sharing",
-            "t.programindicator_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "program", "programindicator", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
