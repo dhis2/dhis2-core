@@ -118,6 +118,7 @@ public enum TrackerErrorCode
     E1122( "Missing required enrollment property: `{0}`." ),
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),
+    E1125( "Event: `{0}`, data Element {0} value {0} is not in option Set : {0}" ),
 
     // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),
