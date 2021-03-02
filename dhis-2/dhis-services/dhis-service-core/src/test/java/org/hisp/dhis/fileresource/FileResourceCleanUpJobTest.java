@@ -40,7 +40,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.datavalue.DataValue;
+import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueAuditStore;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -73,6 +75,13 @@ public class FileResourceCleanUpJobTest
 
     @Autowired
     private DataValueAuditService dataValueAuditService;
+
+    /**
+     * We use the store directly to backdate audit entries what is usually not
+     * possible
+     */
+    @Autowired
+    private DataValueAuditStore dataValueAuditStore;
 
     @Autowired
     private DataValueService dataValueService;
@@ -141,8 +150,9 @@ public class FileResourceCleanUpJobTest
         dataValueService.updateDataValue( dataValueB );
         fileResource.setAssigned( true );
 
-        dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 )
-            .setCreated( getDate( 2000, 1, 1 ) );
+        DataValueAudit audit = dataValueAuditService.getDataValueAudits( dataValueB ).get( 0 );
+        audit.setCreated( getDate( 2000, 1, 1 ) );
+        dataValueAuditStore.updateDataValueAudit( audit );
 
         cleanUpJob.execute( null );
 
