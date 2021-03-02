@@ -28,11 +28,7 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1017;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1018;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1019;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1075;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 
 import java.util.Collections;
 import java.util.Map;
@@ -99,6 +95,12 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
             attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
 
             TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+
+            if ( teAttribute == null )
+            {
+                addError( reporter, E1006, attribute.getAttribute() );
+                continue;
+            }
 
             validateAttrValueType( reporter, attribute, teAttribute );
 
