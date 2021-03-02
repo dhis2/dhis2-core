@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.tracker.TrackerIdentifierCollector;
@@ -42,7 +40,9 @@ import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.ClassBasedSupplierStrategy;
 import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
+import org.hisp.dhis.tracker.util.Constant;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -62,8 +62,6 @@ public class ClassBasedSupplier
     extends AbstractPreheatSupplier
     implements ApplicationContextAware
 {
-    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
-
     private ApplicationContext context;
 
     private final TrackerIdentifierCollector identifierCollector;
@@ -72,16 +70,8 @@ public class ClassBasedSupplier
      * A Map correlating a Tracker class name to the Preheat strategy class name
      * to use to load the data
      */
-    private Map<String, String> classStrategies;
-
-    private final static String GENERIC_STRATEGY_BEAN = Introspector
-        .decapitalize( GenericStrategy.class.getSimpleName() );
-
-    @PostConstruct
-    public void initStrategies()
-    {
-        classStrategies = new PreheatStrategyScanner().scanSupplierStrategies();
-    }
+    @Qualifier( "preheatStrategies" )
+    private final Map<String, String> classStrategies;
 
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
@@ -93,24 +83,25 @@ public class ClassBasedSupplier
          */
         Map<Class<?>, Set<String>> identifierMap = identifierCollector.collect( params, preheat.getDefaults() );
 
-        for ( Class<?> klass : identifierMap.keySet() )
-        {
-            Set<String> identifiers = identifierMap.get( klass );
+        identifierMap.forEach( ( key, identifiers ) -> {
 
-            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), SPLIT_LIST_PARTITION_SIZE );
+            List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ),
+                Constant.SPLIT_LIST_PARTITION_SIZE );
 
-            final String bean = classStrategies.getOrDefault( klass.getSimpleName(), GENERIC_STRATEGY_BEAN );
+            final String bean = classStrategies.getOrDefault( key.getSimpleName(),
+                Constant.GENERIC_STRATEGY_BEAN );
 
-            if ( bean.equals( GENERIC_STRATEGY_BEAN ) )
+            if ( bean.equals( Constant.GENERIC_STRATEGY_BEAN ) )
             {
-                context.getBean( GENERIC_STRATEGY_BEAN, GenericStrategy.class ).add( klass, splitList, preheat );
+                context.getBean( Constant.GENERIC_STRATEGY_BEAN, GenericStrategy.class ).add( key,
+                    splitList, preheat );
             }
             else
             {
                 context.getBean( Introspector.decapitalize( bean ), ClassBasedSupplierStrategy.class ).add( params,
                     splitList, preheat );
             }
-        }
+        } );
     }
 
     @Override
