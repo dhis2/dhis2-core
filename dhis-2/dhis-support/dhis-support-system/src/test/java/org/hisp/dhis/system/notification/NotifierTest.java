@@ -221,6 +221,8 @@ public class NotifierTest extends DhisSpringTest
         ExecutorService e = Executors.newFixedThreadPool( 5 );
         JobConfiguration jobConfig = createJobConfig( -1 );
 
+        notifier.notify( jobConfig, "somethingid" );
+
         IntStream.range( 0, 100 ).forEach( i -> {
             e.execute( () -> {
                 notifier.notify( jobConfig, "somethingid" + i );
@@ -236,7 +238,7 @@ public class NotifierTest extends DhisSpringTest
         } );
 
         e.awaitTermination( 200, TimeUnit.MILLISECONDS );
-        assertEquals( 100,
+        assertEquals( 101,
             notifier.getNotificationsByJobType( METADATA_IMPORT ).get( jobConfig.getUid() ).size() );
     }
 

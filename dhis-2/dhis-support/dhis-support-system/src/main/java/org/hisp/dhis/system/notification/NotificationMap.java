@@ -76,7 +76,7 @@ public class NotificationMap
             .stream()
             .collect( Collectors.toMap(
                 Map.Entry::getKey,
-                e -> new LinkedList<>( e.getValue() ) ) );
+                e -> e.getValue() != null ? new LinkedList<>( e.getValue() ) : new LinkedList<>() ) );
     }
 
     synchronized public void add( JobConfiguration jobConfiguration, Notification notification )
