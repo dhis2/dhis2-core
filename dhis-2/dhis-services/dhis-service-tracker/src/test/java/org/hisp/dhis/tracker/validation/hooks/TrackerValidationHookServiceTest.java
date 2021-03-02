@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation;
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -39,7 +39,8 @@ import java.util.List;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
-import org.hisp.dhis.tracker.validation.hooks.*;
+import org.hisp.dhis.tracker.validation.TrackerValidationHook;
+import org.hisp.dhis.tracker.validation.TrackerValidationHookService;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.InjectMocks;

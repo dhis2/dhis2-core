@@ -66,6 +66,7 @@ import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
@@ -75,8 +76,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
-    private static final int MAX_ATTR_VALUE_LENGTH = 1200;
-
     private final ReservedValueService reservedValueService;
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
@@ -99,8 +98,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateAttributes( reporter, trackedEntity, tei, organisationUnit );
         validateMandatoryAttributes( reporter, trackedEntity );
+        validateAttributes( reporter, trackedEntity, tei, organisationUnit );
     }
 
     private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
@@ -166,6 +165,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             validateAttributeValue( reporter, tea, attribute.getValue() );
             validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
             validateAttrValueType( reporter, attribute, tea );
+            validateOptionSet( reporter, tea, attribute.getValue() );
 
             validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
 
@@ -179,7 +179,8 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        addErrorIf( () -> value.length() > MAX_ATTR_VALUE_LENGTH, reporter, E1077, value, MAX_ATTR_VALUE_LENGTH );
+        addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, reporter, E1077, value,
+            Constant.MAX_ATTR_VALUE_LENGTH );
 
         // Validate if that encryption is configured properly if someone sets
         // value to (confidential)
