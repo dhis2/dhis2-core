@@ -84,6 +84,7 @@ public enum TrackerErrorCode
     E1075( "Attribute: `{0}`, is missing uid." ),
     E1076( "Attribute: `{0}`, value is null." ),
     E1077( "Attribute: `{0}`, text value exceed the maximum allowed length: `{0}`." ),
+    E1078( "Attribute: `{0}`, not a valid value in option Set : {0}" ),
     E1080( "Enrollment: `{0}`, already exists." ),
     E1081( "Enrollment: `{0}`, do not exist." ),
     // TODO: Delete not working yet
