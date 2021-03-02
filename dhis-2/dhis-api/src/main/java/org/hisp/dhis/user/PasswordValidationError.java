@@ -28,36 +28,46 @@
 package org.hisp.dhis.user;
 
 /**
- * Created by zubair on 08.03.17.
+ * Possible reasons for passwords to be invalid.
+ *
+ * @author Jan Bernitt
  */
-@FunctionalInterface
-public interface PasswordValidationRule
+public enum PasswordValidationError
 {
+    PASSWORD_IS_MANDATORY( "mandatory_parameter_missing",
+        "Username or Password is missing" ),
+    PASSWORD_TOO_LONG_TOO_SHORT( "password_length_validation",
+        "Password must have at least %d, and at most %d characters" ),
+    PASSWORD_MUST_HAVE_DIGIT( "password_digit_validation",
+        "Password must have at least one digit" ),
+    PASSWORD_MUST_HAVE_UPPER( "password_uppercase_validation",
+        "Password must have at least one upper case" ),
+    PASSWORD_MUST_HAVE_SPECIAL( "password_specialcharacter_validation",
+        "Password must have at least one special character" ),
+    PASSWORD_CONTAINS_RESERVED_WORD( "password_dictionary_validation",
+        "Password must not have any generic word" ),
+    PASSWORD_CONTAINS_NAME_OR_EMAIL( "password_username_validation",
+        "Username/Email must not be a part of password" ),
+    PASSWORD_ALREADY_USED_BEFORE( "password_history_validation",
+        "Password must not be one of the previous %d passwords" );
 
-    /**
-     * Validates user password to make sure it comply with requirements related
-     * to password strength.
-     *
-     * Not all rules are applicable all the time. If a rule does not apply it
-     * returns {@link PasswordValidationResult#VALID}.
-     *
-     * @param credentialsInfo info to check
-     * @return {@link PasswordValidationResult}
-     */
-    PasswordValidationResult validate( CredentialsInfo credentialsInfo );
+    private final String message;
 
-    /**
-     * Utility method to chain multiple {@link PasswordValidationRule}s to a
-     * complex rule with a defined sequence in which rules are checked.
-     *
-     * @param next Rule to check in case this is valid
-     * @return result of this check if invalid, otherwise result of next check
-     */
-    default PasswordValidationRule then( PasswordValidationRule next )
+    private final String i18nKey;
+
+    PasswordValidationError( String i18nKey, String message )
     {
-        return credentialsInfo -> {
-            PasswordValidationResult result = validate( credentialsInfo );
-            return !result.isValid() ? result : next.validate( credentialsInfo );
-        };
+        this.message = message;
+        this.i18nKey = i18nKey;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
+    public String getI18nKey()
+    {
+        return i18nKey;
     }
 }
