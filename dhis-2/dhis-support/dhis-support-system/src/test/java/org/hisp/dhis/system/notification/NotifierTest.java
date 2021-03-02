@@ -226,6 +226,15 @@ public class NotifierTest extends DhisSpringTest
                 notifier.notify( jobConfig, "somethingid" + i );
             } );
         } );
+        IntStream.range( 0, 100 ).forEach( i -> {
+            for ( Notification notification : notifier.getNotificationsByJobType( METADATA_IMPORT )
+                .get( jobConfig.getUid() ) )
+            {
+                // Iterate over notifications when new notification are added
+                notification.getUid();
+            }
+        } );
+
         e.awaitTermination( 200, TimeUnit.MILLISECONDS );
         assertEquals( 100,
             notifier.getNotificationsByJobType( METADATA_IMPORT ).get( jobConfig.getUid() ).size() );

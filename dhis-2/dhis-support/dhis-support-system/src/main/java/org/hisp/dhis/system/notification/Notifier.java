@@ -64,7 +64,7 @@ public interface Notifier
 
     Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary, Class<?> jobSummaryType );
 
-    Object getJobSummariesForJobType( JobType jobType );
+    Map<String, Object> getJobSummariesForJobType( JobType jobType );
 
     Object getJobSummaryByJobId( JobType jobType, String jobId );
 }

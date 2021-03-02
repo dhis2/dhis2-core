@@ -160,7 +160,7 @@ public class InMemoryNotifier implements Notifier
     }
 
     @Override
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
         return notificationMap.getJobSummariesForJobType( jobType );
     }

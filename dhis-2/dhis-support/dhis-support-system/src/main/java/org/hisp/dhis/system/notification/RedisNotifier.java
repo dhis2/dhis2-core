@@ -280,7 +280,7 @@ public class RedisNotifier implements Notifier
     }
 
     @Override
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
         Map<String, Object> jobSummariesForType = new LinkedHashMap<>();
         try

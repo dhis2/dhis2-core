@@ -29,6 +29,7 @@ package org.hisp.dhis.system.notification;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -62,13 +63,20 @@ public class NotificationMap
 
     public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> n.get( jobId ) )
+        return Optional.ofNullable( notificationsWithType.get( jobType ) )
+            .map( n -> n.get( jobId ) )
+            .map( LinkedList::new )
             .orElse( new LinkedList<>() );
     }
 
     public Map<String, List<Notification>> getNotificationsWithType( JobType jobType )
     {
-        return notificationsWithType.get( jobType );
+        return notificationsWithType.get( jobType )
+            .entrySet()
+            .stream()
+            .collect( Collectors.toMap(
+                Map.Entry::getKey,
+                e -> new LinkedList<>( e.getValue() ) ) );
     }
 
     synchronized public void add( JobConfiguration jobConfiguration, Notification notification )
@@ -119,7 +127,7 @@ public class NotificationMap
         return summariesWithType.get( jobType ).get( jobId );
     }
 
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
         return summariesWithType.get( jobType );
     }
