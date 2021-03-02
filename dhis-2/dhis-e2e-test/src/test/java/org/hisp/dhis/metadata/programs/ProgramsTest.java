@@ -85,17 +85,17 @@ public class ProgramsTest
     }
 
     @Test
-    public void test() {
+    public void testProgramOrgUnitsConnections() {
         loginActions.loginAsSuperUser();
 
         Set<String> associatedOrgUnitsAsSuperUser = extractAssociatedOrgUnits("Zd2rkv8FsWq");
 
-        loginActions.loginAsUser("tracker", "Tracker123");
+        loginActions.loginAsDefaultUser();
 
         Set<String> associatedOrgUnitsAsTracker = extractAssociatedOrgUnits("Zd2rkv8FsWq");
 
         assertTrue(associatedOrgUnitsAsSuperUser.containsAll(associatedOrgUnitsAsTracker));
-        assertTrue(associatedOrgUnitsAsSuperUser.size() > associatedOrgUnitsAsTracker.size());
+        assertTrue(associatedOrgUnitsAsSuperUser.size() >= associatedOrgUnitsAsTracker.size());
 
     }
 
