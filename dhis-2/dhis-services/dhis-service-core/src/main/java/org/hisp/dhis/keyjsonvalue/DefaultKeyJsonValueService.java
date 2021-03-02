@@ -35,6 +35,8 @@ import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,14 +52,19 @@ public class DefaultKeyJsonValueService
 {
     private final KeyJsonValueStore keyJsonValueStore;
 
+    private final CurrentUserService currentUserService;
+
     private final ObjectMapper jsonMapper;
 
-    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore, ObjectMapper jsonMapper )
+    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore, CurrentUserService currentUserService,
+        ObjectMapper jsonMapper )
     {
         this.jsonMapper = jsonMapper;
         checkNotNull( keyJsonValueStore );
+        checkNotNull( currentUserService );
 
         this.keyJsonValueStore = keyJsonValueStore;
+        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -66,10 +73,10 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getNamespaces( boolean isAdmin )
+    public List<String> getNamespaces()
     {
         List<String> namespaces = keyJsonValueStore.getNamespaces();
-        if ( !isAdmin )
+        if ( !currentUserIsAdmin() )
         {
             namespaces.remove( MetadataVersionService.METADATASTORE );
         }
@@ -79,9 +86,9 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !currentUserIsAdmin() && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return Collections.emptyList();
         }
@@ -91,9 +98,9 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin )
+    public KeyJsonValue getKeyJsonValue( String namespace, String key )
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !currentUserIsAdmin() && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return null;
         }
@@ -103,9 +110,9 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin )
+    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
+        if ( !currentUserIsAdmin() && MetadataVersionService.METADATASTORE.equals( namespace ) )
         {
             return Collections.emptyList();
         }
@@ -222,5 +229,11 @@ public class DefaultKeyJsonValueService
         {
             throw new UncheckedIOException( ex );
         }
+    }
+
+    private boolean currentUserIsAdmin()
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        return currentUser != null && currentUser.getUserCredentials().isSuper();
     }
 }

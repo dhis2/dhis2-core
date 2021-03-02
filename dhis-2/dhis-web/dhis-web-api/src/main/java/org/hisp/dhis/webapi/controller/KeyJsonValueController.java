@@ -96,7 +96,7 @@ public class KeyJsonValueController
     {
         setNoStore( response );
 
-        return keyJsonValueService.getNamespaces( currentUserIsAdmin() );
+        return keyJsonValueService.getNamespaces();
     }
 
     /**
@@ -111,11 +111,11 @@ public class KeyJsonValueController
     {
         validateAccess( namespace );
 
-        getNameS( namespace );
+        validateNamespaceExists( namespace );
 
         setNoStore( response );
 
-        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated, currentUserIsAdmin() );
+        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
     }
 
     /**
@@ -127,9 +127,9 @@ public class KeyJsonValueController
     {
         validateAccess( namespace );
 
-        getNameS( namespace );
+        validateNamespaceExists( namespace );
 
-        List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace, currentUserIsAdmin() )
+        List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace )
             .stream()
             .filter( keyJsonValue -> !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
             .collect( Collectors.toList() );
@@ -206,7 +206,7 @@ public class KeyJsonValueController
     {
         validateAccess( namespace );
 
-        if ( keyJsonValueService.getKeyJsonValue( namespace, key, currentUserIsAdmin() ) != null )
+        if ( keyJsonValueService.getKeyJsonValue( namespace, key ) != null )
         {
             throw new WebMessageException( WebMessageUtils
                 .conflict( "The key '" + key + "' already exists on the namespace '" + namespace + "'." ) );
@@ -300,7 +300,7 @@ public class KeyJsonValueController
     {
         validateAccess( namespace );
 
-        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( namespace, key, currentUserIsAdmin() );
+        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( namespace, key );
 
         if ( keyJsonValue == null )
         {
@@ -333,10 +333,10 @@ public class KeyJsonValueController
         return app == null || appManager.isAccessible( app );
     }
 
-    protected void getNameS( @PathVariable String namespace )
+    protected void validateNamespaceExists( @PathVariable String namespace )
         throws WebMessageException
     {
-        if ( !keyJsonValueService.getNamespaces( currentUserIsAdmin() ).contains( namespace ) )
+        if ( !keyJsonValueService.getNamespaces().contains( namespace ) )
         {
             throw new WebMessageException(
                 WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );

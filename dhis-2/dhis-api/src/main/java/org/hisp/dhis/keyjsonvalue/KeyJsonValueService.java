@@ -40,7 +40,7 @@ public interface KeyJsonValueService
      *
      * @return a list of strings representing the existing namespaces.
      */
-    List<String> getNamespaces( boolean isAdmin );
+    List<String> getNamespaces();
 
     /**
      * Retrieves list of KeyJsonValue objects belonging to the specified
@@ -49,7 +49,7 @@ public interface KeyJsonValueService
      * @param namespace the namespace where the key is associated
      * @return list of matching KeyJsonValues
      */
-    List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin );
+    List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace );
 
     /**
      * Retrieves a list of keys from a namespace which are updated after
@@ -59,7 +59,7 @@ public interface KeyJsonValueService
      * @param lastUpdated the lastUpdated time to retrieve keys from.
      * @return a list of strings representing the keys from the namespace.
      */
-    List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin );
+    List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.
@@ -68,7 +68,7 @@ public interface KeyJsonValueService
      * @param key the key referencing the value.
      * @return the KeyJsonValue matching the key and namespace.
      */
-    KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin );
+    KeyJsonValue getKeyJsonValue( String namespace, String key );
 
     /**
      * Adds a new KeyJsonValue.
