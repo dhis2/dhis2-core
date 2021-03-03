@@ -74,28 +74,28 @@ import org.hisp.dhis.analytics.UserOrgUnitType;
 public class AggregateAnalyticsQueryCriteria
 {
     /**
-     * The analytics dimensions
+     * The analytics dimensions.
      */
     private Set<String> dimension;
 
     /**
-     * Filters to apply to the analytics query
+     * Filters to apply to the analytics query.
      */
     private Set<String> filter;
 
     /**
-     * The {@see AggregationType}
+     * The {@link AggregationType}
      */
     private AggregationType aggregationType;
 
     /**
-     * Filters for the data/measures (options: EQ | GT | GE | LT | LE )
+     * Filters for the data/measures (options: EQ | GT | GE | LT | LE).
      */
     private String measureCriteria;
 
     /**
      * Filters for the data/measure, applied before aggregation is performed.
-     * (options: EQ | GT | GE | LT | LE )
+     * (options: EQ | GT | GE | LT | LE)
      */
     private String preAggregationMeasureCriteria;
 
@@ -111,10 +111,13 @@ public class AggregateAnalyticsQueryCriteria
      */
     private Date endDate;
 
+    /**
+     * The type of user org unit to use.
+     */
     private UserOrgUnitType userOrgUnitType;
 
     /**
-     * The {@see SortOrder}
+     * The {@link SortOrder}.
      */
     private SortOrder order;
 
@@ -128,7 +131,7 @@ public class AggregateAnalyticsQueryCriteria
     /**
      * The organisation unit field to base event aggregation on. Applies to
      * event data items only. Can be the ID of an attribute or data element with
-     * the Organisation unit value type. The default option is specified as
+     * the organisation unit value type. The default option is specified as
      * omitting the query parameter.
      */
     private String orgUnitField;
@@ -206,19 +209,19 @@ public class AggregateAnalyticsQueryCriteria
 
     /**
      * Identifier scheme to use for metadata items the query response. Specific
-     * to org units. @see {@link IdScheme} for valid values.
+     * to org units. See {@link IdScheme} for valid values.
      */
     private IdScheme outputOrgUnitIdScheme;
 
     /**
      * Identifier scheme to use for metadata items the query response. Specific
-     * to data elements. @see {@link IdScheme} for valid values.
+     * to data elements. See {@link IdScheme} for valid values.
      */
     private IdScheme outputDataElementIdScheme;
 
     /**
      * Identifier scheme to use for metadata items in the query request, can be
-     * an identifier, code or attributes. ( options: UID | CODE | ATTRIBUTE:<ID>
+     * an identifier, code or attributes. (options: UID | CODE | ATTRIBUTE:<ID>)
      * )
      */
     private IdScheme inputIdScheme;
@@ -231,23 +234,23 @@ public class AggregateAnalyticsQueryCriteria
 
     /**
      * Date identifier e.g: "2016-01-01". Overrides the start date of the
-     * relative period
+     * relative period.
      */
     private Date relativePeriodDate;
 
     /**
      * Organisation unit identifiers, overrides organisation units associated
-     * with current user, single or array
+     * with current user, single or array.
      */
     private String userOrgUnit;
 
     /**
-     * Data dimensions to include in table as columns
+     * Data dimensions to include in table as columns.
      */
     private String columns;
 
     /**
-     * Data dimensions to include in table as rows
+     * Data dimensions to include in table as rows.
      */
     private String rows;
 }

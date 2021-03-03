@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.user;
 
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
@@ -98,6 +100,8 @@ public class PasswordValidationRuleTest
 
     private PasswordHistoryValidationRule historyValidationRule;
 
+    private PasswordMandatoryValidationRule mandatoryValidationRule;
+
     @Before
     public void init()
     {
@@ -108,6 +112,7 @@ public class PasswordValidationRuleTest
         upperCasePatternValidationRule = new UpperCasePatternValidationRule();
         parameterValidationRule = new UserParameterValidationRule();
         historyValidationRule = new PasswordHistoryValidationRule( passwordEncoder, userService, currentUserService );
+        mandatoryValidationRule = new PasswordMandatoryValidationRule();
     }
 
     @Test
@@ -115,21 +120,12 @@ public class PasswordValidationRuleTest
     {
         CredentialsInfo credentialsInfoNoPassword = new CredentialsInfo( USERNAME, "", EMAIL, true );
 
-        assertThat( specialCharValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( digitValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( dictionaryValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( lengthValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( upperCasePatternValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( parameterValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-        assertThat( historyValidationRule.validate( credentialsInfoNoPassword ).isValid(), is( false ) );
-
-        assertThat(
-            parameterValidationRule.validate( new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true ) ).isValid(),
-            is( true ) );
-        assertThat( parameterValidationRule.validate( new CredentialsInfo( USERNAME, "", "", true ) ).isValid(),
-            is( false ) );
-        assertThat( parameterValidationRule.validate( new CredentialsInfo( "", STRONG_PASSWORD, "", false ) ).isValid(),
-            is( false ) );
+        assertFalse( mandatoryValidationRule.validate( credentialsInfoNoPassword ).isValid() );
+        assertTrue(
+            mandatoryValidationRule.validate( new CredentialsInfo( USERNAME, STRONG_PASSWORD, "", true ) ).isValid() );
+        assertFalse( mandatoryValidationRule.validate( new CredentialsInfo( USERNAME, "", "", true ) ).isValid() );
+        assertFalse(
+            mandatoryValidationRule.validate( new CredentialsInfo( "", STRONG_PASSWORD, "", false ) ).isValid() );
     }
 
     @Test
@@ -143,7 +139,7 @@ public class PasswordValidationRuleTest
 
         assertThat( specialCharValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( specialCharValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( SpecialCharacterValidationRule.ERROR ) );
+            is( PasswordValidationError.PASSWORD_MUST_HAVE_SPECIAL.getMessage() ) );
     }
 
     @Test
@@ -157,7 +153,7 @@ public class PasswordValidationRuleTest
 
         assertThat( digitValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( digitValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( DigitPatternValidationRule.ERROR ) );
+            is( PasswordValidationError.PASSWORD_MUST_HAVE_DIGIT.getMessage() ) );
     }
 
     @Test
@@ -171,7 +167,7 @@ public class PasswordValidationRuleTest
 
         assertThat( dictionaryValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( dictionaryValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( PasswordDictionaryValidationRule.ERROR ) );
+            is( PasswordValidationError.PASSWORD_CONTAINS_RESERVED_WORD.getMessage() ) );
     }
 
     @Test
@@ -190,7 +186,8 @@ public class PasswordValidationRuleTest
 
         assertThat( lengthValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( lengthValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( String.format( PasswordLengthValidationRule.ERROR, MIN_LENGTH, MAX_LENGTH ) ) );
+            is( String.format( PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT.getMessage(), MIN_LENGTH,
+                MAX_LENGTH ) ) );
     }
 
     @Test
@@ -204,7 +201,7 @@ public class PasswordValidationRuleTest
 
         assertThat( upperCasePatternValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( upperCasePatternValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( UpperCasePatternValidationRule.ERROR ) );
+            is( PasswordValidationError.PASSWORD_MUST_HAVE_UPPER.getMessage() ) );
     }
 
     @Test
@@ -218,7 +215,7 @@ public class PasswordValidationRuleTest
 
         assertThat( parameterValidationRule.validate( credentialsInfo ).isValid(), is( false ) );
         assertThat( parameterValidationRule.validate( credentialsInfo ).getErrorMessage(),
-            is( UserParameterValidationRule.ERROR ) );
+            is( PasswordValidationError.PASSWORD_CONTAINS_NAME_OR_EMAIL.getMessage() ) );
     }
 
     @Test
@@ -261,7 +258,6 @@ public class PasswordValidationRuleTest
 
         Assert.assertNotNull( userCredentialsArgumentCaptor.getValue() );
         Assert.assertEquals( 23, userCredentialsArgumentCaptor.getValue().getPreviousPasswords().size() );
-        Assert
-            .assertFalse( userCredentialsArgumentCaptor.getValue().getPreviousPasswords().contains( STRONG_PASSWORD ) );
+        assertFalse( userCredentialsArgumentCaptor.getValue().getPreviousPasswords().contains( STRONG_PASSWORD ) );
     }
 }

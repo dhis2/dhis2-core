@@ -61,6 +61,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -82,7 +83,7 @@ public class JdbcEnrollmentAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
@@ -147,8 +148,8 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         String fromClause = "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false "
-            +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "and tei.deleted is false " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
@@ -169,7 +170,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         columns.addAll( addOrganisationUnitLevels() );
         columns.addAll( addOrganisationUnitGroupSets() );
-        columns.addAll( addPeriodColumns( "dps" ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
         columns.addAll( addTrackedEntityAttributes( program ) );
         columns.addAll( getFixedColumns() );
 

@@ -49,7 +49,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService" )
-@Transactional
 public class DefaultObjectBundleValidationService
     implements
     ObjectBundleValidationService
@@ -65,6 +64,7 @@ public class DefaultObjectBundleValidationService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ObjectBundleValidationReport validate( ObjectBundle bundle )
     {
         Timer timer = new SystemTimer().start();

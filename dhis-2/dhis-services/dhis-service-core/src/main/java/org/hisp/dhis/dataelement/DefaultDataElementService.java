@@ -100,7 +100,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public DataElement getDataElement( long id )
     {
         return dataElementStore.get( id );
@@ -220,7 +220,7 @@ public class DefaultDataElementService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public DataElementGroup getDataElementGroup( long id )
     {
         return dataElementGroupStore.get( id );

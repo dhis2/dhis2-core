@@ -182,7 +182,7 @@ public class JdbcEnrollmentAnalyticsManager
     protected String getWhereClause( EventQueryParams params )
     {
         String sql = "";
-        SqlHelper sqlHelper = new SqlHelper();
+        SqlHelper hlp = new SqlHelper();
 
         // ---------------------------------------------------------------------
         // Periods
@@ -191,19 +191,18 @@ public class JdbcEnrollmentAnalyticsManager
         if ( params.hasNonDefaultBoundaries() )
         {
             sql += statementBuilder.getBoundaryCondition( params.getProgramIndicator(), params.getEarliestStartDate(),
-                params.getLatestEndDate(), sqlHelper );
+                params.getLatestEndDate(), hlp );
         }
         else
         {
             if ( params.hasStartEndDate() )
             {
-                sql += sqlHelper.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() )
-                    + "' ";
+                sql += hlp.whereAnd() + " enrollmentdate >= '" + getMediumDateString( params.getStartDate() ) + "' ";
                 sql += "and enrollmentdate <= '" + getMediumDateString( params.getEndDate() ) + "' ";
             }
             else // Periods
             {
-                sql += sqlHelper.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
+                sql += hlp.whereAnd() + " " + quote( ANALYTICS_TBL_ALIAS, params.getPeriodType().toLowerCase() )
                     + " in ("
                     + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( PERIOD_DIM_ID ) ) )
                     + ") ";
@@ -216,17 +215,17 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in ("
+            sql += hlp.whereAnd() + " ou in ("
                 + getQuotedCommaDelimitedString( getUids( params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) ) ) + ") ";
         }
         else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            sql += sqlHelper.whereAnd() + " ou in ("
+            sql += hlp.whereAnd() + " ou in ("
                 + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnitChildren() ) ) + ") ";
         }
         else // Descendants
         {
-            sql += sqlHelper.whereAnd() + " (";
+            sql += hlp.whereAnd() + " (";
 
             for ( DimensionalItemObject object : params.getDimensionOrFilterItems( ORGUNIT_DIM_ID ) )
             {

@@ -292,17 +292,17 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
 
         AttributeValue av1 = createAttributeValue( attribute, "DE1" );
 
-        attributeService.addAttributeValue( deA, av1 );
-
         dataElementService.addDataElement( deA );
-        attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
         dataElementService.addDataElement( deB );
-        attributeService.addAttributeValue( deC, createAttributeValue( attribute, "DE3" ) );
         dataElementService.addDataElement( deC );
-        attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deF );
         dataElementService.addDataElement( deG );
+
+        attributeService.addAttributeValue( deA, av1 );
+        attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
+        attributeService.addAttributeValue( deC, createAttributeValue( attribute, "DE3" ) );
+        attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
 
         idObjectManager.save( osA );
 
@@ -311,12 +311,13 @@ public class DataValueSetServiceTest extends TransactionalIntegrationTest
         dsA.addDataSetElement( deC );
         dsA.addDataSetElement( deD );
 
-        attributeService.addAttributeValue( ouA, createAttributeValue( attribute, "OU1" ) );
         organisationUnitService.addOrganisationUnit( ouA );
-        attributeService.addAttributeValue( ouB, createAttributeValue( attribute, "OU2" ) );
         organisationUnitService.addOrganisationUnit( ouB );
-        attributeService.addAttributeValue( ouC, createAttributeValue( attribute, "OU3" ) );
         organisationUnitService.addOrganisationUnit( ouC );
+
+        attributeService.addAttributeValue( ouA, createAttributeValue( attribute, "OU1" ) );
+        attributeService.addAttributeValue( ouB, createAttributeValue( attribute, "OU2" ) );
+        attributeService.addAttributeValue( ouC, createAttributeValue( attribute, "OU3" ) );
 
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouC );

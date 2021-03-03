@@ -50,7 +50,6 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.node.Preset;
@@ -88,8 +87,6 @@ public class TrackerEventsExportController
     private final EventService eventService;
 
     private final ContextService contextService;
-
-    private final InputUtils inputUtils;
 
     private final DataElementService dataElementService;
 
