@@ -28,12 +28,26 @@
 
 package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
+import static org.springframework.beans.BeanUtils.copyProperties;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.chart.Chart;
@@ -44,7 +58,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -122,18 +135,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.springframework.beans.BeanUtils.copyProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * Temporary class, in deprecation process. Avoid making changes here. This
@@ -154,6 +160,12 @@ public abstract class ChartFacadeController
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
+
+    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    {
+    }
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -242,6 +254,11 @@ public abstract class ChartFacadeController
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
 
+        // Force the load of Visualizations of Chart types only.
+        // The only non-chart type, currently, is PIVOT_TABLE. So we only exclude this
+        // type.
+        filters.add( "type:!eq:" + PIVOT_TABLE );
+
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
         // Conversion point
@@ -251,8 +268,9 @@ public abstract class ChartFacadeController
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), charts.size(), options.getPageSize() );
-            charts = PagerUtils.pageCollection( charts, pager );
+            long count = paginationCountCache.computeIfAbsent(
+                calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         handleLinksAndAccess( charts, fields, false, currentUser );
@@ -1093,8 +1111,8 @@ public abstract class ChartFacadeController
         throws QueryParserException
     {
         List<Visualization> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders,
-            new Pagination(), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+            options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1108,6 +1126,19 @@ public abstract class ChartFacadeController
         }
 
         return entityList;
+    }
+
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+        return queryService.count( query );
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 
     private List<?> getEntity( String uid )
@@ -1203,9 +1234,7 @@ public abstract class ChartFacadeController
                 final Chart chart = new Chart();
                 copyProperties( visualization, chart, "type" );
 
-                // Consider only Visualization type that is a Chart
-                if ( visualization.getType() != null
-                    && !"PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
+                if ( visualization.getType() != null )
                 {
                     // Set the correct type
                     chart.setType( ChartType.valueOf( visualization.getType().name() ) );
