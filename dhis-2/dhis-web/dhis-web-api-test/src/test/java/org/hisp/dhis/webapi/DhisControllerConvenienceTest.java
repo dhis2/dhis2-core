@@ -27,26 +27,17 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
+import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.restdocs.JUnitRestDocumentation;
-import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
-import org.springframework.restdocs.snippet.Snippet;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
@@ -54,94 +45,75 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Base class for convenient testing of the web API on basis of
+ * {@link JsonResponse}.
+ *
+ * @author Jan Bernitt
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisWebSpringTest extends DhisConvenienceTest
+public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest implements WebClient
 {
     @Autowired
-    protected WebApplicationContext webApplicationContext;
+    private WebApplicationContext webApplicationContext;
 
     @Autowired
-    protected IdentifiableObjectManager manager;
+    private UserService _userService;
 
-    @Autowired
-    protected RenderService renderService;
+    private MockMvc mvc;
 
-    @Autowired
-    protected UserService _userService;
+    private MockHttpSession session;
 
-    protected MockMvc mvc;
-
-    @Autowired
-    protected SchemaService schemaService;
-
-    @Rule
-    public JUnitRestDocumentation restDocumentation = new JUnitRestDocumentation( "target/generated-snippets" );
+    private User currentUser;
 
     @Before
-    public void setup()
+    public final void setup()
         throws Exception
     {
         userService = _userService;
         CharacterEncodingFilter characterEncodingFilter = new CharacterEncodingFilter();
         characterEncodingFilter.setEncoding( "UTF-8" );
         characterEncodingFilter.setForceEncoding( true );
-        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext )
-            .apply( documentationConfiguration( this.restDocumentation ) )
-            .build();
-
+        mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
-
-        setUpTest();
+        switchToNewUser( null, "ALL" );
     }
 
-    protected void setUpTest()
-        throws Exception
+    protected final User getCurrentUser()
     {
+        return currentUser;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    public MockHttpSession getSession( String... authorities )
+    protected final User switchToNewUser( String username, String... authorities )
     {
-        createAndInjectAdminUser( authorities );
+        currentUser = currentUser == null
+            ? createAdminUser( authorities )
+            : createUser( username, authorities );
 
-        MockHttpSession session = new MockHttpSession();
+        injectSecurityContext( currentUser );
+
+        session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
-        return session;
+
+        return currentUser;
     }
 
-    public RestDocumentationResultHandler documentPrettyPrint( String useCase, Snippet... snippets )
+    @Override
+    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
-        return document( useCase, preprocessRequest( prettyPrint() ), preprocessResponse( prettyPrint() ), snippets );
+        return failOnException(
+            () -> new HttpResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) );
     }
 
-    public SchemaService getSchemaService()
-    {
-        return schemaService;
-    }
-
-    public MockMvc getMvc()
-    {
-        return mvc;
-    }
-
-    public IdentifiableObjectManager getManager()
-    {
-        return manager;
-    }
 }
