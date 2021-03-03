@@ -254,7 +254,8 @@ public abstract class ChartFacadeController
         }
 
         // Force the load of Visualizations of Chart types only.
-        // The only non-chart type, currently, is PIVOT_TABLE. So we only exclude this
+        // The only non-chart type, currently, is PIVOT_TABLE. So we only
+        // exclude this
         // type.
         filters.add( "type:!eq:" + PIVOT_TABLE );
 
@@ -268,7 +269,8 @@ public abstract class ChartFacadeController
         if ( options.hasPaging() && pager == null )
         {
             long count = paginationCountCache.computeIfAbsent(
-                composePaginationCountKey( currentUser, filters, options ), () -> countTotal( options, filters, orders ) );
+                composePaginationCountKey( currentUser, filters, options ),
+                () -> countTotal( options, filters, orders ) );
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 

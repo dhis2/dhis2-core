@@ -253,7 +253,7 @@ public abstract class ReportTableFacadeController
         }
 
         // Force the load of Visualizations of type PIVOT_TABLE only.
-        filters.add("type:eq:" + PIVOT_TABLE);
+        filters.add( "type:eq:" + PIVOT_TABLE );
 
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
@@ -265,7 +265,8 @@ public abstract class ReportTableFacadeController
         if ( options.hasPaging() && pager == null )
         {
             long count = paginationCountCache.computeIfAbsent(
-                composePaginationCountKey( currentUser, filters, options ), () -> countTotal( options, filters, orders ) );
+                composePaginationCountKey( currentUser, filters, options ),
+                () -> countTotal( options, filters, orders ) );
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
