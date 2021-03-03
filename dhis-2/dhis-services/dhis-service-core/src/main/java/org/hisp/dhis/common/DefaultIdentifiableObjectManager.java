@@ -1138,6 +1138,7 @@ public class DefaultIdentifiableObjectManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<Class<? extends IdentifiableObject>, IdentifiableObject> getDefaults()
     {
         Optional<IdentifiableObject> categoryObjects = defaultObjectCache.get( Category.class.getName(),

@@ -143,4 +143,9 @@ public class ArtemisConfigData
     {
         this.sendAsync = sendAsync;
     }
+
+    public boolean isEmbedded()
+    {
+        return ArtemisMode.EMBEDDED == mode;
+    }
 }

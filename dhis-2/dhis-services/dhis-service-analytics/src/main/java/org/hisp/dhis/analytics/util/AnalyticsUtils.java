@@ -517,12 +517,10 @@ public class AnalyticsUtils
             aocCol.add( aoc );
         }
 
-        grid.addHeader( vlInx,
-            new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT,
-                String.class.getName(), false, true ) )
-            .addHeader( vlInx,
-                new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT,
-                    String.class.getName(), false, true ) )
+        grid.addHeader( vlInx, new GridHeader(
+            ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT, false, true ) )
+            .addHeader( vlInx, new GridHeader(
+                CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT, false, true ) )
             .addColumn( vlInx, aocCol )
             .addColumn( vlInx, cocCol );
     }

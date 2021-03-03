@@ -28,6 +28,7 @@
 package org.hisp.dhis.tracker.bundle;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -183,7 +184,7 @@ public class DefaultTrackerBundleService
             return bundleReport;
         }
 
-        Stream.of( TrackerType.values() )
+        Stream.of( TrackerType.values() ).sorted( Collections.reverseOrder() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
                 .apply( bundle, t ) ) );
 

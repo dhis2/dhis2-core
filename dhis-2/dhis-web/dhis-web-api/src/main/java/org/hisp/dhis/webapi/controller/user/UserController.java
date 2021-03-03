@@ -281,18 +281,7 @@ public class UserController
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
     @Override
@@ -300,36 +289,41 @@ public class UserController
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postObject( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    private void postObject( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+    }
+
+    private void postInvite( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateInviteUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postObject( request, response, inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -337,40 +331,7 @@ public class UserController
     public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        for ( User user : users.getUsers() )
-        {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
-    }
-
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml",
@@ -379,16 +340,17 @@ public class UserController
     public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromXml( request.getInputStream(), Users.class );
+        postInvites( request, renderService.fromXml( request.getInputStream(), Users.class ) );
+    }
 
+    private void postInvites( HttpServletRequest request, Users users )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
+            validateInviteUser( user, currentUser );
         }
 
         for ( User user : users.getUsers() )
@@ -451,10 +413,7 @@ public class UserController
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( existingUser, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( existingUser, currentUser );
 
         Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
 
@@ -735,7 +694,7 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateCreateUser( User user, User currentUser )
+    private void validateCreateUser( User user, User currentUser )
         throws WebMessageException
     {
         if ( !aclService.canCreate( currentUser, getEntityClass() ) )
@@ -759,8 +718,6 @@ public class UserController
                     WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
-
-        return true;
     }
 
     /**
@@ -790,13 +747,10 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateInviteUser( User user, User currentUser )
+    private void validateInviteUser( User user, User currentUser )
         throws WebMessageException
     {
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return false;
-        }
+        validateCreateUser( user, currentUser );
 
         UserCredentials credentials = user.getUserCredentials();
 
@@ -813,8 +767,6 @@ public class UserController
         {
             throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
         }
-
-        return true;
     }
 
     /**

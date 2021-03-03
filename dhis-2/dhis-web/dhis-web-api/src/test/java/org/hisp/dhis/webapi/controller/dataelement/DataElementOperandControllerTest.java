@@ -59,7 +59,6 @@ import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.query.DefaultJpaQueryParser;
 import org.hisp.dhis.query.DefaultQueryService;
 import org.hisp.dhis.query.InMemoryQueryEngine;
@@ -134,7 +133,7 @@ public class DataElementOperandControllerTest
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(
-            new DefaultJpaQueryParser( schemaService, currentUserService, mock( OrganisationUnitService.class ) ),
+            new DefaultJpaQueryParser( schemaService ),
             new DefaultQueryPlanner( schemaService ), mock( JpaCriteriaQueryEngine.class ),
             new InMemoryQueryEngine<>( schemaService, mock( AclService.class ), currentUserService ) );
         // Use "spy" on queryService, because we want a partial mock: we only

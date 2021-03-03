@@ -43,7 +43,6 @@ public class TrackerPreheatConfig
     private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
         ClassBasedSupplier.class,
         ProgramInstanceSupplier.class,
-        ProgramInstanceByTeiSupplier.class,
         ProgramInstancesWithAtLeastOneEventSupplier.class,
         ProgramStageInstanceProgramStageMapSupplier.class,
         ProgramOrgUnitsSupplier.class,

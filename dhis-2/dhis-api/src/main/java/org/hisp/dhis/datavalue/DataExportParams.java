@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -35,6 +37,7 @@ import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -73,9 +76,13 @@ public class DataExportParams
 
     private Set<OrganisationUnit> organisationUnits = new HashSet<>();
 
+    private OrganisationUnitSelectionMode ouMode = SELECTED;
+
+    private Integer orgUnitLevel;
+
     private boolean includeChildren;
 
-    private boolean returnParentOrgUnit;
+    private boolean orderByOrgUnitPath;
 
     private Set<OrganisationUnitGroup> organisationUnitGroups = new HashSet<>();
 
@@ -94,6 +101,8 @@ public class DataExportParams
     private Integer limit;
 
     private IdSchemes outputIdSchemes;
+
+    private DeflatedDataValueConsumer callback;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -134,11 +143,6 @@ public class DataExportParams
     public boolean hasDataElements()
     {
         return dataElements != null && !dataElements.isEmpty();
-    }
-
-    public boolean hasDataElementOperands()
-    {
-        return dataElementOperands != null && !dataElementOperands.isEmpty();
     }
 
     public boolean hasDataSets()
@@ -191,9 +195,14 @@ public class DataExportParams
         return includeChildren && hasOrganisationUnits();
     }
 
-    public boolean isReturnParentForOrganisationUnits()
+    public boolean hasOrgUnitLevel()
     {
-        return returnParentOrgUnit && hasOrganisationUnits();
+        return orgUnitLevel != null;
+    }
+
+    public boolean hasCallback()
+    {
+        return callback != null;
     }
 
     public OrganisationUnit getFirstOrganisationUnit()
@@ -250,18 +259,32 @@ public class DataExportParams
     @Override
     public String toString()
     {
-        return MoreObjects.toStringHelper( this ).add( "data elements", dataElements )
-            .add( "data element operands", dataElementOperands ).add( "data sets", dataSets )
-            .add( "data element groups", dataElementGroups ).add( "periods", periods )
-            .add( "period types", periodTypes ).add( "start date", startDate ).add( "end date", endDate )
-            .add( "included date", includedDate ).add( "org units", organisationUnits )
-            .add( "children", includeChildren ).add( "return parent org unit", returnParentOrgUnit )
-            .add( "org unit groups", organisationUnitGroups ).add( "attribute option combos", attributeOptionCombos )
+        return MoreObjects.toStringHelper( this )
+            .add( "data elements", dataElements )
+            .add( "data element operands", dataElementOperands )
+            .add( "data sets", dataSets )
+            .add( "data element groups", dataElementGroups )
+            .add( "periods", periods )
+            .add( "period types", periodTypes )
+            .add( "start date", startDate )
+            .add( "end date", endDate )
+            .add( "included date", includedDate )
+            .add( "org units", organisationUnits )
+            .add( "org unit selection mode", ouMode )
+            .add( "org unit level", orgUnitLevel )
+            .add( "children", includeChildren )
+            .add( "order by org unit path", orderByOrgUnitPath )
+            .add( "org unit groups", organisationUnitGroups )
+            .add( "attribute option combos", attributeOptionCombos )
             .add( "category option dimension constraints", coDimensionConstraints )
             .add( "category option group dimension constraints", cogDimensionConstraints )
-            .add( "deleted", includeDeleted ).add( "last updated", lastUpdated )
-            .add( "last updated duration", lastUpdatedDuration ).add( "limit", limit )
-            .add( "output id schemes", outputIdSchemes ).toString();
+            .add( "deleted", includeDeleted )
+            .add( "last updated", lastUpdated )
+            .add( "last updated duration", lastUpdatedDuration )
+            .add( "limit", limit )
+            .add( "output id schemes", outputIdSchemes )
+            .add( "callback", callback )
+            .toString();
     }
 
     // -------------------------------------------------------------------------
@@ -378,6 +401,28 @@ public class DataExportParams
         return this;
     }
 
+    public OrganisationUnitSelectionMode getOuMode()
+    {
+        return ouMode;
+    }
+
+    public DataExportParams setOuMode( OrganisationUnitSelectionMode ouMode )
+    {
+        this.ouMode = ouMode;
+        return this;
+    }
+
+    public Integer getOrgUnitLevel()
+    {
+        return orgUnitLevel;
+    }
+
+    public DataExportParams setOrgUnitLevel( Integer orgUnitLevel )
+    {
+        this.orgUnitLevel = orgUnitLevel;
+        return this;
+    }
+
     public boolean isIncludeChildren()
     {
         return includeChildren;
@@ -389,14 +434,14 @@ public class DataExportParams
         return this;
     }
 
-    public boolean isReturnParentOrgUnit()
+    public boolean isOrderByOrgUnitPath()
     {
-        return returnParentOrgUnit;
+        return orderByOrgUnitPath;
     }
 
-    public DataExportParams setReturnParentOrgUnit( boolean returnParentOrgUnit )
+    public DataExportParams setOrderByOrgUnitPath( boolean orderByOrgUnitPath )
     {
-        this.returnParentOrgUnit = returnParentOrgUnit;
+        this.orderByOrgUnitPath = orderByOrgUnitPath;
         return this;
     }
 
@@ -496,6 +541,17 @@ public class DataExportParams
     public DataExportParams setOutputIdSchemes( IdSchemes outputIdSchemes )
     {
         this.outputIdSchemes = outputIdSchemes;
+        return this;
+    }
+
+    public DeflatedDataValueConsumer getCallback()
+    {
+        return callback;
+    }
+
+    public DataExportParams setCallback( DeflatedDataValueConsumer callback )
+    {
+        this.callback = callback;
         return this;
     }
 }

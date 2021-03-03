@@ -41,6 +41,8 @@ public class SharingUserAccess
 
     private String displayName;
 
+    private String username;
+
     private String access;
 
     public SharingUserAccess()
@@ -78,6 +80,17 @@ public class SharingUserAccess
     public void setDisplayName( String displayName )
     {
         this.displayName = displayName;
+    }
+
+    @JsonProperty
+    public String getUsername()
+    {
+        return username;
+    }
+
+    public void setUsername( String username )
+    {
+        this.username = username;
     }
 
     @JsonProperty
