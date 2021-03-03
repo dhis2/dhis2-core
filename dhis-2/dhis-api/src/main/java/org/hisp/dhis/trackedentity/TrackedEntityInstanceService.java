@@ -106,6 +106,8 @@ public interface TrackedEntityInstanceService
      * @return a grid.
      */
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
+    
+    Grid getTrackedEntityInstancesGridV2( TrackedEntityInstanceQueryParams params );
 
     /**
      * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
@@ -294,4 +296,5 @@ public interface TrackedEntityInstanceService
     long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+
 }

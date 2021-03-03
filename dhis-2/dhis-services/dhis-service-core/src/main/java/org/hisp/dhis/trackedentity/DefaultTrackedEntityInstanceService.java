@@ -249,6 +249,150 @@ public class DefaultTrackedEntityInstanceService
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
         }
 
+        List<Map<String, String>> entities = trackedEntityInstanceStore.getTrackedEntityInstancesGrid( params );
+
+        // ---------------------------------------------------------------------
+        // Grid rows
+        // ---------------------------------------------------------------------
+
+        String accessedBy = currentUserService.getCurrentUsername();
+
+        Map<String, TrackedEntityType> trackedEntityTypes = new HashMap<>();
+
+        if ( params.hasTrackedEntityType() )
+        {
+            trackedEntityTypes.put( params.getTrackedEntityType().getUid(), params.getTrackedEntityType() );
+        }
+
+        if ( params.hasProgram() && params.getProgram().getTrackedEntityType() != null )
+        {
+            trackedEntityTypes.put( params.getProgram().getTrackedEntityType().getUid(), params.getProgram().getTrackedEntityType() );
+        }
+
+        Set<String> tes = new HashSet<>();
+
+        for ( Map<String, String> entity : entities )
+        {
+            if ( params.getUser() != null && !params.getUser().isSuper() && params.hasProgram() &&
+                (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
+                    params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
+            {
+                TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+
+                if ( !trackerOwnershipAccessManager.hasAccess( params.getUser(), tei, params.getProgram() ) )
+                {
+                    continue;
+                }
+            }
+
+            grid.addRow();
+            grid.addValue( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
+            grid.addValue( entity.get( CREATED_ID ) );
+            grid.addValue( entity.get( LAST_UPDATED_ID ) );
+            grid.addValue( entity.get( ORG_UNIT_ID ) );
+            grid.addValue( entity.get( ORG_UNIT_NAME ) );
+            grid.addValue( entity.get( TRACKED_ENTITY_ID ) );
+            grid.addValue( entity.get( INACTIVE_ID ) );
+
+            if ( params.isIncludeDeleted() )
+            {
+                grid.addValue( entity.get( DELETED ) );
+            }
+
+            tes.add( entity.get( TRACKED_ENTITY_ID ) );
+
+            TrackedEntityType te = trackedEntityTypes.get( entity.get( TRACKED_ENTITY_ID ) );
+
+            if ( te == null )
+            {
+                te = trackedEntityTypeService.getTrackedEntityType( entity.get( TRACKED_ENTITY_ID ) );
+                trackedEntityTypes.put( entity.get( TRACKED_ENTITY_ID ), te );
+            }
+
+            if ( te != null && te.isAllowAuditLog() && accessedBy != null )
+            {
+                TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit( entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
+                trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+            }
+
+            for ( QueryItem item : params.getAttributes() )
+            {
+                grid.addValue( entity.get( item.getItemId() ) );
+            }
+        }
+
+        Map<String, Object> metaData = new HashMap<>();
+
+        if ( params.isPaging() )
+        {
+            int count = 0;
+
+            if ( params.isTotalPages() )
+            {
+                count = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
+            }
+
+            Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            metaData.put( PAGER_META_KEY, pager );
+        }
+
+        if ( !params.isSkipMeta() )
+        {
+            Map<String, String> names = new HashMap<>();
+
+            for ( String te : tes )
+            {
+                TrackedEntityType entity = trackedEntityTypes.get( te );
+                names.put( te, entity != null ? entity.getDisplayName() : null );
+            }
+
+            metaData.put( META_DATA_NAMES_KEY, names );
+        }
+
+        grid.setMetaData( metaData );
+
+        return grid;
+    }
+    
+    @Override
+    public Grid getTrackedEntityInstancesGridV2( TrackedEntityInstanceQueryParams params )
+    {
+        decideAccess( params );
+        validate( params );
+        validateSearchScope( params, true );
+        handleAttributes( params );
+
+        // ---------------------------------------------------------------------
+        // Conform parameters
+        // ---------------------------------------------------------------------
+
+        params.conform();
+        params.handleCurrentUserSelectionMode();
+
+        // ---------------------------------------------------------------------
+        // Grid headers
+        // ---------------------------------------------------------------------
+
+        Grid grid = new ListGrid();
+
+        grid.addHeader( new GridHeader( TRACKED_ENTITY_INSTANCE_ID, "Instance" ) );
+        grid.addHeader( new GridHeader( CREATED_ID, "Created" ) );
+        grid.addHeader( new GridHeader( LAST_UPDATED_ID, "Last updated" ) );
+        grid.addHeader( new GridHeader( ORG_UNIT_ID, "Organisation unit" ) );
+        grid.addHeader( new GridHeader( ORG_UNIT_NAME, "Organisation unit name" ) );
+        grid.addHeader( new GridHeader( TRACKED_ENTITY_ID, "Tracked entity type" ) );
+        grid.addHeader( new GridHeader( INACTIVE_ID, "Inactive" ) );
+
+        if ( params.isIncludeDeleted() )
+        {
+            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, "boolean", false, false ) );
+        }
+
+        for ( QueryItem item : params.getAttributes() )
+        {
+            grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
+        }
+
         List<Map<String, String>> entities = trackedEntityInstanceStore.getTrackedEntityInstancesGridV2( params );
 
         // ---------------------------------------------------------------------

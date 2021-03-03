@@ -434,6 +434,61 @@ public class TrackedEntityInstanceController
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
         return instanceService.getTrackedEntityInstancesGrid( params );
     }
+    
+    @RequestMapping( value = "/queryV2", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    public @ResponseBody Grid queryTrackedEntityInstancesV2Json(
+        @RequestParam( required = false ) String query,
+        @RequestParam( required = false ) Set<String> attribute,
+        @RequestParam( required = false ) Set<String> filter,
+        @RequestParam( required = false ) String ou,
+        @RequestParam( required = false ) OrganisationUnitSelectionMode ouMode,
+        @RequestParam( required = false ) String program,
+        @RequestParam( required = false ) ProgramStatus programStatus,
+        @RequestParam( required = false ) Boolean followUp,
+        @RequestParam( required = false ) Date lastUpdatedStartDate,
+        @RequestParam( required = false ) Date lastUpdatedEndDate,
+        @RequestParam( required = false ) Date programStartDate,
+        @RequestParam( required = false ) Date programEnrollmentStartDate,
+        @RequestParam( required = false ) Date programEndDate,
+        @RequestParam( required = false ) Date programEnrollmentEndDate,
+        @RequestParam( required = false ) Date programIncidentStartDate,
+        @RequestParam( required = false ) Date programIncidentEndDate,
+        @RequestParam( required = false ) String trackedEntityType,
+        @RequestParam( required = false ) AssignedUserSelectionMode assignedUserMode,
+        @RequestParam( required = false ) String assignedUser,
+        @RequestParam( required = false ) String trackedEntityInstance,
+        @RequestParam( required = false ) String programStage,
+        @RequestParam( required = false ) EventStatus eventStatus,
+        @RequestParam( required = false ) Date eventStartDate,
+        @RequestParam( required = false ) Date eventEndDate,
+        @RequestParam( required = false ) boolean skipMeta,
+        @RequestParam( required = false ) Integer page,
+        @RequestParam( required = false ) Integer pageSize,
+        @RequestParam( required = false ) boolean totalPages,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false ) boolean includeDeleted,
+        @RequestParam( required = false ) String order,
+        Model model,
+        HttpServletResponse response ) throws Exception
+    {
+        programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
+        programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+        Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
+        Set<String> assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
+        Set<String> trackedEntityInstanceUids = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
+
+        skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
+
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate, programEnrollmentEndDate,
+            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate,
+            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+            false, getOrderParams( order ) );
+
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
+        return instanceService.getTrackedEntityInstancesGridV2( params );
+    }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
     public void queryTrackedEntityInstancesXml(
