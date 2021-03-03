@@ -42,6 +42,8 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
+import com.google.common.base.MoreObjects;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -79,7 +81,6 @@ public class DhisClientRegistrationRepository
     public ClientRegistration findByRegistrationId( String registrationId )
     {
         final DhisOidcClientRegistration dhisOidcClientRegistration = registrationHashMap.get( registrationId );
-
         if ( dhisOidcClientRegistration == null )
         {
             return null;
@@ -101,8 +102,9 @@ public class DhisClientRegistrationRepository
     public DhisOidcClientRegistration findByIssuerUri( String issuerUri )
     {
         return registrationHashMap.values().stream()
-            .filter( clientRegistration -> clientRegistration.getClientRegistration().getProviderDetails()
-                .getIssuerUri().equalsIgnoreCase( issuerUri ) )
-            .findAny().orElse( null );
+            .filter( c -> MoreObjects.firstNonNull( c.getClientRegistration().getProviderDetails().getIssuerUri(), "" )
+                .equals( issuerUri ) )
+            .findAny()
+            .orElse( null );
     }
 }

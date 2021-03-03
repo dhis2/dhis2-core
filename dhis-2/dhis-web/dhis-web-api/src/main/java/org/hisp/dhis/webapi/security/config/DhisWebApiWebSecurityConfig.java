@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import java.util.Collection;
 import java.util.Set;
 
 import javax.sql.DataSource;
 
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
+import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.OidcEnabledCondition;
@@ -43,6 +46,7 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -51,7 +55,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
-import org.springframework.security.access.expression.SecurityExpressionHandler;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.ProviderManager;
@@ -60,9 +64,8 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
@@ -80,13 +83,10 @@ import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
-import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
-import org.springframework.security.web.FilterInvocation;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
@@ -113,6 +113,7 @@ public class DhisWebApiWebSecurityConfig
     @Configuration
     @Order( 1001 )
     @Import( { AuthorizationServerEndpointsConfiguration.class } )
+    @Conditional( value = OAuth2AuthorizationServerEnabledCondition.class )
     public class OAuth2SecurityConfig extends WebSecurityConfigurerAdapter implements AuthorizationServerConfigurer
     {
         @Autowired
@@ -145,9 +146,6 @@ public class DhisWebApiWebSecurityConfig
             configure( configurer );
             http.apply( configurer );
 
-            // This is the only endpoint we need to configure.
-            // The other /authorize endpoint is only accessible AFTER you have
-            // been authorized.
             String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
 
             http
@@ -225,6 +223,22 @@ public class DhisWebApiWebSecurityConfig
         }
     }
 
+    @Bean
+    public TokenStore tokenStore()
+    {
+        return new JdbcTokenStore( dataSource );
+    }
+
+    @Bean( "defaultTokenService" )
+    @Primary
+    public DefaultTokenServices tokenServices()
+    {
+        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
+        defaultTokenServices.setTokenStore( tokenStore() );
+        defaultTokenServices.setSupportRefreshToken( true );
+        return defaultTokenServices;
+    }
+
     /**
      * This class is configuring the OIDC endpoints
      */
@@ -257,12 +271,9 @@ public class DhisWebApiWebSecurityConfig
             http
                 .antMatcher( "/oauth2/**" )
                 .authorizeRequests( authorize -> {
-                    for ( String providerId : providerIds )
-                    {
-                        authorize
-                            .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
-                            .antMatchers( "/oauth2/code/" + providerId ).permitAll();
-                    }
+                    providerIds.forEach( providerId -> authorize
+                        .antMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+                        .antMatchers( "/oauth2/code/" + providerId ).permitAll() );
                     authorize.anyRequest().authenticated();
                 } )
 
@@ -279,22 +290,6 @@ public class DhisWebApiWebSecurityConfig
         }
     }
 
-    @Bean
-    public TokenStore tokenStore()
-    {
-        return new JdbcTokenStore( dataSource );
-    }
-
-    @Bean( "defaultTokenService" )
-    @Primary
-    public DefaultTokenServices tokenServices()
-    {
-        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore( tokenStore() );
-        defaultTokenServices.setSupportRefreshToken( true );
-        return defaultTokenServices;
-    }
-
     /**
      * This configuration class is responsible for setting up the /api endpoints
      */
@@ -302,6 +297,9 @@ public class DhisWebApiWebSecurityConfig
     @Order( 1100 )
     public static class ApiWebSecurityConfigurationAdapter extends WebSecurityConfigurerAdapter
     {
+        @Autowired
+        private DhisConfigurationProvider dhisConfig;
+
         @Autowired
         @Qualifier( "defaultTokenService" )
         private ResourceServerTokenServices tokenServices;
@@ -323,11 +321,8 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private DhisJwtAuthenticationManagerResolver dhisJwtAuthenticationManagerResolver;
 
-        final private SecurityExpressionHandler<FilterInvocation> expressionHandler = new OAuth2WebSecurityExpressionHandler();
-
-        final private AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
-
-        final private AccessDeniedHandler accessDeniedHandler = new OAuth2AccessDeniedHandler();
+        @Autowired
+        private DhisBearerJwtTokenAuthenticationEntryPoint bearerTokenEntryPoint;
 
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
@@ -354,98 +349,103 @@ public class DhisWebApiWebSecurityConfig
             return oauthAuthenticationManager;
         }
 
+        private void configureAccessRestrictions(
+            ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
+        {
+            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                authorize.expressionHandler( new OAuth2WebSecurityExpressionHandler() );
+            }
+
+            authorize
+                .antMatchers( "/api/account/username" ).permitAll()
+                .antMatchers( "/api/account/recovery" ).permitAll()
+                .antMatchers( "/api/account/restore" ).permitAll()
+                .antMatchers( "/api/account/password" ).permitAll()
+                .antMatchers( "/api/account/validatePassword" ).permitAll()
+                .antMatchers( "/api/account/validateUsername" ).permitAll()
+                .antMatchers( "/api/account" ).permitAll()
+                .antMatchers( "/api/staticContent/*" ).permitAll()
+                .antMatchers( "/api/externalFileResources/*" ).permitAll()
+                .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
+                .anyRequest().authenticated();
+        }
+
         protected void configure( HttpSecurity http )
             throws Exception
         {
             http
                 .antMatcher( "/api/**" )
-                .authorizeRequests( authorize -> authorize
-
-                    .expressionHandler( expressionHandler )
-
-                    .antMatchers( "/api/account/username" ).permitAll()
-                    .antMatchers( "/api/account/recovery" ).permitAll()
-                    .antMatchers( "/api/account/restore" ).permitAll()
-                    .antMatchers( "/api/account/password" ).permitAll()
-                    .antMatchers( "/api/account/validatePassword" ).permitAll()
-                    .antMatchers( "/api/account/validateUsername" ).permitAll()
-                    .antMatchers( "/api/account" ).permitAll()
-                    .antMatchers( "/api/staticContent/*" ).permitAll()
-                    .antMatchers( "/api/externalFileResources/*" ).permitAll()
-                    .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
-                    .anyRequest().authenticated() )
+                .authorizeRequests( this::configureAccessRestrictions )
                 .httpBasic()
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )
-                .and().csrf().disable()
+                .and().csrf().disable();
 
-                .exceptionHandling()
-                .accessDeniedHandler( accessDeniedHandler );
+            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
+            }
 
             http
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            // This is the OAuth2 resource filter it will be checking for the
-            // "Authorization: Bearer <token>" header if
-            // the "Authorization: Basic <username:password>" header is not
-            // present or valid.
-            OAuth2AuthenticationProcessingFilter resourcesServerFilter = new OAuth2AuthenticationProcessingFilter();
-            resourcesServerFilter.setAuthenticationEntryPoint( authenticationEntryPoint );
-            resourcesServerFilter.setAuthenticationManager( oauthAuthenticationManager( http ) );
-            resourcesServerFilter.setStateless( false );
+            configureOAuth2TokenFilter( http );
 
-            // Adds the resource (oath2 token) jwtFilter after http basic filer.
-            // http.addFilterAfter( resourcesServerFilter,
-            // BasicAuthenticationFilter.class );
+            setHttpHeaders( http );
+        }
+
+        private void configureOAuth2TokenFilter( HttpSecurity http )
+        {
+            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            {
+                AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
+
+                OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
+                filter.setAuthenticationEntryPoint( authenticationEntryPoint );
+                filter.setAuthenticationManager( oauthAuthenticationManager( http ) );
+                filter.setStateless( false );
+
+                http.addFilterAfter( filter, BasicAuthenticationFilter.class );
+            }
+            else
+            {
+                BearerTokenAuthenticationFilter filter = getBearerTokenAuthenticationFilter();
+
+                http.addFilterAfter( filter, BasicAuthenticationFilter.class );
+            }
+        }
+
+        private BearerTokenAuthenticationFilter getBearerTokenAuthenticationFilter()
+        {
+            DefaultBearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
 
             BearerTokenAuthenticationFilter jwtFilter = new BearerTokenAuthenticationFilter(
                 dhisJwtAuthenticationManagerResolver );
-            jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
-            jwtFilter.setAuthenticationEntryPoint( new BearerTokenAuthenticationEntryPoint() );
-            jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) ->
-                authenticationEventPublisher.publishAuthenticationFailure( exception, new Authentication()
-                {
-                    @Override public Collection<? extends GrantedAuthority> getAuthorities()
+
+            jwtFilter.setBearerTokenResolver( bearerTokenResolver );
+            jwtFilter.setAuthenticationEntryPoint( bearerTokenEntryPoint );
+
+            jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) -> {
+                authenticationEventPublisher.publishAuthenticationFailure( exception,
+                    new AbstractAuthenticationToken( null )
                     {
-                        return null;
-                    }
+                        @Override
+                        public Object getCredentials()
+                        {
+                            return null;
+                        }
 
-                    @Override public Object getCredentials()
-                    {
-                        return null;
-                    }
+                        @Override
+                        public Object getPrincipal()
+                        {
+                            return null;
+                        }
+                    } );
+                bearerTokenEntryPoint.commence( request, response, exception );
+            } );
 
-                    @Override public Object getDetails()
-                    {
-                        return null;
-                    }
-
-                    @Override public Object getPrincipal()
-                    {
-                        return null;
-                    }
-
-                    @Override public boolean isAuthenticated()
-                    {
-                        return false;
-                    }
-
-                    @Override public void setAuthenticated( boolean isAuthenticated )
-                        throws IllegalArgumentException
-                    {
-
-                    }
-
-                    @Override public String getName()
-                    {
-                        return null;
-                    }
-                } ) );
-
-
-            http.addFilterAfter( jwtFilter, BasicAuthenticationFilter.class );
-
-            setHttpHeaders( http );
+            return jwtFilter;
         }
 
         @Bean

@@ -30,14 +30,17 @@ package org.hisp.dhis.security.oidc;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -46,35 +49,55 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 @Builder
 public class DhisOidcClientRegistration
 {
-    private ClientRegistration clientRegistration;
+    private final ClientRegistration clientRegistration;
 
-    private String mappingClaimKey;
+    private final String mappingClaimKey;
 
-    private String loginIcon;
+    private final String loginIcon;
 
-    private String loginIconPadding;
+    private final String loginIconPadding;
 
-    private String loginText;
+    private final String loginText;
 
-    public String getRegistrationId()
+    @Builder.Default
+    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
+
+    private String getRegistrationId()
     {
         return clientRegistration.getRegistrationId();
     }
 
-    public Map<String, Map<String, String>> externalClients;
-
     public Collection<String> getClientIds()
     {
-        Set<String> clientIds = new HashSet<>();
-        externalClients.forEach( ( k, v ) -> v.forEach( ( s, s2 ) -> {
-            if ( s.contains( CLIENT_ID ) )
-            {
-                clientIds.add( s2 );
-            }
-        } ) );
+        Set<String> allExternalClientIds = externalClients.entrySet()
+            .stream()
+            .flatMap( e -> e.getValue().entrySet().stream() )
+            .filter( e -> e.getKey().contains( CLIENT_ID ) )
+            .map( Map.Entry::getValue )
+            .collect( Collectors.toSet() );
 
-        clientIds.add( clientRegistration.getClientId() );
+        ImmutableSet.Builder<String> setBuilder = ImmutableSet
+            .builderWithExpectedSize( allExternalClientIds.size() + 1 );
+        setBuilder.addAll( allExternalClientIds );
+        setBuilder.add( clientRegistration.getClientId() );
 
-        return clientIds;
+        return setBuilder.build();
+    }
+
+    public Collection<String> get()
+    {
+        Set<String> allExternalClientIds = externalClients.entrySet()
+            .stream()
+            .flatMap( e -> e.getValue().entrySet().stream() )
+            .filter( e -> e.getKey().contains( CLIENT_ID ) )
+            .map( Map.Entry::getValue )
+            .collect( Collectors.toSet() );
+
+        ImmutableSet.Builder<String> setBuilder = ImmutableSet
+            .builderWithExpectedSize( allExternalClientIds.size() + 1 );
+        setBuilder.addAll( allExternalClientIds );
+        setBuilder.add( clientRegistration.getClientId() );
+
+        return setBuilder.build();
     }
 }

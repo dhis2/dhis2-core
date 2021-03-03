@@ -154,7 +154,7 @@ public final class GenericOidcProviderConfigParser
 
             // Extract external client configs key/values, before validating the
             // rest of the configuration.
-            Map<String, Map<String, String>> externalClientConfigs = extractExternalClients( properties,
+            Map<String, Map<String, String>> externalClientConfigs = extractExternalClients( properties, providerName,
                 providerKeys );
 
             // Validate config key names
@@ -188,7 +188,7 @@ public final class GenericOidcProviderConfigParser
         return allProviderConfigs;
     }
 
-    private static Map<String, Set<String>> extractKeysByProvider( Properties properties )
+    public static Map<String, Set<String>> extractKeysByProvider( Properties properties )
     {
         // Get/collect all properties that start with the OIDC_PROVIDER_PREFIX.
         List<Map.Entry<Object, Object>> allOidcProps = properties.entrySet().stream()
@@ -201,11 +201,11 @@ public final class GenericOidcProviderConfigParser
             .collect( groupByArrayPosition( 2 ) );
     }
 
-    private static Map<String, Map<String, String>> extractExternalClients( Properties properties,
+    public static Map<String, Map<String, String>> extractExternalClients( Properties properties, String providerName,
         Set<String> providerKeys )
     {
-
         Map<String, Set<String>> externalClientKeys = parseExternalClients( providerKeys );
+
         Map<String, Map<String, String>> externalClientConfigs = new HashMap<>();
         for ( String client : externalClientKeys.keySet() )
         {
@@ -215,7 +215,9 @@ public final class GenericOidcProviderConfigParser
             Set<String> clientKeys = externalClientKeys.get( client );
             for ( String clientKey : clientKeys )
             {
-                String v = (String) properties.get( clientKey );
+                String fullKey = OIDC_PROVIDER_PREFIX + providerName + "."
+                    + EXTERNAL_CLIENT_PREFIX + "." + client + "." + clientKey;
+                String v = (String) properties.get( fullKey );
                 hmap.put( clientKey, v );
             }
         }

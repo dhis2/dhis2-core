@@ -29,14 +29,13 @@ package org.hisp.dhis.webapi.security.config;
 
 import java.util.Objects;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetails;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.event.AbstractAuthenticationEvent;
@@ -47,6 +46,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Henning Håkonsen
@@ -70,9 +71,11 @@ public class AuthenticationListener
         Authentication auth = event.getAuthentication();
         String username = event.getAuthentication().getName();
 
-        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        Object details = auth.getDetails();
+
+        if ( details != null && TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
@@ -88,8 +91,8 @@ public class AuthenticationListener
                 username = userCredentials.getUsername();
             }
 
-            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = details.getRemoteAddress();
+            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = tokenDetails.getRemoteAddress();
 
             log.info( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
         }
@@ -103,9 +106,11 @@ public class AuthenticationListener
         Authentication auth = event.getAuthentication();
         String username = event.getAuthentication().getName();
 
-        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        Object details = auth.getDetails();
+
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
         }
@@ -117,8 +122,8 @@ public class AuthenticationListener
             UserCredentials userCredentials = principal.getUserCredentials();
             username = userCredentials.getUsername();
 
-            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = details.getRemoteAddress();
+            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = tokenDetails.getRemoteAddress();
 
             log.debug( String.format( "OIDC login attempt succeeded for remote IP: %s", remoteAddress ) );
         }

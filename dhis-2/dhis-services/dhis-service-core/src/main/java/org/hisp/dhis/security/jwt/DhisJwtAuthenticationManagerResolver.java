@@ -31,8 +31,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -115,16 +118,19 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
     private Converter<Jwt, DhisJwtAuthenticationToken> getConverter( DhisOidcClientRegistration clientRegistration )
     {
         return jwt -> {
-            // To support multiple clients/i.e. dynamic reg. Android devices
-            // we need indexed db lookup here,
-            // restricted on issuer/provider
-            if ( !jwt.getAudience().retainAll( clientRegistration.getClientIds() ) )
+            List<String> audience = jwt.getAudience();
+
+            Collection<String> clientIds = clientRegistration.getClientIds();
+
+            Set<String> matchedClientIds = clientIds.stream()
+                .filter( audience::contains ).collect( Collectors.toSet() );
+
+            if ( matchedClientIds.isEmpty() )
             {
                 throw new InvalidBearerTokenException( "Invalid audience" );
             }
 
-            String mappingClaimKey = "bogus!";
-
+            String mappingClaimKey = clientRegistration.getMappingClaimKey();
             String mappingValue = jwt.getClaim( mappingClaimKey );
 
             UserCredentials userCredentials = userService.getUserCredentialsByOpenId( mappingValue );
@@ -168,7 +174,7 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             DhisJwtAuthenticationToken token = this.jwtAuthenticationConverter.convert( jwt );
             if ( token == null )
             {
-                throw new InvalidBearerTokenException( "Invalid token, token is null" );
+                throw new InvalidBearerTokenException( "Invalid token" );
             }
 
             token.setDetails( bearer.getDetails() );

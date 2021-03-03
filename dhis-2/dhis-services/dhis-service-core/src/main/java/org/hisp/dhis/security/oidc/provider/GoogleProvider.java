@@ -32,11 +32,14 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIRECT_URI;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
@@ -56,12 +59,21 @@ public class GoogleProvider extends AbstractOidcProvider
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
+        Map<String, Set<String>> allKeysByProvider = GenericOidcProviderConfigParser
+            .extractKeysByProvider( config.getProperties() );
+
+        Set<String> googleKeys = allKeysByProvider.get( REGISTRATION_ID );
+        Map<String, Map<String, String>> externalClientConfigs = GenericOidcProviderConfigParser
+            .extractExternalClients( config.getProperties(), REGISTRATION_ID,
+                googleKeys );
+
         return DhisOidcClientRegistration.builder()
             .clientRegistration( buildClientRegistration( config ) )
             .mappingClaimKey( config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM ) )
             .loginIcon( "../security/btn_google_light_normal_ios.svg" )
             .loginIconPadding( "0px 0px" )
             .loginText( "login_with_google" )
+            .externalClients( externalClientConfigs )
             .build();
     }
 

@@ -145,7 +145,8 @@ public enum ConfigurationKey
     DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
-    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false );
+    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
+    ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.OFF, false );
 
     private final String key;
 

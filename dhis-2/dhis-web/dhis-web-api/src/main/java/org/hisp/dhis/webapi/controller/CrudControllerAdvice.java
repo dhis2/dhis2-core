@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hibernate.exception.ConstraintViolationException;
+
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
@@ -61,11 +62,15 @@ import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.server.resource.BearerTokenError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -76,6 +81,7 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 
@@ -310,6 +316,25 @@ public class CrudControllerAdvice
         HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
+    }
+
+    @ExceptionHandler( OAuth2AuthenticationException.class )
+    public void handleOAuth2AuthenticationException( OAuth2AuthenticationException ex, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        OAuth2Error error = ((OAuth2AuthenticationException) ex).getError();
+        if ( error instanceof BearerTokenError )
+        {
+            BearerTokenError bearerTokenError = (BearerTokenError) error;
+            HttpStatus status = ((BearerTokenError) error).getHttpStatus();
+
+            webMessageService.send( WebMessageUtils.createWebMessage( bearerTokenError.getErrorCode(),
+                bearerTokenError.getDescription(), Status.ERROR, status ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.unathorized( ex.getMessage() ), response, request );
+        }
     }
 
     /**
