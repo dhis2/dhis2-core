@@ -74,6 +74,21 @@ public class SqlHelper
     }
 
     /**
+     * Returns "where" the first time it is invoked, then "or" for subsequent
+     * invocations.
+     *
+     * @return "where" or "or".
+     */
+    public String whereOr()
+    {
+        String str = whereInvoked ? "or" : "where";
+
+        whereInvoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    /**
      * Returns "having" the first time it is invoked, then "and" for subsequent
      * invocations.
      *

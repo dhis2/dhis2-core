@@ -1204,4 +1204,10 @@ public class TrackedEntityInstanceQueryParams
     {
         this.trackedEntityTypes = trackedEntityTypes;
     }
+
+    public boolean hasFilterForPrograms()
+    {
+        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
+            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
+    }
 }
