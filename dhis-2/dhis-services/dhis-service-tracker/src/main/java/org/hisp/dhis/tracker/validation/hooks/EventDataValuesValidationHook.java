@@ -74,7 +74,7 @@ public class EventDataValuesValidationHook
             }
 
             validateDataElement( reporter, dataElement, dataValue );
-            validateOptionSet( event, reporter, dataElement, dataValue.getValue() );
+            validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
         validateMandatoryDataValues( event, context, reporter );
@@ -153,15 +153,5 @@ public class EventDataValuesValidationHook
 
         addErrorIfNull( fileResource, reporter, E1084, dataValue.getValue() );
         addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, dataValue.getValue() );
-    }
-
-    protected void validateOptionSet( Event event, ValidationErrorReporter reporter, DataElement de, String value )
-    {
-        Optional.ofNullable( de.getOptionSet() ).ifPresent( optionSet -> {
-            addErrorIf( () -> optionSet.getOptions().stream()
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, event.getEvent(),
-                de.getUid(), value,
-                de.getOptionSet().getOptions().stream().map( Option::getCode ).collect( Collectors.joining( "," ) ) );
-        } );
     }
 }

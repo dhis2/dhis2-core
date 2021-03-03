@@ -270,7 +270,7 @@ public class TrackedEntityAttributeValidationHookTest
         assertTrue( validationErrorReporter.hasErrors() );
         assertEquals( 1, validationErrorReporter.getReportList().size() );
         assertEquals( 1, validationErrorReporter.getReportList().stream()
-            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1078 ).count() );
+            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
     }
 
     @Test
