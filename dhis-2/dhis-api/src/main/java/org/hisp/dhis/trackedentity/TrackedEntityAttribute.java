@@ -163,29 +163,7 @@ public class TrackedEntityAttribute
     {
         return legendSets != null;
     }
-
-    /**
-     * Checks whether the given value is present among the options in the option
-     * set of this attribute, matching on code.
-     */
-    public Boolean isValidOptionValue( String value )
-    {
-        if ( !hasOptionSet() || value == null )
-        {
-            return false;
-        }
-
-        for ( Option option : getOptionSet().getOptions() )
-        {
-            if ( option != null && value.equals( option.getCode() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+    
     @JsonIgnore
     public boolean getOrgUnitScopeNullSafe()
     {
