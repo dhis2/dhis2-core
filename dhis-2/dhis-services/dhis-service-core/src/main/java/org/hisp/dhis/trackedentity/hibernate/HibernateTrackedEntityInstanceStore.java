@@ -612,10 +612,10 @@ public class HibernateTrackedEntityInstanceStore
         for ( QueryItem orderAttribute : getOrderAttributes( params ) )
         {
             orderAttributes
+                .append( ", " )
                 .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
                 .append( ".value AS " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
-                .append( ", " );
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
         }
 
         return orderAttributes.toString();
@@ -653,9 +653,12 @@ public class HibernateTrackedEntityInstanceStore
                 .append( ") " );
         }
 
-        trackedEntity
-            .append( "AND deleted IS FALSE " )
-            .append( ") TEI " );
+        if ( !params.isIncludeDeleted() )
+        {
+            trackedEntity
+                .append( "AND deleted IS FALSE " )
+                .append( ") TEI " );
+        }
 
         return trackedEntity.toString();
     }
@@ -673,12 +676,6 @@ public class HibernateTrackedEntityInstanceStore
             .findAny()
             .orElse( null );
 
-        // We only care about attributes with filters in this method
-        if ( filterItems.isEmpty() )
-        {
-            return "";
-        }
-
         // If we have unique values, and we dont have a OR-query, we can optimise the query by just searching for 1
         // unique item.
         if ( uniqueItem != null )
@@ -686,73 +683,77 @@ public class HibernateTrackedEntityInstanceStore
             filterItems = Lists.newArrayList( uniqueItem );
         }
 
-        attributes
-            .append( "INNER JOIN (" )
-            .append( "SELECT trackedentityinstanceid " )
-            .append( "FROM trackedentityattributevalue" );
-
-        if ( !params.isOrQuery() )
+        if ( !filterItems.isEmpty() || params.isOrQuery() )
         {
-            SqlHelper whereHlp = new SqlHelper( true );
 
-            for ( QueryItem queryItem : filterItems )
+            attributes
+                .append( "INNER JOIN (" )
+                .append( "SELECT trackedentityinstanceid " )
+                .append( "FROM trackedentityattributevalue" );
+
+            if ( !params.isOrQuery() )
             {
-                attributes
-                    .append( whereHlp.whereAnd() )
-                    .append( "(trackedentityattributeid = " )
-                    .append( queryItem.getItem().getId() )
-                    .append( " " );
+                SqlHelper whereHlp = new SqlHelper( true );
 
-                for ( QueryFilter filter : queryItem.getFilters() )
+                for ( QueryItem queryItem : filterItems )
                 {
                     attributes
-                        .append( "AND lower(value) " )
-                        .append( filter.getSqlOperator() )
-                        .append( " " )
-                        .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
+                        .append( whereHlp.whereAnd() )
+                        .append( "(trackedentityattributeid = " )
+                        .append( queryItem.getItem().getId() )
+                        .append( " " );
+
+                    for ( QueryFilter filter : queryItem.getFilters() )
+                    {
+                        attributes
+                            .append( "AND lower(value) " )
+                            .append( filter.getSqlOperator() )
+                            .append( " " )
+                            .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
+                    }
+
+                    attributes.append( ")" );
                 }
 
-                attributes.append( ")" );
+                attributes.append( ") TEAV ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid " );
             }
-
-            attributes.append( ") TEAV ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid " );
-        }
-        else
-        {
-            final String regexp = statementBuilder.getRegexpMatch();
-            final String wordStart = statementBuilder.getRegexpWordStart();
-            final String wordEnd = statementBuilder.getRegexpWordEnd();
-            final String anyChar = "\\.*?";
-            final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
-            final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
-            SqlHelper whereHlp = new SqlHelper( true );
-
-            for ( QueryItem item : params.getAttributesAndFilters() )
+            else
             {
-                SqlHelper orHlp = new SqlHelper( true );
+                final String regexp = statementBuilder.getRegexpMatch();
+                final String wordStart = statementBuilder.getRegexpWordStart();
+                final String wordEnd = statementBuilder.getRegexpWordEnd();
+                final String anyChar = "\\.*?";
+                final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
+                final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
+                SqlHelper whereHlp = new SqlHelper( true );
 
-                attributes
-                    .append( whereHlp.whereOr() )
-                    .append( "(trackedentityattributeid = " )
-                    .append( item.getItem().getId() )
-                    .append( " AND (" );
-
-                for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
+                for ( QueryItem item : params.getAttributesAndFilters() )
                 {
-                    final String query = statementBuilder.encode( queryToken, false );
+                    SqlHelper orHlp = new SqlHelper( true );
 
                     attributes
-                        .append( orHlp.or() )
-                        .append( "lower(value) " )
-                        .append( regexp )
-                        .append( " '" )
-                        .append( start )
-                        .append( StringUtils.lowerCase( query ) )
-                        .append( end )
-                        .append( "'" );
-                }
+                        .append( whereHlp.whereOr() )
+                        .append( "(trackedentityattributeid = " )
+                        .append( item.getItem().getId() )
+                        .append( " AND (" );
 
-                attributes.append( "))" );
+                    for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
+                    {
+                        final String query = statementBuilder.encode( queryToken, false );
+
+                        attributes
+                            .append( orHlp.or() )
+                            .append( "lower(value) " )
+                            .append( regexp )
+                            .append( " '" )
+                            .append( start )
+                            .append( StringUtils.lowerCase( query ) )
+                            .append( end )
+                            .append( "'" );
+                    }
+
+                    attributes.append( "))" );
+                }
             }
         }
 
@@ -1114,7 +1115,7 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getFromSubQueryGroupBy( TrackedEntityInstanceQueryParams params )
     {
-        return new StringBuilder()
+        StringBuilder order = new StringBuilder()
             .append( "GROUP BY TEI.trackedentityinstanceid, " )
             .append( "TEI.uid, " )
             .append( "TEI.created, " )
@@ -1123,8 +1124,17 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.trackedentitytypeid, " )
             .append( "TEI.deleted, " )
             .append( "ou, " )
-            .append( "ouname " )
-            .toString();
+            .append( "ouname " );
+
+        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+        {
+            order
+                .append( ", " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( ".value" );
+        }
+
+        return order.append( " " ).toString();
     }
 
     private String getQuerySubQueryOrder( TrackedEntityInstanceQueryParams params )
@@ -1153,7 +1163,7 @@ public class HibernateTrackedEntityInstanceStore
                         {
                             if ( prop[0].equals( item.getItemId() ) )
                             {
-                                orderFields.add( statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
+                                orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
                                 break;
                             }
                         }
@@ -1164,7 +1174,7 @@ public class HibernateTrackedEntityInstanceStore
 
             if ( !orderFields.isEmpty() )
             {
-                return "ORDER BY " + StringUtils.join( orderFields, ',' );
+                return "ORDER BY " + StringUtils.join( orderFields, ',' ) + " ";
             }
         }
 
@@ -1202,18 +1212,29 @@ public class HibernateTrackedEntityInstanceStore
             limit = params.getProgram().getMaxTeiCountToReturn();
         }
 
-        if ( limit == 0 )
+        if ( limit == 0 && !params.isPaging() )
         {
-            if ( params.isPaging() )
-            {
-                return limitOffset
-                    .append( "LIMIT " )
-                    .append( params.getPageSizeWithDefault() )
-                    .append( " OFFSET " )
-                    .append( params.getOffset() )
-                    .append( " " )
-                    .toString();
-            }
+            return "";
+        }
+        else if ( limit == 0 && params.isPaging() )
+        {
+            return limitOffset
+                .append( "LIMIT " )
+                .append( params.getPageSizeWithDefault() )
+                .append( " OFFSET " )
+                .append( params.getOffset() )
+                .append( " " )
+                .toString();
+        }
+        else if ( params.isPaging() )
+        {
+            return limitOffset
+                .append( "LIMIT " )
+                .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
+                .append( " OFFSET " )
+                .append( params.getOffset() )
+                .append( " " )
+                .toString();
         }
         else
         {
@@ -1223,8 +1244,6 @@ public class HibernateTrackedEntityInstanceStore
                 .append( " " )
                 .toString();
         }
-
-        return "";
     }
 
     /**
