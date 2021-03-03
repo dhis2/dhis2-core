@@ -93,19 +93,18 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             throw new InvalidBearerTokenException( "Missing issuer" );
         }
 
-        DhisOidcClientRegistration clientRegistration = clientRegistrationRepository.findByIssuerUri( issuer );
-        if ( clientRegistration == null )
-        {
-            throw new InvalidBearerTokenException( "Invalid issuer" );
-        }
-
-        return getAuthenticationManager( issuer, clientRegistration );
+        return getAuthenticationManager( issuer );
     }
 
-    private AuthenticationManager getAuthenticationManager( String issuer,
-        DhisOidcClientRegistration clientRegistration )
+    private AuthenticationManager getAuthenticationManager( String issuer )
     {
         return this.authenticationManagers.computeIfAbsent( issuer, s -> {
+
+            DhisOidcClientRegistration clientRegistration = clientRegistrationRepository.findByIssuerUri( issuer );
+            if ( clientRegistration == null )
+            {
+                throw new InvalidBearerTokenException( "Invalid issuer" );
+            }
 
             JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
 

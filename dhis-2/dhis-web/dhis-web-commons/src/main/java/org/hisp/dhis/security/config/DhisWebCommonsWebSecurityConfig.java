@@ -187,7 +187,6 @@ public class DhisWebCommonsWebSecurityConfig
 
                 .antMatchers( "/dhis-web-commons/security/*" ).permitAll()
                 .antMatchers( "/oauth2/**" ).permitAll()
-                .antMatchers( "/reserv/**" ).permitAll()
                 .antMatchers( "/dhis-web-dashboard/**" ).hasAnyAuthority( "ALL", "M_dhis-web-dashboard" )
                 .antMatchers( "/dhis-web-pivot/**" ).hasAnyAuthority( "ALL", "M_dhis-web-pivot" )
                 .antMatchers( "/dhis-web-visualizer/**" ).hasAnyAuthority( "ALL", "M_dhis-web-visualizer" )
