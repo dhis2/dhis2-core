@@ -87,6 +87,22 @@ public class EnrollmentAttrValidationTests
     }
 
     @Test
+    public void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_with_invalid_option_set.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
+    }
+
+    @Test
     public void testAttributesMissingUid()
         throws IOException
     {
