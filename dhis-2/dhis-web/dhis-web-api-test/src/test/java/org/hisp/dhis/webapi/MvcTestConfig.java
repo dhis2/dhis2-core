@@ -40,6 +40,7 @@ import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
@@ -86,6 +87,9 @@ public class MvcTestConfig implements WebMvcConfigurer
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
 
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
@@ -187,6 +191,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
     {
         resolvers.add( dhisApiVersionHandlerMethodArgumentResolver() );
+        resolvers.add( currentUserHandlerMethodArgumentResolver );
     }
 
     @Bean
