@@ -35,7 +35,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hibernate.exception.ConstraintViolationException;
-
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
@@ -62,7 +61,6 @@ import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.exception.OperationNotAllowedException;
 import org.hisp.dhis.webapi.service.WebMessageService;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
@@ -81,7 +79,6 @@ import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.fasterxml.jackson.core.JsonParseException;
 

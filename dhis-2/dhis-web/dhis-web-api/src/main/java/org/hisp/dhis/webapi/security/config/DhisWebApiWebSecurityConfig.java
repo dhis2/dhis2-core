@@ -46,7 +46,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
