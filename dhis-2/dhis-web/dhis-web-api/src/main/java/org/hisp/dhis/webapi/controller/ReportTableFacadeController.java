@@ -34,6 +34,8 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -41,7 +43,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -104,7 +105,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.BeanUtils;
@@ -129,9 +129,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
@@ -153,6 +155,12 @@ public abstract class ReportTableFacadeController
     //--------------------------------------------------------------------------
     // Dependencies
     //--------------------------------------------------------------------------
+
+    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    {
+    }
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -242,6 +250,9 @@ public abstract class ReportTableFacadeController
             throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
         }
 
+        // Force the load of Visualizations of type PIVOT_TABLE only.
+        filters.add("type:eq:" + PIVOT_TABLE);
+
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
         // Conversion point
@@ -251,8 +262,9 @@ public abstract class ReportTableFacadeController
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), reportTables.size(), options.getPageSize() );
-            reportTables = PagerUtils.pageCollection( reportTables, pager );
+            long count = paginationCountCache.computeIfAbsent(
+                calculatePaginationCountKey( currentUser, filters, options ), () -> count( options, filters, orders ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         handleLinksAndAccess( reportTables, fields, false, currentUser );
@@ -519,7 +531,7 @@ public abstract class ReportTableFacadeController
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
-            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
+            getPaginationData( options ), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -1093,7 +1105,8 @@ public abstract class ReportTableFacadeController
         throws QueryParserException
     {
         List<Visualization> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+            options.isTrue( "restrictToCaptureScope" ) );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -1107,6 +1120,19 @@ public abstract class ReportTableFacadeController
         }
 
         return entityList;
+    }
+
+    private int count( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction(), options.isTrue( "restrictToCaptureScope" ) );
+        return queryService.count( query );
+    }
+
+    private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
     }
 
     private List<?> getEntity( String uid )
@@ -1163,9 +1189,7 @@ public abstract class ReportTableFacadeController
         {
             for ( final Visualization visualization : entities )
             {
-                // Consider only Visualization types of Pivot Table
-                if ( visualization.getType() != null
-                    && "PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
+                if ( visualization.getType() != null )
                 {
                     final ReportTable reportTable = new ReportTable();
                     BeanUtils.copyProperties( visualization, reportTable );
