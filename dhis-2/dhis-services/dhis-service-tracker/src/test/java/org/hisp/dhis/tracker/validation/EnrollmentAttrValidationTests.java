@@ -91,7 +91,7 @@ public class EnrollmentAttrValidationTests
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_with_invalid_option_set.json" );
+            "tracker/validations/enrollments_te_with_invalid_option_value.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
