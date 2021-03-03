@@ -86,30 +86,28 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             validateRequiredProperties( reporter, attribute );
 
-            if ( attribute.getAttribute() == null || attribute.getValue() == null ||
-                context.getTrackedEntityAttribute( attribute.getAttribute() ) == null )
+            if ( attribute.getAttribute() != null && attribute.getValue() == null )
             {
-                continue;
+
+                attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
+
+                TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
+
+                if ( teAttribute == null )
+                {
+                    addError( reporter, E1006, attribute.getAttribute() );
+                    continue;
+                }
+
+                validateAttrValueType( reporter, attribute, teAttribute );
+                validateOptionSet( reporter, teAttribute, attribute.getValue() );
+
+                validateAttributeUniqueness( reporter,
+                    attribute.getValue(),
+                    teAttribute,
+                    tei,
+                    orgUnit );
             }
-
-            attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
-
-            TrackedEntityAttribute teAttribute = context.getTrackedEntityAttribute( attribute.getAttribute() );
-
-            if ( teAttribute == null )
-            {
-                addError( reporter, E1006, attribute.getAttribute() );
-                continue;
-            }
-
-            validateAttrValueType( reporter, attribute, teAttribute );
-            validateOptionSet( reporter, teAttribute, attribute.getValue() );
-
-            validateAttributeUniqueness( reporter,
-                attribute.getValue(),
-                teAttribute,
-                tei,
-                orgUnit );
         }
 
         Program program = context.getProgram( enrollment.getProgram() );

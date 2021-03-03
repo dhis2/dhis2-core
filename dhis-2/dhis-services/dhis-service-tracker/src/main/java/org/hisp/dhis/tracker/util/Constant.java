@@ -33,10 +33,14 @@ import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
 
 public class Constant
 {
+    private Constant()
+    {
+    };
+
     public static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
     public final static String GENERIC_STRATEGY_BEAN = Introspector
         .decapitalize( GenericStrategy.class.getSimpleName() );
 
-    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+    public final static int SPLIT_LIST_PARTITION_SIZE = 20_000;
 }

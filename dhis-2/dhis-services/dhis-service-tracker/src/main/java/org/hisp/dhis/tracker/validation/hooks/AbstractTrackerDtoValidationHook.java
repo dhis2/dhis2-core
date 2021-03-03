@@ -172,13 +172,12 @@ public abstract class AbstractTrackerDtoValidationHook
     protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
         T optionalObject, String value )
     {
-        Optional.ofNullable( optionalObject.getOptionSet() ).ifPresent( optionSet -> {
-            addErrorIf( () -> optionSet.getOptions().stream()
+        Optional.ofNullable( optionalObject.getOptionSet() )
+            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream()
                 .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
                 optionalObject.getUid(),
                 optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
-                    .collect( Collectors.joining( "," ) ) );
-        } );
+                    .collect( Collectors.joining( "," ) ) ) );
     }
 
     /**
