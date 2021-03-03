@@ -43,8 +43,7 @@ public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
     private final KeyJsonValueStore keyJsonValueStore;
 
-    public DefaultMetadataKeyJsonService(
-        KeyJsonValueStore keyJsonValueStore )
+    public DefaultMetadataKeyJsonService( KeyJsonValueStore keyJsonValueStore )
     {
         checkNotNull( keyJsonValueStore );
 
