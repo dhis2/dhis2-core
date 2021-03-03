@@ -35,12 +35,12 @@ public class Constant
 {
     private Constant()
     {
-    };
+    }
 
     public static final int MAX_ATTR_VALUE_LENGTH = 1200;
 
-    public final static String GENERIC_STRATEGY_BEAN = Introspector
+    public static final String GENERIC_STRATEGY_BEAN = Introspector
         .decapitalize( GenericStrategy.class.getSimpleName() );
 
-    public final static int SPLIT_LIST_PARTITION_SIZE = 20_000;
+    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
 }
