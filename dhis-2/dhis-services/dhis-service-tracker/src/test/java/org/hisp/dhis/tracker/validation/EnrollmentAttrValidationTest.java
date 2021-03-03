@@ -53,7 +53,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class EnrollmentAttrValidationTests
+public class EnrollmentAttrValidationTest
     extends AbstractImportValidationTest
 {
     @Autowired

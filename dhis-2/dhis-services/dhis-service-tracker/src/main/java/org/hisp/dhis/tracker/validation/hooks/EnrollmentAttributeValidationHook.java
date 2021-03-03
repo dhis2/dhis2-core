@@ -86,7 +86,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         {
             validateRequiredProperties( reporter, attribute );
 
-            if ( attribute.getAttribute() != null && attribute.getValue() == null )
+            if ( attribute.getAttribute() != null && attribute.getValue() != null )
             {
 
                 attributeValueMap.put( attribute.getAttribute(), attribute.getValue() );
