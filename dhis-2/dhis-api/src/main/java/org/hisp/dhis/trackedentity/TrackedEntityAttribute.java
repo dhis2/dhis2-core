@@ -35,7 +35,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -163,7 +162,7 @@ public class TrackedEntityAttribute
     {
         return legendSets != null;
     }
-    
+
     @JsonIgnore
     public boolean getOrgUnitScopeNullSafe()
     {
