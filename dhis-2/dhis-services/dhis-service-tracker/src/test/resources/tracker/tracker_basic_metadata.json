@@ -37,6 +37,41 @@
       "repeatable": false
     },
     {
+      "programStageDataElements": [
+        {
+          "created": "2019-03-29T12:41:32.971",
+          "sortOrder": 1,
+          "lastUpdated": "2019-03-29T12:41:32.971",
+          "renderOptionsAsRadio": false,
+          "access": {
+            "read": true,
+            "externalize": true,
+            "manage": true,
+            "delete": true,
+            "update": true,
+            "write": true
+          },
+          "programStage": {
+            "id": "Pmqxq907VNz"
+          },
+          "translations": [],
+          "allowProvidedElsewhere": false,
+          "favorites": [],
+          "externalAccess": false,
+          "attributeValues": [],
+          "favorite": false,
+          "userAccesses": [],
+          "dataElement": {
+            "id": "LjQPcfuEI6S"
+          },
+          "id": "PKajUE4CAAC",
+          "allowFutureDate": false,
+          "userGroupAccesses": [],
+          "displayInReports": false,
+          "compulsory": false,
+          "skipSynchronization": false
+        }
+      ],
       "translations": [],
       "enableUserAssignment": false,
       "user": {
@@ -1555,6 +1590,36 @@
       "attributeValues": [],
       "categoryCombo": {
         "id": "bjDvmb4bfuf"
+      }
+    },
+    {
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "name": "Stage4 DataElement",
+      "shortName": "Stage4 DataElement",
+      "lastUpdated": "2019-03-29T09:10:53.600",
+      "valueType": "TEXT",
+      "zeroIsSignificant": false,
+      "legendSets": [],
+      "created": "2019-03-29T09:10:53.600",
+      "id": "LjQPcfuEI6S",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "publicAccess": "rw------",
+      "userGroupAccesses": [],
+      "aggregationType": "COUNT",
+      "aggregationLevels": [],
+      "userAccesses": [],
+      "domainType": "TRACKER",
+      "attributeValues": [],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "optionSet": {
+        "id": "pC3N9N77UmT"
       }
     }
   ],
