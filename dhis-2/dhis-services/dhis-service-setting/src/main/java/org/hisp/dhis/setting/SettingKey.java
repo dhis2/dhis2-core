@@ -85,8 +85,6 @@ public enum SettingKey
     SMS_CONFIG( "keySmsSetting", new SmsConfiguration(), SmsConfiguration.class ),
     CACHE_STRATEGY( "keyCacheStrategy", CacheStrategy.CACHE_1_MINUTE, CacheStrategy.class ),
     CACHEABILITY( "keyCacheability", Cacheability.PUBLIC, Cacheability.class ),
-    // CACHE_ANALYTICS_DATA_YEAR_THRESHOLD(
-    // "keyCacheAnalyticsDataYearThreshold", 0, Integer.class ),
     ANALYTICS_FINANCIAL_YEAR_START( "analyticsFinancialYearStart",
         AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER, AnalyticsFinancialYearStartKey.class ),
     PHONE_NUMBER_AREA_CODE( "phoneNumberAreaCode" ),
@@ -197,13 +195,11 @@ public enum SettingKey
     /**
      * Progressive caching factor definition for Analytics. In order to enable
      * it, the {@link #ANALYTICS_CACHE_TTL_MODE} has to be set to PROGRESSIVE.
-     *
-     * @see AnalyticsCacheTtlMode
      */
     ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR( "keyAnalyticsCacheProgressiveTtlFactor", 160, Integer.class ),
 
     /**
-     * The caching strategy enabled
+     * The caching strategy enabled.
      */
     ANALYTICS_CACHE_TTL_MODE( "keyAnalyticsCacheTtlMode", AnalyticsCacheTtlMode.FIXED, AnalyticsCacheTtlMode.class );
 
