@@ -116,9 +116,7 @@ public class ReportTableController
     // GET - Report table data
     // --------------------------------------------------------------------------
 
-    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET ) // For
-                                                                         // json,
-                                                                         // jsonp
+    @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET )
     public @ResponseBody Grid getReportTableData( @PathVariable( "uid" ) String uid, Model model,
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "date", required = false ) Date date,
