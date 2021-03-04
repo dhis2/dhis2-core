@@ -38,6 +38,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableType;
@@ -51,10 +53,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -95,13 +94,14 @@ public class DefaultAnalyticsTableGenerator
     // Implementation
     // -------------------------------------------------------------------------
 
-    //TODO introduce last successful timestamps per table type
+    // TODO introduce last successful timestamps per table type
 
     @Override
     public void generateTables( AnalyticsTableUpdateParams params )
     {
         final Clock clock = new Clock( log ).startClock();
-        final Date lastSuccessfulUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
+        final Date lastSuccessfulUpdate = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE );
         final JobConfiguration jobId = params.getJobId();
         final Set<AnalyticsTableType> skipTypes = CollectionUtils.emptyIfNull( params.getSkipTableTypes() );
         final Set<AnalyticsTableType> availableTypes = analyticsTableServices.stream()
@@ -114,7 +114,8 @@ public class DefaultAnalyticsTableGenerator
 
         log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
         log.info( String.format( "Analytics table update: %s", params ) );
-        log.info( String.format( "Last successful analytics table update: '%s'", getLongDateString( lastSuccessfulUpdate ) ) );
+        log.info( String.format( "Last successful analytics table update: '%s'",
+            getLongDateString( lastSuccessfulUpdate ) ) );
 
         try
         {
@@ -155,13 +156,16 @@ public class DefaultAnalyticsTableGenerator
 
         if ( params.isLatestUpdate() )
         {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE, params.getStartTime() );
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE,
+                params.getStartTime() );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME,
+                clock.time() );
         }
         else
         {
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE, params.getStartTime() );
-            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE,
+                params.getStartTime() );
+            systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME, clock.time() );
         }
     }
 
