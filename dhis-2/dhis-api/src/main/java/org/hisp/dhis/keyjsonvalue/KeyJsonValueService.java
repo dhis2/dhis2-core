@@ -35,6 +35,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 /**
  * @author Stian Sandvold
+ * @author Jan Bernitt
  */
 public interface KeyJsonValueService
 {

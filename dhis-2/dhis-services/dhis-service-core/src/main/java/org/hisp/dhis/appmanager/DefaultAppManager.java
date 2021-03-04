@@ -43,8 +43,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -59,6 +57,8 @@ import org.hisp.dhis.user.User;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Saptarshi Purkayastha
@@ -375,7 +375,7 @@ public class DefaultAppManager
         Set<String> auths = user.getUserCredentials().getAllAuthorities();
 
         return auths.contains( "ALL" ) ||
-            auths.contains( AUTHORITY_WEB_MAINTENANCE_APPMANAGER ) ||
+            auths.contains( WEB_MAINTENANCE_APPMANAGER_AUTHORITY ) ||
             auths.contains( app.getSeeAppAuthority() );
     }
 
@@ -424,8 +424,8 @@ public class DefaultAppManager
         if ( namespace != null && !namespace.isEmpty() )
         {
             String[] authorities = app.getShortName() == null
-                ? new String[] { AUTHORITY_WEB_MAINTENANCE_APPMANAGER }
-                : new String[] { AUTHORITY_WEB_MAINTENANCE_APPMANAGER, app.getSeeAppAuthority() };
+                ? new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY }
+                : new String[] { WEB_MAINTENANCE_APPMANAGER_AUTHORITY, app.getSeeAppAuthority() };
             keyJsonValueService.addProtection(
                 new KeyJsonNamespaceProtection( namespace, ProtectionType.RESTRICTED, true, authorities ) );
         }

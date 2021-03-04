@@ -37,11 +37,6 @@ import java.util.List;
  */
 public interface MetadataVersionService
 {
-    // ------------------------------------------------------------------------
-    // Constants
-    // -------------------------------------------------------------------------
-    String METADATASTORE = "METADATASTORE";
-    // TODO move to MetadataKeyJsonService
 
     String METADATAVERSION_NAME_PREFIX = "Version_";
 

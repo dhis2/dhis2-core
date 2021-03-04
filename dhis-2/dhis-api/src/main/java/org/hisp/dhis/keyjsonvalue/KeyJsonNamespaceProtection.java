@@ -72,7 +72,7 @@ public class KeyJsonNamespaceProtection
 
     private final String namespace;
 
-    private final boolean sharingUsed;
+    private final boolean sharingRespected;
 
     private final ProtectionType reads;
 
@@ -80,23 +80,23 @@ public class KeyJsonNamespaceProtection
 
     private final Set<String> authorities;
 
-    public KeyJsonNamespaceProtection( String namespace, ProtectionType readWrite, boolean sharingUsed,
+    public KeyJsonNamespaceProtection( String namespace, ProtectionType readWrite, boolean sharingRespected,
         String... authorities )
     {
-        this( namespace, readWrite, readWrite, sharingUsed, authorities );
+        this( namespace, readWrite, readWrite, sharingRespected, authorities );
     }
 
     public KeyJsonNamespaceProtection( String namespace, ProtectionType reads, ProtectionType writes,
-        boolean sharingUsed, String... authorities )
+        boolean sharingRespected, String... authorities )
     {
-        this( namespace, reads, writes, sharingUsed, new HashSet<>( asList( authorities ) ) );
+        this( namespace, reads, writes, sharingRespected, new HashSet<>( asList( authorities ) ) );
     }
 
     public KeyJsonNamespaceProtection( String namespace, ProtectionType reads, ProtectionType writes,
-        boolean sharingUsed, Set<String> authorities )
+        boolean sharingRespected, Set<String> authorities )
     {
         this.namespace = namespace;
-        this.sharingUsed = sharingUsed;
+        this.sharingRespected = sharingRespected;
         this.reads = reads;
         this.writes = writes;
         this.authorities = authorities;
@@ -113,9 +113,9 @@ public class KeyJsonNamespaceProtection
      *         well, when false sharing is ignored and authorities check is the
      *         only check performed.
      */
-    public boolean isSharingUsed()
+    public boolean isSharingRespected()
     {
-        return sharingUsed;
+        return sharingRespected;
     }
 
     public Set<String> getAuthorities()
@@ -137,6 +137,6 @@ public class KeyJsonNamespaceProtection
     public String toString()
     {
         return String.format( "KeyJsonNamespaceProtection{%s r:%s w:%s [%s]%s}",
-            namespace, reads, writes, authorities, (sharingUsed ? "!" : "") );
+            namespace, reads, writes, authorities, (sharingRespected ? "!" : "") );
     }
 }

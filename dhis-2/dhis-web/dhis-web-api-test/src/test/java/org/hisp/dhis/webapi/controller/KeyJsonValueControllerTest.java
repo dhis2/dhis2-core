@@ -30,7 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.metadata.version.MetadataVersionService.METADATASTORE;
+import static org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService.METADATA_STORE_NS;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
@@ -70,11 +70,11 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     {
         // out of the box (as superuser)
         assertSeries( Series.SUCCESSFUL, POST( "/dataStore/METADATASTORE/key", "{}" ) );
-        assertEquals( singletonList( METADATASTORE ), GET( "/dataStore" ).content().stringValues() );
+        assertEquals( singletonList( METADATA_STORE_NS ), GET( "/dataStore" ).content().stringValues() );
 
         // after we created an entry in foo namespace
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/colors/blue", "{'answer': 42}" ) );
-        assertEquals( asList( METADATASTORE, "colors" ), GET( "/dataStore" ).content().stringValues() );
+        assertEquals( asList( METADATA_STORE_NS, "colors" ), GET( "/dataStore" ).content().stringValues() );
     }
 
     @Test
@@ -98,7 +98,8 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     public void testGetKeysInNamespace()
     {
         assertSeries( Series.SUCCESSFUL, POST( "/dataStore/METADATASTORE/key", "{}" ) );
-        assertEquals( singletonList( "key" ), GET( "/dataStore/{namespace}", METADATASTORE ).content().stringValues() );
+        assertEquals( singletonList( "key" ),
+            GET( "/dataStore/{namespace}", METADATA_STORE_NS ).content().stringValues() );
 
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{'answer': 42}" ) );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/dog", "{'answer': true}" ) );
@@ -466,12 +467,26 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testDeleteKeyJsonValue_ProtectedNamespaceWithSharing()
     {
-        // => forbidden
+        setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
+        // current superuser creates this entry
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+
+        // now being a user with sufficient authority still we cannot delete the
+        // entry
+        switchToNewUser( "someone", "pets-admin" );
+        assertStatus( HttpStatus.FORBIDDEN, DELETE( "/dataStore/pets/cat" ) );
     }
 
     private void setUpNamespaceProtection( String namespace, ProtectionType readWrite, String... authorities )
     {
         service.addProtection(
             new KeyJsonNamespaceProtection( namespace, readWrite, false, authorities ) );
+    }
+
+    private void setUpNamespaceProtectionWithSharing( String namespace, ProtectionType readWrite,
+        String... authorities )
+    {
+        service.addProtection(
+            new KeyJsonNamespaceProtection( namespace, readWrite, true, authorities ) );
     }
 }

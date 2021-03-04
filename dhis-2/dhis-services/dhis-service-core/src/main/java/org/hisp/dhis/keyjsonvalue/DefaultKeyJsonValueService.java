@@ -206,8 +206,8 @@ public class DefaultKeyJsonValueService
         }
         else if ( currentUserHasAuthority( protection.getAuthorities() ) )
         {
-            // might also need to check ACL
-            if ( protection.isSharingUsed() )
+            // might also need to check sharing
+            if ( protection.isSharingRespected() )
             {
                 for ( KeyJsonValue entry : whenSharing.get() )
                 {

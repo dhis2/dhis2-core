@@ -30,38 +30,55 @@ package org.hisp.dhis.keyjsonvalue;
 import java.util.List;
 
 /**
+ * The {@link MetadataKeyJsonService} gives direct access to
+ * {@link KeyJsonValue}s in the {@link #METADATA_STORE_NS} namespace.
+ *
+ * In contract to the generic {@link KeyJsonValueService} this service is not
+ * restricted by {@link KeyJsonNamespaceProtection} rules. It is therefore only
+ * meant for internal use and should never be exposed in a REST API.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public interface MetadataKeyJsonService
 {
     /**
+     * Name of the namespace used for {@link KeyJsonValue} entries belonging to
+     * metadata entries.
+     */
+    String METADATA_STORE_NS = "METADATASTORE";
+
+    /**
      * The authority required to read/write entries in the
-     * {@link org.hisp.dhis.metadata.version.MetadataVersionService#METADATASTORE}
+     * {@link MetadataKeyJsonService#METADATA_STORE_NS}
      */
     String METADATA_SYNC_AUTHORITY = "METADATA_SYNC";
 
     /**
-     * Retrieves a KeyJsonValue based on a namespace and key.
+     * Retrieves an entry based key and {@link #METADATA_STORE_NS} namespace.
      *
      * @param key the key referencing the value.
-     * @return the KeyJsonValue matching the key and namespace.
+     * @return the entry matching the key or {@code null}
      */
     KeyJsonValue getMetaDataVersion( String key );
 
     /**
-     * Deletes a keyJsonValue.
+     * Deletes a entry.
      *
-     * @param keyJsonValue the KeyJsonValue to be deleted.
+     * @param entry the KeyJsonValue to be deleted.
+     * @throws IllegalArgumentException when the entry given does not use the
+     *         {@link #METADATA_STORE_NS} namespace.
      */
-    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
+    void deleteMetaDataKeyJsonValue( KeyJsonValue entry );
 
     /**
-     * Adds a new KeyJsonValue.
+     * Adds a new entry.
      *
-     * @param keyJsonValue the KeyJsonValue to be stored.
+     * @param entry the KeyJsonValue to be stored.
      * @return the id of the KeyJsonValue stored.
+     * @throws IllegalArgumentException when the entry given does not use the
+     *         {@link #METADATA_STORE_NS} namespace.
      */
-    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
+    long addMetaDataKeyJsonValue( KeyJsonValue entry );
 
     List<String> getAllVersions();
 }

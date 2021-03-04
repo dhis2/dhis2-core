@@ -74,7 +74,7 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     private MockHttpSession session;
 
-    private User adminUser;
+    private User superUser;
 
     private User currentUser;
 
@@ -88,7 +88,12 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
-        adminUser = switchToNewUser( null, "ALL" );
+        superUser = switchToNewUser( null, "ALL" );
+    }
+
+    protected final String getSuperuserUid()
+    {
+        return superUser.getUid();
     }
 
     protected final User getCurrentUser()
@@ -98,16 +103,16 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     protected final User switchToSuperuser()
     {
-        switchContextToUser( adminUser );
-        return adminUser;
+        switchContextToUser( superUser );
+        return superUser;
     }
 
     protected final User switchToNewUser( String username, String... authorities )
     {
-        if ( adminUser != null )
+        if ( superUser != null )
         {
             // we need to be an admin to be allowed to create user groups
-            switchContextToUser( adminUser );
+            switchContextToUser( superUser );
         }
         currentUser = currentUser == null
             ? createAdminUser( authorities )

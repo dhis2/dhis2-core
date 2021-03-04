@@ -37,8 +37,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -46,10 +44,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportService;
 import org.hisp.dhis.dxf2.metadata.MetadataWrapper;
 import org.hisp.dhis.dxf2.metadata.systemsettings.MetadataSystemSettingService;
 import org.hisp.dhis.dxf2.metadata.version.exception.MetadataVersionServiceException;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
-import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
-import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.keyjsonvalue.MetadataKeyJsonService;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.metadata.version.MetadataVersionService;
@@ -64,8 +59,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
- * Service implementation for the MetadataVersionService.
+ * Service implementation for the {@link MetadataVersionService}.
  *
  * @author aamerm
  */
@@ -93,7 +90,7 @@ public class DefaultMetadataVersionService
     public DefaultMetadataVersionService( MetadataVersionStore metadataVersionStore,
         MetadataExportService metadataExportService, MetadataKeyJsonService metaDataKeyJsonService,
         NodeService nodeService, MetadataSystemSettingService metadataSystemSettingService,
-        RenderService renderService, KeyJsonValueService keyJsonValueService )
+        RenderService renderService )
     {
         this.versionStore = metadataVersionStore;
         this.metadataExportService = metadataExportService;
@@ -101,9 +98,6 @@ public class DefaultMetadataVersionService
         this.nodeService = nodeService;
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.renderService = renderService;
-        keyJsonValueService.addProtection(
-            new KeyJsonNamespaceProtection( METADATASTORE, ProtectionType.HIDDEN, false,
-                MetadataKeyJsonService.METADATA_SYNC_AUTHORITY ) );
     }
 
     // -------------------------------------------------------------------------
@@ -309,7 +303,7 @@ public class DefaultMetadataVersionService
 
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( versionName );
-        keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
+        keyJsonValue.setNamespace( MetadataKeyJsonService.METADATA_STORE_NS );
 
         // MetadataWrapper is used to avoid Metadata keys reordering by jsonb
         // (jsonb does not preserve keys order)
