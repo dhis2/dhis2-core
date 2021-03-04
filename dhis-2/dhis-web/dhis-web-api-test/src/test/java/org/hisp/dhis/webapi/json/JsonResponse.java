@@ -29,7 +29,9 @@ package org.hisp.dhis.webapi.json;
 
 import java.io.Serializable;
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Proxy;
 import java.util.Arrays;
@@ -329,10 +331,14 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
                                 declaringClass )
                             .bindTo( proxy ).invokeWithArguments();
                     }
-                    return MethodHandles.lookup()
+                    Constructor<Lookup> constructor = Lookup.class
+                        .getDeclaredConstructor( Class.class );
+                    constructor.setAccessible( true );
+                    return constructor.newInstance( declaringClass )
                         .in( declaringClass )
                         .unreflectSpecial( method, declaringClass )
-                        .bindTo( proxy ).invokeWithArguments( args );
+                        .bindTo( proxy )
+                        .invokeWithArguments();
                 }
                 // call the same method on the wrapped object (assuming it has
                 // it)
