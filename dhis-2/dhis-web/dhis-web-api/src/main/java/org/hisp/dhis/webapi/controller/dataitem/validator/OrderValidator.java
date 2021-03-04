@@ -126,35 +126,35 @@ public class OrderValidator
      * @throws IllegalQueryException if some of the filters are not allowed with
      *         any order param.
      */
-    public static void checkOrderParamsAndFiltersAllowance( final Set<String> orderParams, final Set<String> filters )
-    {
-        if ( isNotEmpty( orderParams ) && isNotEmpty( filters ) )
-        {
-            for ( final String orderParam : orderParams )
-            {
-                final String[] orderAttributeValuePair = orderParam.split( ":" );
-                final String orderAttributeName = trimToEmpty( orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME] );
-
-                for ( final String filter : filters )
-                {
-                    final String[] array = filter.split( ":" );
-
-                    final String filterAttributeName = trimToEmpty( array[FILTER_ATTRIBUTE_NAME] );
-
-                    if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.DISPLAY_NAME.getName() )
-                        && trimToEmpty( filterAttributeName ).equalsIgnoreCase( Filter.Attribute.NAME.getName() ) )
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
-                    }
-
-                    if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.NAME.getName() )
-                        && trimToEmpty( filterAttributeName )
-                            .equalsIgnoreCase( Filter.Attribute.DISPLAY_NAME.getName() ) )
-                    {
-                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
-                    }
-                }
-            }
-        }
-    }
+//    public static void checkOrderParamsAndFiltersAllowance( final Set<String> orderParams, final Set<String> filters )
+//    {
+//        if ( isNotEmpty( orderParams ) && isNotEmpty( filters ) )
+//        {
+//            for ( final String orderParam : orderParams )
+//            {
+//                final String[] orderAttributeValuePair = orderParam.split( ":" );
+//                final String orderAttributeName = trimToEmpty( orderAttributeValuePair[ORDERING_ATTRIBUTE_NAME] );
+//
+//                for ( final String filter : filters )
+//                {
+//                    final String[] array = filter.split( ":" );
+//
+//                    final String filterAttributeName = trimToEmpty( array[FILTER_ATTRIBUTE_NAME] );
+//
+//                    if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.DISPLAY_NAME.getName() )
+//                        && trimToEmpty( filterAttributeName ).equalsIgnoreCase( Filter.Attribute.NAME.getName() ) )
+//                    {
+//                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
+//                    }
+//
+//                    if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.NAME.getName() )
+//                        && trimToEmpty( filterAttributeName )
+//                            .equalsIgnoreCase( Filter.Attribute.DISPLAY_NAME.getName() ) )
+//                    {
+//                        throw new IllegalQueryException( new ErrorMessage( E2036, orderParam + " + " + filter ) );
+//                    }
+//                }
+//            }
+//        }
+//    }
 }

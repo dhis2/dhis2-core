@@ -50,12 +50,14 @@ public class OrderingStatementTest
         // Given
         final String aGroupOfColumns = "anyColumn, otherColumn";
         final String otherGroupOfColumns = "anyColumn, otherColumn";
+        final String yetOtherColumns = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( DISPLAY_NAME_ORDER, "asc" );
         final String expectedStatement = " order by anyColumn asc, otherColumn asc";
 
         // When
-        final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, theParameterSource );
+        final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, yetOtherColumns, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -67,12 +69,14 @@ public class OrderingStatementTest
         // Given
         final String displayOrderingColumns = "anyColumn, anyColumn2";
         final String nameOrderingColumns = "otherColumn, otherColumn2";
+        final String yetOtherColumns = "yetAnotherColumn, otherColumn2";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc, otherColumn2 desc";
 
         // When
-        final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, yetOtherColumns, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -84,10 +88,12 @@ public class OrderingStatementTest
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, noParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
+            noParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -99,10 +105,12 @@ public class OrderingStatementTest
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource nullParameterSource = null;
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, nullParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
+            nullParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -114,11 +122,13 @@ public class OrderingStatementTest
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, null );
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -130,11 +140,13 @@ public class OrderingStatementTest
         // Given
         final String displayOrderingColumn = "anyColumn";
         final String nameOrderingColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, EMPTY );
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -146,12 +158,13 @@ public class OrderingStatementTest
         // Given
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc";
 
         // When
-        final String actualStatement = ordering( aNullColumn, otherColumn, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, null, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -163,12 +176,14 @@ public class OrderingStatementTest
         // Given
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "desc" );
         final String expectedStatement = " order by otherColumn desc";
 
         // When
-        final String actualStatement = ordering( anEmptyColumn, otherColumn, theParameterSource );
+        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -180,12 +195,13 @@ public class OrderingStatementTest
         // Given
         final String aNullColumn = null;
         final String otherColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( DISPLAY_NAME_ORDER, "asc" );
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( aNullColumn, otherColumn, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, null, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -197,12 +213,14 @@ public class OrderingStatementTest
         // Given
         final String anEmptyColumn = EMPTY;
         final String otherColumn = "otherColumn";
+        final String yetAnotherColumn = "yetAnotherColumn";
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( DISPLAY_NAME_ORDER, "asc" );
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( anEmptyColumn, otherColumn, theParameterSource );
+        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, null,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -213,13 +231,12 @@ public class OrderingStatementTest
     {
         // Given
         final String aNullColumn = null;
-        final String anotherNullColumn = null;
         final MapSqlParameterSource theParameterSource = new MapSqlParameterSource()
             .addValue( NAME_ORDER, "desc" );
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( aNullColumn, anotherNullColumn, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, aNullColumn, aNullColumn, null, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );

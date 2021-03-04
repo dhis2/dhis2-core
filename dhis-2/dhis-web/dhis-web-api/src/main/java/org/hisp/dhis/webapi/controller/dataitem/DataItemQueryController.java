@@ -35,7 +35,6 @@ import static org.hisp.dhis.feedback.ErrorCode.E3012;
 import static org.hisp.dhis.node.NodeUtils.createMetadata;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.checkNamesAndOperators;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
@@ -148,7 +147,7 @@ public class DataItemQueryController
 
         checkNamesAndOperators( filters );
         checkOrderParams( orderParams.getOrders() );
-        checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
+        //checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
