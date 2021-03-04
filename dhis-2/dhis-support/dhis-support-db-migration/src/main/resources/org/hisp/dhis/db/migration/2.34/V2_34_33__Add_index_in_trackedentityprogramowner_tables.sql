@@ -1,0 +1,1 @@
+create unique index if not exists in_trackedentityprogramowner_teiid_programid_ouid on trackedentityprogramowner (trackedentityinstanceid,programid,organisationunitid);
