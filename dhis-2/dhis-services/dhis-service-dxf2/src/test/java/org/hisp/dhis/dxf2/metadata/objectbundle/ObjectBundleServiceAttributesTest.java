@@ -280,13 +280,16 @@ public class ObjectBundleServiceAttributesTest
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
 
-        attributeService.addAttributeValue( de1, attributeValue1 );
-        attributeService.addAttributeValue( de2, attributeValue2 );
-        attributeService.addAttributeValue( de3, attributeValue3 );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
+        transactionTemplate.execute( status -> {
+            manager.save( de1 );
+            manager.save( de2 );
+            manager.save( de3 );
+            attributeService.addAttributeValue( de1, attributeValue1 );
+            attributeService.addAttributeValue( de2, attributeValue2 );
+            attributeService.addAttributeValue( de3, attributeValue3 );
+            manager.clear();
+            return null;
+        } );
 
         User user = createUser( 'A' );
         manager.save( user );
