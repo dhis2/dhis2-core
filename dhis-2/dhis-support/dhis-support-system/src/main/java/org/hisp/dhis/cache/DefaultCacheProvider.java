@@ -51,7 +51,7 @@ public class DefaultCacheProvider implements CacheProvider
 {
     private static final long SIZE_1 = 1;
 
-    private static final long SIZE_100 = 1_000;
+    private static final long SIZE_100 = 100;
 
     private static final long SIZE_1K = 1_000;
 
