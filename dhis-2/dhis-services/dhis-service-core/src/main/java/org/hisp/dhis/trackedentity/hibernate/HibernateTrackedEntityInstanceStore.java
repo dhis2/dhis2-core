@@ -385,7 +385,7 @@ public class HibernateTrackedEntityInstanceStore
         String sql = getQuery( params );
         log.info( "Tracked entity instance query SQL: " + sql );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-       
+
         if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
         {
             if ( rowSet.getRow() > params.getMaxTeiLimit() )
@@ -626,8 +626,8 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.inactive, " )
             .append( "TEI.trackedentitytypeid, " )
             .append( "TEI.deleted, " )
-            .append( "OU.ou, " )
-            .append( "OU.ouname " )
+            .append( "OU.uid as ou, " )
+            .append( "OU.name as ouname " )
             .append( getFromSubQueryOrderAttributes( params ) )
             .toString();
     }
@@ -656,7 +656,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
-                .append( "trackedentitytypeid = " )
+                .append( "TEI.trackedentitytypeid = " )
                 .append( params.getTrackedEntityType().getId() )
                 .append( " " );
         }
@@ -664,7 +664,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
-                .append( "trackedentitytypeid IN (" )
+                .append( "TEI.trackedentitytypeid IN (" )
                 .append( getCommaDelimitedString( getIdentifiers( params.getTrackedEntityTypes() ) ) )
                 .append( ") " );
         }
@@ -673,7 +673,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
-                .append( "uid IN (" )
+                .append( "TEI.uid IN (" )
                 .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
@@ -682,7 +682,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )
-                .append( "deleted IS FALSE " );
+                .append( "TEI.deleted IS FALSE " );
         }
 
         return trackedEntity.toString();
@@ -829,11 +829,6 @@ public class HibernateTrackedEntityInstanceStore
 
         params.handleOrganisationUnits();
 
-        if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
-        {
-            return "";
-        }
-
         orgUnits
             .append( "INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
@@ -856,7 +851,7 @@ public class HibernateTrackedEntityInstanceStore
 
             orgUnits.append( ") " );
         }
-        else
+        else if ( !params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
         {
             orgUnits
                 .append( "AND OU.organisationunitid IN (" )
@@ -867,7 +862,8 @@ public class HibernateTrackedEntityInstanceStore
         return orgUnits.toString();
     }
 
-    private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
+        TrackedEntityInstanceQueryParams params )
     {
         StringBuilder program = new StringBuilder();
 
