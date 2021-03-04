@@ -167,7 +167,7 @@ public class SqlHelper
 
     public String onAnd()
     {
-        final String str = onAndInvoked ? "on" : "and";
+        final String str = onAndInvoked ? "and" : "on";
 
         onAndInvoked = true;
 

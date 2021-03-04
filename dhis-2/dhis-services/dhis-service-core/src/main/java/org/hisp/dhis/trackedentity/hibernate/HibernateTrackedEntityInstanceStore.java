@@ -394,7 +394,7 @@ public class HibernateTrackedEntityInstanceStore
             }
             rowSet.beforeFirst();
         }
-        
+
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )
@@ -590,6 +590,7 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getFromSubQuery( TrackedEntityInstanceQueryParams params )
     {
+        SqlHelper whereAnd = new SqlHelper( true );
         return new StringBuilder()
             .append( "(" )
             .append( getFromSubQuerySelect( params ) )
@@ -601,9 +602,9 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
 
             // WHERE
-            .append( getFromSubQueryTrackedEntityConditions( params ) )
-            .append( getFromSubQueryProgramInstanceConditions( params ) )
-            .append( getFromSubQueryAttributeConditions( params ) )
+            .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
+            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) )
+            .append( getFromSubQueryAttributeConditions( whereAnd, params ) )
 
             // SORT
             .append( getFromSubQueryOrderBy( params ) )
@@ -647,15 +648,14 @@ public class HibernateTrackedEntityInstanceStore
         return orderAttributes.toString();
     }
 
-    private String getFromSubQueryTrackedEntityConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryTrackedEntityConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
     {
         StringBuilder trackedEntity = new StringBuilder();
-        SqlHelper onAnd = new SqlHelper( true );
 
         if ( params.hasTrackedEntityType() )
         {
             trackedEntity
-                .append( onAnd.onAnd() )
+                .append( whereAnd.whereAnd() )
                 .append( "trackedentitytypeid = " )
                 .append( params.getTrackedEntityType().getId() )
                 .append( " " );
@@ -663,7 +663,7 @@ public class HibernateTrackedEntityInstanceStore
         else
         {
             trackedEntity
-                .append( onAnd.onAnd() )
+                .append( whereAnd.whereAnd() )
                 .append( "trackedentitytypeid IN (" )
                 .append( getCommaDelimitedString( getIdentifiers( params.getTrackedEntityTypes() ) ) )
                 .append( ") " );
@@ -672,7 +672,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasTrackedEntityInstances() )
         {
             trackedEntity
-                .append( onAnd.onAnd() )
+                .append( whereAnd.whereAnd() )
                 .append( "uid IN (" )
                 .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
@@ -681,15 +681,14 @@ public class HibernateTrackedEntityInstanceStore
         if ( !params.isIncludeDeleted() )
         {
             trackedEntity
-                .append( onAnd.onAnd() )
-                .append( "deleted IS FALSE " )
-                .append( ") TEI " );
+                .append( whereAnd.whereAnd() )
+                .append( "deleted IS FALSE " );
         }
 
         return trackedEntity.toString();
     }
 
-    private String getFromSubQueryAttributeConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -713,6 +712,7 @@ public class HibernateTrackedEntityInstanceStore
         {
 
             attributes
+                .append( whereAnd.whereAnd() )
                 .append( "EXISTS (" )
                 .append( "SELECT trackedentityinstanceid " )
                 .append( "FROM trackedentityattributevalue" );
@@ -819,7 +819,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "INNER JOIN trackedentityprogramowner PO " )
             .append( "ON PO.programid = " )
             .append( params.getProgram().getId() )
-            .append( "AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( " AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .toString();
     }
 
@@ -867,7 +867,7 @@ public class HibernateTrackedEntityInstanceStore
         return orgUnits.toString();
     }
 
-    private String getFromSubQueryProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
     {
         StringBuilder program = new StringBuilder();
 
@@ -877,6 +877,7 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         program
+            .append( whereAnd.whereAnd() )
             .append( "EXISTS (" )
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
