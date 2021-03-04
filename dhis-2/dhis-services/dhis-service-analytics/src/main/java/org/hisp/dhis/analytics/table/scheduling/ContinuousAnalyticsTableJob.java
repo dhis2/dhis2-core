@@ -100,16 +100,15 @@ public class ContinuousAnalyticsTableJob
         Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
             defaultNextFullUpdate );
 
-        log.info( "Now: '%s', default next full update: '%s', next full update: '%s'",
+        log.info(
+            "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
             getLongDateString( now ), getLongDateString( defaultNextFullUpdate ), getLongDateString( nextFullUpdate ) );
 
         Preconditions.checkNotNull( nextFullUpdate );
 
         if ( now.after( nextFullUpdate ) )
         {
-            log.info( String.format(
-                "Performing full analytics table update, current time: %s, next full update was: %s",
-                getLongDateString( now ), getLongDateString( nextFullUpdate ) ) );
+            log.info( "Performing full analytics table update" );
 
             AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
                 .withLastYears( parameters.getLastYears() )
@@ -127,7 +126,7 @@ public class ContinuousAnalyticsTableJob
             {
                 Date nextUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
                 systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate );
-                log.info( String.format( "Next full analytics table update: %s", getLongDateString( nextUpdate ) ) );
+                log.info( "Next full analytics table update: '{}'", getLongDateString( nextUpdate ) );
             }
         }
         else
