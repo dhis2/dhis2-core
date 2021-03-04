@@ -49,6 +49,8 @@ public class SqlHelper
 
     private boolean andInvoked = false;
 
+    private boolean onAndInvoked = false;
+
     public SqlHelper()
     {
     }
@@ -159,6 +161,15 @@ public class SqlHelper
         final String str = andOrInvoked ? "or" : "and";
 
         andOrInvoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
+
+    public String onAnd()
+    {
+        final String str = onAndInvoked ? "on" : "and";
+
+        onAndInvoked = true;
 
         return includeSpaces ? " " + str + " " : str;
     }

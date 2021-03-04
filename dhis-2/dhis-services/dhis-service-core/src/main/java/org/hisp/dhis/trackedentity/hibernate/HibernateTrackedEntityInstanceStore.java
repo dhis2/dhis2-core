@@ -58,7 +58,6 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Objects;
 import java.util.function.Function;
@@ -567,7 +566,7 @@ public class HibernateTrackedEntityInstanceStore
         return new StringBuilder()
             .append( getQuerySelect( params ) )
             .append( "FROM " )
-            .append( getQueryFromSubQuery( params ) )
+            .append( getFromSubQuery( params ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
             .toString();
@@ -589,28 +588,46 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
-    private String getQueryFromSubQuery( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQuery( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
             .append( "(" )
-            .append( "SELECT TEI.trackedentityinstanceid, " )
+            .append( getFromSubQuerySelect( params ) )
+            .append( "FROM trackedentityinstance TEI " )
+
+            // INNER JOIN on constraints
+            .append( getFromSubQueryJoinProgramOwner( params ) )
+            .append( getFromSubQueryJoinOrgUnit( params ) )
+            .append( getFromSubQueryJoinOrderByAttributes( params ) )
+
+            // WHERE
+            .append( getFromSubQueryTrackedEntityConditions( params ) )
+            .append( getFromSubQueryProgramInstanceConditions( params ) )
+            .append( getFromSubQueryAttributeConditions( params ) )
+
+            // SORT
+            .append( getFromSubQueryOrderBy( params ) )
+
+            // LIMIT, OFFSET
+            .append( getFromSubQueryLimitAndOffset( params ) )
+            .append( ") TEI " )
+            .toString();
+    }
+
+    private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
+    {
+        return new StringBuilder()
+            .append( "SELECT " )
+            .append( "TEI.trackedentityinstanceid, " )
             .append( "TEI.uid, " )
             .append( "TEI.created, " )
             .append( "TEI.lastupdated, " )
             .append( "TEI.inactive, " )
             .append( "TEI.trackedentitytypeid, " )
             .append( "TEI.deleted, " )
-            .append( "ou, " )
-            .append( "ouname " )
+            .append( "OU.ou, " )
+            .append( "OU.ouname " )
             .append( getQueryFromSubQueryOrderAttributes( params ) )
-            .append( getQueryFromSubQueryTrackedEntity( params ) )
-            .append( getQueryFromSubQueryAttributes( params ) )
-            .append( getQueryFromSubQueryProgramOrOrgUnit( params ) )
-            .append( getQueryFromSubQueryProgram( params ) )
-            .append( getFromSubQueryGroupBy( params ) )
-            .append( getQuerySubQueryOrder( params ) )
-            .append( getQuerySubQueryLimitAndOffset( params ) )
-            .append( ") TEI " )
             .toString();
     }
 
@@ -630,26 +647,24 @@ public class HibernateTrackedEntityInstanceStore
         return orderAttributes.toString();
     }
 
-    private String getQueryFromSubQueryTrackedEntity( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryTrackedEntityConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder trackedEntity = new StringBuilder();
-
-        trackedEntity
-            .append( "FROM (" )
-            .append( "SELECT * " )
-            .append( "FROM trackedentityinstance " );
+        SqlHelper onAnd = new SqlHelper( true );
 
         if ( params.hasTrackedEntityType() )
         {
             trackedEntity
-                .append( "WHERE trackedentitytypeid = " )
+                .append( onAnd.onAnd() )
+                .append( "trackedentitytypeid = " )
                 .append( params.getTrackedEntityType().getId() )
                 .append( " " );
         }
         else
         {
             trackedEntity
-                .append( "WHERE trackedentitytypeid IN (" )
+                .append( onAnd.onAnd() )
+                .append( "trackedentitytypeid IN (" )
                 .append( getCommaDelimitedString( getIdentifiers( params.getTrackedEntityTypes() ) ) )
                 .append( ") " );
         }
@@ -657,7 +672,8 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasTrackedEntityInstances() )
         {
             trackedEntity
-                .append( "AND uid IN (" )
+                .append( onAnd.onAnd() )
+                .append( "uid IN (" )
                 .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
                 .append( ") " );
         }
@@ -665,14 +681,15 @@ public class HibernateTrackedEntityInstanceStore
         if ( !params.isIncludeDeleted() )
         {
             trackedEntity
-                .append( "AND deleted IS FALSE " )
+                .append( onAnd.onAnd() )
+                .append( "deleted IS FALSE " )
                 .append( ") TEI " );
         }
 
         return trackedEntity.toString();
     }
 
-    private String getQueryFromSubQueryAttributes( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryAttributeConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -696,7 +713,7 @@ public class HibernateTrackedEntityInstanceStore
         {
 
             attributes
-                .append( "INNER JOIN (" )
+                .append( "EXISTS (" )
                 .append( "SELECT trackedentityinstanceid " )
                 .append( "FROM trackedentityattributevalue" );
 
@@ -723,8 +740,6 @@ public class HibernateTrackedEntityInstanceStore
 
                     attributes.append( ")" );
                 }
-
-                attributes.append( ") TEAV ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid " );
             }
             else
             {
@@ -764,14 +779,14 @@ public class HibernateTrackedEntityInstanceStore
                     attributes.append( "))" );
                 }
             }
-        }
 
-        attributes.append( getQueryFromSubQueryJoinOrderAttributes( params ) );
+            attributes.append( ") " );
+        }
 
         return attributes.toString();
     }
 
-    private String getQueryFromSubQueryJoinOrderAttributes( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinOrderByAttributes( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder joinOrderAttributes = new StringBuilder();
 
@@ -793,61 +808,42 @@ public class HibernateTrackedEntityInstanceStore
         return joinOrderAttributes.toString();
     }
 
-    private String getQueryFromSubQueryProgramOrOrgUnit( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinProgramOwner( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasProgram() )
+        if ( !params.hasProgram() )
         {
-            return getQueryFromSubQueryProgramOwnership( params );
+            return "";
         }
-        else
-        {
-            return getQueryFromSubQueryNoProgramOwnership( params );
-        }
-    }
 
-    private String getQueryFromSubQueryProgramOwnership( TrackedEntityInstanceQueryParams params )
-    {
         return new StringBuilder()
-            .append( "INNER JOIN (" )
-            .append( "SELECT PO.trackedentityinstanceid, " )
-            .append( "OU.uid as ou, " )
-            .append( "OU.name as ouname " )
-            .append( "FROM trackedentityprogramowner PO " )
-            .append( "INNER JOIN organisationunit OU ON OU.organisationunitid = PO.organisationunitid " )
-            .append( "WHERE PO.programid = " )
+            .append( "INNER JOIN trackedentityprogramowner PO " )
+            .append( "ON PO.programid = " )
             .append( params.getProgram().getId() )
-            .append( " " )
-            .append( getQueryFromSubQueryOrgUnit( "AND", params ) )
-            .append( ")" )
-            .append( "PO ON PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( "AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .toString();
     }
 
-    private String getQueryFromSubQueryNoProgramOwnership( TrackedEntityInstanceQueryParams params )
-    {
-        return new StringBuilder()
-            .append( "INNER JOIN (" )
-            .append( "SELECT organisationunitid, " )
-            .append( "uid AS ou, " )
-            .append( "name AS ouname " )
-            .append( "FROM organisationunit OU " )
-            .append( getQueryFromSubQueryOrgUnit( "WHERE", params ) )
-            .append( ") OU ON OU.organisationunitid = TEI.organisationunitid " )
-            .toString();
-    }
-
-    private String getQueryFromSubQueryOrgUnit( String whereOrAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinOrgUnit( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder orgUnits = new StringBuilder();
 
         params.handleOrganisationUnits();
 
+        if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
+        {
+            return "";
+        }
+
+        orgUnits
+            .append( "INNER JOIN organisationunit OU " )
+            .append( "ON OU.organisationunitid = " )
+            .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
+
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
         {
             SqlHelper orHlp = new SqlHelper( true );
-            orgUnits
-                .append( whereOrAnd )
-                .append( " (" );
+
+            orgUnits.append( "AND (" );
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
@@ -860,11 +856,10 @@ public class HibernateTrackedEntityInstanceStore
 
             orgUnits.append( ") " );
         }
-        else if ( !params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
+        else
         {
             orgUnits
-                .append( whereOrAnd )
-                .append( " OU.organisationunitid IN (" )
+                .append( "AND OU.organisationunitid IN (" )
                 .append( getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) )
                 .append( ") " );
         }
@@ -872,7 +867,7 @@ public class HibernateTrackedEntityInstanceStore
         return orgUnits.toString();
     }
 
-    private String getQueryFromSubQueryProgram( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder program = new StringBuilder();
 
@@ -882,17 +877,18 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         program
-            .append( "INNER JOIN (" )
+            .append( "EXISTS (" )
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
 
         if ( params.hasFilterForEvents() )
         {
-            program.append( getQueryFromSubQueryProgramEvents( params ) );
+            program.append( getFromSubQueryProgramStageInstance( params ) );
         }
 
         program
-            .append( "WHERE PI.programid = " )
+            .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( "AND PI.programid = " )
             .append( params.getProgram().getId() )
             .append( " " );
 
@@ -949,12 +945,12 @@ public class HibernateTrackedEntityInstanceStore
             program.append( "AND PI.deleted is false " );
         }
 
-        program.append( ") PI ON PI.trackedentityinstanceid = TEI.trackedentityinstanceid " );
+        program.append( ") " );
 
         return program.toString();
     }
 
-    private String getQueryFromSubQueryProgramEvents( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryProgramStageInstance( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder events = new StringBuilder();
         SqlHelper whereHlp = new SqlHelper( true );
@@ -1122,31 +1118,7 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
-    private String getFromSubQueryGroupBy( TrackedEntityInstanceQueryParams params )
-    {
-        StringBuilder order = new StringBuilder()
-            .append( "GROUP BY TEI.trackedentityinstanceid, " )
-            .append( "TEI.uid, " )
-            .append( "TEI.created, " )
-            .append( "TEI.lastupdated, " )
-            .append( "TEI.inactive, " )
-            .append( "TEI.trackedentitytypeid, " )
-            .append( "TEI.deleted, " )
-            .append( "ou, " )
-            .append( "ouname " );
-
-        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
-        {
-            order
-                .append( ", " )
-                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
-                .append( ".value" );
-        }
-
-        return order.append( " " ).toString();
-    }
-
-    private String getQuerySubQueryOrder( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryOrderBy( TrackedEntityInstanceQueryParams params )
     {
         List<String> cols = getStaticGridColumns();
 
@@ -1206,7 +1178,7 @@ public class HibernateTrackedEntityInstanceStore
         return Lists.newArrayList();
     }
 
-    private String getQuerySubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = 0;
