@@ -597,6 +597,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "FROM trackedentityinstance TEI " )
 
             // INNER JOIN on constraints
+            .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
             .append( getFromSubQueryJoinProgramOwner( params ) )
             .append( getFromSubQueryJoinOrgUnit( params ) )
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
@@ -604,7 +605,6 @@ public class HibernateTrackedEntityInstanceStore
             // WHERE
             .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
             .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) )
-            .append( getFromSubQueryAttributeConditions( whereAnd, params ) )
 
             // SORT
             .append( getFromSubQueryOrderBy( params ) )
@@ -688,7 +688,7 @@ public class HibernateTrackedEntityInstanceStore
         return trackedEntity.toString();
     }
 
-    private String getFromSubQueryAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -712,8 +712,7 @@ public class HibernateTrackedEntityInstanceStore
         {
 
             attributes
-                .append( whereAnd.whereAnd() )
-                .append( "EXISTS (" )
+                .append( "INNER JOIN (" )
                 .append( "SELECT trackedentityinstanceid " )
                 .append( "FROM trackedentityattributevalue" );
 
@@ -780,7 +779,7 @@ public class HibernateTrackedEntityInstanceStore
                 }
             }
 
-            attributes.append( ") " );
+            attributes.append( ") TEAV ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid " );
         }
 
         return attributes.toString();
