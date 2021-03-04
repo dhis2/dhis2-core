@@ -38,15 +38,13 @@ import java.util.Objects;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.preheat.UniqueAttributeValue;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 
 /**
  * @author Luciano Fiandesio
@@ -54,17 +52,10 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 public abstract class AttributeValidationHook extends AbstractTrackerDtoValidationHook
 {
 
-    private final TrackedEntityAttributeService teAttrService;
+    private final TrackedAttributeValidationService teAttrService;
 
-    public AttributeValidationHook( TrackedEntityAttributeService teAttrService )
+    public AttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
-        this.teAttrService = teAttrService;
-    }
-
-    public <T extends TrackerDto> AttributeValidationHook( TrackerImportStrategy strategy,
-        TrackedEntityAttributeService teAttrService )
-    {
-        super( strategy );
         this.teAttrService = teAttrService;
     }
 

@@ -56,7 +56,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -68,6 +67,7 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
@@ -80,7 +80,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
 
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
-    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
+    public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( teAttrService );

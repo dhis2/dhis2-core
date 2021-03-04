@@ -220,7 +220,6 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void successWhenTeaOptionValueIsValid()
     {
-        tea.setValueType( ValueType.TEXT );
         tea.setUid( "uid" );
 
         OptionSet optionSet = new OptionSet();
@@ -239,7 +238,6 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void failWhenTeaOptionValueIsNotValid()
     {
-        tea.setValueType( ValueType.TEXT );
         tea.setUid( "uid" );
 
         OptionSet optionSet = new OptionSet();
@@ -258,9 +256,7 @@ public class TrackedEntityAttributeServiceTest
     @Test
     public void doNothingWhenTeaOptionValueIsNull()
     {
-        tea.setValueType( ValueType.TEXT );
         tea.setUid( "uid" );
-
         assertNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );
     }
 }
