@@ -386,7 +386,16 @@ public class HibernateTrackedEntityInstanceStore
         String sql = getQuery( params );
         log.info( "Tracked entity instance query SQL: " + sql );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
+       
+        if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
+        {
+            if ( rowSet.getRow() > params.getMaxTeiLimit() )
+            {
+                throw new IllegalQueryException( "maxteicountreached" );
+            }
+            rowSet.beforeFirst();
+        }
+        
         List<Map<String, String>> list = new ArrayList<>();
 
         while ( rowSet.next() )

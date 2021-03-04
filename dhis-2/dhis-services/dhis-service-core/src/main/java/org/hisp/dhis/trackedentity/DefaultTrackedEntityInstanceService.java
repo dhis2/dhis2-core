@@ -787,6 +787,130 @@ public class DefaultTrackedEntityInstanceService
             }
         }
     }
+    
+    @Override
+    @Transactional( readOnly = true )
+    public void validateSearchScopeV2( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
+        throws IllegalQueryException
+    {
+        if ( params == null )
+        {
+            throw new IllegalQueryException( "Params cannot be null" );
+        }
+
+        User user = currentUserService.getCurrentUser();
+
+        if ( user == null )
+        {
+            throw new IllegalQueryException( "User cannot be null" );
+        }
+
+        if ( user.getOrganisationUnits().isEmpty() )
+        {
+            throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
+        }
+
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters()
+            && !params.hasOrganisationUnits() )
+        {
+            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
+                .map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+
+            for ( String att : params.getAttributeAndFilterIds() )
+            {
+                if ( !uniqeAttributeIds.contains( att ) )
+                {
+                    throw new IllegalQueryException( "Either a program or tracked entity type must be specified" );
+                }
+            }
+        }
+
+        if ( !isLocalSearch( params, user ) )
+        {
+            int maxTeiLimit = 0; // no limit
+
+            if ( params.hasQuery() )
+            {
+                throw new IllegalQueryException( "Query cannot be used during global search" );
+            }
+
+            if ( params.hasProgram() && params.hasTrackedEntityType() )
+            {
+                throw new IllegalQueryException( "Program and tracked entity cannot be specified simultaneously" );
+            }
+
+            if ( params.hasAttributesOrFilters() )
+            {
+                List<String> searchableAttributeIds = new ArrayList<>();
+
+                if ( params.hasProgram() )
+                {
+                    searchableAttributeIds.addAll( params.getProgram().getSearchableAttributeIds() );
+                }
+
+                if ( params.hasTrackedEntityType() )
+                {
+                    searchableAttributeIds.addAll( params.getTrackedEntityType().getSearchableAttributeIds() );
+                }
+
+                if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+                {
+                    searchableAttributeIds.addAll( attributeService.getAllSystemWideUniqueTrackedEntityAttributes()
+                        .stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() ) );
+                }
+
+                List<String> violatingAttributes = new ArrayList<>();
+
+                for ( String attributeId : params.getAttributeAndFilterIds() )
+                {
+                    if ( !searchableAttributeIds.contains( attributeId ) )
+                    {
+                        violatingAttributes.add( attributeId );
+                    }
+                }
+
+                if ( !violatingAttributes.isEmpty() )
+                {
+                    throw new IllegalQueryException(
+                        "Non-searchable attribute(s) can not be used during global search:  "
+                            + violatingAttributes.toString() );
+                }
+            }
+
+            if ( params.hasProgram() )
+            {
+                maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
+
+                if ( isProgramMinAttributesViolated( params ) )
+                {
+                    throw new IllegalQueryException(
+                        "At least " + params.getProgram().getMinAttributesRequiredToSearch()
+                            + " attributes should be mentioned in the search criteria." );
+                }
+            }
+
+            if ( params.hasTrackedEntityType() )
+            {
+                maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
+
+                if ( isTeTypeMinAttributesViolated( params ) )
+                {
+                    throw new IllegalQueryException(
+                        "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
+                            + " attributes should be mentioned in the search criteria." );
+                }
+            }
+            
+            if ( maxTeiLimit > 0 && params.isPaging()
+                && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
+            {
+                throw new IllegalQueryException(
+                    "Paging parameter exceeds max tei limit." );
+            }
+
+            params.setMaxTeiLimit( maxTeiLimit );
+        }
+    }
 
     private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {

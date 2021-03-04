@@ -223,6 +223,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+    
+    /**
+     * Indicates if there is a maximum tei retrieval limit. 0 or null means no limit.
+     */
+    private int maxTeiLimit;
 
     /**
      * Indicates whether to include soft-deleted elements
@@ -1083,6 +1088,17 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
+        return this;
+    }
+    
+    public int getMaxTeiLimit()
+    {
+        return maxTeiLimit;
+    }
+
+    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    {
+        this.maxTeiLimit = maxTeiLimit;
         return this;
     }
 
