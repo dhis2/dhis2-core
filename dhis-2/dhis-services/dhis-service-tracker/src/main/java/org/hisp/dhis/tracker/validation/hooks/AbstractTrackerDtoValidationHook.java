@@ -175,7 +175,7 @@ public abstract class AbstractTrackerDtoValidationHook
         Optional.ofNullable( optionalObject.getOptionSet() )
             .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream()
                 .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
-                optionalObject.getUid(),
+                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
                 optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
                     .collect( Collectors.joining( "," ) ) ) );
     }
