@@ -49,6 +49,15 @@ import org.springframework.stereotype.Component;
 @Component( "defaultCacheProvider" )
 public class DefaultCacheProvider implements CacheProvider
 {
+    private static final long SIZE_1 = 1;
+
+    private static final long SIZE_100 = 1_000;
+
+    private static final long SIZE_1K = 1_000;
+
+    private static final long SIZE_10K = 10_000;
+
+    private static final long SIZE_20K = 20_000;
 
     /**
      * Enum is used to make sure we do not use same region twice. Each method
@@ -89,7 +98,7 @@ public class DefaultCacheProvider implements CacheProvider
 
     private final Environment environment;
 
-    private int orZeroInTestRun( int value )
+    private long orZeroInTestRun( long value )
     {
         return isTestRun( environment.getActiveProfiles() ) ? 0 : value;
     }
@@ -105,7 +114,7 @@ public class DefaultCacheProvider implements CacheProvider
         return this.<V> newBuilder()
             .forRegion( Region.analyticsResponse.name() )
             .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -117,15 +126,20 @@ public class DefaultCacheProvider implements CacheProvider
             .build();
     }
 
+    /**
+     * Cache for default objects such as default category combination and
+     * default category option combination which are permanent and will never
+     * change.
+     */
     @Override
     public <V> Cache<V> createDefaultObjectCache()
     {
         return this.<V> newBuilder()
             .forRegion( Region.defaultObjectCache.name() )
-            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .expireAfterAccess( 12, TimeUnit.HOURS )
             .withInitialCapacity( 4 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_100 ) )
             .build();
     }
 
@@ -134,8 +148,8 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.isDataApproved.name() )
-            .expireAfterAccess( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -144,7 +158,7 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.allConstantsCache.name() )
-            .expireAfterAccess( 2, TimeUnit.MINUTES )
+            .expireAfterWrite( 2, TimeUnit.MINUTES )
             .withInitialCapacity( 1 )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( 1 ) )
@@ -159,7 +173,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -171,7 +185,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -183,7 +197,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -195,7 +209,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 24, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -225,7 +239,7 @@ public class DefaultCacheProvider implements CacheProvider
         return this.<V> newBuilder()
             .forRegion( Region.programOwner.name() )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( 1000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
             .build();
     }
 
@@ -235,19 +249,19 @@ public class DefaultCacheProvider implements CacheProvider
         return this.<V> newBuilder()
             .forRegion( Region.programTempOwner.name() )
             .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( 4000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
     @Override
-    public <V> Cache<V> createUserIdCacheCache()
+    public <V> Cache<V> createUserIdCache()
     {
         return this.<V> newBuilder()
             .forRegion( Region.userIdCache.name() )
-            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 4000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -258,6 +272,7 @@ public class DefaultCacheProvider implements CacheProvider
             .forRegion( Region.currentUserGroupInfoCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -267,7 +282,7 @@ public class DefaultCacheProvider implements CacheProvider
         return this.<V> newBuilder()
             .forRegion( Region.userSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -279,7 +294,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -289,10 +304,14 @@ public class DefaultCacheProvider implements CacheProvider
         return this.<V> newBuilder()
             .forRegion( Region.systemSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 400 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
             .build();
     }
 
+    /**
+     * Cache for Google API access tokens. Expiration is set to 10 minutes after
+     * access to match the expiration of Google service tokens.
+     */
     @Override
     public <V> Cache<V> createGoogleAccessTokenCache()
     {
@@ -311,7 +330,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -322,7 +341,7 @@ public class DefaultCacheProvider implements CacheProvider
             .forRegion( Region.metadataAttributes.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
             .build();
     }
 
@@ -334,7 +353,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -343,10 +362,10 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.analyticsSql.name() )
-            .expireAfterAccess( 10, TimeUnit.HOURS )
+            .expireAfterWrite( 10, TimeUnit.HOURS )
             .withInitialCapacity( 10000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 50000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -355,10 +374,10 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.dataElementCache.name() )
-            .expireAfterAccess( 60, TimeUnit.MINUTES )
+            .expireAfterWrite( 60, TimeUnit.MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 50000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -367,10 +386,10 @@ public class DefaultCacheProvider implements CacheProvider
     {
         return this.<V> newBuilder()
             .forRegion( Region.propertyTransformerCache.name() )
-            .expireAfterAccess( 12, TimeUnit.HOURS )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
             .withInitialCapacity( 20 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 30000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
             .build();
     }
 
@@ -382,7 +401,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 20 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 1000 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
             .build();
     }
 }
