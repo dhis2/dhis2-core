@@ -359,7 +359,7 @@ public class DefaultTrackedEntityInstanceService
     {
         decideAccess( params );
         validate( params );
-        validateSearchScope( params, true );
+        validateSearchScopeV2( params, true );
         handleAttributes( params );
 
         // ---------------------------------------------------------------------
