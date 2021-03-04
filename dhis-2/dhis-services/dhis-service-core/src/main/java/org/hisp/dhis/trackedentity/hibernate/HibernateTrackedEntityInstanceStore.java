@@ -627,11 +627,11 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.deleted, " )
             .append( "OU.ou, " )
             .append( "OU.ouname " )
-            .append( getQueryFromSubQueryOrderAttributes( params ) )
+            .append( getFromSubQueryOrderAttributes( params ) )
             .toString();
     }
 
-    private String getQueryFromSubQueryOrderAttributes( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryOrderAttributes( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder orderAttributes = new StringBuilder();
 
