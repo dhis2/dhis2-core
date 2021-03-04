@@ -178,11 +178,15 @@ public class DefaultTrackerObjectsDeletionService
                 return typeReport;
             }
 
+            ProgramInstance programInstance = programStageInstance.getProgramInstance();
+
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+                programInstance.getProgramStageInstances().remove( programStageInstance );
+                programInstanceService.updateProgramInstance( programInstance );
             }
 
             typeReport.addObjectReport( trackerObjectReport );
