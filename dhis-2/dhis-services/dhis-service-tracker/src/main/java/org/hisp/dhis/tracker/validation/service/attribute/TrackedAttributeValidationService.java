@@ -86,8 +86,7 @@ public class TrackedAttributeValidationService
                 .message( " '%s' is not true (true-only type) for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.DATETIME )
-                .function( v -> !DateUtils.dateTimeIsValid(
-                    v ) )
+                .function( v -> !DateUtils.dateTimeIsValid( v ) )
                 .message( " '%s' is not a valid datetime for attribute %s " )
                 .build() );
     }
