@@ -293,7 +293,7 @@ public class FilteringHelper
             paramsMap.addValue( LOCALE, trimToEmpty( currentLocale.getLanguage() ) );
         }
 
-        paramsMap.addValue( LOCALE, trimToEmpty("fr" ) );
+        paramsMap.addValue( LOCALE, trimToEmpty( "fr" ) );
 
         final String ilikeName = extractValueFromFilter( filters, NAME_ILIKE );
 

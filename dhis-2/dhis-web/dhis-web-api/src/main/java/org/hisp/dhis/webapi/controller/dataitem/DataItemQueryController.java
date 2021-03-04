@@ -147,7 +147,8 @@ public class DataItemQueryController
 
         checkNamesAndOperators( filters );
         checkOrderParams( orderParams.getOrders() );
-        //checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters );
+        // checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters
+        // );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
