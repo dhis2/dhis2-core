@@ -43,7 +43,6 @@ import org.joda.time.IllegalFieldValueException;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
@@ -54,7 +53,6 @@ public class TrackedAttributeValidationServiceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    @InjectMocks
     private TrackedAttributeValidationService trackedEntityAttributeService;
 
     @Mock
@@ -71,6 +69,9 @@ public class TrackedAttributeValidationServiceTest
     @Before
     public void setUp()
     {
+
+        trackedEntityAttributeService = new TrackedAttributeValidationService( userService, fileResourceService );
+
         tea = new TrackedEntityAttribute();
         tea.setUid( "TeaUid12345" );
         tea.setUnique( true );
@@ -194,7 +195,7 @@ public class TrackedAttributeValidationServiceTest
     }
 
     @Test
-    public void shouldFailWhenMissingFileResource()
+    public void shouldFailWhenImageValidationFail()
     {
         when( fileResourceService.getFileResource( "uid" ) ).thenReturn( null );
 

@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.service.attribute;
 
-import java.util.Optional;
-
-import lombok.RequiredArgsConstructor;
+import java.util.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.ValueType;
@@ -38,23 +36,60 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.util.Constant;
+import org.hisp.dhis.tracker.util.ValueTypeValidationFunction;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * @author Luca Cambi
  */
 @Component
-@RequiredArgsConstructor
 public class TrackedAttributeValidationService
 {
-    private final UserService userService;
 
     private final FileResourceService fileResourceService;
 
-    private static final String valueString = "Value";
+    private static final String VALUE_STRING = "Value";
+
+    private final List<ValueTypeValidationFunction> valueTypeValidationFunctions;
+
+    public TrackedAttributeValidationService( UserService userService, FileResourceService fileResourceService )
+    {
+        this.fileResourceService = fileResourceService;
+        valueTypeValidationFunctions = ImmutableList.of(
+            ValueTypeValidationFunction.builder().valueType( ValueType.NUMBER )
+                .function( ( v ) -> !MathUtils.isNumeric( v ) )
+                .message( " '%s' is not a valid numeric type for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.BOOLEAN )
+                .function( ( v ) -> !MathUtils.isBool( v ) )
+                .message( " '%s' is not a valid boolean type for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
+                .function( ( v ) -> DateUtils.parseDate( v ) == null )
+                .message( " '%s' is not a valid date type for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
+                .function( ( v ) -> !DateUtils.dateIsValid( v ) )
+                .message( " '%s' is not a valid date for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.TRUE_ONLY )
+                .function( ( v ) -> !"true".equals( v ) )
+                .message( " '%s' is not true (true-only type) for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.USERNAME )
+                .function( ( v ) -> userService.getUserCredentialsByUsername( v ) == null )
+                .message( " '%s' is not true (true-only type) for attribute %s " )
+                .build(),
+            ValueTypeValidationFunction.builder().valueType( ValueType.DATETIME )
+                .function( ( v ) -> !DateUtils.dateTimeIsValid( v ) )
+                .message( " '%s' is not a valid datetime for attribute %s " )
+                .build() );
+    }
 
     @Transactional( readOnly = true )
     public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
@@ -66,83 +101,38 @@ public class TrackedAttributeValidationService
 
         if ( Optional.ofNullable( value )
             .orElseThrow( () -> new IllegalArgumentException(
-                valueString + " is required for tracked entity " + trackedEntityAttribute.getUid() ) )
+                VALUE_STRING + " is required for tracked entity " + trackedEntityAttribute.getUid() ) )
             .length() > Constant.ATTRIBUTE_VALUE_MAX_LENGTH )
         {
-            return valueString + " length is greater than " + Constant.ATTRIBUTE_VALUE_MAX_LENGTH
+            return VALUE_STRING + " length is greater than " + Constant.ATTRIBUTE_VALUE_MAX_LENGTH
                 + " chars for attribute "
                 + trackedEntityAttribute.getUid();
         }
 
-        String errorValue = StringUtils.substring( value, 0, 30 );
-
-        switch ( valueType )
+        if ( valueType == ValueType.IMAGE )
         {
-        case NUMBER:
-            if ( !MathUtils.isNumeric( value ) )
-            {
-                return valueString + " '" + errorValue + "' is not a valid numeric type for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case BOOLEAN:
-            if ( !MathUtils.isBool( value ) )
-            {
-                return valueString + " '" + errorValue + "' is not a valid boolean type for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case DATE:
-            if ( DateUtils.parseDate( value ) == null )
-            {
-                return valueString + " '" + errorValue + "' is not a valid date type for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-
-            if ( !DateUtils.dateIsValid( value ) )
-            {
-                return valueString + " '" + errorValue + "' is not a valid date for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case TRUE_ONLY:
-            if ( !"true".equals( value ) )
-            {
-                return valueString + " '" + errorValue + "' is not true (true-only type) for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case USERNAME:
-            if ( userService.getUserCredentialsByUsername( value ) == null )
-            {
-                return valueString + " '" + errorValue + "' is not a valid username for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case DATETIME:
-            if ( !DateUtils.dateTimeIsValid( value ) )
-            {
-                return valueString + " '" + errorValue + "' is not a valid datetime for attribute "
-                    + trackedEntityAttribute.getUid();
-            }
-            break;
-        case IMAGE:
             return validateImage( value );
-
-        default:
-            break;
         }
+        else
+        {
+            ValueTypeValidationFunction function = valueTypeValidationFunctions.stream()
+                .filter( l -> l.getValueType() == valueType )
+                .filter( c -> c.getFunction().apply( value ) ).findFirst().orElse( null );
 
-        return null;
+            return Optional.ofNullable( function )
+                .map( c -> VALUE_STRING + String.format( function.getMessage(), StringUtils.substring( value, 0, 30 ),
+                    trackedEntityAttribute.getUid() ) )
+                .orElse( null );
+        }
     }
 
-    private String validateImage( String uid )
+    public String validateImage( String uid )
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
 
         if ( fileResource == null )
         {
-            return valueString + " '" + uid + "' is not the uid of a file";
+            return VALUE_STRING + " '" + uid + "' is not the uid of a file";
         }
         else if ( !Constant.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {
