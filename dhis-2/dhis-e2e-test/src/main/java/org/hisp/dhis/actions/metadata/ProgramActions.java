@@ -37,7 +37,9 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -196,6 +198,13 @@ public class ProgramActions
         object.add( "organisationUnits", orgUnits );
 
         return object;
+    }
+
+    public ApiResponse getOrgUnitsAssociations(String... programUids)
+    {
+        return get("/orgUnits", new QueryParamsBuilder().add(
+                Arrays.stream(programUids)
+                        .collect(Collectors.joining(",", "programs=", ""))));
     }
 
 }
