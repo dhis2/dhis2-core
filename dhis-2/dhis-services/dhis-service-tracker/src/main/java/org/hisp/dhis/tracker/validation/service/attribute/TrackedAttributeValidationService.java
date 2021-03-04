@@ -54,6 +54,8 @@ public class TrackedAttributeValidationService
 
     private final FileResourceService fileResourceService;
 
+    private static final String valueString = "Value";
+
     @Transactional( readOnly = true )
     public String validateValueType( TrackedEntityAttribute trackedEntityAttribute, String value )
     {
@@ -62,15 +64,13 @@ public class TrackedAttributeValidationService
             .orElseThrow( () -> new IllegalArgumentException( "tracked entity attribute is required" ) )
             .getValueType();
 
-        if ( value == null )
+        if ( Optional.ofNullable( value )
+            .orElseThrow( () -> new IllegalArgumentException(
+                valueString + " is required for tracked entity " + trackedEntityAttribute.getUid() ) )
+            .length() > Constant.ATTRIBUTE_VALUE_MAX_LENGTH )
         {
-            throw new IllegalArgumentException(
-                "value is required for tracked entity " + trackedEntityAttribute.getUid() );
-        }
-
-        if ( value.length() > Constant.ATTRIBUTE_VALUE_MAX_LENGTH )
-        {
-            return "Value length is greater than " + Constant.ATTRIBUTE_VALUE_MAX_LENGTH + " chars for attribute "
+            return valueString + " length is greater than " + Constant.ATTRIBUTE_VALUE_MAX_LENGTH
+                + " chars for attribute "
                 + trackedEntityAttribute.getUid();
         }
 
@@ -81,53 +81,56 @@ public class TrackedAttributeValidationService
         case NUMBER:
             if ( !MathUtils.isNumeric( value ) )
             {
-                return "Value '" + errorValue + "' is not a valid numeric type for attribute "
+                return valueString + " '" + errorValue + "' is not a valid numeric type for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case BOOLEAN:
             if ( !MathUtils.isBool( value ) )
             {
-                return "Value '" + errorValue + "' is not a valid boolean type for attribute "
+                return valueString + " '" + errorValue + "' is not a valid boolean type for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case DATE:
             if ( DateUtils.parseDate( value ) == null )
             {
-                return "Value '" + errorValue + "' is not a valid date type for attribute "
+                return valueString + " '" + errorValue + "' is not a valid date type for attribute "
                     + trackedEntityAttribute.getUid();
             }
 
             if ( !DateUtils.dateIsValid( value ) )
             {
-                return "Value '" + errorValue + "' is not a valid date for attribute "
+                return valueString + " '" + errorValue + "' is not a valid date for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case TRUE_ONLY:
             if ( !"true".equals( value ) )
             {
-                return "Value '" + errorValue + "' is not true (true-only type) for attribute "
+                return valueString + " '" + errorValue + "' is not true (true-only type) for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case USERNAME:
             if ( userService.getUserCredentialsByUsername( value ) == null )
             {
-                return "Value '" + errorValue + "' is not a valid username for attribute "
+                return valueString + " '" + errorValue + "' is not a valid username for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case DATETIME:
             if ( !DateUtils.dateTimeIsValid( value ) )
             {
-                return "Value '" + errorValue + "' is not a valid datetime for attribute "
+                return valueString + " '" + errorValue + "' is not a valid datetime for attribute "
                     + trackedEntityAttribute.getUid();
             }
             break;
         case IMAGE:
             return validateImage( value );
+
+        default:
+            break;
         }
 
         return null;
@@ -139,7 +142,7 @@ public class TrackedAttributeValidationService
 
         if ( fileResource == null )
         {
-            return "Value '" + uid + "' is not the uid of a file";
+            return valueString + " '" + uid + "' is not the uid of a file";
         }
         else if ( !Constant.VALID_IMAGE_FORMATS.contains( fileResource.getFormat() ) )
         {

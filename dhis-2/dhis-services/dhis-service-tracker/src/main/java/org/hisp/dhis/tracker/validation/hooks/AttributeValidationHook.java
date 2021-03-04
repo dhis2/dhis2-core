@@ -54,7 +54,7 @@ public abstract class AttributeValidationHook extends AbstractTrackerDtoValidati
 
     private final TrackedAttributeValidationService teAttrService;
 
-    public AttributeValidationHook( TrackedAttributeValidationService teAttrService )
+    protected AttributeValidationHook( TrackedAttributeValidationService teAttrService )
     {
         this.teAttrService = teAttrService;
     }
