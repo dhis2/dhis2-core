@@ -195,6 +195,7 @@ public class DefaultUserSettingService
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key )
     {
         return getUserSetting( key, Optional.empty() ).get();
@@ -206,13 +207,14 @@ public class DefaultUserSettingService
      * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key, User user )
     {
         return getUserSetting( key, Optional.ofNullable( user ) ).get();
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<UserSetting> getAllUserSettings()
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -221,6 +223,7 @@ public class DefaultUserSettingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user,
         Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
@@ -251,7 +254,7 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<UserSetting> getUserSettings( User user )
     {
         if ( user == null )
@@ -275,6 +278,7 @@ public class DefaultUserSettingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getUserSettingsAsMap()
     {
         Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
