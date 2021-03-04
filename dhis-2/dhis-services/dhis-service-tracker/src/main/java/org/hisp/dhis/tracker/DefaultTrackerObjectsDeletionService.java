@@ -125,7 +125,9 @@ public class DefaultTrackerObjectsDeletionService
             }
 
             List<Event> events = eventTrackerConverterService
-                .to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
+                .to( Lists.newArrayList( programInstance.getProgramStageInstances()
+                    .stream().filter( psi -> !psi.isDeleted() )
+                    .collect( Collectors.toList() ) ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
 
@@ -189,6 +191,7 @@ public class DefaultTrackerObjectsDeletionService
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+
                 programInstance.getProgramStageInstances().remove( programStageInstance );
                 programInstanceService.updateProgramInstance( programInstance );
             }
@@ -232,7 +235,9 @@ public class DefaultTrackerObjectsDeletionService
             Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
 
             List<Enrollment> enrollments = enrollmentTrackerConverterService
-                .to( Lists.newArrayList( programInstances ) );
+                .to( Lists.newArrayList( programInstances.stream()
+                    .filter( pi -> !pi.isDeleted() )
+                    .collect( Collectors.toList() ) ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() )
                 .build();
