@@ -62,31 +62,32 @@ public class TrackedAttributeValidationService
         this.fileResourceService = fileResourceService;
         valueTypeValidationFunctions = ImmutableList.of(
             ValueTypeValidationFunction.builder().valueType( ValueType.NUMBER )
-                .function( ( v ) -> !MathUtils.isNumeric( v ) )
+                .function( v -> !MathUtils.isNumeric( v ) )
                 .message( " '%s' is not a valid numeric type for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.BOOLEAN )
-                .function( ( v ) -> !MathUtils.isBool( v ) )
+                .function( v -> !MathUtils.isBool( v ) )
                 .message( " '%s' is not a valid boolean type for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
-                .function( ( v ) -> DateUtils.parseDate( v ) == null )
+                .function( v -> DateUtils.parseDate( v ) == null )
                 .message( " '%s' is not a valid date type for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.DATE )
-                .function( ( v ) -> !DateUtils.dateIsValid( v ) )
+                .function( v -> !DateUtils.dateIsValid( v ) )
                 .message( " '%s' is not a valid date for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.TRUE_ONLY )
-                .function( ( v ) -> !"true".equals( v ) )
+                .function( v -> !"true".equals( v ) )
                 .message( " '%s' is not true (true-only type) for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.USERNAME )
-                .function( ( v ) -> userService.getUserCredentialsByUsername( v ) == null )
+                .function( v -> userService.getUserCredentialsByUsername( v ) == null )
                 .message( " '%s' is not true (true-only type) for attribute %s " )
                 .build(),
             ValueTypeValidationFunction.builder().valueType( ValueType.DATETIME )
-                .function( ( v ) -> !DateUtils.dateTimeIsValid( v ) )
+                .function( v -> !DateUtils.dateTimeIsValid(
+                    v ) )
                 .message( " '%s' is not a valid datetime for attribute %s " )
                 .build() );
     }
