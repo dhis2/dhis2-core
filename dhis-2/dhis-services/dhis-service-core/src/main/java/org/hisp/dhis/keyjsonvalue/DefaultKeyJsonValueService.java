@@ -131,14 +131,6 @@ public class DefaultKeyJsonValueService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace )
-    {
-        return readProtectedIn( namespace, emptyList(),
-            () -> store.getKeyJsonValueByNamespace( namespace ) );
-    }
-
-    @Override
     @Transactional
     public void addKeyJsonValue( KeyJsonValue entry )
     {
@@ -168,7 +160,7 @@ public class DefaultKeyJsonValueService
     public void deleteNamespace( String namespace )
     {
         writeProtectedIn( namespace,
-            () -> getKeyJsonValuesInNamespace( namespace ),
+            () -> store.getKeyJsonValueByNamespace( namespace ),
             () -> store.deleteNamespace( namespace ) );
     }
 
@@ -188,7 +180,17 @@ public class DefaultKeyJsonValueService
             || protection.getReads() == ProtectionType.NONE
             || currentUserHasAuthority( protection.getAuthorities() ) )
         {
-            return read.get();
+            T res = read.get();
+            if ( res instanceof KeyJsonValue && protection != null && protection.isSharingRespected() )
+            {
+                KeyJsonValue entry = (KeyJsonValue) res;
+                if ( !aclService.canRead( currentUserService.getCurrentUser(), entry ) )
+                {
+                    throw new AccessDeniedException( "You do not have the authority to access the key: '"
+                        + entry.getKey() + "' in the namespace:'" + namespace + "'" );
+                }
+            }
+            return res;
         }
         else if ( protection.getReads() == ProtectionType.RESTRICTED )
         {

@@ -109,9 +109,8 @@ public class KeyJsonNamespaceProtection
 
     /**
      * @return true when the {@link org.hisp.dhis.user.sharing.Sharing} of a
-     *         {@link KeyJsonValue} should be checked for writing operations as
-     *         well, when false sharing is ignored and authorities check is the
-     *         only check performed.
+     *         {@link KeyJsonValue} should be checked in addition to authority
+     *         based checks, else false.
      */
     public boolean isSharingRespected()
     {

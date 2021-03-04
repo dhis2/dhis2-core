@@ -74,16 +74,6 @@ public interface KeyJsonValueService
     List<String> getNamespaces();
 
     /**
-     * Retrieves list of KeyJsonValue objects belonging to the specified
-     * namespace.
-     *
-     * @param namespace the namespace where the key is associated
-     * @return list of matching KeyJsonValues
-     * @throws AccessDeniedException when user lacks authority for namespace
-     */
-    List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace );
-
-    /**
      * Retrieves a list of keys from a namespace which are updated after
      * lastUpdated time.
      *

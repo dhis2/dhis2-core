@@ -199,7 +199,18 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testDeleteNamespace_ProtectedNamespaceWithSharing()
     {
-        // => forbidden
+        setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        assertStatus( HttpStatus.OK,
+            POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
+
+        switchToNewUser( "someone", "pets-admin" );
+        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+            DELETE( "/dataStore/pets" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        switchToSuperuser();
+        assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets" ) );
     }
 
     @Test
@@ -253,7 +264,18 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetKeyJsonValue_ProtectedNamespaceWithSharing()
     {
-        // => forbidden
+        setUpNamespaceProtectionWithSharing( "pets", ProtectionType.RESTRICTED, "pets-admin" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        assertStatus( HttpStatus.OK,
+            POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
+
+        switchToNewUser( "someone", "pets-admin" );
+        assertEquals( "You do not have the authority to access the key: 'cat' in the namespace:'pets'",
+            GET( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        switchToSuperuser();
+        assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat" ) );
     }
 
     @Test
@@ -302,7 +324,18 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetKeyJsonValueMetaData_ProtectedNamespaceWithSharing()
     {
-        // => forbidden
+        setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        assertStatus( HttpStatus.OK,
+            POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'--------'}}" ) );
+
+        switchToNewUser( "someone", "pets-admin" );
+        assertEquals( "You do not have the authority to access the key: 'cat' in the namespace:'pets'",
+            GET( "/dataStore/pets/cat/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        switchToSuperuser();
+        assertStatus( HttpStatus.OK, GET( "/dataStore/pets/cat/metaData" ) );
     }
 
     @Test
@@ -417,7 +450,18 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testUpdateKeyJsonValue_ProtectedNamespaceWithSharing()
     {
-        // => forbidden
+        setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        assertStatus( HttpStatus.OK,
+            POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
+
+        switchToNewUser( "someone", "pets-admin" );
+        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+            PUT( "/dataStore/pets/cat", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        switchToSuperuser();
+        assertStatus( HttpStatus.OK, PUT( "/dataStore/pets/cat", "[]" ) );
     }
 
     @Test
@@ -468,13 +512,19 @@ public class KeyJsonValueControllerTest extends DhisControllerConvenienceTest
     public void testDeleteKeyJsonValue_ProtectedNamespaceWithSharing()
     {
         setUpNamespaceProtectionWithSharing( "pets", ProtectionType.HIDDEN, "pets-admin" );
-        // current superuser creates this entry
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/pets/cat", "{}" ) );
+        String uid = GET( "/dataStore/pets/cat/metaData" ).content().as( JsonKeyJsonValue.class ).getId();
+        assertStatus( HttpStatus.OK,
+            POST( "/sharing?type=dataStore&id=" + uid, "{'object':{'publicAccess':'r-------'}}" ) );
 
-        // now being a user with sufficient authority still we cannot delete the
-        // entry
+        // a user with required authority cannot delete (ACL fails)
         switchToNewUser( "someone", "pets-admin" );
-        assertStatus( HttpStatus.FORBIDDEN, DELETE( "/dataStore/pets/cat" ) );
+        assertEquals( "You do not have the authority to modify the key: 'cat' in the namespace: 'pets'",
+            DELETE( "/dataStore/pets/cat" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        // but the owner still can
+        switchToSuperuser();
+        assertStatus( HttpStatus.OK, DELETE( "/dataStore/pets/cat" ) );
     }
 
     private void setUpNamespaceProtection( String namespace, ProtectionType readWrite, String... authorities )

@@ -27,20 +27,30 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 
+import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.Before;
+import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 
 /**
  * A test for the {@link KeyJsonValueController} where we test the behaviour of
  * namespaces that belong to {@link org.hisp.dhis.appmanager.App}s.
+ *
+ * The test installs a tiny (manifest only) {@link org.hisp.dhis.appmanager.App}
+ * with the namespace {@code test-app-ns} and checks that only authorised users
+ * have access to it.
+ *
+ * @see KeyJsonValueControllerTest
  *
  * @author Jan Bernitt
  */
@@ -56,5 +66,22 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
     {
         assertEquals( AppStatus.OK,
             appManager.installApp( new ClassPathResource( "app/test-app.zip" ).getFile(), "test-app.zip" ) );
+        // by default we are an app manager
+        switchToNewUser( "app-admin", AppManager.WEB_MAINTENANCE_APPMANAGER_AUTHORITY );
+    }
+
+    @Test
+    public void testGetKeysInNamespace()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1" ) );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1" ) );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            GET( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
 }
