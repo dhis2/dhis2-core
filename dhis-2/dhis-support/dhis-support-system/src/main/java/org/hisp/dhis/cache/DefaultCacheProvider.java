@@ -161,7 +161,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 2, TimeUnit.MINUTES )
             .withInitialCapacity( 1 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 1 ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_1 ) )
             .build();
     }
 
@@ -209,7 +209,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 24, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
@@ -353,7 +353,7 @@ public class DefaultCacheProvider implements CacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
             .build();
     }
 
