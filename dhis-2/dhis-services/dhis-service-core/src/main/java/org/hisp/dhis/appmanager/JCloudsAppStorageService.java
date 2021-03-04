@@ -347,7 +347,6 @@ public class JCloudsAppStorageService
             {
                 log.error( "Failed to install app: Missing manifest.webapp in zip" );
 
-                zip.close();
                 app.setAppState( AppStatus.MISSING_MANIFEST );
                 return app;
             }
@@ -361,7 +360,6 @@ public class JCloudsAppStorageService
 
             if ( !this.validateApp( app, appCache ) )
             {
-                zip.close();
                 return app;
             }
 
@@ -407,7 +405,6 @@ public class JCloudsAppStorageService
             // Installation complete.
             // -----------------------------------------------------------------
 
-            zip.close();
             app.setAppState( AppStatus.OK );
             return app;
         }

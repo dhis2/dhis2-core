@@ -41,41 +41,51 @@ import org.springframework.transaction.annotation.Transactional;
 @Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
 public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
-    private final KeyJsonValueStore keyJsonValueStore;
+    private final KeyJsonValueStore store;
 
-    public DefaultMetadataKeyJsonService( KeyJsonValueStore keyJsonValueStore )
+    public DefaultMetadataKeyJsonService( KeyJsonValueStore store )
     {
-        checkNotNull( keyJsonValueStore );
+        checkNotNull( store );
 
-        this.keyJsonValueStore = keyJsonValueStore;
+        this.store = store;
     }
 
     @Override
     @Transactional( readOnly = true )
     public KeyJsonValue getMetaDataVersion( String key )
     {
-        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
+        return store.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
     }
 
     @Override
     @Transactional
-    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue entry )
     {
-        keyJsonValueStore.delete( keyJsonValue );
+        validateNamespace( entry );
+        store.delete( entry );
     }
 
     @Override
     @Transactional
-    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    public long addMetaDataKeyJsonValue( KeyJsonValue entry )
     {
-        keyJsonValueStore.save( keyJsonValue );
+        validateNamespace( entry );
+        store.save( entry );
 
-        return keyJsonValue.getId();
+        return entry.getId();
     }
 
     @Override
     public List<String> getAllVersions()
     {
-        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        return store.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+    }
+
+    private void validateNamespace( KeyJsonValue entry )
+    {
+        if ( !MetadataVersionService.METADATASTORE.equals( entry.getNamespace() ) )
+        {
+            throw new IllegalArgumentException( "Entry is not in metadata namespace but: " + entry.getNamespace() );
+        }
     }
 }

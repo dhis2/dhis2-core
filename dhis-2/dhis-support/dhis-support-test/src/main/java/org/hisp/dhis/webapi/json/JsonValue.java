@@ -109,4 +109,13 @@ public interface JsonValue
      *         wrapped as the provided type or literally cast.
      */
     <T extends JsonValue> T as( Class<T> as );
+
+    /**
+     * @return true if this JSON node either does not exist at all or is defined
+     *         as JSON {@code null}, otherwise false
+     */
+    default boolean isUndefined()
+    {
+        return !exists() || isNull();
+    }
 }

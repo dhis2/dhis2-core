@@ -32,6 +32,7 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -65,16 +67,20 @@ public class DefaultKeyJsonValueService
 
     private final AclService aclService;
 
+    private final RenderService renderService;
+
     public DefaultKeyJsonValueService( KeyJsonValueStore store, CurrentUserService currentUserService,
-        AclService aclService )
+        AclService aclService, RenderService renderService )
     {
         checkNotNull( store );
         checkNotNull( currentUserService );
         checkNotNull( aclService );
+        checkNotNull( renderService );
 
         this.store = store;
         this.currentUserService = currentUserService;
         this.aclService = aclService;
+        this.renderService = renderService;
     }
 
     // -------------------------------------------------------------------------
@@ -134,18 +140,24 @@ public class DefaultKeyJsonValueService
 
     @Override
     @Transactional
-    public Long addKeyJsonValue( KeyJsonValue entry )
+    public void addKeyJsonValue( KeyJsonValue entry )
     {
+        if ( getKeyJsonValue( entry.getNamespace(), entry.getKey() ) != null )
+        {
+            throw new IllegalStateException(
+                "The key '" + entry.getKey() + "' already exists on the namespace '" + entry.getNamespace() + "'." );
+        }
+        validateJsonValue( entry );
         writeProtectedIn( entry.getNamespace(),
             () -> singletonList( entry ),
             () -> store.save( entry ) );
-        return entry.getId();
     }
 
     @Override
     @Transactional
     public void updateKeyJsonValue( KeyJsonValue entry )
     {
+        validateJsonValue( entry );
         writeProtectedIn( entry.getNamespace(),
             () -> singletonList( entry ),
             () -> store.update( entry ) );
@@ -244,5 +256,21 @@ public class DefaultKeyJsonValueService
         }
         UserCredentials credentials = currentUser.getUserCredentials();
         return credentials.isSuper() || !authorities.isEmpty() && credentials.hasAnyAuthority( authorities );
+    }
+
+    private void validateJsonValue( KeyJsonValue entry )
+    {
+        String json = entry.getValue();
+        try
+        {
+            if ( json != null && !renderService.isValidJson( json ) )
+            {
+                throw new IllegalArgumentException( "The data is not valid JSON." );
+            }
+        }
+        catch ( IOException ex )
+        {
+            throw new IllegalArgumentException( "The data is not valid JSON.", ex );
+        }
     }
 }

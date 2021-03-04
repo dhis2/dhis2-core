@@ -29,25 +29,18 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.BeanUtils;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValue;
 import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
-import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,19 +61,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class KeyJsonValueController
 {
     @Autowired
-    private KeyJsonValueService keyJsonValueService;
-
-    @Autowired
-    private RenderService renderService;
-
-    @Autowired
-    private AclService aclService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
-
-    @Autowired
-    private AppManager appManager;
+    private KeyJsonValueService service;
 
     @Autowired
     private WebMessageService messageService;
@@ -91,11 +72,10 @@ public class KeyJsonValueController
      */
     @RequestMapping( value = "", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody List<String> getNamespaces( HttpServletResponse response )
-        throws IOException
     {
         setNoStore( response );
 
-        return keyJsonValueService.getNamespaces();
+        return service.getNamespaces();
     }
 
     /**
@@ -105,16 +85,16 @@ public class KeyJsonValueController
     public @ResponseBody List<String> getKeysInNamespace( @RequestParam( required = false ) Date lastUpdated,
         @PathVariable String namespace,
         HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws Exception
     {
-        validateAccess( namespace );
-
-        validateNamespaceExists( namespace );
-
         setNoStore( response );
 
-        return keyJsonValueService.getKeysInNamespace( namespace, lastUpdated );
+        List<String> keys = service.getKeysInNamespace( namespace, lastUpdated );
+        if ( keys.isEmpty() )
+        {
+            throw new NotFoundException( ("The namespace '" + namespace + "' was not found.") );
+        }
+        return keys;
     }
 
     /**
@@ -122,24 +102,14 @@ public class KeyJsonValueController
      */
     @RequestMapping( value = "/{namespace}", method = RequestMethod.DELETE )
     public void deleteNamespace( @PathVariable String namespace, HttpServletResponse response )
-        throws WebMessageException
+        throws Exception
     {
-        validateAccess( namespace );
-
-        validateNamespaceExists( namespace );
-
-        List<KeyJsonValue> keys = keyJsonValueService.getKeyJsonValuesInNamespace( namespace )
-            .stream()
-            .filter( keyJsonValue -> !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
-            .collect( Collectors.toList() );
-
-        if ( keys.size() > 0 )
+        if ( !service.isUsedNamespace( namespace ) )
         {
-            throw new WebMessageException( WebMessageUtils
-                .forbidden( "You do not have the authority to delete the namespace:'" + namespace + "'" ) );
+            throw new NotFoundException( ("The namespace '" + namespace + "' was not found.") );
         }
 
-        keyJsonValueService.deleteNamespace( namespace );
+        service.deleteNamespace( namespace );
 
         messageService.sendJson( WebMessageUtils.ok( "Namespace '" + namespace + "' deleted." ), response );
     }
@@ -151,20 +121,9 @@ public class KeyJsonValueController
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody String getKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws Exception
     {
-        KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
-
-        if ( !aclService.canRead( currentUserService.getCurrentUser(), keyJsonValue ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.forbidden(
-                    "You do not have the authority to access the key: '" + key + "' in the namespace:'" + namespace +
-                        "'" ) );
-        }
-
-        return keyJsonValue.getValue();
+        return getExistingEntry( namespace, key ).getValue();
     }
 
     /**
@@ -176,21 +135,14 @@ public class KeyJsonValueController
         HttpServletResponse response )
         throws Exception
     {
-        KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
+        KeyJsonValue entry = getExistingEntry( namespace, key );
 
-        if ( !aclService.canRead( currentUserService.getCurrentUser(), keyJsonValue ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.forbidden(
-                    "You do not have the authority to access the key: '" + key + "' in the namespace:'" + namespace +
-                        "'" ) );
-        }
-
-        KeyJsonValue metaDataValue = new KeyJsonValue();
-        BeanUtils.copyProperties( metaDataValue, keyJsonValue );
-        metaDataValue.setValue( null );
-
-        return metaDataValue;
+        KeyJsonValue metaData = new KeyJsonValue();
+        BeanUtils.copyProperties( metaData, entry );
+        metaData.setValue( null );
+        metaData.setJbPlainValue( null );
+        metaData.setEncryptedValue( null );
+        return metaData;
     }
 
     /**
@@ -200,32 +152,16 @@ public class KeyJsonValueController
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.POST, produces = "application/json", consumes = "application/json" )
     public void addKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
         @RequestParam( defaultValue = "false" ) boolean encrypt, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws Exception
     {
-        validateAccess( namespace );
+        KeyJsonValue entry = new KeyJsonValue();
+        entry.setKey( key );
+        entry.setNamespace( namespace );
+        entry.setValue( body );
+        entry.setEncrypted( encrypt );
 
-        if ( keyJsonValueService.getKeyJsonValue( namespace, key ) != null )
-        {
-            throw new WebMessageException( WebMessageUtils
-                .conflict( "The key '" + key + "' already exists on the namespace '" + namespace + "'." ) );
-        }
+        service.addKeyJsonValue( entry );
 
-        if ( !renderService.isValidJson( body ) )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "The data is not valid JSON." ) );
-        }
-
-        KeyJsonValue keyJsonValue = new KeyJsonValue();
-
-        keyJsonValue.setKey( key );
-        keyJsonValue.setNamespace( namespace );
-        keyJsonValue.setValue( body );
-        keyJsonValue.setEncrypted( encrypt );
-
-        keyJsonValueService.addKeyJsonValue( keyJsonValue );
-
-        response.setStatus( HttpServletResponse.SC_CREATED );
         messageService.sendJson( WebMessageUtils.created( "Key '" + key + "' created." ), response );
     }
 
@@ -235,29 +171,13 @@ public class KeyJsonValueController
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json" )
     public void updateKeyJsonValue( @PathVariable String namespace, @PathVariable String key, @RequestBody String body,
         HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException,
-        IOException
+        throws Exception
     {
-        KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
+        KeyJsonValue entry = getExistingEntry( namespace, key );
+        entry.setValue( body );
 
-        if ( !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.forbidden(
-                    "You do not have the authority to update the key: '" + key + "' in the namespace: '" + namespace +
-                        "'" ) );
-        }
+        service.updateKeyJsonValue( entry );
 
-        if ( !renderService.isValidJson( body ) )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "The data is not valid JSON." ) );
-        }
-
-        keyJsonValue.setValue( body );
-
-        keyJsonValueService.updateKeyJsonValue( keyJsonValue );
-
-        response.setStatus( HttpServletResponse.SC_OK );
         messageService.sendJson( WebMessageUtils.ok( "Key '" + key + "' updated." ), response );
     }
 
@@ -267,78 +187,23 @@ public class KeyJsonValueController
     @RequestMapping( value = "/{namespace}/{key}", method = RequestMethod.DELETE, produces = "application/json" )
     public void deleteKeyJsonValue( @PathVariable String namespace, @PathVariable String key,
         HttpServletResponse response )
-        throws WebMessageException
+        throws Exception
     {
-        KeyJsonValue keyJsonValue = validateAndGetValue( namespace, key );
-
-        if ( !aclService.canWrite( currentUserService.getCurrentUser(), keyJsonValue ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.forbidden(
-                    "You do not have the authority to delete the key: '" + key + "' in the namespace: '" + namespace +
-                        "'" ) );
-        }
-
-        keyJsonValueService.deleteKeyJsonValue( keyJsonValue );
+        KeyJsonValue entry = getExistingEntry( namespace, key );
+        service.deleteKeyJsonValue( entry );
 
         messageService.sendJson( WebMessageUtils.ok( "Key '" + key + "' deleted from namespace '" + namespace + "'." ),
             response );
     }
 
-    /**
-     * Validates access and looks up the value, thrown an exception if there is
-     * no such key/value pair in the given namespace
-     *
-     * @param namespace Namespace to use when looking up the value
-     * @param key Key of the key/value pair
-     * @return
-     * @throws WebMessageException
-     */
-    protected KeyJsonValue validateAndGetValue( @PathVariable String namespace, @PathVariable String key )
-        throws WebMessageException
+    private KeyJsonValue getExistingEntry( String namespace, String key )
+        throws NotFoundException
     {
-        validateAccess( namespace );
-
-        KeyJsonValue keyJsonValue = keyJsonValueService.getKeyJsonValue( namespace, key );
-
-        if ( keyJsonValue == null )
+        KeyJsonValue entry = service.getKeyJsonValue( namespace, key );
+        if ( entry == null )
         {
-            throw new WebMessageException( WebMessageUtils
-                .notFound( "The key '" + key + "' was not found in the namespace '" + namespace + "'." ) );
+            throw new NotFoundException( "The key '" + key + "' was not found in the namespace '" + namespace + "'." );
         }
-        return keyJsonValue;
-    }
-
-    /**
-     * Validates access and throws an exception if the current user does not
-     * have proper access
-     *
-     * @param namespace The namespace to validate
-     * @throws WebMessageException
-     */
-    protected void validateAccess( String namespace )
-        throws WebMessageException
-    {
-        if ( !hasAccess( namespace ) )
-        {
-            throw new WebMessageException( WebMessageUtils.forbidden( "The namespace '" + namespace +
-                "' is protected, and you don't have the right authority to access it." ) );
-        }
-    }
-
-    private boolean hasAccess( String namespace )
-    {
-        App app = appManager.getAppByNamespace( namespace );
-        return app == null || appManager.isAccessible( app );
-    }
-
-    protected void validateNamespaceExists( @PathVariable String namespace )
-        throws WebMessageException
-    {
-        if ( !keyJsonValueService.isUsedNamespace( namespace ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "The namespace '" + namespace + "' was not found." ) );
-        }
+        return entry;
     }
 }

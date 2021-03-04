@@ -74,6 +74,8 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
 
     private MockHttpSession session;
 
+    private User adminUser;
+
     private User currentUser;
 
     @Before
@@ -86,7 +88,7 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         characterEncodingFilter.setForceEncoding( true );
         mvc = MockMvcBuilders.webAppContextSetup( webApplicationContext ).build();
         TestUtils.executeStartupRoutines( webApplicationContext );
-        switchToNewUser( null, "ALL" );
+        adminUser = switchToNewUser( null, "ALL" );
     }
 
     protected final User getCurrentUser()
@@ -94,19 +96,35 @@ public abstract class DhisControllerConvenienceTest extends DhisConvenienceTest 
         return currentUser;
     }
 
+    protected final User switchToSuperuser()
+    {
+        switchContextToUser( adminUser );
+        return adminUser;
+    }
+
     protected final User switchToNewUser( String username, String... authorities )
     {
+        if ( adminUser != null )
+        {
+            // we need to be an admin to be allowed to create user groups
+            switchContextToUser( adminUser );
+        }
         currentUser = currentUser == null
             ? createAdminUser( authorities )
             : createUser( username, authorities );
 
-        injectSecurityContext( currentUser );
+        switchContextToUser( currentUser );
+
+        return currentUser;
+    }
+
+    private void switchContextToUser( User user )
+    {
+        injectSecurityContext( user );
 
         session = new MockHttpSession();
         session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
-
-        return currentUser;
     }
 
     @Override

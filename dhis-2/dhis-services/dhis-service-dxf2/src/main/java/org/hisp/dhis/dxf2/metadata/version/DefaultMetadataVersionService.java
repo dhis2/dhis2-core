@@ -37,6 +37,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.dxf2.common.HashCodeGenerator;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -61,8 +63,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service implementation for the MetadataVersionService.
@@ -102,7 +102,8 @@ public class DefaultMetadataVersionService
         this.metadataSystemSettingService = metadataSystemSettingService;
         this.renderService = renderService;
         keyJsonValueService.addProtection(
-            new KeyJsonNamespaceProtection( METADATASTORE, ProtectionType.HIDDEN, false ) );
+            new KeyJsonNamespaceProtection( METADATASTORE, ProtectionType.HIDDEN, false,
+                MetadataKeyJsonService.METADATA_SYNC_AUTHORITY ) );
     }
 
     // -------------------------------------------------------------------------

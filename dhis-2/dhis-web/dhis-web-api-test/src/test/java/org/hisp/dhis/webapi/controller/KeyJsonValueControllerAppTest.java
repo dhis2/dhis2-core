@@ -25,43 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.keyjsonvalue;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Before;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * A test for the {@link KeyJsonValueController} where we test the behaviour of
+ * namespaces that belong to {@link org.hisp.dhis.appmanager.App}s.
+ *
+ * @author Jan Bernitt
  */
-public interface MetadataKeyJsonService
+public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
 {
-    /**
-     * The authority required to read/write entries in the
-     * {@link org.hisp.dhis.metadata.version.MetadataVersionService#METADATASTORE}
-     */
-    String METADATA_SYNC_AUTHORITY = "METADATA_SYNC";
 
-    /**
-     * Retrieves a KeyJsonValue based on a namespace and key.
-     *
-     * @param key the key referencing the value.
-     * @return the KeyJsonValue matching the key and namespace.
-     */
-    KeyJsonValue getMetaDataVersion( String key );
+    @Autowired
+    private AppManager appManager;
 
-    /**
-     * Deletes a keyJsonValue.
-     *
-     * @param keyJsonValue the KeyJsonValue to be deleted.
-     */
-    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
-
-    /**
-     * Adds a new KeyJsonValue.
-     *
-     * @param keyJsonValue the KeyJsonValue to be stored.
-     * @return the id of the KeyJsonValue stored.
-     */
-    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
-
-    List<String> getAllVersions();
+    @Before
+    public void setUp()
+        throws IOException
+    {
+        assertEquals( AppStatus.OK,
+            appManager.installApp( new ClassPathResource( "app/test-app.zip" ).getFile(), "test-app.zip" ) );
+    }
 }

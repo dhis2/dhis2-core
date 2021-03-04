@@ -261,11 +261,11 @@ public class CrudControllerAdvice
         throw ex;
     }
 
-    @ExceptionHandler( BadRequestException.class )
-    public void handleBadRequest( BadRequestException badRequestException, HttpServletResponse response,
+    @ExceptionHandler( { BadRequestException.class, IllegalArgumentException.class } )
+    public void handleBadRequest( Exception exception, HttpServletResponse response,
         HttpServletRequest request )
     {
-        webMessageService.send( WebMessageUtils.badRequest( badRequestException.getMessage() ), response, request );
+        webMessageService.send( WebMessageUtils.badRequest( exception.getMessage() ), response, request );
     }
 
     @ExceptionHandler( MetadataVersionException.class )

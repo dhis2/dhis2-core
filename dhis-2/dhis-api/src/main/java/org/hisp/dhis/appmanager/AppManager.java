@@ -80,6 +80,8 @@ public interface AppManager
         "dataentry",
         "maintenance-mobile" );
 
+    String AUTHORITY_WEB_MAINTENANCE_APPMANAGER = "M_dhis-web-maintenance-appmanager";
+
     /**
      * Returns a list of all installed apps.
      *

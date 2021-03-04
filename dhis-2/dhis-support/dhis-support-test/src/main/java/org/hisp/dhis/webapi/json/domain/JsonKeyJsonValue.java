@@ -25,43 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.keyjsonvalue;
+package org.hisp.dhis.webapi.json.domain;
 
-import java.util.List;
+import org.hisp.dhis.webapi.json.JsonValue;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * Web API equivalent of a {@link org.hisp.dhis.keyjsonvalue.KeyJsonValue}.
+ *
+ * @author Jan Bernitt
  */
-public interface MetadataKeyJsonService
+public interface JsonKeyJsonValue extends JsonIdentifiableObject
 {
-    /**
-     * The authority required to read/write entries in the
-     * {@link org.hisp.dhis.metadata.version.MetadataVersionService#METADATASTORE}
-     */
-    String METADATA_SYNC_AUTHORITY = "METADATA_SYNC";
+    default String getNamespace()
+    {
+        return getString( "namespace" ).string();
+    }
 
-    /**
-     * Retrieves a KeyJsonValue based on a namespace and key.
-     *
-     * @param key the key referencing the value.
-     * @return the KeyJsonValue matching the key and namespace.
-     */
-    KeyJsonValue getMetaDataVersion( String key );
+    default String getKey()
+    {
+        return getString( "key" ).string();
+    }
 
-    /**
-     * Deletes a keyJsonValue.
-     *
-     * @param keyJsonValue the KeyJsonValue to be deleted.
-     */
-    void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
-
-    /**
-     * Adds a new KeyJsonValue.
-     *
-     * @param keyJsonValue the KeyJsonValue to be stored.
-     * @return the id of the KeyJsonValue stored.
-     */
-    long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue );
-
-    List<String> getAllVersions();
+    default JsonValue getValue()
+    {
+        return get( "value" );
+    }
 }
