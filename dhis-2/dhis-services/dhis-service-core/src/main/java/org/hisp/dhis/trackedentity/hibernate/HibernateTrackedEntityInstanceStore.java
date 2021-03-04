@@ -500,7 +500,7 @@ public class HibernateTrackedEntityInstanceStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        log.debug( "Tracked entity instance query SQL: " + sql );
+        log.info( "Tracked entity instance query SQL: " + sql );
 
         List<Map<String, String>> list = new ArrayList<>();
 
