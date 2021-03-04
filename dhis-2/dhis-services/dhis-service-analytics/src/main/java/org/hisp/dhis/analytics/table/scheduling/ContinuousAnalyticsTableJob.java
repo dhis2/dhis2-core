@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.analytics.table.scheduling;
 
-import static org.hisp.dhis.util.DateUtils.getMediumDateString;
+import static org.hisp.dhis.util.DateUtils.getLongDateString;
 
 import java.util.Date;
 
@@ -44,6 +44,8 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
+
+import com.google.common.base.Preconditions;
 
 /**
  * Job for continuous update of analytics tables. Performs analytics table
@@ -98,11 +100,15 @@ public class ContinuousAnalyticsTableJob
         Date nextFullUpdate = (Date) systemSettingManager.getSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE,
             defaultNextFullUpdate );
 
+        log.info(
+            "Starting continuous analytics table update, current time: '{}', default next full update: '{}', next full update: '{}'",
+            getLongDateString( now ), getLongDateString( defaultNextFullUpdate ), getLongDateString( nextFullUpdate ) );
+
+        Preconditions.checkNotNull( nextFullUpdate );
+
         if ( now.after( nextFullUpdate ) )
         {
-            log.info( String.format(
-                "Performing full analytics table update, current time: %s, next full update was: %s",
-                getMediumDateString( now ), getMediumDateString( nextFullUpdate ) ) );
+            log.info( "Performing full analytics table update" );
 
             AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder()
                 .withLastYears( parameters.getLastYears() )
@@ -118,9 +124,9 @@ public class ContinuousAnalyticsTableJob
             }
             finally
             {
-                Date update = DateUtils.getNextDate( fullUpdateHourOfDay, now );
-                systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, update );
-                log.info( String.format( "Next full analytics table update: %s", getMediumDateString( update ) ) );
+                Date nextUpdate = DateUtils.getNextDate( fullUpdateHourOfDay, now );
+                systemSettingManager.saveSystemSetting( SettingKey.NEXT_ANALYTICS_TABLE_UPDATE, nextUpdate );
+                log.info( "Next full analytics table update: '{}'", getLongDateString( nextUpdate ) );
             }
         }
         else

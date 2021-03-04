@@ -684,18 +684,6 @@ public class DateUtils
     }
 
     /**
-     * Returns a pretty string representing the interval between the given start
-     * and end dates using a day, month, second format.
-     *
-     * @param ms the number of milliseconds in the interval.
-     * @return a string, or null if the given start or end date is null.
-     */
-    public static String getPrettyInterval( long ms )
-    {
-        return DAY_SECOND_FORMAT.print( new org.joda.time.Period( ms ) );
-    }
-
-    /**
      * Parses the given string into a Date using the supported date formats.
      * Returns null if the string cannot be parsed.
      *
