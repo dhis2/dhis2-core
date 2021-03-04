@@ -38,6 +38,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.security.Authorities;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -132,8 +133,11 @@ public class DefaultTrackerObjectsDeletionService
             // for that.
             deleteEvents( trackerBundle, TrackerType.EVENT );
 
+            TrackedEntityInstance tei = programInstance.getEntityInstance();
+            tei.getProgramInstances().remove( programInstance );
+
             programInstanceService.deleteProgramInstance( programInstance );
-            teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+            teiService.updateTrackedEntityInstance( tei );
 
             typeReport.addObjectReport( trackerObjectReport );
             typeReport.getStats().incDeleted();
