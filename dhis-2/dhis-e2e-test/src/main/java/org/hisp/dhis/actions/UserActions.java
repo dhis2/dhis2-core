@@ -28,14 +28,15 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.util.List;
+
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.equalTo;
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -68,7 +69,7 @@ public class UserActions
 
         ApiResponse response = this.post( user );
 
-        response.validate().statusCode( 200 );
+        response.validate().statusCode( 201 );
 
         TestRunStorage.addCreatedEntity( endpoint, id );
 

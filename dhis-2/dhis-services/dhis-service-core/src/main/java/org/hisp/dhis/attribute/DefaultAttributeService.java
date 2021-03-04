@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
-import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -62,17 +61,14 @@ public class DefaultAttributeService
 
     private final IdentifiableObjectManager manager;
 
-    private final SessionFactory sessionFactory;
-
     public DefaultAttributeService( AttributeStore attributeStore, IdentifiableObjectManager manager,
-        SessionFactory sessionFactory, CacheProvider cacheProvider )
+        CacheProvider cacheProvider )
     {
         checkNotNull( attributeStore );
         checkNotNull( manager );
 
         this.attributeStore = attributeStore;
         this.manager = manager;
-        this.sessionFactory = sessionFactory;
         this.attributeCache = cacheProvider.createMetadataAttributesCache();
     }
 
@@ -109,6 +105,7 @@ public class DefaultAttributeService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Attribute getAttribute( String uid )
     {
         Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
@@ -187,7 +184,7 @@ public class DefaultAttributeService
         }
 
         object.getAttributeValues().add( attributeValue );
-        sessionFactory.getCurrentSession().save( object );
+        manager.update( object );
     }
 
     @Override
