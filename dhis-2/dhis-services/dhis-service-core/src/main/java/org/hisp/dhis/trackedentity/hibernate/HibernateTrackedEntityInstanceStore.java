@@ -972,7 +972,8 @@ public class HibernateTrackedEntityInstanceStore
         {
             String start = getMediumDateString( params.getEventStartDate() );
             String end = getMediumDateString( params.getEventEndDate() );
-
+            events.append( whereHlp.whereAnd() );
+         
             if ( params.isEventStatus( EventStatus.SCHEDULE ) || params.isEventStatus( EventStatus.OVERDUE ) )
             {
                 events.append( "PSI.status IS NOT NULL " );
@@ -980,7 +981,6 @@ public class HibernateTrackedEntityInstanceStore
             else
             {
                 events
-                    .append( whereHlp.whereAnd() )
                     .append( "PSI.status = '" )
                     .append( params.getEventStatus() )
                     .append( "' " );
