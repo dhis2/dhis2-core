@@ -48,6 +48,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFi
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -241,18 +243,10 @@ public class DataElementQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append( SPACED_SELECT + COMMON_COLUMNS )
-            .append(
-                ", (case when de_displayname.value is not null then de_displayname.value else dataelement.name end) as i18n_name" )
-            .append(
-                ", (case when de_displayshortname.value is not null then de_displayshortname.value else dataelement.shortname end) as i18n_shortname" );
+            .append( translationNamesColumnsFor( "dataelement" ) );
 
         sql.append( " from dataelement " )
-            .append(
-                " left join jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) on de_displayname.locale = :"
-                    + LOCALE + " and de_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(dataelement.translations) as de_displayshortname(value TEXT, locale TEXT, property TEXT) on de_displayshortname.locale = :"
-                    + LOCALE + " and de_displayshortname.property = 'SHORT_NAME'" );
+            .append( translationNamesJoinsOn( "dataelement" ) );
 
         return sql.toString();
     }

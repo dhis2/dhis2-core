@@ -56,7 +56,7 @@ public class OrderingStatementTest
         final String expectedStatement = " order by anyColumn asc, otherColumn asc";
 
         // When
-        final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, yetOtherColumns, null,
+        final String actualStatement = ordering( aGroupOfColumns, otherGroupOfColumns, yetOtherColumns, yetOtherColumns,
             theParameterSource );
 
         // Then
@@ -75,8 +75,8 @@ public class OrderingStatementTest
         final String expectedStatement = " order by otherColumn desc, otherColumn2 desc";
 
         // When
-        final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, yetOtherColumns, null,
-            theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumns, nameOrderingColumns, yetOtherColumns,
+            yetOtherColumns, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -92,8 +92,8 @@ public class OrderingStatementTest
         final MapSqlParameterSource noParameterSource = new MapSqlParameterSource();
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
-            noParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
+            yetAnotherColumn, noParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -109,8 +109,8 @@ public class OrderingStatementTest
         final MapSqlParameterSource nullParameterSource = null;
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
-            nullParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
+            yetAnotherColumn, nullParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -127,8 +127,8 @@ public class OrderingStatementTest
             .addValue( NAME_ORDER, null );
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
-            theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
+            yetAnotherColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -145,8 +145,8 @@ public class OrderingStatementTest
             .addValue( NAME_ORDER, EMPTY );
 
         // When
-        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn, null,
-            theParameterSource );
+        final String actualStatement = ordering( displayOrderingColumn, nameOrderingColumn, yetAnotherColumn,
+            yetAnotherColumn, theParameterSource );
 
         // Then
         assertThat( actualStatement, is( EMPTY ) );
@@ -164,7 +164,8 @@ public class OrderingStatementTest
         final String expectedStatement = " order by otherColumn desc";
 
         // When
-        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, null, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -182,7 +183,7 @@ public class OrderingStatementTest
         final String expectedStatement = " order by otherColumn desc";
 
         // When
-        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, null,
+        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
 
         // Then
@@ -201,7 +202,8 @@ public class OrderingStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, null, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );
@@ -219,7 +221,7 @@ public class OrderingStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, null,
+        final String actualStatement = ordering( anEmptyColumn, otherColumn, yetAnotherColumn, yetAnotherColumn,
             theParameterSource );
 
         // Then
@@ -236,7 +238,8 @@ public class OrderingStatementTest
         final String expectedStatement = EMPTY;
 
         // When
-        final String actualStatement = ordering( aNullColumn, aNullColumn, aNullColumn, null, theParameterSource );
+        final String actualStatement = ordering( aNullColumn, aNullColumn, aNullColumn, aNullColumn,
+            theParameterSource );
 
         // Then
         assertThat( actualStatement, is( expectedStatement ) );

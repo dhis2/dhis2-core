@@ -45,6 +45,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunctio
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -223,18 +225,10 @@ public class DataSetQuery implements DataItemQuery
         final StringBuilder sql = new StringBuilder();
 
         sql.append( SPACED_SELECT + COMMON_COLUMNS )
-            .append(
-                ", (case when ds_displayname.value is not null then ds_displayname.value else dataset.name end) as i18n_name" )
-            .append(
-                ", (case when ds_displayshortname.value is not null then ds_displayshortname.value else dataset.shortname end) as i18n_shortname" );
+            .append( translationNamesColumnsFor( "dataset" ) );
 
         sql.append( " from dataset " )
-            .append(
-                " left join jsonb_to_recordset(dataset.translations) as ds_displayname(value TEXT, locale TEXT, property TEXT) on ds_displayname.locale = :"
-                    + LOCALE + " and ds_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(dataset.translations) as ds_displayshortname(value TEXT, locale TEXT, property TEXT) on ds_displayshortname.locale = :"
-                    + LOCALE + " and ds_displayshortname.property = 'SHORT_NAME'" );
+            .append( translationNamesJoinsOn( "dataset" ) );
 
         return sql.toString();
     }

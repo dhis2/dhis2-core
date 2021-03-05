@@ -49,6 +49,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFi
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -121,14 +123,14 @@ public class ProgramStageDataElementQuery implements DataItemQuery
                 rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
                 rowSet.getString( "program_name" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "de_i18n_name" ) ),
+                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
                     trimToEmpty( rowSet.getString( "name" ) ) );
 
             final String shortName = trimToEmpty(
                 rowSet.getString( "program_shortname" ) ) + SPACE + trimToEmpty( rowSet.getString( "shortname" ) );
             final String displayShortName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_shortname" ) ),
                 rowSet.getString( "program_shortname" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "de_i18n_shortname" ) ),
+                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_shortname" ) ),
                     trimToEmpty( rowSet.getString( "shortname" ) ) );
 
             final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
@@ -180,8 +182,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         sql.append(
             " group by program.name, program.shortname, dataelement.name, " + COMMON_UIDS
-                + ", dataelement.valuetype, dataelement.code, p_i18n_name, de_i18n_name, program_sharing, dataelement_sharing, dataelement.shortname,"
-                + " de_i18n_shortname, p_i18n_shortname" );
+                + ", dataelement.valuetype, dataelement.code, p_i18n_name, i18n_name, program_sharing, dataelement_sharing, dataelement.shortname,"
+                + " i18n_shortname, p_i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -198,16 +200,16 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.p_i18n_name", "t.de_i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.p_i18n_name", "t.i18n_name", paramsMap ) ) );
         optionalFilters
-            .append( ifSet( displayShortNameFiltering( "t.p_i18n_shortname", "t.de_i18n_shortname", paramsMap ) ) );
+            .append( ifSet( displayShortNameFiltering( "t.p_i18n_shortname", "t.i18n_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
         optionalFilters.append( ifSet( shortNameFiltering( "t.program_shortname", "t.shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.de_i18n_name",
+        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
             "t.p_i18n_name", paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -216,8 +218,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.p_i18n_name, t.de_i18n_name, t.uid",
-            "t.program_name, t.name, t.uid", "t.de_i18n_shortname, t.uid",
+        sql.append( ifSet( ordering( "t.p_i18n_name, t.i18n_name, t.uid",
+            "t.program_name, t.name, t.uid", "t.i18n_shortname, t.uid",
             "t.shortname, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
@@ -230,42 +232,20 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
     private String selectRowsContainingTranslatedName()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        sql.append( SPACED_SELECT + COMMON_COLUMNS )
-            .append(
-                ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as p_i18n_name" )
-            .append(
-                ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as p_i18n_shortname" )
-            .append(
-                ", (case when de_displayname.value is not null then de_displayname.value else dataelement.name end) as de_i18n_name" )
-            .append(
-                ", (case when de_displayshortname.value is not null then de_displayshortname.value else dataelement.shortname end) as de_i18n_shortname" );
-
-        sql.append( SPACED_FROM_DATA_ELEMENT )
+        return new StringBuilder()
+            .append( SPACED_SELECT + COMMON_COLUMNS )
+            .append( translationNamesColumnsFor( "dataelement", true ) )
+            .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
-            .append(
-                " left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
-                    + LOCALE + " and p_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT) on p_displayshortname.locale = :"
-                    + LOCALE + " and p_displayshortname.property = 'SHORT_NAME'" )
-            .append(
-                " left join jsonb_to_recordset(dataelement.translations) as de_displayname(value TEXT, locale TEXT, property TEXT) on de_displayname.locale = :"
-                    + LOCALE + " and de_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(dataelement.translations) as de_displayshortname(value TEXT, locale TEXT, property TEXT) on de_displayshortname.locale = :"
-                    + LOCALE + " and de_displayshortname.property = 'SHORT_NAME'" );
-
-        return sql.toString();
+            .append( translationNamesJoinsOn( "dataelement", true ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as p_i18n_name, dataelement.name as de_i18n_name," +
-                " program.shortname as p_i18n_shortname, dataelement.shortname as de_i18n_shortname" )
+            .append( ", program.name as p_i18n_name, dataelement.name as i18n_name," +
+                " program.shortname as p_i18n_shortname, dataelement.shortname as i18n_shortname" )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS ).toString();
     }

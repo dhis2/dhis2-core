@@ -49,6 +49,8 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFi
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
@@ -123,10 +125,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
         while ( rowSet.next() )
         {
             final String name = trimToEmpty( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "pi_i18n_name" ) ),
+            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
                 name );
             final String shortName = trimToNull( rowSet.getString( "shortname" ) );
-            final String displayShortName = defaultIfBlank( trimToNull( rowSet.getString( "pi_i18n_shortname" ) ),
+            final String displayShortName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_shortname" ) ),
                 shortName );
 
             // Specific case where we have to force a vale type. Program
@@ -189,8 +191,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         sql.append(
             " group by program.name, program.shortname, programindicator.name, " + COMMON_UIDS
-                + ", programindicator.code, p_i18n_name, pi_i18n_name, program_sharing, programindicator_sharing, programindicator.shortname,"
-                + " pi_i18n_shortname, p_i18n_shortname" );
+                + ", programindicator.code, p_i18n_name, i18n_name, program_sharing, programindicator_sharing, programindicator.shortname,"
+                + " i18n_shortname, p_i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -205,15 +207,15 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.pi_i18n_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( displayShortNameFiltering( "t.pi_i18n_shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
         optionalFilters.append( ifSet( shortNameFiltering( "t.shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.pi_i18n_name",
+        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
             null, paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -222,8 +224,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.pi_i18n_name, t.uid",
-            "t.name, t.uid", "t.pi_i18n_shortname, t.uid", "t.shortname, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.i18n_name, t.uid",
+            "t.name, t.uid", "t.i18n_shortname, t.uid", "t.shortname, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();
@@ -235,43 +237,20 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
     private String selectRowsContainingTranslatedName()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        sql.append( SPACED_SELECT + COMMON_COLUMNS )
-            .append(
-                ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as p_i18n_name" )
-            .append(
-                ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as p_i18n_shortname" )
-            .append(
-                ", (case when pi_displayname.value is not null then pi_displayname.value else programindicator.name end) as pi_i18n_name" )
-            .append(
-                ", (case when pi_displayshortname.value is not null then pi_displayshortname.value else programindicator.shortname end) as pi_i18n_shortname" );
-
-        sql.append( SPACED_FROM_PROGRAM_INDICATOR )
+        return new StringBuilder()
+            .append( SPACED_SELECT + COMMON_COLUMNS )
+            .append( translationNamesColumnsFor( "programindicator", true ) )
+            .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
-            .append(
-                " left join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
-                    + LOCALE + " and p_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(program.translations) as p_displayshortname(value TEXT, locale TEXT, property TEXT) on p_displayshortname.locale = :"
-                    + LOCALE + " and p_displayshortname.property = 'SHORT_NAME'" )
-            .append(
-                " left join jsonb_to_recordset(programindicator.translations) as pi_displayname(value TEXT, locale TEXT, property TEXT) on pi_displayname.locale = :"
-                    + LOCALE + " and pi_displayname.property = 'NAME'" )
-            .append(
-                " left join jsonb_to_recordset(programindicator.translations) as pi_displayshortname(value TEXT, locale TEXT, property TEXT) on pi_displayshortname.locale = :"
-                    + LOCALE + " and pi_displayshortname.property = 'SHORT_NAME'" );
-
-        return sql.toString();
+            .append( translationNamesJoinsOn( "programindicator", true ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as p_i18n_name, programindicator.name as pi_i18n_name," +
-                " program.shortname as p_i18n_shortname, programindicator.shortname as pi_i18n_shortname" )
-
+            .append( ", program.name as p_i18n_name, programindicator.name as i18n_name," +
+                " program.shortname as p_i18n_shortname, programindicator.shortname as i18n_shortname" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }
