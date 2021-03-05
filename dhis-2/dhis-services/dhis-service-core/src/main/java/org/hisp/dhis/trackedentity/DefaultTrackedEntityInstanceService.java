@@ -72,6 +72,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -215,6 +216,8 @@ public class DefaultTrackedEntityInstanceService
             params.addFiltersIfNotExist( QueryItem.getQueryItems( attributes ) );
         }
 
+        handleSortAttributes( params );
+
         decideAccess( params );
 
         // AccessValidation should be skipped only and only if it is internal
@@ -236,6 +239,34 @@ public class DefaultTrackedEntityInstanceService
         params.handleCurrentUserSelectionMode();
 
         return trackedEntityInstanceStore.getTrackedEntityInstanceIds( params );
+    }
+
+    /**
+     * This method handles any dynamic sort order columns in the params. These
+     * has to be added to attribute list if there it is neither present in
+     * attribute list nor filter list.
+     *
+     * For example, if attributes or filters doesnt have a specific
+     * trackedentityattribute uid, but sorting has been requested for that tea
+     * uid, then we need to add them to the attribute list.
+     *
+     * @param params The TEIQueryParams object
+     */
+    private void handleSortAttributes( TrackedEntityInstanceQueryParams params )
+    {
+        if ( params.hasAttributeAsOrder() )
+        {
+            // Collecting TEAs for all non static sort order columns.
+            List<TrackedEntityAttribute> sortAttributes = params.getOrders().stream()
+                .filter( orderParam -> !OrderColumn.isStaticColumn( orderParam.getField() ) ).map( orderParam -> {
+                    return attributeService.getTrackedEntityAttribute( orderParam.getField() );
+                } ).collect( Collectors.toList() );
+
+            // adding to attributes conditionally if they are also not present
+            // in filters.
+            params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
+                .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
+        }
     }
 
     @Override
@@ -296,7 +327,7 @@ public class DefaultTrackedEntityInstanceService
 
         if ( params.isIncludeDeleted() )
         {
-            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, "boolean", false, false ) );
+            grid.addHeader( new GridHeader( DELETED, "Deleted", ValueType.BOOLEAN, false, false ) );
         }
 
         for ( QueryItem item : params.getAttributes() )

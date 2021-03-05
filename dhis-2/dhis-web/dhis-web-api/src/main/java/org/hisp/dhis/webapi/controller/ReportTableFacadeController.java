@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -43,6 +45,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.cache2k.Cache;
+import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -50,7 +54,6 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.common.PagerUtils;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.dxf2.common.OrderParams;
@@ -113,7 +116,6 @@ import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.hisp.dhis.webapi.utils.PaginationUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.BeanUtils;
@@ -154,6 +156,12 @@ public abstract class ReportTableFacadeController
     // --------------------------------------------------------------------------
     // Dependencies
     // --------------------------------------------------------------------------
+
+    private Cache<String, Long> paginationCountCache = new Cache2kBuilder<String, Long>()
+    {
+    }
+        .expireAfterWrite( 1, TimeUnit.MINUTES )
+        .build();
 
     @Autowired
     protected IdentifiableObjectManager manager;
@@ -244,6 +252,12 @@ public abstract class ReportTableFacadeController
                 "You don't have the proper permissions to read objects of this type." );
         }
 
+        // Force the load of Visualizations of Chart types only.
+        // The only non-chart type, currently, is PIVOT_TABLE. So we only
+        // exclude this
+        // type.
+        filters.add( "type:eq:" + PIVOT_TABLE );
+
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
         // Conversion point
@@ -253,8 +267,10 @@ public abstract class ReportTableFacadeController
 
         if ( options.hasPaging() && pager == null )
         {
-            pager = new Pager( options.getPage(), reportTables.size(), options.getPageSize() );
-            reportTables = PagerUtils.pageCollection( reportTables, pager );
+            long count = paginationCountCache.computeIfAbsent(
+                composePaginationCountKey( currentUser, filters, options ),
+                () -> countTotal( options, filters, orders ) );
+            pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         handleLinksAndAccess( reportTables, fields, false, currentUser );
@@ -534,7 +550,7 @@ public abstract class ReportTableFacadeController
         }
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
-            PaginationUtils.getPaginationData( options ), options.getRootJunction() );
+            getPaginationData( options ), options.getRootJunction() );
         query.setUser( user );
         query.setObjects( entities );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -1019,12 +1035,12 @@ public abstract class ReportTableFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1035,9 +1051,8 @@ public abstract class ReportTableFacadeController
         IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
             IdentifiableObjects.class );
 
-        collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.replaceCollectionItems( objects.get( 0 ), pvProperty,
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -1060,6 +1075,7 @@ public abstract class ReportTableFacadeController
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1071,10 +1087,11 @@ public abstract class ReportTableFacadeController
             IdentifiableObjects.class );
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1086,10 +1103,11 @@ public abstract class ReportTableFacadeController
             IdentifiableObjects.class );
 
         collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
-            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+            identifiableObjects.getIdentifiableObjects() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteCollectionItem(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
@@ -1163,7 +1181,7 @@ public abstract class ReportTableFacadeController
         throws QueryParserException
     {
         List<Visualization> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
             options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
@@ -1178,6 +1196,20 @@ public abstract class ReportTableFacadeController
         }
 
         return entityList;
+    }
+
+    private long countTotal( WebOptions options, List<String> filters, List<Order> orders )
+    {
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, new Pagination(),
+            options.getRootJunction() );
+
+        return queryService.count( query );
+    }
+
+    private String composePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
+    {
+        return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
+            + options.getRootJunction().name();
     }
 
     private List<?> getEntity( String uid )
@@ -1234,9 +1266,7 @@ public abstract class ReportTableFacadeController
         {
             for ( final Visualization visualization : entities )
             {
-                // Consider only Visualization types of Pivot Table
-                if ( visualization.getType() != null
-                    && "PIVOT_TABLE".equalsIgnoreCase( visualization.getType().name() ) )
+                if ( visualization.getType() != null )
                 {
                     final ReportTable reportTable = new ReportTable();
                     BeanUtils.copyProperties( visualization, reportTable );

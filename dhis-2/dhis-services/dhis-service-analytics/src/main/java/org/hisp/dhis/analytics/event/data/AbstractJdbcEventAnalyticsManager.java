@@ -501,6 +501,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 }
                 else if ( EventOutputType.ENROLLMENT.equals( outputType ) )
                 {
+                    if ( params.hasEnrollmentProgramIndicatorDimension() )
+                    {
+                        return "count(" + quoteAlias( "pi" ) + ")";
+                    }
                     return "count(distinct " + quoteAlias( "pi" ) + ")";
                 }
                 else // EVENT

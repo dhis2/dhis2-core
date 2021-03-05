@@ -105,4 +105,6 @@ public interface SchemaService
      * @return a set of authorities.
      */
     Set<String> collectAuthorities();
+
+    Class<?> getConcreteClass( Class<?> klass );
 }

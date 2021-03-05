@@ -92,7 +92,6 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-@Transactional // TODO check if this class can be readOnly
 @Service( "org.hisp.dhis.preheat.PreheatService" )
 @Scope( value = "prototype", proxyMode = ScopedProxyMode.INTERFACES )
 public class DefaultPreheatService implements PreheatService
@@ -141,6 +140,7 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Preheat preheat( PreheatParams params )
     {
         Timer timer = new SystemTimer().start();
@@ -914,6 +914,7 @@ public class DefaultPreheatService implements PreheatService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void refresh( IdentifiableObject object )
     {
         PreheatParams preheatParams = new PreheatParams();

@@ -30,6 +30,7 @@ package org.hisp.dhis.schema.validation;
 import java.util.List;
 
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.schema.Property;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,7 +43,7 @@ public interface SchemaValidator
      *
      * @param object Object to validate
      * @param parentClass Only include persisted properties
-     * @return WebMessage containing validation response
+     * @return list of errors
      */
     List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
 
@@ -52,7 +53,7 @@ public interface SchemaValidator
      *
      * @param object Object to validate
      * @param persisted Only include persisted properties
-     * @return WebMessage containing validation response
+     * @return list of errors
      */
     List<ErrorReport> validate( Object object, boolean persisted );
 
@@ -63,7 +64,16 @@ public interface SchemaValidator
      * Only persisted values will be checked.
      *
      * @param object Object to validate
-     * @return WebMessage containing validation response
+     * @return list of errors
      */
     List<ErrorReport> validate( Object object );
+
+    /**
+     * Validate a single {@link Property} of an object.
+     *
+     * @param property {@link Property} of the object to validate
+     * @param object Object to validate
+     * @return list of errors
+     */
+    List<ErrorReport> validateProperty( Property property, Object object );
 }

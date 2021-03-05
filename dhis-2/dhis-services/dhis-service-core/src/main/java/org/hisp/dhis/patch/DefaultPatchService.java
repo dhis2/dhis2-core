@@ -155,15 +155,7 @@ public class DefaultPatchService implements PatchService
             {
                 continue;
             }
-
-            if ( property.isCollection() )
-            {
-                mutations.addAll( calculateMutation( property.getCollectionName(), property, source, target ) );
-            }
-            else
-            {
-                mutations.addAll( calculateMutation( property.getName(), property, source, target ) );
-            }
+            mutations.addAll( calculateMutation( property.key(), property, source, target ) );
         }
 
         return mutations;

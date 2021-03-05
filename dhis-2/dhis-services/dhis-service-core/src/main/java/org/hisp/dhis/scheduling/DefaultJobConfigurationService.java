@@ -32,6 +32,8 @@ import static org.hisp.dhis.scheduling.JobType.values;
 
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,9 +45,12 @@ import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.schema.NodePropertyIntrospectorService;
 import org.hisp.dhis.schema.Property;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -63,6 +68,7 @@ import com.google.common.primitives.Primitives;
 public class DefaultJobConfigurationService
     implements JobConfigurationService
 {
+
     private final IdentifiableObjectStore<JobConfiguration> jobConfigurationStore;
 
     public DefaultJobConfigurationService(
@@ -252,13 +258,34 @@ public class DefaultJobConfigurationService
 
             if ( Collection.class.isAssignableFrom( field.getType() ) )
             {
-                property = new NodePropertyIntrospectorService()
-                    .setPropertyIfCollection( property, field, clazz );
+                property = setPropertyIfCollection( property, field, clazz );
             }
 
             jobParameters.add( property );
         }
 
         return jobParameters;
+    }
+
+    private static Property setPropertyIfCollection( Property property, Field field, Class<?> klass )
+    {
+        property.setCollection( true );
+        property.setCollectionName( field.getName() );
+
+        Type type = field.getGenericType();
+
+        if ( type instanceof ParameterizedType )
+        {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            Class<?> itemKlass = (Class<?>) parameterizedType.getActualTypeArguments()[0];
+            property.setItemKlass( itemKlass );
+
+            property.setIdentifiableObject( IdentifiableObject.class.isAssignableFrom( itemKlass ) );
+            property.setNameableObject( NameableObject.class.isAssignableFrom( itemKlass ) );
+            property.setEmbeddedObject( EmbeddedObject.class.isAssignableFrom( klass ) );
+            property.setAnalyticalObject( AnalyticalObject.class.isAssignableFrom( klass ) );
+        }
+
+        return property;
     }
 }

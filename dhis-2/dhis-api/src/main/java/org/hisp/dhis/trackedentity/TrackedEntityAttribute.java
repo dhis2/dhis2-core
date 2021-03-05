@@ -35,7 +35,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.textpattern.TextPattern;
@@ -162,28 +161,6 @@ public class TrackedEntityAttribute
     public boolean hasLegendSet()
     {
         return legendSets != null;
-    }
-
-    /**
-     * Checks whether the given value is present among the options in the option
-     * set of this attribute, matching on code.
-     */
-    public Boolean isValidOptionValue( String value )
-    {
-        if ( !hasOptionSet() || value == null )
-        {
-            return false;
-        }
-
-        for ( Option option : getOptionSet().getOptions() )
-        {
-            if ( option != null && value.equals( option.getCode() ) )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     @JsonIgnore

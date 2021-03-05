@@ -28,6 +28,7 @@
 package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.AnalyticsType;
 
 /**
  * Program indicator variable: enrollment count
@@ -40,6 +41,10 @@ public class vEnrollmentCount
     @Override
     public Object getSql( CommonExpressionVisitor visitor )
     {
+        if ( visitor.getProgramIndicator().getAnalyticsType().equals( AnalyticsType.ENROLLMENT ) )
+        {
+            return "pi";
+        }
         return "distinct pi";
     }
 }

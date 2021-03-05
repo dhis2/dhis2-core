@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.dataelement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -179,6 +180,17 @@ public class DataElementOperandController
             }
         }
 
+        // This is needed for two reasons:
+        // 1) We are doing in-memory paging;
+        // 2) We have to count all items respecting the filtering and the
+        // initial universe of elements. In this case, the variable
+        // "dataElementOperands".
+        Query queryForCount = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders );
+        queryForCount.setObjects( dataElementOperands );
+
+        List<DataElementOperand> totalOfItems = (List<DataElementOperand>) queryService
+            .query( queryForCount );
+
         Query query = queryService.getQueryFromUrl( DataElementOperand.class, filters, orders,
             PaginationUtils.getPaginationData( options ), options.getRootJunction() );
         query.setDefaultOrder();
@@ -189,11 +201,13 @@ public class DataElementOperandController
 
         if ( options.hasPaging() && pager == null )
         {
+            final long countTotal = isNotEmpty( totalOfItems ) ? totalOfItems.size() : 0;
+
             // fetch the count for the current query from a short-lived cache
-            long count = paginationCountCache.computeIfAbsent(
+            long cachedCountTotal = paginationCountCache.computeIfAbsent(
                 calculatePaginationCountKey( currentUserService.getCurrentUser(), filters, options ),
-                () -> queryService.count( query ) );
-            pager = new Pager( options.getPage(), count, options.getPageSize() );
+                () -> countTotal );
+            pager = new Pager( options.getPage(), cachedCountTotal, options.getPageSize() );
             linkService.generatePagerLinks( pager, DataElementOperand.class );
         }
 
@@ -213,6 +227,6 @@ public class DataElementOperandController
     private String calculatePaginationCountKey( User currentUser, List<String> filters, WebOptions options )
     {
         return currentUser.getUsername() + "." + "DataElementOperand" + "." + String.join( "|", filters ) + "."
-            + options.getRootJunction().name() + options.get( "restrictToCaptureScope" );
+            + options.getRootJunction().name();
     }
 }
