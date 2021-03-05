@@ -150,27 +150,4 @@ public class SqlHelper
         return includeSpaces ? " " + str + " " : str;
     }
 
-    /**
-     * Returns "and" the first time it is invoked, then "or" for subsequent
-     * invocations.
-     *
-     * @return "and" or "or".
-     */
-    public String andOr()
-    {
-        final String str = andOrInvoked ? "or" : "and";
-
-        andOrInvoked = true;
-
-        return includeSpaces ? " " + str + " " : str;
-    }
-
-    public String onAnd()
-    {
-        final String str = onAndInvoked ? "and" : "on";
-
-        onAndInvoked = true;
-
-        return includeSpaces ? " " + str + " " : str;
-    }
 }

@@ -414,25 +414,34 @@ public class HibernateTrackedEntityInstanceStore
                 map.put( DELETED, rowSet.getString( DELETED ) );
             }
 
-            HashMap<String, String> attributeValues = new HashMap<>();
-
-            String[] pairs = rowSet.getString( "tea_values" ).split( ";" );
-
-            for ( String pair : pairs )
+            if ( !params.getAttributesAndFilters().isEmpty() )
             {
-                String[] teav = pair.split( ":" );
+                HashMap<String, String> attributeValues = new HashMap<>();
+                String teavString = rowSet.getString( "tea_values" );
 
-                if ( teav.length == 2 )
+                if ( teavString != null )
                 {
-                    attributeValues.put( teav[0], teav[1] );
-                }
-            }
+                    String[] pairs = teavString.split( ";" );
 
-            for ( QueryItem item : params.getAttributes() )
-            {
-                map.put( item.getItemId(),
-                    isOrgUnit( item ) ? getOrgUnitNameByUid( attributeValues.get( item.getItemId() ) )
-                        : attributeValues.get( item.getItemId() ) );
+                    for ( String pair : pairs )
+                    {
+                        String[] teav = pair.split( ":" );
+
+                        if ( teav.length == 2 )
+                        {
+                            attributeValues.put( teav[0], teav[1] );
+                        }
+                    }
+                }
+
+                for ( QueryItem item : params.getAttributes() )
+                {
+                    map.put( item.getItemId(),
+                        isOrgUnit( item ) && attributeValues.containsKey( item.getItemId() ) ?
+                            getOrgUnitNameByUid( attributeValues.get( item.getItemId() ) )
+                            :
+                            attributeValues.get( item.getItemId() ) );
+                }
             }
 
             list.add( map );
@@ -724,7 +733,7 @@ public class HibernateTrackedEntityInstanceStore
                 {
                     attributes
                         .append( whereHlp.whereAnd() )
-                        .append( "(trackedentityattributeid = " )
+                        .append( "trackedentityattributeid = " )
                         .append( queryItem.getItem().getId() )
                         .append( " " );
 
@@ -736,8 +745,6 @@ public class HibernateTrackedEntityInstanceStore
                             .append( " " )
                             .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
                     }
-
-                    attributes.append( ")" );
                 }
             }
             else
@@ -1096,6 +1103,11 @@ public class HibernateTrackedEntityInstanceStore
 
     private String getQueryGroupBy( TrackedEntityInstanceQueryParams params )
     {
+        if ( params.getAttributes().isEmpty() )
+        {
+            return "";
+        }
+
         return new StringBuilder()
             .append( "GROUP BY TEI.uid, " )
             .append( "TEI.created, " )
@@ -1149,7 +1161,14 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        return "ORDER BY TEI.trackedentityinstanceid ASC ";
+        if ( params.getAttributesAndFilters().stream().noneMatch( qi -> qi.hasFilter() && qi.isUnique() ) )
+        {
+            return "ORDER BY TEI.trackedentityinstanceid ASC ";
+        }
+        else
+        {
+            return "";
+        }
     }
 
     private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
@@ -1160,7 +1179,7 @@ public class HibernateTrackedEntityInstanceStore
                 .map( order -> order.split( ":" )[0] )
                 .collect( Collectors.toList() );
 
-            return params.getAttributes().stream()
+            return params.getAttributesAndFilters().stream()
                 .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
                 .collect( Collectors.toList() );
         }
