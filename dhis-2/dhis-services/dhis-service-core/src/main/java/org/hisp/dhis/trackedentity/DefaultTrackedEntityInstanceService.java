@@ -473,7 +473,7 @@ public class DefaultTrackedEntityInstanceService
 
             if ( params.isTotalPages() )
             {
-                count = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
+                count = trackedEntityInstanceStore.getTrackedEntityInstanceCountForGridV2( params );
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );

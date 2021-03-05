@@ -569,15 +569,48 @@ public class HibernateTrackedEntityInstanceStore
 
         return count;
     }
+    
+    @Override
+    public int getTrackedEntityInstanceCountForGridV2( TrackedEntityInstanceQueryParams params )
+    {
+        // ---------------------------------------------------------------------
+        // Select clause
+        // ---------------------------------------------------------------------
+
+        String sql = getCountQuery( params );
+
+        // ---------------------------------------------------------------------
+        // Query
+        // ---------------------------------------------------------------------
+
+        log.debug( "Tracked entity instance count SQL: " + sql );
+        
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
+
+        return count;
+    }
 
     private String getQuery( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
             .append( getQuerySelect( params ) )
             .append( "FROM " )
-            .append( getFromSubQuery( params ) )
+            .append( getFromSubQuery( params, false ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
+            .toString();
+    }
+    
+    private String getCountQuery( TrackedEntityInstanceQueryParams params )
+    {
+        return new StringBuilder()
+            .append( getQueryCountSelect( params ) )
+            .append( getQuerySelect( params ) )
+            .append( "FROM " )
+            .append( getFromSubQuery( params, true ) )
+            .append( getQueryRelatedTables( params ) )
+            .append( getQueryGroupBy( params ) )
+            .append( " ) teicount" )
             .toString();
     }
 
@@ -596,11 +629,16 @@ public class HibernateTrackedEntityInstanceStore
             .append( " " )
             .toString();
     }
+    
+    private String getQueryCountSelect( TrackedEntityInstanceQueryParams params )
+    {
+        return "SELECT count(instance) FROM ( ";
+    }
 
-    private String getFromSubQuery( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery )
     {
         SqlHelper whereAnd = new SqlHelper( true );
-        return new StringBuilder()
+        StringBuilder fromSubQuery = new StringBuilder()
             .append( "(" )
             .append( getFromSubQuerySelect( params ) )
             .append( "FROM trackedentityinstance TEI " )
@@ -615,14 +653,18 @@ public class HibernateTrackedEntityInstanceStore
 
             // WHERE
             .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
-            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) )
-
+            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) );
+        
+        if ( !isCountQuery )
+        {
             // SORT
-            .append( getFromSubQueryOrderBy( params ) )
+            fromSubQuery.append( getFromSubQueryOrderBy( params ) )
 
-            // LIMIT, OFFSET
-            .append( getFromSubQueryLimitAndOffset( params ) )
-            .append( ") TEI " )
+                // LIMIT, OFFSET
+                .append( getFromSubQueryLimitAndOffset( params ) );
+        }
+
+        return fromSubQuery.append( ") TEI " )
             .toString();
     }
 
