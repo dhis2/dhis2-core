@@ -27,17 +27,22 @@
  */
 package org.hisp.dhis.relationship;
 
-import static org.junit.Assert.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
+import org.hisp.dhis.system.deletion.DefaultDeletionManager;
+import org.hisp.dhis.system.deletion.DeletionManager;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import com.google.common.collect.Lists;
 
 public class RelationshipDeletionHandlerTest
 {
@@ -49,37 +54,34 @@ public class RelationshipDeletionHandlerTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private RelationshipType relationshipTypeWithData;
-
-    private RelationshipType relationshipTypeWithoutData;
+    private DeletionManager deletionManager = new DefaultDeletionManager();
 
     @Before
     public void setUp()
     {
         relationshipDeletionHandler = new RelationshipDeletionHandler( relationshipService );
-
-        relationshipTypeWithData = new RelationshipType();
-        relationshipTypeWithoutData = new RelationshipType();
+        relationshipDeletionHandler.setManager( deletionManager );
+        relationshipDeletionHandler.init();
     }
 
     @Test
     public void allowDeleteRelationshipTypeWithData()
     {
-        Mockito.when( relationshipService.getRelationshipsByRelationshipType( Mockito.any() ) ).thenReturn(
-            Lists.newArrayList( new Relationship() ) );
+        RelationshipType relationshipType = new RelationshipType();
+        when( relationshipService.getRelationshipsByRelationshipType( any() ) )
+            .thenReturn( singletonList( new Relationship() ) );
 
-        String res = relationshipDeletionHandler.allowDeleteRelationshipType( relationshipTypeWithoutData );
-
-        assertNotNull( res );
+        assertThrows( DeleteNotAllowedException.class,
+            () -> deletionManager.objectDeletionListener( new ObjectDeletionRequestedEvent( relationshipType ) ) );
     }
 
     @Test
     public void allowDeleteRelationshipTypeWithoutData()
     {
-        Mockito.when( relationshipService.getRelationshipsByRelationshipType( Mockito.any() ) ).thenReturn(
-            Lists.newArrayList() );
-        String res = relationshipDeletionHandler.allowDeleteRelationshipType( relationshipTypeWithData );
+        RelationshipType relationshipType = new RelationshipType();
+        when( relationshipService.getRelationshipsByRelationshipType( any() ) )
+            .thenReturn( emptyList() );
 
-        assertNull( res );
+        deletionManager.objectDeletionListener( new ObjectDeletionRequestedEvent( relationshipType ) );
     }
 }

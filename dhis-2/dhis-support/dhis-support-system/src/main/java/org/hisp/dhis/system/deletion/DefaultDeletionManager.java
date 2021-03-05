@@ -143,6 +143,10 @@ public class DefaultDeletionManager
                 }
             }
         }
+        catch ( DeleteNotAllowedException ex )
+        {
+            throw ex;
+        }
         catch ( Exception ex )
         {
             log.error( "Aborting deletion, veto handler '" + handlerName + "' threw an exception: ", ex );
