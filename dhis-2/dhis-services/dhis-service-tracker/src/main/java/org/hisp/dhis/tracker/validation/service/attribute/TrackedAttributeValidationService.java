@@ -116,11 +116,11 @@ public class TrackedAttributeValidationService
         else
         {
             ValueTypeValidationFunction function = valueTypeValidationFunctions.stream()
-                .filter( l -> l.getValueType() == valueType )
-                .filter( c -> c.getFunction().apply( value ) ).findFirst().orElse( null );
+                .filter( f -> f.getValueType() == valueType )
+                .filter( f -> f.getFunction().apply( value ) ).findFirst().orElse( null );
 
             return Optional.ofNullable( function )
-                .map( c -> VALUE_STRING + String.format( function.getMessage(), StringUtils.substring( value, 0, 30 ),
+                .map( f -> VALUE_STRING + String.format( f.getMessage(), StringUtils.substring( value, 0, 30 ),
                     trackedEntityAttribute.getUid() ) )
                 .orElse( null );
         }
