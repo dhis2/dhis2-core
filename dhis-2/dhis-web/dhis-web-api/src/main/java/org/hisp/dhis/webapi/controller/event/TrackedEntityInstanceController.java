@@ -432,10 +432,10 @@ public class TrackedEntityInstanceController
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
-        return instanceService.getTrackedEntityInstancesGrid( params );
+        return instanceService.getTrackedEntityInstancesGridV2( params );
     }
     
-    @RequestMapping( value = "/queryV2", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    @RequestMapping( value = "/queryV0", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     public @ResponseBody Grid queryTrackedEntityInstancesV2Json(
         @RequestParam( required = false ) String query,
         @RequestParam( required = false ) Set<String> attribute,
@@ -487,7 +487,7 @@ public class TrackedEntityInstanceController
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
-        return instanceService.getTrackedEntityInstancesGridV2( params );
+        return instanceService.getTrackedEntityInstancesGrid( params );
     }
 
     @RequestMapping( value = "/query", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_XML )
