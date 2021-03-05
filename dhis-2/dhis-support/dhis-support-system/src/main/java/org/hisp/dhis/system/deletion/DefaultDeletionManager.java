@@ -81,6 +81,7 @@ public class DefaultDeletionManager
         deletionHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( action );
     }
 
+    @Override
     @Transactional
     @EventListener( condition = "#event.shouldRollBack" )
     public void objectDeletionListener( ObjectDeletionRequestedEvent event )
@@ -88,6 +89,7 @@ public class DefaultDeletionManager
         deleteObjects( event.getSource() );
     }
 
+    @Override
     @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     @EventListener( condition = "!#event.shouldRollBack" )
     public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )

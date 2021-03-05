@@ -32,6 +32,7 @@ import java.util.function.Function;
 
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 
 /**
  * @author Lars Helge Overland
@@ -40,10 +41,52 @@ public interface DeletionManager
 {
     String ID = DeletionManager.class.getName();
 
+    /**
+     * Register a handler for vetoing.
+     *
+     * @param type type of object about to be deleted
+     * @param vetoFunction a {@link Function} that when given the object about
+     *        to be deleted either produces a {@link DeletionVeto} or returns
+     *        {@link DeletionVeto#ACCEPT}
+     * @param <T> type of the object about to be deleted
+     */
     <T extends IdentifiableObject> void whenVetoing( Class<T> type, Function<T, DeletionVeto> vetoFunction );
 
+    /**
+     * Register a handler to listen deletion of a given object type.
+     *
+     * @param type type of object being deleted
+     * @param action action to perform then the object being deleted, accepting
+     *        the deleted object
+     * @param <T> type of the object being deleted
+     */
     <T extends IdentifiableObject> void whenDeleting( Class<T> type, Consumer<T> action );
 
+    /**
+     * Register a handler to listen deletion of a given object type.
+     *
+     * @param type type of object being deleted
+     * @param action action to perform then the object being deleted, accepting
+     *        the deleted object
+     * @param <T> type of the object being deleted
+     */
     <T extends EmbeddedObject> void whenDeletingEmbedded( Class<T> type, Consumer<T> action );
 
+    /**
+     * Must be in the interface to allow spring to call the method.
+     *
+     * This should not be called manually.
+     *
+     * @param event consumed event
+     */
+    void objectDeletionListener( ObjectDeletionRequestedEvent event );
+
+    /**
+     * Must be in the interface to allow spring to call the method.
+     *
+     * This should not be called manually.
+     *
+     * @param event consumed event
+     */
+    void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event );
 }
