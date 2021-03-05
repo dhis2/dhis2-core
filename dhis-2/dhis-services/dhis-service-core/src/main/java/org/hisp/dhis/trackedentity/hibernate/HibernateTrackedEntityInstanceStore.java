@@ -1155,7 +1155,7 @@ public class HibernateTrackedEntityInstanceStore
             }
         }
 
-        return "ORDER BY TEI.lastupdated DESC ";
+        return "ORDER BY TEI.trackedentityinstanceid ASC ";
     }
 
     private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
