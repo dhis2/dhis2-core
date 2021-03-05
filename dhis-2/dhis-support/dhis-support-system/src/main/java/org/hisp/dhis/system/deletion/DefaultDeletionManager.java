@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.system.deletion;
 
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -58,6 +59,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultDeletionManager
     implements DeletionManager
 {
+
+    @SuppressWarnings( "rawtypes" )
+    private static final Queue EMPTY = new LinkedList();
 
     private final ConcurrentMap<Class<?>, Queue<Function<?, DeletionVeto>>> vetoHandlersByType = new ConcurrentHashMap<>();
 
@@ -101,9 +105,9 @@ public class DefaultDeletionManager
     {
         Class<T> clazz = getClazz( object );
         @SuppressWarnings( { "rawtypes", "unchecked" } )
-        Queue<Function<T, DeletionVeto>> vetoHandlers = (Queue) vetoHandlersByType.get( clazz );
+        Queue<Function<T, DeletionVeto>> vetoHandlers = (Queue) vetoHandlersByType.getOrDefault( clazz, EMPTY );
         @SuppressWarnings( { "rawtypes", "unchecked" } )
-        Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.get( clazz );
+        Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.getOrDefault( clazz, EMPTY );
         if ( vetoHandlers.isEmpty() && deletionHandlers.isEmpty() )
         {
             log.info( "No deletion handlers registered, aborting deletion handling" );

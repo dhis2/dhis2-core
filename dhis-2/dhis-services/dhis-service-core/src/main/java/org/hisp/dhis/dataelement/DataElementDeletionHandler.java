@@ -82,7 +82,7 @@ public class DataElementDeletionHandler
         whenVetoing( OptionSet.class, this::allowDeleteOptionSet );
     }
 
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
         CategoryCombo defaultCategoryCombo = categoryService
             .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
@@ -98,7 +98,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
         Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
 
@@ -112,7 +112,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    public void deleteDataElementGroup( DataElementGroup group )
+    private void deleteDataElementGroup( DataElementGroup group )
     {
         for ( DataElement element : group.getMembers() )
         {
@@ -121,7 +121,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
         for ( DataElement element : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
@@ -136,7 +136,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    public DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
+    private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
     {
         String sql = "SELECT COUNT(*) FROM dataelement WHERE optionsetid = " + optionSet.getId();
 
