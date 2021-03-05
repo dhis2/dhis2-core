@@ -69,7 +69,7 @@ public interface CacheProvider
 
     <V> Cache<V> createProgramTempOwnerCache();
 
-    <V> Cache<V> createUserIdCacheCache();
+    <V> Cache<V> createUserIdCache();
 
     <V> Cache<V> createCurrentUserGroupInfoCache();
 

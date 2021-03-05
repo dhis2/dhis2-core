@@ -28,6 +28,8 @@
 package org.hisp.dhis.system.notification;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
@@ -39,62 +41,55 @@ public class NotificationMap
 {
     private final static int MAX_POOL_TYPE_SIZE = 100;
 
-    private Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> notificationsWithType;
+    private Map<JobType, Map<String, List<Notification>>> notificationsWithType;
 
-    private Map<JobType, LinkedHashMap<String, Object>> summariesWithType;
+    private Map<JobType, Map<String, Object>> summariesWithType;
 
     NotificationMap()
     {
         notificationsWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
-            .forEach( jobType -> notificationsWithType.put( jobType, new LinkedHashMap<>() ) );
+            .forEach( jobType -> notificationsWithType.put( jobType, new ConcurrentHashMap<>() ) );
 
         summariesWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
-            .forEach( jobType -> summariesWithType.put( jobType, new LinkedHashMap<>() ) );
+            .forEach( jobType -> summariesWithType.put( jobType, new ConcurrentHashMap<>() ) );
     }
 
-    public List<Notification> getLastNotificationsByJobType( JobType jobType )
-    {
-        LinkedHashMap<String, LinkedList<Notification>> jobTypeNotifications = notificationsWithType.get( jobType );
-
-        if ( jobTypeNotifications.size() == 0 )
-        {
-            return new ArrayList<>();
-        }
-
-        String key = (String) jobTypeNotifications.keySet().toArray()[jobTypeNotifications.size() - 1];
-
-        return jobTypeNotifications.get( key );
-    }
-
-    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications()
+    public Map<JobType, Map<String, List<Notification>>> getNotifications()
     {
         return notificationsWithType;
     }
 
-    public LinkedList<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
-        return Optional.ofNullable( notificationsWithType.get( jobType ) ).map( n -> n.get( jobId ) )
+        return Optional.ofNullable( notificationsWithType.get( jobType ) )
+            .map( n -> n.get( jobId ) )
+            .map( LinkedList::new )
             .orElse( new LinkedList<>() );
     }
 
-    public Map<String, LinkedList<Notification>> getNotificationsWithType( JobType jobType )
+    public Map<String, List<Notification>> getNotificationsWithType( JobType jobType )
     {
-        return notificationsWithType.get( jobType );
+        return notificationsWithType.get( jobType )
+            .entrySet()
+            .stream()
+            .collect( Collectors.toMap(
+                Map.Entry::getKey,
+                e -> e.getValue() != null ? new LinkedList<>( e.getValue() ) : new LinkedList<>() ) );
     }
 
-    public void add( JobConfiguration jobConfiguration, Notification notification )
+    synchronized public void add( JobConfiguration jobConfiguration, Notification notification )
     {
         String uid = jobConfiguration.getUid();
 
-        LinkedHashMap<String, LinkedList<Notification>> uidNotifications = notificationsWithType
+        Map<String, List<Notification>> uidNotifications = notificationsWithType
             .get( jobConfiguration.getJobType() );
 
         LinkedList<Notification> notifications;
         if ( uidNotifications.containsKey( uid ) )
         {
-            notifications = uidNotifications.get( uid );
+            notifications = (LinkedList<Notification>) uidNotifications.get( uid );
         }
         else
         {
@@ -114,9 +109,9 @@ public class NotificationMap
         notificationsWithType.put( jobConfiguration.getJobType(), uidNotifications );
     }
 
-    public void addSummary( JobConfiguration jobConfiguration, Object summary )
+    synchronized public void addSummary( JobConfiguration jobConfiguration, Object summary )
     {
-        LinkedHashMap<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
+        Map<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
 
         if ( summaries.size() >= MAX_POOL_TYPE_SIZE )
         {
@@ -127,26 +122,12 @@ public class NotificationMap
         summaries.put( jobConfiguration.getUid(), summary );
     }
 
-    public Object getSummary( JobType jobType )
-    {
-        LinkedHashMap<String, Object> summariesForJobType = summariesWithType.get( jobType );
-
-        if ( summariesForJobType.size() == 0 )
-        {
-            return null;
-        }
-        else
-        {
-            return summariesForJobType.values().toArray()[summariesForJobType.size() - 1];
-        }
-    }
-
     public Object getSummary( JobType jobType, String jobId )
     {
         return summariesWithType.get( jobType ).get( jobId );
     }
 
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
         return summariesWithType.get( jobType );
     }

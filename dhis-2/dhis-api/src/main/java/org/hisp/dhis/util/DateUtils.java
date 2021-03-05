@@ -554,9 +554,9 @@ public class DateUtils
         }
 
         DateTimeUnit dateTime = new DateTimeUnit(
-            Integer.valueOf( matcher.group( "year" ) ),
-            Integer.valueOf( matcher.group( "month" ) ),
-            Integer.valueOf( matcher.group( "day" ) ) );
+            Integer.parseInt( matcher.group( "year" ) ),
+            Integer.parseInt( matcher.group( "month" ) ),
+            Integer.parseInt( matcher.group( "day" ) ) );
 
         return calendar.isValid( dateTime );
     }

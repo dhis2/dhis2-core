@@ -78,7 +78,7 @@ public class DefaultCurrentUserService
         checkNotNull( userStore );
 
         this.userStore = userStore;
-        this.usernameIdCache = cacheProvider.createUserIdCacheCache();
+        this.usernameIdCache = cacheProvider.createUserIdCache();
         this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     }
 

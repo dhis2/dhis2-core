@@ -70,6 +70,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -92,7 +93,7 @@ public class JdbcValidationResultTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "vr.uid" ),
         new AnalyticsTableColumn( quote( "pestartdate" ), TIMESTAMP, "pe.startdate" ),
         new AnalyticsTableColumn( quote( "peenddate" ), TIMESTAMP, "pe.enddate" ),

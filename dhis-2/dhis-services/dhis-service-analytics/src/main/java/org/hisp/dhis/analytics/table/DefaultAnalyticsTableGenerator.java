@@ -52,7 +52,6 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -159,14 +158,14 @@ public class DefaultAnalyticsTableGenerator
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_UPDATE,
                 params.getStartTime() );
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_LATEST_ANALYTICS_PARTITION_RUNTIME,
-                DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+                clock.time() );
         }
         else
         {
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE,
                 params.getStartTime() );
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME,
-                DateUtils.getPrettyInterval( clock.getSplitTime() ) );
+                clock.time() );
         }
     }
 
