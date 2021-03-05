@@ -383,7 +383,7 @@ public class HibernateTrackedEntityInstanceStore
     public List<Map<String, String>> getTrackedEntityInstancesGridV2( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params );
-        log.info( "Tracked entity instance query SQL: " + sql );
+        log.debug( "Tracked entity instance query SQL: " + sql );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
@@ -607,8 +607,10 @@ public class HibernateTrackedEntityInstanceStore
 
             // INNER JOIN on constraints
             .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
-            .append( getFromSubQueryJoinProgramOwner( params ) )
-            .append( getFromSubQueryJoinOrgUnit( params ) )
+            .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
+            .append( getFromSubQueryJoinOrgUnitConditions( params ) )
+
+            // LEFT JOIN attributes we need to sort on.
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
 
             // WHERE
@@ -814,7 +816,7 @@ public class HibernateTrackedEntityInstanceStore
         return joinOrderAttributes.toString();
     }
 
-    private String getFromSubQueryJoinProgramOwner( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
     {
         if ( !params.hasProgram() )
         {
@@ -829,7 +831,7 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
-    private String getFromSubQueryJoinOrgUnit( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinOrgUnitConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder orgUnits = new StringBuilder();
 
