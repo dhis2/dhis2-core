@@ -33,12 +33,10 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.context.event.EventListener;
 
 abstract class ImplementableRuleService
 {
@@ -79,12 +77,6 @@ abstract class ImplementableRuleService
 
         getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
         return programRulesByActionTypes;
-    }
-
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        getProgramRulesCache().invalidateAll();
     }
 
 }
