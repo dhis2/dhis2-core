@@ -32,9 +32,11 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -53,6 +55,8 @@ import com.google.common.base.MoreObjects;
 
 @Data
 @Builder( builderClassName = "ProgramMessageBuilder" )
+@NoArgsConstructor
+@AllArgsConstructor
 @JacksonXmlRootElement( localName = "programMessage", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramMessage
     extends BaseIdentifiableObject
