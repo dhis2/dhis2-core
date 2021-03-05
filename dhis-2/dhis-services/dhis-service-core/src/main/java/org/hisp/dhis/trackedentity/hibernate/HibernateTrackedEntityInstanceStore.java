@@ -1060,7 +1060,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "'" )
             .append( whereHelper.whereAnd() )
             .append( column )
-            .append( " >= '" )
+            .append( " <= '" )
             .append( end )
             .append( "' " );
 
