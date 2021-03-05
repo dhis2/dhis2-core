@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.config;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-@Mapper( uses = DebugMapper.class )
-public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute>
+import org.hisp.dhis.tracker.preheat.supplier.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.google.common.collect.ImmutableList;
+
+@Configuration
+public class TrackerPreheatConfig
 {
-    TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
+    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
+        ClassBasedSupplier.class,
+        ProgramInstanceSupplier.class,
+        ProgramInstancesWithAtLeastOneEventSupplier.class,
+        ProgramStageInstanceProgramStageMapSupplier.class,
+        ProgramOrgUnitsSupplier.class,
+        PeriodTypeSupplier.class,
+        UniqueAttributesSupplier.class,
+        UserSupplier.class,
+        FileResourceSupplier.class );
 
-    @Override
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "confidential" )
-    @Mapping( target = "unique" )
-    @Mapping( target = "generated" )
-    @Mapping( target = "pattern" )
-    @Mapping( target = "textPattern" )
-    @Mapping( target = "skipSynchronization" )
-    @Mapping( target = "valueType" )
-    @Mapping( target = "orgunitScope" )
-    @Mapping( target = "optionSet" )
-    TrackedEntityAttribute map( TrackedEntityAttribute trackedEntityType );
+    @Bean( "preheatOrder" )
+    public List<String> getPreheatOrder()
+    {
+        return preheatOrder.stream().map( Class::getSimpleName )
+            .collect( Collectors.toList() );
+    }
+
+    @Bean( "preheatStrategies" )
+    public Map<String, String> getPreheatStrategies()
+    {
+        return new PreheatStrategyScanner().scanSupplierStrategies();
+    }
 }

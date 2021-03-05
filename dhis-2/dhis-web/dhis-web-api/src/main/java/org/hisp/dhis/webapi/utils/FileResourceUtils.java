@@ -45,7 +45,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -65,9 +64,6 @@ public class FileResourceUtils
 {
     @Autowired
     private FileResourceService fileResourceService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     /**
      * Transfers the given multipart file content to a local temporary file.

@@ -75,6 +75,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -105,7 +106,7 @@ public class JdbcEventAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "psi" ), CHARACTER_11, NOT_NULL, "psi.uid" ),
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "ps" ), CHARACTER_11, NOT_NULL, "ps.uid" ),
@@ -358,7 +359,7 @@ public class JdbcEventAnalyticsTableManager
         columns.addAll( categoryService.getAttributeCategoryOptionGroupSetsNoAcl().stream()
             .map( l -> toCharColumn( quote( l.getUid() ), "acs", l.getCreated() ) )
             .collect( Collectors.toList() ) );
-        columns.addAll( addPeriodColumns( "dps" ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
 
         columns.addAll( program.getDataElements().stream()
             .map( de -> getColumnFromDataElement( de, false ) ).flatMap( Collection::stream )

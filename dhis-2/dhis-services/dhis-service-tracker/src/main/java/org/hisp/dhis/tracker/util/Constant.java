@@ -25,40 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat;
+package org.hisp.dhis.tracker.util;
 
-import java.util.List;
+import java.beans.Introspector;
+import java.util.Set;
 
-import lombok.experimental.UtilityClass;
+import javax.imageio.ImageIO;
 
-import org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.FileResourceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PeriodTypeSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstanceSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramOrgUnitsSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.ProgramStageInstanceProgramStageMapSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UniqueAttributesSupplier;
-import org.hisp.dhis.tracker.preheat.supplier.UserSupplier;
+import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
-/**
- * Configuration class for the pre-heat stage. This class holds the list of
- * pre-heat suppliers executed during import
- */
-@UtilityClass
-public class TrackerImportPreheatConfig
+public class Constant
 {
-    public static final List<Class<? extends PreheatSupplier>> PREHEAT_ORDER = ImmutableList.of(
-        ClassBasedSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
-        ProgramStageInstanceProgramStageMapSupplier.class,
-        ProgramOrgUnitsSupplier.class,
-        PeriodTypeSupplier.class,
-        UniqueAttributesSupplier.class,
-        UserSupplier.class,
-        FileResourceSupplier.class );
+    private Constant()
+    {
+    }
+
+    public static final int MAX_ATTR_VALUE_LENGTH = 1200;
+
+    public static final String GENERIC_STRATEGY_BEAN = Introspector
+        .decapitalize( GenericStrategy.class.getSimpleName() );
+
+    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+
+    public static final int ATTRIBUTE_VALUE_MAX_LENGTH = 50000;
+
+    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
+        ImageIO.getReaderFormatNames() ).build();
 }
