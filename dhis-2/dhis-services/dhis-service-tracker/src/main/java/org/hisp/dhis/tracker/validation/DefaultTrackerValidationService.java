@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.commons.timer.Timer;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class DefaultTrackerValidationService
     implements TrackerValidationService
 {
@@ -56,11 +58,14 @@ public class DefaultTrackerValidationService
 
     private List<TrackerValidationHook> ruleEngineValidationHooks = new ArrayList<>();
 
+    private final TrackerValidationHookService trackerValidationHookService;
+
     @Autowired( required = false )
     public void setValidationHooks( List<TrackerValidationHook> validationHooks )
     {
-        this.validationHooks = TrackerImportValidationConfig.sortValidationHooks( validationHooks );
-        this.ruleEngineValidationHooks = TrackerImportValidationConfig.getRuleEngineValidationHooks( validationHooks );
+        this.validationHooks = trackerValidationHookService.sortValidationHooks( validationHooks );
+        this.ruleEngineValidationHooks = trackerValidationHookService
+            .getRuleEngineValidationHooks( validationHooks );
     }
 
     @Override
