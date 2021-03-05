@@ -35,11 +35,9 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,26 +47,22 @@ import org.springframework.stereotype.Component;
 public class EventReportDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<EventReport>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final EventReportService eventReportService;
 
     public EventReportDeletionHandler( EventReportService eventReportService )
     {
+        super( new DeletionVeto( EventReport.class ) );
         checkNotNull( eventReportService );
         this.eventReportService = eventReportService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return EventReport.class.getSimpleName();
+        super.register();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
+        whenDeleting( Program.class, this::deleteProgram );
     }
 
     @Override
@@ -78,13 +72,18 @@ public class EventReportDeletionHandler
     }
 
     @Override
-    public void deleteIndicator( Indicator indicator )
+    protected boolean isDeleteIndicator()
     {
-        // Ignore default implementation
+        return false;
     }
 
     @Override
-    public void deleteDataElement( DataElement dataElement )
+    protected boolean isDeleteDataElement()
+    {
+        return false; // override below
+    }
+
+    private void deleteDataElement( DataElement dataElement )
     {
         List<EventReport> eventReports = getAnalyticalObjectService()
             .getAnalyticalObjectsByDataDimension( dataElement );
@@ -100,19 +99,18 @@ public class EventReportDeletionHandler
     }
 
     @Override
-    public void deleteDataSet( DataSet dataSet )
+    protected boolean isDeleteDataSet()
     {
-        // Ignore default implementation
+        return false;
     }
 
     @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    protected boolean isDeleteProgramIndicator()
     {
-        // Ignore default implementation
+        return false;
     }
 
-    @Override
-    public void deleteProgramStage( ProgramStage programStage )
+    private void deleteProgramStage( ProgramStage programStage )
     {
         Collection<EventReport> charts = eventReportService.getAllEventReports();
 
@@ -125,8 +123,7 @@ public class EventReportDeletionHandler
         }
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         Collection<EventReport> charts = eventReportService.getAllEventReports();
 

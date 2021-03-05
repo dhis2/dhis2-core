@@ -27,10 +27,23 @@
  */
 package org.hisp.dhis.system.deletion;
 
+import java.util.function.Consumer;
+import java.util.function.Function;
+
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
+
 /**
  * @author Lars Helge Overland
  */
 public interface DeletionManager
 {
     String ID = DeletionManager.class.getName();
+
+    <T extends IdentifiableObject> void whenVetoing( Class<T> type, Function<T, DeletionVeto> vetoFunction );
+
+    <T extends IdentifiableObject> void whenDeleting( Class<T> type, Consumer<T> action );
+
+    <T extends EmbeddedObject> void whenDeletingEmbedded( Class<T> type, Consumer<T> action );
+
 }

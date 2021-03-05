@@ -39,10 +39,6 @@ import org.springframework.stereotype.Component;
 public class LegendSetDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final LegendSetService legendSetService;
 
     public LegendSetDeletionHandler( LegendSetService legendSetService )
@@ -51,18 +47,13 @@ public class LegendSetDeletionHandler
         this.legendSetService = legendSetService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return LegendSet.class.getSimpleName();
+        whenDeleting( Legend.class, this::deleteLegend );
     }
 
-    @Override
-    public void deleteLegend( Legend legend )
+    private void deleteLegend( Legend legend )
     {
         for ( LegendSet legendSet : legendSetService.getAllLegendSets() )
         {

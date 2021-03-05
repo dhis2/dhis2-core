@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -40,6 +41,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.UserAuthorityGroup;
@@ -52,9 +54,7 @@ import org.springframework.stereotype.Component;
 public class ProgramDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( Program.class );
 
     private final ProgramService programService;
 
@@ -74,18 +74,18 @@ public class ProgramDeletionHandler
         this.categoryService = categoryService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Program.class.getSimpleName();
+        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
+        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
+        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
     }
 
-    @Override
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
         CategoryCombo defaultCategoryCombo = categoryService
             .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
@@ -102,8 +102,7 @@ public class ProgramDeletionHandler
         }
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         for ( Program program : unit.getPrograms() )
         {
@@ -112,8 +111,7 @@ public class ProgramDeletionHandler
         }
     }
 
-    @Override
-    public void deleteUserAuthorityGroup( UserAuthorityGroup group )
+    private void deleteUserAuthorityGroup( UserAuthorityGroup group )
     {
         Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -126,16 +124,14 @@ public class ProgramDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
+    private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
 
-        return (programs != null && programs.size() > 0) ? ERROR : null;
+        return (programs != null && programs.size() > 0) ? VETO : ACCEPT;
     }
 
-    @Override
-    public void deleteTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
+    private void deleteTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )
     {
         Collection<Program> programs = idObjectManager.getAllNoAcl( Program.class );
 
@@ -159,8 +155,7 @@ public class ProgramDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataEntryForm( DataEntryForm dataEntryForm )
+    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
     {
         List<Program> associatedPrograms = programService.getProgramsByDataEntryForm( dataEntryForm );
 

@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -42,6 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 
 /**
  * @author Lars Helge Overland
@@ -49,45 +52,97 @@ import org.hisp.dhis.system.deletion.DeletionHandler;
 public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnalyticalObject>
     extends DeletionHandler
 {
+
+    protected final DeletionVeto veto;
+
+    protected GenericAnalyticalObjectDeletionHandler( DeletionVeto veto )
+    {
+        this.veto = veto;
+    }
+
     protected abstract AnalyticalObjectService<T> getAnalyticalObjectService();
 
     @Override
-    public void deleteIndicator( Indicator indicator )
+    protected void register()
+    {
+        if ( isDeleteIndicator() )
+        {
+            whenDeleting( Indicator.class, this::deleteIndicator );
+        }
+        if ( isDeleteDataElement() )
+        {
+            whenDeleting( DataElement.class, this::deleteDataElement );
+        }
+        if ( isDeleteDataSet() )
+        {
+            whenDeleting( DataSet.class, this::deleteDataSet );
+        }
+        if ( isDeleteProgramIndicator() )
+        {
+            whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
+        }
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        if ( isDeleteOrganisationUnitGroupSet() )
+        {
+            whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        }
+
+    }
+
+    protected boolean isDeleteIndicator()
+    {
+        return true;
+    }
+
+    private void deleteIndicator( Indicator indicator )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( indicator ), indicator,
             AnalyticalObject::removeDataDimensionItem );
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    protected boolean isDeleteDataElement()
+    {
+        return true;
+    }
+
+    private void deleteDataElement( DataElement dataElement )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataElement ), dataElement,
             AnalyticalObject::removeDataDimensionItem );
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    protected boolean isDeleteDataSet()
+    {
+        return true;
+    }
+
+    private void deleteDataSet( DataSet dataSet )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( dataSet ), dataSet,
             AnalyticalObject::removeDataDimensionItem );
     }
 
-    @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    protected boolean isDeleteProgramIndicator()
+    {
+        return true;
+    }
+
+    private void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( programIndicator ), programIndicator,
             AnalyticalObject::removeDataDimensionItem );
     }
 
-    @Override
-    public void deletePeriod( Period period )
+    private void deletePeriod( Period period )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( period ), period,
             ( ao, di ) -> ao.getPeriods().remove( di ) );
     }
 
-    @Override
-    public String allowDeletePeriod( Period period )
+    private DeletionVeto allowDeletePeriod( Period period )
     {
         List<T> analyticalObjects = getAnalyticalObjectService().getAnalyticalObjects( period );
 
@@ -95,22 +150,20 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnaly
         {
             if ( analyticalObject.getPeriods().contains( period ) )
             {
-                return ERROR;
+                return veto;
             }
         }
 
-        return null;
+        return ACCEPT;
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
+    private void deleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( organisationUnit ), organisationUnit,
             ( ao, di ) -> ao.getOrganisationUnits().remove( di ) );
     }
 
-    @Override
-    public void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
+    private void deleteOrganisationUnitGroup( OrganisationUnitGroup organisationUnitGroup )
     {
         removeItem( getAnalyticalObjectService().getAnalyticalObjects( organisationUnitGroup ), organisationUnitGroup,
             ( ao, di ) -> {
@@ -123,8 +176,12 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnaly
             } );
     }
 
-    @Override
-    public void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
+    protected boolean isDeleteOrganisationUnitGroupSet()
+    {
+        return true;
+    }
+
+    private void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet organisationUnitGroupSet )
     {
         removeDimensionalItem( getAnalyticalObjectService().getAnalyticalObjects( organisationUnitGroupSet ),
             organisationUnitGroupSet,
@@ -138,7 +195,7 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnaly
             } );
     }
 
-    protected void removeItem( List<T> analyticalObjects, DimensionalItemObject itemObject,
+    private void removeItem( List<T> analyticalObjects, DimensionalItemObject itemObject,
         BiConsumer<BaseAnalyticalObject, DimensionalItemObject> updateOperation )
     {
         for ( T analyticalObject : analyticalObjects )
@@ -149,7 +206,7 @@ public abstract class GenericAnalyticalObjectDeletionHandler<T extends BaseAnaly
         }
     }
 
-    protected void removeDimensionalItem( List<T> analyticalObjects, DimensionalObject itemObject,
+    private void removeDimensionalItem( List<T> analyticalObjects, DimensionalObject itemObject,
         BiConsumer<BaseAnalyticalObject, DimensionalObject> updateOperation )
     {
         for ( T analyticalObject : analyticalObjects )

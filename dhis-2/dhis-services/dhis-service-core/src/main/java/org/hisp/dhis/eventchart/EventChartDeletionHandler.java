@@ -35,11 +35,9 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,6 +55,7 @@ public class EventChartDeletionHandler
 
     public EventChartDeletionHandler( EventChartService eventChartService )
     {
+        super( new DeletionVeto( EventChart.class ) );
         checkNotNull( eventChartService );
         this.eventChartService = eventChartService;
     }
@@ -72,19 +71,27 @@ public class EventChartDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return EventChart.class.getSimpleName();
+        super.register();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
+        whenDeleting( Program.class, this::deleteProgram );
     }
 
     @Override
-    public void deleteIndicator( Indicator indicator )
+    protected boolean isDeleteIndicator()
     {
-        // Ignore default implementation
+        return false;
     }
 
     @Override
-    public void deleteDataElement( DataElement dataElement )
+    protected boolean isDeleteDataElement()
+    {
+        return false;
+    }
+
+    private void deleteDataElement( DataElement dataElement )
     {
         List<EventChart> eventCharts = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
 
@@ -99,19 +106,18 @@ public class EventChartDeletionHandler
     }
 
     @Override
-    public void deleteDataSet( DataSet dataSet )
+    protected boolean isDeleteDataSet()
     {
-        // Ignore default implementation
+        return false;
     }
 
     @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    protected boolean isDeleteProgramIndicator()
     {
-        // Ignore default implementation
+        return false;
     }
 
-    @Override
-    public void deleteProgramStage( ProgramStage programStage )
+    private void deleteProgramStage( ProgramStage programStage )
     {
         Collection<EventChart> charts = eventChartService.getAllEventCharts();
 
@@ -124,8 +130,7 @@ public class EventChartDeletionHandler
         }
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         Collection<EventChart> charts = eventChartService.getAllEventCharts();
 

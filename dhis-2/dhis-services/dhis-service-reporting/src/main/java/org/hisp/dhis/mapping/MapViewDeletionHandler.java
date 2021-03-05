@@ -28,6 +28,7 @@
 package org.hisp.dhis.mapping;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
@@ -35,6 +36,7 @@ import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,21 +46,14 @@ import org.springframework.stereotype.Component;
 public class MapViewDeletionHandler
     extends GenericAnalyticalObjectDeletionHandler<MapView>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final MappingService mappingService;
 
     public MapViewDeletionHandler( MappingService mappingService )
     {
+        super( new DeletionVeto( MapView.class ) );
         checkNotNull( mappingService );
         this.mappingService = mappingService;
     }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
 
     @Override
     protected AnalyticalObjectService<MapView> getAnalyticalObjectService()
@@ -67,13 +62,16 @@ public class MapViewDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return MapView.class.getSimpleName();
+        super.register();
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        whenVetoing( MapView.class, this::allowDeleteMapView );
+
     }
 
-    @Override
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
         List<MapView> mapViews = mappingService.getAnalyticalObjects( legendSet );
 
@@ -85,6 +83,11 @@ public class MapViewDeletionHandler
     }
 
     @Override
+    protected boolean isDeleteOrganisationUnitGroupSet()
+    {
+        return false; // special implementation below
+    }
+
     public void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
     {
         List<MapView> mapViews = mappingService.getMapViewsByOrganisationUnitGroupSet( groupSet );
@@ -96,9 +99,8 @@ public class MapViewDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteMapView( MapView mapView )
+    private DeletionVeto allowDeleteMapView( MapView mapView )
     {
-        return mappingService.countMapViewMaps( mapView ) == 0 ? null : ERROR;
+        return mappingService.countMapViewMaps( mapView ) == 0 ? ACCEPT : veto;
     }
 }

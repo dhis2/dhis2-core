@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -45,6 +46,7 @@ public class VisualizationDeletionHandler
 
     public VisualizationDeletionHandler( final VisualizationService visualizationService )
     {
+        super( new DeletionVeto( Visualization.class ) );
         checkNotNull( visualizationService );
         this.visualizationService = visualizationService;
     }
@@ -56,13 +58,13 @@ public class VisualizationDeletionHandler
     }
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Visualization.class.getSimpleName();
+        super.register();
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
     }
 
-    @Override
-    public void deleteLegendSet( final LegendSet legendSet )
+    private void deleteLegendSet( final LegendSet legendSet )
     {
         final List<Visualization> visualizations = visualizationService.getAnalyticalObjects( legendSet );
 
