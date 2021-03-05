@@ -1052,25 +1052,19 @@ public class HibernateTrackedEntityInstanceStore
     {
         StringBuilder dateBetween = new StringBuilder();
 
-        if ( start != null )
-        {
-            dateBetween
-                .append( whereHelper.whereAnd() )
-                .append( column )
-                .append( " >= " )
-                .append( start );
-        }
+        dateBetween
+            .append( whereHelper.whereAnd() )
+            .append( column )
+            .append( " >= '" )
+            .append( start )
+            .append( "'" )
+            .append( whereHelper.whereAnd() )
+            .append( column )
+            .append( " >= '" )
+            .append( end )
+            .append( "' " );
 
-        if ( end != null )
-        {
-            dateBetween
-                .append( whereHelper.whereAnd() )
-                .append( column )
-                .append( " <= " )
-                .append( end );
-        }
-
-        return dateBetween.append( " " ).toString();
+        return dateBetween.toString();
     }
 
     private String getQueryRelatedTables( TrackedEntityInstanceQueryParams params )
