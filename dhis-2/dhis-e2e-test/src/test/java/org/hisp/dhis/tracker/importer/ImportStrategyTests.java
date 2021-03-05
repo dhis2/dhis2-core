@@ -142,6 +142,37 @@ public class ImportStrategyTests
     }
 
     @Test
+    public void shouldDeleteReferencingEventsWhenEnrollmentIsDeletedInNestedPayload()
+            throws Exception
+    {
+        // arrange
+        JsonObject body = new FileReaderUtils()
+                .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) );
+
+        TrackerApiResponse response = trackerActions.postAndGetJobReport( body ).validateSuccessfulImport();
+        String teiId = response.extractImportedTeis().get( 0 );
+        String enrollmentId = response.extractImportedEnrollments().get( 0 );
+        String eventIds = response.extractImportedEvents().get( 0 );
+
+        body.remove( "events" );
+
+        // act
+        response = trackerActions.postAndGetJobReport( body, new QueryParamsBuilder().add( "importStrategy=DELETE" ) )
+                .validateSuccessfulImport();
+
+        // assert
+        response.validateSuccessfulImport()
+                .validate().body( "stats.deleted", Matchers.equalTo( 4 ) );
+
+        trackerActions.get( "/trackedEntities/" + teiId )
+                .validate().statusCode( 404 );
+        trackerActions.get( "/enrollments/" + enrollmentId )
+                .validate().statusCode( 404 );
+        trackerActions.get( "/events/" + eventIds )
+                .validate().statusCode( 404 );
+    }
+
+    @Test
     public void shouldUpdateWithUpdateStrategy()
         throws Exception
     {
