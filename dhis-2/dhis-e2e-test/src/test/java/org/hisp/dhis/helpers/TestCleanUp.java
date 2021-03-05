@@ -67,7 +67,7 @@ public class TestCleanUp
                 createdEntities.remove( createdEntities.get( key ), key );
             }
 
-            new MaintenanceActions().removeSoftDeletedData();
+            new MaintenanceActions().removeSoftDeletedMetadata();
         }
 
         while ( deleteCount < 2 && !createdEntities.isEmpty() )

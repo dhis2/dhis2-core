@@ -38,7 +38,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -125,9 +124,7 @@ public class DefaultTrackerObjectsDeletionService
             }
 
             List<Event> events = eventTrackerConverterService
-                .to( Lists.newArrayList( programInstance.getProgramStageInstances()
-                    .stream().filter( psi -> !psi.isDeleted() )
-                    .collect( Collectors.toList() ) ) );
+                .to( Lists.newArrayList( programInstance.getProgramStageInstances() ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() ).build();
 
@@ -135,11 +132,8 @@ public class DefaultTrackerObjectsDeletionService
             // for that.
             deleteEvents( trackerBundle, TrackerType.EVENT );
 
-            TrackedEntityInstance tei = programInstance.getEntityInstance();
-            tei.getProgramInstances().remove( programInstance );
-
             programInstanceService.deleteProgramInstance( programInstance );
-            teiService.updateTrackedEntityInstance( tei );
+            teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
             typeReport.addObjectReport( trackerObjectReport );
             typeReport.getStats().incDeleted();
@@ -184,16 +178,11 @@ public class DefaultTrackerObjectsDeletionService
                 return typeReport;
             }
 
-            ProgramInstance programInstance = programStageInstance.getProgramInstance();
-
             programStageInstanceService.deleteProgramStageInstance( programStageInstance );
 
             if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
             {
                 teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
-
-                programInstance.getProgramStageInstances().remove( programStageInstance );
-                programInstanceService.updateProgramInstance( programInstance );
             }
 
             typeReport.addObjectReport( trackerObjectReport );
@@ -235,9 +224,7 @@ public class DefaultTrackerObjectsDeletionService
             Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
 
             List<Enrollment> enrollments = enrollmentTrackerConverterService
-                .to( Lists.newArrayList( programInstances.stream()
-                    .filter( pi -> !pi.isDeleted() )
-                    .collect( Collectors.toList() ) ) );
+                .to( Lists.newArrayList( programInstances ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments ).user( bundle.getUser() )
                 .build();
