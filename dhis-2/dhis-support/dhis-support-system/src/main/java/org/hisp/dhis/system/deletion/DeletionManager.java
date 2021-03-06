@@ -79,7 +79,7 @@ public interface DeletionManager
      *
      * @param event consumed event
      */
-    void objectDeletionListener( ObjectDeletionRequestedEvent event );
+    void onDeletion( ObjectDeletionRequestedEvent event );
 
     /**
      * Must be in the interface to allow spring to call the method.
@@ -88,5 +88,5 @@ public interface DeletionManager
      *
      * @param event consumed event
      */
-    void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event );
+    void onDeletionWithoutRollBack( ObjectDeletionRequestedEvent event );
 }

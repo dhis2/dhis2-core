@@ -88,7 +88,7 @@ public class DefaultDeletionManager
     @Override
     @Transactional
     @EventListener( condition = "#event.shouldRollBack" )
-    public void objectDeletionListener( ObjectDeletionRequestedEvent event )
+    public void onDeletion( ObjectDeletionRequestedEvent event )
     {
         deleteObjects( event.getSource() );
     }
@@ -96,7 +96,7 @@ public class DefaultDeletionManager
     @Override
     @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     @EventListener( condition = "!#event.shouldRollBack" )
-    public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )
+    public void onDeletionWithoutRollBack( ObjectDeletionRequestedEvent event )
     {
         deleteObjects( event.getSource() );
     }
@@ -149,7 +149,7 @@ public class DefaultDeletionManager
         }
         catch ( Exception ex )
         {
-            log.error( "Aborting deletion, veto handler '" + handlerName + "' threw an exception: ", ex );
+            log.error( "Deletion failed, veto handler '" + handlerName + "' threw an exception: ", ex );
             return;
         }
 
@@ -157,21 +157,21 @@ public class DefaultDeletionManager
         // Delete associated objects
         // ---------------------------------------------------------------------
 
-        String currentHandler = "";
+        handlerName = "";
         try
         {
             for ( Consumer<T> handler : deletionHandlers )
             {
-                currentHandler = handler.toString();
+                handlerName = handler.toString();
 
-                log.debug( "Deleting object using " + currentHandler + " for class " + className );
+                log.debug( "Deleting object using " + handlerName + " for class " + className );
 
                 handler.accept( object );
             }
         }
         catch ( Exception ex )
         {
-            log.error( "Aborting deletion, deletion handler '" + currentHandler + "' threw an exception: ", ex );
+            log.error( "Deletion failed, deletion handler '" + handlerName + "' threw an exception: ", ex );
             return;
         }
 

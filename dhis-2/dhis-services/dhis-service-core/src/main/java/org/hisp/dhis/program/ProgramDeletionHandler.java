@@ -128,7 +128,7 @@ public class ProgramDeletionHandler
     {
         Collection<Program> programs = programService.getProgramsByTrackedEntityType( trackedEntityType );
 
-        return (programs != null && programs.size() > 0) ? VETO : ACCEPT;
+        return (programs != null && !programs.isEmpty()) ? VETO : ACCEPT;
     }
 
     private void deleteTrackedEntityAttribute( TrackedEntityAttribute trackedEntityAttribute )

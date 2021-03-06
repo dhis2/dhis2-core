@@ -29,14 +29,19 @@ package org.hisp.dhis.relationship;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.system.deletion.DefaultDeletionManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,42 +51,57 @@ import org.mockito.junit.MockitoRule;
 
 public class RelationshipDeletionHandlerTest
 {
-    private RelationshipDeletionHandler relationshipDeletionHandler;
-
     @Mock
     private RelationshipService relationshipService;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-    private DeletionManager deletionManager = new DefaultDeletionManager();
+    private final DeletionManager deletionManager = new DefaultDeletionManager();
 
     @Before
     public void setUp()
     {
-        relationshipDeletionHandler = new RelationshipDeletionHandler( relationshipService );
-        relationshipDeletionHandler.setManager( deletionManager );
-        relationshipDeletionHandler.init();
+        RelationshipDeletionHandler handler = new RelationshipDeletionHandler( relationshipService );
+        handler.setManager( deletionManager );
+        handler.init();
     }
 
     @Test
     public void allowDeleteRelationshipTypeWithData()
     {
-        RelationshipType relationshipType = new RelationshipType();
         when( relationshipService.getRelationshipsByRelationshipType( any() ) )
             .thenReturn( singletonList( new Relationship() ) );
 
-        assertThrows( DeleteNotAllowedException.class,
-            () -> deletionManager.objectDeletionListener( new ObjectDeletionRequestedEvent( relationshipType ) ) );
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new RelationshipType() );
+        Exception ex = assertThrows( DeleteNotAllowedException.class,
+            () -> deletionManager.onDeletion( event ) );
+        assertEquals( "Object could not be deleted because it is associated with another object: Relationship",
+            ex.getMessage() );
     }
 
     @Test
     public void allowDeleteRelationshipTypeWithoutData()
     {
-        RelationshipType relationshipType = new RelationshipType();
         when( relationshipService.getRelationshipsByRelationshipType( any() ) )
             .thenReturn( emptyList() );
 
-        deletionManager.objectDeletionListener( new ObjectDeletionRequestedEvent( relationshipType ) );
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new RelationshipType() );
+        deletionManager.onDeletion( event );
+
+        verify( relationshipService, atLeastOnce() ).getRelationshipsByRelationshipType( any() );
+    }
+
+    @Test
+    public void deleteTrackedEntityInstance()
+    {
+        when( relationshipService.getRelationshipsByTrackedEntityInstance( any(), anyBoolean() ) )
+            .thenReturn( singletonList( new Relationship() ) );
+
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new TrackedEntityInstance() );
+        deletionManager.onDeletion( event );
+
+        verify( relationshipService, atLeastOnce() ).getRelationshipsByTrackedEntityInstance( any(), anyBoolean() );
+        verify( relationshipService, atLeastOnce() ).deleteRelationship( any() );
     }
 }
