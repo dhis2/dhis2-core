@@ -905,7 +905,7 @@ public class DefaultTrackedEntityInstanceService
                 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
             {
                 throw new IllegalQueryException(
-                    "Paging parameter exceeds max tei limit." );
+                    "maxteicountreached" );
             }
 
             params.setMaxTeiLimit( maxTeiLimit );
