@@ -118,13 +118,23 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
         }
         catch ( PathNotFoundException ex )
         {
-            Object res = orElse.apply( ex );
-            if ( res instanceof RuntimeException )
-            {
-                throw (RuntimeException) res;
-            }
-            return res;
+            return transformException( ex, orElse );
         }
+        catch ( IllegalArgumentException ex )
+        {
+            // is thrown for empty content
+            return transformException( new PathNotFoundException( ex.getMessage() ), orElse );
+        }
+    }
+
+    private Object transformException( PathNotFoundException ex, Function<JsonPathException, Object> orElse )
+    {
+        Object res = orElse.apply( ex );
+        if ( res instanceof RuntimeException )
+        {
+            throw (RuntimeException) res;
+        }
+        return res;
     }
 
     @Override
