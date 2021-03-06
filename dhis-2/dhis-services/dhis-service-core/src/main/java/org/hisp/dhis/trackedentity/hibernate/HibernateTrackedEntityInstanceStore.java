@@ -630,18 +630,6 @@ public class HibernateTrackedEntityInstanceStore
             .filter( QueryItem::hasFilter )
             .collect( Collectors.toList() );
 
-        QueryItem uniqueItem = filterItems.stream()
-            .filter( QueryItem::isUnique )
-            .findAny()
-            .orElse( null );
-
-        // If we have unique values, and we dont have a OR-query, we can optimise the query by just searching for 1
-        // unique item.
-        if ( uniqueItem != null )
-        {
-            filterItems = Lists.newArrayList( uniqueItem );
-        }
-
         if ( !filterItems.isEmpty() || params.isOrQuery() )
         {
             if ( !params.isOrQuery() )
