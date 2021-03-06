@@ -50,8 +50,6 @@ public interface TrackedEntityInstanceStore
     List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
 
     int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );
-    
-    int getTrackedEntityInstanceCountForGridV2( TrackedEntityInstanceQueryParams params );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into account.
