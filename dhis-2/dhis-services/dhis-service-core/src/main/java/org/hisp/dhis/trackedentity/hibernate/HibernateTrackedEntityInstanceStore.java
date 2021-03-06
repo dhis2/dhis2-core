@@ -380,7 +380,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public List<Map<String, String>> getTrackedEntityInstancesGridV2( TrackedEntityInstanceQueryParams params )
+    public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params );
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -442,98 +442,6 @@ public class HibernateTrackedEntityInstanceStore
                             :
                             attributeValues.get( item.getItemId() ) );
                 }
-            }
-
-            list.add( map );
-        }
-
-        return list;
-    }
-
-    @Override
-    public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
-    {
-        SqlHelper hlp = new SqlHelper();
-
-        // ---------------------------------------------------------------------
-        // Select clause
-        // ---------------------------------------------------------------------
-
-        String sql =
-            "select tei.uid as " + TRACKED_ENTITY_INSTANCE_ID + ", " +
-                "tei.created as " + CREATED_ID + ", " +
-                "tei.lastupdated as " + LAST_UPDATED_ID + ", " +
-                "ou.uid as " + ORG_UNIT_ID + ", " +
-                "ou.name as " + ORG_UNIT_NAME + ", " +
-                "te.uid as " + TRACKED_ENTITY_ID + ", " +
-                (params.hasProgram() ? "en.status as enrollment_status, " : "") +
-                (params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "") +
-                "tei.inactive as " + INACTIVE_ID + ", ";
-
-        for ( QueryItem item : params.getAttributes() )
-        {
-            String col = statementBuilder.columnQuote( item.getItemId() );
-
-            sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
-
-            sql += col + ", ";
-        }
-
-        sql = removeLastComma( sql ) + " ";
-
-        // ---------------------------------------------------------------------
-        // From and where clause
-        // ---------------------------------------------------------------------
-
-        sql += getFromWhereClause( params, hlp );
-
-        // ---------------------------------------------------------------------
-        // Order clause
-        // ---------------------------------------------------------------------
-
-        sql += getOrderClause( params );
-
-        // ---------------------------------------------------------------------
-        // Paging clause
-        // ---------------------------------------------------------------------
-
-        if ( params.isPaging() )
-        {
-            sql += " limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset();
-        }
-
-        // ---------------------------------------------------------------------
-        // Query
-        // ---------------------------------------------------------------------
-
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
-
-        log.info( "Tracked entity instance query SQL: " + sql );
-
-        List<Map<String, String>> list = new ArrayList<>();
-
-        while ( rowSet.next() )
-        {
-            final Map<String, String> map = new HashMap<>();
-
-            map.put( TRACKED_ENTITY_INSTANCE_ID, rowSet.getString( TRACKED_ENTITY_INSTANCE_ID ) );
-            map.put( CREATED_ID, rowSet.getString( CREATED_ID ) );
-            map.put( LAST_UPDATED_ID, rowSet.getString( LAST_UPDATED_ID ) );
-            map.put( ORG_UNIT_ID, rowSet.getString( ORG_UNIT_ID ) );
-            map.put( ORG_UNIT_NAME, rowSet.getString( ORG_UNIT_NAME ) );
-            map.put( TRACKED_ENTITY_ID, rowSet.getString( TRACKED_ENTITY_ID ) );
-            map.put( INACTIVE_ID, rowSet.getString( INACTIVE_ID ) );
-
-            if ( params.isIncludeDeleted() )
-            {
-                map.put( DELETED, rowSet.getString( DELETED ) );
-            }
-
-            for ( QueryItem item : params.getAttributes() )
-            {
-                map.put( item.getItemId(),
-                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
-                        : rowSet.getString( item.getItemId() ) );
             }
 
             list.add( map );

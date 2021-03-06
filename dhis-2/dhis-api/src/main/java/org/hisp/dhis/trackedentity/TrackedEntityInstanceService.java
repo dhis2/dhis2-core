@@ -106,8 +106,6 @@ public interface TrackedEntityInstanceService
      * @return a grid.
      */
     Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
-    
-    Grid getTrackedEntityInstancesGridV2( TrackedEntityInstanceQueryParams params );
 
     /**
      * Returns a list with tracked entity instance values based on the given TrackedEntityInstanceQueryParams.
@@ -190,9 +188,6 @@ public interface TrackedEntityInstanceService
      * @throws IllegalQueryException if the given params is invalid.
      */
     void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
-        throws IllegalQueryException;
-    
-    void validateSearchScopeV2( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
         throws IllegalQueryException;
 
     /**
