@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.eventchart;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -45,55 +46,31 @@ import org.springframework.stereotype.Component;
  */
 @Component( "org.hisp.dhis.eventchart.EventChartDeletionHandler" )
 public class EventChartDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventChart>
+    extends GenericAnalyticalObjectDeletionHandler<EventChart, EventChartService>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private final EventChartService eventChartService;
-
     public EventChartDeletionHandler( EventChartService eventChartService )
     {
-        super( new DeletionVeto( EventChart.class ) );
-        checkNotNull( eventChartService );
-        this.eventChartService = eventChartService;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected AnalyticalObjectService<EventChart> getAnalyticalObjectService()
-    {
-        return eventChartService;
+        super( new DeletionVeto( EventChart.class ), eventChartService );
     }
 
     @Override
     protected void register()
     {
-        super.register();
-        whenDeleting( DataElement.class, this::deleteDataElement );
+        // generic
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        // special
+        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
         whenDeleting( ProgramStage.class, this::deleteProgramStage );
         whenDeleting( Program.class, this::deleteProgram );
     }
 
-    @Override
-    protected boolean isDeleteIndicator()
+    private void deleteDataElementSpecial( DataElement dataElement )
     {
-        return false;
-    }
-
-    @Override
-    protected boolean isDeleteDataElement()
-    {
-        return false;
-    }
-
-    private void deleteDataElement( DataElement dataElement )
-    {
-        List<EventChart> eventCharts = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
+        List<EventChart> eventCharts = service.getAnalyticalObjectsByDataDimension( dataElement );
 
         for ( EventChart chart : eventCharts )
         {
@@ -101,44 +78,32 @@ public class EventChartDeletionHandler
                 .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
                     .equals( dataElement ) );
 
-            eventChartService.update( chart );
+            service.update( chart );
         }
-    }
-
-    @Override
-    protected boolean isDeleteDataSet()
-    {
-        return false;
-    }
-
-    @Override
-    protected boolean isDeleteProgramIndicator()
-    {
-        return false;
     }
 
     private void deleteProgramStage( ProgramStage programStage )
     {
-        Collection<EventChart> charts = eventChartService.getAllEventCharts();
+        Collection<EventChart> charts = service.getAllEventCharts();
 
         for ( EventChart chart : charts )
         {
             if ( chart.getProgramStage().equals( programStage ) )
             {
-                eventChartService.deleteEventChart( chart );
+                service.deleteEventChart( chart );
             }
         }
     }
 
     private void deleteProgram( Program program )
     {
-        Collection<EventChart> charts = eventChartService.getAllEventCharts();
+        Collection<EventChart> charts = service.getAllEventCharts();
 
         for ( EventChart chart : charts )
         {
             if ( chart.getProgram().equals( program ) )
             {
-                eventChartService.deleteEventChart( chart );
+                service.deleteEventChart( chart );
             }
         }
     }

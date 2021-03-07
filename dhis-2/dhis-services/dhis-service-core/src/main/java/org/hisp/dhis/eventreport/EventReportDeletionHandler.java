@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.eventreport;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionVeto;
@@ -45,48 +46,31 @@ import org.springframework.stereotype.Component;
  */
 @Component( "org.hisp.dhis.eventreport.EventReportDeletionHandler" )
 public class EventReportDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventReport>
+    extends GenericAnalyticalObjectDeletionHandler<EventReport, EventReportService>
 {
-    private final EventReportService eventReportService;
-
     public EventReportDeletionHandler( EventReportService eventReportService )
     {
-        super( new DeletionVeto( EventReport.class ) );
-        checkNotNull( eventReportService );
-        this.eventReportService = eventReportService;
+        super( new DeletionVeto( EventReport.class ), eventReportService );
     }
 
     @Override
     protected void register()
     {
-        super.register();
-        whenDeleting( DataElement.class, this::deleteDataElement );
+        // generic
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        // special
+        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
         whenDeleting( ProgramStage.class, this::deleteProgramStage );
         whenDeleting( Program.class, this::deleteProgram );
     }
 
-    @Override
-    protected AnalyticalObjectService<EventReport> getAnalyticalObjectService()
+    private void deleteDataElementSpecial( DataElement dataElement )
     {
-        return eventReportService;
-    }
-
-    @Override
-    protected boolean isDeleteIndicator()
-    {
-        return false;
-    }
-
-    @Override
-    protected boolean isDeleteDataElement()
-    {
-        return false; // override below
-    }
-
-    private void deleteDataElement( DataElement dataElement )
-    {
-        List<EventReport> eventReports = getAnalyticalObjectService()
-            .getAnalyticalObjectsByDataDimension( dataElement );
+        List<EventReport> eventReports = service.getAnalyticalObjectsByDataDimension( dataElement );
 
         for ( EventReport report : eventReports )
         {
@@ -94,44 +78,32 @@ public class EventReportDeletionHandler
                 .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
                     .equals( dataElement ) );
 
-            eventReportService.update( report );
+            service.update( report );
         }
-    }
-
-    @Override
-    protected boolean isDeleteDataSet()
-    {
-        return false;
-    }
-
-    @Override
-    protected boolean isDeleteProgramIndicator()
-    {
-        return false;
     }
 
     private void deleteProgramStage( ProgramStage programStage )
     {
-        Collection<EventReport> charts = eventReportService.getAllEventReports();
+        Collection<EventReport> charts = service.getAllEventReports();
 
         for ( EventReport chart : charts )
         {
             if ( chart.getProgramStage().equals( programStage ) )
             {
-                eventReportService.deleteEventReport( chart );
+                service.deleteEventReport( chart );
             }
         }
     }
 
     private void deleteProgram( Program program )
     {
-        Collection<EventReport> charts = eventReportService.getAllEventReports();
+        Collection<EventReport> charts = service.getAllEventReports();
 
         for ( EventReport chart : charts )
         {
             if ( chart.getProgram().equals( program ) )
             {
-                eventReportService.deleteEventReport( chart );
+                service.deleteEventReport( chart );
             }
         }
     }
