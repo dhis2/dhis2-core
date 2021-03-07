@@ -25,32 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.util;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.function.Function;
 
-@Mapper( uses = DebugMapper.class )
-public interface TrackedEntityAttributeMapper extends PreheatMapper<TrackedEntityAttribute>
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.common.ValueType;
+
+/**
+ * @author Luca Cambi
+ */
+@Builder
+@Getter
+public class ValueTypeValidationFunction
 {
-    TrackedEntityAttributeMapper INSTANCE = Mappers.getMapper( TrackedEntityAttributeMapper.class );
+    private Function<String, Boolean> function;
 
-    @Override
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "confidential" )
-    @Mapping( target = "unique" )
-    @Mapping( target = "generated" )
-    @Mapping( target = "pattern" )
-    @Mapping( target = "textPattern" )
-    @Mapping( target = "skipSynchronization" )
-    @Mapping( target = "valueType" )
-    @Mapping( target = "orgunitScope" )
-    @Mapping( target = "optionSet" )
-    TrackedEntityAttribute map( TrackedEntityAttribute trackedEntityType );
+    private ValueType valueType;
+
+    private String message;
 }

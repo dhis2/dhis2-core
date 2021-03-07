@@ -31,9 +31,6 @@ import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import java.beans.Introspector;
 import java.util.List;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +41,7 @@ import org.hisp.dhis.preheat.PreheatException;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.preheat.supplier.PreheatSupplier;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
@@ -60,14 +58,17 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     @NonNull
     private final IdentifiableObjectManager manager;
 
-    private List<String> preheatSuppliers;
+    private ApplicationContext ctx;
 
-    @PostConstruct
-    public void init()
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+        throws BeansException
     {
-        this.preheatSuppliers = TrackerImportPreheatConfig.PREHEAT_ORDER.stream().map( Class::getSimpleName )
-            .collect( Collectors.toList() );
+        this.ctx = applicationContext;
     }
+
+    @Qualifier( "preheatOrder" )
+    private final List<String> preheatSuppliers;
 
     // TODO this flag should be configurable
     private final static boolean FAIL_FAST_ON_PREHEAT_ERROR = false;
@@ -124,14 +125,5 @@ public class DefaultTrackerPreheatService implements TrackerPreheatService, Appl
     public void validate( TrackerImportParams params )
     {
         // TODO: Implement validation
-    }
-
-    private ApplicationContext ctx;
-
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-        throws BeansException
-    {
-        this.ctx = applicationContext;
     }
 }

@@ -28,13 +28,18 @@
 package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1125;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -162,6 +167,17 @@ public abstract class AbstractTrackerDtoValidationHook
         reporter.getInvalidDTOs().putAll( context.getRootReporter().getInvalidDTOs() );
         validateRelationship( reporter, relationship );
         return reporter;
+    }
+
+    protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
+        T optionalObject, String value )
+    {
+        Optional.ofNullable( optionalObject.getOptionSet() )
+            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream()
+                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
+                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
+                optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
+                    .collect( Collectors.joining( "," ) ) ) );
     }
 
     /**

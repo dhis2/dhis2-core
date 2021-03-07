@@ -30,13 +30,17 @@ package org.hisp.dhis.tracker.validation.hooks;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.when;
+
+import java.util.Arrays;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -340,6 +344,72 @@ public class EventDataValuesValidationHookTest
         runAndAssertValidationForDataValue( ValueType.COORDINATE, "10" );
         runAndAssertValidationForDataValue( ValueType.URL, "not_valid_url" );
         runAndAssertValidationForDataValue( ValueType.FILE_RESOURCE, "not_valid_uid" );
+    }
+
+    @Test
+    public void successValidationDataElementOptionValueIsValid()
+    {
+        DataValue validDataValue = validDataValue();
+        validDataValue.setDataElement( "de" );
+        validDataValue.setValue( "code" );
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( "de" );
+        dataElement.setValueType( ValueType.TEXT );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+
+        dataElement.setOptionSet( optionSet );
+
+        when( validationContext.getDataElement( "de" ) ).thenReturn( dataElement );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        assertFalse( reporter.hasErrors() );
+        assertThat( reporter.getReportList(), hasSize( 0 ) );
+    }
+
+    @Test
+    public void failValidationDataElementOptionValueIsInValid()
+    {
+        DataValue validDataValue = validDataValue();
+        validDataValue.setDataElement( "de" );
+        validDataValue.setValue( "value" );
+
+        DataElement dataElement = new DataElement();
+        dataElement.setUid( "de" );
+        dataElement.setValueType( ValueType.TEXT );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+
+        dataElement.setOptionSet( optionSet );
+
+        when( validationContext.getDataElement( "de" ) ).thenReturn( dataElement );
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( 1, reporter.getReportList().stream()
+            .filter( e -> e.getErrorCode() == TrackerErrorCode.E1125 ).count() );
     }
 
     private void runAndAssertValidationForDataValue( ValueType valueType, String value )
