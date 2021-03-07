@@ -83,6 +83,7 @@ import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.springframework.util.Assert;
 
@@ -879,6 +880,14 @@ public class Visualization
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "domainAxisLabel" )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( "domainAxisLabel", getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -889,6 +898,14 @@ public class Visualization
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "rangeAxisLabel" )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( "rangeAxisLabel", getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -939,6 +956,14 @@ public class Visualization
         return baseLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "baseLineLabel" )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( "baseLineLabel", getBaseLineLabel() );
+    }
+
     public void setBaseLineLabel( String baseLineLabel )
     {
         this.baseLineLabel = baseLineLabel;
@@ -949,6 +974,14 @@ public class Visualization
     public String getTargetLineLabel()
     {
         return targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "targetLineLabel" )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( "targetLineLabel", getTargetLineLabel() );
     }
 
     public void setTargetLineLabel( String targetLineLabel )
@@ -1531,21 +1564,21 @@ public class Visualization
             final String name = defaultIfEmpty( metaData.get( dimensionId ), dimensionId );
             final String col = defaultIfEmpty( COLUMN_NAMES.get( dimensionId ), dimensionId );
 
-            grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name, col + "name", TEXT, String.class.getName(), false, true ) );
-            grid.addHeader( new GridHeader( name + " code", col + "code", TEXT, String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( name + " description", col + "description", TEXT, String.class.getName(),
+            grid.addHeader( new GridHeader( name + " ID", col + "id", TEXT, true, true ) );
+            grid.addHeader( new GridHeader( name, col + "name", TEXT, false, true ) );
+            grid.addHeader( new GridHeader( name + " code", col + "code", TEXT, true, true ) );
+            grid.addHeader( new GridHeader( name + " description", col + "description", TEXT,
                 true, true ) );
         }
 
         if ( reportParamColumns )
         {
-            grid.addHeader( new GridHeader( "Reporting month", REPORTING_MONTH_COLUMN_NAME, TEXT,
-                String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, TEXT,
-                String.class.getName(), true, true ) );
-            grid.addHeader( new GridHeader( "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME,
-                TEXT, String.class.getName(), true, true ) );
+            grid.addHeader( new GridHeader(
+                "Reporting month", REPORTING_MONTH_COLUMN_NAME, TEXT, true, true ) );
+            grid.addHeader( new GridHeader(
+                "Organisation unit parameter", PARAM_ORGANISATIONUNIT_COLUMN_NAME, TEXT, true, true ) );
+            grid.addHeader( new GridHeader(
+                "Organisation unit is parent", ORGANISATION_UNIT_IS_PARENT_COLUMN_NAME, TEXT, true, true ) );
         }
 
         final int startColumnIndex = grid.getHeaders().size();
@@ -1554,7 +1587,7 @@ public class Visualization
         for ( List<DimensionalItemObject> column : gridColumns )
         {
             grid.addHeader( new GridHeader( getColumnName( column ), getPrettyColumnName( column, displayProperty ),
-                NUMBER, Double.class.getName(), false, false ) );
+                NUMBER, false, false ) );
         }
 
         // ---------------------------------------------------------------------
@@ -1773,7 +1806,7 @@ public class Visualization
             String name = String.format( "Org unit level %d", level );
             String column = String.format( "orgunitlevel%d", level );
 
-            headers.add( new GridHeader( name, column, TEXT, String.class.getName(), false, true ) );
+            headers.add( new GridHeader( name, column, TEXT, false, true ) );
         }
 
         grid.addHeaders( ouIdColumnIndex, headers );

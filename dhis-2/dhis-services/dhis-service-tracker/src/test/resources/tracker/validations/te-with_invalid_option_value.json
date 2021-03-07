@@ -1,0 +1,28 @@
+{
+  "trackedEntities": [
+    {
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "attributes": [
+        {
+          "attribute": "cejWyOfXge6",
+          "value": "Mle",
+          "storedBy": "admin"
+        }
+      ],
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false
+    },
+    {
+      "trackedEntityType": "bPJ0FMtcnEh",
+      "attributes": [
+        {
+          "attribute": "cejWyOfXge6",
+          "value": "Female",
+          "storedBy": "admin"
+        }
+      ],
+      "orgUnit": "QfUVllTs6cS",
+      "inactive": false
+    }
+  ]
+}

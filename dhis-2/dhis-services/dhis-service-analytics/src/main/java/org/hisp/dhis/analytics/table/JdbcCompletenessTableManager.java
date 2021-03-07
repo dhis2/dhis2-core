@@ -70,6 +70,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -92,7 +93,7 @@ public class JdbcCompletenessTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "dx" ), CHARACTER_11, NOT_NULL, "ds.uid" ),
         new AnalyticsTableColumn( quote( "year" ), INTEGER, NOT_NULL, "ps.year" ) );
 
@@ -272,7 +273,7 @@ public class JdbcCompletenessTableManager
                 "acs." + quote( category.getUid() ) ).withCreated( category.getCreated() ) );
         }
 
-        columns.addAll( addPeriodColumns( "ps" ) );
+        columns.addAll( addPeriodTypeColumns( "ps" ) );
 
         String timelyDateDiff = statementBuilder.getDaysBetweenDates( "pe.enddate",
             statementBuilder.getCastToDate( "cdr.date" ) );

@@ -27,30 +27,26 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.TrackerType.*;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.getUidFromRelationshipItem;
 import static org.hisp.dhis.tracker.validation.hooks.RelationshipValidationUtils.relationshipItemValueType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
@@ -62,28 +58,17 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@RequiredArgsConstructor
 public class PreCheckDataRelationsValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private final ProgramInstanceService programInstanceService;
-
     private final CategoryService categoryService;
-
-    public PreCheckDataRelationsValidationHook(
-        ProgramInstanceService programInstanceService, CategoryService categoryService )
-    {
-        checkNotNull( categoryService );
-
-        this.programInstanceService = programInstanceService;
-        this.categoryService = categoryService;
-    }
 
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter,
@@ -134,8 +119,6 @@ public class PreCheckDataRelationsValidationHook
 
             if ( strategy.isCreate() )
             {
-                validateHasEnrollments( reporter, event );
-
                 validateNotMultipleEvents( reporter, event );
             }
         }
@@ -175,60 +158,6 @@ public class PreCheckDataRelationsValidationHook
             {
                 addError( reporter, E4012, trackerType.getName(), uid.get() );
             }
-        }
-    }
-
-    private void validateHasEnrollments( ValidationErrorReporter reporter, Event event )
-    {
-        TrackerImportValidationContext ctx = reporter.getValidationContext();
-        Program program = ctx.getProgram( event.getProgram() );
-
-        if ( program.isRegistration() )
-        {
-            ProgramInstance programInstance = ctx.getProgramInstance( event.getEnrollment() );
-
-            boolean exist = ctx.getReference( event.getEnrollment() ).isPresent();
-
-            if ( programInstance == null && !exist )
-            {
-                TrackedEntityInstance tei = ctx.getTrackedEntityInstance( event.getTrackedEntity() );
-
-                List<ProgramInstance> programInstances = ctx.getEventToProgramInstancesMap()
-                    .getOrDefault( event.getUid(), new ArrayList<>() );
-
-                final int count = programInstances.size();
-
-                if ( count == 0 )
-                {
-                    addError( reporter, E1037, tei, program );
-                }
-                else if ( count > 1 )
-                {
-                    addError( reporter, E1038, tei, program );
-                }
-                else
-                {
-                    // FIXME: we probably need to take in consideration the
-                    // idScheme
-                    event.setEnrollment( programInstances.get( 0 ).getUid() );
-                }
-            }
-        }
-        else
-        {
-            User user = ctx.getBundle().getUser();
-
-            ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
-            params.setProgram( program );
-            params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-            params.setUser( user );
-
-            params.setTrackedEntityInstanceUid( null );
-
-            int count = programInstanceService.countProgramInstances( params );
-
-            // TODO: this also needs to be changed to match original code.
-            addErrorIf( () -> count > 1, reporter, E1040, program );
         }
     }
 

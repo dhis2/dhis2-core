@@ -554,9 +554,9 @@ public class DateUtils
         }
 
         DateTimeUnit dateTime = new DateTimeUnit(
-            Integer.valueOf( matcher.group( "year" ) ),
-            Integer.valueOf( matcher.group( "month" ) ),
-            Integer.valueOf( matcher.group( "day" ) ) );
+            Integer.parseInt( matcher.group( "year" ) ),
+            Integer.parseInt( matcher.group( "month" ) ),
+            Integer.parseInt( matcher.group( "day" ) ) );
 
         return calendar.isValid( dateTime );
     }
@@ -681,18 +681,6 @@ public class DateUtils
         long diff = end.getTime() - start.getTime();
 
         return DAY_SECOND_FORMAT.print( new org.joda.time.Period( diff ) );
-    }
-
-    /**
-     * Returns a pretty string representing the interval between the given start
-     * and end dates using a day, month, second format.
-     *
-     * @param ms the number of milliseconds in the interval.
-     * @return a string, or null if the given start or end date is null.
-     */
-    public static String getPrettyInterval( long ms )
-    {
-        return DAY_SECOND_FORMAT.print( new org.joda.time.Period( ms ) );
     }
 
     /**

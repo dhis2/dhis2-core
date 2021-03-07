@@ -797,7 +797,7 @@ public class DefaultChartService
     {
         TextTitle textTitle = new TextTitle();
 
-        String title = chart.hasTitle() ? chart.getTitle() : chart.generateTitle();
+        String title = chart.hasTitle() ? chart.getDisplayTitle() : chart.generateTitle();
 
         textTitle.setFont( SUB_TITLE_FONT );
         textTitle.setText( title );

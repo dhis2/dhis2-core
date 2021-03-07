@@ -78,7 +78,7 @@ public class DefaultCurrentUserService
         checkNotNull( userStore );
 
         this.userStore = userStore;
-        this.usernameIdCache = cacheProvider.createUserIdCacheCache();
+        this.usernameIdCache = cacheProvider.createUserIdCache();
         this.currentUserGroupInfoCache = cacheProvider.createCurrentUserGroupInfoCache();
     }
 
@@ -87,6 +87,7 @@ public class DefaultCurrentUserService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public User getCurrentUser()
     {
         String username = getCurrentUsername();
@@ -232,12 +233,14 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public UserCredentials getCurrentUserCredentials()
     {
         return userStore.getUserCredentialsByUsername( getCurrentUsername() );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo()
     {
         UserInfo currentUserInfo = getCurrentUserInfo();
@@ -252,6 +255,7 @@ public class DefaultCurrentUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public CurrentUserGroupInfo getCurrentUserGroupsInfo( UserInfo userInfo )
     {
         if ( userInfo == null )

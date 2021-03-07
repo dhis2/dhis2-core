@@ -31,9 +31,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Date;
 
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
@@ -44,7 +45,6 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -59,13 +59,11 @@ import com.google.common.io.ByteSource;
  * @author Lars Helge Overland
  */
 @Component
+@Slf4j
 public class FileResourceUtils
 {
     @Autowired
     private FileResourceService fileResourceService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
 
     /**
      * Transfers the given multipart file content to a local temporary file.
@@ -155,7 +153,7 @@ public class FileResourceUtils
         }
     }
 
-    public FileResource saveFile( MultipartFile file, FileResourceDomain domain )
+    public FileResource saveFileResource( MultipartFile file, FileResourceDomain domain )
         throws WebMessageException,
         IOException
     {
@@ -168,6 +166,9 @@ public class FileResourceUtils
 
         long contentLength = file.getSize();
 
+        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
+            filename, file.getOriginalFilename(), file.getContentType(), contentLength );
+
         if ( contentLength <= 0 )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Could not read file or file is empty." ) );
@@ -177,12 +178,7 @@ public class FileResourceUtils
 
         String contentMd5 = bytes.hash( Hashing.md5() ).toString();
 
-        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5,
-            FileResourceDomain.DATA_VALUE );
-        fileResource.setAssigned( false );
-        fileResource.setCreated( new Date() );
-        fileResource.setCreatedBy( currentUserService.getCurrentUser() );
-        fileResource.setDomain( domain );
+        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
 
         File tmpFile = toTempFile( file );
 
