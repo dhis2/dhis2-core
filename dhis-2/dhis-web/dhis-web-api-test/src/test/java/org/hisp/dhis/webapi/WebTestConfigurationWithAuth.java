@@ -41,9 +41,7 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
-import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;

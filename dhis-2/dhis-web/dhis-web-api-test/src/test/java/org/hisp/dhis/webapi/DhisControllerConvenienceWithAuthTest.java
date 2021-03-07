@@ -35,7 +35,6 @@ import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.security.core.context.SecurityContextHolder;

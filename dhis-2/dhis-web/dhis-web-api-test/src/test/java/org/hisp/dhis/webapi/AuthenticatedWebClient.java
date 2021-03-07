@@ -71,32 +71,32 @@ public interface AuthenticatedWebClient
         return baseWebRequest( token, post( url ), body );
     }
 
-    default WebClient.HttpResponse PATCH(  String token, String url, Object... args )
+    default WebClient.HttpResponse PATCH( String token, String url, Object... args )
     {
         return PATCH( substitutePlaceholders( url, args ), "" );
     }
 
-    default WebClient.HttpResponse PATCH(  String token, String url, String body )
+    default WebClient.HttpResponse PATCH( String token, String url, String body )
     {
         return baseWebRequest( token, patch( url ), body );
     }
 
-    default WebClient.HttpResponse PUT(  String token, String url, Object... args )
+    default WebClient.HttpResponse PUT( String token, String url, Object... args )
     {
         return PUT( substitutePlaceholders( url, args ), "" );
     }
 
-    default WebClient.HttpResponse PUT(  String token, String url, String body )
+    default WebClient.HttpResponse PUT( String token, String url, String body )
     {
         return baseWebRequest( token, put( url ), body );
     }
 
-    default WebClient.HttpResponse DELETE(  String token, String url, Object... args )
+    default WebClient.HttpResponse DELETE( String token, String url, Object... args )
     {
         return DELETE( substitutePlaceholders( url, args ), "" );
     }
 
-    default WebClient.HttpResponse DELETE(  String token, String url, String body )
+    default WebClient.HttpResponse DELETE( String token, String url, String body )
     {
         return baseWebRequest( token, delete( url ), body );
     }
@@ -111,13 +111,13 @@ public interface AuthenticatedWebClient
         }
         if ( startWithMediaType( body ) )
         {
-            return authWebRequest(token, request
+            return authWebRequest( token, request
                 .contentType( body.substring( 0, body.indexOf( ':' ) ) )
                 .content( body.substring( body.indexOf( ':' ) + 1 ) ) );
         }
         return body == null || body.isEmpty()
-            ? authWebRequest( token,request )
-            : authWebRequest( token,request
+            ? authWebRequest( token, request )
+            : authWebRequest( token, request
                 .contentType( APPLICATION_JSON )
                 .content( plainTextOrJson( body ) ) );
     }

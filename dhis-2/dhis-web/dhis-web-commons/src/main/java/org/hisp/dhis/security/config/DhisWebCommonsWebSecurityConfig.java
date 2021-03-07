@@ -240,10 +240,10 @@ public class DhisWebCommonsWebSecurityConfig
                 .and()
 
                 .csrf()
-                .disable();
+                .disable()
 
-//                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-//                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
             setHttpHeaders( http );
         }

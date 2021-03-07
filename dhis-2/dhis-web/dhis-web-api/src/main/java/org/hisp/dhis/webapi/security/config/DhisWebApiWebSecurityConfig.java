@@ -38,10 +38,12 @@ import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
-import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.OidcEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
+import org.hisp.dhis.webapi.filter.CorsFilter;
+import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -84,6 +86,7 @@ import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthen
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.google.common.collect.ImmutableList;
@@ -382,9 +385,9 @@ public class DhisWebApiWebSecurityConfig
                 http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }
 
-//            http
-//                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
-//                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
+            http
+                .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
+                .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
             configureOAuth2TokenFilter( http );
 

@@ -1,19 +1,30 @@
 /*
- * Copyright 2002-2021 the original author or authors.
+ * Copyright (c) 2004-2002-2021, University of Oslo
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.security;
 
 import java.math.BigInteger;
@@ -36,30 +47,34 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * TODO
- * This class is a straight copy from Spring Security.
- * It should be removed when merging this codebase into Spring Security.
+ * TODO This class is a straight copy from Spring Security. It should be removed
+ * when merging this codebase into Spring Security.
  *
  * @author Joe Grandja
  * @since 5.2
  */
-public final class TestKeys {
+public final class TestKeys
+{
 
-	public static final KeyFactory kf;
-	static {
-		try {
-			kf = KeyFactory.getInstance("RSA");
-		}
-		catch (NoSuchAlgorithmException ex) {
-			throw new IllegalStateException(ex);
-		}
-	}
-	public static final String DEFAULT_ENCODED_SECRET_KEY = "bCzY/M48bbkwBEWjmNSIEPfwApcvXOnkCxORBEbPr+4=";
+    public static final KeyFactory kf;
+    static
+    {
+        try
+        {
+            kf = KeyFactory.getInstance( "RSA" );
+        }
+        catch ( NoSuchAlgorithmException ex )
+        {
+            throw new IllegalStateException( ex );
+        }
+    }
 
-	public static final SecretKey DEFAULT_SECRET_KEY = new SecretKeySpec(
-			Base64.getDecoder().decode(DEFAULT_ENCODED_SECRET_KEY), "AES");
+    public static final String DEFAULT_ENCODED_SECRET_KEY = "bCzY/M48bbkwBEWjmNSIEPfwApcvXOnkCxORBEbPr+4=";
 
-	// @formatter:off
+    public static final SecretKey DEFAULT_SECRET_KEY = new SecretKeySpec(
+        Base64.getDecoder().decode( DEFAULT_ENCODED_SECRET_KEY ), "AES" );
+
+    // @formatter:off
 	public static final String DEFAULT_RSA_PUBLIC_KEY = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3FlqJr5TRskIQIgdE3Dd"
 			+ "7D9lboWdcTUT8a+fJR7MAvQm7XXNoYkm3v7MQL1NYtDvL2l8CAnc0WdSTINU6IRv"
 			+ "c5Kqo2Q4csNX9SHOmEfzoROjQqahEcve1jBXluoCXdYuYpx4/1tfRgG6ii4Uhxh6"
@@ -69,18 +84,21 @@ public final class TestKeys {
 			+ "KwIDAQAB";
 	// @formatter:on
 
-	public static final RSAPublicKey DEFAULT_PUBLIC_KEY;
-	static {
-		X509EncodedKeySpec spec = new X509EncodedKeySpec(Base64.getDecoder().decode(DEFAULT_RSA_PUBLIC_KEY));
-		try {
-			DEFAULT_PUBLIC_KEY = (RSAPublicKey) kf.generatePublic(spec);
-		}
-		catch (InvalidKeySpecException ex) {
-			throw new IllegalArgumentException(ex);
-		}
-	}
+    public static final RSAPublicKey DEFAULT_PUBLIC_KEY;
+    static
+    {
+        X509EncodedKeySpec spec = new X509EncodedKeySpec( Base64.getDecoder().decode( DEFAULT_RSA_PUBLIC_KEY ) );
+        try
+        {
+            DEFAULT_PUBLIC_KEY = (RSAPublicKey) kf.generatePublic( spec );
+        }
+        catch ( InvalidKeySpecException ex )
+        {
+            throw new IllegalArgumentException( ex );
+        }
+    }
 
-	// @formatter:off
+    // @formatter:off
 	public static final String DEFAULT_RSA_PRIVATE_KEY = "MIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDcWWomvlNGyQhA"
 			+ "iB0TcN3sP2VuhZ1xNRPxr58lHswC9Cbtdc2hiSbe/sxAvU1i0O8vaXwICdzRZ1JM"
 			+ "g1TohG9zkqqjZDhyw1f1Ic6YR/OhE6NCpqERy97WMFeW6gJd1i5inHj/W19GAbqK"
@@ -109,46 +127,53 @@ public final class TestKeys {
 			+ "47jndeyIaMTNETEmOnms+as17g==";
 	// @formatter:on
 
-	public static final RSAPrivateKey DEFAULT_PRIVATE_KEY;
-	static {
-		PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(Base64.getDecoder().decode(DEFAULT_RSA_PRIVATE_KEY));
-		try {
-			DEFAULT_PRIVATE_KEY = (RSAPrivateKey) kf.generatePrivate(spec);
-		}
-		catch (InvalidKeySpecException ex) {
-			throw new IllegalArgumentException(ex);
-		}
-	}
+    public static final RSAPrivateKey DEFAULT_PRIVATE_KEY;
+    static
+    {
+        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec( Base64.getDecoder().decode( DEFAULT_RSA_PRIVATE_KEY ) );
+        try
+        {
+            DEFAULT_PRIVATE_KEY = (RSAPrivateKey) kf.generatePrivate( spec );
+        }
+        catch ( InvalidKeySpecException ex )
+        {
+            throw new IllegalArgumentException( ex );
+        }
+    }
 
-	public static final KeyPair DEFAULT_RSA_KEY_PAIR = new KeyPair(DEFAULT_PUBLIC_KEY, DEFAULT_PRIVATE_KEY);
+    public static final KeyPair DEFAULT_RSA_KEY_PAIR = new KeyPair( DEFAULT_PUBLIC_KEY, DEFAULT_PRIVATE_KEY );
 
-	public static final KeyPair DEFAULT_EC_KEY_PAIR = generateEcKeyPair();
+    public static final KeyPair DEFAULT_EC_KEY_PAIR = generateEcKeyPair();
 
-	static KeyPair generateEcKeyPair() {
-		EllipticCurve ellipticCurve = new EllipticCurve(
-				new ECFieldFp(new BigInteger(
-						"115792089210356248762697446949407573530086143415290314195533631308867097853951")),
-				new BigInteger("115792089210356248762697446949407573530086143415290314195533631308867097853948"),
-				new BigInteger("41058363725152142129326129780047268409114441015993725554835256314039467401291"));
-		ECPoint ecPoint = new ECPoint(
-				new BigInteger("48439561293906451759052585252797914202762949526041747995844080717082404635286"),
-				new BigInteger("36134250956749795798585127919587881956611106672985015071877198253568414405109"));
-		ECParameterSpec ecParameterSpec = new ECParameterSpec(ellipticCurve, ecPoint,
-				new BigInteger("115792089210356248762697446949407573529996955224135760342422259061068512044369"), 1);
+    static KeyPair generateEcKeyPair()
+    {
+        EllipticCurve ellipticCurve = new EllipticCurve(
+            new ECFieldFp( new BigInteger(
+                "115792089210356248762697446949407573530086143415290314195533631308867097853951" ) ),
+            new BigInteger( "115792089210356248762697446949407573530086143415290314195533631308867097853948" ),
+            new BigInteger( "41058363725152142129326129780047268409114441015993725554835256314039467401291" ) );
+        ECPoint ecPoint = new ECPoint(
+            new BigInteger( "48439561293906451759052585252797914202762949526041747995844080717082404635286" ),
+            new BigInteger( "36134250956749795798585127919587881956611106672985015071877198253568414405109" ) );
+        ECParameterSpec ecParameterSpec = new ECParameterSpec( ellipticCurve, ecPoint,
+            new BigInteger( "115792089210356248762697446949407573529996955224135760342422259061068512044369" ), 1 );
 
-		KeyPair keyPair;
-		try {
-			KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("EC");
-			keyPairGenerator.initialize(ecParameterSpec);
-			keyPair = keyPairGenerator.generateKeyPair();
-		}
-		catch (Exception ex) {
-			throw new IllegalStateException(ex);
-		}
-		return keyPair;
-	}
+        KeyPair keyPair;
+        try
+        {
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance( "EC" );
+            keyPairGenerator.initialize( ecParameterSpec );
+            keyPair = keyPairGenerator.generateKeyPair();
+        }
+        catch ( Exception ex )
+        {
+            throw new IllegalStateException( ex );
+        }
+        return keyPair;
+    }
 
-	private TestKeys() {
-	}
+    private TestKeys()
+    {
+    }
 
 }

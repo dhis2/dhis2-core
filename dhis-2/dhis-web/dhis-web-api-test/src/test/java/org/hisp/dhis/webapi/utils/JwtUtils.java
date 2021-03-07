@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.utils;
 
 import java.net.URL;
@@ -39,6 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import net.minidev.json.JSONObject;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.Assert;
@@ -94,7 +94,7 @@ public class JwtUtils
         this.jwkSource = jwkSource();
     }
 
-    public JwtUtils(JWKSource<SecurityContext> jwkSource)
+    public JwtUtils( JWKSource<SecurityContext> jwkSource )
     {
         this.jwkSource = jwkSource;
     }
@@ -197,7 +197,7 @@ public class JwtUtils
             {
                 try
                 {
-                    builder.jwk( JWK.parse( new JSONObject(jwk) ) );
+                    builder.jwk( JWK.parse( new JSONObject( jwk ) ) );
                 }
                 catch ( Exception ex )
                 {

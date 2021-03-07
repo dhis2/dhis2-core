@@ -1,25 +1,37 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright (c) 2004-2020, University of Oslo
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.webapi.utils;
 
 import org.springframework.security.oauth2.jwt.JwtException;
 
 /**
- * This exception is thrown when an error occurs
- * while attempting to encode a JSON Web Token (JWT).
+ * This exception is thrown when an error occurs while attempting to encode a
+ * JSON Web Token (JWT).
  *
  * @author Joe Grandja
  * @since 0.0.1
@@ -27,23 +39,25 @@ import org.springframework.security.oauth2.jwt.JwtException;
 public class JwtEncodingException extends JwtException
 {
 
-	/**
-	 * Constructs a {@code JwtEncodingException} using the provided parameters.
-	 *
-	 * @param message the detail message
-	 */
-	public JwtEncodingException(String message) {
-		super(message);
-	}
+    /**
+     * Constructs a {@code JwtEncodingException} using the provided parameters.
+     *
+     * @param message the detail message
+     */
+    public JwtEncodingException( String message )
+    {
+        super( message );
+    }
 
-	/**
-	 * Constructs a {@code JwtEncodingException} using the provided parameters.
-	 *
-	 * @param message the detail message
-	 * @param cause the root cause
-	 */
-	public JwtEncodingException(String message, Throwable cause) {
-		super(message, cause);
-	}
+    /**
+     * Constructs a {@code JwtEncodingException} using the provided parameters.
+     *
+     * @param message the detail message
+     * @param cause the root cause
+     */
+    public JwtEncodingException( String message, Throwable cause )
+    {
+        super( message, cause );
+    }
 
 }

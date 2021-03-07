@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
@@ -36,6 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
@@ -53,7 +54,6 @@ import org.hisp.dhis.webapi.utils.JwtUtils;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -66,8 +66,6 @@ import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.JWKSource;
 import com.nimbusds.jose.proc.SecurityContext;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -128,7 +126,7 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
     public void testJwkEncodeEndDecode()
         throws JOSEException
     {
-        Jwt encodedJws = createJwt("testproviderone.com");
+        Jwt encodedJws = createJwt( "testproviderone.com" );
 
         // Assert headers/claims were added
         assertEquals( "JWT", encodedJws.getHeaders().get( JoseHeaderNames.TYP ) );

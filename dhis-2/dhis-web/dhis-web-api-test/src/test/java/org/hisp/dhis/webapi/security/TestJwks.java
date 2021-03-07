@@ -1,17 +1,29 @@
 /*
- * Copyright 2020-2021 the original author or authors.
+ * Copyright (c) 2004-2020-2021, University of Oslo
+ * All rights reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
  *
- *      https://www.apache.org/licenses/LICENSE-2.0
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.webapi.security;
 
@@ -31,9 +43,10 @@ import com.nimbusds.jose.jwk.RSAKey;
 /**
  * @author Joe Grandja
  */
-public final class TestJwks {
+public final class TestJwks
+{
 
-	// @formatter:off
+    // @formatter:off
 	public static final RSAKey DEFAULT_RSA_JWK =
 			jwk(
 					TestKeys.DEFAULT_PUBLIC_KEY,
@@ -41,7 +54,7 @@ public final class TestJwks {
 			).build();
 	// @formatter:on
 
-	// @formatter:off
+    // @formatter:off
 	public static final ECKey DEFAULT_EC_JWK =
 			jwk(
 					(ECPublicKey) TestKeys.DEFAULT_EC_KEY_PAIR.getPublic(),
@@ -49,41 +62,45 @@ public final class TestJwks {
 			).build();
 	// @formatter:on
 
-	// @formatter:off
+    // @formatter:off
 	public static final OctetSequenceKey DEFAULT_SECRET_JWK =
 			jwk(
 					TestKeys.DEFAULT_SECRET_KEY
 			).build();
 	// @formatter:on
 
-	private TestJwks() {
-	}
+    private TestJwks()
+    {
+    }
 
-	public static RSAKey.Builder jwk(RSAPublicKey publicKey, RSAPrivateKey privateKey) {
-		// @formatter:off
+    public static RSAKey.Builder jwk( RSAPublicKey publicKey, RSAPrivateKey privateKey )
+    {
+        // @formatter:off
 		return new RSAKey.Builder(publicKey)
 				.privateKey(privateKey)
 				.keyUse(KeyUse.SIGNATURE)
 				.keyID("rsa-jwk-kid");
 		// @formatter:on
-	}
+    }
 
-	public static ECKey.Builder jwk(ECPublicKey publicKey, ECPrivateKey privateKey) {
-		// @formatter:off
+    public static ECKey.Builder jwk( ECPublicKey publicKey, ECPrivateKey privateKey )
+    {
+        // @formatter:off
 		Curve curve = Curve.forECParameterSpec(publicKey.getParams());
 		return new ECKey.Builder(curve, publicKey)
 				.privateKey(privateKey)
 				.keyUse(KeyUse.SIGNATURE)
 				.keyID("ec-jwk-kid");
 		// @formatter:on
-	}
+    }
 
-	public static OctetSequenceKey.Builder jwk(SecretKey secretKey) {
-		// @formatter:off
+    public static OctetSequenceKey.Builder jwk( SecretKey secretKey )
+    {
+        // @formatter:off
 		return new OctetSequenceKey.Builder(secretKey)
 				.keyUse(KeyUse.SIGNATURE)
 				.keyID("secret-jwk-kid");
 		// @formatter:on
-	}
+    }
 
 }
