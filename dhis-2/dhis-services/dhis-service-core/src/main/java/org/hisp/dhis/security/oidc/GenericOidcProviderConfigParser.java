@@ -36,6 +36,7 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ENABLE_P
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.END_SESSION_ENDPOINT;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTERNAL_CLIENT_PREFIX;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ISSUER_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE_PADDING;
@@ -64,16 +65,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.UrlValidator;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 /**
- * Parses the DHIS.conf file for valid generic OIDC provider configuration(s).
- * See the DHIS2 manual for how to configure OIDC providers correctly.
+ * Parses the DHIS.conf file for valid generic OIDC provider configurations. See
+ * the DHIS2 manual for how to configure a OIDC provider correctly.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -82,10 +83,11 @@ public final class GenericOidcProviderConfigParser
 {
     public static final String OIDC_PROVIDER_PREFIX = "oidc.provider.";
 
-    // OIDC provider config properties lines starting with these client names
-    // will be ignored by this parser,
-    // these clients/providers have their own respective provider classes and
-    // config parsers.
+    /**
+     * OIDC provider config properties lines starting with these client names
+     * will be ignored by this parser, these clients/providers have their own
+     * respective provider classes and config parsers.
+     */
     private static final Set<String> RESERVED_PROVIDER_IDS = ImmutableSet.of(
         "azure",
         "google",
@@ -114,6 +116,7 @@ public final class GenericOidcProviderConfigParser
         builder.put( LOGO_IMAGE, Boolean.FALSE );
         builder.put( LOGO_IMAGE_PADDING, Boolean.FALSE );
         builder.put( EXTRA_REQUEST_PARAMETERS, Boolean.FALSE );
+        builder.put( ISSUER_URI, Boolean.FALSE );
 
         KEY_REQUIRED_MAP = builder.build();
     }
@@ -121,25 +124,21 @@ public final class GenericOidcProviderConfigParser
     private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
 
     /**
-     * Parses the DHIS.conf file for valid OIDC provider configuration(s). See
-     * the DHIS2 manual for how to configure a OIDC provider correctly.
+     * Parses the DhisConfigurationProvider for valid OIDC providers.
      *
-     * @param config The config
+     * @param properties The config
      *
-     * @return A List of maps for each successfully parsed provider with
-     *         corresponding key/values, the valid configuration property keys
-     *         are defined in
-     *         {@link org.hisp.dhis.security.oidc.provider.AbstractOidcProvider}
+     * @return A list of DhisOidcClientRegistrations
      */
-    public static List<DhisOidcClientRegistration> parse( DhisConfigurationProvider config )
+    public static List<DhisOidcClientRegistration> parse( Properties properties )
     {
-        Properties properties = config.getProperties();
+        Objects.requireNonNull( properties );
 
         Objects.requireNonNull( properties, "Properties argument must not be NULL!" );
 
         List<DhisOidcClientRegistration> allProviderConfigs = new ArrayList<>();
 
-        Map<String, Set<String>> keysByProvider = extractKeysByProvider( properties );
+        Map<String, Set<String>> keysByProvider = extractKeysGroupByProvider( properties );
 
         for ( String providerName : keysByProvider.keySet() )
         {
@@ -177,7 +176,7 @@ public final class GenericOidcProviderConfigParser
             }
 
             // Validate we have all the required configuration properties.
-            if ( !validateProperties( providerConfig ) )
+            if ( !validateConfig( providerConfig ) )
             {
                 continue;
             }
@@ -188,73 +187,101 @@ public final class GenericOidcProviderConfigParser
         return allProviderConfigs;
     }
 
-    public static Map<String, Set<String>> extractKeysByProvider( Properties properties )
+    /**
+     * Groups all keys into a map with provider name as key and a set of
+     * corresponding keys as value.
+     *
+     * @param properties All config properties
+     * @return A map with provider name as key and all its keys as a set of
+     *         keys.
+     */
+    public static Map<String, Set<String>> extractKeysGroupByProvider( Properties properties )
     {
+        Objects.requireNonNull( properties );
+
         // Get/collect all properties that start with the OIDC_PROVIDER_PREFIX.
-        List<Map.Entry<Object, Object>> allOidcProps = properties.entrySet().stream()
-            .filter( o -> ((String) o.getKey()).startsWith( OIDC_PROVIDER_PREFIX ) )
-            .collect( Collectors.toList() );
+        Predicate<String> predicate = e -> e.startsWith( OIDC_PROVIDER_PREFIX );
 
-        // Group all the OIDC properties by their provider.
-        return allOidcProps.stream()
-            .map( x -> ((String) x.getKey()).split( "\\." ) )
-            .collect( groupByArrayPosition( 2 ) );
-    }
+        Set<String> allKeys = properties.keySet().stream().map( Object::toString ).collect( Collectors.toSet() );
 
-    public static Map<String, Map<String, String>> extractExternalClients( Properties properties, String providerName,
-        Set<String> providerKeys )
-    {
-        Map<String, Set<String>> externalClientKeys = parseExternalClients( providerKeys );
-
-        Map<String, Map<String, String>> externalClientConfigs = new HashMap<>();
-        for ( String client : externalClientKeys.keySet() )
-        {
-            Map<String, String> hmap = new HashMap<>();
-            externalClientConfigs.put( client, hmap );
-
-            Set<String> clientKeys = externalClientKeys.get( client );
-            for ( String clientKey : clientKeys )
-            {
-                String fullKey = OIDC_PROVIDER_PREFIX + providerName + "."
-                    + EXTERNAL_CLIENT_PREFIX + "." + client + "." + clientKey;
-                String v = (String) properties.get( fullKey );
-                hmap.put( clientKey, v );
-            }
-        }
-
-        return externalClientConfigs;
+        return filterSplitGroupAndJoin( allKeys, predicate, 2 );
     }
 
     /**
-     * Extracts the external client configs from the rest of the configuration
-     * into a separate map.
+     * Groups all keys in a provider group that starts with "ext_client.X", into
+     * a new map with "X" as the main key, and all its keys/values as a map.
+     *
+     * @param properties Main config properties object
+     * @param providerName Provider name
+     * @param providerKeys List of all keys for that provider
+     * @return a Map of set of keys for each external client
      */
-    private static Map<String, Set<String>> parseExternalClients( Set<String> providerKeys )
+    public static Map<String, Map<String, String>> extractExternalClients( Properties properties, String providerName,
+        Set<String> providerKeys )
     {
-        List<String> extClients = new ArrayList<>();
+        Objects.requireNonNull( properties );
+        Objects.requireNonNull( providerName );
+        Objects.requireNonNull( providerKeys );
+
+        Map<String, Map<String, String>> allClientConfigs = new HashMap<>();
 
         Predicate<String> isExternalClient = s -> s.contains( EXTERNAL_CLIENT_PREFIX );
 
-        providerKeys.stream()
-            .filter( isExternalClient )
-            .forEach( extClients::add );
+        Map<String, Set<String>> allClientsKeys = filterSplitGroupAndJoin( providerKeys, isExternalClient, 1 );
 
-        // Remove external clients from main provider set
-        extClients.forEach( providerKeys::remove );
+        // Remove keys from input set, we don't want to validate them.
+        providerKeys.stream().filter( isExternalClient )
+            .collect( Collectors.toSet() ).forEach( providerKeys::remove );
 
-        /*
-         * Maps the keys by external client nr., aka. ext_client.>0<.KEY,
-         * ext_client.>1<.KEY... So nr. (0,1...) will become the key in the
-         * output map, hence you can also use a unique String as key/id instead
-         * of a number...
-         */
-        return extClients.stream()
-            .map( k -> (k).split( "\\." ) )
-            .collect( groupByArrayPosition( 1 ) );
+        for ( String clientName : allClientsKeys.keySet() )
+        {
+            Map<String, String> keyValues = new HashMap<>();
+            allClientConfigs.put( clientName, keyValues );
+
+            Set<String> clientKeys = allClientsKeys.get( clientName );
+            for ( String clientKey : clientKeys )
+            {
+                String fullKey = OIDC_PROVIDER_PREFIX + providerName + "."
+                    + EXTERNAL_CLIENT_PREFIX + "." + clientName + "." + clientKey;
+
+                keyValues.put( clientKey, (String) properties.get( fullKey ) );
+            }
+        }
+
+        return allClientConfigs;
     }
 
-    // Groups an array on keyPosition, make rest of the key into a set of keys
-    private static Collector<String[], ?, Map<String, Set<String>>> groupByArrayPosition( int keyIndex )
+    /**
+     * Filter set on keys on predicate, then split on . , then group array on
+     * key index, then join remaining part of arrays into a set of keys
+     *
+     * @param keys Keys to use
+     * @param predicate Predicate to filter by
+     * @param keyIndex Index to group arrays by
+     *
+     * @return A map where key is the keyIndex part of the array, and value is a
+     *         set of all joined arrays after keyIndex
+     */
+    public static Map<String, Set<String>> filterSplitGroupAndJoin( Set<String> keys, Predicate<String> predicate,
+        int keyIndex )
+    {
+        Objects.requireNonNull( keys );
+        Objects.requireNonNull( predicate );
+
+        return keys.stream()
+            .filter( predicate )
+            .map( x -> x.split( "\\." ) )
+            .collect( groupAndJoinOnArrayIndex( keyIndex ) );
+    }
+
+    /**
+     * Groups an array on input index, join the rest of the arrays into a set of
+     * keys.
+     *
+     * @param keyIndex What position/index in the array should be the key
+     * @return a Collector
+     */
+    private static Collector<String[], ?, Map<String, Set<String>>> groupAndJoinOnArrayIndex( int keyIndex )
     {
         Function<String[], String> mappingFunction = a -> String.join( ".",
             Arrays.copyOfRange( a, keyIndex + 1, a.length ) );
@@ -263,26 +290,28 @@ public final class GenericOidcProviderConfigParser
     }
 
     /**
-     * Validates that all properties have valid names.
+     * Validates that all key names are valid.
      *
-     * @param providerId id of provider
-     * @param configKeys map of config
+     * @param providerName Name of provider
+     * @param configKeys Set of config keys to validate
      * @return valid or not valid
      */
-    private static boolean validateKeyNames( String providerId, Set<String> configKeys )
+    private static boolean validateKeyNames( String providerName, Set<String> configKeys )
     {
-        Sets.SetView<String> differences = Sets.difference( configKeys, VALID_KEY_NAMES );
+        Objects.requireNonNull( providerName );
+        Objects.requireNonNull( configKeys );
 
-        checkKeyNamesForDifferences( providerId, differences );
+        Sets.SetView<String> differences = Sets.difference( configKeys, VALID_KEY_NAMES );
 
         if ( !differences.isEmpty() )
         {
-            log.error(
-                String.format(
-                    "OpenID Connect (OIDC) configuration for provider: '%s' contains one or more invalid properties. " +
-                        "Failed to configure the provider successfully! " +
-                        "See previous errors for more information on what property that triggered this error!",
-                    providerId ) );
+            checkAndLogInvalidKeyNames( providerName, differences );
+
+            log.error( String.format(
+                "OpenID Connect (OIDC) configuration for provider: '%s' contains one or more invalid properties. " +
+                    "Failed to configure the provider successfully! " +
+                    "See previous errors for more information on what property that triggered this error!",
+                providerName ) );
 
             return false;
         }
@@ -291,22 +320,91 @@ public final class GenericOidcProviderConfigParser
     }
 
     /**
-     * Makes sure that all required properties are present in the providerConfig
-     * map and that uris are valid.
+     * Checks if there is any keys with invalid names, it then tries to be nice
+     * and find a possible typo by calculating the Levenshtein distance, and
+     * finally logs the error to the logger.
      *
-     * @param providerConfig map of config
-     *
-     * @return valid or not valid
+     * @param providerName Provider name
+     * @param nonValidKeys Set of non valid key names
      */
-    private static boolean validateProperties( Map<String, String> providerConfig )
+    private static void checkAndLogInvalidKeyNames( String providerName, Sets.SetView<String> nonValidKeys )
     {
+        Objects.requireNonNull( providerName );
+        Objects.requireNonNull( nonValidKeys );
+
+        int maxLevenshteinDistance = 3;
+
+        for ( String wrongKeyName : nonValidKeys )
+        {
+            Pair<String, Integer> wrongKeyAndMinDist = Pair.of( "", maxLevenshteinDistance );
+
+            wrongKeyAndMinDist = getLevenshteinDistances( wrongKeyName, wrongKeyAndMinDist );
+
+            String msg = "OpenID Connect (OIDC) configuration for provider: '%s' contains an invalid property: '%s'";
+
+            if ( wrongKeyAndMinDist.getRight() < maxLevenshteinDistance )
+            {
+                msg += ", did you mean: '%s' ?";
+                log.error( String.format( msg, providerName, wrongKeyName, wrongKeyAndMinDist.getLeft() ) );
+            }
+            else
+            {
+                log.error( String.format( msg, providerName, wrongKeyName ) );
+            }
+        }
+    }
+
+    /**
+     * Loops through all valid key names and compare against the input non valid
+     * key name and calculates the Levenshtein distances between them. If the
+     * distance is less than the max distance set in the keyAndMaxDist it
+     * updates the keyAndMaxDist with that key (aka. the most similar)
+     *
+     * @param wrongKeyName The non valid key name to check against the valid
+     *        ones.
+     * @param keyAndMaxDist A pair of a maximum interesting Levenshtein distance
+     *        and a place holder for the valid key name.
+     *
+     * @return keyAndMinDist with possibly valid key name if there was a match
+     *         with a valid key with less than the maximum Levenshtein distance.
+     */
+    private static Pair<String, Integer> getLevenshteinDistances( String wrongKeyName,
+        Pair<String, Integer> keyAndMaxDist )
+    {
+        Objects.requireNonNull( wrongKeyName );
+        Objects.requireNonNull( keyAndMaxDist );
+
+        for ( String validKeyName : VALID_KEY_NAMES )
+        {
+            int distance = StringUtils.getLevenshteinDistance( wrongKeyName, validKeyName );
+            if ( distance < keyAndMaxDist.getRight() )
+            {
+                keyAndMaxDist = Pair.of( validKeyName, distance );
+            }
+        }
+
+        return keyAndMaxDist;
+    }
+
+    /**
+     * Validates that all required properties are present in the final
+     * providerConfig map and that uris values are valid.
+     *
+     * @param providerConfig Map of key value config properties for a provider
+     *
+     * @return true or false
+     */
+    private static boolean validateConfig( Map<String, String> providerConfig )
+    {
+        Objects.requireNonNull( providerConfig );
+
         String providerId = providerConfig.get( PROVIDER_ID );
 
         for ( String key : KEY_REQUIRED_MAP.keySet() )
         {
             String value = providerConfig.get( key );
 
-            if ( KEY_REQUIRED_MAP.get( key ) && StringUtils.isEmpty( value ) )
+            if ( KEY_REQUIRED_MAP.get( key ) && Strings.isNullOrEmpty( value ) )
             {
                 log.error( String.format(
                     "OpenId Connect (OIDC) configuration for provider: '%s' is missing a required property: '%s'. " +
@@ -316,11 +414,11 @@ public final class GenericOidcProviderConfigParser
                 return false;
             }
 
-            if ( key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
+            if ( value != null && key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
             {
                 log.error( String.format(
-                    "OpenId Connect (OIDC) configuration for provider: '%s' has a required property: '%s', " +
-                        "with a malformed URI: '%s'. Failed to configure the provider successfully!",
+                    "OpenId Connect (OIDC) configuration for provider: '%s' has a URI property: '%s', " +
+                        "with a malformed value: '%s'. Failed to configure the provider successfully!",
                     providerId, key, value ) );
 
                 return false;
@@ -328,53 +426,5 @@ public final class GenericOidcProviderConfigParser
         }
 
         return true;
-    }
-
-    /**
-     * If there is any wrong matches on the valid property names vs input, it
-     * tries to be nice and find a possible typo by calculating the Levenshtein
-     * distance, and logs it.
-     *
-     * @param providerId Provider name
-     * @param difference Set of differences from the valid key name map
-     */
-    private static void checkKeyNamesForDifferences( String providerId, Sets.SetView<String> difference )
-    {
-        int maxDistance = 3;
-
-        for ( String wrongKeyName : difference )
-        {
-            Pair<String, Integer> wrongKeyAndMinDist = Pair.of( "", maxDistance );
-
-            wrongKeyAndMinDist = getLevenshteinDistances( wrongKeyName, wrongKeyAndMinDist );
-
-            String msg = "OpenID Connect (OIDC) configuration for provider: '%s' contains an invalid property: '%s'";
-
-            if ( wrongKeyAndMinDist.getRight() < maxDistance )
-            {
-                msg += ", did you mean: '%s' ?";
-                log.error( String.format( msg, providerId, wrongKeyName, wrongKeyAndMinDist.getLeft() ) );
-            }
-            else
-            {
-                log.error( String.format( msg, providerId, wrongKeyName ) );
-            }
-        }
-    }
-
-    private static Pair<String, Integer> getLevenshteinDistances( String wrongKeyName,
-        Pair<String, Integer> wrongKeyAndMinDist )
-    {
-        for ( String validKeyName : VALID_KEY_NAMES )
-        {
-            int distance = StringUtils.getLevenshteinDistance( wrongKeyName, validKeyName );
-
-            if ( distance < wrongKeyAndMinDist.getRight() )
-            {
-                wrongKeyAndMinDist = Pair.of( validKeyName, distance );
-            }
-        }
-
-        return wrongKeyAndMinDist;
     }
 }

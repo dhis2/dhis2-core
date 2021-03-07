@@ -41,8 +41,8 @@ import javax.servlet.http.HttpServletRequest;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,11 +78,18 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
     private UserService userService;
 
     @Autowired
-    private DhisClientRegistrationRepository clientRegistrationRepository;
+    private DhisOidcProviderRepository clientRegistrationRepository;
 
     private final Map<String, AuthenticationManager> authenticationManagers = new ConcurrentHashMap<>();
 
     private final Converter<HttpServletRequest, String> issuerConverter = new JwtClaimIssuerConverter();
+
+    private JwtDecoder jwtDecoder;
+
+    public void setJwtDecoder( JwtDecoder jwtDecoder )
+    {
+        this.jwtDecoder = jwtDecoder;
+    }
 
     @Override
     public AuthenticationManager resolve( HttpServletRequest request )
@@ -106,12 +113,20 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
                 throw new InvalidBearerTokenException( "Invalid issuer" );
             }
 
-            JwtDecoder jwtDecoder = JwtDecoders.fromIssuerLocation( issuer );
-
-            Converter<Jwt, DhisJwtAuthenticationToken> converter = getConverter( clientRegistration );
-
-            return new DhisJwtAuthenticationProvider( jwtDecoder, converter )::authenticate;
+            return new DhisJwtAuthenticationProvider(
+                getDecoder( issuer ),
+                getConverter( clientRegistration ) )::authenticate;
         } );
+    }
+
+    private JwtDecoder getDecoder( String issuer )
+    {
+        if ( jwtDecoder != null )
+        {
+            return jwtDecoder;
+        }
+
+        return JwtDecoders.fromIssuerLocation( issuer );
     }
 
     private Converter<Jwt, DhisJwtAuthenticationToken> getConverter( DhisOidcClientRegistration clientRegistration )
@@ -122,7 +137,8 @@ public class DhisJwtAuthenticationManagerResolver implements AuthenticationManag
             Collection<String> clientIds = clientRegistration.getClientIds();
 
             Set<String> matchedClientIds = clientIds.stream()
-                .filter( audience::contains ).collect( Collectors.toSet() );
+                .filter( audience::contains )
+                .collect( Collectors.toSet() );
 
             if ( matchedClientIds.isEmpty() )
             {

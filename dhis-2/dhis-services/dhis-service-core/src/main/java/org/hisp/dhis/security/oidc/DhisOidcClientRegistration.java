@@ -83,21 +83,4 @@ public class DhisOidcClientRegistration
 
         return setBuilder.build();
     }
-
-    public Collection<String> get()
-    {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
-
-        ImmutableSet.Builder<String> setBuilder = ImmutableSet
-            .builderWithExpectedSize( allExternalClientIds.size() + 1 );
-        setBuilder.addAll( allExternalClientIds );
-        setBuilder.add( clientRegistration.getClientId() );
-
-        return setBuilder.build();
-    }
 }

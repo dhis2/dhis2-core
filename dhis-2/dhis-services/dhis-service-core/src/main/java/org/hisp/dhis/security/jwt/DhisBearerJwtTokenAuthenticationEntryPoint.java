@@ -33,7 +33,11 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -44,10 +48,16 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class DhisBearerJwtTokenAuthenticationEntryPoint implements AuthenticationEntryPoint
+@Slf4j
+public class DhisBearerJwtTokenAuthenticationEntryPoint implements AuthenticationEntryPoint, ApplicationContextAware
 {
-    @Autowired
-    private HandlerExceptionResolver handlerExceptionResolver;
+    private ApplicationContext applicationContext;
+
+    @Override
+    public void setApplicationContext( ApplicationContext applicationContext )
+    {
+        this.applicationContext = applicationContext;
+    }
 
     private BearerTokenAuthenticationEntryPoint entryPoint = new BearerTokenAuthenticationEntryPoint();
 
@@ -58,6 +68,16 @@ public class DhisBearerJwtTokenAuthenticationEntryPoint implements Authenticatio
         ServletException
     {
         entryPoint.commence( request, response, authException );
-        handlerExceptionResolver.resolveException( request, response, null, authException );
+
+        HandlerExceptionResolver handlerExceptionResolver = null;
+        try
+        {
+            handlerExceptionResolver = applicationContext.getBean( HandlerExceptionResolver.class );
+            handlerExceptionResolver.resolveException( request, response, null, authException );
+        }
+        catch ( BeansException e )
+        {
+            log.warn( "Could not find a HandlerExceptionResolver bean" );
+        }
     }
 }

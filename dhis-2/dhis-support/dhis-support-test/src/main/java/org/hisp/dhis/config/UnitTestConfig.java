@@ -35,6 +35,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -65,5 +66,11 @@ public class UnitTestConfig
     public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
     {
         return ( dirContextOperations, s ) -> null;
+    }
+
+    @Bean( "org.springframework.web.servlet.HandlerExceptionResolver" )
+    public HandlerExceptionResolver handlerExceptionResolver()
+    {
+        return null;
     }
 }

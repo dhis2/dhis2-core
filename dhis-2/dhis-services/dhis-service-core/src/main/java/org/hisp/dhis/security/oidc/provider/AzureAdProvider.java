@@ -32,7 +32,6 @@ import java.util.Objects;
 import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -66,11 +65,9 @@ public class AzureAdProvider extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static List<DhisOidcClientRegistration> parse( DhisConfigurationProvider config )
+    public static List<DhisOidcClientRegistration> parse( Properties config )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
-
-        final Properties properties = config.getProperties();
 
         final ImmutableList.Builder<DhisOidcClientRegistration> clients = ImmutableList.builder();
 
@@ -78,20 +75,20 @@ public class AzureAdProvider extends AbstractOidcProvider
         {
             String propertyPrefix = PROVIDER_PREFIX + i + '.';
 
-            String tenant = properties.getProperty( propertyPrefix + AZURE_TENANT, "" );
+            String tenant = config.getProperty( propertyPrefix + AZURE_TENANT, "" );
             if ( tenant.isEmpty() )
             {
                 continue;
             }
 
             DhisOidcClientRegistration dhisOidcClientRegistration = DhisOidcClientRegistration.builder()
-                .clientRegistration( buildClientRegistration( config.getProperties(), tenant, propertyPrefix ) )
+                .clientRegistration( buildClientRegistration( config, tenant, propertyPrefix ) )
                 .mappingClaimKey( MoreObjects.firstNonNull(
-                    properties.getProperty( propertyPrefix + MAPPING_CLAIM ),
+                    config.getProperty( propertyPrefix + MAPPING_CLAIM ),
                     DEFAULT_MAPPING_CLAIM ) )
                 .loginIcon( "../security/btn_azure_login.svg" )
                 .loginIconPadding( "13px 13px" )
-                .loginText( properties.getProperty( propertyPrefix + DISPLAY_ALIAS, "login_with_azure" ) )
+                .loginText( config.getProperty( propertyPrefix + DISPLAY_ALIAS, "login_with_azure" ) )
                 .build();
 
             clients.add( dhisOidcClientRegistration );

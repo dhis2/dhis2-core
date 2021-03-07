@@ -27,55 +27,58 @@
  */
 package org.hisp.dhis.security.oidc.provider;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.List;
+import java.util.Properties;
+
+import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
+import org.junit.Test;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 public class GenericOidcProviderBuilderTest
 {
-    // @Test
-    // public void testBuildSuccessfully()
-    // {
-    // Properties properties = new Properties();
-    //
-    // properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-    // properties.put( "oidc.provider.idporten.client_secret",
-    // "testClientSecret!#!?" );
-    // properties.put( "oidc.provider.idporten.authorization_uri",
-    // "https://oidc-ver2.difi.no/authorize" );
-    // properties.put( "oidc.provider.idporten.token_uri",
-    // "https://oidc-ver2.difi.no/token" );
-    // properties.put( "oidc.provider.idporten.user_info_uri",
-    // "https://oidc-ver2.difi.no/userinfo" );
-    // properties.put( "oidc.provider.idporten.jwk_uri",
-    // "https://oidc-ver2.difi.no/jwk" );
-    // properties.put( "oidc.provider.idporten.end_session_endpoint",
-    // "https://oidc-ver2.difi.no/endsession" );
-    // properties.put( "oidc.provider.idporten.scopes", "pid" );
-    // properties.put( "oidc.provider.idporten.mapping_claim",
-    // "helseid://claims/identity/pid" );
-    // properties.put( "oidc.provider.idporten.display_alias", "IdPorten" );
-    // properties.put( "oidc.provider.idporten.enable_logout", "true" );
-    // properties.put( "oidc.provider.idporten.logo_image",
-    // "../security/idporten-logo.svg" );
-    // properties.put( "oidc.provider.idporten.extra_request_parameters", "
-    // acr_value 4 , test_param five" );
-    // properties.put( "oidc.provider.idporten.enable_pkce", "false" );
-    //
-    // List<Map<String, String>> providerConfigList =
-    // GenericOidcProviderConfigParser.parse( properties );
-    //
-    // assertEquals( providerConfigList.size(), 1 );
-    //
-    // Map<String, String> providerConfig = providerConfigList.get( 0 );
-    //
-    // final DhisOidcClientRegistration clientRegistration =
-    // GenericOidcProviderBuilder.build( providerConfig,
-    // extClientsKeys );
-    //
-    // assertNotNull( clientRegistration );
-    //
-    // final String registrationId = clientRegistration.getRegistrationId();
-    //
-    // assertEquals( registrationId, "idporten" );
-    // }
+    @Test
+    public void testBuildSuccessfully()
+    {
+        Properties properties = new Properties();
+
+        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
+        properties.put( "oidc.provider.idporten.client_secret",
+            "testClientSecret!#!?" );
+        properties.put( "oidc.provider.idporten.authorization_uri",
+            "https://oidc-ver2.difi.no/authorize" );
+        properties.put( "oidc.provider.idporten.token_uri",
+            "https://oidc-ver2.difi.no/token" );
+        properties.put( "oidc.provider.idporten.user_info_uri",
+            "https://oidc-ver2.difi.no/userinfo" );
+        properties.put( "oidc.provider.idporten.jwk_uri",
+            "https://oidc-ver2.difi.no/jwk" );
+        properties.put( "oidc.provider.idporten.end_session_endpoint",
+            "https://oidc-ver2.difi.no/endsession" );
+        properties.put( "oidc.provider.idporten.scopes", "pid" );
+        properties.put( "oidc.provider.idporten.mapping_claim",
+            "helseid://claims/identity/pid" );
+        properties.put( "oidc.provider.idporten.display_alias", "IdPorten" );
+        properties.put( "oidc.provider.idporten.enable_logout", "true" );
+        properties.put( "oidc.provider.idporten.logo_image",
+            "../security/idporten-logo.svg" );
+        properties.put( "oidc.provider.idporten.extra_request_parameters", "acr_value 4 , test_param five" );
+        properties.put( "oidc.provider.idporten.enable_pkce", "false" );
+
+        List<DhisOidcClientRegistration> providerConfigList = GenericOidcProviderConfigParser.parse( properties );
+        assertEquals( providerConfigList.size(), 1 );
+
+        DhisOidcClientRegistration dhisOidcClientRegistration = providerConfigList.get( 0 );
+
+        assertNotNull( dhisOidcClientRegistration );
+
+        final String registrationId = dhisOidcClientRegistration.getClientRegistration().getRegistrationId();
+
+        assertEquals( registrationId, "idporten" );
+    }
 }

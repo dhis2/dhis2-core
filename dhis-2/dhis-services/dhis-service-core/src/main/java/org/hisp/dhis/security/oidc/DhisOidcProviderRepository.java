@@ -33,6 +33,8 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
@@ -49,22 +51,23 @@ import com.google.common.base.MoreObjects;
  */
 
 @Component
-public class DhisClientRegistrationRepository
+@Slf4j
+public class DhisOidcProviderRepository
     implements ClientRegistrationRepository
 {
     @Autowired
     private DhisConfigurationProvider config;
 
-    private static final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
+    private final Map<String, DhisOidcClientRegistration> registrationHashMap = new LinkedHashMap<>();
 
     @PostConstruct
     public void init()
     {
-        GenericOidcProviderConfigParser.parse( config ).forEach( this::addRegistration );
-        AzureAdProvider.parse( config ).forEach( this::addRegistration );
+        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach( this::addRegistration );
+        AzureAdProvider.parse( config.getProperties() ).forEach( this::addRegistration );
 
-        addRegistration( GoogleProvider.parse( config ) );
-        addRegistration( Wso2Provider.parse( config ) );
+        addRegistration( GoogleProvider.parse( config.getProperties() ) );
+        addRegistration( Wso2Provider.parse( config.getProperties() ) );
     }
 
     public void addRegistration( DhisOidcClientRegistration registration )
@@ -74,7 +77,24 @@ public class DhisClientRegistrationRepository
             return;
         }
 
-        registrationHashMap.put( registration.getClientRegistration().getRegistrationId(), registration );
+        registrationHashMap.putIfAbsent( registration.getClientRegistration().getRegistrationId(), registration );
+    }
+
+    public void removeRegistration( DhisOidcClientRegistration registration )
+    {
+        registrationHashMap.remove( registration.getClientRegistration().getRegistrationId() );
+    }
+
+    public void removeRegistration( String registrationId )
+    {
+        DhisOidcClientRegistration remove = registrationHashMap.remove( registrationId );
+
+        log.info( "removed:" + remove );
+    }
+
+    public void clear()
+    {
+        this.registrationHashMap.clear();
     }
 
     @Override
@@ -102,7 +122,8 @@ public class DhisClientRegistrationRepository
     public DhisOidcClientRegistration findByIssuerUri( String issuerUri )
     {
         return registrationHashMap.values().stream()
-            .filter( c -> MoreObjects.firstNonNull( c.getClientRegistration().getProviderDetails().getIssuerUri(), "" )
+            .filter( c -> MoreObjects.firstNonNull(
+                c.getClientRegistration().getProviderDetails().getIssuerUri(), "" )
                 .equals( issuerUri ) )
             .findAny()
             .orElse( null );
