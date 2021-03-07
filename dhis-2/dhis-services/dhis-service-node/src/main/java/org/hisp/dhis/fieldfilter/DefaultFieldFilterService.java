@@ -646,7 +646,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             else if ( ":owner".equals( fieldKey ) )
             {
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && filterOwnerProperties( property ) )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted()
+                        && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -829,14 +830,5 @@ public class DefaultFieldFilterService implements FieldFilterService
         }
 
         return returnObject;
-    }
-
-    /**
-     * Temporary solution to fix DHIS2-10464.
-     * TODO remove the isSharingProperty condition after new sharing column is used by front-end apps
-     */
-    private boolean filterOwnerProperties( Property property )
-    {
-        return ((property.isPersisted() && property.isOwner()) || ReflectionUtils.isSharingProperty( property ));
     }
 }

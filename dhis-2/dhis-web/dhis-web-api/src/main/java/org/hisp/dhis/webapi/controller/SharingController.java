@@ -27,17 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -76,6 +66,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -183,15 +181,17 @@ public class SharingController
 
         for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
         {
-            UserGroup userGroup = userGroupService.getUserGroup( userGroupAccess.getId() );
+            String userGroupDisplayName = userGroupService.getDisplayName( userGroupAccess.getId() );
 
-            if ( userGroup == null )
+            if ( userGroupDisplayName == null )
+            {
                 continue;
+            }
 
             SharingUserGroupAccess sharingUserGroupAccess = new SharingUserGroupAccess();
             sharingUserGroupAccess.setId( userGroupAccess.getId() );
-            sharingUserGroupAccess.setName( userGroup.getDisplayName() );
-            sharingUserGroupAccess.setDisplayName( userGroup.getDisplayName() );
+            sharingUserGroupAccess.setName( userGroupDisplayName );
+            sharingUserGroupAccess.setDisplayName( userGroupDisplayName );
             sharingUserGroupAccess.setAccess( userGroupAccess.getAccess() );
 
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
@@ -199,15 +199,15 @@ public class SharingController
 
         for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccess( object.getSharing() ) )
         {
-            User _user = userService.getUser( userAccess.getUid() );
+            String userDisplayName = userService.getDisplayName( userAccess.getUid() );
 
-            if ( _user == null )
+            if ( userDisplayName == null )
                 continue;
 
             SharingUserAccess sharingUserAccess = new SharingUserAccess();
             sharingUserAccess.setId( userAccess.getId() );
-            sharingUserAccess.setName( _user.getDisplayName() );
-            sharingUserAccess.setDisplayName( _user.getDisplayName() );
+            sharingUserAccess.setName( userDisplayName );
+            sharingUserAccess.setDisplayName( userDisplayName );
             sharingUserAccess.setAccess( userAccess.getAccess() );
 
             sharing.getObject().getUserAccesses().add( sharingUserAccess );
