@@ -29,13 +29,13 @@ package org.hisp.dhis.dataapproval;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+
+import lombok.AllArgsConstructor;
 
 /**
  * @author Jim Grace
@@ -66,7 +66,7 @@ public class DataApprovalLevelDeletionHandler
 
     public DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
-        String sql = "select count(*) from dataapprovalworkflowmembers where workflowid=" + workflow.getId();
+        String sql = "select count(*) from dataapprovalworkflowlevels where workflowid=" + workflow.getId();
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
