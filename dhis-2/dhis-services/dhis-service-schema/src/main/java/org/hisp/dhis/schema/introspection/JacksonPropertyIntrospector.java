@@ -27,22 +27,9 @@
  */
 package org.hisp.dhis.schema.introspection;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.Multimap;
-import com.google.common.primitives.Primitives;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NameableObject;
-import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.system.util.ReflectionUtils;
-import org.springframework.util.ClassUtils;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
+import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -60,9 +47,24 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
-import static org.hisp.dhis.system.util.AnnotationUtils.isAnnotationPresent;
+import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.AnalyticalObject;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.system.util.ReflectionUtils;
+import org.springframework.util.ClassUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.Multimap;
+import com.google.common.primitives.Primitives;
 
 /**
  * A {@link PropertyIntrospector} that adds or retains those {@link Property}

@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.feedback.ErrorReport;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Chau Thu Tran
