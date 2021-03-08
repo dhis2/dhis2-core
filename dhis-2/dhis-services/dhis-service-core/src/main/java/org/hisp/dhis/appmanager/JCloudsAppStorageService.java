@@ -428,7 +428,7 @@ public class JCloudsAppStorageService
     }
 
     @Override
-    public boolean deleteApp( App app )
+    public void deleteApp( App app )
     {
         log.info( "Deleting app " + app.getName() );
 
@@ -443,8 +443,6 @@ public class JCloudsAppStorageService
         reservedNamespaces.remove( app.getActivities().getDhis().getNamespace(), app );
 
         log.info( "Deleted app " + app.getName() );
-
-        return true;
     }
 
     @Override

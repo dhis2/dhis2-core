@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 
@@ -49,6 +50,15 @@ import org.springframework.http.HttpStatus;
  * The test installs a tiny (manifest only) {@link org.hisp.dhis.appmanager.App}
  * with the namespace {@code test-app-ns} and checks that only authorised users
  * have access to it.
+ *
+ * This test is purely about access control aspect and does not spend much
+ * effort on verifying correctness of the returned payload. This is handled by
+ * {@link KeyJsonValueControllerTest}.
+ *
+ * Each test scenario tests that the
+ * {@link AppManager#WEB_MAINTENANCE_APPMANAGER_AUTHORITY} user can use the
+ * store, that a app manager with the {@link App#getSeeAppAuthority()} can use
+ * the store but a user lacking any of the two authorities can not.
  *
  * @see KeyJsonValueControllerTest
  *
@@ -74,6 +84,35 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
     public void testGetKeysInNamespace()
     {
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            GET( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+    }
+
+    @Test
+    public void testDeleteNamespace()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            DELETE( "/dataStore/test-app-ns" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns" ) );
+    }
+
+    @Test
+    public void testGetKeyJsonValue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
         assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1" ) );
 
         switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
@@ -84,4 +123,85 @@ public class KeyJsonValueControllerAppTest extends DhisControllerConvenienceTest
             "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
             GET( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
     }
+
+    @Test
+    public void testGetKeyJsonValueMetaData()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1/metaData" ) );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.OK, GET( "/dataStore/test-app-ns/key1/metaData" ) );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            GET( "/dataStore/test-app-ns/key1/metaData" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+    }
+
+    @Test
+    public void testAddKeyJsonValue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key2", "{}" ) );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            POST( "/dataStore/test-app-ns/key3", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+    }
+
+    @Test
+    public void testUpdateKeyJsonValue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertStatus( HttpStatus.OK, PUT( "/dataStore/test-app-ns/key1", "{}" ) );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.OK, PUT( "/dataStore/test-app-ns/key1", "{}" ) );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            PUT( "/dataStore/test-app-ns/key1", "{}" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+    }
+
+    @Test
+    public void testDeleteKeyJsonValue()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns/key1" ) );
+
+        switchToNewUser( "just-test-app-admin", App.SEE_APP_AUTHORITY_PREFIX + "test" );
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        assertStatus( HttpStatus.OK, DELETE( "/dataStore/test-app-ns/key1" ) );
+
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals(
+            "The namespace 'test-app-ns' is protected, and you don't have the right authority to access or modify it.",
+            DELETE( "/dataStore/test-app-ns/key1" ).error( HttpStatus.FORBIDDEN ).getMessage() );
+    }
+
+    @Test
+    public void testStoreIsUnprotectedAfterAppIsDeleted()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        appManager.deleteApp( appManager.getApp( "test" ), false );
+
+        switchToNewUser( "has-no-app-authority" );
+        assertEquals( singletonList( "key1" ), GET( "/dataStore/test-app-ns" ).content().stringValues() );
+    }
+
+    @Test
+    public void testNamespaceIsDeletedWhenAppIsDeletedWithData()
+    {
+        assertStatus( HttpStatus.CREATED, POST( "/dataStore/test-app-ns/key1", "[]" ) );
+        appManager.deleteApp( appManager.getApp( "test" ), true );
+
+        assertStatus( HttpStatus.NOT_FOUND, GET( "/dataStore/test-app-ns" ) );
+    }
+
 }

@@ -56,8 +56,8 @@ import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.Resource;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 /**
@@ -74,9 +74,9 @@ public class DefaultAppManager
 
     private final CurrentUserService currentUserService;
 
-    private final LocalAppStorageService localAppStorageService;
+    private final AppStorageService localAppStorageService;
 
-    private final JCloudsAppStorageService jCloudsAppStorageService;
+    private final AppStorageService jCloudsAppStorageService;
 
     private final KeyJsonValueService keyJsonValueService;
 
@@ -84,7 +84,8 @@ public class DefaultAppManager
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
-        LocalAppStorageService localAppStorageService, JCloudsAppStorageService jCloudsAppStorageService,
+        @Qualifier( "org.hisp.dhis.appmanager.LocalAppStorageService" ) AppStorageService localAppStorageService,
+        @Qualifier( "org.hisp.dhis.appmanager.JCloudsAppStorageService" ) AppStorageService jCloudsAppStorageService,
         KeyJsonValueService keyJsonValueService, CacheProvider cacheProvider )
     {
         checkNotNull( dhisConfigurationProvider );
@@ -287,18 +288,16 @@ public class DefaultAppManager
     }
 
     @Override
-    @Async
     public void deleteApp( App app, boolean deleteAppData )
     {
         if ( app != null )
         {
             getAppStorageServiceByApp( app ).deleteApp( app );
+            unregisterKeyJsonValueProtection( app );
             if ( deleteAppData )
             {
-                keyJsonValueService.deleteNamespace( app.getActivities().getDhis().getNamespace() );
-                log.info( String.format( "Deleted app namespace '%s'", app.getActivities().getDhis().getNamespace() ) );
+                deleteAppData( app );
             }
-            unregisterKeyJsonValueProtection( app );
 
             appCache.invalidate( app.getKey() );
         }
@@ -416,6 +415,16 @@ public class DefaultAppManager
         apps.putAll( localAppStorageService.getReservedNamespaces() );
 
         return apps;
+    }
+
+    private void deleteAppData( App app )
+    {
+        String namespace = app.getActivities().getDhis().getNamespace();
+        if ( namespace != null && !namespace.isEmpty() )
+        {
+            keyJsonValueService.deleteNamespace( namespace );
+            log.info( String.format( "Deleted app namespace '%s'", namespace ) );
+        }
     }
 
     private void registerKeyJsonValueProtection( App app )
