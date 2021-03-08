@@ -1132,17 +1132,7 @@ public class HibernateTrackedEntityInstanceStore
     private String getFromSubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder limitOffset = new StringBuilder();
-        int limit = 0;
-
-        if ( params.hasTrackedEntityType() )
-        {
-            limit = params.getTrackedEntityType().getMaxTeiCountToReturn();
-        }
-
-        if ( params.hasProgram() )
-        {
-            limit = params.getProgram().getMaxTeiCountToReturn();
-        }
+        int limit = params.getMaxTeiLimit();
 
         if ( limit == 0 && !params.isPaging() )
         {
