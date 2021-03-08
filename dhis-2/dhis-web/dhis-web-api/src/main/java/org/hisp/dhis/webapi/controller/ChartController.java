@@ -273,7 +273,7 @@ public class ChartController
 
     @Override
     public void postProcessResponseEntities( final List<Chart> charts, final WebOptions options,
-                                             final Map<String, String> parameters )
+        final Map<String, String> parameters )
     {
         if ( isNotEmpty( charts ) )
         {
