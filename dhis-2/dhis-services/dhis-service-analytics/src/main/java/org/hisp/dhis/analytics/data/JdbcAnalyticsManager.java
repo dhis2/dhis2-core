@@ -751,8 +751,8 @@ public class JdbcAnalyticsManager
     {
         Assert.notNull( params.getDataType(), "Data type must be present" );
         Assert.notNull( params.getAggregationType(), "Aggregation type must be present" );
-        Assert.isTrue(
-            !(params.getAggregationType().isFirstOrLastPeriodAggregationType() && params.getPeriods().size() > 1),
+        Assert.isTrue( !(params.getAggregationType().isFirstOrLastPeriodAggregationType() &&
+            params.getPeriods().size() > 1),
             "Max one dimension period can be present per query for last period aggregation" );
     }
 }
