@@ -84,6 +84,8 @@ public class EnrollmentAttrValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        manager.flush();
     }
 
     @Test
