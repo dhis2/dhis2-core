@@ -645,7 +645,7 @@ public class DefaultTrackedEntityInstanceService
             }
             
             if ( maxTeiLimit > 0 && params.isPaging()
-                && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
+                && ((params.getPage() - 1) * params.getPageSizeWithDefault()) > maxTeiLimit )
             {
                 throw new IllegalQueryException(
                     "maxteicountreached" );
