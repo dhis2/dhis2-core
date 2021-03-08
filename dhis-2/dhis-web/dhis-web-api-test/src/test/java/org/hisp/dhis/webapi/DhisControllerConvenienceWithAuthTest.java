@@ -62,7 +62,6 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ActiveProfiles( "test-h2" )
 @Transactional
 public abstract class DhisControllerConvenienceWithAuthTest extends DhisConvenienceTest
-    implements AuthenticatedWebClient
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -92,8 +91,6 @@ public abstract class DhisControllerConvenienceWithAuthTest extends DhisConvenie
             .addFilter( springSecurityFilterChain ).build();
 
         TestUtils.executeStartupRoutines( webApplicationContext );
-
-        // switchToNewUser( null, "ALL" );
     }
 
     protected final User getCurrentUser()
@@ -114,6 +111,11 @@ public abstract class DhisControllerConvenienceWithAuthTest extends DhisConvenie
             SecurityContextHolder.getContext() );
 
         return currentUser;
+    }
+
+    protected final User createOpenIDUser( String username, String openIDIdentifier, String... authorities )
+    {
+        return createUserWithOpenID( username, openIDIdentifier, authorities );
     }
 
 }

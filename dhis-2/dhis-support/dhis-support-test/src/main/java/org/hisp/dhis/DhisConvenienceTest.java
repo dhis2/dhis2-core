@@ -2285,6 +2285,29 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
+    protected User createUserWithOpenID( String username, String openIDIdentifier, String... authorities )
+    {
+        checkUserServiceWasInjected();
+
+        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
+
+        userService.addUserAuthorityGroup( group );
+
+        User user = createUser( username );
+
+        userService.addUser( user );
+
+        UserCredentials credentials = createUserCredentialsWithOpenID( openIDIdentifier, username, user, group );
+
+        userService.encodeAndSetPassword( credentials, DEFAULT_ADMIN_PASSWORD );
+        userService.addUserCredentials( credentials );
+
+        user.setUserCredentials( credentials );
+        userService.updateUser( user );
+
+        return user;
+    }
+
     protected User createAdminUser( String... authorities )
     {
         checkUserServiceWasInjected();
@@ -2422,6 +2445,22 @@ public abstract class DhisConvenienceTest
         credentials.setUserInfo( user );
         credentials.setUsername( username );
         credentials.getUserAuthorityGroups().add( group );
+        return credentials;
+    }
+
+    private static UserCredentials createUserCredentialsWithOpenID( String openIDIdentifier, String username, User user,
+        UserAuthorityGroup group )
+    {
+        UserCredentials credentials = new UserCredentials();
+        credentials.setCode( username );
+        credentials.setCreatedBy( user );
+        credentials.setUserInfo( user );
+        credentials.setUsername( username );
+        credentials.getUserAuthorityGroups().add( group );
+
+        credentials.setOpenId( openIDIdentifier );
+        credentials.setExternalAuth( true );
+
         return credentials;
     }
 

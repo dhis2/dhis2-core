@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.security.utils;
 
-import org.springframework.security.oauth2.jwt.JwtException;
-
-/**
- * This exception is thrown when an error occurs while attempting to encode a
- * JSON Web Token (JWT).
- *
- * @author Joe Grandja
- * @since 0.0.1
- */
-public class JwtEncodingException extends JwtException
+public final class JoseHeaderNames
 {
+    public static final String ALG = "alg";
 
-    /**
-     * Constructs a {@code JwtEncodingException} using the provided parameters.
-     *
-     * @param message the detail message
-     */
-    public JwtEncodingException( String message )
-    {
-        super( message );
-    }
+    public static final String JKU = "jku";
 
-    /**
-     * Constructs a {@code JwtEncodingException} using the provided parameters.
-     *
-     * @param message the detail message
-     * @param cause the root cause
-     */
-    public JwtEncodingException( String message, Throwable cause )
+    public static final String JWK = "jwk";
+
+    public static final String KID = "kid";
+
+    public static final String X5U = "x5u";
+
+    public static final String X5C = "x5c";
+
+    public static final String X5T = "x5t";
+
+    public static final String X5T_S256 = "x5t#S256";
+
+    public static final String TYP = "typ";
+
+    public static final String CTY = "cty";
+
+    public static final String CRIT = "crit";
+
+    private JoseHeaderNames()
     {
-        super( message, cause );
     }
 
 }

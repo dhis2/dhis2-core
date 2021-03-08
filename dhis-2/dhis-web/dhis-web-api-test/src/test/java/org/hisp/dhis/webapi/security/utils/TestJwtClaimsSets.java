@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.security.utils;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 
-import org.hisp.dhis.webapi.utils.JoseHeader;
-import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
-
-/**
- * @author Joe Grandja
- */
-public final class TestJoseHeaders
+public final class TestJwtClaimsSets
 {
-
-    private TestJoseHeaders()
+    private TestJwtClaimsSets()
     {
     }
 
-    public static JoseHeader.Builder joseHeader( String provider )
+    public static JwtClaimsSet.Builder jwtClaimsSet( final String providerURI, String clientId,
+        String customClaimKey1, String customClaimValue1 )
     {
-        return joseHeader( SignatureAlgorithm.RS256, provider );
-    }
+        String issuer = "https://" + providerURI;
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plus( 1, ChronoUnit.HOURS );
 
-    public static JoseHeader.Builder joseHeader( SignatureAlgorithm signatureAlgorithm, String provider )
-    {
         // @formatter:off
-
-		return JoseHeader.withAlgorithm(signatureAlgorithm)
-				.jwkSetUri("https://" + provider + "/oauth2/jwks")
-				.jwk(rsaJwk())
-				.keyId("keyId")
-				.x509Uri("https://" + provider + "/oauth2/x509")
-				.x509CertificateChain(Arrays.asList("x509Cert1", "x509Cert2"))
-				.x509SHA1Thumbprint("x509SHA1Thumbprint")
-				.x509SHA256Thumbprint("x509SHA256Thumbprint")
-				.type("JWT")
-				.contentType("jwt-content-type")
-				.header("custom-header-name", "custom-header-value");
+		return JwtClaimsSet.builder()
+				.issuer(issuer)
+				.subject("subject")
+				.audience(Collections.singletonList(clientId))
+				.issuedAt(issuedAt)
+				.notBefore(issuedAt)
+				.expiresAt(expiresAt)
+				.id("jti")
+				.claim(customClaimKey1, customClaimValue1);
 		// @formatter:on
-    }
-
-    private static Map<String, Object> rsaJwk()
-    {
-        Map<String, Object> rsaJwk = new HashMap<>();
-        rsaJwk.put( "kty", "RSA" );
-        rsaJwk.put( "n", "modulus" );
-        rsaJwk.put( "e", "exponent" );
-        return rsaJwk;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.security.utils;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -38,13 +38,8 @@ import java.security.spec.EllipticCurve;
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
 
-/**
- * @author Joe Grandja
- * @since 0.1.0
- */
 final class KeyGeneratorUtils
 {
-
     private KeyGeneratorUtils()
     {
     }

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.security.utils;
 
 import java.net.URL;
 import java.time.Instant;
@@ -65,9 +65,6 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
 public class JwtUtils
 {
     private static final String ENCODING_ERROR_MESSAGE_TEMPLATE = "An error occurred while attempting to encode the Jwt: %s";
@@ -352,5 +349,4 @@ public class JwtUtils
 
         return !jwks.isEmpty() ? jwks.get( 0 ) : null;
     }
-
 }

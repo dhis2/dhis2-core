@@ -25,45 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.config;
+package org.hisp.dhis.webapi.security.utils;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
+import org.springframework.security.oauth2.jwt.JwtException;
 
-/**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- */
-@Configuration
-@ComponentScan( "org.hisp.dhis" )
-public class UnitTestConfig
+public class JwtEncodingException extends JwtException
 {
-    @Bean( name = "dhisConfigurationProvider" )
-    public DhisConfigurationProvider dhisConfigurationProvider()
+    public JwtEncodingException( String message )
     {
-        return new H2DhisConfigurationProvider();
+        super( message );
     }
 
-    @Bean
-    public PasswordEncoder encoder()
+    public JwtEncodingException( String message, Throwable cause )
     {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
+        super( message, cause );
     }
 }

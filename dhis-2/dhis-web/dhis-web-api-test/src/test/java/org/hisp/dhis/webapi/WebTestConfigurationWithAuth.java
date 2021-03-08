@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi;
 
 import javax.transaction.Transactional;
 
+import org.hisp.dhis.artemis.config.ArtemisConfig;
 import org.hisp.dhis.config.DataSourceConfig;
 import org.hisp.dhis.config.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.HibernateConfig;
@@ -41,6 +42,7 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
+import org.hisp.dhis.webapi.security.config.AuthenticationProviderConfig;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -48,30 +50,20 @@ import org.springframework.context.annotation.ComponentScan.Filter;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.Primary;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.ldap.authentication.LdapAuthenticator;
-import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml" } )
 @ComponentScan( basePackages = { "org.hisp.dhis" }, useDefaultFilters = false, includeFilters = {
     @Filter( type = FilterType.ANNOTATION, value = Service.class ),
     @Filter( type = FilterType.ANNOTATION, value = Component.class ),
-    @Filter( type = FilterType.ANNOTATION, value = Repository.class )
+    @Filter( type = FilterType.ANNOTATION, value = Repository.class ),
+    @Filter( type = FilterType.ANNOTATION, value = Controller.class )
 
 }, excludeFilters = @Filter( Configuration.class ) )
 @Import( {
@@ -95,7 +87,9 @@ import com.google.common.collect.ImmutableMap;
     org.hisp.dhis.reporting.config.StoreConfig.class,
     org.hisp.dhis.analytics.config.ServiceConfig.class,
     org.hisp.dhis.commons.config.JacksonObjectMapperConfig.class,
-    StartupConfig.class
+    StartupConfig.class,
+    ArtemisConfig.class,
+    AuthenticationProviderConfig.class,
 } )
 @Transactional
 public class WebTestConfigurationWithAuth
@@ -106,43 +100,127 @@ public class WebTestConfigurationWithAuth
         return new H2DhisConfigurationProvider();
     }
 
-    @Bean
-    public BCryptPasswordEncoder bCryptPasswordEncoder()
-    {
-        return new BCryptPasswordEncoder();
-    }
+    // @Bean
+    // public BCryptPasswordEncoder bCryptPasswordEncoder()
+    // {
+    // return new BCryptPasswordEncoder();
+    // }
+    //
+    // @Bean
+    // public LdapAuthenticator ldapAuthenticator()
+    // {
+    // return authentication -> null;
+    // }
+    //
+    // @Bean
+    // public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    // {
+    // return ( dirContextOperations, s ) -> null;
+    // }
+    //
+    // @Bean( "oAuth2AuthenticationManager" )
+    // public AuthenticationManager oAuth2AuthenticationManager()
+    // {
+    // return authentication -> null;
+    // }
+    //
+    // @Bean( "authenticationManager" )
+    // @Primary
+    // public AuthenticationManager authenticationManager()
+    // {
+    // return authentication -> null;
+    // }
+    //
+    // @Bean
+    // public DefaultAuthenticationEventPublisher authenticationEventPublisher()
+    // {
+    // DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher =
+    // new DefaultAuthenticationEventPublisher();
+    // defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
+    // ImmutableMap.of( OAuth2AuthenticationException.class,
+    // AuthenticationFailureBadCredentialsEvent.class ) );
+    // return defaultAuthenticationEventPublisher;
+    // }
 
-    @Bean
-    public LdapAuthenticator ldapAuthenticator()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
-    {
-        return ( dirContextOperations, s ) -> null;
-    }
-
-    @Bean( "oAuth2AuthenticationManager" )
-    public AuthenticationManager oAuth2AuthenticationManager()
-    {
-        return authentication -> null;
-    }
-
-    @Bean( "authenticationManager" )
-    @Primary
-    public AuthenticationManager authenticationManager()
-    {
-        return authentication -> null;
-    }
-
-    @Bean
-    public DefaultAuthenticationEventPublisher authenticationEventPublisher()
-    {
-        DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher = new DefaultAuthenticationEventPublisher();
-        defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
-            ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
-        return defaultAuthenticationEventPublisher;
-    }
+    // @Bean
+    // public JmsTemplate jmsTopicTemplate()
+    // {
+    // JmsTemplate jmsTemplate = new JmsTemplate();
+    // jmsTemplate.setConnectionFactory( new ConnectionFactory()
+    // {
+    // @Override public Connection createConnection()
+    // throws JMSException
+    // {
+    // return null;
+    // }
+    //
+    // @Override public Connection createConnection( String s, String s1 )
+    // throws JMSException
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext()
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( int i )
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( String s, String s1 )
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( String s, String s1, int i )
+    // {
+    // return null;
+    // }
+    // } );
+    // return jmsTemplate;
+    // }
+    //
+    // @Bean
+    // public JmsTemplate jmsQueueTemplate()
+    // {
+    // JmsTemplate jmsTemplate = new JmsTemplate();
+    // jmsTemplate.setConnectionFactory( new ConnectionFactory()
+    // {
+    // @Override public Connection createConnection()
+    // throws JMSException
+    // {
+    // return null;
+    // }
+    //
+    // @Override public Connection createConnection( String s, String s1 )
+    // throws JMSException
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext()
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( int i )
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( String s, String s1 )
+    // {
+    // return null;
+    // }
+    //
+    // @Override public JMSContext createContext( String s, String s1, int i )
+    // {
+    // return null;
+    // }
+    // } );
+    // return jmsTemplate;
+    // }
 }

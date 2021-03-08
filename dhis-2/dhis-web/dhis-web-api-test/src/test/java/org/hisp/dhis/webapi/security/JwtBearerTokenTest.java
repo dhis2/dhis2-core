@@ -29,12 +29,13 @@ package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -44,13 +45,19 @@ import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerConvenienceWithAuthTest;
 import org.hisp.dhis.webapi.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonError;
-import org.hisp.dhis.webapi.utils.JoseHeader;
-import org.hisp.dhis.webapi.utils.JoseHeaderNames;
-import org.hisp.dhis.webapi.utils.JwtClaimsSet;
-import org.hisp.dhis.webapi.utils.JwtUtils;
+import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
+import org.hisp.dhis.webapi.security.utils.JoseHeader;
+import org.hisp.dhis.webapi.security.utils.JoseHeaderNames;
+import org.hisp.dhis.webapi.security.utils.JwtClaimsSet;
+import org.hisp.dhis.webapi.security.utils.JwtUtils;
+import org.hisp.dhis.webapi.security.utils.TestJoseHeaders;
+import org.hisp.dhis.webapi.security.utils.TestJwks;
+import org.hisp.dhis.webapi.security.utils.TestJwtClaimsSets;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -73,9 +80,34 @@ import com.nimbusds.jose.proc.SecurityContext;
 @Slf4j
 public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
 {
-    public static final String EXPIRED_GOOGLE_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIxM2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIxMDE5NDE3MDAyNTQ0LW1xYTdmbGs0bWpvaHJnc2JnOWJ0YTlidmx1b2o4NW8wLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiYXVkIjoiMTAxOTQxNzAwMjU0NC1tcWE3ZmxrNG1qb2hyZ3NiZzlidGE5YnZsdW9qODVvMC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvbSIsInN1YiI6IjExMDk3ODA1MDEyNzk2NzA2NTUwNiIsImVtYWlsIjoiZGhpczJvaWRjdXNlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXRfaGFzaCI6IkhXbTNXcXphM2p5TEFUZjNlU1pBNVEiLCJuYW1lIjoiZGhpczJvaWRjdXNlciBUZXN0ZXIiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1oRmptUnhOQkJTWS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQS9BTVp1dWNuQkdYVTF5X05fV25qSXJndHBpSXFWMl9ndll3L3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJkaGlzMm9pZGN1c2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0ZXIiLCJsb2NhbGUiOiJlbiIsImlhdCI6MTYxNDk1NzU5MCwiZXhwIjoxNjE0OTYxMTkwfQ.OCm7hj4H-UqRpM_Xrfq58U3ZGI3k7-S3c4AslVAaMxKsNitsPDZ7oxs-FJT-E7uDqnp1wW5LyBLj8jfJZ4JnvuiNGZrvCCpR3m70_4mSgP8VTjFFEijgfW1IIy_BWI8gDY6iCK7qgOATdYnCyJteWBMKRPr5wVSN05TT3xxLzsE7C5ViOzHAm2v6XrrsEhfcjNmwKmlljjpImTwtUSTBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzGnMH3euqGWr4_G_EBvVqfVPnBF0YA";
+    // @formatter:off
+    public static final String EXPIRED_GOOGLE_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx"
+        + "M2I4MGFjYmNmZDA4Y2ZiMzAyYTkiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiO"
+        + "iIxMDE5NDE3MDAyNTQ0LW1xYTdmbGs0bWpvaHJnc2JnOWJ0YTlidmx1b2o4NW8wLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiY"
+        + "XVkIjoiMTAxOTQxNzAwMjU0NC1tcWE3ZmxrNG1qb2hyZ3NiZzlidGE5YnZsdW9qODVvMC5hcHBzLmdvb2dsZXVzZXJjb250ZW50LmNvb"
+        + "SIsInN1YiI6IjExMDk3ODA1MDEyNzk2NzA2NTUwNiIsImVtYWlsIjoiZGhpczJvaWRjdXNlckBnbWFpbC5jb20iLCJlbWFpbF92ZXJpZ"
+        + "mllZCI6dHJ1ZSwiYXRfaGFzaCI6IkhXbTNXcXphM2p5TEFUZjNlU1pBNVEiLCJuYW1lIjoiZGhpczJvaWRjdXNlciBUZXN0ZXIiLCJwa"
+        + "WN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1oRmptUnhOQkJTWS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFBQ"
+        + "S9BTVp1dWNuQkdYVTF5X05fV25qSXJndHBpSXFWMl9ndll3L3M5Ni1jL3Bob3RvLmpwZyIsImdpdmVuX25hbWUiOiJkaGlzMm9pZGN1c"
+        + "2VyIiwiZmFtaWx5X25hbWUiOiJUZXN0ZXIiLCJsb2NhbGUiOiJlbiIsImlhdCI6MTYxNDk1NzU5MCwiZXhwIjoxNjE0OTYxMTkwfQ.OC"
+        + "m7hj4H-UqRpM_Xrfq58U3ZGI3k7-S3c4AslVAaMxKsNitsPDZ7oxs-FJT-E7uDqnp1wW5LyBLj8jfJZ4JnvuiNGZrvCCpR3m70_4mSgP"
+        + "8VTjFFEijgfW1IIy_BWI8gDY6iCK7qgOATdYnCyJteWBMKRPr5wVSN05TT3xxLzsE7C5ViOzHAm2v6XrrsEhfcjNmwKmlljjpImTwtUS"
+        + "TBS3DWoWsHaNqXfE3rO0M7231FWl2X0vk5oO-KycNoS1vDZLAvdf6QRJVnPMkQ6Cx5XSMSYEmUmFqM3Sj2ip0Q48hAe4ydzIgRWdGbzG"
+        + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
+    // @formatter:on
 
-    public static final String CORRECT_AUDIENCE_AKA_CLIENTID = "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
+    public static final String CORRECT_AUDIENCE_AKA_CLIENTID = ""
+        + "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
+
+    public static final String TEST_PROVIDER_ONE_URI = "testproviderone.com";
+
+    public static final String TEST_PROVIDER_ONE_NAME = "testproviderone";
+
+    public static final String CLIENT_ID_1 = "client-1";
+
+    public static final String DEFAULT_EMAIL = "admin@dhis2.org";
+
+    public static final String DEFAULT_MAPPING_CLAIM = "email";
 
     @Autowired
     private DhisOidcProviderRepository dhisOidcProviderRepository;
@@ -84,8 +116,6 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
     private DhisJwtAuthenticationManagerResolver dhisJwtAuthenticationManagerResolver;
 
     private static List<JWK> jwkList;
-
-    private static JWKSource<SecurityContext> jwkSource;
 
     private static JwtUtils jwsEncoder;
 
@@ -97,10 +127,13 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
     public static void setUpClass()
         throws JOSEException
     {
+        DhisWebApiWebSecurityConfig.setApiContextPath( "" );
+
         jwkList = new ArrayList<>();
         jwkList.add( defaultRSA );
 
-        jwkSource = ( jwkSelector, securityContext ) -> jwkSelector.select( new JWKSet( jwkList ) );
+        JWKSource<SecurityContext> jwkSource = ( jwkSelector, securityContext ) -> jwkSelector
+            .select( new JWKSet( jwkList ) );
         jwsEncoder = new JwtUtils( jwkSource );
 
         jwtDecoder = NimbusJwtDecoder.withPublicKey( defaultRSA.toRSAPublicKey() ).build();
@@ -114,10 +147,11 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
         dhisOidcProviderRepository.clear();
     }
 
-    private Jwt createJwt( String provider )
+    private Jwt createJwt( String provider, String clientId, String mappingKey, String mappingValue )
     {
         JoseHeader joseHeader = TestJoseHeaders.joseHeader( provider ).build();
-        JwtClaimsSet jwtClaimsSet = TestJwtClaimsSets.jwtClaimsSet( provider ).build();
+        JwtClaimsSet jwtClaimsSet = TestJwtClaimsSets.jwtClaimsSet( provider, clientId, mappingKey,
+            mappingValue ).build();
 
         return jwsEncoder.encode( joseHeader, jwtClaimsSet );
     }
@@ -126,30 +160,39 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
     public void testJwkEncodeEndDecode()
         throws JOSEException
     {
-        Jwt encodedJws = createJwt( "testproviderone.com" );
+        Jwt encodedJws = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL );
 
-        // Assert headers/claims were added
         assertEquals( "JWT", encodedJws.getHeaders().get( JoseHeaderNames.TYP ) );
         assertEquals( defaultRSA.getKeyID(), encodedJws.getHeaders().get( JoseHeaderNames.KID ) );
         assertNotNull( encodedJws.getId() );
 
         String tokenValue = encodedJws.getTokenValue();
 
-        Jwt decode = jwtDecoder.decode( tokenValue );
-        log.info( "decode:" + decode );
+        jwtDecoder.decode( tokenValue );
+    }
+
+    @Test
+    public void testSuccessfulRequest()
+    {
+        setupTestingProvider( CLIENT_ID_1, TEST_PROVIDER_ONE_NAME, TEST_PROVIDER_ONE_URI );
+
+        User openIDUser = createOpenIDUser( "openiduser", "openiduser@oidc.org" );
+
+        String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, "email", "openiduser@oidc.org" )
+            .getTokenValue();
+
+        JsonUser as = GET( tokenValue, "/me?fields=settings,id" ).content().as( JsonUser.class );
+        assertEquals( openIDUser.getUid(), as.getId() );
     }
 
     @Test
     public void testMalformedToken()
     {
-        JsonError error = GET( "NOT_A_JWT_TOKEN", "/api/me" ).error();
-
+        JsonError error = GET( "NOT_A_JWT_TOKEN", "/me" ).error();
         assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "Invalid JWT serialization: Missing dot delimiter(s)",
             error.getDevMessage() );
-
-        log.info( "s:" + error );
     }
 
     @Test
@@ -159,45 +202,42 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
 
         setupGoogleProvider( CORRECT_AUDIENCE_AKA_CLIENTID );
 
-        JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/api/me" ).error();
+        JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/me" ).error();
 
         assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "An error occurred while attempting to decode the Jwt: Jwt expired at 2021-03-05T16:19:50Z",
             error.getDevMessage() );
-
-        log.info( "s:" + error );
     }
 
     @Test
     public void testMissingUser()
     {
-        String providerURI = "testproviderone.com";
-        setupTestingProvider( "client-1", "testproviderone", providerURI );
-        String tokenValue = createJwt( providerURI ).getTokenValue();
+        setupTestingProvider( CLIENT_ID_1, TEST_PROVIDER_ONE_NAME, TEST_PROVIDER_ONE_URI );
 
-        JsonError error = GET( tokenValue, "/api/me" ).error();
+        String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL )
+            .getTokenValue();
+
+        JsonError error = GET( tokenValue, "/me" ).error();
         assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
         assertEquals( "invalid_token", error.getMessage() );
-        assertEquals( "Found no matching DHIS2 user for the mapping claim:'email' with the value:'null'",
+        assertEquals( "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
             error.getDevMessage() );
-
-        log.info( "s:" + error );
     }
 
     @Test
     public void testNoClientMatch()
     {
         String providerURI = "testprovidertwo.com";
-        setupTestingProvider( "client-2", "testprovidertwo", providerURI );
-        String tokenValue = createJwt( providerURI ).getTokenValue();
 
-        JsonError error = GET( tokenValue, "/api/me" ).error();
+        setupTestingProvider( "client-2", "testprovidertwo", providerURI );
+
+        String tokenValue = createJwt( providerURI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL ).getTokenValue();
+
+        JsonError error = GET( tokenValue, "/me" ).error();
         assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "Invalid audience", error.getDevMessage() );
-
-        log.info( "s:" + error );
     }
 
     private void setupGoogleProvider( String clientId )
@@ -222,13 +262,18 @@ public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
         config.put( "oidc.provider." + providerName + ".jwk_uri", "https://" + providerURI + "/jwk" );
 
         GenericOidcProviderConfigParser.parse( config ).forEach( dhisOidcProviderRepository::addRegistration );
-
-        Set<String> allRegistrationId = dhisOidcProviderRepository.getAllRegistrationId();
-
-        log.info( " all ->" + allRegistrationId.size() );
     }
 
-    @Override
+    WebClient.HttpResponse GET( String token, String url, Object... args )
+    {
+        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
+    }
+
+    WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
+    {
+        return authWebRequest( token, request );
+    }
+
     public WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request )
     {
         return failOnException(

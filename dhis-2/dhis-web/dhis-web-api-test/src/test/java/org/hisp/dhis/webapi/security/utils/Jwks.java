@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.utils;
+package org.hisp.dhis.webapi.security.utils;
 
 import java.security.KeyPair;
 import java.security.interfaces.ECPrivateKey;
@@ -41,13 +41,8 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 
-/**
- * @author Joe Grandja
- * @since 0.1.0
- */
 public final class Jwks
 {
-
     private Jwks()
     {
     }

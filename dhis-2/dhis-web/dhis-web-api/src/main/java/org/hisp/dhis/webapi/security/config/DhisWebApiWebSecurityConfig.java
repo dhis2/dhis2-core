@@ -98,6 +98,13 @@ import com.google.common.collect.ImmutableList;
 @Order( 1999 )
 public class DhisWebApiWebSecurityConfig
 {
+    private static String apiContextPath = "/api";
+
+    public static void setApiContextPath( String apiContextPath )
+    {
+        DhisWebApiWebSecurityConfig.apiContextPath = apiContextPath;
+    }
+
     @Autowired
     public DataSource dataSource;
 
@@ -357,16 +364,16 @@ public class DhisWebApiWebSecurityConfig
             }
 
             authorize
-                .antMatchers( "/api/account/username" ).permitAll()
-                .antMatchers( "/api/account/recovery" ).permitAll()
-                .antMatchers( "/api/account/restore" ).permitAll()
-                .antMatchers( "/api/account/password" ).permitAll()
-                .antMatchers( "/api/account/validatePassword" ).permitAll()
-                .antMatchers( "/api/account/validateUsername" ).permitAll()
-                .antMatchers( "/api/account" ).permitAll()
-                .antMatchers( "/api/staticContent/*" ).permitAll()
-                .antMatchers( "/api/externalFileResources/*" ).permitAll()
-                .antMatchers( "/api/icons/*/icon.svg" ).permitAll()
+                .antMatchers( apiContextPath + "/account/username" ).permitAll()
+                .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
+                .antMatchers( apiContextPath + "/account/restore" ).permitAll()
+                .antMatchers( apiContextPath + "/account/password" ).permitAll()
+                .antMatchers( apiContextPath + "/account/validatePassword" ).permitAll()
+                .antMatchers( apiContextPath + "/account/validateUsername" ).permitAll()
+                .antMatchers( apiContextPath + "/account" ).permitAll()
+                .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
+                .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
+                .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
                 .anyRequest().authenticated();
         }
 
@@ -374,7 +381,7 @@ public class DhisWebApiWebSecurityConfig
             throws Exception
         {
             http
-                .antMatcher( "/api/**" )
+                .antMatcher( apiContextPath + "/**" )
                 .authorizeRequests( this::configureAccessRestrictions )
                 .httpBasic()
                 .authenticationEntryPoint( basicAuthenticationEntryPoint() )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2002-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security;
+package org.hisp.dhis.webapi.security.utils;
 
 import java.math.BigInteger;
 import java.security.KeyFactory;
@@ -46,16 +46,8 @@ import java.util.Base64;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
-/**
- * TODO This class is a straight copy from Spring Security. It should be removed
- * when merging this codebase into Spring Security.
- *
- * @author Joe Grandja
- * @since 5.2
- */
 public final class TestKeys
 {
-
     public static final KeyFactory kf;
     static
     {
@@ -175,5 +167,4 @@ public final class TestKeys
     private TestKeys()
     {
     }
-
 }

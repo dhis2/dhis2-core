@@ -69,15 +69,16 @@ public class DhisBearerJwtTokenAuthenticationEntryPoint implements Authenticatio
     {
         entryPoint.commence( request, response, authException );
 
-        HandlerExceptionResolver handlerExceptionResolver = null;
+        HandlerExceptionResolver handlerExceptionResolver;
         try
         {
-            handlerExceptionResolver = applicationContext.getBean( HandlerExceptionResolver.class );
+            handlerExceptionResolver = (HandlerExceptionResolver) applicationContext
+                .getBean( "handlerExceptionResolver" );
             handlerExceptionResolver.resolveException( request, response, null, authException );
         }
         catch ( BeansException e )
         {
-            log.warn( "Could not find a HandlerExceptionResolver bean" );
+            log.error( "Could not find a HandlerExceptionResolver bean!" );
         }
     }
 }
