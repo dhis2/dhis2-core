@@ -77,15 +77,7 @@ public class DefaultTrackerBundleService
 
     private final TrackerObjectDeletionService deletionService;
 
-    private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
-
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
-
-    @Autowired( required = false )
-    public void setBundleHooks( List<TrackerBundleHook> bundleHooks )
-    {
-        this.bundleHooks = bundleHooks;
-    }
 
     @Autowired( required = false )
     public void setSideEffectHandlers( List<SideEffectHandlerService> sideEffectHandlers )
@@ -156,13 +148,9 @@ public class DefaultTrackerBundleService
 
         Session session = sessionFactory.getCurrentSession();
 
-        bundleHooks.forEach( hook -> hook.preCommit( bundle ) );
-
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
                 .apply( session, bundle ) ) );
-
-        bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
         return bundleReport;
     }
