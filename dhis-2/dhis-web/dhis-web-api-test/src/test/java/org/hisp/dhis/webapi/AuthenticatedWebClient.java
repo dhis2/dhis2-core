@@ -37,12 +37,11 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  * convenience web API by implementing this interface's essential method
  * {@link #authWebRequest(String,MockHttpServletRequestBuilder)}.
  *
- * @author Jan Bernitt
+ * @author Morten Svanæs
  */
 @FunctionalInterface
 public interface AuthenticatedWebClient
 {
-
     WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request );
 
     default WebClient.HttpResponse GET( String token, String url, Object... args )

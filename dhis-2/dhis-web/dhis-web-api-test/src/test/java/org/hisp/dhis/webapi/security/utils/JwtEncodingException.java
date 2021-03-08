@@ -29,6 +29,9 @@ package org.hisp.dhis.webapi.security.utils;
 
 import org.springframework.security.oauth2.jwt.JwtException;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public class JwtEncodingException extends JwtException
 {
     public JwtEncodingException( String message )

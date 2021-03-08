@@ -39,6 +39,9 @@ import org.springframework.security.oauth2.core.converter.ClaimConversionService
 import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
 import org.springframework.util.Assert;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class JoseHeader
 {
     private final Map<String, Object> headers;

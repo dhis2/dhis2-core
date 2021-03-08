@@ -80,18 +80,6 @@ public class DhisOidcProviderRepository
         registrationHashMap.putIfAbsent( registration.getClientRegistration().getRegistrationId(), registration );
     }
 
-    public void removeRegistration( DhisOidcClientRegistration registration )
-    {
-        registrationHashMap.remove( registration.getClientRegistration().getRegistrationId() );
-    }
-
-    public void removeRegistration( String registrationId )
-    {
-        DhisOidcClientRegistration remove = registrationHashMap.remove( registrationId );
-
-        log.info( "removed:" + remove );
-    }
-
     public void clear()
     {
         this.registrationHashMap.clear();

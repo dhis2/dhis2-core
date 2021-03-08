@@ -41,6 +41,9 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class Jwks
 {
     private Jwks()

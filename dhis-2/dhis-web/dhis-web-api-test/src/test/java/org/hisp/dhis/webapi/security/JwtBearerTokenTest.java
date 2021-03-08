@@ -28,16 +28,11 @@
 package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.security.jwt.DhisJwtAuthenticationManagerResolver;
@@ -47,7 +42,6 @@ import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.DhisControllerWithJwtTokenAuthTest;
-import org.hisp.dhis.webapi.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig;
@@ -65,7 +59,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.JWK;
@@ -77,7 +70,6 @@ import com.nimbusds.jose.proc.SecurityContext;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 {
     // @formatter:off
@@ -96,7 +88,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
     // @formatter:on
 
-    public static final String CORRECT_AUDIENCE_AKA_CLIENTID = ""
+    public static final String GOOGLE_CLIENT_ID = ""
         + "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
 
     public static final String TEST_PROVIDER_ONE_URI = "testproviderone.com";
@@ -188,8 +180,8 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     @Test
     public void testMalformedToken()
     {
-        JsonError error = GET( "NOT_A_JWT_TOKEN", "/me" ).error();
-        assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
+        JsonError error = GET( "NOT_A_JWT_TOKEN", "/me" ).error( HttpStatus.UNAUTHORIZED );
+
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "Invalid JWT serialization: Missing dot delimiter(s)",
             error.getDevMessage() );
@@ -200,11 +192,10 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
     {
         dhisJwtAuthenticationManagerResolver.setJwtDecoder( null );
 
-        setupGoogleProvider( CORRECT_AUDIENCE_AKA_CLIENTID );
+        setupGoogleProvider( GOOGLE_CLIENT_ID );
 
-        JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/me" ).error();
+        JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/me" ).error( HttpStatus.UNAUTHORIZED );
 
-        assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "An error occurred while attempting to decode the Jwt: Jwt expired at 2021-03-05T16:19:50Z",
             error.getDevMessage() );
@@ -218,8 +209,8 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL )
             .getTokenValue();
 
-        JsonError error = GET( tokenValue, "/me" ).error();
-        assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
+        JsonError error = GET( tokenValue, "/me" ).error( HttpStatus.UNAUTHORIZED );
+
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
             error.getDevMessage() );
@@ -234,8 +225,8 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 
         String tokenValue = createJwt( providerURI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL ).getTokenValue();
 
-        JsonError error = GET( tokenValue, "/me" ).error();
-        assertEquals( HttpStatus.UNAUTHORIZED.value(), error.getHttpStatusCode() );
+        JsonError error = GET( tokenValue, "/me" ).error( HttpStatus.UNAUTHORIZED );
+
         assertEquals( "invalid_token", error.getMessage() );
         assertEquals( "Invalid audience", error.getDevMessage() );
     }
@@ -262,22 +253,5 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         config.put( "oidc.provider." + providerName + ".jwk_uri", "https://" + providerURI + "/jwk" );
 
         GenericOidcProviderConfigParser.parse( config ).forEach( dhisOidcProviderRepository::addRegistration );
-    }
-
-    WebClient.HttpResponse GET( String token, String url, Object... args )
-    {
-        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
-    }
-
-    WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
-    {
-        return authWebRequest( token, request );
-    }
-
-    public WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request )
-    {
-        return failOnException(
-            () -> new WebClient.HttpResponse(
-                mvc.perform( request.header( "Authorization", "Bearer " + token ) ).andReturn().getResponse() ) );
     }
 }

@@ -38,6 +38,9 @@ import org.springframework.security.oauth2.jwt.JwtClaimAccessor;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.util.Assert;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class JwtClaimsSet implements JwtClaimAccessor
 {
     private final Map<String, Object> claims;

@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.security.utils;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class JoseHeaderNames
 {
     public static final String ALG = "alg";
@@ -54,5 +57,4 @@ public final class JoseHeaderNames
     private JoseHeaderNames()
     {
     }
-
 }

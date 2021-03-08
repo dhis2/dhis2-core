@@ -30,6 +30,7 @@ package org.hisp.dhis.security.oidc;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,8 +40,6 @@ import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -62,11 +61,6 @@ public class DhisOidcClientRegistration
     @Builder.Default
     private final Map<String, Map<String, String>> externalClients = new HashMap<>();
 
-    private String getRegistrationId()
-    {
-        return clientRegistration.getRegistrationId();
-    }
-
     public Collection<String> getClientIds()
     {
         Set<String> allExternalClientIds = externalClients.entrySet()
@@ -76,11 +70,7 @@ public class DhisOidcClientRegistration
             .map( Map.Entry::getValue )
             .collect( Collectors.toSet() );
 
-        ImmutableSet.Builder<String> setBuilder = ImmutableSet
-            .builderWithExpectedSize( allExternalClientIds.size() + 1 );
-        setBuilder.addAll( allExternalClientIds );
-        setBuilder.add( clientRegistration.getClientId() );
-
-        return setBuilder.build();
+        allExternalClientIds.add( clientRegistration.getClientId() );
+        return Collections.unmodifiableSet( allExternalClientIds );
     }
 }

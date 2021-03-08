@@ -169,7 +169,7 @@ public class TrackedEntityInstanceServiceTest
         attributeService.addTrackedEntityAttribute( filtG );
 
         super.userService = this.userService;
-        User user = createUser( "testUser" );
+        User user = createUser( "testUser", null );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnit ) );
         CurrentUserService currentUserService = new MockCurrentUserService( user );
         ReflectionTestUtils.setField( entityInstanceService, "currentUserService", currentUserService );

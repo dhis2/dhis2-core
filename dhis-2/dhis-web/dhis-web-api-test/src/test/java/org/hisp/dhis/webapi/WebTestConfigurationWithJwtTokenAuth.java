@@ -56,7 +56,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.stereotype.Service;
 
 /**
- * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
+ * @author Morten Svanæs
  */
 @Configuration
 @ComponentScan( basePackages = { "org.hisp.dhis" }, useDefaultFilters = false, includeFilters = {

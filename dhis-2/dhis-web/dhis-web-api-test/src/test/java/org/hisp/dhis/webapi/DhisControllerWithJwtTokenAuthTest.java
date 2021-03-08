@@ -27,15 +27,15 @@
  */
 package org.hisp.dhis.webapi;
 
+import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
 import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.test.context.ActiveProfiles;
@@ -43,6 +43,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.context.web.WebAppConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
@@ -59,7 +60,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest
+public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements AuthenticatedWebClient
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -67,6 +68,7 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenience
     @Autowired
     private FilterChainProxy springSecurityFilterChain;
 
+    @Autowired
     private UserService _userService;
 
     protected MockMvc mvc;
@@ -86,8 +88,12 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenience
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 
-    protected final User createOpenIDUser( String username, String openIDIdentifier, String... authorities )
+    public WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request )
     {
-        return createUserWithOpenID( username, openIDIdentifier, authorities );
+        return failOnException(
+            () -> new WebClient.HttpResponse(
+                mvc.perform( request.header( "Authorization", "Bearer " + token ) )
+                    .andReturn()
+                    .getResponse() ) );
     }
 }

@@ -40,30 +40,21 @@ import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.OctetSequenceKey;
 import com.nimbusds.jose.jwk.RSAKey;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class TestJwks
 {
-    // @formatter:off
-	public static final RSAKey DEFAULT_RSA_JWK =
-			jwk(
-					TestKeys.DEFAULT_PUBLIC_KEY,
-					TestKeys.DEFAULT_PRIVATE_KEY
-			).build();
-	// @formatter:on
+    public static final RSAKey DEFAULT_RSA_JWK = jwk(
+        TestKeys.DEFAULT_PUBLIC_KEY,
+        TestKeys.DEFAULT_PRIVATE_KEY ).build();
 
-    // @formatter:off
-	public static final ECKey DEFAULT_EC_JWK =
-			jwk(
-					(ECPublicKey) TestKeys.DEFAULT_EC_KEY_PAIR.getPublic(),
-					(ECPrivateKey) TestKeys.DEFAULT_EC_KEY_PAIR.getPrivate()
-			).build();
-	// @formatter:on
+    public static final ECKey DEFAULT_EC_JWK = jwk(
+        (ECPublicKey) TestKeys.DEFAULT_EC_KEY_PAIR.getPublic(),
+        (ECPrivateKey) TestKeys.DEFAULT_EC_KEY_PAIR.getPrivate() ).build();
 
-    // @formatter:off
-	public static final OctetSequenceKey DEFAULT_SECRET_JWK =
-			jwk(
-					TestKeys.DEFAULT_SECRET_KEY
-			).build();
-	// @formatter:on
+    public static final OctetSequenceKey DEFAULT_SECRET_JWK = jwk(
+        TestKeys.DEFAULT_SECRET_KEY ).build();
 
     private TestJwks()
     {
@@ -71,32 +62,25 @@ public final class TestJwks
 
     public static RSAKey.Builder jwk( RSAPublicKey publicKey, RSAPrivateKey privateKey )
     {
-        // @formatter:off
-		return new RSAKey.Builder(publicKey)
-				.privateKey(privateKey)
-				.keyUse(KeyUse.SIGNATURE)
-				.keyID("rsa-jwk-kid");
-		// @formatter:on
+        return new RSAKey.Builder( publicKey )
+            .privateKey( privateKey )
+            .keyUse( KeyUse.SIGNATURE )
+            .keyID( "rsa-jwk-kid" );
     }
 
     public static ECKey.Builder jwk( ECPublicKey publicKey, ECPrivateKey privateKey )
     {
-        // @formatter:off
-		Curve curve = Curve.forECParameterSpec(publicKey.getParams());
-		return new ECKey.Builder(curve, publicKey)
-				.privateKey(privateKey)
-				.keyUse(KeyUse.SIGNATURE)
-				.keyID("ec-jwk-kid");
-		// @formatter:on
+        Curve curve = Curve.forECParameterSpec( publicKey.getParams() );
+        return new ECKey.Builder( curve, publicKey )
+            .privateKey( privateKey )
+            .keyUse( KeyUse.SIGNATURE )
+            .keyID( "ec-jwk-kid" );
     }
 
     public static OctetSequenceKey.Builder jwk( SecretKey secretKey )
     {
-        // @formatter:off
-		return new OctetSequenceKey.Builder(secretKey)
-				.keyUse(KeyUse.SIGNATURE)
-				.keyID("secret-jwk-kid");
-		// @formatter:on
+        return new OctetSequenceKey.Builder( secretKey )
+            .keyUse( KeyUse.SIGNATURE )
+            .keyID( "secret-jwk-kid" );
     }
-
 }

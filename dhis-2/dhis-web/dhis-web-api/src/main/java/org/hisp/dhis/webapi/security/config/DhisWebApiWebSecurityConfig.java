@@ -428,7 +428,8 @@ public class DhisWebApiWebSecurityConfig
             jwtFilter.setAuthenticationEntryPoint( bearerTokenEntryPoint );
             jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
 
-            // "Dummy" failure handler to activate auth failed messages being sent to the
+            // "Dummy" failure handler to activate auth failed messages being
+            // sent to the
             // central AuthenticationLoggerListener
             jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) -> {
                 authenticationEventPublisher.publishAuthenticationFailure( exception,

@@ -123,6 +123,8 @@ public final class GenericOidcProviderConfigParser
 
     private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
 
+    public static final Predicate<String> IS_EXTERNAL_CLIENT = s -> s.contains( EXTERNAL_CLIENT_PREFIX );
+
     /**
      * Parses the DhisConfigurationProvider for valid OIDC providers.
      *
@@ -134,14 +136,14 @@ public final class GenericOidcProviderConfigParser
     {
         Objects.requireNonNull( properties );
 
-        Objects.requireNonNull( properties, "Properties argument must not be NULL!" );
-
         List<DhisOidcClientRegistration> allProviderConfigs = new ArrayList<>();
 
         Map<String, Set<String>> keysByProvider = extractKeysGroupByProvider( properties );
-
-        for ( String providerName : keysByProvider.keySet() )
+        for ( Map.Entry<String, Set<String>> entry : keysByProvider.entrySet() )
         {
+            String providerName = entry.getKey();
+            Set<String> providerKeys = entry.getValue();
+
             // Don't parse the reserved OIDC provider names, they have separate
             // config parser classes. e.g. GoogleProvider, AzureProvider...
             if ( RESERVED_PROVIDER_IDS.contains( providerName ) )
@@ -149,12 +151,15 @@ public final class GenericOidcProviderConfigParser
                 continue;
             }
 
-            Set<String> providerKeys = keysByProvider.get( providerName );
-
-            // Extract external client configs key/values, before validating the
+            // Get external client configs key/values, before validating the
             // rest of the configuration.
-            Map<String, Map<String, String>> externalClientConfigs = extractExternalClients( properties, providerName,
+            Map<String, Map<String, String>> externalClientConfigs = getAllExternalClients( properties, providerName,
                 providerKeys );
+
+            // Remove external client keys, we don't want to validate them.
+            providerKeys.stream().filter( IS_EXTERNAL_CLIENT )
+                .collect( Collectors.toSet() )
+                .forEach( providerKeys::remove );
 
             // Validate config key names
             if ( !validateKeyNames( providerName, providerKeys ) )
@@ -165,12 +170,12 @@ public final class GenericOidcProviderConfigParser
             Map<String, String> providerConfig = new HashMap<>();
             providerConfig.put( PROVIDER_ID, providerName );
 
-            // Extract the property values into our "providerConfig" map with
+            // Put the property values into our "providerConfig" map with
             // the full keys.
             for ( String key : providerKeys )
             {
-                String configKey = OIDC_PROVIDER_PREFIX + providerName + "." + key;
-                String configValue = properties.getProperty( configKey );
+                String fullKey = OIDC_PROVIDER_PREFIX + providerName + "." + key;
+                String configValue = properties.getProperty( fullKey );
 
                 providerConfig.put( key, configValue );
             }
@@ -209,14 +214,15 @@ public final class GenericOidcProviderConfigParser
 
     /**
      * Groups all keys in a provider group that starts with "ext_client.X", into
-     * a new map with "X" as the main key, and all its keys/values as a map.
+     * a new map with "X" as the key, and a map of all its corresponding
+     * key/values as value.
      *
      * @param properties Main config properties object
      * @param providerName Provider name
      * @param providerKeys List of all keys for that provider
      * @return a Map of set of keys for each external client
      */
-    public static Map<String, Map<String, String>> extractExternalClients( Properties properties, String providerName,
+    public static Map<String, Map<String, String>> getAllExternalClients( Properties properties, String providerName,
         Set<String> providerKeys )
     {
         Objects.requireNonNull( properties );
@@ -225,20 +231,16 @@ public final class GenericOidcProviderConfigParser
 
         Map<String, Map<String, String>> allClientConfigs = new HashMap<>();
 
-        Predicate<String> isExternalClient = s -> s.contains( EXTERNAL_CLIENT_PREFIX );
-
-        Map<String, Set<String>> allClientsKeys = filterSplitGroupAndJoin( providerKeys, isExternalClient, 1 );
-
-        // Remove keys from input set, we don't want to validate them.
-        providerKeys.stream().filter( isExternalClient )
-            .collect( Collectors.toSet() ).forEach( providerKeys::remove );
-
-        for ( String clientName : allClientsKeys.keySet() )
+        Map<String, Set<String>> allClientsKeys = filterSplitGroupAndJoin( providerKeys, IS_EXTERNAL_CLIENT, 1 );
+        for ( Map.Entry<String, Set<String>> entry : allClientsKeys.entrySet() )
         {
+            String clientName = entry.getKey();
+            Set<String> clientKeys = entry.getValue();
+
             Map<String, String> keyValues = new HashMap<>();
+
             allClientConfigs.put( clientName, keyValues );
 
-            Set<String> clientKeys = allClientsKeys.get( clientName );
             for ( String clientKey : clientKeys )
             {
                 String fullKey = OIDC_PROVIDER_PREFIX + providerName + "."
@@ -400,11 +402,14 @@ public final class GenericOidcProviderConfigParser
 
         String providerId = providerConfig.get( PROVIDER_ID );
 
-        for ( String key : KEY_REQUIRED_MAP.keySet() )
+        for ( Map.Entry<String, Boolean> entry : KEY_REQUIRED_MAP.entrySet() )
         {
+            String key = entry.getKey();
+            boolean isRequired = entry.getValue();
+
             String value = providerConfig.get( key );
 
-            if ( KEY_REQUIRED_MAP.get( key ) && Strings.isNullOrEmpty( value ) )
+            if ( isRequired && Strings.isNullOrEmpty( value ) )
             {
                 log.error( String.format(
                     "OpenId Connect (OIDC) configuration for provider: '%s' is missing a required property: '%s'. " +
@@ -414,12 +419,12 @@ public final class GenericOidcProviderConfigParser
                 return false;
             }
 
-            if ( value != null && key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
+            if ( key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
             {
                 log.error( String.format(
                     "OpenId Connect (OIDC) configuration for provider: '%s' has a URI property: '%s', " +
                         "with a malformed value: '%s'. Failed to configure the provider successfully!",
-                    providerId, key, value ) );
+                    providerId, key, isRequired ) );
 
                 return false;
             }

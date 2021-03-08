@@ -32,10 +32,8 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIRECT_URI;
 
-import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 
@@ -64,16 +62,16 @@ public class GoogleProvider extends AbstractOidcProvider
         Map<String, Set<String>> allKeysByProvider = GenericOidcProviderConfigParser
             .extractKeysGroupByProvider( config );
 
-        Set<String> googleKeys = Optional.ofNullable( allKeysByProvider.get( REGISTRATION_ID ) )
-            .orElse( Collections.emptySet() );
-
-        if ( googleKeys.isEmpty() )
+        // Skip parsing if there is no keys matching REGISTRATION_ID
+        if ( !allKeysByProvider.containsKey( REGISTRATION_ID ) || allKeysByProvider.get( REGISTRATION_ID ).isEmpty() )
         {
             return null;
         }
 
+        Set<String> googleKeys = allKeysByProvider.get( REGISTRATION_ID );
+
         Map<String, Map<String, String>> externalClientConfigs = GenericOidcProviderConfigParser
-            .extractExternalClients( config, REGISTRATION_ID, googleKeys );
+            .getAllExternalClients( config, REGISTRATION_ID, googleKeys );
 
         ClientRegistration clientRegistration = buildClientRegistration( config );
 

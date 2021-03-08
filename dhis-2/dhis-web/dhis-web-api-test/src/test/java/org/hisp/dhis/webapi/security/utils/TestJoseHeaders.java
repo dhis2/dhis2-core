@@ -33,6 +33,9 @@ import java.util.Map;
 
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
 public final class TestJoseHeaders
 {
     private TestJoseHeaders()
@@ -46,20 +49,17 @@ public final class TestJoseHeaders
 
     public static JoseHeader.Builder joseHeader( SignatureAlgorithm signatureAlgorithm, String provider )
     {
-        // @formatter:off
-
-		return JoseHeader.withAlgorithm(signatureAlgorithm)
-				.jwkSetUri("https://" + provider + "/oauth2/jwks")
-				.jwk(rsaJwk())
-				.keyId("keyId")
-				.x509Uri("https://" + provider + "/oauth2/x509")
-				.x509CertificateChain(Arrays.asList("x509Cert1", "x509Cert2"))
-				.x509SHA1Thumbprint("x509SHA1Thumbprint")
-				.x509SHA256Thumbprint("x509SHA256Thumbprint")
-				.type("JWT")
-				.contentType("jwt-content-type")
-				.header("custom-header-name", "custom-header-value");
-		// @formatter:on
+        return JoseHeader.withAlgorithm( signatureAlgorithm )
+            .jwkSetUri( "https://" + provider + "/oauth2/jwks" )
+            .jwk( rsaJwk() )
+            .keyId( "keyId" )
+            .x509Uri( "https://" + provider + "/oauth2/x509" )
+            .x509CertificateChain( Arrays.asList( "x509Cert1", "x509Cert2" ) )
+            .x509SHA1Thumbprint( "x509SHA1Thumbprint" )
+            .x509SHA256Thumbprint( "x509SHA256Thumbprint" )
+            .type( "JWT" )
+            .contentType( "jwt-content-type" )
+            .header( "custom-header-name", "custom-header-value" );
     }
 
     private static Map<String, Object> rsaJwk()
