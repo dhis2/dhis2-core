@@ -82,6 +82,7 @@ public interface UserGroupService
 
     /**
      * Get UserGroup's display name by given userGroup uid
+     * Return null if UserGroup does not exist
      */
     String getDisplayName( String uid );
 }

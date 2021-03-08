@@ -27,16 +27,20 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Dang Duy Hieu
@@ -224,5 +228,15 @@ public class UserGroupServiceTest
 
         assertEq( 'B', userGroup );
         assertNotNull( userGroup.getMembers() );
+    }
+
+    @Test
+    public void testGetDisplayName()
+    {
+        UserGroup userGroup = createUserGroup( 'A', Collections.EMPTY_SET );
+
+        userGroupService.addUserGroup( userGroup );
+
+        assertEquals( "UserGroupA", userGroupService.getDisplayName( userGroup.getUid() ) );
     }
 }
