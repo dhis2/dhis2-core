@@ -121,8 +121,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
         notificationLoggingService.save( entry );
     }
 
@@ -171,8 +169,6 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
         notificationLoggingService.save( entry );
 
     }
@@ -223,7 +219,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     private boolean isDateValid( String date )
     {
-        if ( StringUtils.isNotBlank( date ) )
+        if ( !date.isEmpty() )
         {
             if ( DateUtils.dateIsValid( date ) )
             {
