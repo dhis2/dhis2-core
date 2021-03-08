@@ -29,13 +29,13 @@ package org.hisp.dhis.dataapproval;
 
 import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import lombok.AllArgsConstructor;
 
 /**
  * @author Jim Grace
