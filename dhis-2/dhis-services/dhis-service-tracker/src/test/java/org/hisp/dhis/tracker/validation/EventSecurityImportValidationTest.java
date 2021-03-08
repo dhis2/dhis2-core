@@ -168,6 +168,8 @@ public class EventSecurityImportValidationTest
 
         bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        manager.flush();
     }
 
     private void setupMetadata()

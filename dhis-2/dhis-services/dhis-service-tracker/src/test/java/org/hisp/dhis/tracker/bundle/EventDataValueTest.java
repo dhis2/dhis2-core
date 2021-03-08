@@ -78,6 +78,8 @@ public class EventDataValueTest
 
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
+
+        manager.flush();
     }
 
     @Test
