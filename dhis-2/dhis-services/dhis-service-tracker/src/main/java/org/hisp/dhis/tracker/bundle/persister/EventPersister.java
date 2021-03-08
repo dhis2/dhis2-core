@@ -33,7 +33,6 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +50,6 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -74,12 +72,12 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     private final TrackerSideEffectConverterService sideEffectConverterService;
 
-    public EventPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
+    public EventPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Event, ProgramStageInstance> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService )
     {
-        super( bundleHooks, reservedValueService );
+        super( reservedValueService );
         this.eventConverter = eventConverter;
         this.trackedEntityCommentService = trackedEntityCommentService;
         this.sideEffectConverterService = sideEffectConverterService;
@@ -140,20 +138,6 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     protected TrackerType getType()
     {
         return TrackerType.EVENT;
-    }
-
-    @Override
-    protected void runPostCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getEvents()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Event.class, o, bundle ) ) );
-    }
-
-    @Override
-    protected void runPreCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getEvents()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Event.class, o, bundle ) ) );
     }
 
     @Override

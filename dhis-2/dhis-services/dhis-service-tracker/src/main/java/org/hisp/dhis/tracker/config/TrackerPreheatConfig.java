@@ -25,34 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.bundle;
+package org.hisp.dhis.tracker.config;
 
-import org.springframework.core.Ordered;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public interface TrackerBundleHook extends Ordered
+import org.hisp.dhis.tracker.preheat.supplier.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.google.common.collect.ImmutableList;
+
+@Configuration
+public class TrackerPreheatConfig
 {
-    default void preCommit( TrackerBundle bundle )
+    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
+        ClassBasedSupplier.class,
+        ProgramInstanceSupplier.class,
+        ProgramInstancesWithAtLeastOneEventSupplier.class,
+        ProgramStageInstanceProgramStageMapSupplier.class,
+        ProgramOrgUnitsSupplier.class,
+        PeriodTypeSupplier.class,
+        UniqueAttributesSupplier.class,
+        UserSupplier.class,
+        FileResourceSupplier.class );
+
+    @Bean( "preheatOrder" )
+    public List<String> getPreheatOrder()
     {
+        return preheatOrder.stream().map( Class::getSimpleName )
+            .collect( Collectors.toList() );
     }
 
-    default void postCommit( TrackerBundle bundle )
+    @Bean( "preheatStrategies" )
+    public Map<String, String> getPreheatStrategies()
     {
-    }
-
-    default void preCreate( Class<?> klass, Object object, TrackerBundle bundle )
-    {
-    }
-
-    default void postCreate( Class<?> klass, Object object, TrackerBundle bundle )
-    {
-    }
-
-    @Override
-    default int getOrder()
-    {
-        return Ordered.LOWEST_PRECEDENCE;
+        return new PreheatStrategyScanner().scanSupplierStrategies();
     }
 }

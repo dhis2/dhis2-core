@@ -277,7 +277,9 @@ public class DefaultTrackedEntityAttributeService
         {
             return validateImage( value );
         }
-        else if ( trackedEntityAttribute.hasOptionSet() && !trackedEntityAttribute.isValidOptionValue( value ) )
+        else if ( null != trackedEntityAttribute.getOptionSet()
+            && trackedEntityAttribute.getOptionSet().getOptions().stream()
+                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ) )
         {
             return "Value '" + errorValue + "' is not a valid option for attribute " +
                 trackedEntityAttribute.getUid() + " and option set " + trackedEntityAttribute.getOptionSet().getUid();

@@ -25,25 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.mappers;
+package org.hisp.dhis.tracker.util;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.function.Function;
 
-@Mapper( uses = DebugMapper.class )
-public interface DataElementMapper extends PreheatMapper<DataElement>
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.common.ValueType;
+
+/**
+ * @author Luca Cambi
+ */
+@Builder
+@Getter
+public class ValueTypeValidationFunction
 {
-    DataElementMapper INSTANCE = Mappers.getMapper( DataElementMapper.class );
+    private Function<String, Boolean> function;
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "valueType" )
-    @Mapping( target = "optionSet.options" )
-    DataElement map( DataElement dataElement );
+    private ValueType valueType;
+
+    private String message;
 }

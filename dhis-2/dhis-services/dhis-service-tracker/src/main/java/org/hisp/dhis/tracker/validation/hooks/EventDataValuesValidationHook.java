@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1009;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
@@ -64,8 +63,18 @@ public class EventDataValuesValidationHook
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
             // system
-            validateDataElement( reporter, context, dataValue );
+            DataElement dataElement = context.getDataElement( dataValue.getDataElement() );
+
+            if ( dataElement == null )
+            {
+                addError( reporter, TrackerErrorCode.E1304, dataValue.getDataElement() );
+                continue;
+            }
+
+            validateDataElement( reporter, dataElement, dataValue );
+            validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
+
         validateMandatoryDataValues( event, context, reporter );
         validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
     }
@@ -87,27 +96,19 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, TrackerImportValidationContext ctx,
+    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue )
     {
-        DataElement dataElement = ctx.getDataElement( dataValue.getDataElement() );
 
-        if ( dataElement == null )
+        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+
+        if ( status != null )
         {
-            addError( reporter, TrackerErrorCode.E1304, dataValue.getDataElement() );
+            addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
         }
         else
         {
-            final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
-
-            if ( status != null )
-            {
-                addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
-            }
-            else
-            {
-                validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
-            }
+            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
