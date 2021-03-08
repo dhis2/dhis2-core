@@ -349,6 +349,7 @@ public class DefaultAppManager
         jCloudsAppStorageService.discoverInstalledApps().values().stream()
             .filter( app -> !exists( app.getKey() ) )
             .forEach( this::installApp );
+
     }
 
     private void installApp( App app )
