@@ -108,7 +108,6 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     @Override
     public boolean equals( Object x, Object y )
-            throws HibernateException
     {
         return x == y || (x != null && y != null && (x.equals( y ) || safeContentBasedEquals( x, y )));
     }
@@ -130,7 +129,7 @@ public class JsonBinaryType implements UserType, ParameterizedType
     {
         try
         {
-            return Optional.ofNullable( resultingMapper.readValue( resultingMapper.writeValueAsString( o ),
+            return Optional.of( resultingMapper.readValue( resultingMapper.writeValueAsString( o ),
                     MAP_STRING_OBJECT_TYPE_REFERENCE ) );
         }
         catch ( Exception e )
