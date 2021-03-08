@@ -419,12 +419,12 @@ public final class GenericOidcProviderConfigParser
                 return false;
             }
 
-            if ( key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
+            if ( value != null && key.endsWith( "uri" ) && !UrlValidator.getInstance().isValid( value ) )
             {
                 log.error( String.format(
                     "OpenId Connect (OIDC) configuration for provider: '%s' has a URI property: '%s', " +
                         "with a malformed value: '%s'. Failed to configure the provider successfully!",
-                    providerId, key, isRequired ) );
+                    providerId, key, value ) );
 
                 return false;
             }
