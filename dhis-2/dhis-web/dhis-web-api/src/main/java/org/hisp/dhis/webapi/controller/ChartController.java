@@ -28,6 +28,20 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.springframework.beans.BeanUtils.copyProperties;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.chart.Chart;
@@ -64,19 +78,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 /**
  * This controller is being deprecated. Please use the Visualization controller
@@ -253,30 +254,21 @@ public class ChartController
     //--------------------------------------------------------------------------
 
     @Override
-    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters ) throws Exception
+    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters )
+        throws Exception
     {
-        chart.populateAnalyticalProperties();
+        postProcess( chart );
+    }
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
+    @Override
+    public void postProcessResponseEntities( final List<Chart> charts, final WebOptions options,
+        final Map<String, String> parameters )
+    {
+        if ( isNotEmpty( charts ) )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+            for ( final Chart chart : charts )
             {
-                chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
-        }
-
-
-        if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
-        {
-            I18nFormat format = i18nManager.getI18nFormat();
-
-            for ( Period period : chart.getPeriods() )
-            {
-                period.setName( format.formatPeriod( period ) );
+                postProcess( chart );
             }
         }
     }
@@ -284,6 +276,38 @@ public class ChartController
     //--------------------------------------------------------------------------
     // Supportive methods
     //--------------------------------------------------------------------------
+
+
+    private void postProcess( final Chart chart )
+    {
+        if ( chart != null )
+        {
+            chart.populateAnalyticalProperties();
+
+            User currentUser = currentUserService.getCurrentUser();
+
+            if ( currentUser != null )
+            {
+                Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+                for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+                {
+                    chart.getParentGraphMap().put( organisationUnit.getUid(),
+                        organisationUnit.getParentGraph( roots ) );
+                }
+            }
+
+            if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
+            {
+                I18nFormat format = i18nManager.getI18nFormat();
+
+                for ( Period period : chart.getPeriods() )
+                {
+                    period.setName( format.formatPeriod( period ) );
+                }
+            }
+        }
+    }
 
     private void mergeChart( Chart chart )
     {
