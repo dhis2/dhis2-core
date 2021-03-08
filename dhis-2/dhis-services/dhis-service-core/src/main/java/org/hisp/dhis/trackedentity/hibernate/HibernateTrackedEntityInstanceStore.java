@@ -521,7 +521,7 @@ public class HibernateTrackedEntityInstanceStore
         StringBuilder fromSubQuery = new StringBuilder()
             .append( "(" )
             .append( getFromSubQuerySelect( params ) )
-            .append( "FROM trackedentityinstance TEI " )
+            .append( " FROM trackedentityinstance TEI " )
 
             // INNER JOIN on constraints
             .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
@@ -642,7 +642,7 @@ public class HibernateTrackedEntityInstanceStore
                     String teiid = col + ".trackedentityinstanceid";
 
                     attributes
-                        .append( "INNER JOIN trackedentityattributevalue " )
+                        .append( " INNER JOIN trackedentityattributevalue " )
                         .append( col )
                         .append( " ON " )
                         .append( teaId )
