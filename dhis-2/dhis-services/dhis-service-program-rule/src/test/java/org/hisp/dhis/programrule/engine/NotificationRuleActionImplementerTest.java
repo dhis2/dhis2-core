@@ -219,6 +219,33 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
+    public void testSendRepeatableFlag()
+    {
+        when( templateStore.getByUid( anyString() ) ).thenReturn( template );
+
+        template.setSendRepeatable( true );
+
+        doAnswer( invocationOnMock -> {
+            eventType = (ApplicationEvent) invocationOnMock.getArguments()[0];
+            return eventType;
+        } ).when( publisher ).publishEvent( any() );
+
+        doAnswer( invocationOnMock -> {
+            logEntry = (ExternalNotificationLogEntry) invocationOnMock.getArguments()[0];
+            return logEntry;
+        } ).when( loggingService ).save( any() );
+
+        when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
+
+        String key = template.getUid() + programInstance.getUid();
+
+        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+
+        assertEquals( key, logEntry.getKey() );
+        assertTrue( logEntry.isAllowMultiple() );
+    }
+
+    @Test
     public void test_NothingHappensIfTemplateDoesNotExist()
     {
         // overriding stub to check null templates
