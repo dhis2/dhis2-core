@@ -719,7 +719,7 @@ public class HibernateTrackedEntityInstanceStore
             }
 
             joinOrderAttributes
-                .append( "LEFT JOIN trackedentityattributevalue AS " )
+                .append( " LEFT JOIN trackedentityattributevalue AS " )
                 .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
                 .append( " ON " )
                 .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
@@ -742,7 +742,7 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return new StringBuilder()
-            .append( "INNER JOIN trackedentityprogramowner PO " )
+            .append( " INNER JOIN trackedentityprogramowner PO " )
             .append( "ON PO.programid = " )
             .append( params.getProgram().getId() )
             .append( " AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
@@ -756,7 +756,7 @@ public class HibernateTrackedEntityInstanceStore
         params.handleOrganisationUnits();
 
         orgUnits
-            .append( "INNER JOIN organisationunit OU " )
+            .append( " INNER JOIN organisationunit OU " )
             .append( "ON OU.organisationunitid = " )
             .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
 
