@@ -66,7 +66,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 {
     protected final ReservedValueService reservedValueService;
 
-    public AbstractTrackerPersister( ReservedValueService reservedValueService )
+    protected AbstractTrackerPersister( ReservedValueService reservedValueService )
     {
         this.reservedValueService = reservedValueService;
     }
