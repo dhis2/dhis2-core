@@ -27,8 +27,27 @@
  */
 package org.hisp.dhis.user;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.time.ZoneId.systemDefault;
+import static java.time.ZonedDateTime.now;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -51,23 +70,7 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Nullable;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.time.ZoneId.systemDefault;
-import static java.time.ZonedDateTime.now;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
+import com.google.common.collect.Lists;
 
 /**
  * @author Chau Thu Tran
