@@ -467,6 +467,7 @@ public interface UserService
 
     /**
      * Get user display name by concat( firstname,' ', surname )
+     * Return null if User doesn't exist
      */
     String getDisplayName( String userUid );
 }

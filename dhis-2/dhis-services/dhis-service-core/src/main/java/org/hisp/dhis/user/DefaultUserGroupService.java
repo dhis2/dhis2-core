@@ -62,7 +62,8 @@ public class DefaultUserGroupService
     private Cache<String> userGroupNameCache;
 
     public DefaultUserGroupService( UserGroupStore userGroupStore,
-        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService, CacheProvider cacheProvider )
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
@@ -264,8 +265,8 @@ public class DefaultUserGroupService
 
     @Override
     @Transactional( readOnly = true )
-    public String getUserGroupDisplayName( String uid )
+    public String getDisplayName( String uid )
     {
-        return userGroupNameCache.get( uid, n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).get();
+        return userGroupNameCache.get( uid, n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
     }
 }

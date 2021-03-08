@@ -27,18 +27,19 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.*;
-
-import java.util.HashSet;
-import java.util.Set;
-
+import com.google.common.collect.Sets;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Nguyen Hong Duc
@@ -166,5 +167,14 @@ public class UserStoreTest
         assertNotNull( currentUserGroupInfo );
         assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
+    }
+
+    @Test
+    public void testGetDisplayName()
+    {
+        User userA = createUser( 'A' );
+        userStore.save( userA );
+
+        assertEquals( "FirstNameA SurnameA", userStore.getDisplayName( userA.getUid() ) );
     }
 }
