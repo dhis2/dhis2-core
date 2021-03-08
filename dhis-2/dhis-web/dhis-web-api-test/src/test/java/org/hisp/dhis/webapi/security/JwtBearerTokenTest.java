@@ -46,7 +46,7 @@ import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.DhisControllerConvenienceWithAuthTest;
+import org.hisp.dhis.webapi.DhisControllerWithJwtTokenAuthTest;
 import org.hisp.dhis.webapi.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
@@ -78,7 +78,7 @@ import com.nimbusds.jose.proc.SecurityContext;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-public class JwtBearerTokenTest extends DhisControllerConvenienceWithAuthTest
+public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 {
     // @formatter:off
     public static final String EXPIRED_GOOGLE_JWT_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6ImU4NzMyZGIwNjI4NzUxNTU1NjIx"

@@ -35,11 +35,9 @@ import org.hisp.dhis.webapi.json.JsonResponse;
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.junit.Before;
 import org.junit.runner.RunWith;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterChainProxy;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -54,29 +52,24 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  * Base class for convenient testing of the web API on basis of
  * {@link JsonResponse}.
  *
- * @author Jan Bernitt
+ * @author Morten Svanæs
  */
 @RunWith( SpringRunner.class )
 @WebAppConfiguration
-@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithAuth.class } )
+@ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerConvenienceWithAuthTest extends DhisConvenienceTest
+public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
 
     @Autowired
+    private FilterChainProxy springSecurityFilterChain;
+
     private UserService _userService;
 
     protected MockMvc mvc;
-
-    private MockHttpSession session;
-
-    private User currentUser;
-
-    @Autowired
-    private FilterChainProxy springSecurityFilterChain;
 
     @Before
     public final void setup()
@@ -93,29 +86,8 @@ public abstract class DhisControllerConvenienceWithAuthTest extends DhisConvenie
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 
-    protected final User getCurrentUser()
-    {
-        return currentUser;
-    }
-
-    protected final User switchToNewUser( String username, String... authorities )
-    {
-        currentUser = currentUser == null
-            ? createAdminUser( authorities )
-            : createUser( username, authorities );
-
-        injectSecurityContext( currentUser );
-
-        session = new MockHttpSession();
-        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            SecurityContextHolder.getContext() );
-
-        return currentUser;
-    }
-
     protected final User createOpenIDUser( String username, String openIDIdentifier, String... authorities )
     {
         return createUserWithOpenID( username, openIDIdentifier, authorities );
     }
-
 }

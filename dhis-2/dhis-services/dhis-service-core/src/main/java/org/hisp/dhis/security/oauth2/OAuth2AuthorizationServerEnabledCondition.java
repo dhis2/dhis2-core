@@ -44,8 +44,8 @@ public class OAuth2AuthorizationServerEnabledCondition extends PropertiesAwareCo
         {
             return false;
         }
-        String isEnabled = getConfiguration().getProperty( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER );
-        return isEnabled.equalsIgnoreCase( "on" );
+
+        return getConfiguration().isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER );
     }
 
     @Override

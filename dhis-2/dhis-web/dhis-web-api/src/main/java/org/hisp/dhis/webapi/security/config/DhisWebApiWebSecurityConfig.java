@@ -40,7 +40,7 @@ import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
 import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
-import org.hisp.dhis.security.oidc.OidcEnabledCondition;
+import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
@@ -246,11 +246,11 @@ public class DhisWebApiWebSecurityConfig
     }
 
     /**
-     * This class is configuring the OIDC endpoints
+     * This class is configuring the OIDC login endpoints
      */
     @Configuration
     @Order( 1010 )
-    @Conditional( value = OidcEnabledCondition.class )
+    @Conditional( value = OIDCLoginEnabledCondition.class )
     public static class OidcSecurityConfig extends WebSecurityConfigurerAdapter
     {
         @Autowired
@@ -403,7 +403,7 @@ public class DhisWebApiWebSecurityConfig
 
         private void configureOAuth2TokenFilter( HttpSecurity http )
         {
-            if ( dhisConfig.getBoolean( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
             {
                 AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
 
@@ -414,24 +414,22 @@ public class DhisWebApiWebSecurityConfig
 
                 http.addFilterAfter( filter, BasicAuthenticationFilter.class );
             }
-            else
+            else if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION ) )
             {
-                BearerTokenAuthenticationFilter filter = getBearerTokenAuthenticationFilter();
-
-                http.addFilterAfter( filter, BasicAuthenticationFilter.class );
+                http.addFilterAfter( getBearerTokenAuthenticationFilter(), BasicAuthenticationFilter.class );
             }
         }
 
         private BearerTokenAuthenticationFilter getBearerTokenAuthenticationFilter()
         {
-            DefaultBearerTokenResolver bearerTokenResolver = new DefaultBearerTokenResolver();
-
             BearerTokenAuthenticationFilter jwtFilter = new BearerTokenAuthenticationFilter(
                 dhisJwtAuthenticationManagerResolver );
 
-            jwtFilter.setBearerTokenResolver( bearerTokenResolver );
             jwtFilter.setAuthenticationEntryPoint( bearerTokenEntryPoint );
+            jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
 
+            // "Dummy" failure handler to activate auth failed messages being sent to the
+            // central AuthenticationLoggerListener
             jwtFilter.setAuthenticationFailureHandler( ( request, response, exception ) -> {
                 authenticationEventPublisher.publishAuthenticationFailure( exception,
                     new AbstractAuthenticationToken( null )
@@ -448,6 +446,7 @@ public class DhisWebApiWebSecurityConfig
                             return null;
                         }
                     } );
+
                 bearerTokenEntryPoint.commence( request, response, exception );
             } );
 
