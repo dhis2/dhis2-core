@@ -1149,7 +1149,8 @@ public abstract class ChartFacadeController
      * Override to process entities after it has been retrieved from storage and
      * before it is returned to the view. Entities is null-safe.
      */
-    protected void postProcessResponseEntities( List<Chart> entityList, WebOptions options, Map<String, String> parameters )
+    protected void postProcessResponseEntities( List<Chart> entityList, WebOptions options,
+        Map<String, String> parameters )
     {
     }
 
