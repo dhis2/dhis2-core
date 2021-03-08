@@ -268,27 +268,18 @@ public class ChartController
     public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters )
         throws Exception
     {
-        chart.populateAnalyticalProperties();
+        postProcess( chart );
+    }
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
+    @Override
+    public void postProcessResponseEntities( final List<Chart> charts, final WebOptions options,
+                                             final Map<String, String> parameters )
+    {
+        if ( isNotEmpty( charts ) )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+            for ( final Chart chart : charts )
             {
-                chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
-        }
-
-        if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
-        {
-            I18nFormat format = i18nManager.getI18nFormat();
-
-            for ( Period period : chart.getPeriods() )
-            {
-                period.setName( format.formatPeriod( period ) );
+                postProcess( chart );
             }
         }
     }
@@ -296,6 +287,37 @@ public class ChartController
     // --------------------------------------------------------------------------
     // Supportive methods
     // --------------------------------------------------------------------------
+
+    private void postProcess( final Chart chart )
+    {
+        if ( chart != null )
+        {
+            chart.populateAnalyticalProperties();
+
+            User currentUser = currentUserService.getCurrentUser();
+
+            if ( currentUser != null )
+            {
+                Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+                for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+                {
+                    chart.getParentGraphMap().put( organisationUnit.getUid(),
+                        organisationUnit.getParentGraph( roots ) );
+                }
+            }
+
+            if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
+            {
+                I18nFormat format = i18nManager.getI18nFormat();
+
+                for ( Period period : chart.getPeriods() )
+                {
+                    period.setName( format.formatPeriod( period ) );
+                }
+            }
+        }
+    }
 
     private void mergeChart( Chart chart )
     {
