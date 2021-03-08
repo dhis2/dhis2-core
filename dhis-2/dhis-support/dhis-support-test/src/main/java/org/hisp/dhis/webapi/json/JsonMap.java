@@ -46,4 +46,5 @@ public interface JsonMap<E extends JsonValue> extends JsonCollection
      * @return value at the provided property
      */
     E get( String key );
+
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import java.util.concurrent.Callable;
 import java.util.function.Function;
 
 /**
@@ -42,6 +43,11 @@ public interface JsonString extends JsonPrimitive
      *         is undefined or defined as JSON {@code null}.
      */
     String string();
+
+    default String string( String orDefault )
+    {
+        return exists() ? string() : orDefault;
+    }
 
     /**
      * In contrast to {@link #mapNonNull(Object, Function)} this function simply
@@ -61,15 +67,20 @@ public interface JsonString extends JsonPrimitive
         return value == null ? null : parser.apply( value );
     }
 
-    default Class<?> parsedClass()
+    default <T> T converted( Callable<T> converter )
     {
         try
         {
-            return Class.forName( string() );
+            return converter.call();
         }
-        catch ( ClassNotFoundException ex )
+        catch ( Exception ex )
         {
             throw new IllegalArgumentException( ex );
         }
+    }
+
+    default Class<?> parsedClass()
+    {
+        return converted( () -> Class.forName( string() ) );
     }
 }
