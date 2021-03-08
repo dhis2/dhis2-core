@@ -100,6 +100,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
 
+        if ( notificationLoggingService.getByKey( key ) != null )
+        {
+            return;
+        }
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         entry.setAllowMultiple( template.isSendRepeatable() );
@@ -134,6 +139,11 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         String key = generateKey( template, programStageInstance.getProgramInstance() );
 
         publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
+
+        if ( notificationLoggingService.getByKey( key ) != null )
+        {
+            return;
+        }
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );

@@ -27,9 +27,7 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -43,6 +41,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
+import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -58,6 +58,8 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
+import org.hisp.dhis.program.notification.ProgramNotificationInstance;
+import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
@@ -137,6 +139,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     private OrganisationUnit organisationUnitB;
 
+    private ProgramNotificationTemplate pnt;
+
     private String scheduledDate;
 
     private String dob = "1984-01-01";
@@ -206,6 +210,12 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
+
+    @Autowired
+    private ProgramNotificationInstanceService programNotificationInstanceService;
+
+    @Autowired
+    private NotificationLoggingService notificationLoggingService;
 
     @Override
     public void setUpTest()
@@ -356,6 +366,51 @@ public class ProgramRuleEngineTest extends DhisSpringTest
             .ruleAction();
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
+        assertEquals( 1, programNotificationInstanceService.getProgramNotificationInstances( programInstance ).size() );
+    }
+
+    @Test
+    public void testSendRepeatableTemplates()
+    {
+        setUpScheduleMessage();
+        pnt.setSendRepeatable( true );
+
+        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
+
+        List<RuleEffect> ruleEffects = programRuleEngineService
+            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+
+        assertEquals( 1, ruleEffects.size() );
+
+        RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
+
+        assertTrue( ruleAction instanceof RuleActionScheduleMessage );
+
+        RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
+
+        assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
+        assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
+
+        List<RuleEffect> ruleEffects2 = programRuleEngineService
+            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+
+        assertNotNull( ruleEffects2.get( 0 ) );
+
+        assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof RuleActionScheduleMessage );
+
+        RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 )
+            .ruleAction();
+
+        assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
+
+        List<ProgramNotificationInstance> instances = programNotificationInstanceService
+            .getProgramNotificationInstances( programInstance );
+
+        assertEquals( 2, instances.size() );
+        assertEquals( instances.get( 0 ).getProgramNotificationTemplateId(),
+            instances.get( 1 ).getProgramNotificationTemplateId() );
+        ExternalNotificationLogEntry logEntry = notificationLoggingService.getByTemplateUid( pnt.getUid() );
+        assertTrue( logEntry.isAllowMultiple() );
     }
 
     @Test
@@ -702,7 +757,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     {
         scheduledDate = "2018-04-17";
 
-        ProgramNotificationTemplate pnt = createNotification();
+        pnt = createNotification();
         programNotificationTemplateStore.save( pnt );
 
         ProgramRuleAction programRuleActionForScheduleMessage = createProgramRuleAction( 'S', programRuleS );

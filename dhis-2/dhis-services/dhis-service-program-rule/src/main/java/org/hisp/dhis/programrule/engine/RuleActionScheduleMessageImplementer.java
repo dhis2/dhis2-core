@@ -119,6 +119,11 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         log.info( String.format( LOG_MESSAGE, template.getUid() ) );
 
+        if ( notificationLoggingService.getByKey( key ) != null )
+        {
+            return;
+        }
+
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
         entry.setAllowMultiple( template.isSendRepeatable() );
@@ -168,6 +173,11 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         programNotificationInstanceService.save( notificationInstance );
 
         log.info( String.format( LOG_MESSAGE, template.getUid() ) );
+
+        if ( notificationLoggingService.getByKey( key ) != null )
+        {
+            return;
+        }
 
         ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
         entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
