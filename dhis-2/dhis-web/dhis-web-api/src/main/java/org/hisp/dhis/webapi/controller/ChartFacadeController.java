@@ -274,6 +274,8 @@ public abstract class ChartFacadeController
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
+        postProcessResponseEntities( charts, options, rpParameters );
+
         handleLinksAndAccess( charts, fields, false, currentUser );
 
         handleAttributeValues( charts, fields );
@@ -1141,6 +1143,15 @@ public abstract class ChartFacadeController
         throws IOException
     {
         return renderService.fromXml( request.getInputStream(), Chart.class );
+    }
+
+    /**
+     * Override to process entities after it has been retrieved from storage and
+     * before it is returned to the view. Entities is null-safe.
+     */
+    protected void postProcessResponseEntities( List<Chart> entityList, WebOptions options,
+        Map<String, String> parameters )
+    {
     }
 
     /**
