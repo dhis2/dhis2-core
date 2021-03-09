@@ -16,7 +16,7 @@
         </Console>
     </Appenders>
     <Loggers>
-        <Logger name="org.hisp.dhis" level="info" additivity="true"/>
+        <Logger name="org.hisp.dhis" level="debug" additivity="true"/>
         <Logger name="org.hisp.dhis.webapi.mvc" level="warn" additivity="false"/>
         <Logger name="org.hisp.dhis.programrule.engine" level="warn" additivity="false"/>
         <Logger name="org.hibernate.cache.ehcache.internal.strategy.AbstractReadWriteEhcacheAccessStrategy" level="error" additivity="false"/>
@@ -24,7 +24,16 @@
         <Logger name="org.hibernate.engine.internal.StatefulPersistenceContext" level="error" additivity="false"/>
         <Logger name="org.springframework.web.servlet.view.ContentNegotiatingViewResolver" level="error" additivity="false"/>
         <Logger name="org.hibernate.orm.deprecation" level="error" additivity="false"/>
+        <Logger name="org.springframework.transaction" level="debug"/>
+        <Logger name="org.springframework.orm.jpa" level="debug"/>
+        <Logger name="org.hibernate.cache" level="debug" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
+        <Logger name="org.ehcache" level="debug" additivity="false">
+            <AppenderRef ref="Console" />
+        </Logger>
 
+        <Logger name="org.springframework.jdbc.core.JdbcTemplate" level="debug"/>
         <Root level="warn">
             <AppenderRef ref="console"/>
         </Root>

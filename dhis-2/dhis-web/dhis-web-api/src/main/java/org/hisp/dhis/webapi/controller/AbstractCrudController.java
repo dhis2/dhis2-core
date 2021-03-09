@@ -28,26 +28,14 @@ package org.hisp.dhis.webapi.controller;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.IOException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.google.common.base.Enums;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 import org.apache.commons.collections.CollectionUtils;
 import org.cache2k.Cache;
 import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
-
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -90,7 +78,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitQueryParams;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.patch.Patch;
 import org.hisp.dhis.patch.PatchParams;
@@ -132,10 +119,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import com.google.common.base.Enums;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -537,7 +532,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         entities = (List<T>) queryService.query( query );
 
-        handleLinksAndAccess( entities, fields, true );
+        handleLinksAndAccess( entities, fields, false );
 
         handleAttributeValues( entities, fields );
 

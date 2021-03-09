@@ -28,8 +28,10 @@ package org.hisp.dhis.user;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.spring.AbstractSpringSecurityCurrentUserService;
@@ -70,6 +72,13 @@ public class DefaultCurrentUserService
      */
     private static Cache<Long> USERNAME_ID_CACHE;
 
+    /**
+     * Cache contains Set of UserGroup ID for each user. Key is username. This
+     * will be used for ACL check in
+     * {@link org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore}
+     */
+    private Cache<Set<Long>> USER_USERGROUPS_ID_CACHE;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -106,6 +115,14 @@ public class DefaultCurrentUserService
         USERNAME_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
             .forRegion( "userIdCache" )
             .expireAfterAccess( 1, TimeUnit.HOURS )
+            .withInitialCapacity( 200 )
+            .forceInMemory()
+            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
+            .build();
+
+        USER_USERGROUPS_ID_CACHE = new SimpleCacheBuilder<Set<Long>>()
+            .forRegion( "userGroupIdCache" )
+            .expireAfterWrite(  1, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 4000 )
@@ -156,6 +173,18 @@ public class DefaultCurrentUserService
             .collect( Collectors.toSet() );
 
         return new UserInfo( userId, userDetails.getUsername(), authorities );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Set<Long> getCurrentUserUserGroupIds( UserInfo userInfo )
+    {
+        if ( userInfo == null )
+        {
+            return null;
+        }
+
+        return USER_USERGROUPS_ID_CACHE.get( userInfo.getUsername(), ug -> getUserGroupIds( getCurrentUser() )  ).orElse( null );
     }
 
     private Long getUserId( String username )
@@ -209,5 +238,17 @@ public class DefaultCurrentUserService
             List<SessionInformation> sessions = sessionRegistry.getAllSessions( userDetails, false );
             sessions.forEach( SessionInformation::expireNow );
         }
+    }
+
+    private Set<Long> getUserGroupIds( User user )
+    {
+        if ( CollectionUtils.isEmpty( user.getGroups() ) )
+        {
+            return null;
+        }
+
+        Set<Long> ids = new HashSet<>();
+        user.getGroups().forEach( g -> ids.add( g.getId() ) );
+        return ids;
     }
 }

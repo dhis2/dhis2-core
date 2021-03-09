@@ -28,25 +28,9 @@ package org.hisp.dhis.hibernate;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Properties;
-
-import javax.annotation.PostConstruct;
-
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-
-
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -58,6 +42,19 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.util.ResourceUtils;
+
+import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Properties;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -233,6 +230,7 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
+
 
         if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {

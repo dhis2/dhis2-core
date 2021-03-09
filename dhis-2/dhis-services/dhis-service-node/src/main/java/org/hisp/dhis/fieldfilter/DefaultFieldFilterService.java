@@ -28,16 +28,12 @@ package org.hisp.dhis.fieldfilter;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.lang.reflect.Modifier;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.annotation.Nonnull;
-import javax.annotation.PostConstruct;
-
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import lombok.extern.slf4j.Slf4j;
+import org.hibernate.collection.spi.PersistentCollection;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -66,12 +62,19 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
+import javax.annotation.Nonnull;
+import javax.annotation.PostConstruct;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -308,6 +311,12 @@ public class DefaultFieldFilterService implements FieldFilterService
                 if ( property.isCollection() )
                 {
                     Collection<?> collection = (Collection<?>) returnValue;
+
+                    if ( collection instanceof PersistentCollection )
+                    {
+                        PersistentCollection persistentCollection = (PersistentCollection) collection;
+                        persistentCollection.getStoredSnapshot();
+                    }
 
                     child = new CollectionNode( property.getCollectionName(), collection.size() );
                     child.setNamespace( property.getNamespace() );

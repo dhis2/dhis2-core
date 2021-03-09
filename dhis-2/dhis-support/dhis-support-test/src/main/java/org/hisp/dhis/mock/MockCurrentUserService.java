@@ -28,7 +28,6 @@ package org.hisp.dhis.mock;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -39,6 +38,7 @@ import org.hisp.dhis.user.UserInfo;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Lars Helge Overland
@@ -126,6 +126,12 @@ public class MockCurrentUserService
     public UserCredentials getCurrentUserCredentials()
     {
         return currentUser.getUserCredentials();
+    }
+
+    @Override
+    public Set<Long> getCurrentUserUserGroupIds( UserInfo userInfo )
+    {
+        return currentUser.getGroups().stream().map( g -> g.getId() ).collect( Collectors.toSet() );
     }
 
     @Override

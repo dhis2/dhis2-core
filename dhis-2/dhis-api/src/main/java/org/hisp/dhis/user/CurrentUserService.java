@@ -90,4 +90,10 @@ public interface CurrentUserService
      * @return UserCredentials of current User
      */
     UserCredentials getCurrentUserCredentials();
+
+    /**
+     * Return Set of UserGroup's ID which current User belong to
+     * @return
+     */
+    Set<Long> getCurrentUserUserGroupIds( UserInfo userInfo );
 }
