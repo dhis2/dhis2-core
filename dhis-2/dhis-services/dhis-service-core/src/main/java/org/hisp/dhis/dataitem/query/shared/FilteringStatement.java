@@ -93,7 +93,7 @@ public class FilteringStatement
     }
 
     public static String nameFiltering( final String columnOne, final String columnTwo,
-                                        final MapSqlParameterSource paramsMap )
+        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
@@ -115,7 +115,7 @@ public class FilteringStatement
     }
 
     public static String shortNameFiltering( final String columnOne, final String columnTwo,
-                                             final MapSqlParameterSource paramsMap )
+        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, SHORT_NAME ) )
         {
@@ -137,7 +137,7 @@ public class FilteringStatement
     }
 
     public static String displayNameFiltering( final String columnOne, final String columnTwo,
-                                               final MapSqlParameterSource paramsMap )
+        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
@@ -159,7 +159,7 @@ public class FilteringStatement
     }
 
     public static String displayShortNameFiltering( final String columnOne, final String columnTwo,
-                                                    final MapSqlParameterSource paramsMap )
+        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
         {
@@ -206,7 +206,7 @@ public class FilteringStatement
     }
 
     public static String identifiableTokenFiltering( final String idColumn, final String codeColumn,
-                                                     final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
+        final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
     {
         if ( hasStringNonBlankPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
         {
@@ -232,7 +232,7 @@ public class FilteringStatement
     }
 
     private static String createRegexConditionForPhrase( final String column, final String[] filteringWords,
-                                                         final String spacedAndOr, final String regexMatch )
+        final String spacedAndOr, final String regexMatch )
     {
         if ( filteringWords != null && filteringWords.length > 0 && isNotBlank( column ) )
         {
@@ -257,7 +257,7 @@ public class FilteringStatement
     }
 
     private static String createRegexConditionForIdentifier( final String column, final String[] filteringWords,
-                                                             final String spacedAndOr, final String regexMatch )
+        final String spacedAndOr, final String regexMatch )
     {
         // Should only trigger when there is no more than one word in the
         // filtering.

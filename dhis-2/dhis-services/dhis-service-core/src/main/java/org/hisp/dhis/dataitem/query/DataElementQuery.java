@@ -93,7 +93,7 @@ public class DataElementQuery implements DataItemQuery
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public DataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
-                             final JdbcTemplate jdbcTemplate )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 

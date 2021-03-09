@@ -53,8 +53,8 @@ public class OrderingStatement
     }
 
     public static String ordering( final String displayNameOrderingColumns, final String nameOrderingColumns,
-                                   final String displayShortNameOrderingColumns, final String shortNameOrderingColumns,
-                                   final MapSqlParameterSource paramsMap )
+        final String displayShortNameOrderingColumns, final String shortNameOrderingColumns,
+        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringNonBlankPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayNameOrderingColumns ) )
         {
@@ -80,7 +80,7 @@ public class OrderingStatement
     }
 
     private static String buildOrderByStatement( final String displayOrderingColumns,
-                                                 final String ascOrDesc )
+        final String ascOrDesc )
     {
         final StringBuilder orderBy = new StringBuilder();
         final String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );

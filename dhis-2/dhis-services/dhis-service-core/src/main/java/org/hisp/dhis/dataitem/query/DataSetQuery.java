@@ -89,7 +89,7 @@ public class DataSetQuery implements DataItemQuery
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public DataSetQuery( @Qualifier( "readOnlyJdbcTemplate" )
-                         final JdbcTemplate jdbcTemplate )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 

@@ -98,7 +98,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public ProgramIndicatorQuery( @Qualifier( "readOnlyJdbcTemplate" )
-                                  final JdbcTemplate jdbcTemplate )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 

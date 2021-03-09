@@ -101,7 +101,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public ProgramStageDataElementQuery( @Qualifier( "readOnlyJdbcTemplate" )
-                                         final JdbcTemplate jdbcTemplate )
+    final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 
@@ -124,14 +124,14 @@ public class ProgramStageDataElementQuery implements DataItemQuery
             final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
                 rowSet.getString( "program_name" ) ) + SPACE
                 + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
-                trimToEmpty( rowSet.getString( "name" ) ) );
+                    trimToEmpty( rowSet.getString( "name" ) ) );
 
             final String shortName = trimToEmpty(
                 rowSet.getString( "program_shortname" ) ) + SPACE + trimToEmpty( rowSet.getString( "shortname" ) );
             final String displayShortName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_shortname" ) ),
                 rowSet.getString( "program_shortname" ) ) + SPACE
                 + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_shortname" ) ),
-                trimToEmpty( rowSet.getString( "shortname" ) ) );
+                    trimToEmpty( rowSet.getString( "shortname" ) ) );
 
             final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
 
