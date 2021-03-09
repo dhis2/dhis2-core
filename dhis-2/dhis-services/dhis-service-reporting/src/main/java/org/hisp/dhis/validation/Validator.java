@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-import org.hisp.dhis.analytics.AnalyticsService;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.commons.util.SystemUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.springframework.context.ApplicationContext;
+package org.hisp.dhis.validation;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,9 +33,17 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.springframework.context.ApplicationContext;
+
+import com.google.common.collect.Lists;
+
 /**
  * Evaluates validation rules.
- * 
+ *
  * @author Jim Grace
  */
 public class Validator
@@ -54,8 +54,8 @@ public class Validator
      * evaluation for each organisation unit to a task that can be evaluated
      * independently in a multi-threaded environment.
      * <p/>
-     * Return early with no results if there are no organisation units
-     * or no validation rules.
+     * Return early with no results if there are no organisation units or no
+     * validation rules.
      *
      * @return a collection of any validations that were found
      */
@@ -63,7 +63,7 @@ public class Validator
         ApplicationContext applicationContext, AnalyticsService analyticsService )
     {
         CategoryService categoryService = applicationContext.getBean( CategoryService.class );
-                
+
         int threadPoolSize = getThreadPoolSize( context );
 
         if ( threadPoolSize == 0 || context.getPeriodTypeXs().isEmpty() )
@@ -73,7 +73,8 @@ public class Validator
 
         ExecutorService executor = Executors.newFixedThreadPool( threadPoolSize );
 
-        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(), ValidationRunContext.ORG_UNITS_PER_TASK );
+        List<List<OrganisationUnit>> orgUnitLists = Lists.partition( context.getOrgUnits(),
+            ValidationRunContext.ORG_UNITS_PER_TASK );
 
         for ( List<OrganisationUnit> orgUnits : orgUnitLists )
         {
@@ -101,7 +102,7 @@ public class Validator
 
     /**
      * Determines how many threads we should use for testing validation rules.
-     * 
+     *
      * @param context validation run context
      * @return number of threads we should use for testing validation rules
      */

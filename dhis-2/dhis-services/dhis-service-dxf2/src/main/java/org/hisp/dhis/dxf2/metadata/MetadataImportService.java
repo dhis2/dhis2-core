@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+package org.hisp.dhis.dxf2.metadata;
 
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -39,8 +38,9 @@ import java.util.Map;
 public interface MetadataImportService
 {
     /**
-     * Import object using provided params. Takes the objects through all phases of the importer
-     * from preheating to validation, and then finished with a commit (unless its validate only)
+     * Import object using provided params. Takes the objects through all phases
+     * of the importer from preheating to validation, and then finished with a
+     * commit (unless its validate only)
      *
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)
@@ -48,7 +48,8 @@ public interface MetadataImportService
     ImportReport importMetadata( MetadataImportParams params );
 
     /**
-     * Parses, and creates a MetadataImportParams instance based on given map of parameters.
+     * Parses, and creates a MetadataImportParams instance based on given map of
+     * parameters.
      *
      * @param parameters Key-Value map of wanted parameters
      * @return MetadataImportParams instance created based on input parameters

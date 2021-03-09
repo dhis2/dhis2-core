@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
@@ -238,10 +237,10 @@ public class JdbcEventStore implements EventStore
     // @formatter:on
 
     /**
-     * Updates Tracked Entity Instance after an event update. In order to prevent
-     * deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the actual UPDATE
-     * statement. This prevents deadlocks when Postgres tries to update the same
-     * TEI.
+     * Updates Tracked Entity Instance after an event update. In order to
+     * prevent deadlocks, SELECT ... FOR UPDATE SKIP LOCKED is used before the
+     * actual UPDATE statement. This prevents deadlocks when Postgres tries to
+     * update the same TEI.
      */
     private final static String UPDATE_TEI_SQL = "SELECT * FROM trackedentityinstance where uid in (?) FOR UPDATE %s;" +
         "update trackedentityinstance set lastupdated = ?, lastupdatedby = ? where uid in (?)";
@@ -863,9 +862,9 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Query is based on three sub queries on event, data value and comment, which
-     * are joined using program stage instance id. The purpose of the separate
-     * queries is to be able to page properly on events.
+     * Query is based on three sub queries on event, data value and comment,
+     * which are joined using program stage instance id. The purpose of the
+     * separate queries is to be able to page properly on events.
      */
     private String buildSql( EventSearchParams params, List<OrganisationUnit> organisationUnits, User user )
     {
@@ -1167,8 +1166,8 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * From, join and where clause. For dataElement params, restriction is set in
-     * inner join. For query params, restriction is set in where clause.
+     * From, join and where clause. For dataElement params, restriction is set
+     * in inner join. For query params, restriction is set in where clause.
      */
     private String getFromWhereClause( EventSearchParams params, SqlHelper hlp,
         List<OrganisationUnit> organisationUnits )
@@ -1542,14 +1541,14 @@ public class JdbcEventStore implements EventStore
 
     /**
      * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
-     *
-     * Note that this method is using JdbcTemplate to execute the batch operation,
-     * therefore it's able to participate in any Spring-initiated transaction
+     * <p>
+     * Note that this method is using JdbcTemplate to execute the batch
+     * operation, therefore it's able to participate in any Spring-initiated
+     * transaction
      *
      * @param batch the list of {@see ProgramStageInstance}
      * @return the list of created {@see ProgramStageInstance} with primary keys
      *         assigned
-     *
      */
     private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
     {
@@ -1586,9 +1585,10 @@ public class JdbcEventStore implements EventStore
         /*
          * Assign the generated event PKs to the batch.
          *
-         * If the generate event PKs size doesn't match the batch size, one or more PSI
-         * were not persisted. Run an additional query to fetch the persisted PSI and
-         * return only the PSI from the batch which are persisted.
+         * If the generate event PKs size doesn't match the batch size, one or
+         * more PSI were not persisted. Run an additional query to fetch the
+         * persisted PSI and return only the PSI from the batch which are
+         * persisted.
          *
          */
         if ( eventIds.size() != batch.size() )
@@ -1663,9 +1663,9 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Awful hack required for the H2-based tests to pass. H2 does not support the
-     * "SKIP LOCKED" clause, therefore we need to remove it from the SQL statement
-     * when executing the H2 tests.
+     * Awful hack required for the H2-based tests to pass. H2 does not support
+     * the "SKIP LOCKED" clause, therefore we need to remove it from the SQL
+     * statement when executing the H2 tests.
      *
      * @return a SQL String
      */

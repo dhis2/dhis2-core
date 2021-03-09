@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
@@ -35,6 +34,8 @@ import java.util.*;
 import java.util.concurrent.Future;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -59,8 +60,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Nguyen Kim Lai
  */
@@ -76,7 +75,8 @@ public class SmsMessageSender
 
     private static final Integer MAX_RECIPIENTS_ALLOWED = 200;
 
-    private static final Pattern SUMMARY_PATTERN = Pattern.compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
+    private static final Pattern SUMMARY_PATTERN = Pattern
+        .compile( "\\s*High\\s*[0-9]*\\s*,\\s*medium\\s*[0-9]*\\s*,\\s*low\\s*[0-9]*\\s*" );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -111,14 +111,16 @@ public class SmsMessageSender
     // -------------------------------------------------------------------------
 
     @Override
-    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+    public OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender,
+        Set<User> users,
         boolean forceSend )
     {
         if ( !hasRecipients( users ) )
         {
             log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
-            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(),
+                GatewayResponse.NO_RECIPIENT, false );
         }
 
         Set<User> toSendList;
@@ -129,11 +131,12 @@ public class SmsMessageSender
         {
             log.info( GatewayResponse.SMS_DISABLED.getResponseMessage() );
 
-            return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(), GatewayResponse.SMS_DISABLED, false );
+            return new OutboundMessageResponse( GatewayResponse.SMS_DISABLED.getResponseMessage(),
+                GatewayResponse.SMS_DISABLED, false );
         }
 
         // Extract summary from text in case of COLLECTIVE_SUMMARY
-        
+
         text = SUMMARY_PATTERN.matcher( text ).find() ? StringUtils.substringBefore( text, LN ) : text;
 
         return sendMessage( subject, text, SmsUtils.getRecipientsPhoneNumber( toSendList ) );
@@ -141,16 +144,18 @@ public class SmsMessageSender
 
     @Async
     @Override
-    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend )
+    public Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender,
+        Set<User> users, boolean forceSend )
     {
         OutboundMessageResponse response = sendMessage( subject, text, footer, sender, users, forceSend );
         return new AsyncResult<>( response );
     }
-    
+
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
-        return sendMessage( subject, text, StringUtils.isBlank( recipient ) ? new HashSet<>() : Sets.newHashSet( recipient )  );
+        return sendMessage( subject, text,
+            StringUtils.isBlank( recipient ) ? new HashSet<>() : Sets.newHashSet( recipient ) );
     }
 
     @Override
@@ -160,7 +165,8 @@ public class SmsMessageSender
         {
             log.info( GatewayResponse.NO_RECIPIENT.getResponseMessage() );
 
-            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(), GatewayResponse.NO_RECIPIENT, false );
+            return new OutboundMessageResponse( GatewayResponse.NO_RECIPIENT.getResponseMessage(),
+                GatewayResponse.NO_RECIPIENT, false );
         }
 
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
@@ -180,14 +186,16 @@ public class SmsMessageSender
     {
         if ( batch == null )
         {
-            return createMessageResponseSummary( BATCH_ABORTED, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, 0 );
+            return createMessageResponseSummary( BATCH_ABORTED, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED,
+                0 );
         }
 
         SmsGatewayConfig defaultGateway = gatewayAdminService.getDefaultGateway();
 
         if ( defaultGateway == null )
         {
-            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED, batch.size() );
+            return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.FAILED,
+                batch.size() );
         }
 
         batch.getMessages().forEach( item -> item.setRecipients( normalizePhoneNumbers( item.getRecipients() ) ) );
@@ -204,7 +212,8 @@ public class SmsMessageSender
             }
         }
 
-        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED, batch.size() );
+        return createMessageResponseSummary( NO_CONFIG, DeliveryChannel.SMS, OutboundMessageBatchStatus.ABORTED,
+            batch.size() );
     }
 
     @Override
@@ -249,7 +258,7 @@ public class SmsMessageSender
 
                 List<List<String>> slices = Lists.partition( temp, MAX_RECIPIENTS_ALLOWED );
 
-                for ( List<String> to: slices )
+                for ( List<String> to : slices )
                 {
                     log.info( "Sending SMS to " + to );
 
@@ -274,7 +283,8 @@ public class SmsMessageSender
     {
         List<OutboundMessage> messages;
 
-        messages = batch.getMessages().stream().flatMap( m -> sliceMessageRecipients( m ).stream() ).collect( Collectors.toList() );
+        messages = batch.getMessages().stream().flatMap( m -> sliceMessageRecipients( m ).stream() )
+            .collect( Collectors.toList() );
 
         batch.setMessages( messages );
     }
@@ -317,7 +327,8 @@ public class SmsMessageSender
         status.setResponseObject( gatewayResponse );
     }
 
-    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses, OutboundMessageBatch batch )
+    private OutboundMessageResponseSummary generateSummary( List<OutboundMessageResponse> statuses,
+        OutboundMessageBatch batch )
     {
         Set<GatewayResponse> okCodes = Sets.newHashSet( GatewayResponse.RESULT_CODE_0, GatewayResponse.RESULT_CODE_200,
             GatewayResponse.RESULT_CODE_202 );
@@ -374,10 +385,12 @@ public class SmsMessageSender
         return collection != null && !collection.isEmpty();
     }
 
-    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage, DeliveryChannel channel,
+    private OutboundMessageResponseSummary createMessageResponseSummary( String responseMessage,
+        DeliveryChannel channel,
         OutboundMessageBatchStatus batchStatus, int total )
     {
-        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel, batchStatus );
+        OutboundMessageResponseSummary summary = new OutboundMessageResponseSummary( responseMessage, channel,
+            batchStatus );
         summary.setTotal( total );
 
         log.warn( responseMessage );

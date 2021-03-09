@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,19 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
-import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.sms.config;
 
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
+import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.sms.outbound.BulkSmsRequestEntity;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -70,8 +69,8 @@ public class BulkSmsHttpGateway
     {
         BulkSmsGatewayConfig bulkSmsGatewayConfig = (BulkSmsGatewayConfig) config;
 
-        HttpEntity<BulkSmsRequestEntity> request =
-            new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ), getAuthenticationHeaderParameters( bulkSmsGatewayConfig ) );
+        HttpEntity<BulkSmsRequestEntity> request = new HttpEntity<>( new BulkSmsRequestEntity( text, recipients ),
+            getAuthenticationHeaderParameters( bulkSmsGatewayConfig ) );
 
         HttpStatus httpStatus = send( bulkSmsGatewayConfig.getUrlTemplate(), request, HttpMethod.POST, String.class );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,18 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
-import com.google.common.collect.Lists;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -73,13 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -167,8 +168,8 @@ public class DefaultTrackerPreheatService
             {
                 for ( List<String> ids : splitList )
                 {
-                    List<TrackedEntityInstance> trackedEntityInstances =
-                        trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
+                    List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
+                        preheat.getUser() );
                     preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
                 }
             }
@@ -248,10 +249,12 @@ public class DefaultTrackerPreheatService
             }
         }
 
-        // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        // since TrackedEntityTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
 
-        // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        // since RelationshipTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
@@ -279,7 +282,7 @@ public class DefaultTrackerPreheatService
     @Override
     public void validate( TrackerPreheatParams params )
     {
-        //TODO: Implement validation
+        // TODO: Implement validation
     }
 
     private Restriction generateRestrictionFromIdentifiers( TrackerIdScheme idScheme, List<String> ids )
@@ -325,7 +328,8 @@ public class DefaultTrackerPreheatService
 
     private User getImportingUser( User user )
     {
-        // ıf user already set, reload the user to make sure its loaded in the current tx
+        // ıf user already set, reload the user to make sure its loaded in the
+        // current tx
         if ( user != null )
         {
             return manager.get( User.class, user.getUid() );

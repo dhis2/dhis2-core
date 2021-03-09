@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.action;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mobile.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.action;
 
 import org.hisp.dhis.sms.outbound.OutboundSmsService;
 
@@ -42,32 +41,32 @@ public class DeleteSentSMSAction implements Action
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private OutboundSmsService outboundSmsService;
-    
+
     public void setOutboundSmsService( OutboundSmsService outboundSmsService )
     {
         this.outboundSmsService = outboundSmsService;
-    }    
-    
+    }
+
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
-    
+
     private Long[] ids;
 
     public void setIds( Long[] ids )
     {
         this.ids = ids;
     }
-    
+
     private Long id;
 
     public void setId( Long id )
     {
         this.id = id;
     }
-    
+
     @Override
     public String execute()
         throws Exception

@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Iterator;
 
 import org.hisp.dhis.expression.Expression;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.Iterator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -78,7 +77,7 @@ public class ValidationRuleDeletionHandler
             Expression rightSide = rule.getRightSide();
 
             if ( (leftSide != null && leftSide.equals( expression )) ||
-                 (rightSide != null && rightSide.equals( expression )) )
+                (rightSide != null && rightSide.equals( expression )) )
             {
                 iterator.remove();
                 validationRuleService.deleteValidationRule( rule );

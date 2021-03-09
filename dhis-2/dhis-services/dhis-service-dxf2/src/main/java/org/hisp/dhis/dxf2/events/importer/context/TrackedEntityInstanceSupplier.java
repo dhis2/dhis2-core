@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
@@ -99,7 +98,8 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         Map<String, Pair<TrackedEntityInstance, Boolean>> result = new HashMap<>();
 
         //
-        // Return a map containing a Pair where key is the Tei and value is the boolean, can the TEI be updated
+        // Return a map containing a Pair where key is the Tei and value is the
+        // boolean, can the TEI be updated
         // by current user
         //
         for ( String event : teiMap.keySet() )

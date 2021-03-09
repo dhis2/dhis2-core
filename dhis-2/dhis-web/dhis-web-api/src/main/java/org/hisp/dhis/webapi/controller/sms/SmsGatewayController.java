@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,22 @@ package org.hisp.dhis.webapi.controller.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.sms;
 
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
-import org.hisp.dhis.sms.config.ClickatellGatewayConfig;
 import org.hisp.dhis.sms.config.GatewayAdministrationService;
-import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.sms.config.SmsGatewayConfig;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.webapi.service.WebMessageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -50,9 +49,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import com.fasterxml.jackson.databind.MapperFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -85,7 +83,8 @@ public class SmsGatewayController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.GET, produces = { "application/json" } )
-    public void getGateways( HttpServletResponse response ) throws IOException
+    public void getGateways( HttpServletResponse response )
+        throws IOException
     {
         generateOutput( response, smsConfigurationManager.getSmsConfiguration() );
     }
@@ -93,7 +92,8 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/{uid}", method = RequestMethod.GET, produces = "application/json" )
     public void getGatewayConfiguration( @PathVariable String uid, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         SmsGatewayConfig gateway = gatewayAdminService.getByUid( uid );
 
@@ -129,7 +129,8 @@ public class SmsGatewayController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT )
     public void updateGateway( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
-            throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         SmsGatewayConfig config = gatewayAdminService.getByUid( uid );
 
@@ -145,17 +146,19 @@ public class SmsGatewayController
             throw new WebMessageException( WebMessageUtils.conflict( "Default gateway already exists" ) );
         }
 
-        gatewayAdminService.updateGateway( config, updatedConfig  );
+        gatewayAdminService.updateGateway( config, updatedConfig );
 
-        webMessageService.send( WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) ), response, request );
+        webMessageService.send( WebMessageUtils.ok( String.format( "Gateway with uid: %s has been updated", uid ) ),
+            response, request );
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.POST )
     public void addGateway( HttpServletRequest request, HttpServletResponse response )
-            throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
-        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(),  SmsGatewayConfig.class );
+        SmsGatewayConfig config = renderService.fromJson( request.getInputStream(), SmsGatewayConfig.class );
 
         if ( config == null )
         {
@@ -187,13 +190,14 @@ public class SmsGatewayController
         webMessageService.send( WebMessageUtils.ok( "Gateway removed successfully" ), response, request );
     }
 
-    private void generateOutput( HttpServletResponse response, Object value ) throws IOException
+    private void generateOutput( HttpServletResponse response, Object value )
+        throws IOException
     {
         response.setContentType( "application/json" );
 
         ObjectMapper jsonMapper = new ObjectMapper();
         jsonMapper.disable( MapperFeature.DEFAULT_VIEW_INCLUSION );
         jsonMapper.writerWithView( SmsConfigurationViews.Public.class )
-                .writeValue( response.getOutputStream(), value );
+            .writeValue( response.getOutputStream(), value );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.job;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -36,12 +38,10 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-import java.util.Map;
-
 /**
- * Class represents a thread which will be triggered as soon as tracker rule engine consumer consumes a message from
- * tracker rule engine queue. It loops through the list of rule effects and implement it if it has an associated
+ * Class represents a thread which will be triggered as soon as tracker rule
+ * engine consumer consumes a message from tracker rule engine queue. It loops
+ * through the list of rule effects and implement it if it has an associated
  * rule implementer class.
  *
  * @author Zubair Asghar

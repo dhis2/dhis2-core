@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.incoming;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,20 @@ package org.hisp.dhis.sms.incoming;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+package org.hisp.dhis.sms.incoming;
 
 import java.io.Serializable;
 import java.util.Date;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 @JacksonXmlRootElement( localName = "inboundsms" )
-public class IncomingSms extends BaseIdentifiableObject
+public class IncomingSms
+    extends BaseIdentifiableObject
     implements Serializable
 {
     private static final long serialVersionUID = 3954710607630454226L;

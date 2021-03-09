@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.vote;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.security.vote;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.vote;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -49,10 +50,9 @@ import org.springframework.security.web.FilterInvocation;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestMethod;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Allows certain type/uid combinations to be externally accessed (no login required).
+ * Allows certain type/uid combinations to be externally accessed (no login
+ * required).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -65,7 +65,8 @@ public class ExternalAccessVoter implements AccessDecisionVoter<FilterInvocation
 
     static
     {
-        // TODO charts/reportTables APIs are deprecated and will be removed, clean this up when they are
+        // TODO charts/reportTables APIs are deprecated and will be removed,
+        // clean this up when they are
         externalClasses.put( "charts", Visualization.class );
         externalClasses.put( "reportTables", Visualization.class );
         externalClasses.put( "maps", org.hisp.dhis.mapping.Map.class );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.pdfform;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.pdfform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.pdfform;
 
 import java.awt.*;
 import java.io.IOException;
@@ -61,6 +60,8 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Service;
 
 import com.lowagie.text.Chunk;
 import com.lowagie.text.Document;
@@ -80,14 +81,12 @@ import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
 import com.lowagie.text.pdf.RadioCheckField;
 import com.lowagie.text.pdf.TextField;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Service;
 
 /**
  * @author James Chang
  */
 @Service( "pdfDataEntryFormService" )
-@Scope("prototype")
+@Scope( "prototype" )
 public class DefaultPdfDataEntryFormService
     implements PdfDataEntryFormService
 {
@@ -100,9 +99,11 @@ public class DefaultPdfDataEntryFormService
     private static final int TEXTBOXWIDTH = 160;
 
     private static final int PERIODRANGE_PREVYEARS = 1;
+
     private static final int PERIODRANGE_FUTUREYEARS = 2;
 
     private static final int PERIODRANGE_PREVYEARS_YEARLY = 5;
+
     private static final int PERIODRANGE_FUTUREYEARS_YEARLY = 6;
 
     private static final Integer MAX_OPTIONS_DISPLAYED = 30;
@@ -189,7 +190,6 @@ public class DefaultPdfDataEntryFormService
 
         document.add( mainTable );
 
-
         document.add( Chunk.NEWLINE );
         document.add( Chunk.NEWLINE );
 
@@ -221,7 +221,8 @@ public class DefaultPdfDataEntryFormService
     }
 
     private void insertTable_DataSet( PdfPTable mainTable, PdfWriter writer, DataSet dataSet )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         Rectangle rectangle = new Rectangle( TEXTBOXWIDTH, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
 
@@ -229,7 +230,8 @@ public class DefaultPdfDataEntryFormService
         {
             for ( Section section : dataSet.getSections() )
             {
-                insertTable_DataSetSections( mainTable, writer, rectangle, section.getDataElements(), section.getDisplayName() );
+                insertTable_DataSetSections( mainTable, writer, rectangle, section.getDataElements(),
+                    section.getDisplayName() );
             }
         }
         else
@@ -240,7 +242,8 @@ public class DefaultPdfDataEntryFormService
 
     private void insertTable_DataSetSections( PdfPTable mainTable, PdfWriter writer, Rectangle rectangle,
         Collection<DataElement> dataElements, String sectionName )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         boolean hasBorder = true;
 
@@ -256,10 +259,9 @@ public class DefaultPdfDataEntryFormService
         // Create A Table To Add For Each Section
         PdfPTable table = new PdfPTable( 2 );
 
-        table.setWidths( new int[]{ 2, 1 } );
+        table.setWidths( new int[] { 2, 1 } );
         table.setWidthPercentage( 100.0f );
         table.setHorizontalAlignment( Element.ALIGN_LEFT );
-
 
         // For each DataElement and Category Combo of the dataElement, create
         // row.
@@ -275,8 +277,10 @@ public class DefaultPdfDataEntryFormService
                     categoryOptionComboDisplayName = categoryOptionCombo.getDisplayName();
                 }
 
-                addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), dataElement.getFormNameFallback() + " " +
-                    categoryOptionComboDisplayName, Element.ALIGN_RIGHT );
+                addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+                    dataElement.getFormNameFallback() + " " +
+                        categoryOptionComboDisplayName,
+                    Element.ALIGN_RIGHT );
 
                 String strFieldLabel = PdfDataEntryFormUtil.LABELCODE_DATAENTRYTEXTFIELD + dataElement.getUid() + "_"
                     + categoryOptionCombo.getUid();
@@ -291,21 +295,25 @@ public class DefaultPdfDataEntryFormService
                 else if ( ValueType.BOOLEAN == valueType )
                 {
                     // Create Yes - true, No - false, Select..
-                    String[] optionList = new String[]{ "[No Value]", "Yes", "No" };
-                    String[] valueList = new String[]{ "", "true", "false" };
+                    String[] optionList = new String[] { "[No Value]", "Yes", "No" };
+                    String[] valueList = new String[] { "", "true", "false" };
 
                     // addCell_WithRadioButton(table, writer, strFieldLabel);
-                    addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel, optionList, valueList );
+                    addCell_WithDropDownListField( table, rectangle, writer,
+                        PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel, optionList, valueList );
                 }
                 else if ( valueType.isNumeric() )
                 {
-                    Rectangle rectNum = new Rectangle( TEXTBOXWIDTH_NUMBERTYPE, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
+                    Rectangle rectNum = new Rectangle( TEXTBOXWIDTH_NUMBERTYPE,
+                        PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
 
-                    addCell_WithTextField( table, rectNum, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel, PdfFieldCell.TYPE_TEXT_NUMBER );
+                    addCell_WithTextField( table, rectNum, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+                        strFieldLabel, PdfFieldCell.TYPE_TEXT_NUMBER );
                 }
                 else
                 {
-                    addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel );
+                    addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+                        strFieldLabel );
                 }
             }
         }
@@ -354,7 +362,8 @@ public class DefaultPdfDataEntryFormService
     }
 
     private void insertTable_ProgramStage( PdfPTable mainTable, PdfWriter writer, ProgramStage programStage )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         Rectangle rectangle = new Rectangle( TEXTBOXWIDTH, PdfDataEntryFormUtil.CONTENT_HEIGHT_DEFAULT );
 
@@ -376,7 +385,8 @@ public class DefaultPdfDataEntryFormService
 
     private void insertTable_ProgramStageSections( PdfPTable mainTable, Rectangle rectangle, PdfWriter writer,
         Collection<DataElement> dataElements )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         boolean hasBorder = false;
 
@@ -420,7 +430,8 @@ public class DefaultPdfDataEntryFormService
         // Add Program Data Elements Columns
         for ( DataElement dataElement : dataElements )
         {
-            addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), dataElement.getFormNameFallback(), Element.ALIGN_CENTER );
+            addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), dataElement.getFormNameFallback(),
+                Element.ALIGN_CENTER );
         }
 
         addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), TEXT_BLANK, Element.ALIGN_CENTER );
@@ -433,7 +444,8 @@ public class DefaultPdfDataEntryFormService
             // Add Date Column
             String strFieldDateLabel = PdfDataEntryFormUtil.LABELCODE_DATADATETEXTFIELD + Integer.toString( rowNo );
 
-            addCell_WithTextField( table, rectangleDate, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldDateLabel );
+            addCell_WithTextField( table, rectangleDate, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+                strFieldDateLabel );
 
             // Add Program Data Elements Columns
             for ( DataElement dataElement : dataElements )
@@ -454,7 +466,8 @@ public class DefaultPdfDataEntryFormService
                     // options. and apply only once.
                     List<Option> options = optionService.getOptions( optionSet.getId(), query, MAX_OPTIONS_DISPLAYED );
 
-                    addCell_WithDropDownListField( table, rectangleDataElement, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel, options.toArray( new String[0] ),
+                    addCell_WithDropDownListField( table, rectangleDataElement, writer,
+                        PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel, options.toArray( new String[0] ),
                         options.toArray( new String[0] ) );
                 }
                 else
@@ -462,7 +475,8 @@ public class DefaultPdfDataEntryFormService
                     // NOTE: When Rendering for DataSet, DataElement's OptionSet
                     // does not get rendered.
                     // Only for events, it gets rendered as dropdown list.
-                    addCell_WithTextField( table, rectangleDataElement, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel );
+                    addCell_WithTextField( table, rectangleDataElement, writer,
+                        PdfDataEntryFormUtil.getPdfPCell( hasBorder ), strFieldLabel );
                 }
             }
 
@@ -498,7 +512,8 @@ public class DefaultPdfDataEntryFormService
     }
 
     private void insertTable_OrgAndPeriod( PdfPTable mainTable, PdfWriter writer, List<Period> periods )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         boolean hasBorder = false;
         float width = 220.0f;
@@ -509,19 +524,21 @@ public class DefaultPdfDataEntryFormService
         // Add Organization ID/Period textfield
         // Create A table to add for each group AT HERE
         PdfPTable table = new PdfPTable( 2 ); // Code 1
-        table.setWidths( new int[]{ 1, 3 } );
+        table.setWidths( new int[] { 1, 3 } );
         table.setHorizontalAlignment( Element.ALIGN_LEFT );
 
-
-        addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), "Organization unit identifier", Element.ALIGN_RIGHT );
-        addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), PdfDataEntryFormUtil.LABELCODE_ORGID,
+        addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), "Organization unit identifier",
+            Element.ALIGN_RIGHT );
+        addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+            PdfDataEntryFormUtil.LABELCODE_ORGID,
             PdfFieldCell.TYPE_TEXT_ORGUNIT );
 
         String[] periodsTitle = getPeriodTitles( periods, format );
         String[] periodsValue = getPeriodValues( periods );
 
         addCell_Text( table, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), "Period", Element.ALIGN_RIGHT );
-        addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), PdfDataEntryFormUtil.LABELCODE_PERIODID, periodsTitle, periodsValue );
+        addCell_WithDropDownListField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ),
+            PdfDataEntryFormUtil.LABELCODE_PERIODID, periodsTitle, periodsValue );
 
         // Add to the main table
         PdfPCell cell_withInnerTable = new PdfPCell( table );
@@ -535,7 +552,8 @@ public class DefaultPdfDataEntryFormService
 
     private void insertTable_HiddenValue( PdfPTable mainTable, Rectangle rectangle, PdfWriter writer, String fieldName,
         String value )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         boolean hasBorder = false;
 
@@ -543,7 +561,8 @@ public class DefaultPdfDataEntryFormService
         // Create A table to add for each group AT HERE
         PdfPTable table = new PdfPTable( 1 ); // Code 1
 
-        addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), fieldName, value );
+        addCell_WithTextField( table, rectangle, writer, PdfDataEntryFormUtil.getPdfPCell( hasBorder ), fieldName,
+            value );
 
         // Add to the main table
         PdfPCell cell_withInnerTable = new PdfPCell( table );
@@ -578,7 +597,7 @@ public class DefaultPdfDataEntryFormService
     }
 
     // Insert 'Save As' button to document.
-    //@SuppressWarnings( "unused" )
+    // @SuppressWarnings( "unused" )
     private void insertSaveAsButton( Document document, PdfWriter writer, String name, String dataSetName )
         throws DocumentException
     {
@@ -592,12 +611,14 @@ public class DefaultPdfDataEntryFormService
 
         tableButton.setHorizontalAlignment( Element.ALIGN_CENTER );
 
-        //FIXME
-        
-        String jsAction = "var newFileName = this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_PERIODID + "\").value + ' ' + "
+        // FIXME
+
+        String jsAction = "var newFileName = this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_PERIODID
+            + "\").value + ' ' + "
             + "  this.getField(\"" + PdfDataEntryFormUtil.LABELCODE_ORGID + "\").value + ' ' + "
             + "  \"" + dataSetName + ".pdf\";"
-            + "var returnVal = app.alert('This will save this PDF file as ' + newFileName + '.  Do you want to Continue?', 1, 2);"
+            +
+            "var returnVal = app.alert('This will save this PDF file as ' + newFileName + '.  Do you want to Continue?', 1, 2);"
             + "if(returnVal == 4) { "
             + "  var aMyPath = this.path.split(\"/\");"
             + "  aMyPath.pop();"
@@ -607,14 +628,16 @@ public class DefaultPdfDataEntryFormService
             + "  app.alert('File Saved.', 1);"
             + "} ";
 
-        addCell_WithPushButtonField( tableButton, writer, PdfDataEntryFormUtil.getPdfPCell( buttonHeight, PdfDataEntryFormUtil.CELL_COLUMN_TYPE_ENTRYFIELD, hasBorder ), name, jsAction );
+        addCell_WithPushButtonField( tableButton, writer, PdfDataEntryFormUtil.getPdfPCell( buttonHeight,
+            PdfDataEntryFormUtil.CELL_COLUMN_TYPE_ENTRYFIELD, hasBorder ), name, jsAction );
 
         document.add( tableButton );
     }
 
     private void addCell_Text( PdfPTable table, PdfPCell cell, String text, int horizontalAlignment )
     {
-        addCell_Text( table, cell, text, horizontalAlignment, pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_BODY ) );
+        addCell_Text( table, cell, text, horizontalAlignment,
+            pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_BODY ) );
     }
 
     private void addCell_Text( PdfPTable table, PdfPCell cell, String text, int horizontalAlignment, Font font )
@@ -626,29 +649,37 @@ public class DefaultPdfDataEntryFormService
         table.addCell( cell ); // TODO: change this with cellEvent?
     }
 
-    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell, String strfldName )
-        throws IOException, DocumentException
+    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell,
+        String strfldName )
+        throws IOException,
+        DocumentException
     {
         addCell_WithTextField( table, rect, writer, cell, strfldName, PdfFieldCell.TYPE_DEFAULT, "" );
     }
 
-    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell, String strfldName,
+    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell,
+        String strfldName,
         int fieldCellType )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         addCell_WithTextField( table, rect, writer, cell, strfldName, fieldCellType, "" );
     }
 
-    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell, String strfldName,
+    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell,
+        String strfldName,
         String value )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         addCell_WithTextField( table, rect, writer, cell, strfldName, PdfFieldCell.TYPE_DEFAULT, value );
     }
 
-    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell, String strfldName,
+    private void addCell_WithTextField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell,
+        String strfldName,
         int fieldCellType, String value )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         TextField nameField = new TextField( writer, rect, strfldName );
 
@@ -662,13 +693,17 @@ public class DefaultPdfDataEntryFormService
         nameField.setAlignment( Element.ALIGN_RIGHT );
         nameField.setFont( pdfFormFontSettings.getFont( PdfFormFontSettings.FONTTYPE_BODY ).getBaseFont() );
 
-        cell.setCellEvent( new PdfFieldCell( nameField.getTextField(), rect.getWidth(), rect.getHeight(), fieldCellType, writer ) );
+        cell.setCellEvent(
+            new PdfFieldCell( nameField.getTextField(), rect.getWidth(), rect.getHeight(), fieldCellType, writer ) );
 
         table.addCell( cell );
     }
 
-    private void addCell_WithDropDownListField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell, String strfldName, String[] optionList,
-        String[] valueList ) throws IOException, DocumentException
+    private void addCell_WithDropDownListField( PdfPTable table, Rectangle rect, PdfWriter writer, PdfPCell cell,
+        String strfldName, String[] optionList,
+        String[] valueList )
+        throws IOException,
+        DocumentException
     {
         TextField textList = new TextField( writer, rect, strfldName );
 
@@ -688,11 +723,13 @@ public class DefaultPdfDataEntryFormService
     }
 
     private void addCell_WithCheckBox( PdfPTable table, PdfWriter writer, PdfPCell cell, String strfldName )
-        throws IOException, DocumentException
+        throws IOException,
+        DocumentException
     {
         float sizeDefault = PdfDataEntryFormUtil.UNITSIZE_DEFAULT;
 
-        RadioCheckField checkbox = new RadioCheckField( writer, new Rectangle( sizeDefault, sizeDefault ), "Yes", "On" );
+        RadioCheckField checkbox = new RadioCheckField( writer, new Rectangle( sizeDefault, sizeDefault ), "Yes",
+            "On" );
 
         checkbox.setBorderWidth( 1 );
         checkbox.setBorderColor( Color.BLACK );
@@ -702,7 +739,8 @@ public class DefaultPdfDataEntryFormService
 
         setCheckboxAppearance( checkboxfield, writer.getDirectContent(), sizeDefault );
 
-        cell.setCellEvent( new PdfFieldCell( checkboxfield, sizeDefault, sizeDefault, PdfFieldCell.TYPE_CHECKBOX, writer ) );
+        cell.setCellEvent(
+            new PdfFieldCell( checkboxfield, sizeDefault, sizeDefault, PdfFieldCell.TYPE_CHECKBOX, writer ) );
 
         table.addCell( cell );
     }
@@ -713,15 +751,17 @@ public class DefaultPdfDataEntryFormService
         PdfFormField radiogroupField = PdfFormField.createRadioButton( writer, true );
         radiogroupField.setFieldName( strfldName );
 
-        cell.setCellEvent( new PdfFieldCell( radiogroupField, new String[]{ "Yes", "No", "null" }, new String[]{
-            "true", "false", "" }, "", 30.0f, PdfDataEntryFormUtil.UNITSIZE_DEFAULT, PdfFieldCell.TYPE_RADIOBUTTON, writer ) );
+        cell.setCellEvent( new PdfFieldCell( radiogroupField, new String[] { "Yes", "No", "null" }, new String[] {
+            "true", "false", "" }, "", 30.0f, PdfDataEntryFormUtil.UNITSIZE_DEFAULT, PdfFieldCell.TYPE_RADIOBUTTON,
+            writer ) );
 
         table.addCell( cell );
 
         writer.addAnnotation( radiogroupField );
     }
 
-    private void addCell_WithPushButtonField( PdfPTable table, PdfWriter writer, PdfPCell cell, String strfldName, String jsAction )
+    private void addCell_WithPushButtonField( PdfPTable table, PdfWriter writer, PdfPCell cell, String strfldName,
+        String jsAction )
     {
         cell.setCellEvent( new PdfFieldCell( null, jsAction, "BTN_SAVEPDF", "Save PDF", PdfFieldCell.TYPE_BUTTON,
             writer ) );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
@@ -51,7 +50,7 @@ public class TrackedEntityInstanceCheck implements Checker
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
-        if ( program.isRegistration() && !trackedEntityInstance.isPresent()  )
+        if ( program.isRegistration() && !trackedEntityInstance.isPresent() )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: "

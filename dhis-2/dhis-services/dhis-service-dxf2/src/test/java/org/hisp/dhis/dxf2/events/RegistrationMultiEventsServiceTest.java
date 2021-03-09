@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
 import static org.junit.Assert.*;
 
@@ -95,17 +94,27 @@ public class RegistrationMultiEventsServiceTest
     private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+
     private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
+
     private OrganisationUnit organisationUnitA;
+
     private OrganisationUnit organisationUnitB;
+
     private Program programA;
+
     private DataElement dataElementA;
+
     private DataElement dataElementB;
+
     private ProgramStage programStageA;
+
     private ProgramStage programStageB;
 
     @Override
@@ -194,7 +203,8 @@ public class RegistrationMultiEventsServiceTest
     @Test
     public void testSaveWithoutProgramStageShouldFail()
     {
-        Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance(),
+        Event event = createEvent( programA.getUid(), null, organisationUnitA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance(),
             dataElementA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
@@ -215,7 +225,8 @@ public class RegistrationMultiEventsServiceTest
     @Test
     public void testSaveRepeatableStageWithoutEventIdShouldCreateNewEvent()
     {
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -283,7 +294,8 @@ public class RegistrationMultiEventsServiceTest
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
 
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
@@ -331,7 +343,8 @@ public class RegistrationMultiEventsServiceTest
         params.setOrgUnit( organisationUnitA );
         params.setOrgUnitSelectionMode( OrganisationUnitSelectionMode.SELECTED );
 
-        Enrollment enrollment = createEnrollment( programA.getUid(), trackedEntityInstanceMaleA.getTrackedEntityInstance() );
+        Enrollment enrollment = createEnrollment( programA.getUid(),
+            trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         enrollment.setEnrollmentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
         enrollment.setIncidentDate( new DateTime( 2019, 1, 1, 0, 0, 0, 0 ).toDate() );
 
@@ -349,7 +362,7 @@ public class RegistrationMultiEventsServiceTest
 
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setCompletedDate( new DateTime( 2019, 8, 20, 0, 0, 0, 0 ).toDate() );
-        
+
         enrollmentService.updateEnrollment( enrollment, null );
         importSummary = enrollmentService.updateEnrollment( enrollment, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -367,7 +380,7 @@ public class RegistrationMultiEventsServiceTest
         assertEquals( 2, eventService.getEvents( params ).getEvents().size() );
 
         enrollmentService.incompleteEnrollment( enrollment.getEnrollment() );
-        
+
         enrollment = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         assertEquals( EnrollmentStatus.ACTIVE, enrollment.getStatus() );
 

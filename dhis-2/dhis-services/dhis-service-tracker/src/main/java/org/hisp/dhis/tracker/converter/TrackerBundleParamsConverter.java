@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,18 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.converter;
-
-import com.fasterxml.jackson.databind.util.StdConverter;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,10 +36,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.databind.util.StdConverter;
+import com.google.common.collect.Maps;
+
 /**
- * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity structure into a "flat" structure
+ * Converts a {@see TrackerBundleParams} containing a nested Tracked Entity
+ * structure into a "flat" structure
  * <p>
  * Assuming a structure like:
+ *
  * <pre>
  *
  * TrackerBundleParams
@@ -81,7 +83,8 @@ import java.util.stream.Collectors;
  *
  * </pre>
  * <p>
- * This converter also assigns UIDs to Tracked Entities, Enrollment and Events if the payload does not contain UIDs
+ * This converter also assigns UIDs to Tracked Entities, Enrollment and Events
+ * if the payload does not contain UIDs
  *
  * @author Luciano Fiandesio
  */
@@ -116,7 +119,8 @@ public class TrackerBundleParamsConverter
         for ( Enrollment enrollment : bundle.getTrackedEntities().stream()
             .flatMap( l -> l.getEnrollments().stream() ).collect( Collectors.toList() ) )
         {
-            // collect all events from enrollments and add them to the flattened events collection
+            // collect all events from enrollments and add them to the flattened
+            // events collection
             events.addAll( enrollment.getEvents().stream().map( e -> addParent( e, enrollment.getEnrollment() ) )
                 .collect( Collectors.toList() ) );
 

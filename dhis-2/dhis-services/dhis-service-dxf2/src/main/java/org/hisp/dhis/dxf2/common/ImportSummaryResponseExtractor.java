@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +25,29 @@ package org.hisp.dhis.dxf2.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.common;
+
+import java.io.IOException;
 
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
-import java.io.IOException;
-
 /**
  * Converts a response into an ImportSummary instance.
  *
  * @author Lars Helge Overland
  * @throws HttpServerErrorException if the response status code is different
- * from 200 OK or 201 Created.
+ *         from 200 OK or 201 Created.
  * @throws IOException if converting the response into an ImportSummary failed.
  */
 public class ImportSummaryResponseExtractor
     implements ResponseExtractor<ImportSummary>
 {
     @Override
-    public ImportSummary extractData( ClientHttpResponse response ) throws IOException
+    public ImportSummary extractData( ClientHttpResponse response )
+        throws IOException
     {
         return JacksonObjectMapperConfig.staticJsonMapper().readValue( response.getBody(), ImportSummary.class );
     }

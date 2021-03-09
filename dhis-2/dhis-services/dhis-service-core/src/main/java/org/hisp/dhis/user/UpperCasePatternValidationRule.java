@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,22 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.regex.Pattern;
 
 /**
  * Created by zubair on 08.03.17.
  */
 @Component( "org.hisp.dhis.user.UpperCasePatternValidationRule" )
-public class UpperCasePatternValidationRule implements PasswordValidationRule
+public class UpperCasePatternValidationRule
+    implements PasswordValidationRule
 {
     public static final String ERROR = "Password must have at least one upper case";
+
     public static final String I18_ERROR = "password_uppercase_validation";
 
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.feedback;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.feedback;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.feedback;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,9 +59,9 @@ public class TypeReport
         this.klass = klass;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     public void merge( TypeReport typeReport )
     {
@@ -90,9 +89,9 @@ public class TypeReport
         objectReportMap.get( objectReport.getIndex() ).merge( objectReport );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Getters and Setters
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -115,7 +114,7 @@ public class TypeReport
     {
         return new ArrayList<>( objectReportMap.values() );
     }
-    
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "objectReports", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "objectReport", namespace = DxfNamespaces.DXF_2_0 )

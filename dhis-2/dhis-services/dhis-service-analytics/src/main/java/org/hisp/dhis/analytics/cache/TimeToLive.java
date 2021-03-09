@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.analytics.cache;
 
 import static java.time.LocalDateTime.now;
@@ -65,10 +64,10 @@ public class TimeToLive
 
     /**
      * Execute the internal rules in order to calculate a TTL for the given
-     * parameters. The current rules are based on a configurable timeout "ttlFactor"
-     * (through SettingKey) which will be used in the calculation of this time to
-     * live. Basically:
-     *
+     * parameters. The current rules are based on a configurable timeout
+     * "ttlFactor" (through SettingKey) which will be used in the calculation of
+     * this time to live. Basically:
+     * <p>
      * Older the "dateBeforeToday", higher the "ttlFactor", longer the TTL. The
      * formula is basically: TTL = "ttlFactor" * (diff between now and the
      * "dateBeforeToday")
@@ -79,9 +78,9 @@ public class TimeToLive
     public long compute()
     {
         /*
-         * If the difference between the most recent date and NOW is 0 (zero) it means
-         * the current day, so set the days multiplier to 1 (one) avoiding multiplying
-         * by 0 (zero).
+         * If the difference between the most recent date and NOW is 0 (zero) it
+         * means the current day, so set the days multiplier to 1 (one) avoiding
+         * multiplying by 0 (zero).
          */
         final long daysDiff = daysBetweenDateBeforeTodayAndNow( dateBeforeToday.toInstant() );
         final long daysMultiplier = daysDiff > 0 ? daysDiff : DEFAULT_MULTIPLIER;
@@ -91,8 +90,8 @@ public class TimeToLive
 
     /**
      * Calculates the difference between now and the given date. It has a the
-     * particularity of returning ZERO (0) if the diff is negative (because it means
-     * that the input date is ahead of now).
+     * particularity of returning ZERO (0) if the diff is negative (because it
+     * means that the input date is ahead of now).
      *
      * @param dateBeforeToday the date to subtract from now
      * @return the difference of days

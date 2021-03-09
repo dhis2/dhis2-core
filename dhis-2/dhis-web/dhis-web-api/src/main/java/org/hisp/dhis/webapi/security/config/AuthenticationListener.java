@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.security.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,12 @@ package org.hisp.dhis.webapi.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.security.config;
+
+import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
@@ -45,8 +47,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationToken;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 /**
  * @author Henning Håkonsen
@@ -72,8 +72,7 @@ public class AuthenticationListener
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
@@ -106,8 +105,7 @@ public class AuthenticationListener
 
         if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
         }

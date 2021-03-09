@@ -1,6 +1,5 @@
-package org.hisp.dhis.dxf2.sync;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +25,14 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Date;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSetService;
@@ -51,8 +53,11 @@ import org.springframework.web.client.RestTemplate;
 public class DataValueSynchronization extends DataSynchronizationWithPaging
 {
     private final DataValueService dataValueService;
+
     private final DataValueSetService dataValueSetService;
+
     private final SystemSettingManager systemSettingManager;
+
     private final RestTemplate restTemplate;
 
     private Date lastUpdatedAfter;
@@ -96,7 +101,8 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
         if ( syncResult )
         {
             clock.logTime( "SUCCESS! DataValueSynchronization job is done. It took" );
-            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC, new Date( clock.getStartTime() ));
+            SyncUtils.setLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC,
+                new Date( clock.getStartTime() ) );
             return SynchronizationResult
                 .newSuccessResultWithMessage( "DataValueSynchronization done. It took " + clock.getTime() + " ms." );
         }
@@ -107,8 +113,10 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
     private void initializeSyncVariables( final int pageSize )
     {
         clock = new Clock( log ).startClock().logTime( "Starting DataValueSynchronization job" );
-        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager, SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
-        final Date skipChangedBefore = (Date) systemSettingManager.getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
+        final Date lastSuccessTime = SyncUtils.getLastSyncSuccess( systemSettingManager,
+            SettingKey.LAST_SUCCESSFUL_DATA_VALUE_SYNC );
+        final Date skipChangedBefore = (Date) systemSettingManager
+            .getSystemSetting( SettingKey.SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
         lastUpdatedAfter = lastSuccessTime.after( skipChangedBefore ) ? lastSuccessTime : skipChangedBefore;
 
         objectsToSynchronize = dataValueService.getDataValueCountLastUpdatedAfter( lastUpdatedAfter, true );
@@ -119,8 +127,9 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
         {
             instance = SyncUtils.getRemoteInstance( systemSettingManager, SyncEndpoint.DATA_VALUE_SETS );
 
-            // Using this approach as (int) Match.ceil doesn't work until I cast int to double
-            pages = ( objectsToSynchronize / pageSize ) + (( objectsToSynchronize % pageSize == 0 ) ? 0 : 1 );
+            // Using this approach as (int) Match.ceil doesn't work until I cast
+            // int to double
+            pages = (objectsToSynchronize / pageSize) + ((objectsToSynchronize % pageSize == 0) ? 0 : 1);
 
             log.info( objectsToSynchronize + " DataValues to synchronize were found." );
             log.info( "Remote server URL for DataValues POST sync: " + instance.getUrl() );
@@ -140,8 +149,7 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
 
     private boolean sendSyncRequest( int syncPageSize, int page )
     {
-        final RequestCallback requestCallback = request ->
-        {
+        final RequestCallback requestCallback = request -> {
             request.getHeaders().setContentType( MediaType.APPLICATION_JSON );
             request.getHeaders().add( SyncUtils.HEADER_AUTHORIZATION,
                 CodecUtils.getBasicAuthString( instance.getUsername(), instance.getPassword() ) );
@@ -150,6 +158,7 @@ public class DataValueSynchronization extends DataSynchronizationWithPaging
                 syncPageSize, page );
         };
 
-        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance, SyncEndpoint.DATA_VALUE_SETS );
+        return SyncUtils.sendSyncRequest( systemSettingManager, restTemplate, requestCallback, instance,
+            SyncEndpoint.DATA_VALUE_SETS );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
@@ -191,12 +190,13 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         assertThat( event.getEnrollment(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( programInstance.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getProgram().getUid(), is( programWithoutReg.getUid() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     @Test
     public void verifyEnrollmentIsNotSetWithProgramWithoutRegistrationAndMultipleProgramStageInstances()
-            throws SQLException
+        throws SQLException
     {
         // crete a Program "without registration"
         Program programWithoutReg = createProgram( 'W' );
@@ -223,7 +223,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         // simulate 2 records returned from query
         //
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(), programInstance2.getId() );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(),
+            programInstance2.getId() );
         when( mockResultSet.getString( "uid" ) ).thenReturn( programInstance1.getUid(), programInstance2.getUid() );
 
         // Mock jdbc call
@@ -235,7 +236,8 @@ public class ProgramInstancePreProcessorTest extends BasePreProcessTest
         subject.process( event, workContext );
 
         assertThat( event.getEnrollment(), is( nullValue() ) );
-        assertThat( sql.getValue(), is( "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
+        assertThat( sql.getValue(), is(
+            "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
     }
 
     public void mockResultSetExtractor( ResultSet resultSetMock )

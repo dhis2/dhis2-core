@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,7 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Maps;
-import org.hisp.dhis.calendar.impl.Iso8601Calendar;
-import org.hisp.dhis.period.BiWeeklyPeriodType;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.period.WeeklyAbstractPeriodType;
+package org.hisp.dhis.calendar;
 
 import java.io.Serializable;
 import java.time.DayOfWeek;
@@ -43,10 +36,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
+import org.hisp.dhis.period.BiWeeklyPeriodType;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.WeeklyAbstractPeriodType;
+
+import com.google.common.collect.Maps;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
+public class DateUnitPeriodTypeParser
+    implements PeriodTypeParser, Serializable
 {
     private final Map<String, Pattern> compileCache = Maps.newHashMap();
 
@@ -151,14 +152,16 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
             int year = Integer.parseInt( matcher.group( 1 ) );
             int week = Integer.parseInt( matcher.group( 2 ) ) * 2 - 1;
 
-            BiWeeklyPeriodType periodType = (BiWeeklyPeriodType) PeriodType.getByNameIgnoreCase( dateUnitType.getName() );
+            BiWeeklyPeriodType periodType = (BiWeeklyPeriodType) PeriodType
+                .getByNameIgnoreCase( dateUnitType.getName() );
 
             if ( periodType == null || week < 1 || week > calendar.weeksInYear( year ) )
             {
                 return null;
             }
 
-            DateTimeUnit start = getDateTimeFromWeek( year, week, calendar, DayOfWeek.MONDAY, new DateTimeUnit( year, 1, 1 ) );
+            DateTimeUnit start = getDateTimeFromWeek( year, week, calendar, DayOfWeek.MONDAY,
+                new DateTimeUnit( year, 1, 1 ) );
             DateTimeUnit end = calendar.plusWeeks( start, 2 );
             end = calendar.minusDays( end, 1 );
 
@@ -272,7 +275,8 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
                 return null;
             }
 
-            DateTimeUnit start = new DateTimeUnit( semester == 1 ? year - 1 : year, semester == 1 ? 11 : 5, 1, calendar.isIso8601() );
+            DateTimeUnit start = new DateTimeUnit( semester == 1 ? year - 1 : year, semester == 1 ? 11 : 5, 1,
+                calendar.isIso8601() );
             DateTimeUnit end = new DateTimeUnit( start );
             end = calendar.plusMonths( end, 6 );
             end = calendar.minusDays( end, 1 );
@@ -363,11 +367,12 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
      * @param week The week of the date
      * @param calendar The calendar used to calculate the daate
      * @param firstDayOfWeek The first day of the week
-     * @param adjustedDate The first day of the year adjusted to the first day of the week it belongs to
-     *
+     * @param adjustedDate The first day of the year adjusted to the first day
+     *        of the week it belongs to
      * @return The Date of the week
      */
-    private DateTimeUnit getDateTimeFromWeek( int year, int week, Calendar calendar, DayOfWeek firstDayOfWeek, DateTimeUnit adjustedDate )
+    private DateTimeUnit getDateTimeFromWeek( int year, int week, Calendar calendar, DayOfWeek firstDayOfWeek,
+        DateTimeUnit adjustedDate )
     {
         if ( calendar.isIso8601() )
         {
@@ -383,9 +388,11 @@ public class DateUnitPeriodTypeParser implements PeriodTypeParser, Serializable
         }
         else
         {
-            DateTimeUnit date = new DateTimeUnit( year, adjustedDate.getMonth(), adjustedDate.getDay(), calendar.isIso8601() );
+            DateTimeUnit date = new DateTimeUnit( year, adjustedDate.getMonth(), adjustedDate.getDay(),
+                calendar.isIso8601() );
 
-            // since we rewind to start of week, we might end up in the previous years weeks, so we check and forward if needed
+            // since we rewind to start of week, we might end up in the previous
+            // years weeks, so we check and forward if needed
             if ( calendar.isoWeek( date ) == calendar.weeksInYear( year ) )
             {
                 date = calendar.plusWeeks( date, 1 );

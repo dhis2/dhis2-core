@@ -1,7 +1,5 @@
-package org.hisp.dhis.webportal.module;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webportal.module;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.module;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -35,9 +34,10 @@ import java.util.List;
 /**
  * Comparator for sorting modules according to a specified order. Modules not
  * listed in the given order are sorted alphabetically after the specified ones.
- * 
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: ConfigurableModuleComparator.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: ConfigurableModuleComparator.java 2869 2007-02-20 14:26:09Z
+ *          andegje $
  */
 public class ConfigurableModuleComparator
     implements Comparator<Module>

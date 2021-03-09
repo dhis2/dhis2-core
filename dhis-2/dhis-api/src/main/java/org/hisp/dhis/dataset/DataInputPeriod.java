@@ -1,6 +1,5 @@
-package org.hisp.dhis.dataset;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +25,10 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -42,7 +37,13 @@ import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
 import org.hisp.dhis.period.Period;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold
@@ -86,10 +87,10 @@ public class DataInputPeriod implements EmbeddedObject
     }
 
     /**
-     * Returns true if the given date is after the openingDate and before the closing date
-     * If opening date is null, all dates before closing date is valid.
-     * If closing date is null, all dates after opening date is valid.
-     * If both opening and closing dates are null, all dates are valid
+     * Returns true if the given date is after the openingDate and before the
+     * closing date If opening date is null, all dates before closing date is
+     * valid. If closing date is null, all dates after opening date is valid. If
+     * both opening and closing dates are null, all dates are valid
      *
      * @param date to check
      * @return true if date is between openingDate and closingDate
@@ -101,8 +102,9 @@ public class DataInputPeriod implements EmbeddedObject
     }
 
     /**
-     * Checks whether a combination of Period and Date is valid for this DataInputPeriod.
-     * Returns true if period is equal to this period, and date is between opening and closing dates if set.
+     * Checks whether a combination of Period and Date is valid for this
+     * DataInputPeriod. Returns true if period is equal to this period, and date
+     * is between opening and closing dates if set.
      *
      * @param period
      * @param date

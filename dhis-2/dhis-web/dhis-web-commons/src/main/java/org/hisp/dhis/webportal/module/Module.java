@@ -1,7 +1,5 @@
-package org.hisp.dhis.webportal.module;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webportal.module;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.module;
 
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -42,13 +41,13 @@ public class Module
     private String namespace;
 
     private String defaultAction;
-    
+
     private String displayName;
-    
+
     // Apps only
-    
+
     private String icon;
-    
+
     private String description;
 
     // -------------------------------------------------------------------------
@@ -58,7 +57,7 @@ public class Module
     public Module()
     {
     }
-    
+
     public Module( String name )
     {
         this.name = name;
@@ -83,26 +82,26 @@ public class Module
     public static Module getModule( App app )
     {
         boolean hasIcon = app.getIcons() != null && app.getIcons().getIcon48() != null;
-        
+
         String defaultAction = app.getLaunchUrl();
 
         String icon = hasIcon ? app.getBaseUrl() + "/" + app.getIcons().getIcon48() : null;
 
         String description = TextUtils.subString( app.getDescription(), 0, 80 );
-        
+
         Module module = new Module( app.getShortName(), app.getShortName(), defaultAction );
         module.setIcon( icon );
         module.setDescription( description );
-        module.setDisplayName(app.getName());
-        
+        module.setDisplayName( app.getName() );
+
         return module;
     }
-    
+
     public String getIconFallback()
     {
         return icon != null ? icon : "../icons/" + name + ".png";
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -176,7 +175,7 @@ public class Module
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ( ( name == null ) ? 0 : name.hashCode() );
+        result = prime * result + ((name == null) ? 0 : name.hashCode());
         return result;
     }
 
@@ -187,25 +186,25 @@ public class Module
         {
             return true;
         }
-        
+
         if ( object == null )
         {
             return false;
         }
-        
+
         if ( !getClass().isAssignableFrom( object.getClass() ) )
         {
             return false;
         }
-        
+
         final Module other = (Module) object;
-        
+
         return name.equals( other.getName() );
     }
-    
+
     @Override
     public String toString()
     {
         return "[Name: " + name + ", namespace: " + namespace + ", default action: " + defaultAction + "]";
-    }    
+    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.program.notification;
 
 import java.util.List;
@@ -44,7 +43,8 @@ import org.springframework.stereotype.Repository;
  * Created by zubair@dhis2.org on 16.11.17.
  */
 @Repository( "org.hisp.dhis.program.notification.ProgramNotificationTemplateStore" )
-public class DefaultProgramNotificationTemplateStore extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
+public class DefaultProgramNotificationTemplateStore
+    extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore
 {
     public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

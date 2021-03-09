@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fieldfilter;
 
 import static java.beans.Introspector.decapitalize;
 
@@ -200,7 +199,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             final List<String> fieldList = CollectionUtils.isEmpty( params.getFields() )
                 ? Collections.singletonList( "*" )
                 : params.getFields();
-            // excludes must be preserved (e.g. when field collections like :owner are used,
+            // excludes must be preserved (e.g. when field collections like
+            // :owner are used,
             // which is not expanded by modify filter)
             fields = Stream
                 .concat( fieldParser.modifyFilter( fieldList, SHARING_FIELDS ).stream(), SHARING_FIELDS.stream() )
@@ -535,7 +535,8 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                         if ( property.hasPropertyTransformer() )
                         {
-                            // if it has a transformer, re-get the schema (the item klass has probably
+                            // if it has a transformer, re-get the schema (the
+                            // item klass has probably
                             // changed)
                             Schema sch = schemaService.getDynamicSchema( collectionObject.getClass() );
                             node = buildNode( fieldValue, sch.getKlass(), collectionObject, user, property.getName(),
@@ -565,7 +566,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 child.setName( fieldKey );
                 child.setProperty( property );
 
-                // TODO fix ugly hack, will be replaced by custom field serializer/deserializer
+                // TODO fix ugly hack, will be replaced by custom field
+                // serializer/deserializer
                 if ( child.isSimple() && (((SimpleNode) child).getValue()) instanceof PeriodType )
                 {
                     child = new SimpleNode( child.getName(), ((PeriodType) ((SimpleNode) child).getValue()).getName() );
@@ -585,7 +587,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             return;
         }
 
-        // we need two run this (at least) two times, since some of the presets might
+        // we need two run this (at least) two times, since some of the presets
+        // might
         // contain other presets
         updateFields( fieldMap, klass, true );
         updateFields( fieldMap, klass, false );
@@ -725,7 +728,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             return null;
         }
 
-        // performance optimization for ID only queries on base identifiable objects
+        // performance optimization for ID only queries on base identifiable
+        // objects
         if ( isBaseIdentifiableObjectIdOnly( object, fields ) )
         {
             return createBaseIdentifiableObjectIdNode( currentProperty, object );
@@ -794,9 +798,9 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     /**
-     * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's
-     * uid If fields parameter requires more than just Attribute's uid then we need
-     * to get full {@link Attribute} object ( from cache ) e.g.
+     * {@link AttributeValue} is saved as JSONB, and it contains only
+     * Attribute's uid If fields parameter requires more than just Attribute's
+     * uid then we need to get full {@link Attribute} object ( from cache ) e.g.
      * fields=id,name,attributeValues[value,attribute[id,name,description]]
      */
     private Object handleJsonbObjectProperties( Class<?> klass, Class<?> propertyClass, Object returnObject )

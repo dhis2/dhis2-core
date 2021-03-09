@@ -1,7 +1,5 @@
-package org.hisp.dhis.parser.expression;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.parser.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression;
 
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.*;
 
@@ -121,8 +120,8 @@ public class ParserUtils
         PeriodType.getPeriodFromIsoString( "20010101" ) );
 
     /**
-     * Assume that an item of the form #{...} has a syntax that could be used in a
-     * program indicator expression for #{programStageUid.dataElementUid}
+     * Assume that an item of the form #{...} has a syntax that could be used in
+     * a program indicator expression for #{programStageUid.dataElementUid}
      *
      * @param ctx the item context
      */
@@ -135,8 +134,8 @@ public class ParserUtils
     }
 
     /**
-     * Assume that an item of the form A{...} has a syntax that could be used in an
-     * expression for A{progamUid.attributeUid}
+     * Assume that an item of the form A{...} has a syntax that could be used in
+     * an expression for A{progamUid.attributeUid}
      *
      * @param ctx the item context
      */

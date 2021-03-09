@@ -1,7 +1,5 @@
-package org.hisp.dhis.expression;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.analytics.DataType;
+package org.hisp.dhis.expression;
 
 import static org.hisp.dhis.analytics.DataType.*;
+
+import org.hisp.dhis.analytics.DataType;
 
 /**
  * Type of expression that can be parsed by the Expression Service

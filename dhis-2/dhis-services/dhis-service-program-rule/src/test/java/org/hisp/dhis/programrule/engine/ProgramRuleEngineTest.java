@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -82,7 +81,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -97,6 +95,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
     private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat( "yyyy-MM-dd" );
 
     private Program programA;
+
     private Program programB;
 
     private Program programS;
@@ -294,7 +293,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
 
         assertNotNull( template );
-        assertEquals(  NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
+        assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE, template.getNotificationRecipient() );
         assertEquals( "message_template", template.getMessageTemplate() );
     }
@@ -322,7 +321,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
 
         assertNotNull( template );
-        assertEquals(  NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
+        assertEquals( NotificationTrigger.PROGRAM_RULE, template.getNotificationTrigger() );
         assertEquals( ProgramNotificationRecipient.USER_GROUP, template.getNotificationRecipient() );
         assertEquals( "message_template", template.getMessageTemplate() );
     }
@@ -362,7 +361,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
 
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
 
-        // duplicate enrollment/events will be ignored and validation will be failed.
+        // duplicate enrollment/events will be ignored and validation will be
+        // failed.
         assertFalse( ruleActionImplementers.validate( ruleEffects2.get( 0 ), programInstance ) );
     }
 
@@ -413,7 +413,8 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         ProgramTrackedEntityAttribute attribute = createProgramTrackedEntityAttribute( programS, attributeB );
         attribute.setUid( "ATTR-UID" );
 
-        ProgramTrackedEntityAttribute programAttributeEmail = createProgramTrackedEntityAttribute( programB, attributeEmail );
+        ProgramTrackedEntityAttribute programAttributeEmail = createProgramTrackedEntityAttribute( programB,
+            attributeEmail );
         attribute.setUid( "ATTR-UID2" );
 
         programTrackedEntityAttributeStore.save( attribute );
@@ -503,8 +504,9 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         TrackedEntityAttributeValue attributeValueS = new TrackedEntityAttributeValue( attributeB, entityInstanceS,
             "xmen" );
 
-        TrackedEntityAttributeValue attributeValueEmail = new TrackedEntityAttributeValue( attributeEmail, entityInstanceE,
-                "zubair@dhis2.org" );
+        TrackedEntityAttributeValue attributeValueEmail = new TrackedEntityAttributeValue( attributeEmail,
+            entityInstanceE,
+            "zubair@dhis2.org" );
 
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
 
@@ -535,7 +537,7 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programInstanceService.updateProgramInstance( programInstanceA );
 
         ProgramInstance programInstanceE = programInstanceService.enrollTrackedEntityInstance( entityInstanceE,
-                programB, enrollmentDate, incidentDate, organisationUnitA );
+            programB, enrollmentDate, incidentDate, organisationUnitA );
         programInstanceE.setUid( "UID-P2" );
         programInstanceService.updateProgramInstance( programInstanceE );
 
@@ -613,13 +615,11 @@ public class ProgramRuleEngineTest extends DhisSpringTest
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
 
-
         ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariable( 'E', programB );
         programRuleVariableEmail.setSourceType( ProgramRuleVariableSourceType.TEI_ATTRIBUTE );
         programRuleVariableEmail.setAttribute( attributeEmail );
         programRuleVariableEmail.setName( "attribute_email" );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableEmail );
-
 
         ProgramRuleVariable programRuleVariableA = createProgramRuleVariable( 'A', programA );
         programRuleVariableA.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );

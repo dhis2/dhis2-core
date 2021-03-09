@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -102,7 +101,8 @@ public class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramIns
         when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
             .thenReturn( programMap );
 
-        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(), Collections.singletonList( event ) );
+        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(),
+            Collections.singletonList( event ) );
 
         ProgramInstance programInstance = map.get( event.getUid() );
         assertThat( programInstance, is( notNullValue() ) );

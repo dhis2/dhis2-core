@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.*;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.category.CategoryOption;
@@ -49,8 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jim Grace
@@ -101,28 +100,28 @@ public class DefaultDataApprovalLevelService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalLevel getDataApprovalLevel( long id )
     {
         return dataApprovalLevelStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalLevel getDataApprovalLevel( String uid )
     {
         return dataApprovalLevelStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalLevel getDataApprovalLevelByName( String name )
     {
         return dataApprovalLevelStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalLevel getDataApprovalLevelByLevelNumber( int levelNumber )
     {
         List<DataApprovalLevel> dataApprovalLevels = getAllDataApprovalLevels();
@@ -138,7 +137,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalLevel getHighestDataApprovalLevel( OrganisationUnit orgUnit )
     {
         int orgUnitLevel = orgUnit.getLevel();
@@ -148,7 +147,7 @@ public class DefaultDataApprovalLevelService
         int levelAboveOrgUnitLevel = 0;
 
         List<DataApprovalLevel> userApprovalLevels = getUserDataApprovalLevels( currentUserService.getCurrentUser() );
-        
+
         for ( DataApprovalLevel level : userApprovalLevels )
         {
             log.debug( "Get highest data approval level: " + level.getName() );
@@ -159,7 +158,8 @@ public class DefaultDataApprovalLevelService
             }
             else if ( level.getOrgUnitLevel() > levelAboveOrgUnitLevel )
             {
-                levelAbove = level; // Must be first matching approval level for this org unit level.
+                levelAbove = level; // Must be first matching approval level for
+                // this org unit level.
 
                 levelAboveOrgUnitLevel = level.getOrgUnitLevel();
             }
@@ -169,12 +169,13 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit, CategoryOptionCombo attributeOptionCombo )
+    @Transactional( readOnly = true )
+    public DataApprovalLevel getLowestDataApprovalLevel( OrganisationUnit orgUnit,
+        CategoryOptionCombo attributeOptionCombo )
     {
         Set<CategoryOptionGroupSet> cogSets = null;
 
-        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultCategoryOptionCombo()  )
+        if ( attributeOptionCombo != null && attributeOptionCombo != categoryService.getDefaultCategoryOptionCombo() )
         {
             cogSets = new HashSet<>();
 
@@ -190,7 +191,7 @@ public class DefaultDataApprovalLevelService
         int orgUnitLevel = orgUnit.getLevel();
 
         List<DataApprovalLevel> approvalLevels = getDataApprovalLevelsByOrgUnitLevel( orgUnitLevel );
-        
+
         for ( DataApprovalLevel level : Lists.reverse( approvalLevels ) )
         {
             if ( level.getCategoryOptionGroupSet() == null )
@@ -210,7 +211,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalLevel> getAllDataApprovalLevels()
     {
         List<DataApprovalLevel> dataApprovalLevels = dataApprovalLevelStore.getAllDataApprovalLevels();
@@ -230,65 +231,66 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Map<Integer, DataApprovalLevel> getDataApprovalLevelMap()
     {
         List<DataApprovalLevel> levels = dataApprovalLevelStore.getAllDataApprovalLevels();
-        
-        return Maps.uniqueIndex( levels, DataApprovalLevel::getLevel);
+
+        return Maps.uniqueIndex( levels, DataApprovalLevel::getLevel );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalLevel> getUserDataApprovalLevels( User user )
     {
         return subsetUserDataApprovalLevels( getAllDataApprovalLevels(), user, false );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalLevel> getUserDataApprovalLevels( User user, DataApprovalWorkflow workflow )
     {
         return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user, false );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalLevel> getUserDataApprovalLevelsOrLowestLevel( User user, DataApprovalWorkflow workflow )
     {
         return subsetUserDataApprovalLevels( workflow.getSortedLevels(), user, true );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalLevel> getDataApprovalLevelsByOrgUnitLevel( int orgUnitLevel )
     {
         return dataApprovalLevelStore.getDataApprovalLevelsByOrgUnitLevel( orgUnitLevel );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<OrganisationUnitLevel> getOrganisationUnitApprovalLevels()
     {
         Set<OrganisationUnitLevel> orgUnitLevels = new HashSet<>();
-        
+
         List<DataApprovalLevel> dataApprovalLevels = dataApprovalLevelStore.getAllDataApprovalLevels();
-        
+
         for ( DataApprovalLevel level : dataApprovalLevels )
         {
-            OrganisationUnitLevel orgUnitLevel = organisationUnitService.getOrganisationUnitLevelByLevel( level.getOrgUnitLevel() );
-            
+            OrganisationUnitLevel orgUnitLevel = organisationUnitService
+                .getOrganisationUnitLevelByLevel( level.getOrgUnitLevel() );
+
             if ( orgUnitLevel != null )
             {
                 orgUnitLevels.add( orgUnitLevel );
             }
         }
-        
+
         return orgUnitLevels;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean canDataApprovalLevelMoveDown( int level )
     {
         List<DataApprovalLevel> dataApprovalLevels = getAllDataApprovalLevels();
@@ -308,7 +310,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean canDataApprovalLevelMoveUp( int level )
     {
         List<DataApprovalLevel> dataApprovalLevels = getAllDataApprovalLevels();
@@ -348,7 +350,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean dataApprovalLevelExists( DataApprovalLevel level )
     {
         List<DataApprovalLevel> dataApprovalLevels = getAllDataApprovalLevels();
@@ -387,10 +389,10 @@ public class DefaultDataApprovalLevelService
         }
 
         level.setLevel( index + 1 );
-        
+
         return true;
     }
-    
+
     @Override
     @Transactional
     public long addDataApprovalLevel( DataApprovalLevel level )
@@ -410,12 +412,12 @@ public class DefaultDataApprovalLevelService
     public long addDataApprovalLevel( DataApprovalLevel approvalLevel, int level )
     {
         approvalLevel.setLevel( level );
-        
+
         dataApprovalLevelStore.save( approvalLevel );
 
         return approvalLevel.getId();
     }
-    
+
     @Override
     @Transactional
     public void deleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
@@ -441,8 +443,9 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DataApprovalLevel getUserApprovalLevel( User user, OrganisationUnit orgUnit, List<DataApprovalLevel> approvalLevels )
+    @Transactional( readOnly = true )
+    public DataApprovalLevel getUserApprovalLevel( User user, OrganisationUnit orgUnit,
+        List<DataApprovalLevel> approvalLevels )
     {
         if ( user == null || orgUnit == null )
         {
@@ -450,7 +453,7 @@ public class DefaultDataApprovalLevelService
         }
 
         OrganisationUnit organisationUnit = null;
-        
+
         for ( OrganisationUnit unit : user.getOrganisationUnits() )
         {
             if ( orgUnit.isDescendant( unit ) )
@@ -464,7 +467,7 @@ public class DefaultDataApprovalLevelService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Map<OrganisationUnit, Integer> getUserReadApprovalLevels()
     {
         Map<OrganisationUnit, Integer> map = new HashMap<>();
@@ -472,7 +475,7 @@ public class DefaultDataApprovalLevelService
         User user = currentUserService.getCurrentUser();
 
         List<DataApprovalLevel> approvalLevels = getAllDataApprovalLevels();
-        
+
         // ---------------------------------------------------------------------
         // Add user organisation units if authorized to approve at lower levels
         // ---------------------------------------------------------------------
@@ -489,7 +492,7 @@ public class DefaultDataApprovalLevelService
             for ( OrganisationUnit orgUnit : user.getOrganisationUnits() )
             {
                 int level = requiredApprovalLevel( orgUnit, user, approvalLevels );
-                
+
                 map.put( orgUnit, level );
             }
         }
@@ -510,20 +513,20 @@ public class DefaultDataApprovalLevelService
             if ( !map.containsKey( orgUnit ) )
             {
                 int level = requiredApprovalLevel( orgUnit, user, approvalLevels );
-                
+
                 map.put( orgUnit, level );
             }
         }
 
         return map;
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Map<OrganisationUnit, Integer> getUserReadApprovalLevels( DataApprovalLevel approvalLevel )
     {
         Map<OrganisationUnit, Integer> map = new HashMap<>();
-        
+
         User user = currentUserService.getCurrentUser();
 
         Collection<OrganisationUnit> orgUnits = user.getDataViewOrganisationUnits();
@@ -546,8 +549,8 @@ public class DefaultDataApprovalLevelService
     // -------------------------------------------------------------------------
 
     /**
-     * Finds the lowest number (highest level) organisaiton unit level
-     * from the organisations assigned to the current user.
+     * Finds the lowest number (highest level) organisaiton unit level from the
+     * organisations assigned to the current user.
      */
     private int getCurrentUsersLowestNumberOrgUnitLevel()
     {
@@ -577,7 +580,7 @@ public class DefaultDataApprovalLevelService
         int index = level - 1;
 
         DataApprovalLevel d2 = dataApprovalLevels.get( index );
-        DataApprovalLevel d1  = dataApprovalLevels.get( index + 1 );
+        DataApprovalLevel d1 = dataApprovalLevels.get( index + 1 );
 
         dataApprovalLevels.set( index, d1 );
         dataApprovalLevels.set( index + 1, d2 );
@@ -587,9 +590,9 @@ public class DefaultDataApprovalLevelService
     }
 
     /**
-     * Updates a data approval level object by setting the level to
-     * correspond with the list index, setting the updated date to now,
-     * and updating the object on disk.
+     * Updates a data approval level object by setting the level to correspond
+     * with the list index, setting the updated date to now, and updating the
+     * object on disk.
      *
      * @param dataApprovalLevel data approval level to update
      * @param index index of the object (used to set the level.)
@@ -607,8 +610,8 @@ public class DefaultDataApprovalLevelService
      *
      * @param dataApprovalLevels list of all levels.
      * @param newLevel new level to find the insertion point for.
-     * @return index where the new approval level should be inserted,
-     * or -1 if the new level is a duplicate.
+     * @return index where the new approval level should be inserted, or -1 if
+     *         the new level is a duplicate.
      */
     private int getInsertIndex( List<DataApprovalLevel> dataApprovalLevels, DataApprovalLevel newLevel )
     {
@@ -640,14 +643,14 @@ public class DefaultDataApprovalLevelService
 
             i--;
         }
-        
+
         return i + 1;
     }
 
     /**
-     * Get the approval level for an organisation unit that is required
-     * in order for the user to see the data, assuming user is limited to seeing
-     * approved data only from lower approval levels.
+     * Get the approval level for an organisation unit that is required in order
+     * for the user to see the data, assuming user is limited to seeing approved
+     * data only from lower approval levels.
      *
      * @param orgUnit organisation unit to test.
      * @param user the user.
@@ -659,10 +662,9 @@ public class DefaultDataApprovalLevelService
         DataApprovalLevel userLevel = getUserApprovalLevel( orgUnit, user, approvalLevels );
 
         int totalLevels = approvalLevels.size();
-        
-        return userLevel == null ? 0 : 
-            userLevel.getLevel() == totalLevels ? APPROVAL_LEVEL_UNAPPROVED :
-            userLevel.getLevel() + 1;
+
+        return userLevel == null ? 0
+            : userLevel.getLevel() == totalLevels ? APPROVAL_LEVEL_UNAPPROVED : userLevel.getLevel() + 1;
     }
 
     /**
@@ -671,15 +673,15 @@ public class DefaultDataApprovalLevelService
      * checked elsewhere, it is not checked here.) If the organisation unit is
      * above all approval levels, returns null (no approval levels apply.)
      * <p>
-     * If users are restricted to viewing approved data only, users may
-     * see data from lower levels *only* if it is approved *below* this approval
-     * level (higher number approval level). Or, if this method returns the
-     * lowest (highest number) approval level, users may see unapproved data.
+     * If users are restricted to viewing approved data only, users may see data
+     * from lower levels *only* if it is approved *below* this approval level
+     * (higher number approval level). Or, if this method returns the lowest
+     * (highest number) approval level, users may see unapproved data.
      * <p>
      * If users have approve/unapprove authority (checked elsewhere, not here),
-     * the returned level is the level at which users may approve/unapprove.
-     * If users have authority to approve at lower levels, they may approve
-     * at levels below the returned level.
+     * the returned level is the level at which users may approve/unapprove. If
+     * users have authority to approve at lower levels, they may approve at
+     * levels below the returned level.
      * <p>
      * If users have accept/unaccept authority (checked elsewhere, not here),
      * users may accept/unaccept at the level just *below* this level.
@@ -689,7 +691,8 @@ public class DefaultDataApprovalLevelService
      * @param approvalLevels app data approval levels.
      * @return approval level for user.
      */
-    private DataApprovalLevel getUserApprovalLevel( OrganisationUnit orgUnit, User user, List<DataApprovalLevel> approvalLevels )
+    private DataApprovalLevel getUserApprovalLevel( OrganisationUnit orgUnit, User user,
+        List<DataApprovalLevel> approvalLevels )
     {
         int userOrgUnitLevel = orgUnit.getLevel();
 
@@ -713,11 +716,11 @@ public class DefaultDataApprovalLevelService
      * Can the user read from this CategoryOptionGroupSet (COGS)?
      * <p>
      * If the COGS is null, then the user must have no dimension constraints.
-     * (In other words, the user must be able to read across all category
-     * option groups.)
+     * (In other words, the user must be able to read across all category option
+     * groups.)
      * <p>
-     * If the COGS is not null, then the user must be able to read at least
-     * one category option group from the category option group set.
+     * If the COGS is not null, then the user must be able to read at least one
+     * category option group from the category option group set.
      *
      * @param cogs The category option group set to test
      * @return true if user can read at least one category option group.
@@ -743,13 +746,15 @@ public class DefaultDataApprovalLevelService
      * @param lowestLevel return lowest level if nothing else.
      * @return the subset of approval levels to which the user has access.
      */
-    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user, boolean lowestLevel )
+    private List<DataApprovalLevel> subsetUserDataApprovalLevels( List<DataApprovalLevel> approvalLevels, User user,
+        boolean lowestLevel )
     {
         UserCredentials userCredentials = user.getUserCredentials();
 
         int lowestNumberOrgUnitLevel = getCurrentUsersLowestNumberOrgUnitLevel();
 
-        boolean canSeeAllDimensions = CollectionUtils.isEmpty( categoryService.getCoDimensionConstraints( userCredentials ) )
+        boolean canSeeAllDimensions = CollectionUtils
+            .isEmpty( categoryService.getCoDimensionConstraints( userCredentials ) )
             && CollectionUtils.isEmpty( categoryService.getCogDimensionConstraints( userCredentials ) );
 
         List<DataApprovalLevel> userDataApprovalLevels = new ArrayList<>();
@@ -763,8 +768,9 @@ public class DefaultDataApprovalLevelService
                 CategoryOptionGroupSet cogs = approvalLevel.getCategoryOptionGroupSet();
 
                 addLevel = aclService.canRead( user, approvalLevel ) &&
-                    cogs == null ? canSeeAllDimensions :
-                    ( aclService.canRead( user, cogs ) && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ) );
+                    cogs == null ? canSeeAllDimensions
+                        : (aclService.canRead( user, cogs )
+                            && !CollectionUtils.isEmpty( categoryService.getCategoryOptionGroups( cogs ) ));
             }
 
             if ( addLevel )

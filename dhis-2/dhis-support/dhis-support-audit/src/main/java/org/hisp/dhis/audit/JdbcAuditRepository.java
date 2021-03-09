@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,7 @@ package org.hisp.dhis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.commons.util.SqlHelper;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
-import org.springframework.stereotype.Repository;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.audit;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -52,14 +40,29 @@ import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
+import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.commons.util.SqlHelper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Repository
-public class JdbcAuditRepository implements AuditRepository
+public class JdbcAuditRepository
+    implements AuditRepository
 {
     private final JdbcTemplate jdbcTemplate;
+
     private final SimpleJdbcInsert auditInsert;
+
     private ObjectMapper jsonMapper;
 
     public JdbcAuditRepository(
@@ -254,7 +257,7 @@ public class JdbcAuditRepository implements AuditRepository
     {
         if ( StringUtils.isEmpty( data ) )
         {
-            return new byte[]{};
+            return new byte[] {};
         }
 
         byte[] result = data.getBytes( StandardCharsets.UTF_8 );

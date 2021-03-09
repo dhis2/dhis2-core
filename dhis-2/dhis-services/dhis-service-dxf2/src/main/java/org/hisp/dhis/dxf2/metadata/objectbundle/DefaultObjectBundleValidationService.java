@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.timer.SystemTimer;
@@ -43,8 +44,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -56,6 +55,7 @@ public class DefaultObjectBundleValidationService
     ObjectBundleValidationService
 {
     private final ValidationFactory validationFactory;
+
     private final SchemaService schemaService;
 
     public DefaultObjectBundleValidationService( ValidationFactory validationFactory, SchemaService schemaService )
@@ -71,7 +71,7 @@ public class DefaultObjectBundleValidationService
 
         ObjectBundleValidationReport validation = new ObjectBundleValidationReport();
 
-        if ( ( bundle.getUser() == null || bundle.getUser().isSuper() ) && bundle.isSkipValidation() )
+        if ( (bundle.getUser() == null || bundle.getUser().isSuper()) && bundle.isSkipValidation() )
         {
             log.warn( "Skipping validation for metadata import by user '" +
                 bundle.getUsername() + "'. Not recommended." );

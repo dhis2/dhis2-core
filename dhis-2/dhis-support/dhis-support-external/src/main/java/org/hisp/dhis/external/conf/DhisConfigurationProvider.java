@@ -1,7 +1,5 @@
-package org.hisp.dhis.external.conf;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.conf;
 
 import java.io.Serializable;
 import java.util.Map;
@@ -98,7 +97,8 @@ public interface DhisConfigurationProvider
     boolean isDisabled( ConfigurationKey key );
 
     /**
-     * Returns a GoogleCredential, if a Google service account has been configured.
+     * Returns a GoogleCredential, if a Google service account has been
+     * configured.
      *
      * @return a GoogleCredential
      */
@@ -109,7 +109,8 @@ public interface DhisConfigurationProvider
      * has been configured, or if no refresh token could be retrieved.
      *
      * @return a GoogleAccessToken.
-     * @throws IllegalStateException if an error occurred while retrieving a token.
+     * @throws IllegalStateException if an error occurred while retrieving a
+     *         token.
      */
     Optional<GoogleAccessToken> getGoogleAccessToken();
 
@@ -150,6 +151,7 @@ public interface DhisConfigurationProvider
 
     /**
      * Gets map of all properties except those which are confidential
+     *
      * @return map containing name of property and its value.
      */
     Map<String, Serializable> getConfigurationsAsMap();

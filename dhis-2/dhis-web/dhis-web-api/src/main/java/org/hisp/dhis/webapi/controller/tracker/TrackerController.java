@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,22 @@ package org.hisp.dhis.webapi.controller.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker;
 
-import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
 import org.hisp.dhis.tracker.job.TrackerMessageManager;
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,13 +51,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,8 +90,8 @@ public class TrackerController
     public void postJsonTracker()
     {
         /**
-         * Returns NOT_IMPLEMENTED for 2.35, as the importer itself is not in a complete state, and should not be
-         * used.
+         * Returns NOT_IMPLEMENTED for 2.35, as the importer itself is not in a
+         * complete state, and should not be used.
          */
         throw new HttpClientErrorException( HttpStatus.NOT_IMPLEMENTED );
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
+package org.hisp.dhis.category;
 
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
@@ -46,10 +45,12 @@ public interface CategoryOptionComboStore
     void deleteNoRollBack( CategoryOptionCombo categoryOptionCombo );
 
     /**
-     * Fetch all {@link CategoryOptionCombo} from a given {@link CategoryOptionGroup} uid.
-     *
-     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}. Therefore, this method finds all
-     * {@link CategoryOptionCombo} for all the members of the given {@link CategoryOptionGroup}
+     * Fetch all {@link CategoryOptionCombo} from a given
+     * {@link CategoryOptionGroup} uid.
+     * <p>
+     * A {@link CategoryOptionGroup} is a collection of {@link CategoryOption}.
+     * Therefore, this method finds all {@link CategoryOptionCombo} for all the
+     * members of the given {@link CategoryOptionGroup}
      *
      * @param groupId a {@link CategoryOptionGroup} uid
      * @return a List of {@link CategoryOptionCombo} or empty List

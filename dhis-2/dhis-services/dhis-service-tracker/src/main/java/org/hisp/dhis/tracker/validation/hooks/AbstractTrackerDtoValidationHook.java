@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,20 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-import com.vividsolutions.jts.geom.Geometry;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.FeatureType;
@@ -42,24 +50,15 @@ import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.core.Ordered;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.vividsolutions.jts.geom.Geometry;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -85,8 +84,8 @@ public abstract class AbstractTrackerDtoValidationHook
     private final TrackerImportStrategy strategy;
 
     /**
-     * Indicates that if an object fails a validation it will be removed
-     * from the input list and unavailable for more validations.
+     * Indicates that if an object fails a validation it will be removed from
+     * the input list and unavailable for more validations.
      */
     private final boolean removeOnError;
 
@@ -124,7 +123,7 @@ public abstract class AbstractTrackerDtoValidationHook
      * Must be implemented if dtoTypeClass == Event or dtoTypeClass == null
      *
      * @param reporter ValidationErrorReporter instance
-     * @param event    entity to validate
+     * @param event entity to validate
      */
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -134,7 +133,7 @@ public abstract class AbstractTrackerDtoValidationHook
     /**
      * Must be implemented if dtoTypeClass == Enrollment or dtoTypeClass == null
      *
-     * @param reporter   ValidationErrorReporter instance
+     * @param reporter ValidationErrorReporter instance
      * @param enrollment entity to validate
      */
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
@@ -143,7 +142,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Must be implemented if dtoTypeClass == Relationship or dtoTypeClass == null
+     * Must be implemented if dtoTypeClass == Relationship or dtoTypeClass ==
+     * null
      *
      * @param reporter ValidationErrorReporter instance
      * @param relationship entity to validate
@@ -154,10 +154,11 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Must be implemented if dtoTypeClass == TrackedEntity or dtoTypeClass == null
+     * Must be implemented if dtoTypeClass == TrackedEntity or dtoTypeClass ==
+     * null
      *
      * @param reporter ValidationErrorReporter instance
-     * @param tei      entity to validate
+     * @param tei entity to validate
      */
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
     {
@@ -165,7 +166,8 @@ public abstract class AbstractTrackerDtoValidationHook
     }
 
     /**
-     * Delegating validate method, this delegates validation to the different implementing hooks.
+     * Delegating validate method, this delegates validation to the different
+     * implementing hooks.
      *
      * @param context validation context
      * @return list of error reports
@@ -182,7 +184,8 @@ public abstract class AbstractTrackerDtoValidationHook
         if ( this.strategy != null )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
-            // If there is a strategy set and it is not delete and the importing strategy is delete,
+            // If there is a strategy set and it is not delete and the importing
+            // strategy is delete,
             // just return as there is nothing to validate.
             if ( importStrategy.isDelete() && !this.strategy.isDelete() )
             {
@@ -201,20 +204,22 @@ public abstract class AbstractTrackerDtoValidationHook
                 validateEnrollment( r, (Enrollment) o ), bundle.getEnrollments() ),
             Event.class, Pair.of( ( o, r ) ->
                 validateEvent( r, (Event) o ), bundle.getEvents() ),
-            Relationship.class, Pair.of( ( o, r ) -> 
+            Relationship.class, Pair.of( ( o, r ) ->
                 validateRelationship( r, (Relationship) o ), bundle.getRelationships() ) );
         // @formatter:on
 
-        // If no dtoTypeClass is set, we will validate all types of entities in bundle
+        // If no dtoTypeClass is set, we will validate all types of entities in
+        // bundle
         // i.e. that impl. hook is meant for all types.
         if ( dtoTypeClass == null )
         {
-            allValidations.forEach( ( dtoClass, validationMethod ) ->
-            reporter.addDtosWithErrors( validateTrackerDTOs( reporter, validationMethod ) ) );
+            allValidations.forEach( ( dtoClass, validationMethod ) -> reporter
+                .addDtosWithErrors( validateTrackerDTOs( reporter, validationMethod ) ) );
         }
         else
         {
-            // If not dtoTypeClass == null, this hook class is run for one specific dto class only
+            // If not dtoTypeClass == null, this hook class is run for one
+            // specific dto class only
             reporter.addDtosWithErrors( validateTrackerDTOs( reporter, allValidations.get( dtoTypeClass ) ) );
         }
 
@@ -232,14 +237,16 @@ public abstract class AbstractTrackerDtoValidationHook
         {
             TrackerDto dto = iterator.next();
 
-            // Fork the report in order to be thread-safe so we can support multi-threaded validation in future.
+            // Fork the report in order to be thread-safe so we can support
+            // multi-threaded validation in future.
             // Iterator needs to be changed to split variant also...
             ValidationErrorReporter reportFork = reporter.fork( dto );
 
             pair.getLeft().validateTrackerDto( dto, reportFork );
 
             // Remove entity that failed validation from the list, i.e. it
-            // will not be validated on next hook since it has already failed and can't be used for next "level" of hooks.
+            // will not be validated on next hook since it has already failed
+            // and can't be used for next "level" of hooks.
             // This feature is used in the prehooks.
             if ( this.removeOnError && reportFork.hasErrors() )
             {
@@ -261,8 +268,10 @@ public abstract class AbstractTrackerDtoValidationHook
 
         String error;
 
-        // We need to do try/catch here since validateValueType() since validateValueType can cast IllegalArgumentException e.g.
-        // on at org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
+        // We need to do try/catch here since validateValueType() since
+        // validateValueType can cast IllegalArgumentException e.g.
+        // on at
+        // org.joda.time.format.DateTimeFormatter.parseDateTime(DateTimeFormatter.java:945)
         try
         {
             error = teAttrService.validateValueType( teAttr, attr.getValue() );

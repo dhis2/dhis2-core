@@ -1,6 +1,5 @@
-package org.hisp.dhis.cache;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +25,15 @@ package org.hisp.dhis.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.cache;
+
+import java.util.Map;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * Provides cache builder to build instances.
@@ -55,9 +55,9 @@ public class DefaultCacheProvider implements CacheProvider
     }
 
     @Override
-    public  <K,V> ExtendedCacheBuilder<Map<K,V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
+    public <K, V> ExtendedCacheBuilder<Map<K, V>> newCacheBuilder( Class<K> keyType, Class<V> valueType )
     {
-        return new ExtendedCacheBuilder<Map<K,V>>( redisTemplate, configurationProvider );
+        return new ExtendedCacheBuilder<Map<K, V>>( redisTemplate, configurationProvider );
     }
 
     @Autowired

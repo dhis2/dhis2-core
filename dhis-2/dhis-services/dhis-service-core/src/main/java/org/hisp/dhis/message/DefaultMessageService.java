@@ -1,7 +1,5 @@
-package org.hisp.dhis.message;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.LN;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -52,19 +53,20 @@ import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-@Service( "org.hisp.dhis.message.MessageService")
+@Service( "org.hisp.dhis.message.MessageService" )
 public class DefaultMessageService
     implements MessageService
 {
     private static final String COMPLETE_SUBJECT = "Form registered as complete";
+
     private static final String COMPLETE_TEMPLATE = "completeness_message";
+
     private static final String MESSAGE_EMAIL_FOOTER_TEMPLATE = "message_email_footer";
+
     private static final String MESSAGE_PATH = "/dhis-web-messaging/readMessage.action";
 
     // -------------------------------------------------------------------------
@@ -135,7 +137,8 @@ public class DefaultMessageService
 
     @Override
     @Transactional
-    public long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData, Set<FileResource> attachments )
+    public long sendPrivateMessage( Set<User> recipients, String subject, String text, String metaData,
+        Set<FileResource> attachments )
     {
         User currentUser = currentUserService.getCurrentUser();
 
@@ -166,7 +169,8 @@ public class DefaultMessageService
 
     @Override
     @Transactional
-    public long sendValidationMessage( Set<User> recipients, String subject, String text, MessageConversationPriority priority )
+    public long sendValidationMessage( Set<User> recipients, String subject, String text,
+        MessageConversationPriority priority )
     {
         MessageConversationParams params = new MessageConversationParams.Builder()
             .withRecipients( recipients )
@@ -233,7 +237,8 @@ public class DefaultMessageService
 
     @Override
     @Transactional
-    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal, Set<FileResource> attachments )
+    public void sendReply( MessageConversation conversation, String text, String metaData, boolean internal,
+        Set<FileResource> attachments )
     {
         User sender = currentUserService.getCurrentUser();
 
@@ -334,14 +339,14 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public MessageConversation getMessageConversation( long id )
     {
         return messageConversationStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public MessageConversation getMessageConversation( String uid )
     {
         MessageConversation mc = messageConversationStore.getByUid( uid );
@@ -360,21 +365,21 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public long getUnreadMessageConversationCount()
     {
         return messageConversationStore.getUnreadUserMessageConversationCount( currentUserService.getCurrentUser() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public long getUnreadMessageConversationCount( User user )
     {
         return messageConversationStore.getUnreadUserMessageConversationCount( user );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMessageConversations()
     {
         return messageConversationStore
@@ -383,7 +388,7 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMessageConversations( int first, int max )
     {
         return messageConversationStore
@@ -392,7 +397,7 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<MessageConversation> getMessageConversations( User user, Collection<String> uid )
     {
         List<MessageConversation> conversations = messageConversationStore
@@ -419,14 +424,14 @@ public class DefaultMessageService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<UserMessage> getLastRecipients( int first, int max )
     {
         return messageConversationStore.getLastRecipients( currentUserService.getCurrentUser(), first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean hasAccessToManageFeedbackMessages( User user )
     {
         user = (user == null ? currentUserService.getCurrentUser() : user);

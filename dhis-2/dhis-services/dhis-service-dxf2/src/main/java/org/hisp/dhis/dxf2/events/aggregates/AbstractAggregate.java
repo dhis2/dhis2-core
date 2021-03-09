@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
@@ -43,12 +42,13 @@ import com.google.common.collect.Multimap;
 public abstract class AbstractAggregate
 {
     /**
-     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+     * Executes the Supplier asynchronously using the thread pool from the
+     * provided {@see Executor}
      *
-     * @param condition A condition that, if true, executes the Supplier, if false, returns an empty Multimap
+     * @param condition A condition that, if true, executes the Supplier, if
+     *        false, returns an empty Multimap
      * @param supplier The Supplier to execute
      * @param executor an Executor instance
-     *                 
      * @return A CompletableFuture with the result of the Supplier
      */
     <T> CompletableFuture<Multimap<String, T>> conditionalAsyncFetch( boolean condition,
@@ -58,10 +58,10 @@ public abstract class AbstractAggregate
     }
 
     /**
-     * Executes the Supplier asynchronously using the thread pool from the provided {@see Executor}
+     * Executes the Supplier asynchronously using the thread pool from the
+     * provided {@see Executor}
      *
      * @param supplier The Supplier to execute
-     *
      * @return A CompletableFuture with the result of the Supplier
      */
     <T> CompletableFuture<Multimap<String, T>> asyncFetch( Supplier<Multimap<String, T>> supplier, Executor executor )

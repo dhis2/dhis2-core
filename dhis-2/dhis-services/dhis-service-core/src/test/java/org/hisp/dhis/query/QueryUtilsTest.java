@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
+
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.ValueType;
@@ -38,14 +45,6 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -171,7 +170,7 @@ public class QueryUtilsTest
         // Then
         exceptionRule.expect( QueryParserException.class );
         exceptionRule
-                .expectMessage( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`." );
+            .expectMessage( "Unable to parse `" + anyValue + "` to `" + nonSupportedClass.getSimpleName() + "`." );
 
         // When
         QueryUtils.parseValue( nonSupportedClass, anyValue );

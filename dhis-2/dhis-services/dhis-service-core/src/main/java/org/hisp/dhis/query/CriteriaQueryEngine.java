@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Criterion;
@@ -43,16 +49,9 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
- * Implementation of QueryEngine that uses Hibernate Criteria and
- * supports idObjects only.
+ * Implementation of QueryEngine that uses Hibernate Criteria and supports
+ * idObjects only.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -164,8 +163,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         if ( query.isEmpty() )
         {
             return detachedCriteria.setProjection(
-                Projections.distinct( Projections.id() )
-            );
+                Projections.distinct( Projections.id() ) );
         }
 
         org.hibernate.criterion.Junction junction = getHibernateJunction( query.getRootJunctionType() );
@@ -179,8 +177,7 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
         query.getAliases().forEach( alias -> detachedCriteria.createAlias( alias, alias ) );
 
         return detachedCriteria.setProjection(
-            Projections.distinct( Projections.id() )
-        );
+            Projections.distinct( Projections.id() ) );
     }
 
     private void addCriterion( org.hibernate.criterion.Junction criteria, org.hisp.dhis.query.Criterion criterion )
@@ -255,10 +252,10 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
     {
         switch ( type )
         {
-            case AND:
-                return Restrictions.conjunction();
-            case OR:
-                return Restrictions.disjunction();
+        case AND:
+            return Restrictions.conjunction();
+        case OR:
+            return Restrictions.disjunction();
         }
 
         return Restrictions.conjunction();
@@ -276,7 +273,8 @@ public class CriteriaQueryEngine<T extends IdentifiableObject>
 
     public org.hibernate.criterion.Order getHibernateOrder( Order order )
     {
-        if ( order == null || order.getProperty() == null || !order.getProperty().isPersisted() || !order.getProperty().isSimple() )
+        if ( order == null || order.getProperty() == null || !order.getProperty().isPersisted()
+            || !order.getProperty().isSimple() )
         {
             return null;
         }

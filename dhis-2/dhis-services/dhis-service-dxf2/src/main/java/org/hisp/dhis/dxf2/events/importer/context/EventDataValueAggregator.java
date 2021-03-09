@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -46,9 +45,8 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
- * Consolidates Event Data Values in a single Map, where the key is the Event uid and the value is a Set of
- * {@see EventDataValue}, ready for persistence.
- *
+ * Consolidates Event Data Values in a single Map, where the key is the Event
+ * uid and the value is a Set of {@see EventDataValue}, ready for persistence.
  *
  * @author Luciano Fiandesio
  */
@@ -85,7 +83,8 @@ public class EventDataValueAggregator
 
         if ( importOptions.isMergeDataValues() )
         {
-            // FIXME Luciano - this will not work if Id Scheme for data value is not UID
+            // FIXME Luciano - this will not work if Id Scheme for data value is
+            // not UID
             List<String> eventDataValueDataElementUids = event.getDataValues().stream().map( DataValue::getDataElement )
                 .collect( Collectors.toList() );
 

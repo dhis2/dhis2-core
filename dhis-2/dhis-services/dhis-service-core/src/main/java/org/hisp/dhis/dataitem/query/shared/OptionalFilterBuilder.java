@@ -57,9 +57,10 @@ public class OptionalFilterBuilder
     }
 
     /**
-     * Appends a new filter to the be current builder. It will add an additional AND
-     * string before the first string appended, and will close it once toString() is
-     * invoked. It will automatically handle rootJunctions (AND | OR).
+     * Appends a new filter to the be current builder. It will add an additional
+     * AND string before the first string appended, and will close it once
+     * toString() is invoked. It will automatically handle rootJunctions (AND |
+     * OR).
      *
      * @param filter the filter to be appended
      * @return the current instance of this class
@@ -115,8 +116,8 @@ public class OptionalFilterBuilder
     }
 
     /**
-     * Will close the list of appended filters and return the final statement for
-     * the optional filters .
+     * Will close the list of appended filters and return the final statement
+     * for the optional filters .
      *
      * @return the final filter statement
      */

@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+package org.hisp.dhis.fileresource;
 
 import java.io.File;
 import java.util.Map;
@@ -40,12 +38,13 @@ import java.util.Map;
 public interface ImageProcessingService
 {
     /**
-     *
-     * Service creates images in pre-defined sizes given in {@link ImageFileDimension} and puts the collection in map
+     * Service creates images in pre-defined sizes given in
+     * {@link ImageFileDimension} and puts the collection in map
      *
      * @param fileResource file resource with image content type
      * @param file image file
-     * @return map containing {@link ImageFileDimension} and its associated file.
+     * @return map containing {@link ImageFileDimension} and its associated
+     *         file.
      */
     Map<ImageFileDimension, File> createImages( FileResource fileResource, File file );
 }

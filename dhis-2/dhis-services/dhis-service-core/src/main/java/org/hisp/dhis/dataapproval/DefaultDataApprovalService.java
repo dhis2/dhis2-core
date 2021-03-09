@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,24 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataapproval.exceptions.DataApprovalNotFound;
@@ -38,8 +50,6 @@ import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeAcceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeApprovedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnacceptedException;
 import org.hisp.dhis.dataapproval.exceptions.DataMayNotBeUnapprovedException;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -52,17 +62,8 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.dataapproval.DataApprovalAction.*;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -154,21 +155,21 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalWorkflow getWorkflow( long id )
     {
         return workflowStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApprovalWorkflow getWorkflow( String uid )
     {
         return workflowStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalWorkflow> getAllWorkflows()
     {
         return workflowStore.getAll();
@@ -184,7 +185,8 @@ public class DefaultDataApprovalService
     {
         log.debug( "approveData ( " + dataApprovalList.size() + " items )" );
 
-        boolean accepted = ! (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        boolean accepted = !(Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -218,7 +220,8 @@ public class DefaultDataApprovalService
                 if ( da.getDataApprovalLevel() != null && status.getActionLevel() != null &&
                     da.getDataApprovalLevel().getLevel() >= status.getActionLevel().getLevel() )
                 {
-                    continue; // Already approved at or above the level requested
+                    continue; // Already approved at or above the level
+                    // requested
                 }
 
                 DataApprovalLevel nextLevel = nextHigherLevel( status.getActionLevel(), da.getWorkflow() );
@@ -231,7 +234,8 @@ public class DefaultDataApprovalService
                 {
                     log.info( "approveData: data approved under workflow " + da.getWorkflow().getName()
                         + " at level " + status.getActionLevel().getLevel()
-                        + " is ready for level " + nextLevel.getLevel() + ", not level " + da.getDataApprovalLevel().getLevel() );
+                        + " is ready for level " + nextLevel.getLevel() + ", not level "
+                        + da.getDataApprovalLevel().getLevel() );
 
                     throw new DataMayNotBeApprovedException();
                 }
@@ -265,7 +269,8 @@ public class DefaultDataApprovalService
 
             if ( da.getOrganisationUnit().getLevel() != da.getDataApprovalLevel().getOrgUnitLevel() )
             {
-                log.info( "approveData: org unit " + da.getOrganisationUnit().getUid() + " '" + da.getOrganisationUnit().getName() +
+                log.info( "approveData: org unit " + da.getOrganisationUnit().getUid() + " '"
+                    + da.getOrganisationUnit().getName() +
                     "' has wrong org unit level " + da.getOrganisationUnit().getLevel() +
                     " for approval level " + da.getDataApprovalLevel().getLevel() );
 
@@ -274,7 +279,7 @@ public class DefaultDataApprovalService
 
             da.setAccepted( accepted );
 
-            checkedList.add ( da );
+            checkedList.add( da );
         }
 
         for ( DataApproval da : checkedList )
@@ -312,18 +317,19 @@ public class DefaultDataApprovalService
 
             if ( status == null || !status.getPermissions().isMayUnapprove() )
             {
-                log.info( "unapproveData: data may not be unapproved, state " + ( status == null ? "(null)" : status.getState().name() ) + " " + da );
+                log.info( "unapproveData: data may not be unapproved, state "
+                    + (status == null ? "(null)" : status.getState().name()) + " " + da );
 
                 throw new DataMayNotBeUnapprovedException();
             }
 
-            if ( !status.getState().isApproved() || ( da.getDataApprovalLevel() != null &&
-                da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel() ) )
+            if ( !status.getState().isApproved() || (da.getDataApprovalLevel() != null &&
+                da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel()) )
             {
                 continue; // Already unapproved at or below this level
             }
 
-            checkedList.add ( da );
+            checkedList.add( da );
         }
 
         List<DataApproval> foundApprovals = getPresentApprovals( checkedList, "unapprove" );
@@ -362,23 +368,25 @@ public class DefaultDataApprovalService
             }
 
             if ( status != null && status.getState() != null && status.getApprovedLevel() != null &&
-                ( status.getState().isAccepted() && da.getDataApprovalLevel().getLevel() == status.getApprovedLevel().getLevel() ||
-                da.getDataApprovalLevel().getLevel() > status.getApprovedLevel().getLevel() ) )
+                (status.getState().isAccepted()
+                    && da.getDataApprovalLevel().getLevel() == status.getApprovedLevel().getLevel() ||
+                    da.getDataApprovalLevel().getLevel() > status.getApprovedLevel().getLevel()) )
             {
                 continue; // Already accepted at, or approved above, this level
             }
 
             if ( status == null || !status.getPermissions().isMayAccept() )
             {
-                log.info( "acceptData: data may not be accepted, state " + ( status == null ? "(null)" : status.getState().name() ) + " " + da );
+                log.info( "acceptData: data may not be accepted, state "
+                    + (status == null ? "(null)" : status.getState().name()) + " " + da );
 
                 throw new DataMayNotBeAcceptedException();
             }
 
-            checkedList.add ( da );
+            checkedList.add( da );
         }
 
-        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "accept"  );
+        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "accept" );
 
         for ( DataApproval da : presentApprovals )
         {
@@ -415,23 +423,28 @@ public class DefaultDataApprovalService
                 da.setDataApprovalLevel( status.getActionLevel() );
             }
 
-            if ( status == null || ( !status.getState().isAccepted() && da.getDataApprovalLevel() != null && da.getDataApprovalLevel().getLevel() == status.getApprovedLevel().getLevel() ) ||
+            if ( status == null
+                || (!status.getState().isAccepted() && da.getDataApprovalLevel() != null
+                    && da.getDataApprovalLevel().getLevel() == status.getApprovedLevel().getLevel())
+                ||
                 da.getDataApprovalLevel().getLevel() < status.getApprovedLevel().getLevel() )
             {
-                continue; // Already unaccepted at or not approved up to this level
+                continue; // Already unaccepted at or not approved up to this
+                // level
             }
 
             if ( !status.getPermissions().isMayUnaccept() )
             {
-                log.info( "unacceptData: data may not be unaccepted, state " + status.getState().name() + " " + da + " " + status.getPermissions() );
+                log.info( "unacceptData: data may not be unaccepted, state " + status.getState().name() + " " + da + " "
+                    + status.getPermissions() );
 
                 throw new DataMayNotBeUnacceptedException();
             }
 
-            checkedList.add ( da );
+            checkedList.add( da );
         }
 
-        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "unaccept"  );
+        List<DataApproval> presentApprovals = getPresentApprovals( checkedList, "unaccept" );
 
         for ( DataApproval da : presentApprovals )
         {
@@ -448,14 +461,14 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataApproval getDataApproval( DataApproval dataApproval )
     {
         return dataApproval == null ? null : dataApprovalStore.getDataApproval( dataApproval );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isApproved( DataApprovalWorkflow workflow, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -468,7 +481,7 @@ public class DefaultDataApprovalService
 
         da = DataApproval.getLowestApproval( da );
 
-        return da != null && dataApprovalStore.dataApprovalExists(da);
+        return da != null && dataApprovalStore.dataApprovalExists( da );
     }
 
     @Override
@@ -504,7 +517,7 @@ public class DefaultDataApprovalService
         log.debug( "getDataApprovalStatus( " + workflow.getName() + ", "
             + period.getPeriodType().getName() + " " + period.getName() + " " + period + ", "
             + organisationUnit.getName() + ", "
-            + ( attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName() ) + " )" );
+            + (attributeOptionCombo == null ? "(null)" : attributeOptionCombo.getName()) + " )" );
 
         DataApprovalStatus status;
 
@@ -512,8 +525,9 @@ public class DefaultDataApprovalService
             periodService.reloadPeriod( period ), Lists.newArrayList( organisationUnit ),
             organisationUnit.getHierarchyLevel(), null,
             attributeOptionCombo == null ? null : Sets.newHashSet( attributeOptionCombo ),
-                dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(), workflow ),
-                dataApprovalLevelService.getDataApprovalLevelMap());
+            dataApprovalLevelService.getUserDataApprovalLevelsOrLowestLevel( currentUserService.getCurrentUser(),
+                workflow ),
+            dataApprovalLevelService.getDataApprovalLevelMap() );
 
         if ( statuses == null || statuses.isEmpty() )
         {
@@ -525,7 +539,8 @@ public class DefaultDataApprovalService
 
             if ( status.getApprovedLevel() != null )
             {
-                OrganisationUnit approvedOrgUnit = organisationUnitService.getOrganisationUnit( status.getApprovedOrgUnitId() );
+                OrganisationUnit approvedOrgUnit = organisationUnitService
+                    .getOrganisationUnit( status.getApprovedOrgUnitId() );
 
                 DataApproval da = dataApprovalStore.getDataApproval( status.getActionLevel(),
                     workflow, period, approvedOrgUnit, attributeOptionCombo );
@@ -544,7 +559,7 @@ public class DefaultDataApprovalService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, CategoryCombo attributeCombo )
     {
@@ -612,8 +627,8 @@ public class DefaultDataApprovalService
 
     /**
      * Makes sure that for any approval we enter into the database, the
-     * attributeOptionCombo appears in the set of optionCombos for at least
-     * one of the data sets in the workflow.
+     * attributeOptionCombo appears in the set of optionCombos for at least one
+     * of the data sets in the workflow.
      *
      * @param dataApprovalList list of data approvals to test.
      */
@@ -649,8 +664,8 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a mapping from data approval key to data approval status for the given
-     * list of data approvals.
+     * Returns a mapping from data approval key to data approval status for the
+     * given list of data approvals.
      */
     private Map<String, DataApprovalStatus> getStatusMap( List<DataApproval> dataApprovalList )
     {
@@ -664,7 +679,8 @@ public class DefaultDataApprovalService
         {
             List<DataApproval> dataApprovals = entry.getValue();
 
-            Set<OrganisationUnit> orgUnits = dataApprovals.stream().map( DataApproval::getOrganisationUnit ).collect( Collectors.toSet() );
+            Set<OrganisationUnit> orgUnits = dataApprovals.stream().map( DataApproval::getOrganisationUnit )
+                .collect( Collectors.toSet() );
 
             DataApproval da = dataApprovals.get( 0 );
 
@@ -678,7 +694,8 @@ public class DefaultDataApprovalService
             {
                 evaluator.evaluatePermissions( status, da.getWorkflow() );
 
-                statusMap.put( daKey( da, status.getOrganisationUnitUid(), status.getAttributeOptionComboUid() ), status );
+                statusMap.put( daKey( da, status.getOrganisationUnitUid(), status.getAttributeOptionComboUid() ),
+                    status );
             }
         }
 
@@ -688,10 +705,10 @@ public class DefaultDataApprovalService
     /**
      * Returns an indexed map where the key is based on each distinct
      * combination of organisation unit level, period, and workflow.
-     *
+     * <p>
      * If multiple attributeOptionCombo values are needed for the same
-     * combination of organisation unit level, period, and workflow, then
-     * these are fetched at the same time time, for better performance.
+     * combination of organisation unit level, period, and workflow, then these
+     * are fetched at the same time time, for better performance.
      */
     private ListMap<String, DataApproval> getIndexedListMap( List<DataApproval> dataApprovalList )
     {
@@ -707,32 +724,32 @@ public class DefaultDataApprovalService
 
     /**
      * Returns a key consisting of organisation unit, period, and workflow.
-     * Approval status with these three values in common can be fetched in
-     * one call for many values of attributeOptionCombo.
+     * Approval status with these three values in common can be fetched in one
+     * call for many values of attributeOptionCombo.
      */
     private String statusKey( DataApproval approval )
     {
-        return approval == null ? null :
-            approval.getOrganisationUnit().getId() +
+        return approval == null ? null
+            : approval.getOrganisationUnit().getId() +
                 IdentifiableObjectUtils.SEPARATOR + approval.getPeriod().getId() +
                 IdentifiableObjectUtils.SEPARATOR + approval.getWorkflow().getId();
     }
 
     /**
-     * Looks up which data approvals are present in the database, and returns
-     * a list of database approval objects (with approval id).
-     *
+     * Looks up which data approvals are present in the database, and returns a
+     * list of database approval objects (with approval id).
+     * <p>
      * Throws an exception if any approval is not present in the database.
-     *
-     * This is done by making a single call to the database level instead of
-     * one call per data approval, to speed performance in the case where
-     * there are many data approvals.
+     * <p>
+     * This is done by making a single call to the database level instead of one
+     * call per data approval, to speed performance in the case where there are
+     * many data approvals.
      *
      * @param approvals the list of approvals to check.
      * @param operation operation (for error logging).
      * @return the list of those approvals actually present.
      */
-    private List<DataApproval> getPresentApprovals ( List<DataApproval> approvals, String operation )
+    private List<DataApproval> getPresentApprovals( List<DataApproval> approvals, String operation )
     {
         Set<DataApprovalLevel> levels = new HashSet<>();
         Set<DataApprovalWorkflow> workflows = new HashSet<>();
@@ -752,7 +769,8 @@ public class DefaultDataApprovalService
         List<DataApproval> foundList = dataApprovalStore.getDataApprovals( levels,
             workflows, periods, organisationUnits, attributeOptionCombos );
 
-        Map<String, DataApproval> foundMap = foundList.stream().collect( Collectors.toMap( a -> approvalKey( a ), a -> a ) );
+        Map<String, DataApproval> foundMap = foundList.stream()
+            .collect( Collectors.toMap( a -> approvalKey( a ), a -> a ) );
 
         List<DataApproval> presentApprovals = new ArrayList<>();
 
@@ -776,8 +794,8 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key for a data approval object, consisting of the UIDs
-     * of all the approval object dimensions that uniquely define it.
+     * Returns a key for a data approval object, consisting of the UIDs of all
+     * the approval object dimensions that uniquely define it.
      *
      * @param da the data approval object.
      * @return a key for the object.
@@ -792,17 +810,16 @@ public class DefaultDataApprovalService
     }
 
     /**
-     * Returns a key consisting of statusKey + attributeOptionCombo.
-     * This can identify a particular DataApproval object in the return
-     * set of statuses.
+     * Returns a key consisting of statusKey + attributeOptionCombo. This can
+     * identify a particular DataApproval object in the return set of statuses.
      */
-    private String daKey ( DataApproval da )
+    private String daKey( DataApproval da )
     {
         return daKey( da, da.getOrganisationUnit().getUid(),
             da.getAttributeOptionCombo() == null ? "null" : da.getAttributeOptionCombo().getUid() );
     }
 
-    private String daKey ( DataApproval da, String orgUnitUid, String attributeOptionComboUid )
+    private String daKey( DataApproval da, String orgUnitUid, String attributeOptionComboUid )
     {
         return da.getWorkflow().getUid()
             + da.getPeriod().getCode()

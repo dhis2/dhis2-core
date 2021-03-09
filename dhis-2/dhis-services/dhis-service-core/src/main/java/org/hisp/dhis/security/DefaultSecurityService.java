@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,24 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
+
+import javax.annotation.PostConstruct;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -60,18 +73,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-import javax.annotation.PostConstruct;
-import java.io.IOException;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Lars Helge Overland
@@ -82,7 +84,9 @@ public class DefaultSecurityService
     implements SecurityService
 {
     private static final String RESTORE_PATH = "/dhis-web-commons/security/";
+
     private static final Pattern INVITE_USERNAME_PATTERN = Pattern.compile( "^invite\\-(.+?)\\-(\\w{11})$" );
+
     private static final String TBD_NAME = "(TBD)";
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
@@ -90,14 +94,19 @@ public class DefaultSecurityService
     private static final int INVITED_USER_PASSWORD_LENGTH = 40;
 
     private static final int RESTORE_TOKEN_LENGTH = 50;
+
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 5;
+
     private static final int LOGIN_LOCKOUT_MINS = 15;
+
     private static final int RECOVERY_LOCKOUT_MINS = 15;
+
     private static final int RECOVER_MAX_ATTEMPTS = 5;
 
     private static final String RECAPTCHA_VERIFY_URL = "https://www.google.com/recaptcha/api/siteverify";
 
     private Cache<Integer> userFailedLoginAttemptCache;
+
     private Cache<Integer> userAccountRecoverAttemptCache;
     // -------------------------------------------------------------------------
     // Dependencies
@@ -166,7 +175,6 @@ public class DefaultSecurityService
     // -------------------------------------------------------------------------
     // Initialization
     // -------------------------------------------------------------------------
-
 
     @PostConstruct
     public void init()
@@ -289,7 +297,8 @@ public class DefaultSecurityService
             return "no_user_credentials";
         }
 
-        if ( credentials.getUserInfo().getEmail() == null || !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
+        if ( credentials.getUserInfo().getEmail() == null
+            || !ValidationUtils.emailIsValid( credentials.getUserInfo().getEmail() ) )
         {
             log.warn( "Could not send restore/invite message as user has no email or email is invalid" );
             return "user_does_not_have_valid_email";
@@ -307,7 +316,8 @@ public class DefaultSecurityService
             return "no_user_credentials";
         }
 
-        if ( credentials.getUsername() != null && userService.getUserCredentialsByUsername( credentials.getUsername() ) != null )
+        if ( credentials.getUsername() != null
+            && userService.getUserCredentialsByUsername( credentials.getUsername() ) != null )
         {
             log.warn( "Could not send invite message as username is already taken: " + credentials );
             return "username_taken";
@@ -399,14 +409,15 @@ public class DefaultSecurityService
 
         RestoreType restoreType = restoreOptions.getRestoreType();
 
-        Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() ).time();
+        Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() )
+            .time();
 
         credentials.setRestoreToken( hashedToken );
         credentials.setRestoreExpiry( expiry );
 
         userService.updateUserCredentials( credentials );
 
-        return new String[]{ token };
+        return new String[] { token };
     }
 
     @Override
@@ -452,12 +463,12 @@ public class DefaultSecurityService
     }
 
     /**
-     * Verifies all parameters needed for account restore and checks validity of the
-     * user supplied token and code. If the restore cannot be verified a descriptive
-     * error string is returned.
+     * Verifies all parameters needed for account restore and checks validity of
+     * the user supplied token and code. If the restore cannot be verified a
+     * descriptive error string is returned.
      *
      * @param credentials the user credentials.
-     * @param token       the user supplied token.
+     * @param token the user supplied token.
      * @param restoreType the restore type.
      * @return null if restore is valid, a descriptive error string otherwise.
      */
@@ -504,7 +515,7 @@ public class DefaultSecurityService
      * </ul>
      *
      * @param credentials the user credentials.
-     * @param token       the token.
+     * @param token the token.
      * @param restoreType type of restore operation.
      * @return null if success, otherwise error string.
      */

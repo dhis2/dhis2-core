@@ -1,8 +1,5 @@
-package org.hisp.dhis.translation;
-
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,15 +25,17 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -97,12 +96,12 @@ public class Translation implements Serializable
      */
     public static String getCacheKey( String locale, TranslationProperty property )
     {
-        return locale != null && property != null ? ( locale + property.name() ) : null;
+        return locale != null && property != null ? (locale + property.name()) : null;
     }
 
-    //-------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
     // Accessors
-    //-------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )

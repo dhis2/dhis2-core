@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,12 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -40,9 +38,11 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.organisationunit.FeatureType;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Chau Thu Tran
@@ -60,8 +60,8 @@ public class TrackedEntityType
     private String formName;
 
     /**
-     * Property indicating minimum number of attributes required to fill
-     * before search is triggered
+     * Property indicating minimum number of attributes required to fill before
+     * search is triggered
      */
     private int minAttributesRequiredToSearch = 1;
 
@@ -99,12 +99,13 @@ public class TrackedEntityType
      */
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
+        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
     // Getters and setters
-    // -------------------------------------------------------------------------    
+    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
@@ -158,7 +159,7 @@ public class TrackedEntityType
 
     // -------------------------------------------------------------------------
     // Logic methods
-    // -------------------------------------------------------------------------    
+    // -------------------------------------------------------------------------
 
     /**
      * Returns IDs of searchable TrackedEntityAttributes.
@@ -169,7 +170,8 @@ public class TrackedEntityType
 
         for ( TrackedEntityTypeAttribute trackedEntityTypeAttribute : trackedEntityTypeAttributes )
         {
-            if ( trackedEntityTypeAttribute.isSearchable() || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique() )
+            if ( trackedEntityTypeAttribute.isSearchable()
+                || trackedEntityTypeAttribute.getTrackedEntityAttribute().isSystemWideUnique() )
             {
                 searchableAttributes.add( trackedEntityTypeAttribute.getTrackedEntityAttribute().getUid() );
             }

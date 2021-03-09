@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.orgunit.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.analytics.orgunit.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.orgunit.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.system.util.SqlUtils.quote;
@@ -40,16 +40,13 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
-
-import com.google.common.collect.Lists;
 import org.springframework.stereotype.Component;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -117,9 +114,11 @@ public class JdbcOrgUnitAnalyticsManager
             .map( uid -> quote( "ougs", uid ) )
             .collect( Collectors.toList() );
 
-        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets ) + ", count(ougs.organisationunitid) as count " +
+        String sql = "select " + levelCol + " as orgunit, " + getCommaDelimitedString( quotedGroupSets )
+            + ", count(ougs.organisationunitid) as count " +
             "from " + quote( "_orgunitstructure" ) + " ous " +
-            "inner join " + quote( "_organisationunitgroupsetstructure" ) + " ougs on ous.organisationunitid = ougs.organisationunitid " +
+            "inner join " + quote( "_organisationunitgroupsetstructure" )
+            + " ougs on ous.organisationunitid = ougs.organisationunitid " +
             "where " + levelCol + " in (" + getQuotedCommaDelimitedString( orgUnits ) + ") " +
             "group by " + levelCol + ", " + getCommaDelimitedString( quotedGroupSets ) + ";";
 

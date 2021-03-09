@@ -43,8 +43,8 @@ public interface DataItemQuery
 {
 
     /**
-     * Responsible for building the respective query statement and executing it in
-     * order to find the list of items based on the given parameter map.
+     * Responsible for building the respective query statement and executing it
+     * in order to find the list of items based on the given parameter map.
      *
      * @param paramsMap
      * @return the data items found
@@ -52,8 +52,8 @@ public interface DataItemQuery
     List<DataItem> find( MapSqlParameterSource paramsMap );
 
     /**
-     * Responsible for building the respective count statement and executing it in
-     * order to find the total of data items for the given parameter map.
+     * Responsible for building the respective count statement and executing it
+     * in order to find the total of data items for the given parameter map.
      *
      * @param paramsMap
      * @return the items found

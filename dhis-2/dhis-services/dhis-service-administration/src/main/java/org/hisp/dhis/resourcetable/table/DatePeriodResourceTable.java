@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -42,8 +43,6 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
-
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -65,7 +64,8 @@ public class DatePeriodResourceTable
     @Override
     public String getCreateTempTableStatement()
     {
-        String sql = "create table " + getTempTableName() + " (dateperiod date not null primary key, year integer not null";
+        String sql = "create table " + getTempTableName()
+            + " (dateperiod date not null primary key, year integer not null";
 
         for ( PeriodType periodType : PeriodType.PERIOD_TYPES )
         {
@@ -90,12 +90,16 @@ public class DatePeriodResourceTable
 
         List<Object[]> batchArgs = new ArrayList<>();
 
-        Date startDate = new Cal( 1975, 1, 1, true ).time(); //TODO Create a dynamic solution instead of fixing the date
+        Date startDate = new Cal( 1975, 1, 1, true ).time(); // TODO Create a
+        // dynamic solution
+        // instead of
+        // fixing the date
         Date endDate = new Cal( 2025, 1, 1, true ).time();
 
         List<Period> dailyPeriods = new DailyPeriodType().generatePeriods( startDate, endDate );
 
-        List<Date> days = new UniqueArrayList<>( dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
+        List<Date> days = new UniqueArrayList<>(
+            dailyPeriods.stream().map( Period::getStartDate ).collect( Collectors.toList() ) );
 
         Calendar calendar = PeriodType.getCalendar();
 

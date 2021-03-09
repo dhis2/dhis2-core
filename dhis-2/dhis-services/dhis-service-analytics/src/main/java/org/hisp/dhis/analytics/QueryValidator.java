@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import java.util.List;
 
@@ -37,8 +36,8 @@ import org.hisp.dhis.feedback.ErrorMessage;
 /**
  * Service interface which provides methods for validation analytics queries.
  *
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public interface QueryValidator
 {
     /**
@@ -54,8 +53,8 @@ public interface QueryValidator
 
     /**
      * Validates the given query. Returns null if the query is valid, or an
-     * {@link ErrorMessage} describing the validation violation if the query
-     * is invalid.
+     * {@link ErrorMessage} describing the validation violation if the query is
+     * invalid.
      *
      * @param params the data query parameters.
      * @return null if valid or {@link ErrorMessage} if invalid.
@@ -78,7 +77,8 @@ public interface QueryValidator
     /**
      * Checks whether the analytics engine is in maintenance mode.
      *
-     * @throws MaintenanceModeException if analytics engine is in maintenance mode.
+     * @throws MaintenanceModeException if analytics engine is in maintenance
+     *         mode.
      */
     void validateMaintenanceMode()
         throws MaintenanceModeException;

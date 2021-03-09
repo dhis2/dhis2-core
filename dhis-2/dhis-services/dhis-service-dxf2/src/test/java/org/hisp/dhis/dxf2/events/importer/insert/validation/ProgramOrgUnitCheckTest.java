@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.mockito.Mockito.when;
@@ -79,21 +78,21 @@ public class ProgramOrgUnitCheckTest extends BaseValidationTest
         // Prepare data
         Program program = createProgram( 'P' );
         program.setId( 1 );
-        
+
         OrganisationUnit ou = new OrganisationUnit();
         ou.setId( 1 );
         ou.setUid( orgUnitId );
         when( workContext.getOrganisationUnitMap() ).thenReturn( ImmutableMap.of( event.getUid(), ou ) );
-        
+
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( ImmutableMap.of( 1L, ImmutableList.of( 1L ) ) );
-        
+
         ProgramInstance pi = new ProgramInstance();
         pi.setProgram( program );
 
         Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        
+
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setOrgUnitIdScheme( scheme.name() );
         when( workContext.getImportOptions() ).thenReturn( importOptions );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.List;
 import java.util.Map;
@@ -35,8 +34,8 @@ import java.util.Set;
 import org.hisp.dhis.dataelement.DataElement;
 
 /**
- * TODO do we need this service given cascade all on
- * program stage -> program stage data element?
+ * TODO do we need this service given cascade all on program stage -> program
+ * stage data element?
  *
  * @author Viet Nguyen
  */
@@ -70,7 +69,7 @@ public interface ProgramStageDataElementService
      * element
      *
      * @param programStage ProgramStage
-     * @param dataElement  DataElement
+     * @param dataElement DataElement
      * @return ProgramStageDataElement
      */
     ProgramStageDataElement get( ProgramStage programStage, DataElement dataElement );
@@ -79,14 +78,15 @@ public interface ProgramStageDataElementService
      * Returns all {@link ProgramStageDataElement}
      *
      * @return a collection of all ProgramStageDataElement, or an empty
-     * collection if there are no ProgramStageDataElements.
+     *         collection if there are no ProgramStageDataElements.
      */
     List<ProgramStageDataElement> getAllProgramStageDataElements();
 
     /**
-     * Returns Map of ProgramStages containing Set of DataElements (together ProgramStageDataElements) that have skipSynchronization flag set to true
+     * Returns Map of ProgramStages containing Set of DataElements (together
+     * ProgramStageDataElements) that have skipSynchronization flag set to true
      *
-     * @return Map<String, Set<String>>
+     * @return Map<String, Set < String>>
      */
     Map<String, Set<String>> getProgramStageDataElementsWithSkipSynchronizationSetToTrue();
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.grid;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,27 @@ package org.hisp.dhis.system.grid;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.grid;
 
-import com.csvreader.CsvWriter;
-import com.lowagie.text.Document;
-import com.lowagie.text.pdf.PdfPTable;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.hisp.dhis.system.util.PDFUtils.*;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.extern.slf4j.Slf4j;
 import net.sf.jasperreports.engine.*;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.Font;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Font;
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObjectUtils;
@@ -63,16 +71,9 @@ import org.htmlparser.tags.TableRow;
 import org.htmlparser.tags.TableTag;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.hisp.dhis.system.util.PDFUtils.*;
+import com.csvreader.CsvWriter;
+import com.lowagie.text.Document;
+import com.lowagie.text.pdf.PdfPTable;
 
 /**
  * @author Lars Helge Overland
@@ -81,37 +82,62 @@ import static org.hisp.dhis.system.util.PDFUtils.*;
 public class GridUtils
 {
     private static final String EMPTY = "";
+
     private static final char CSV_DELIMITER = ',';
+
     private static final String XLS_SHEET_PREFIX = "Sheet ";
+
     private static final int JXL_MAX_COLS = 256;
+
     private static final String FONT_ARIAL = "Arial";
 
-    private static final NodeFilter HTML_ROW_FILTER = new OrFilter( new TagNameFilter( "td" ), new TagNameFilter( "th" ) );
+    private static final NodeFilter HTML_ROW_FILTER = new OrFilter( new TagNameFilter( "td" ),
+        new TagNameFilter( "th" ) );
 
     private static final Encoder ENCODER = new Encoder();
 
     private static final String KEY_GRID = "grid";
+
     private static final String KEY_ENCODER = "encoder";
+
     private static final String KEY_PARAMS = "params";
+
     private static final String JASPER_TEMPLATE = "grid.vm";
+
     private static final String HTML_TEMPLATE = "grid-html.vm";
+
     private static final String HTML_CSS_TEMPLATE = "grid-html-css.vm";
+
     private static final String HTML_INLINE_CSS_TEMPLATE = "grid-html-inline-css.vm";
 
     private static final String ATTR_GRID = "grid";
+
     private static final String ATTR_TITLE = "title";
+
     private static final String ATTR_SUBTITLE = "subtitle";
+
     private static final String ATTR_WIDTH = "width";
+
     private static final String ATTR_HEIGHT = "height";
+
     private static final String ATTR_HEADERS = "headers";
+
     private static final String ATTR_HEADER = "header";
+
     private static final String ATTR_NAME = "name";
+
     private static final String ATTR_COLUMN = "column";
+
     private static final String ATTR_TYPE = "type";
+
     private static final String ATTR_HIDDEN = "hidden";
+
     private static final String ATTR_META = "meta";
+
     private static final String ATTR_ROWS = "rows";
+
     private static final String ATTR_ROW = "row";
+
     private static final String ATTR_FIELD = "field";
 
     /**
@@ -132,7 +158,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a PDF representation of the given list of Grids to the given OutputStream.
+     * Writes a PDF representation of the given list of Grids to the given
+     * OutputStream.
      */
     public static void toPdf( List<Grid> grids, OutputStream out )
     {
@@ -193,14 +220,15 @@ public class GridUtils
 
     private static void addPdfTimestamp( Document document, boolean paddingTop )
     {
-        PdfPTable table = new PdfPTable(1);
-        table.addCell( getEmptyCell( 1, ( paddingTop ? 30 : 0 ) ) );
+        PdfPTable table = new PdfPTable( 1 );
+        table.addCell( getEmptyCell( 1, (paddingTop ? 30 : 0) ) );
         table.addCell( getTextCell( getGeneratedString() ) );
         addTableToDocument( document, table );
     }
 
     /**
-     * Writes a XLS (Excel workbook) representation of the given list of Grids to the given OutputStream.
+     * Writes a XLS (Excel workbook) representation of the given list of Grids
+     * to the given OutputStream.
      */
     public static void toXls( List<Grid> grids, OutputStream out )
         throws Exception
@@ -214,9 +242,10 @@ public class GridUtils
         {
             Grid grid = grids.get( i );
 
-            String sheetName = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + (i + 1) ) );
+            String sheetName = CodecUtils
+                .filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + (i + 1) ) );
 
-            toXlsInternal( grid,  workbook.createSheet( sheetName ),headerCellStyle, cellStyle );
+            toXlsInternal( grid, workbook.createSheet( sheetName ), headerCellStyle, cellStyle );
         }
 
         workbook.write( out );
@@ -224,16 +253,19 @@ public class GridUtils
     }
 
     /**
-     * Writes a XLS (Excel workbook) representation of the given Grid to the given OutputStream.
+     * Writes a XLS (Excel workbook) representation of the given Grid to the
+     * given OutputStream.
      */
     public static void toXls( Grid grid, OutputStream out )
         throws Exception
     {
         Workbook workbook = new HSSFWorkbook();
 
-        String sheetName = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + 1 ) );
+        String sheetName = CodecUtils
+            .filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), XLS_SHEET_PREFIX + 1 ) );
 
-        toXlsInternal( grid, workbook.createSheet( sheetName ), createHeaderCellStyle( workbook ), createCellStyle( workbook ) );
+        toXlsInternal( grid, workbook.createSheet( sheetName ), createHeaderCellStyle( workbook ),
+            createCellStyle( workbook ) );
 
         workbook.write( out );
         workbook.close();
@@ -250,7 +282,8 @@ public class GridUtils
 
         if ( cols > JXL_MAX_COLS )
         {
-            log.warn( "Grid will be truncated, no of columns is greater than JXL max limit: " + cols + "/" + JXL_MAX_COLS );
+            log.warn(
+                "Grid will be truncated, no of columns is greater than JXL max limit: " + cols + "/" + JXL_MAX_COLS );
         }
 
         int rowNumber = 0;
@@ -268,7 +301,7 @@ public class GridUtils
 
         if ( StringUtils.isNotEmpty( grid.getSubtitle() ) )
         {
-            Cell cell  = sheet.createRow( ++rowNumber ).createCell( columnIndex, CellType.STRING );
+            Cell cell = sheet.createRow( ++rowNumber ).createCell( columnIndex, CellType.STRING );
             cell.setCellValue( grid.getSubtitle() );
             cell.setCellStyle( headerCellStyle );
             rowNumber++;
@@ -297,11 +330,13 @@ public class GridUtils
             {
                 if ( column != null && MathUtils.isNumeric( String.valueOf( column ) ) )
                 {
-                    xlsRow.createCell( columnIndex++, CellType.NUMERIC ).setCellValue(  Double.parseDouble( String.valueOf( column ) )  );
+                    xlsRow.createCell( columnIndex++, CellType.NUMERIC )
+                        .setCellValue( Double.parseDouble( String.valueOf( column ) ) );
                 }
                 else
                 {
-                    xlsRow.createCell( columnIndex++, CellType.STRING ).setCellValue( column != null ? String.valueOf( column ) : EMPTY );
+                    xlsRow.createCell( columnIndex++, CellType.STRING )
+                        .setCellValue( column != null ? String.valueOf( column ) : EMPTY );
                 }
             }
 
@@ -346,7 +381,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a Jasper Reports representation of the given Grid to the given OutputStream.
+     * Writes a Jasper Reports representation of the given Grid to the given
+     * OutputStream.
      */
     public static void toJasperReport( Grid grid, Map<String, Object> params, OutputStream out )
         throws Exception
@@ -362,7 +398,8 @@ public class GridUtils
 
         String report = writer.toString();
 
-        JasperReport jasperReport = JasperCompileManager.compileReport( IOUtils.toInputStream( report, StandardCharsets.UTF_8 ) );
+        JasperReport jasperReport = JasperCompileManager
+            .compileReport( IOUtils.toInputStream( report, StandardCharsets.UTF_8 ) );
 
         JasperPrint print = JasperFillManager.fillReport( jasperReport, params, grid );
 
@@ -370,7 +407,8 @@ public class GridUtils
     }
 
     /**
-     * Writes a JRXML (Jasper Reports XML) representation of the given Grid to the given Writer.
+     * Writes a JRXML (Jasper Reports XML) representation of the given Grid to
+     * the given Writer.
      */
     public static void toJrxml( Grid grid, Map<?, ?> params, Writer writer )
     {
@@ -417,7 +455,8 @@ public class GridUtils
         for ( GridHeader header : grid.getHeaders() )
         {
             writer.writeElement( ATTR_HEADER, null, ATTR_NAME, header.getName(), ATTR_COLUMN, header.getColumn(),
-                ATTR_TYPE, header.getType(), ATTR_HIDDEN, String.valueOf( header.isHidden() ), ATTR_META, String.valueOf( header.isMeta() ) );
+                ATTR_TYPE, header.getType(), ATTR_HIDDEN, String.valueOf( header.isHidden() ), ATTR_META,
+                String.valueOf( header.isMeta() ) );
         }
 
         writer.closeElement();
@@ -460,21 +499,24 @@ public class GridUtils
     }
 
     /**
-     * Derives the positional index of a Grid's row, based on the {@see DimensionalItemObject} identifiers
+     * Derives the positional index of a Grid's row, based on the
+     * {@see DimensionalItemObject} identifiers
      *
      * @param row a Grid's row
      * @param items a List of {@see DimensionalItemObject}
      * @param defaultIndex the default positional index to return
-     * @return the positional index matching one of the DimensionalItemObject identifiers
+     * @return the positional index matching one of the DimensionalItemObject
+     *         identifiers
      */
-    public static int getGridIndexByDimensionItem( List<Object> row, List<DimensionalItemObject> items, int defaultIndex )
+    public static int getGridIndexByDimensionItem( List<Object> row, List<DimensionalItemObject> items,
+        int defaultIndex )
     {
         // accumulate the DimensionalItemObject identifiers into a List
         List<String> valid = items.stream().map( DimensionalItemObject::getDimensionItem )
             .collect( Collectors.toList() );
 
         // skip the last index, since it is always the row value
-        for ( int i = 0; i < row.size() -1 ; i++ )
+        for ( int i = 0; i < row.size() - 1; i++ )
         {
             final String value = (String) row.get( i );
             if ( valid.contains( value ) )
@@ -543,7 +585,7 @@ public class GridUtils
 
                         if ( colSpan != null && colSpan > 1 )
                         {
-                            grid.addEmptyHeaders( ( colSpan - 1 ) );
+                            grid.addEmptyHeaders( (colSpan - 1) );
                         }
                     }
                 }
@@ -551,7 +593,8 @@ public class GridUtils
                 {
                     if ( firstColumnCount != getColumnCount( row ) ) // Ignore
                     {
-                        log.warn( "Ignoring row which has " + row.getColumnCount() + " columns since table has " + firstColumnCount + " columns" );
+                        log.warn( "Ignoring row which has " + row.getColumnCount() + " columns since table has "
+                            + firstColumnCount + " columns" );
                         continue;
                     }
 
@@ -569,7 +612,7 @@ public class GridUtils
 
                         if ( colSpan != null && colSpan > 1 )
                         {
-                            grid.addEmptyValues( ( colSpan - 1 ) );
+                            grid.addEmptyValues( (colSpan - 1) );
                         }
                     }
                 }
@@ -582,7 +625,8 @@ public class GridUtils
     }
 
     /**
-     * Returns the number of columns/cells in the given row, including cell spacing.
+     * Returns the number of columns/cells in the given row, including cell
+     * spacing.
      */
     private static int getColumnCount( TableRow row )
     {
@@ -625,14 +669,15 @@ public class GridUtils
     }
 
     /**
-     * Returns a mapping based on the given grid where the key is a joined string
-     * of the string value of each value for meta columns. The value is the object
-     * at the given value index. The map contains at maximum one entry per row in
-     * the given grid, less if the joined key string are duplicates. The object
-     * at the value index must be numeric.
+     * Returns a mapping based on the given grid where the key is a joined
+     * string of the string value of each value for meta columns. The value is
+     * the object at the given value index. The map contains at maximum one
+     * entry per row in the given grid, less if the joined key string are
+     * duplicates. The object at the value index must be numeric.
      *
      * @param grid the grid.
-     * @param valueIndex the index of the column holding the value, must be numeric.
+     * @param valueIndex the index of the column holding the value, must be
+     *        numeric.
      * @return a meta string to value object mapping.
      */
     public static Map<String, Object> getMetaValueMapping( Grid grid, int valueIndex )
@@ -700,7 +745,8 @@ public class GridUtils
     }
 
     /**
-     * Indicates whether grid is not null and has more than zero visible columns.
+     * Indicates whether grid is not null and has more than zero visible
+     * columns.
      */
     private static boolean isNonEmptyGrid( Grid grid )
     {
@@ -712,7 +758,7 @@ public class GridUtils
         CellStyle headerCellStyle = workbook.createCellStyle();
         Font headerFont = workbook.createFont();
         headerFont.setBold( true );
-        headerFont.setFontHeightInPoints( ( short ) 10 );
+        headerFont.setFontHeightInPoints( (short) 10 );
         headerFont.setFontName( FONT_ARIAL );
         headerCellStyle.setFont( headerFont );
         return headerCellStyle;
@@ -722,7 +768,7 @@ public class GridUtils
     {
         CellStyle cellStyle = workbook.createCellStyle();
         Font cellFont = workbook.createFont();
-        cellFont.setFontHeightInPoints( ( short ) 10 );
+        cellFont.setFontHeightInPoints( (short) 10 );
         cellFont.setFontName( FONT_ARIAL );
         cellStyle.setFont( cellFont );
         return cellStyle;

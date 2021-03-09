@@ -1,6 +1,5 @@
-package org.hisp.dhis.monitoring.metrics.jdbc;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.monitoring.metrics.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.monitoring.metrics.jdbc;
 
 import javax.sql.DataSource;
 
@@ -36,67 +36,79 @@ import javax.sql.DataSource;
  * @author Stephane Nicoll
  * @since 2.0.0
  */
-public interface DataSourcePoolMetadata {
+public interface DataSourcePoolMetadata
+{
 
     /**
-     * Return the usage of the pool as value between 0 and 1 (or -1 if the pool is not
-     * limited).
+     * Return the usage of the pool as value between 0 and 1 (or -1 if the pool
+     * is not limited).
      * <ul>
-     * <li>1 means that the maximum number of connections have been allocated</li>
+     * <li>1 means that the maximum number of connections have been
+     * allocated</li>
      * <li>0 means that no connection is currently active</li>
-     * <li>-1 means there is not limit to the number of connections that can be allocated
-     * </li>
+     * <li>-1 means there is not limit to the number of connections that can be
+     * allocated</li>
      * </ul>
-     * This may also return {@code null} if the data source does not provide the necessary
-     * information to compute the poll usage.
+     * This may also return {@code null} if the data source does not provide the
+     * necessary information to compute the poll usage.
+     *
      * @return the usage value or {@code null}
      */
     Float getUsage();
 
     /**
-     * Return the current number of active connections that have been allocated from the
-     * data source or {@code null} if that information is not available.
+     * Return the current number of active connections that have been allocated
+     * from the data source or {@code null} if that information is not
+     * available.
+     *
      * @return the number of active connections or {@code null}
      */
     Integer getActive();
 
     /**
-     * Return the number of established but idle connections. Can also return {@code null}
-     * if that information is not available.
+     * Return the number of established but idle connections. Can also return
+     * {@code null} if that information is not available.
+     *
      * @return the number of established but idle connections or {@code null}
-     * @since 2.2.0
      * @see #getActive()
+     * @since 2.2.0
      */
-    default Integer getIdle() {
+    default Integer getIdle()
+    {
         return null;
     }
 
     /**
-     * Return the maximum number of active connections that can be allocated at the same
-     * time or {@code -1} if there is no limit. Can also return {@code null} if that
-     * information is not available.
+     * Return the maximum number of active connections that can be allocated at
+     * the same time or {@code -1} if there is no limit. Can also return
+     * {@code null} if that information is not available.
+     *
      * @return the maximum number of active connections or {@code null}
      */
     Integer getMax();
 
     /**
-     * Return the minimum number of idle connections in the pool or {@code null} if that
-     * information is not available.
+     * Return the minimum number of idle connections in the pool or {@code null}
+     * if that information is not available.
+     *
      * @return the minimum number of active connections or {@code null}
      */
     Integer getMin();
 
     /**
-     * Return the query to use to validate that a connection is valid or {@code null} if
-     * that information is not available.
+     * Return the query to use to validate that a connection is valid or
+     * {@code null} if that information is not available.
+     *
      * @return the validation query or {@code null}
      */
     String getValidationQuery();
 
     /**
-     * The default auto-commit state of connections created by this pool. If not set
-     * ({@code null}), default is JDBC driver default (If set to null then the
-     * java.sql.Connection.setAutoCommit(boolean) method will not be called.)
+     * The default auto-commit state of connections created by this pool. If not
+     * set ({@code null}), default is JDBC driver default (If set to null then
+     * the java.sql.Connection.setAutoCommit(boolean) method will not be
+     * called.)
+     *
      * @return the default auto-commit state or {@code null}
      */
     Boolean getDefaultAutoCommit();

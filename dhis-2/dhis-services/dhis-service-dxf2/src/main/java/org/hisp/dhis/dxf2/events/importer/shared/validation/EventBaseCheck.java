@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 import static org.hisp.dhis.program.ProgramStatus.COMPLETED;
@@ -77,7 +76,7 @@ public class EventBaseCheck implements Checker
 
         validateDates( event, errors );
 
-        validateProgramInstance( event, ctx, errors);
+        validateProgramInstance( event, ctx, errors );
 
         return errors;
     }
@@ -105,7 +104,8 @@ public class EventBaseCheck implements Checker
         }
     }
 
-    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors ) {
+    private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors )
+    {
 
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();
@@ -118,7 +118,7 @@ public class EventBaseCheck implements Checker
         else if ( COMPLETED.equals( programInstance.getStatus() ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
-                    || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
+                || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
             {
                 return;
             }
@@ -135,8 +135,8 @@ public class EventBaseCheck implements Checker
             if ( referenceDate.after( removeTimeStamp( programInstance.getEndDate() ) ) )
             {
                 errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                        + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
-                        + " )." );
+                    + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
+                    + " )." );
             }
         }
     }

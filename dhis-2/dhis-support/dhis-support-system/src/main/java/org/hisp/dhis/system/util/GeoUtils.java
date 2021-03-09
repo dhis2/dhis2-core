@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import java.awt.geom.Point2D;
 import java.io.IOException;
@@ -57,11 +56,11 @@ public class GeoUtils
     public static final int SRID = 4326;
 
     /**
-     * Returns boundaries of a box shape which centre is the point defined by the
-     * given longitude and latitude. The distance between the center point and the
-     * edges of the box is defined in meters by the given distance. Based on standard
-     * EPSG:4326 long/lat projection. The result is an array of length 4 where
-     * the values at each index are:
+     * Returns boundaries of a box shape which centre is the point defined by
+     * the given longitude and latitude. The distance between the center point
+     * and the edges of the box is defined in meters by the given distance.
+     * Based on standard EPSG:4326 long/lat projection. The result is an array
+     * of length 4 where the values at each index are:
      *
      * <ul>
      * <li>Index 0: Maximum latitude (north edge of box shape).</li>
@@ -109,11 +108,11 @@ public class GeoUtils
      * @param to the end point.
      * @return the orthodromic distance between the given points.
      */
-    public static double getDistanceBetweenTwoPoints( Point2D from, Point2D to)
+    public static double getDistanceBetweenTwoPoints( Point2D from, Point2D to )
     {
         GeodeticCalculator calc = new GeodeticCalculator();
         calc.setStartingGeographicPoint( from );
-        calc.setDestinationGeographicPoint( to);
+        calc.setDestinationGeographicPoint( to );
 
         return calc.getOrthodromicDistance();
     }
@@ -128,8 +127,9 @@ public class GeoUtils
     public static Point getGeoJsonPoint( double longitude, double latitude )
         throws IOException
     {
-        Point point = new GeometryJSON().readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
-            + latitude + "]}" ) );
+        Point point = new GeometryJSON()
+            .readPoint( new StringReader( "{\"type\":\"Point\", \"coordinates\":[" + longitude + ","
+                + latitude + "]}" ) );
 
         point.setSRID( SRID );
 
@@ -171,7 +171,7 @@ public class GeoUtils
 
             Point point = getGeoJsonPoint( longitude, latitude );
 
-            FeatureType featureType = FeatureType.getTypeFromName(geometry.getGeometryType());
+            FeatureType featureType = FeatureType.getTypeFromName( geometry.getGeometryType() );
 
             if ( point != null && point.isValid() )
             {
@@ -197,10 +197,11 @@ public class GeoUtils
 
     /**
      * Escapes the String encoded SVG.
+     *
      * @param svg the String encoded SVG.
      * @return the escaped representation.
      */
-    public static String replaceUnsafeSvgText(String svg )
+    public static String replaceUnsafeSvgText( String svg )
     {
         if ( svg == null )
         {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.icon;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.icon;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.springframework.core.io.Resource;
+package org.hisp.dhis.icon;
 
 import java.util.Collection;
 import java.util.Optional;
+
+import org.springframework.core.io.Resource;
 
 /**
  * @author Kristian Wærstad
@@ -46,7 +45,8 @@ public interface IconService
     Collection<IconData> getIcons();
 
     /**
-     * Gets info about the icons in the system tagged with all the keywords in a collection
+     * Gets info about the icons in the system tagged with all the keywords in a
+     * collection
      *
      * @param keywords collection of keywords
      * @return a collection of matching icons

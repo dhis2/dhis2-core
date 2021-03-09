@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,10 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
-import java.util.List;
 import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.collection.UniqueArrayList;
@@ -76,14 +75,16 @@ public class AnalyticsTable
     {
     }
 
-    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns )
     {
         this.tableType = tableType;
         this.dimensionColumns = dimensionColumns;
         this.valueColumns = valueColumns;
     }
 
-    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns, List<AnalyticsTableColumn> valueColumns, Program program )
+    public AnalyticsTable( AnalyticsTableType tableType, List<AnalyticsTableColumn> dimensionColumns,
+        List<AnalyticsTableColumn> valueColumns, Program program )
     {
         this( tableType, dimensionColumns, valueColumns );
         this.program = program;
@@ -105,7 +106,9 @@ public class AnalyticsTable
     {
         Assert.notNull( year, "Year must be specified" );
 
-        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate, false ); //TODO approval
+        AnalyticsTablePartition tablePartition = new AnalyticsTablePartition( this, year, startDate, endDate,
+            false ); // TODO
+        // approval
         this.tablePartitions.add( tablePartition );
 
         return this;
@@ -195,8 +198,8 @@ public class AnalyticsTable
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ( ( tableType == null ) ? 0 : tableType.hashCode() );
-        result = prime * result + ( ( program == null ) ? 0 : program.hashCode() );
+        result = prime * result + ((tableType == null) ? 0 : tableType.hashCode());
+        result = prime * result + ((program == null) ? 0 : program.hashCode());
         return result;
     }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,14 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
-import com.google.api.client.util.Sets;
-import com.google.api.client.util.Strings;
-import com.google.common.collect.Streams;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -46,19 +48,9 @@ import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -198,7 +190,6 @@ public class EventTrackerConverterService
                 programStageInstance.setUid( CodeGenerator.generateUid() );
             }
 
-
             programStageInstance.setProgramStage( programStage );
             programStageInstance.setOrganisationUnit( organisationUnit );
             programStageInstance.setExecutionDate( DateUtils.parseDate( e.getOccurredAt() ) );
@@ -245,7 +236,8 @@ public class EventTrackerConverterService
             return preheat.getEnrollment( identifier, program.getUid() );
         }
 
-        // no valid enrollment given and program not single event, just return null
+        // no valid enrollment given and program not single event, just return
+        // null
         return null;
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fieldfilter;
 
 import java.util.Arrays;
 import java.util.List;
@@ -54,12 +53,12 @@ public interface FieldFilterService
 
     /**
      * This method will build and return a CollectionNode based on the given
-     * parameters. This method works with POJO/DTO without nested objects. It's main
-     * goal is to handle simple view objects and DTOs that do not have a real schema
-     * and/or that are not persisted. This method doesn't evaluates any complex
-     * logic based on Schema, sharing or access details. Its goal is simply to
-     * return back a CollectionNode based on the concrete "klass" and its direct
-     * attributes.
+     * parameters. This method works with POJO/DTO without nested objects. It's
+     * main goal is to handle simple view objects and DTOs that do not have a
+     * real schema and/or that are not persisted. This method doesn't evaluates
+     * any complex logic based on Schema, sharing or access details. Its goal is
+     * simply to return back a CollectionNode based on the concrete "klass" and
+     * its direct attributes.
      *
      * @param klass the concrete class
      * @param fieldFilterParams the fields to be added to the response

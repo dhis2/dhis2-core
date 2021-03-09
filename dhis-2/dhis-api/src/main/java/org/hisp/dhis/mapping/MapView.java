@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapping;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.mapping;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapping;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableList;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.common.BaseAnalyticalObject;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -58,11 +57,12 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableList;
 
 /**
  * For analytical data, organisation units and indicators/data elements are
@@ -76,19 +76,28 @@ public class MapView
     implements EventAnalyticalObject, MetadataObject, EmbeddedObject
 {
     public static final String LAYER_BOUNDARY = "boundary";
+
     public static final String LAYER_FACILITY = "facility";
+
     public static final String LAYER_SYMBOL = "symbol";
+
     public static final String LAYER_EVENT = "event";
+
     public static final String LAYER_THEMATIC1 = "thematic1";
+
     public static final String LAYER_THEMATIC2 = "thematic2";
+
     public static final String LAYER_THEMATIC3 = "thematic3";
+
     public static final String LAYER_THEMATIC4 = "thematic4";
+
     public static final String LAYER_EARTH_ENGINE = "earthEngine";
 
     public static final Integer METHOD_EQUAL_INTERVALS = 2;
+
     public static final Integer METHOD_EQUAL_COUNTS = 3;
 
-    public static final ImmutableList<String> DATA_LAYERS = ImmutableList.<String>builder().add(
+    public static final ImmutableList<String> DATA_LAYERS = ImmutableList.<String> builder().add(
         LAYER_THEMATIC1, LAYER_THEMATIC2, LAYER_THEMATIC3, LAYER_THEMATIC4 ).build();
 
     private Program program;
@@ -138,8 +147,8 @@ public class MapView
     private LegendSet legendSet;
 
     /**
-     * Color in hex format to use for features with no corresponding
-     * data. Must be exactly 7 characters.
+     * Color in hex format to use for features with no corresponding data. Must
+     * be exactly 7 characters.
      */
     private String noDataColor;
 
@@ -218,7 +227,8 @@ public class MapView
 
     @Override
     public void init( User user, Date date, OrganisationUnit organisationUnit,
-        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups, I18nFormat format )
+        List<OrganisationUnit> organisationUnitsAtLevel, List<OrganisationUnit> organisationUnitsInGroups,
+        I18nFormat format )
     {
         this.user = user;
         this.relativePeriodDate = date;
@@ -228,8 +238,8 @@ public class MapView
     }
 
     /**
-     * Populates analytical properties. Organisation unit dimension is
-     * fixed to "rows" currently.
+     * Populates analytical properties. Organisation unit dimension is fixed to
+     * "rows" currently.
      */
     @Override
     public void populateAnalyticalProperties()
@@ -259,7 +269,8 @@ public class MapView
 
     public List<OrganisationUnit> getAllOrganisationUnits()
     {
-        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, user, true, organisationUnitsAtLevel, organisationUnitsInGroups, format );
+        DimensionalObject object = getDimensionalObject( ORGUNIT_DIM_ID, relativePeriodDate, user, true,
+            organisationUnitsAtLevel, organisationUnitsInGroups, format );
 
         return object != null ? DimensionalObjectUtils.asTypedList( object.getItems() ) : null;
     }

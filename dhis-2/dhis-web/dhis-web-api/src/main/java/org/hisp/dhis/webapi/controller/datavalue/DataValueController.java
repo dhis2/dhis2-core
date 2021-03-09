@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,18 @@ package org.hisp.dhis.webapi.controller.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.datavalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -64,16 +74,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 /**
  * @author Lars Helge Overland
@@ -142,15 +142,20 @@ public class DataValueController
         throws WebMessageException
     {
 
-        boolean strictPeriods = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_PERIODS);
+        boolean strictPeriods = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_PERIODS );
 
-        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS);
+        boolean strictCategoryOptionCombos = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_CATEGORY_OPTION_COMBOS );
 
-        boolean strictOrgUnits = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS);
+        boolean strictOrgUnits = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.DATA_IMPORT_STRICT_ORGANISATION_UNITS );
 
-        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager.getSystemSetting(SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO);
+        boolean requireCategoryOptionCombo = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.DATA_IMPORT_REQUIRE_CATEGORY_OPTION_COMBO );
 
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting(SettingKey.FILE_RESOURCE_RETENTION_STRATEGY);
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -160,7 +165,8 @@ public class DataValueController
 
         DataElement dataElement = dataValueValidation.getAndValidateDataElementAccess( de );
 
-        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co, requireCategoryOptionCombo );
+        CategoryOptionCombo categoryOptionCombo = dataValueValidation.getAndValidateCategoryOptionCombo( co,
+            requireCategoryOptionCombo );
 
         CategoryOptionCombo attributeOptionCombo = dataValueValidation.getAndValidateAttributeOptionCombo( cc, cp );
 
@@ -176,7 +182,7 @@ public class DataValueController
 
         dataValueValidation.validateAttributeOptionCombo( attributeOptionCombo, period, dataSet, dataElement );
 
-        value = dataValueValidation.validateAndNormalizeDataValue ( value, dataElement );
+        value = dataValueValidation.validateAndNormalizeDataValue( value, dataElement );
 
         dataValueValidation.validateComment( comment );
 
@@ -193,19 +199,22 @@ public class DataValueController
         if ( strictPeriods && !dataElement.getPeriodTypes().contains( period.getPeriodType() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
-                "Period type of period: " + period.getIsoDate() + " not valid for data element: " + dataElement.getUid() ) );
+                "Period type of period: " + period.getIsoDate() + " not valid for data element: "
+                    + dataElement.getUid() ) );
         }
 
         if ( strictCategoryOptionCombos && !dataElement.getCategoryOptionCombos().contains( categoryOptionCombo ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
-                "Category option combo: " + categoryOptionCombo.getUid() + " must be part of category combo of data element: " + dataElement.getUid() ) );
+                "Category option combo: " + categoryOptionCombo.getUid()
+                    + " must be part of category combo of data element: " + dataElement.getUid() ) );
         }
 
         if ( strictOrgUnits && !organisationUnit.hasDataElement( dataElement ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
-                "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: " + organisationUnit.getUid() ) );
+                "Data element: " + dataElement.getUid() + " must be assigned through data sets to organisation unit: "
+                    + organisationUnit.getUid() ) );
         }
 
         // ---------------------------------------------------------------------
@@ -214,7 +223,8 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, force ) )
         {
-            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
+                attributeOptionCombo );
         }
 
         // ---------------------------------------------------------------------
@@ -231,7 +241,8 @@ public class DataValueController
 
         Date now = new Date();
 
-        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue persistedDataValue = dataValueService.getDataValue( dataElement, period, organisationUnit,
+            categoryOptionCombo, attributeOptionCombo );
 
         FileResource fileResource = null;
 
@@ -254,7 +265,8 @@ public class DataValueController
         }
         else
         {
-            if ( value == null && comment == null && followUp == null && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
+            if ( value == null && comment == null && followUp == null
+                && ValueType.TRUE_ONLY.equals( dataElement.getValueType() ) )
             {
                 dataValueService.deleteDataValue( persistedDataValue );
                 return;
@@ -277,7 +289,8 @@ public class DataValueController
                 }
                 catch ( AuthorizationException exception )
                 {
-                    // If we fail to delete the fileResource now, mark it as unassigned for removal later
+                    // If we fail to delete the fileResource now, mark it as
+                    // unassigned for removal later
                     fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
                 }
 
@@ -334,7 +347,8 @@ public class DataValueController
         @RequestParam( required = false ) boolean force, HttpServletResponse response )
         throws WebMessageException
     {
-        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager.getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
+        FileResourceRetentionStrategy retentionStrategy = (FileResourceRetentionStrategy) systemSettingManager
+            .getSystemSetting( SettingKey.FILE_RESOURCE_RETENTION_STRATEGY );
 
         User currentUser = currentUserService.getCurrentUser();
 
@@ -360,7 +374,8 @@ public class DataValueController
 
         if ( !inputUtils.canForceDataInput( currentUser, force ) )
         {
-            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit, attributeOptionCombo );
+            dataValueValidation.validateDataSetNotLocked( currentUser, dataElement, period, dataSet, organisationUnit,
+                attributeOptionCombo );
         }
 
         // ---------------------------------------------------------------------
@@ -373,18 +388,19 @@ public class DataValueController
         // Delete data value
         // ---------------------------------------------------------------------
 
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+            attributeOptionCombo );
 
         if ( dataValue == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Data value cannot be deleted because it does not exist" ) );
         }
 
         if ( dataValue.getDataElement().isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE )
         {
             fileResourceService.deleteFileResource( dataValue.getValue() );
         }
-
 
         dataValueService.deleteDataValue( dataValue );
     }
@@ -424,7 +440,8 @@ public class DataValueController
         // Get data value
         // ---------------------------------------------------------------------
 
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+            attributeOptionCombo );
 
         if ( dataValue == null )
         {
@@ -456,7 +473,7 @@ public class DataValueController
         @RequestParam( required = false ) String cp,
         @RequestParam String pe,
         @RequestParam String ou,
-        @RequestParam ( defaultValue = "original" ) String dimension,
+        @RequestParam( defaultValue = "original" ) String dimension,
         HttpServletResponse response, HttpServletRequest request )
         throws WebMessageException
     {
@@ -485,13 +502,13 @@ public class DataValueController
         // Get data value
         // ---------------------------------------------------------------------
 
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+            attributeOptionCombo );
 
         if ( dataValue == null )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Data value does not exist" ) );
         }
-
 
         // ---------------------------------------------------------------------
         // Get file resource
@@ -503,7 +520,8 @@ public class DataValueController
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "A data value file resource with id " + uid + " does not exist." ) );
         }
 
         FileResourceStorageStatus storageStatus = fileResource.getStorageStatus();
@@ -511,11 +529,14 @@ public class DataValueController
         if ( storageStatus != FileResourceStorageStatus.STORED )
         {
             // Special case:
-            // The FileResource exists and has been tied to this DataValue, however, the underlying file
-            // content is still not stored to the (most likely external) file store provider.
+            // The FileResource exists and has been tied to this DataValue,
+            // however, the underlying file
+            // content is still not stored to the (most likely external) file
+            // store provider.
 
             // HTTP 409, for lack of a more suitable status code
-            WebMessage webMessage = WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+            WebMessage webMessage = WebMessageUtils.conflict(
+                "The content is being processed and is not available yet. Try again later.",
                 "The content requested is in transit to the file store and will be available at a later time." );
             webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
 
@@ -524,11 +545,12 @@ public class DataValueController
 
         response.setContentType( fileResource.getContentType() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
-        response.setHeader( HttpHeaders.CONTENT_LENGTH, String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
+        response.setHeader( HttpHeaders.CONTENT_LENGTH,
+            String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         setNoStore( response );
         try
         {
-           fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
+            fileResourceService.copyFileResourceContent( fileResource, response.getOutputStream() );
         }
         catch ( IOException e )
         {

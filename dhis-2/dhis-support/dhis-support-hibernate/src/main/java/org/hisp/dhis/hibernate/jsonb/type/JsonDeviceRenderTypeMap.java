@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate.jsonb.type;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,20 @@ package org.hisp.dhis.hibernate.jsonb.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.databind.JavaType;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.render.RenderDevice;
-import org.hisp.dhis.render.type.RenderingObject;
+package org.hisp.dhis.hibernate.jsonb.type;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Properties;
 
-public class JsonDeviceRenderTypeMap extends JsonBinaryType
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
+import org.hisp.dhis.render.type.RenderingObject;
+
+import com.fasterxml.jackson.databind.JavaType;
+
+public class JsonDeviceRenderTypeMap
+    extends JsonBinaryType
 {
     private Class<? extends RenderingObject> renderType;
 
@@ -52,7 +53,7 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
     {
         try
         {
-            LinkedHashMap<RenderDevice, LinkedHashMap<String,String>> map = reader.readValue( content );
+            LinkedHashMap<RenderDevice, LinkedHashMap<String, String>> map = reader.readValue( content );
             return convertMapToObject( map );
         }
         catch ( IOException | IllegalAccessException | InstantiationException e )
@@ -84,14 +85,19 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
         }
     }
 
-    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject( LinkedHashMap<RenderDevice,LinkedHashMap<String,String>> map ) throws IllegalAccessException, InstantiationException {
+    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject(
+        LinkedHashMap<RenderDevice, LinkedHashMap<String, String>> map )
+        throws IllegalAccessException,
+        InstantiationException
+    {
         DeviceRenderTypeMap deviceRenderTypeMap = new DeviceRenderTypeMap<>();
-        for( RenderDevice renderDevice : map.keySet() )
+        for ( RenderDevice renderDevice : map.keySet() )
         {
-            LinkedHashMap<String,String> renderObjectMap = map.get( renderDevice );
+            LinkedHashMap<String, String> renderObjectMap = map.get( renderDevice );
             RenderingObject renderingObject = renderType.newInstance();
-            renderingObject.setType( Enum.valueOf( renderingObject.getRenderTypeClass(), renderObjectMap.get( RenderingObject._TYPE ) ) );
-            deviceRenderTypeMap.put(  renderDevice , renderingObject );
+            renderingObject.setType(
+                Enum.valueOf( renderingObject.getRenderTypeClass(), renderObjectMap.get( RenderingObject._TYPE ) ) );
+            deviceRenderTypeMap.put( renderDevice, renderingObject );
         }
         return deviceRenderTypeMap;
     }

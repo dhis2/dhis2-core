@@ -1,7 +1,5 @@
-package org.hisp.dhis.pushanalysis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.pushanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.pushanalysis;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
@@ -42,6 +41,8 @@ import java.util.*;
 import java.util.concurrent.Future;
 
 import javax.imageio.ImageIO;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.velocity.VelocityContext;
 import org.hisp.dhis.common.IdentifiableObjectStore;
@@ -80,8 +81,6 @@ import org.springframework.util.MimeTypeUtils;
 import com.google.common.collect.Sets;
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Stian Sandvold
@@ -133,7 +132,7 @@ public class DefaultPushAnalysisService
         checkNotNull( fileResourceService );
         checkNotNull( currentUserService );
         checkNotNull( mapGenerationService );
-        checkNotNull(visualizationService);
+        checkNotNull( visualizationService );
         checkNotNull( chartImageGenerator );
         checkNotNull( i18nManager );
         checkNotNull( messageSender );
@@ -153,9 +152,9 @@ public class DefaultPushAnalysisService
         this.pushAnalysisStore = pushAnalysisStore;
     }
 
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
     // PushAnalysisService implementation
-    //----------------------------------------------------------------------
+    // ----------------------------------------------------------------------
 
     @Override
     public PushAnalysis getByUid( String uid )
@@ -172,17 +171,17 @@ public class DefaultPushAnalysisService
     @Override
     public void runPushAnalysis( String uid, JobConfiguration jobId )
     {
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Set up
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         PushAnalysis pushAnalysis = pushAnalysisStore.getByUid( uid );
         Set<User> receivingUsers = new HashSet<>();
         notifier.clear( jobId );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Pre-check
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         log( jobId, NotificationLevel.INFO, "Starting pre-check on PushAnalysis", false, null );
 
@@ -196,14 +195,16 @@ public class DefaultPushAnalysisService
         if ( pushAnalysis.getRecipientUserGroups().size() == 0 )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis.", true, null );
+                "PushAnalysis with uid '" + uid + "' has no userGroups assigned. Terminating PushAnalysis.", true,
+                null );
             return;
         }
 
         if ( pushAnalysis.getDashboard() == null )
         {
             log( jobId, NotificationLevel.ERROR,
-                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis.", true, null );
+                "PushAnalysis with uid '" + uid + "' has no dashboard assigned. Terminating PushAnalysis.", true,
+                null );
             return;
         }
 
@@ -217,9 +218,9 @@ public class DefaultPushAnalysisService
 
         log( jobId, NotificationLevel.INFO, "pre-check completed successfully", false, null );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Compose list of users that can receive PushAnalysis
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         log( jobId, NotificationLevel.INFO, "Composing list of receiving users", false, null );
 
@@ -241,9 +242,9 @@ public class DefaultPushAnalysisService
         log( jobId, NotificationLevel.INFO, "List composed. " + receivingUsers.size() + " eligible users found.",
             false, null );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Generating reports
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         log( jobId, NotificationLevel.INFO, "Generating and sending reports", false, null );
 
@@ -254,7 +255,8 @@ public class DefaultPushAnalysisService
                 String title = pushAnalysis.getTitle();
                 String html = generateHtmlReport( pushAnalysis, user, jobId );
 
-                // TODO: Better handling of messageStatus; Might require refactoring of EmailMessageSender
+                // TODO: Better handling of messageStatus; Might require
+                // refactoring of EmailMessageSender
                 @SuppressWarnings( "unused" )
                 Future<OutboundMessageResponse> status = messageSender
                     .sendMessageAsync( title, html, "", null, Sets.newHashSet( user ), true );
@@ -264,7 +266,8 @@ public class DefaultPushAnalysisService
             {
                 log( jobId, NotificationLevel.ERROR,
                     "Could not create or send report for PushAnalysis '" + pushAnalysis.getName() + "' and User '" +
-                        user.getUsername() + "': " + e.getMessage(), false, e );
+                        user.getUsername() + "': " + e.getMessage(),
+                    false, e );
             }
         }
     }
@@ -281,7 +284,8 @@ public class DefaultPushAnalysisService
     {
         if ( jobId == null )
         {
-            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS, currentUserService.getCurrentUser().getUid(), true );
+            jobId = new JobConfiguration( "inMemoryGenerateHtmlReport", JobType.PUSH_ANALYSIS,
+                currentUserService.getCurrentUser().getUid(), true );
             notifier.clear( jobId );
         }
 
@@ -289,9 +293,9 @@ public class DefaultPushAnalysisService
         log( jobId, NotificationLevel.INFO, "Generating PushAnalysis for user '" + user.getUsername() + "'.", false,
             null );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Pre-process the dashboardItem and store them as Strings
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         HashMap<String, String> itemHtml = new HashMap<>();
         HashMap<String, String> itemLink = new HashMap<>();
@@ -312,9 +316,9 @@ public class DefaultPushAnalysisService
         itemHtml.put( "instanceBaseUrl", dhisConfigurationProvider.getServerBaseUrl() );
         itemHtml.put( "instanceName", (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE ) );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Set up template context, including pre-processed dashboard items
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         final VelocityContext context = new VelocityContext();
 
@@ -323,9 +327,9 @@ public class DefaultPushAnalysisService
         context.put( "itemLink", itemLink );
         context.put( "encoder", encoder );
 
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
         // Render template and return result after removing newline characters
-        //----------------------------------------------------------------------
+        // ----------------------------------------------------------------------
 
         StringWriter stringWriter = new StringWriter();
 
@@ -338,15 +342,16 @@ public class DefaultPushAnalysisService
 
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     /**
-     * Finds the dashboardItem's type and calls the associated method for generating the resource (either URL or HTML)
+     * Finds the dashboardItem's type and calls the associated method for
+     * generating the resource (either URL or HTML)
      *
-     * @param item   to generate resource
-     * @param user   to generate for
+     * @param item to generate resource
+     * @param user to generate for
      * @param jobId for logging
      */
     private String getItemHtml( DashboardItem item, User user, JobConfiguration jobId )
@@ -354,20 +359,20 @@ public class DefaultPushAnalysisService
     {
         switch ( item.getType() )
         {
-            case MAP:
-                return generateMapHtml( item.getMap(), user );
-            case VISUALIZATION:
-                return generateVisualizationHtml( item.getVisualization(), user );
-            case EVENT_CHART:
-                // TODO: Add support for EventCharts
-                return "";
-            case EVENT_REPORT:
-                // TODO: Add support for EventReports
-                return "";
-            default:
-                log( jobId, NotificationLevel.WARN,
-                    "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
-                return "";
+        case MAP:
+            return generateMapHtml( item.getMap(), user );
+        case VISUALIZATION:
+            return generateVisualizationHtml( item.getVisualization(), user );
+        case EVENT_CHART:
+            // TODO: Add support for EventCharts
+            return "";
+        case EVENT_REPORT:
+            // TODO: Add support for EventReports
+            return "";
+        default:
+            log( jobId, NotificationLevel.WARN,
+                "Dashboard item of type '" + item.getType() + "' not supported. Skipping.", false, null );
+            return "";
         }
     }
 
@@ -377,16 +382,16 @@ public class DefaultPushAnalysisService
 
         switch ( item.getType() )
         {
-            case MAP:
-                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
-                break;
-            case CHART:
-            case REPORT_TABLE:
-            case VISUALIZATION:
-                result += getVisualizationLink( item.getVisualization() );
-                break;
-            default:
-                break;
+        case MAP:
+            result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
+            break;
+        case CHART:
+        case REPORT_TABLE:
+        case VISUALIZATION:
+            result += getVisualizationLink( item.getVisualization() );
+            break;
+        default:
+            break;
         }
 
         return result;
@@ -411,7 +416,7 @@ public class DefaultPushAnalysisService
     /**
      * Returns an absolute URL to an image representing the map input
      *
-     * @param map  map to render and upload
+     * @param map map to render and upload
      * @param user user to generate chart for
      * @return absolute URL to uploaded image
      */
@@ -455,7 +460,7 @@ public class DefaultPushAnalysisService
      * Returns an absolute URL to an image representing the chart input
      *
      * @param visualization chart to render and upload
-     * @param user  user to generate chart for
+     * @param user user to generate chart for
      * @return absolute URL to uploaded image
      */
     private String generateChartHtml( final Visualization visualization, User user )
@@ -487,7 +492,7 @@ public class DefaultPushAnalysisService
     /**
      * Uploads a byte array using FileResource and ExternalFileResource
      *
-     * @param name  name of the file to be stored
+     * @param name name of the file to be stored
      * @param bytes the byte array representing the file to be stored
      * @return url pointing to the uploaded resource
      */
@@ -496,11 +501,11 @@ public class DefaultPushAnalysisService
     {
         FileResource fileResource = new FileResource(
             name,
-            MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from PushAnalysis is PNG.
+            MimeTypeUtils.IMAGE_PNG.toString(), // All files uploaded from
+            // PushAnalysis is PNG.
             bytes.length,
             ByteSource.wrap( bytes ).hash( Hashing.md5() ).toString(),
-            FileResourceDomain.PUSH_ANALYSIS
-        );
+            FileResourceDomain.PUSH_ANALYSIS );
 
         String accessToken = saveFileResource( fileResource, bytes );
 
@@ -511,11 +516,11 @@ public class DefaultPushAnalysisService
     /**
      * Helper method for logging both for custom logger and for notifier.
      *
-     * @param jobId            associated with the task running (for notifier)
+     * @param jobId associated with the task running (for notifier)
      * @param notificationLevel The level this message should be logged
-     * @param message           message to be logged
-     * @param completed         a flag indicating the task is completed (notifier)
-     * @param exception         exception if one exists (logger)
+     * @param message message to be logged
+     * @param completed a flag indicating the task is completed (notifier)
+     * @param exception exception if one exists (logger)
      */
     private void log( JobConfiguration jobId, NotificationLevel notificationLevel, String message, boolean completed,
         Throwable exception )
@@ -524,28 +529,30 @@ public class DefaultPushAnalysisService
 
         switch ( notificationLevel )
         {
-            case DEBUG:
-                log.debug( message );
-            case INFO:
-                log.info( message );
-                break;
-            case WARN:
-                log.warn( message, exception );
-                break;
-            case ERROR:
-                log.error( message, exception );
-                break;
-            default:
-                break;
+        case DEBUG:
+            log.debug( message );
+        case INFO:
+            log.info( message );
+            break;
+        case WARN:
+            log.warn( message, exception );
+            break;
+        case ERROR:
+            log.error( message, exception );
+            break;
+        default:
+            break;
         }
     }
 
     /**
-     * Helper method for asynchronous file resource saving. Done to force a new session for each file resource.
-     * Adding all the file resources in the same session caused problems with the upload callback.
-     * @param fileResource  file resource to save
-     * @param bytes         file data
-     * @return              access token of the external file resource
+     * Helper method for asynchronous file resource saving. Done to force a new
+     * session for each file resource. Adding all the file resources in the same
+     * session caused problems with the upload callback.
+     *
+     * @param fileResource file resource to save
+     * @param bytes file data
+     * @return access token of the external file resource
      */
     private String saveFileResource( FileResource fileResource, byte[] bytes )
     {

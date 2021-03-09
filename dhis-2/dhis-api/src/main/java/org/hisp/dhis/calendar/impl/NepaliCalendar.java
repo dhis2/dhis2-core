@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.calendar.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar.impl;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hisp.dhis.calendar.AbstractCalendar;
 import org.hisp.dhis.calendar.Calendar;
@@ -38,10 +41,6 @@ import org.joda.time.DateTimeZone;
 import org.joda.time.Days;
 import org.joda.time.chrono.ISOChronology;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,7 +76,7 @@ public class NepaliCalendar extends AbstractCalendar
         DateTime dateTime = START_ISO.toJodaDateTime();
 
         int totalDays = 0;
-        
+
         for ( int year = START_NEPAL.getYear(); year < dateTimeUnit.getYear(); year++ )
         {
             totalDays += getYearTotal( year );
@@ -115,14 +114,14 @@ public class NepaliCalendar extends AbstractCalendar
     {
         switch ( type )
         {
-            case ISO8601_YEAR:
-                return toYearIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_MONTH:
-                return toMonthIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_WEEK:
-                return toWeekIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_DAY:
-                return toDayIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_YEAR:
+            return toYearIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_MONTH:
+            return toMonthIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_WEEK:
+            return toWeekIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_DAY:
+            return toDayIsoInterval( dateTimeUnit, offset, length );
         }
 
         return null;
@@ -150,7 +149,8 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public int isoWeek( DateTimeUnit dateTimeUnit )
     {
-        DateTime dateTime = toIso( dateTimeUnit ).toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
+        DateTime dateTime = toIso( dateTimeUnit )
+            .toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
         return dateTime.getWeekyear();
     }
 
@@ -163,7 +163,8 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public int isoWeekday( DateTimeUnit dateTimeUnit )
     {
-        DateTime dateTime = toIso( dateTimeUnit ).toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
+        DateTime dateTime = toIso( dateTimeUnit )
+            .toJodaDateTime( ISOChronology.getInstance( DateTimeZone.getDefault() ) );
         return dateTime.getDayOfWeek();
     }
 
@@ -227,7 +228,8 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit minusYears( DateTimeUnit dateTimeUnit, int years )
     {
-        DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() - years, dateTimeUnit.getMonth(), dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
+        DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() - years, dateTimeUnit.getMonth(),
+            dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
         updateDateUnit( result );
 
         return result;
@@ -303,7 +305,8 @@ public class NepaliCalendar extends AbstractCalendar
     @Override
     public DateTimeUnit plusYears( DateTimeUnit dateTimeUnit, int years )
     {
-        DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() + years, dateTimeUnit.getMonth(), dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
+        DateTimeUnit result = new DateTimeUnit( dateTimeUnit.getYear() + years, dateTimeUnit.getMonth(),
+            dateTimeUnit.getDay(), dateTimeUnit.getDayOfWeek() );
         updateDateUnit( result );
 
         return result;
@@ -350,7 +353,7 @@ public class NepaliCalendar extends AbstractCalendar
         {
             return minusDays( dateTimeUnit, Math.abs( days ) );
         }
-        
+
         int curYear = dateTimeUnit.getYear();
         int curMonth = dateTimeUnit.getMonth();
         int curDay = dateTimeUnit.getDay();
@@ -394,9 +397,9 @@ public class NepaliCalendar extends AbstractCalendar
         return START_ISO;
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Helpers
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     private int getYearTotal( int year )
     {
@@ -412,7 +415,8 @@ public class NepaliCalendar extends AbstractCalendar
         return CONVERSION_MAP.get( year )[0];
     }
 
-    // check if day is more than current maximum for month, don't overflow, just set to maximum
+    // check if day is more than current maximum for month, don't overflow, just
+    // set to maximum
     // set day of week
     private void updateDateUnit( DateTimeUnit result )
     {
@@ -517,121 +521,122 @@ public class NepaliCalendar extends AbstractCalendar
         return new DateInterval( from, to, DateIntervalType.ISO8601_DAY );
     }
 
-    //------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------
     // Conversion map for Nepali calendar
     //
     // Based on map from:
     // http://forjavaprogrammers.blogspot.com/2012/06/how-to-convert-english-date-to-nepali.html
-    //------------------------------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------
 
     /**
      * Map that gives an array of month lengths based on Nepali year lookup.
-     * Index 1 - 12 is used for months, index 0 is used to give year total (lazy calculated).
+     * Index 1 - 12 is used for months, index 0 is used to give year total (lazy
+     * calculated).
      */
     private static final Map<Integer, int[]> CONVERSION_MAP = new HashMap<>();
 
     static
     {
-        CONVERSION_MAP.put( 2000, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2001, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2002, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2003, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2004, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2005, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2006, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2007, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2008, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
-        CONVERSION_MAP.put( 2009, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2010, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2011, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2012, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2013, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2014, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2015, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2016, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2017, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2018, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2019, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2020, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2021, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2022, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2023, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2024, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2025, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2026, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2027, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2028, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2029, new int[]{ 0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2030, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2031, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2032, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2033, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2034, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2035, new int[]{ 0, 30, 32, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
-        CONVERSION_MAP.put( 2036, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2037, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2038, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2039, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2040, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2041, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2042, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2043, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2044, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2045, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2046, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2047, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2048, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2049, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2050, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2051, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2052, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2053, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2054, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2055, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2056, new int[]{ 0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2057, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2058, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2059, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2060, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2061, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2062, new int[]{ 0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2063, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2064, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2065, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2066, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
-        CONVERSION_MAP.put( 2067, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2068, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2069, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2070, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2071, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2072, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2073, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2074, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2075, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2076, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2077, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2078, new int[]{ 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2079, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2080, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2081, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2082, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2083, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2084, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2085, new int[]{ 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2086, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2087, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2088, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2089, new int[]{ 0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31 } );
-        CONVERSION_MAP.put( 2090, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2091, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2092, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
-        CONVERSION_MAP.put( 2093, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
-        CONVERSION_MAP.put( 2094, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2095, new int[]{ 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 29 } );
-        CONVERSION_MAP.put( 2096, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 32 } );
-        CONVERSION_MAP.put( 2097, new int[]{ 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2098, new int[]{ 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2099, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
-        CONVERSION_MAP.put( 2100, new int[]{ 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2000, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2001, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2002, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2003, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2004, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2005, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2006, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2007, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2008, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
+        CONVERSION_MAP.put( 2009, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2010, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2011, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2012, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2013, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2014, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2015, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2016, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2017, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2018, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2019, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2020, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2021, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2022, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2023, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2024, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2025, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2026, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2027, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2028, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2029, new int[] { 0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2030, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2031, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2032, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2033, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2034, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2035, new int[] { 0, 30, 32, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
+        CONVERSION_MAP.put( 2036, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2037, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2038, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2039, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2040, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2041, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2042, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2043, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2044, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2045, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2046, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2047, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2048, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2049, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2050, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2051, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2052, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2053, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2054, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2055, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2056, new int[] { 0, 31, 31, 32, 31, 32, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2057, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2058, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2059, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2060, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2061, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2062, new int[] { 0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2063, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2064, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2065, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2066, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
+        CONVERSION_MAP.put( 2067, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2068, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2069, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2070, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2071, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2072, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2073, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2074, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2075, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2076, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2077, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2078, new int[] { 0, 31, 31, 31, 32, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2079, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2080, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2081, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2082, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2083, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2084, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2085, new int[] { 0, 30, 32, 31, 32, 31, 30, 30, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2086, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2087, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2088, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2089, new int[] { 0, 30, 32, 31, 32, 31, 31, 29, 30, 29, 30, 29, 31 } );
+        CONVERSION_MAP.put( 2090, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2091, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2092, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
+        CONVERSION_MAP.put( 2093, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 29, 31 } );
+        CONVERSION_MAP.put( 2094, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2095, new int[] { 0, 31, 31, 32, 32, 31, 30, 30, 29, 30, 29, 30, 29 } );
+        CONVERSION_MAP.put( 2096, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 32 } );
+        CONVERSION_MAP.put( 2097, new int[] { 0, 31, 31, 31, 32, 31, 31, 29, 30, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2098, new int[] { 0, 31, 31, 32, 31, 31, 31, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2099, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 29, 30, 29, 30, 30 } );
+        CONVERSION_MAP.put( 2100, new int[] { 0, 31, 32, 31, 32, 31, 30, 30, 30, 29, 29, 30, 31 } );
     }
 }

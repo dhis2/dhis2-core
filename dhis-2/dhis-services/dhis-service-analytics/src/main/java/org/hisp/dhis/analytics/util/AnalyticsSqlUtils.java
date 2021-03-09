@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,29 +25,34 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.util;
 
 import org.apache.commons.lang3.StringUtils;
-
 import org.springframework.util.Assert;
 
 /**
- * Utilities for analytics SQL operations, compatible with PostgreSQL
- * and H2 database platforms.
+ * Utilities for analytics SQL operations, compatible with PostgreSQL and H2
+ * database platforms.
  *
  * @author Lars Helge Overland
  */
 public class AnalyticsSqlUtils
 {
     public static final String QUOTE = "\"";
+
     public static final String SINGLE_QUOTE = "'";
+
     public static final String ANALYTICS_TBL_ALIAS = "ax";
+
     public static final String DATE_PERIOD_STRUCT_ALIAS = "ps";
+
     public static final String ORG_UNIT_STRUCT_ALIAS = "ous";
+
     private static final String SEPARATOR = ".";
 
     /**
-     * Quotes the given relation (typically a column). Quotes part of
-     * the given relation are encoded (replaced by double quotes that is).
+     * Quotes the given relation (typically a column). Quotes part of the given
+     * relation are encoded (replaced by double quotes that is).
      *
      * @param relation the relation (typically a column).
      * @return the quoted relation.
@@ -58,7 +61,7 @@ public class AnalyticsSqlUtils
     {
         Assert.notNull( relation, "Relation must be specified" );
 
-        String rel = relation.replaceAll( QUOTE, ( QUOTE + QUOTE ) );
+        String rel = relation.replaceAll( QUOTE, (QUOTE + QUOTE) );
 
         return QUOTE + rel + QUOTE;
     }
@@ -117,22 +120,21 @@ public class AnalyticsSqlUtils
             value = value.replaceAll( SINGLE_QUOTE, SINGLE_QUOTE + SINGLE_QUOTE );
         }
 
-        return quote ? ( SINGLE_QUOTE + value + SINGLE_QUOTE ) : value;
+        return quote ? (SINGLE_QUOTE + value + SINGLE_QUOTE) : value;
     }
 
     /**
-     * <p>Returns a string containing closing parenthesis. The number of
-     * parenthesis is based on the number of missing closing parenthesis
-     * in the argument string.
+     * <p>
+     * Returns a string containing closing parenthesis. The number of
+     * parenthesis is based on the number of missing closing parenthesis in the
+     * argument string.
      *
-     * <p>Example:
-     *
-     * {@code}
-     * input: "((( ))" -> output: ")"
-     * {@code}
+     * <p>
+     * Example:
+     * <p>
+     * {@code} input: "((( ))" -> output: ")" {@code}
      *
      * @param str a string.
-     *
      * @return a String containing 0 or more "closing" parenthesis
      */
     public static String getClosingParentheses( String str )

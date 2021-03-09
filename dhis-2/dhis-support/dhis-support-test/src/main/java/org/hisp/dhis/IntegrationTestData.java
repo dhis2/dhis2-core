@@ -1,7 +1,5 @@
-package org.hisp.dhis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,24 +33,26 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * This annotation is used within a Docker-based integration test to inject data into the
- * Dockerized Postgresql database.
- * The annotation expects a "path" property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
- * statements to run prior to each test. The file must be present in the classpath (e.g. src/main/resources/)
- * The data file is going to be injected only once per each test class.
+ * This annotation is used within a Docker-based integration test to inject data
+ * into the Dockerized Postgresql database. The annotation expects a "path"
+ * property to point to the actual SQL file containing the INSERT/UPDATE/DELETE
+ * statements to run prior to each test. The file must be present in the
+ * classpath (e.g. src/main/resources/) The data file is going to be injected
+ * only once per each test class.
  *
- * <pre>{@code
+ * <pre>
+ * {@code
  *
- * @org.junit.experimental.categories.Category( IntegrationTest.class )
- * @IntegrationTestData(path = "sql/mydata.sql")
+ * &#64;org.junit.experimental.categories.Category( IntegrationTest.class )
+ * &#64;IntegrationTestData(path = "sql/mydata.sql")
  * public class DefaultTrackedEntityInstanceStoreTest
  *     extends
  *     IntegrationTestBase
  * {
  *   ...
  * }
- * }</pre>
- *
+ * }
+ * </pre>
  *
  * @author Luciano Fiandesio
  */

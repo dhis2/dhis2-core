@@ -1,7 +1,5 @@
-package org.hisp.dhis.apphub;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.apphub;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.appmanager.AppStatus;
+package org.hisp.dhis.apphub;
 
 import java.util.List;
+
+import org.hisp.dhis.appmanager.AppStatus;
 
 /**
  * Created by zubair@dhis2.org on 07.09.17.
@@ -38,13 +37,13 @@ import java.util.List;
 public interface AppHubService
 {
     /**
-     * Proxy method for the App Hub API. Returns the response from
-     * the given query for the given API version.
+     * Proxy method for the App Hub API. Returns the response from the given
+     * query for the given API version.
      *
      * @param apiVersion the App Hub API version.
-     * @param query the App Hub API query, including the path and
-     *        query parameters, excluding the "/api/" part and leading
-     *        forward slashes.
+     * @param query the App Hub API query, including the path and query
+     *        parameters, excluding the "/api/" part and leading forward
+     *        slashes.
      * @return the App Hub API response as a string.
      */
     String getAppHubApiResponse( String apiVersion, String query );

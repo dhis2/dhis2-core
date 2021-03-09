@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.config.jackson;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,26 @@ package org.hisp.dhis.commons.config.jackson;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import org.hisp.dhis.util.DateUtils;
+package org.hisp.dhis.commons.config.jackson;
 
 import java.io.IOException;
 import java.util.Date;
 
+import org.hisp.dhis.util.DateUtils;
+
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class WriteDateStdSerializer extends JsonSerializer<Date>
+public class WriteDateStdSerializer
+    extends JsonSerializer<Date>
 {
     @Override
-    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider ) throws IOException
+    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider )
+        throws IOException
     {
         generator.writeString( DateUtils.getIso8601NoTz( date ) );
     }

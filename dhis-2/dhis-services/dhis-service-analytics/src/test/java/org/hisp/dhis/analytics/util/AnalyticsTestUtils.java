@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.analytics.util;
 
 import static org.junit.Assert.assertEquals;
@@ -48,11 +47,7 @@ public class AnalyticsTestUtils
     /**
      * Configure org unit hierarchy like so:
      *
-     *          A
-     *         / \
-     *        B   C
-     *       / \
-     *      D   E
+     * A / \ B C / \ D E
      *
      * @param ouA root
      * @param ouB leftRoot
@@ -104,7 +99,8 @@ public class AnalyticsTestUtils
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
             assertNotNull( aggregatedResultData.getRow( i ) );
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 
@@ -130,7 +126,8 @@ public class AnalyticsTestUtils
             Double actual = (Double) entry.getValue();
 
             assertNotNull( "Did not find '" + key + "' in provided results", expected );
-            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected, actual );
+            assertEquals( "Value for key:'" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 
@@ -151,7 +148,8 @@ public class AnalyticsTestUtils
             Double actual = Double.parseDouble( dataValue.getValue() );
             Double expected = keyValue.get( key );
 
-            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected, actual );
+            assertEquals( "Value for key: '" + key + "' not matching expected value: '" + expected + "'", expected,
+                actual );
         }
     }
 }

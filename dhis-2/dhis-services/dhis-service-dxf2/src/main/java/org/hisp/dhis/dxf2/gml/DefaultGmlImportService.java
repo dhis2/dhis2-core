@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.gml;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.gml;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.gml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -41,6 +40,8 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.common.*;
@@ -69,25 +70,24 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.Maps;
 import com.vividsolutions.jts.geom.Geometry;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * Import geospatial data from GML documents and merge into OrganisationUnits.
  * <p>
- * The implementation is a pre-processing stage, using the general MetaDataImporter
- * as the import backend.
+ * The implementation is a pre-processing stage, using the general
+ * MetaDataImporter as the import backend.
  * <p>
  * The process of importing GML, in short, entails the following:
  * <ol>
  * <li>Parse the GML payload and transform it into DXF2 format</li>
- * <li>Get the given identifiers (uid, code or name) from the parsed payload and fetch
- * the corresponding entities from the DB</li>
+ * <li>Get the given identifiers (uid, code or name) from the parsed payload and
+ * fetch the corresponding entities from the DB</li>
  * <li>Merge the geospatial data given in the input GML into DB entities</li>
- * <li>Serialize the MetaData payload containing the changes into DXF2, avoiding any magic
- * deletion managers, AOP, Hibernate object cache or transaction scope messing with the payload.
- * It is now essentially a perfect copy of the DB contents.</li>
- * <li>Deserialize the DXF2 payload into a MetaData object, which is now completely detached, and
- * feed this object into the MetaData importer.</li>
+ * <li>Serialize the MetaData payload containing the changes into DXF2, avoiding
+ * any magic deletion managers, AOP, Hibernate object cache or transaction scope
+ * messing with the payload. It is now essentially a perfect copy of the DB
+ * contents.</li>
+ * <li>Deserialize the DXF2 payload into a MetaData object, which is now
+ * completely detached, and feed this object into the MetaData importer.</li>
  * </ol>
  * <p>
  * Any failure during this process will be reported using the {@link Notifier}.
@@ -162,13 +162,15 @@ public class DefaultGmlImportService
         {
             Throwable throwable = preProcessed.throwable;
 
-            notifier.notify( importParams.getId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ), false );
+            notifier.notify( importParams.getId(), NotificationLevel.ERROR, createNotifierErrorMessage( throwable ),
+                false );
 
             importReport.setStatus( Status.ERROR );
 
-            ObjectReport objectReport = new ObjectReport( getClass(),  0 );
+            ObjectReport objectReport = new ObjectReport( getClass(), 0 );
 
-            objectReport.addErrorReport( new ErrorReport( getClass(), new ErrorMessage( ErrorCode.E7010, createNotifierErrorMessage( throwable ) ) ) );
+            objectReport.addErrorReport( new ErrorReport( getClass(),
+                new ErrorMessage( ErrorCode.E7010, createNotifierErrorMessage( throwable ) ) ) );
 
             TypeReport typeReport = new TypeReport( getClass() );
 
@@ -199,13 +201,17 @@ public class DefaultGmlImportService
             return PreProcessingResult.failure( e );
         }
 
-        Map<String, OrganisationUnit> uidMap = Maps.newHashMap(), codeMap = Maps.newHashMap(), nameMap = Maps.newHashMap();
+        Map<String, OrganisationUnit> uidMap = Maps.newHashMap(), codeMap = Maps.newHashMap(),
+            nameMap = Maps.newHashMap();
 
         matchAndFilterOnIdentifiers( metadata.getOrganisationUnits(), uidMap, codeMap, nameMap );
 
-        Map<String, OrganisationUnit> persistedUidMap = getMatchingPersistedOrgUnits( uidMap.keySet(), IdentifiableProperty.UID );
-        Map<String, OrganisationUnit> persistedCodeMap = getMatchingPersistedOrgUnits( codeMap.keySet(), IdentifiableProperty.CODE );
-        Map<String, OrganisationUnit> persistedNameMap = getMatchingPersistedOrgUnits( nameMap.keySet(), IdentifiableProperty.NAME );
+        Map<String, OrganisationUnit> persistedUidMap = getMatchingPersistedOrgUnits( uidMap.keySet(),
+            IdentifiableProperty.UID );
+        Map<String, OrganisationUnit> persistedCodeMap = getMatchingPersistedOrgUnits( codeMap.keySet(),
+            IdentifiableProperty.CODE );
+        Map<String, OrganisationUnit> persistedNameMap = getMatchingPersistedOrgUnits( nameMap.keySet(),
+            IdentifiableProperty.NAME );
 
         Iterator<OrganisationUnit> persistedIterator = Iterators.concat( persistedUidMap.values().iterator(),
             persistedCodeMap.values().iterator(), persistedNameMap.values().iterator() );
@@ -229,7 +235,9 @@ public class DefaultGmlImportService
 
             if ( imported == null || imported.getGeometry() == null )
             {
-                continue; // Failed to dereference a persisted entity for this org unit or geo data incomplete/missing, therefore ignore
+                continue; // Failed to dereference a persisted entity for this
+                // org unit or geo data incomplete/missing, therefore
+                // ignore
             }
 
             mergeNonGeoData( persisted, imported );
@@ -242,7 +250,9 @@ public class DefaultGmlImportService
     private static class PreProcessingResult
     {
         private boolean isSuccess;
+
         private Metadata metaData;
+
         private Throwable throwable;
 
         static PreProcessingResult success( Metadata metaData )
@@ -265,7 +275,8 @@ public class DefaultGmlImportService
     }
 
     private InputStream transformGml( InputStream input )
-        throws IOException, TransformerException
+        throws IOException,
+        TransformerException
     {
         StreamSource gml = new StreamSource( input );
         StreamSource xsl = new StreamSource( new ClassPathResource( GML_TO_DXF_STYLESHEET ).getInputStream() );
@@ -280,14 +291,18 @@ public class DefaultGmlImportService
         return new ByteArrayInputStream( output.toByteArray() );
     }
 
-    private void matchAndFilterOnIdentifiers( List<OrganisationUnit> sourceList, Map<String, OrganisationUnit> uidMap, Map<String,
-        OrganisationUnit> codeMap, Map<String, OrganisationUnit> nameMap )
+    private void matchAndFilterOnIdentifiers( List<OrganisationUnit> sourceList, Map<String, OrganisationUnit> uidMap,
+        Map<String, OrganisationUnit> codeMap, Map<String, OrganisationUnit> nameMap )
     {
-        for ( OrganisationUnit orgUnit : sourceList ) // Identifier Matching priority: uid, code, name
+        for ( OrganisationUnit orgUnit : sourceList ) // Identifier Matching
+        // priority: uid, code,
+        // name
         {
-            // Only matches if UID is actually in DB as an empty UID on input will be replaced by auto-generated value
+            // Only matches if UID is actually in DB as an empty UID on input
+            // will be replaced by auto-generated value
 
-            if ( !Strings.isNullOrEmpty( orgUnit.getUid() ) && idObjectManager.exists( OrganisationUnit.class, orgUnit.getUid() ) )
+            if ( !Strings.isNullOrEmpty( orgUnit.getUid() )
+                && idObjectManager.exists( OrganisationUnit.class, orgUnit.getUid() ) )
             {
                 uidMap.put( orgUnit.getUid(), orgUnit );
             }
@@ -302,7 +317,8 @@ public class DefaultGmlImportService
         }
     }
 
-    private Map<String, OrganisationUnit> getMatchingPersistedOrgUnits( Collection<String> identifiers, final IdentifiableProperty property )
+    private Map<String, OrganisationUnit> getMatchingPersistedOrgUnits( Collection<String> identifiers,
+        final IdentifiableProperty property )
     {
         List<OrganisationUnit> orgUnits = idObjectManager.getObjects( OrganisationUnit.class, property, identifiers );
         return IdentifiableObjectUtils.getIdMap( orgUnits, IdScheme.from( property ) );

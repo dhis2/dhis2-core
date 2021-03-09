@@ -1,7 +1,5 @@
-package org.hisp.dhis.render.type;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,21 @@ package org.hisp.dhis.render.type;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.render.type;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
- * This class represents the DataElement/TrackedEntityAttribute ValueType based rendering type
- *
- * The min, max, step and decimal properties in this class does not represent the data validation, it only serves as
- * a guideline on how form elements should be defined (IE: Sliders, spinners, etc)
+ * This class represents the DataElement/TrackedEntityAttribute ValueType based
+ * rendering type
+ * <p>
+ * The min, max, step and decimal properties in this class does not represent
+ * the data validation, it only serves as a guideline on how form elements
+ * should be defined (IE: Sliders, spinners, etc)
  */
 public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRenderingType>
 {
@@ -68,9 +70,9 @@ public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRender
      */
     private Integer decimalPoints;
 
-    //------------------------------------------
+    // ------------------------------------------
     // Constructors
-    //------------------------------------------
+    // ------------------------------------------
 
     public ValueTypeRenderingObject()
     {
@@ -79,12 +81,12 @@ public class ValueTypeRenderingObject implements RenderingObject<ValueTypeRender
 
     public ValueTypeRenderingObject( ValueTypeRenderingType type )
     {
-        this.type =  type;
+        this.type = type;
     }
 
-    //------------------------------------------
+    // ------------------------------------------
     // Getters & Setters
-    //------------------------------------------
+    // ------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

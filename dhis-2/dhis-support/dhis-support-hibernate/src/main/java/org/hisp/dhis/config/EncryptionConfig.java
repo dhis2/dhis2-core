@@ -1,7 +1,5 @@
-package org.hisp.dhis.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.config;
 
-import com.google.common.collect.ImmutableMap;
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
@@ -41,7 +41,7 @@ import org.springframework.beans.factory.config.MethodInvokingFactoryBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Luciano Fiandesio
@@ -60,7 +60,8 @@ public class EncryptionConfig
         password = (String) getConnectionProperty( "encryption.password", "J7GhAs287hsSQlKd9g5" );
     }
 
-    // Used only for SystemSettings (due to bug with JCE policy restrictions in Jasypt)
+    // Used only for SystemSettings (due to bug with JCE policy restrictions in
+    // Jasypt)
     @Bean( "tripleDesStringEncryptor" )
     public PooledPBEStringEncryptor tripleDesStringEncryptor()
     {
@@ -73,7 +74,8 @@ public class EncryptionConfig
         return encryptor;
     }
 
-    // AES string encryptor, requires BouncyCastle and JCE extended policy (due to
+    // AES string encryptor, requires BouncyCastle and JCE extended policy (due
+    // to
     // issue mentioned above)
     @Bean( "aes128StringEncryptor" )
     public PooledPBEStringEncryptor aes128StringEncryptor()

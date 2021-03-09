@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
@@ -33,9 +32,9 @@ import java.util.List;
 import org.hisp.dhis.dxf2.events.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 import com.google.common.collect.Multimap;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 
 /**
  * @author Luciano Fiandesio
@@ -43,28 +42,27 @@ import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 public interface EnrollmentStore
 {
     /**
-     *
      * @param ids a list of {@see TrackedEntityInstance} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Enrollment} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
+     *         the key a List of {@see Enrollment} objects
      */
     Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx );
 
     /**
      *
      * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of
-     *         {@see Note} objects
+     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
+     *         List of {@see Note} objects
      */
     Multimap<String, Note> getNotes( List<Long> ids );
 
     /**
-     * Fetches all the relationships having the Program Instance id specified in the arg as
-     * "left" or "right" relationship
+     * Fetches all the relationships having the Program Instance id specified in
+     * the arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the
-     *         key a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
+     *         List of {@see Relationship} objects
      */
-    Multimap<String, Relationship> getRelationships(List<Long> ids );
+    Multimap<String, Relationship> getRelationships( List<Long> ids );
 }

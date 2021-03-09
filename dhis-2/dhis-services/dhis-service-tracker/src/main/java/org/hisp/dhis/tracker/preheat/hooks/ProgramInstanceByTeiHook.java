@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat.hooks;
 
 import static org.apache.commons.collections.CollectionUtils.isNotEmpty;
 
@@ -52,8 +51,8 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.stereotype.Component;
 
 /**
- * This pre-heater hook is responsible for creating an associative Map of Event UID -> {@see ProgramInstance}
- * The map
+ * This pre-heater hook is responsible for creating an associative Map of Event
+ * UID -> {@see ProgramInstance} The map
  *
  * @author Luciano Fiandesio
  */
@@ -73,16 +72,19 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
     public void preheat( TrackerPreheatParams params, TrackerPreheat preheat )
     {
         final Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollmentsMap = preheat.getEnrollments();
-        final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID, new HashMap<>() );
+        final Map<String, ProgramInstance> enrollments = enrollmentsMap.getOrDefault( TrackerIdScheme.UID,
+            new HashMap<>() );
 
-        // List of Events that have no 'enrollment' field or 'enrollment' points to an
+        // List of Events that have no 'enrollment' field or 'enrollment' points
+        // to an
         // invalid PI
         List<Event> eventWithoutPI = getEventsWithoutProgramInstance( params,
             enrollments.values().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toList() ) );
 
         if ( isNotEmpty( eventWithoutPI ) )
         {
-            // Assign the map of event uid -> List Program Instance to the Preheat context
+            // Assign the map of event uid -> List Program Instance to the
+            // Preheat context
             preheat.setProgramInstances( getProgramInstancesByProgramAndTei(
                 preheat,
                 eventWithoutPI ) );
@@ -96,9 +98,8 @@ public class ProgramInstanceByTeiHook implements TrackerPreheatHook
     }
 
     /**
-     * Fetches Program Instances by Event Program and Event Tei.
-     * The resulting Map has the Event UID as key and a List of Program Instances as value.
-     *
+     * Fetches Program Instances by Event Program and Event Tei. The resulting
+     * Map has the Event UID as key and a List of Program Instances as value.
      */
     private Map<String, List<ProgramInstance>> getProgramInstancesByProgramAndTei( TrackerPreheat preheat,
         List<Event> events )

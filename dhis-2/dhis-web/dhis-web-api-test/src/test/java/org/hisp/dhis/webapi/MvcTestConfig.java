@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,15 @@ package org.hisp.dhis.webapi;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi;
 
-import com.google.common.collect.ImmutableMap;
+import static org.springframework.http.MediaType.parseMediaType;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
@@ -63,12 +68,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.springframework.http.MediaType.parseMediaType;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -81,8 +81,8 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };

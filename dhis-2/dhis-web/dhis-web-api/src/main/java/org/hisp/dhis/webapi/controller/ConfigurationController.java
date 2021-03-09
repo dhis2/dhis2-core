@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import java.io.IOException;
+import java.util.Set;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,7 +55,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.appmanager.AppManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -60,11 +65,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Lars Helge Overland
@@ -164,7 +164,8 @@ public class ConfigurationController
     }
 
     @RequestMapping( value = "/offlineOrganisationUnitLevel", method = RequestMethod.GET )
-    public @ResponseBody OrganisationUnitLevel getOfflineOrganisationUnitLevel( Model model, HttpServletRequest request )
+    public @ResponseBody OrganisationUnitLevel getOfflineOrganisationUnitLevel( Model model,
+        HttpServletRequest request )
     {
         return configurationService.getConfiguration().getOfflineOrganisationUnitLevel();
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,23 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
-import com.google.common.collect.ImmutableMap;
 import static com.google.api.client.util.Preconditions.checkNotNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -76,13 +82,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.stream.Stream;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -135,16 +135,14 @@ public class DefaultTrackerBundleService
         this.sideEffectHandlers = sideEffectHandlers;
     }
 
-    private final ImmutableMap<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>> DELETION_MAPPER =
-        new ImmutableMap.Builder<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>>()
-        .put( TrackerType.ENROLLMENT, ( b,t ) -> deletionService.deleteEnrollments( b, t ) )
-        .put( TrackerType.EVENT, ( b,t ) -> deletionService.deleteEvents( b, t ) )
-        .put( TrackerType.TRACKED_ENTITY, ( b,t ) -> deletionService.deleteTrackedEntityInstances( b, t ) )
-        .put( TrackerType.RELATIONSHIP, ( b,t ) -> deletionService.deleteRelationShips( b, t ) )
+    private final ImmutableMap<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>> DELETION_MAPPER = new ImmutableMap.Builder<TrackerType, BiFunction<TrackerBundle, TrackerType, TrackerTypeReport>>()
+        .put( TrackerType.ENROLLMENT, ( b, t ) -> deletionService.deleteEnrollments( b, t ) )
+        .put( TrackerType.EVENT, ( b, t ) -> deletionService.deleteEvents( b, t ) )
+        .put( TrackerType.TRACKED_ENTITY, ( b, t ) -> deletionService.deleteTrackedEntityInstances( b, t ) )
+        .put( TrackerType.RELATIONSHIP, ( b, t ) -> deletionService.deleteRelationShips( b, t ) )
         .build();
 
-    private final ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER =
-        new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
+    private final ImmutableMap<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>> COMMIT_MAPPER = new ImmutableMap.Builder<TrackerType, BiFunction<Session, TrackerBundle, TrackerTypeReport>>()
         .put( TrackerType.ENROLLMENT, this::handleEnrollments )
         .put( TrackerType.EVENT, this::handleEvents )
         .put( TrackerType.TRACKED_ENTITY, this::handleTrackedEntities )
@@ -194,7 +192,8 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+        return Collections.singletonList( trackerBundle ); // for now we don't
+        // split the bundles
     }
 
     @Override
@@ -214,9 +213,11 @@ public class DefaultTrackerBundleService
         catch ( Exception e )
         {
             // TODO: Report that rule engine has failed
-            // Rule engine can fail because of validation errors in the payload that
+            // Rule engine can fail because of validation errors in the payload
+            // that
             // were not discovered yet.
-            // If rule engine fails and the validation pass, a 500 code should be returned
+            // If rule engine fails and the validation pass, a 500 code should
+            // be returned
             e.printStackTrace();
         }
         return bundles;
@@ -239,7 +240,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, COMMIT_MAPPER.get( t )
-            .apply( session, bundle ) ) );
+                .apply( session, bundle ) ) );
 
         bundleHooks.forEach( hook -> hook.postCommit( bundle ) );
 
@@ -262,7 +263,7 @@ public class DefaultTrackerBundleService
 
         Stream.of( TrackerType.values() )
             .forEach( t -> bundleReport.getTypeReportMap().put( t, DELETION_MAPPER.get( t )
-            .apply( bundle, t ) ) );
+                .apply( bundle, t ) ) );
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
@@ -303,15 +304,15 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
+            // TODO: Implement support for update and delete and
+            // rollback/decrement create etc.
             typeReport.getStats().incCreated();
         }
 
         session.flush();
 
         trackedEntities
-            .forEach( o -> bundleHooks.forEach( hook ->
-                hook.postCreate( TrackedEntity.class, o, bundle ) ) );
+            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }
@@ -360,7 +361,8 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
+            // TODO: Implement support for update and delete and
+            // rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
@@ -426,7 +428,8 @@ public class DefaultTrackerBundleService
                 session.flush();
             }
 
-            // TODO: Implement support for update and delete and rollback/decrement create etc.
+            // TODO: Implement support for update and delete and
+            // rollback/decrement create etc.
             typeReport.getStats().incCreated();
 
             if ( !bundle.isSkipSideEffects() )
@@ -515,7 +518,8 @@ public class DefaultTrackerBundleService
                 .setValue( at.getValue() )
                 .setStoredBy( at.getStoredBy() );
 
-            // We cannot use attributeValue.getValue() because it uses encryption logic
+            // We cannot use attributeValue.getValue() because it uses
+            // encryption logic
             // So we need to use at.getValue()
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
@@ -619,7 +623,8 @@ public class DefaultTrackerBundleService
 
     private User getUser( User user, String userUid )
     {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current
+        if ( user != null ) // ıf user already set, reload the user to make sure
+        // its loaded in the current
         // tx
         {
             return identifiableObjectManager.get( User.class, user.getUid() );

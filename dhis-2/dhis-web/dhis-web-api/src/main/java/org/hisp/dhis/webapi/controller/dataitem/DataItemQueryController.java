@@ -101,7 +101,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<RootNode> getJson( @RequestParam
-                                             final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
@@ -116,7 +116,7 @@ public class DataItemQueryController
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
     public ResponseEntity<RootNode> getXml( @RequestParam
-                                            final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
+    final Map<String, String> urlParameters, final OrderParams orderParams, final User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 
@@ -133,8 +133,8 @@ public class DataItemQueryController
      * @return the complete root node
      */
     private ResponseEntity<RootNode> getDimensionalItems( final User currentUser,
-                                                          final Map<String, String> urlParameters,
-                                                          final OrderParams orderParams )
+        final Map<String, String> urlParameters,
+        final OrderParams orderParams )
     {
         // Defining the input params.
         final Set<String> fields = newHashSet( contextService.getParameterValues( FIELDS ) );
@@ -172,7 +172,7 @@ public class DataItemQueryController
     }
 
     private void checkAuthorization( final User currentUser,
-                                     final Set<Class<? extends BaseIdentifiableObject>> entities )
+        final Set<Class<? extends BaseIdentifiableObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {

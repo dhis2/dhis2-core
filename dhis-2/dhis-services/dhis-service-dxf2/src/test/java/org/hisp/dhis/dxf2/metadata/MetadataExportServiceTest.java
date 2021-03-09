@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -45,10 +48,7 @@ import org.hisp.dhis.user.UserGroupAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -95,7 +95,8 @@ public class MetadataExportServiceTest
         manager.save( deg1 );
 
         MetadataExportParams params = new MetadataExportParams();
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService.getMetadata( params );
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
+            .getMetadata( params );
 
         assertEquals( 1, metadata.get( User.class ).size() );
         assertEquals( 1, metadata.get( DataElementGroup.class ).size() );
@@ -127,7 +128,8 @@ public class MetadataExportServiceTest
         MetadataExportParams params = new MetadataExportParams();
         params.addClass( DataElement.class );
 
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService.getMetadata( params );
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
+            .getMetadata( params );
 
         assertFalse( metadata.containsKey( User.class ) );
         assertFalse( metadata.containsKey( DataElementGroup.class ) );
@@ -173,7 +175,8 @@ public class MetadataExportServiceTest
         params.addQuery( deQuery );
         params.addQuery( degQuery );
 
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService.getMetadata( params );
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
+            .getMetadata( params );
 
         assertFalse( metadata.containsKey( User.class ) );
         assertFalse( metadata.containsKey( DataElementGroup.class ) );
@@ -189,7 +192,7 @@ public class MetadataExportServiceTest
         params.setSkipSharing( true );
 
         User user = createUser( 'A' );
-        UserGroup group = createUserGroup( 'A', Sets.newHashSet( user ));
+        UserGroup group = createUserGroup( 'A', Sets.newHashSet( user ) );
         DataElement de1 = createDataElement( 'A' );
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
@@ -210,7 +213,8 @@ public class MetadataExportServiceTest
         manager.save( de4 );
         manager.save( de5 );
 
-        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService.getMetadata( params );
+        Map<Class<? extends IdentifiableObject>, List<? extends IdentifiableObject>> metadata = metadataExportService
+            .getMetadata( params );
 
         assertEquals( 5, metadata.get( DataElement.class ).size() );
 
@@ -222,8 +226,8 @@ public class MetadataExportServiceTest
     {
         assertTrue( object.getUserAccesses().isEmpty() );
         assertEquals( "--------", object.getPublicAccess() );
-        //assertNull( object.getUser() );
+        // assertNull( object.getUser() );
         assertTrue( object.getUserGroupAccesses().isEmpty() );
-        //assertFalse( object.getExternalAccess() );
+        // assertFalse( object.getExternalAccess() );
     }
 }

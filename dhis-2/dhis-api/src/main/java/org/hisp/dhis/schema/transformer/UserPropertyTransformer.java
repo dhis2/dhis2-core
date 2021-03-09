@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.transformer;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,23 @@ package org.hisp.dhis.schema.transformer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.transformer;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+
+import lombok.Builder;
+import lombok.Data;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.schema.AbstractPropertyTransformer;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonGenerator;
@@ -37,20 +52,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import lombok.Builder;
-import lombok.Data;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.schema.AbstractPropertyTransformer;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -167,7 +168,8 @@ public class UserPropertyTransformer
         }
 
         @Override
-        public void serialize( User user, JsonGenerator gen, SerializerProvider provider ) throws IOException
+        public void serialize( User user, JsonGenerator gen, SerializerProvider provider )
+            throws IOException
         {
             UserCredentials userCredentials = user.getUserCredentials();
 
@@ -194,7 +196,9 @@ public class UserPropertyTransformer
         }
 
         @Override
-        public User deserialize( JsonParser jp, DeserializationContext ctxt ) throws IOException, JsonProcessingException
+        public User deserialize( JsonParser jp, DeserializationContext ctxt )
+            throws IOException,
+            JsonProcessingException
         {
             User user = new User();
             UserCredentials userCredentials = new UserCredentials();

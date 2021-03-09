@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
@@ -61,8 +60,9 @@ public class DataElementOperandDeletionHandler
         return DataElementOperand.class.getSimpleName();
     }
 
-    //TODO masking real problem, we should control operands better and check associated objects regarding deletion
-    
+    // TODO masking real problem, we should control operands better and check
+    // associated objects regarding deletion
+
     @Override
     public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {

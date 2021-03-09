@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.webdomain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.webdomain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -39,8 +38,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class GeoFeature
 {
     public static final int TYPE_POINT = 1;
+
     public static final int TYPE_POLYGON = 2;
-    
+
     /**
      * Identifier.
      */
@@ -55,42 +55,42 @@ public class GeoFeature
      * Name.
      */
     private String na;
-    
+
     /**
      * Has coordinates down.
      */
     private boolean hcd;
-    
+
     /**
      * Has coordinates up.
      */
     private boolean hcu;
-    
+
     /**
      * Level.
      */
     private int le;
-    
+
     /**
      * Parent graph.
      */
     private String pg;
-    
+
     /**
      * Parent identifier.
      */
     private String pi;
-    
+
     /**
      * Parent name.
      */
     private String pn;
-    
+
     /**
      * Feature type.
      */
     private int ty;
-    
+
     /**
      * Coordinates.
      */
@@ -100,14 +100,14 @@ public class GeoFeature
      * Dimensions and dimension items.
      */
     private Map<String, String> dimensions = new HashMap<>();
-    
+
     public GeoFeature()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     public String getId()

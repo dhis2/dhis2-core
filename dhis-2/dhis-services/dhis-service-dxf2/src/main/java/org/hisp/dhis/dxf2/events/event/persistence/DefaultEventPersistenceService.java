@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event.persistence;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,16 @@ package org.hisp.dhis.dxf2.events.event.persistence;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event.persistence;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventCommentStore;
@@ -42,9 +44,6 @@ import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -124,8 +123,8 @@ public class DefaultEventPersistenceService
     }
 
     /**
-     * Updates the "lastupdated" and "lastupdatedBy" of the Tracked Entity Instances
-     * linked to the provided list of Events.
+     * Updates the "lastupdated" and "lastupdatedBy" of the Tracked Entity
+     * Instances linked to the provided list of Events.
      *
      * @param context a {@see WorkContext}
      * @param events a List of {@see Event}

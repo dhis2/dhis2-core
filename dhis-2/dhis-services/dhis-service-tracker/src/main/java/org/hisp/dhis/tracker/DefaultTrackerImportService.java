@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
@@ -55,8 +56,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import com.google.common.base.Enums;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -107,7 +106,7 @@ public class DefaultTrackerImportService
         {
             notifier.notify( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Start" );
         }
-        
+
         try
         {
 
@@ -140,27 +139,28 @@ public class DefaultTrackerImportService
         }
         catch ( Exception e )
         {
-            log.error( "Exception thrown during import.",e );
-            
+            log.error( "Exception thrown during import.", e );
+
             TrackerValidationReport tvr = importReport.getTrackerValidationReport();
-            
+
             if ( tvr == null )
             {
                 tvr = new TrackerValidationReport();
             }
-            
-            tvr.getErrorReports().add( new TrackerErrorReport( "Exception:" + e.getMessage(), TrackerErrorCode.E9999 ) );
+
+            tvr.getErrorReports()
+                .add( new TrackerErrorReport( "Exception:" + e.getMessage(), TrackerErrorCode.E9999 ) );
             importReport.setTrackerValidationReport( tvr );
             importReport.setStatus( TrackerStatus.ERROR );
-            
+
             if ( params.hasJobConfiguration() )
             {
-                notifier.update( params.getJobConfiguration(), "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
+                notifier.update( params.getJobConfiguration(),
+                    "(" + params.getUsername() + ") Import:Failed with exception: " + e.getMessage(), true );
                 notifier.addJobSummary( params.getJobConfiguration(), importReport, TrackerImportReport.class );
             }
 
         }
-
 
         if ( params.hasJobConfiguration() )
         {
@@ -204,8 +204,7 @@ public class DefaultTrackerImportService
     {
         Timer commitTimer = new SystemTimer().start();
 
-        trackerBundles.forEach( tb ->
-            importReport.getBundleReports().add( trackerBundleService.commit( tb ) ) );
+        trackerBundles.forEach( tb -> importReport.getBundleReports().add( trackerBundleService.commit( tb ) ) );
 
         if ( !importReport.isEmpty() )
         {
@@ -221,7 +220,8 @@ public class DefaultTrackerImportService
         }
     }
 
-    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport, List<TrackerBundle> trackerBundles )
+    protected void deleteBundle( TrackerImportParams params, TrackerImportReport importReport,
+        List<TrackerBundle> trackerBundles )
     {
         Timer commitTimer = new SystemTimer().start();
 
@@ -237,7 +237,7 @@ public class DefaultTrackerImportService
         if ( params.hasJobConfiguration() )
         {
             notifier.update( params.getJobConfiguration(),
-                    "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
+                "(" + params.getUsername() + ") " + "Import:Commit took " + commitTimer );
         }
     }
 
@@ -249,8 +249,7 @@ public class DefaultTrackerImportService
         TrackerValidationReport validationReport = new TrackerValidationReport();
 
         // Do all the validation
-        trackerBundles.forEach( tb ->
-            validationReport.add( trackerValidationService.validate( tb ) ) );
+        trackerBundles.forEach( tb -> validationReport.add( trackerValidationService.validate( tb ) ) );
 
         importReport.getTimings().setValidation( validationTimer.toString() );
         importReport.setTrackerValidationReport( validationReport );
@@ -283,9 +282,9 @@ public class DefaultTrackerImportService
         return params;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     private TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
@@ -362,7 +361,8 @@ public class DefaultTrackerImportService
 
     private User getUser( User user, String userUid )
     {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
+        if ( user != null ) // ıf user already set, reload the user to make sure
+        // its loaded in the current tx
         {
             return manager.get( User.class, user.getUid() );
         }

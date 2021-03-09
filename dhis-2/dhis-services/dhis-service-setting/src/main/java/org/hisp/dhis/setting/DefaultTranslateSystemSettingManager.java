@@ -1,7 +1,5 @@
-package org.hisp.dhis.setting;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.setting;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.setting;
 
-import org.hisp.dhis.util.ObjectUtils;
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Hashtable;
 import java.util.Map;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
+import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.stereotype.Service;
 
 /**
  * @author James Chang
@@ -66,11 +65,16 @@ public class DefaultTranslateSystemSettingManager
     {
         Map<String, String> translations = new Hashtable<>();
 
-        translations.put( SettingKey.APPLICATION_TITLE.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_TITLE, locale, SettingKey.APPLICATION_TITLE.getDefaultValue().toString() ) );
-        translations.put( SettingKey.APPLICATION_INTRO.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_INTRO, locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_NOTIFICATION.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_NOTIFICATION, locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_FOOTER ,locale, EMPTY ) );
-        translations.put( SettingKey.APPLICATION_RIGHT_FOOTER.getName(), getSystemSettingWithFallbacks( SettingKey.APPLICATION_RIGHT_FOOTER, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_TITLE.getName(), getSystemSettingWithFallbacks(
+            SettingKey.APPLICATION_TITLE, locale, SettingKey.APPLICATION_TITLE.getDefaultValue().toString() ) );
+        translations.put( SettingKey.APPLICATION_INTRO.getName(),
+            getSystemSettingWithFallbacks( SettingKey.APPLICATION_INTRO, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_NOTIFICATION.getName(),
+            getSystemSettingWithFallbacks( SettingKey.APPLICATION_NOTIFICATION, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_FOOTER.getName(),
+            getSystemSettingWithFallbacks( SettingKey.APPLICATION_FOOTER, locale, EMPTY ) );
+        translations.put( SettingKey.APPLICATION_RIGHT_FOOTER.getName(),
+            getSystemSettingWithFallbacks( SettingKey.APPLICATION_RIGHT_FOOTER, locale, EMPTY ) );
 
         return translations;
     }
@@ -83,7 +87,8 @@ public class DefaultTranslateSystemSettingManager
     {
         String settingValue = EMPTY;
 
-        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ), defaultValue );
+        settingValue = (String) ObjectUtils.firstNonNull( systemSettingManager.getSystemSetting( keyName ),
+            defaultValue );
 
         return settingValue;
     }

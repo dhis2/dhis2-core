@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +25,30 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Streams;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
-import org.hisp.dhis.tracker.domain.Note;
+package org.hisp.dhis.tracker.validation.hooks;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
+import org.hisp.dhis.tracker.domain.Note;
+
+import com.google.common.collect.Streams;
+
 /**
  * @author Luciano Fiandesio
  */
-public class NoteValidationUtils {
+public class NoteValidationUtils
+{
 
     private NoteValidationUtils()
     {
     }
 
     /**
-     * Filters out from a List of {@see Note}, notes that have no value (empty note)
-     * and notes with an uid that already exist in the database.
+     * Filters out from a List of {@see Note}, notes that have no value (empty
+     * note) and notes with an uid that already exist in the database.
      *
      * @param commentService an instance of {@see TrackedEntityCommentService},
      *        required to check if a note uid already exist in the db
@@ -58,7 +59,8 @@ public class NoteValidationUtils {
     {
         // Check which notes are already on the DB and skip them
         // Only check notes that are marked NOT marked as "new note"
-        // FIXME: do we really need this? Currently trackedentitycomment uid is a unique
+        // FIXME: do we really need this? Currently trackedentitycomment uid is
+        // a unique
         // key in the db, can't we simply catch the exception
         List<String> nonExistingUid = commentService.filterExistingNotes( notes.stream()
             .filter( n -> StringUtils.isNotEmpty( n.getValue() ) )

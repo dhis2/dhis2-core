@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static org.hisp.dhis.dxf2.events.aggregates.ThreadPoolManager.getPool;
@@ -39,6 +38,7 @@ import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -67,9 +67,8 @@ public class EnrollmentAggregate
      * Key: tei uid , value Enrollment
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
-     *
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Enrollment} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
+     *         the key a List of {@see Enrollment} objects
      */
     Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, AggregateContext ctx )
     {
@@ -83,7 +82,8 @@ public class EnrollmentAggregate
         List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
-        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch( ctx.getParams().isIncludeEvents(),
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
+            ctx.getParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(

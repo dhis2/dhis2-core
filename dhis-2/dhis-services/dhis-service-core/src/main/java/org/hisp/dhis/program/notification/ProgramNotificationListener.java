@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
 
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotificationEvent;
+import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
-import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
-
 
 /**
  * Created by zubair@dhis2.org on 18.01.18.
@@ -71,12 +70,14 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
-        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(), event.getProgramInstance() );
+        programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(),
+            event.getProgramInstance() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
-        programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(), event.getProgramStageInstance() );
+        programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(),
+            event.getProgramStageInstance() );
     }
 }

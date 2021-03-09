@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
 /**
- * Current state of data approval for a selected combination of data set, period,
- * organisation unit, and category options or category group options.
- * 
+ * Current state of data approval for a selected combination of data set,
+ * period, organisation unit, and category options or category group options.
+ * <p>
  * ACCEPTED_HERE refers the approval being accepted by the level above, implying
  * that the approval has an accepted state at this level.
- * 
+ * <p>
  * APPROVED_HERE refers to the data being approved by this level.
  *
  * @author Jim Grace
@@ -45,46 +44,60 @@ public enum DataApprovalState
      * Data approval does not apply to this selection. (Data is neither
      * "approved" nor "unapproved".)
      */
-    UNAPPROVABLE ( /* approved */ false, /* approvable */ false, /* unapprovable */ false,
-                   /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
+    UNAPPROVABLE( /* approved */ false, /* approvable */ false, /*
+                                                                 * unapprovable
+                                                                 */ false,
+        /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
      * At least some data within the selection is unapproved and waiting for
      * approval at a higher organisation unit level (not approvable here.)
      */
-    UNAPPROVED_ABOVE ( /* approved */ false, /* approvable */ false, /* unapprovable */ false,
-                       /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
+    UNAPPROVED_ABOVE( /* approved */ false, /* approvable */ false, /*
+                                                                     * unapprovable
+                                                                     */ false,
+        /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
      * At least some data within the selection is unapproved and waiting for
      * lower-level approval (not ready for approving here.)
      */
-    UNAPPROVED_WAITING ( /* approved */ false, /* approvable */ false, /* unapprovable */ false,
-                         /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
+    UNAPPROVED_WAITING( /* approved */ false, /* approvable */ false, /*
+                                                                       * unapprovable
+                                                                       */ false,
+        /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
      * Data is unapproved, and is ready to be approved for this selection.
      */
-    UNAPPROVED_READY ( /* approved */ false, /* approvable */ true, /* unapprovable */ false,
-                       /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
+    UNAPPROVED_READY( /* approved */ false, /* approvable */ true, /*
+                                                                    * unapprovable
+                                                                    */ false,
+        /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
     /**
-     * Data is approved, but at a higher organisation unit level
-     * (so cannot be unapproved here.)
+     * Data is approved, but at a higher organisation unit level (so cannot be
+     * unapproved here.)
      */
-    APPROVED_ABOVE ( /* approved */ true, /* approvable */ false, /* unapprovable */ false,
-                     /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
+    APPROVED_ABOVE( /* approved */ true, /* approvable */ false, /*
+                                                                  * unapprovable
+                                                                  */ false,
+        /* accepted */ false, /* acceptable */ false, /* unacceptable */ false ),
 
     /**
      * Data is approved, and was approved here (so could be unapproved here.)
      */
-    APPROVED_HERE ( /* approved */ true, /* approvable */ false, /* unapprovable */ true,
-                    /* accepted */ false, /* acceptable */ true, /* unacceptable */ false ),
+    APPROVED_HERE( /* approved */ true, /* approvable */ false, /*
+                                                                 * unapprovable
+                                                                 */ true,
+        /* accepted */ false, /* acceptable */ true, /* unacceptable */ false ),
 
     /**
      * Data is approved and accepted here (so could be unapproved here.)
      */
-    ACCEPTED_HERE ( /* approved */ true, /* approvable */ false, /* unapprovable */ true,
-                    /* accepted */ true, /* acceptable */ false, /* unacceptable */ true );
+    ACCEPTED_HERE( /* approved */ true, /* approvable */ false, /*
+                                                                 * unapprovable
+                                                                 */ true,
+        /* accepted */ true, /* acceptable */ false, /* unacceptable */ true );
 
     /**
      * Is this (entire) data selection approved (and therefore locked)?
@@ -121,7 +134,7 @@ public enum DataApprovalState
     // -------------------------------------------------------------------------
 
     DataApprovalState( boolean approved, boolean approvable, boolean unapprovable,
-                       boolean accepted, boolean acceptable, boolean unacceptable )
+        boolean accepted, boolean acceptable, boolean unacceptable )
     {
         this.approved = approved;
         this.approvable = approvable;

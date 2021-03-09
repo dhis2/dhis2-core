@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.programrule;
 
 import static org.junit.Assert.*;
 
@@ -127,7 +126,9 @@ public class ProgramRuleIntegrationTest
     }
 
     @Test
-    public void testImportSuccessWithWaringRaised() throws IOException {
+    public void testImportSuccessWithWaringRaised()
+        throws IOException
+    {
 
         InputStream inputStream = new ClassPathResource( "tracker/single_tei.json" ).getInputStream();
 
@@ -150,17 +151,18 @@ public class ProgramRuleIntegrationTest
         assertFalse( trackerImportEnrollmentReport.getTrackerValidationReport().getWarningReports().isEmpty() );
     }
 
-    private TrackerImportParams build(TrackerBundleParams params) {
+    private TrackerImportParams build( TrackerBundleParams params )
+    {
         // @formatter:off
         return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
-                .skipPatternValidation( true )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
+            .user( params.getUser() )
+            .importMode( params.getImportMode() )
+            .importStrategy( params.getImportStrategy() )
+            .skipPatternValidation( true )
+            .identifiers( params.getIdentifiers() )
+            .atomicMode( params.getAtomicMode() )
+            .flushMode( params.getFlushMode() )
+            .validationMode( params.getValidationMode() )
                 .reportMode( params.getReportMode() )
                 .trackedEntities( params.getTrackedEntities() )
                 .enrollments( params.getEnrollments() )

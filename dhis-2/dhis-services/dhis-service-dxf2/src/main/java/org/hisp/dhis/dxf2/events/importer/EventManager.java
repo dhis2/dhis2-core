@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer;
 
 import static java.util.Collections.singletonList;
@@ -40,8 +39,11 @@ import static org.hisp.dhis.importexport.ImportStrategy.UPDATE;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -54,11 +56,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 
 @Component
 @Slf4j
@@ -150,9 +147,11 @@ public class EventManager
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
                 .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-            // Post processing only the events that passed validation and were persisted
+            // Post processing only the events that passed validation and were
+            // persisted
             // correctly.
-            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+            List<Event> savedEvents = events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             processingManager.getPostInsertProcessorFactory().process( workContext, savedEvents );
 
@@ -216,10 +215,12 @@ public class EventManager
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
                 .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-            // Post processing only the events that passed validation and were persisted
+            // Post processing only the events that passed validation and were
+            // persisted
             // correctly.
 
-            List<Event> savedEvents = events.stream().filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
+            List<Event> savedEvents = events.stream()
+                .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             processingManager.getPostUpdateProcessorFactory().process( workContext, savedEvents );
 
@@ -269,7 +270,8 @@ public class EventManager
             final List<String> eventPersistenceFailedUids = importSummaries.getImportSummaries().stream()
                 .filter( i -> i.isStatus( ERROR ) ).map( ImportSummary::getReference ).collect( toList() );
 
-            // Post processing only the events that passed validation and were persisted
+            // Post processing only the events that passed validation and were
+            // persisted
             // correctly.
             processingManager.getPostDeleteProcessorFactory().process( workContext, events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() ) );
@@ -326,8 +328,8 @@ public class EventManager
     }
 
     /**
-     * Filters out Events which are already present in the database (regardless of
-     * the 'deleted' state)
+     * Filters out Events which are already present in the database (regardless
+     * of the 'deleted' state)
      *
      * @param events Events to import
      * @param importSummaries ImportSummaries used for import

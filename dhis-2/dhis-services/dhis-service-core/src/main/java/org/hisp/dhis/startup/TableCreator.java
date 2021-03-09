@@ -1,7 +1,5 @@
-package org.hisp.dhis.startup;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.startup;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -58,9 +57,15 @@ public class TableCreator
     @Override
     public void execute()
     {
-        createSilently( "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)", "dataapproval_unique" );
-        createSilently( "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)", "in_datavalueaudit" );
-        createSilently( "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)", "in_trackedentityattributevalue_attributeid" );
+        createSilently(
+            "create unique index dataapproval_unique on dataapproval(datasetid,periodid,organisationunitid,attributeoptioncomboid,dataapprovallevelid)",
+            "dataapproval_unique" );
+        createSilently(
+            "create index in_datavalueaudit on datavalueaudit(dataelementid,periodid,organisationunitid,categoryoptioncomboid,attributeoptioncomboid)",
+            "in_datavalueaudit" );
+        createSilently(
+            "create index in_trackedentityattributevalue_attributeid on trackedentityattributevalue(trackedentityattributeid)",
+            "in_trackedentityattributevalue_attributeid" );
     }
 
     private void createSilently( final String sql, final String name )

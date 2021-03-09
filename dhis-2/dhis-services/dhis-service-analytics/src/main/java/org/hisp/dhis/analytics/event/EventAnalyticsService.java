@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
+
+import java.util.List;
 
 import org.hisp.dhis.analytics.AnalyticsMetaDataKey;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-
-import java.util.List;
 
 /**
  * This interface is responsible for retrieving aggregated event data. Data will
@@ -45,20 +44,35 @@ import java.util.List;
 public interface EventAnalyticsService
 {
     String ITEM_EVENT = "psi";
+
     String ITEM_TRACKED_ENTITY_INSTANCE = "tei";
+
     String ITEM_PROGRAM_INSTANCE = "pi";
+
     String ITEM_PROGRAM_STAGE = "ps";
+
     String ITEM_EVENT_DATE = "eventdate";
+
     String ITEM_ENROLLMENT_DATE = "enrollmentdate";
+
     String ITEM_INCIDENT_DATE = "incidentdate";
+
     String ITEM_GEOMETRY = "geometry";
+
     String ITEM_LONGITUDE = "longitude";
+
     String ITEM_LATITUDE = "latitude";
+
     String ITEM_ORG_UNIT_NAME = "ouname";
+
     String ITEM_ORG_UNIT_CODE = "oucode";
+
     String ITEM_COUNT = "count";
+
     String ITEM_CENTER = "center";
+
     String ITEM_EXTENT = "extent";
+
     String ITEM_POINTS = "points";
 
     /**
@@ -74,9 +88,9 @@ public interface EventAnalyticsService
      * represent a table with dimensions used as columns and rows as specified
      * in columns and rows dimension arguments. If columns and rows are null or
      * empty, the normalized table will be returned.
-     *
-     * If meta data is included in the query, the meta data map of the grid
-     * will contain keys described in {@link AnalyticsMetaDataKey}.
+     * <p>
+     * If meta data is included in the query, the meta data map of the grid will
+     * contain keys described in {@link AnalyticsMetaDataKey}.
      *
      * @param params the event query parameters.
      * @param columns the identifiers of the dimensions to use as columns.

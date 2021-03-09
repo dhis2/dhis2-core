@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.util;
 
 import static org.hisp.dhis.common.DataDimensionItem.DATA_DIMENSION_TYPE_CLASS_MAP;
 import static org.hisp.dhis.common.DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID;
@@ -105,27 +104,32 @@ import com.google.common.collect.Sets;
 public class AnalyticsUtils
 {
     private static final int DECIMALS_NO_ROUNDING = 10;
+
     private static final String KEY_AGG_VALUE = "[aggregated]";
+
     private static final Pattern OU_LEVEL_PATTERN = Pattern.compile( DataQueryParams.PREFIX_ORG_UNIT_LEVEL + "(\\d+)" );
 
     public static final String ERR_MSG_TABLE_NOT_EXISTING = "Query failed, likely because the requested analytics table does not exist";
 
     /**
-     * Returns an SQL statement for retrieving raw data values for
-     * an aggregate query.
+     * Returns an SQL statement for retrieving raw data values for an aggregate
+     * query.
      *
      * @param params the data query parameters.
      * @return an SQL statement.
      */
     public static String getDebugDataSql( DataQueryParams params )
     {
-        List<DimensionalItemObject> dataElements = new ArrayList<>( NameableObjectUtils.getCopyNullSafe( params.getDataElements() ) );
+        List<DimensionalItemObject> dataElements = new ArrayList<>(
+            NameableObjectUtils.getCopyNullSafe( params.getDataElements() ) );
         dataElements.addAll( NameableObjectUtils.getCopyNullSafe( params.getFilterDataElements() ) );
 
-        List<DimensionalItemObject> periods = new ArrayList<>( NameableObjectUtils.getCopyNullSafe( params.getPeriods() ) );
+        List<DimensionalItemObject> periods = new ArrayList<>(
+            NameableObjectUtils.getCopyNullSafe( params.getPeriods() ) );
         periods.addAll( NameableObjectUtils.getCopyNullSafe( params.getFilterPeriods() ) );
 
-        List<DimensionalItemObject> orgUnits = new ArrayList<>( NameableObjectUtils.getCopyNullSafe( params.getOrganisationUnits() ) );
+        List<DimensionalItemObject> orgUnits = new ArrayList<>(
+            NameableObjectUtils.getCopyNullSafe( params.getOrganisationUnits() ) );
         orgUnits.addAll( NameableObjectUtils.getCopyNullSafe( params.getFilterOrganisationUnits() ) );
 
         if ( dataElements.isEmpty() || periods.isEmpty() || orgUnits.isEmpty() )
@@ -133,8 +137,8 @@ public class AnalyticsUtils
             throw new IllegalQueryException( ErrorCode.E7400 );
         }
 
-        String sql =
-            "select de.name as de_name, de.uid as de_uid, de.dataelementid as de_id, pe.startdate as start_date, pe.enddate as end_date, pt.name as pt_name, " +
+        String sql = "select de.name as de_name, de.uid as de_uid, de.dataelementid as de_id, pe.startdate as start_date, pe.enddate as end_date, pt.name as pt_name, "
+            +
             "ou.name as ou_name, ou.uid as ou_uid, ou.organisationunitid as ou_id, " +
             "coc.name as coc_name, coc.uid as coc_uid, coc.categoryoptioncomboid as coc_id, " +
             "aoc.name as aoc_name, aoc.uid as aoc_uid, aoc.categoryoptioncomboid as aoc_id, dv.value as datavalue " +
@@ -145,13 +149,15 @@ public class AnalyticsUtils
             "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
             "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
             "inner join categoryoptioncombo aoc on dv.attributeoptioncomboid = aoc.categoryoptioncomboid " +
-            "where dv.dataelementid in (" + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataElements ), "," ) + ") " +
+            "where dv.dataelementid in ("
+            + StringUtils.join( IdentifiableObjectUtils.getIdentifiers( dataElements ), "," ) + ") " +
             "and (";
 
         for ( DimensionalItemObject period : periods )
         {
             Period pe = (Period) period;
-            sql += "(pe.startdate >= '" + getMediumDateString( pe.getStartDate() ) + "' and pe.enddate <= '" + getMediumDateString( pe.getEndDate() ) + "') or ";
+            sql += "(pe.startdate >= '" + getMediumDateString( pe.getStartDate() ) + "' and pe.enddate <= '"
+                + getMediumDateString( pe.getEndDate() ) + "') or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + ") and (";
@@ -160,12 +166,12 @@ public class AnalyticsUtils
         {
             OrganisationUnit ou = (OrganisationUnit) orgUnit;
             int level = ou.getLevel();
-            sql += "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel" + level + " = " + ou.getId() + ")) or ";
+            sql += "(dv.sourceid in (select organisationunitid from _orgunitstructure where idlevel" + level + " = "
+                + ou.getId() + ")) or ";
         }
 
         sql = TextUtils.removeLastOr( sql ) + ") ";
-        sql +=
-            "and dv.deleted is false " +
+        sql += "and dv.deleted is false " +
             "limit 100000";
 
         return sql;
@@ -179,7 +185,8 @@ public class AnalyticsUtils
      * @param dataDimensionOptions the data dimension options.
      * @return list of nameable objects.
      */
-    public static List<DimensionalItemObject> getByDataDimensionItemType( DataDimensionItemType itemType, List<DimensionalItemObject> dataDimensionOptions )
+    public static List<DimensionalItemObject> getByDataDimensionItemType( DataDimensionItemType itemType,
+        List<DimensionalItemObject> dataDimensionOptions )
     {
         List<DimensionalItemObject> list = new ArrayList<>();
 
@@ -200,9 +207,9 @@ public class AnalyticsUtils
      * Rounds a value. If the given parameters has skip rounding, the value is
      * rounded to {@link AnalyticsUtils#DECIMALS_NO_ROUNDING}. decimals. If the
      * given number of decimals is specified, the value is rounded to the given
-     * decimals. Otherwise, default rounding is used. If 0 decimals is explicitly
-     * specified, this method returns a long value. Otherwise, a double value is
-     * returned.
+     * decimals. Otherwise, default rounding is used. If 0 decimals is
+     * explicitly specified, this method returns a long value. Otherwise, a
+     * double value is returned.
      *
      * @param params the query parameters.
      * @param decimals the number of decimals.
@@ -259,8 +266,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns the database column type based on the given value type. For boolean
-     * values, 1 means true, 0 means false and null means no value.
+     * Returns the database column type based on the given value type. For
+     * boolean values, 1 means true, 0 means false and null means no value.
      *
      * @param valueType the value type to represent as database column type.
      * @param spatialSupport indicates whether spatial data types are enabled.
@@ -285,7 +292,7 @@ public class AnalyticsUtils
         }
         else if ( valueType.isGeo() && spatialSupport )
         {
-            return ColumnDataType.GEOMETRY_POINT; //TODO consider GEOMETRY
+            return ColumnDataType.GEOMETRY_POINT; // TODO consider GEOMETRY
         }
         else
         {
@@ -295,9 +302,9 @@ public class AnalyticsUtils
 
     /**
      * Converts the data and option combo identifiers to an operand identifier,
-     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For {@link TotalType#AOC_ONLY}
-     * a {@link ExpressionService#SYMBOL_WILDCARD} symbol will be inserted after the data
-     * item.
+     * i.e. {@code deuid-cocuid} to {@code deuid.cocuid}. For
+     * {@link TotalType#AOC_ONLY} a {@link ExpressionService#SYMBOL_WILDCARD}
+     * symbol will be inserted after the data item.
      *
      * @param valueMap the value map to convert.
      * @param totalType the {@link TotalType}.
@@ -311,7 +318,8 @@ public class AnalyticsUtils
         {
             List<String> items = Lists.newArrayList( entry.getKey().split( DimensionalObject.DIMENSION_SEP ) );
             List<String> operands = Lists.newArrayList( items.subList( 0, totalType.getPropertyCount() + 1 ) );
-            List<String> dimensions = Lists.newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
+            List<String> dimensions = Lists
+                .newArrayList( items.subList( totalType.getPropertyCount() + 1, items.size() ) );
 
             // Add wild card in place of category option combination
 
@@ -322,7 +330,7 @@ public class AnalyticsUtils
 
             String operand = StringUtils.join( operands, DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP );
             String dimension = StringUtils.join( dimensions, DimensionalObject.DIMENSION_SEP );
-            dimension = !dimension.isEmpty() ? ( DimensionalObject.DIMENSION_SEP + dimension ) : StringUtils.EMPTY;
+            dimension = !dimension.isEmpty() ? (DimensionalObject.DIMENSION_SEP + dimension) : StringUtils.EMPTY;
             String key = operand + dimension;
 
             map.put( key, entry.getValue() );
@@ -355,10 +363,10 @@ public class AnalyticsUtils
     }
 
     /**
-     * Generates a mapping where the key represents the dimensional item identifiers
-     * concatenated by {@link DimensionalObject#DIMENSION_SEP} and the value is
-     * the corresponding aggregated data value based on the given grid. Assumes
-     * that the value column is the last column in the grid.
+     * Generates a mapping where the key represents the dimensional item
+     * identifiers concatenated by {@link DimensionalObject#DIMENSION_SEP} and
+     * the value is the corresponding aggregated data value based on the given
+     * grid. Assumes that the value column is the last column in the grid.
      *
      * @param grid the grid.
      * @return a mapping between item identifiers and aggregated values.
@@ -450,15 +458,15 @@ public class AnalyticsUtils
      * Prepares the given grid to be converted to a data value set.
      *
      * <ul>
-     * <li>Converts data values from double to integer based on the
-     * associated data item if required.</li>
-     * <li>Adds a category option combo and a attribute option combo
-     * column to the grid based on the aggregated export properties
-     * of the associated data item.</li>
-     * <li>For data element operand data items, the operand identifier
-     * is split and the data element identifier is used for the data
-     * dimension column and the category option combo identifier is
-     * used for the category option combo column.</li>
+     * <li>Converts data values from double to integer based on the associated
+     * data item if required.</li>
+     * <li>Adds a category option combo and a attribute option combo column to
+     * the grid based on the aggregated export properties of the associated data
+     * item.</li>
+     * <li>For data element operand data items, the operand identifier is split
+     * and the data element identifier is used for the data dimension column and
+     * the category option combo identifier is used for the category option
+     * combo column.</li>
      * </ul>
      *
      * @param params the data query parameters.
@@ -509,8 +517,12 @@ public class AnalyticsUtils
             aocCol.add( aoc );
         }
 
-        grid.addHeader( vlInx, new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
-            .addHeader( vlInx, new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT, String.class.getName(), false, true ) )
+        grid.addHeader( vlInx,
+            new GridHeader( ATTRIBUTEOPTIONCOMBO_DIM_ID, ATTRIBUTEOPTIONCOMBO_DIM_ID, ValueType.TEXT,
+                String.class.getName(), false, true ) )
+            .addHeader( vlInx,
+                new GridHeader( CATEGORYOPTIONCOMBO_DIM_ID, CATEGORYOPTIONCOMBO_DIM_ID, ValueType.TEXT,
+                    String.class.getName(), false, true ) )
             .addColumn( vlInx, aocCol )
             .addColumn( vlInx, cocCol );
     }
@@ -527,23 +539,27 @@ public class AnalyticsUtils
      */
     public static Object getIntegerOrValue( Object value, DimensionalItemObject item )
     {
-        boolean doubleValue = item != null && value != null && ( value instanceof Double );
+        boolean doubleValue = item != null && value != null && (value instanceof Double);
 
         if ( doubleValue )
         {
-            if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType() && ((DataElement) item).getValueType().isInteger() )
+            if ( DimensionItemType.DATA_ELEMENT == item.getDimensionItemType()
+                && ((DataElement) item).getValueType().isInteger() )
             {
                 value = ((Double) value).intValue();
             }
-            else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType() && ((DataElementOperand) item).getDataElement().getValueType().isInteger() )
+            else if ( DimensionItemType.DATA_ELEMENT_OPERAND == item.getDimensionItemType()
+                && ((DataElementOperand) item).getDataElement().getValueType().isInteger() )
             {
                 value = ((Double) value).intValue();
             }
-            else if ( DimensionItemType.INDICATOR == item.getDimensionItemType() && ((Indicator) item).hasZeroDecimals() )
+            else if ( DimensionItemType.INDICATOR == item.getDimensionItemType()
+                && ((Indicator) item).hasZeroDecimals() )
             {
                 value = ((Double) value).intValue();
             }
-            else if ( DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType() && ((ProgramIndicator) item).hasZeroDecimals() )
+            else if ( DimensionItemType.PROGRAM_INDICATOR == item.getDimensionItemType()
+                && ((ProgramIndicator) item).hasZeroDecimals() )
             {
                 value = ((Double) value).intValue();
             }
@@ -553,8 +569,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between dimension item identifiers and dimensional
-     * item object for the given query.
+     * Returns a mapping between dimension item identifiers and dimensional item
+     * object for the given query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and names.
@@ -603,11 +619,13 @@ public class AnalyticsUtils
                     map.put( item.getDimensionItem(), item.getDisplayProperty( params.getDisplayProperty() ) );
                 }
 
-                if ( DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() ) && params.isHierarchyMeta() )
+                if ( DimensionType.ORGANISATION_UNIT.equals( dimension.getDimensionType() )
+                    && params.isHierarchyMeta() )
                 {
                     OrganisationUnit unit = (OrganisationUnit) item;
 
-                    map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( unit.getAncestors(), params.getDisplayProperty() ) );
+                    map.putAll( NameableObjectUtils.getUidDisplayPropertyMap( unit.getAncestors(),
+                        params.getDisplayProperty() ) );
                 }
             }
 
@@ -618,7 +636,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and meta data items for the given query.
+     * Returns a mapping between identifiers and meta data items for the given
+     * query.
      *
      * @param params the data query parameters.
      * @return a mapping between identifiers and meta data items.
@@ -642,11 +661,14 @@ public class AnalyticsUtils
                     Period period = (Period) item;
                     DateTimeUnit dateTimeUnit = calendar.fromIso( period.getStartDate() );
                     String isoDate = period.getPeriodType().getIsoDate( dateTimeUnit );
-                    map.put( isoDate, new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
+                    map.put( isoDate,
+                        new MetadataItem( period.getDisplayName(), includeMetadataDetails ? period : null ) );
                 }
                 else
                 {
-                    map.put( item.getDimensionItem(), new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? item : null ) );
+                    map.put( item.getDimensionItem(),
+                        new MetadataItem( item.getDisplayProperty( params.getDisplayProperty() ),
+                            includeMetadataDetails ? item : null ) );
                 }
 
                 if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() && params.isHierarchyMeta() )
@@ -655,7 +677,9 @@ public class AnalyticsUtils
 
                     for ( OrganisationUnit ancestor : unit.getAncestors() )
                     {
-                        map.put( ancestor.getUid(), new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? ancestor : null ) );
+                        map.put( ancestor.getUid(),
+                            new MetadataItem( ancestor.getDisplayProperty( params.getDisplayProperty() ),
+                                includeMetadataDetails ? ancestor : null ) );
                     }
                 }
 
@@ -665,12 +689,15 @@ public class AnalyticsUtils
 
                     for ( CategoryOptionCombo coc : dataElement.getCategoryOptionCombos() )
                     {
-                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? coc : null ) );
+                        map.put( coc.getUid(), new MetadataItem( coc.getDisplayProperty( params.getDisplayProperty() ),
+                            includeMetadataDetails ? coc : null ) );
                     }
                 }
             }
 
-            map.put( dimension.getDimension(), new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? dimension : null ) );
+            map.put( dimension.getDimension(),
+                new MetadataItem( dimension.getDisplayProperty( params.getDisplayProperty() ),
+                    includeMetadataDetails ? dimension : null ) );
 
             if ( dimension.getDimensionalKeywords() != null )
             {
@@ -685,11 +712,13 @@ public class AnalyticsUtils
 
         if ( ObjectUtils.allNotNull( program ) )
         {
-            map.put( program.getUid(), new MetadataItem( program.getDisplayProperty( params.getDisplayProperty() ), includeMetadataDetails ? program : null ) );
+            map.put( program.getUid(), new MetadataItem( program.getDisplayProperty( params.getDisplayProperty() ),
+                includeMetadataDetails ? program : null ) );
 
             if ( stage != null )
             {
-                map.put( stage.getUid(), new MetadataItem( stage.getDisplayName(), includeMetadataDetails ? stage : null ) );
+                map.put( stage.getUid(),
+                    new MetadataItem( stage.getDisplayName(), includeMetadataDetails ? stage : null ) );
             }
             else
             {
@@ -733,14 +762,15 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and display properties for the given
-     * list of query items.
+     * Returns a mapping between identifiers and display properties for the
+     * given list of query items.
      *
      * @param queryItems the list of query items.
      * @param displayProperty the display property to use.
      * @return a mapping between identifiers and display properties.
      */
-    public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems, DisplayProperty displayProperty )
+    public static Map<String, String> getUidDisplayPropertyMap( List<QueryItem> queryItems,
+        DisplayProperty displayProperty )
     {
         Map<String, String> map = new HashMap<>();
 
@@ -753,15 +783,16 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns a mapping between identifiers and display properties for the given
-     * list of dimensions.
+     * Returns a mapping between identifiers and display properties for the
+     * given list of dimensions.
      *
      * @param dimensions the dimensions.
      * @param hierarchyMeta indicates whether to include meta data about the
-     *         organisation unit hierarchy.
+     *        organisation unit hierarchy.
      * @return a mapping between identifiers and display properties.
      */
-    public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions, boolean hierarchyMeta, DisplayProperty displayProperty )
+    public static Map<String, String> getUidDisplayPropertyMap( List<DimensionalObject> dimensions,
+        boolean hierarchyMeta, DisplayProperty displayProperty )
     {
         Map<String, String> map = new HashMap<>();
 
@@ -790,11 +821,13 @@ public class AnalyticsUtils
     }
 
     /**
-     * Returns true if the given period occurs less than maxYears before the current date.
+     * Returns true if the given period occurs less than maxYears before the
+     * current date.
      *
      * @param year the year to check.
      * @param maxYears amount of years back to check
-     * @return false if maxYears is 0 or period occurs earlier than maxYears years since now.
+     * @return false if maxYears is 0 or period occurs earlier than maxYears
+     *         years since now.
      */
     public static boolean periodIsOutsideApprovalMaxYears( Integer year, Integer maxYears )
     {
@@ -805,12 +838,12 @@ public class AnalyticsUtils
 
         int currentYear = new DateTime().getYear();
 
-        return ( currentYear - year ) >= maxYears;
+        return (currentYear - year) >= maxYears;
     }
 
     /**
-     * Returns the level from the given org unit level dimension name. Returns -1 if the level
-     * could not be determined.
+     * Returns the level from the given org unit level dimension name. Returns
+     * -1 if the level could not be determined.
      *
      * @param dimensionName the given org unit level dimension name.
      * @return the org unit level, or -1.
@@ -831,11 +864,12 @@ public class AnalyticsUtils
      */
     public static boolean isTableLayout( List<String> columns, List<String> rows )
     {
-        return ( columns != null && !columns.isEmpty() ) || ( rows != null && !rows.isEmpty() );
+        return (columns != null && !columns.isEmpty()) || (rows != null && !rows.isEmpty());
     }
 
     /**
-     * Calculates the weighted arithmetic mean between two yearly values, based on the given factor as the month.
+     * Calculates the weighted arithmetic mean between two yearly values, based
+     * on the given factor as the month.
      *
      * @param year1Value the value for the first year.
      * @param year2Value the value for the second year.
@@ -856,7 +890,7 @@ public class AnalyticsUtils
      */
     public static Double getBaseMonth( PeriodType periodType )
     {
-        if ( periodType instanceof FinancialPeriodType)
+        if ( periodType instanceof FinancialPeriodType )
         {
             return (double) ((FinancialPeriodType) periodType).getBaseMonth();
         }
@@ -865,7 +899,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Throws an {@link IllegalQueryException} using the given {@link ErrorCode}.
+     * Throws an {@link IllegalQueryException} using the given
+     * {@link ErrorCode}.
      *
      * @param errorCode the error code.
      * @param args the arguments to provide to the error message.
@@ -876,8 +911,8 @@ public class AnalyticsUtils
     }
 
     /**
-     * Checks of the given Period string (iso) matches at least one Periods in the
-     * given list
+     * Checks of the given Period string (iso) matches at least one Periods in
+     * the given list
      *
      * @param period a Period as iso date String (e.g. 202001 for Jan 2020)
      * @param periods a List of DimensionalItemObject of type Period
@@ -890,13 +925,14 @@ public class AnalyticsUtils
     }
 
     /**
-     * Filters a List by Dimensional Item Object identifier and returns one ore more
-     * {@see DimensionalItemObject} matching the given identifier
+     * Filters a List by Dimensional Item Object identifier and returns one ore
+     * more {@see DimensionalItemObject} matching the given identifier
      *
-     * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject} on
+     * @param dimensionIdentifier a uid to filter {@see DimensionalItemObject}
+     *        on
      * @param items the filtered List
-     * @return a List only containing the {@see DimensionalItemObject} matching the
-     *         uid
+     * @return a List only containing the {@see DimensionalItemObject} matching
+     *         the uid
      */
     public static List<DimensionalItemObject> findDimensionalItems( String dimensionIdentifier,
         List<DimensionalItemObject> items )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.StringJoiner;
 import javassist.util.proxy.ProxyFactory;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -47,16 +56,6 @@ import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringJoiner;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,46 +98,46 @@ public class TrackerPreheat
     private Map<String, String> mandatoryProgramAttributes = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entities, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entities, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     private Map<TrackerIdScheme, Map<String, TrackedEntityInstance>> trackedEntities = new HashMap<>();
 
     /**
-     * Internal map of all preheated tracked entity attributes, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated tracked entity attributes, mainly used for
+     * confirming existence for updates, and used for object merging.
      */
     private Map<TrackerIdScheme, Map<String, TrackedEntityAttributeValue>> trackedEntityAttributes = new HashMap<>();
 
     /**
-     * Internal map of all preheated enrollments, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated enrollments, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     private Map<TrackerIdScheme, Map<String, ProgramInstance>> enrollments = new HashMap<>();
 
     /**
-     * Internal map of all preheated events, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated events, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     private Map<TrackerIdScheme, Map<String, ProgramStageInstance>> events = new HashMap<>();
 
     /**
-     * Internal map of all preheated relationships, mainly used for confirming existence for updates, and used
-     * for object merging.
+     * Internal map of all preheated relationships, mainly used for confirming
+     * existence for updates, and used for object merging.
      */
     private Map<TrackerIdScheme, Map<String, Relationship>> relationships = new EnumMap<>( TrackerIdScheme.class );
 
     /**
-     * A Map of event uid and preheated {@see ProgramInstance}. The value is a List,
-     * because the system may return multiple ProgramInstance, which will be
-     * detected by validation
+     * A Map of event uid and preheated {@see ProgramInstance}. The value is a
+     * List, because the system may return multiple ProgramInstance, which will
+     * be detected by validation
      */
     private Map<String, List<ProgramInstance>> programInstances = new HashMap<>();
 
     /**
      * A map of user uid and preheated {@see User}. The value is a User object.
-     * These users are primarily used to represent the "assignedUser" of events, used in validation and persisting
-     * events.
+     * These users are primarily used to represent the "assignedUser" of events,
+     * used in validation and persisting events.
      */
     private Map<String, User> users = new HashMap<>();
 
@@ -648,11 +647,11 @@ public class TrackerPreheat
         return programInstances;
     }
 
-    public void setProgramInstances(Map<String, List<ProgramInstance>> programInstances)
+    public void setProgramInstances( Map<String, List<ProgramInstance>> programInstances )
     {
         this.programInstances = programInstances;
     }
-    
+
     @Override
     public String toString()
     {

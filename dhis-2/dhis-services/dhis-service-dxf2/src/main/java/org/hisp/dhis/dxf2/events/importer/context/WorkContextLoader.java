@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.util.List;
 import java.util.Map;
@@ -151,8 +150,9 @@ public class WorkContextLoader
     }
 
     /**
-     * Make sure that the {@see User} object's properties are properly initialized,
-     * to avoid running into Hibernate-related issues during validation
+     * Make sure that the {@see User} object's properties are properly
+     * initialized, to avoid running into Hibernate-related issues during
+     * validation
      *
      * @param importOptions the {@see ImportOptions} object
      */
@@ -181,9 +181,10 @@ public class WorkContextLoader
     }
 
     /**
-     * Force Hibernate to pre-load all collections for the {@see UserCredentials}
-     * object and fetch the "isSuper()" data. This is required to avoid an Hibernate
-     * error later, when this object becomes detached from the Hibernate Session.
+     * Force Hibernate to pre-load all collections for the
+     * {@see UserCredentials} object and fetch the "isSuper()" data. This is
+     * required to avoid an Hibernate error later, when this object becomes
+     * detached from the Hibernate Session.
      */
     private void initUserCredentials( UserCredentials userCredentials )
     {

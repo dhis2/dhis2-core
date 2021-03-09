@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,7 @@ package org.hisp.dhis.system.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.system.notification;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -40,11 +34,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.util.StringUtils;
+
 /**
  * @author Lars Helge Overland
  */
 @Slf4j
-public class InMemoryNotifier implements Notifier
+public class InMemoryNotifier
+    implements Notifier
 {
     private NotificationMap notificationMap = new NotificationMap();
 

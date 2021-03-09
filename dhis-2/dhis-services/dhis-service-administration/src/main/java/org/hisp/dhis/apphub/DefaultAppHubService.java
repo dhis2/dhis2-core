@@ -1,7 +1,5 @@
-package org.hisp.dhis.apphub;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.apphub;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.apphub;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.apphub.AppHubUtils.getJsonRequestEntity;
@@ -44,6 +43,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -53,8 +54,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Zubair Asghar
@@ -93,13 +92,15 @@ public class DefaultAppHubService
 
         String appHubApiUrl = dhisConfigurationProvider.getProperty( ConfigurationKey.APPHUB_API_URL );
 
-        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion, query );
+        log.info( "Get App Hub response, base URL: '{}', API version: '{}', query: '{}'", appHubApiUrl, apiVersion,
+            query );
 
         String url = String.format( "%s/%s/%s", appHubApiUrl, apiVersion, query );
 
         log.info( "App Hub proxy request URL: '{}'", url );
 
-        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(), String.class );
+        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(),
+            String.class );
 
         return response.getBody();
     }

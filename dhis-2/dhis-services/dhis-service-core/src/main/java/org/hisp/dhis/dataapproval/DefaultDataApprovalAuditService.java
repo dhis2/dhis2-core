@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,9 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
-import com.google.common.collect.Sets;
-import org.apache.commons.collections4.CollectionUtils;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,7 +36,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
@@ -106,7 +106,7 @@ public class DefaultDataApprovalAuditService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataApprovalAudit> getDataApprovalAudits( DataApprovalAuditQueryParams params )
     {
         if ( !currentUserService.currentUserIsSuper() )
@@ -136,8 +136,8 @@ public class DefaultDataApprovalAuditService
     // -------------------------------------------------------------------------
 
     /**
-     * Retain the DataApprovalAudits that the user can read
-     * despite any dimension constraints that the user my have.
+     * Retain the DataApprovalAudits that the user can read despite any
+     * dimension constraints that the user my have.
      *
      * @param audits the list of audit records.
      */
@@ -149,14 +149,16 @@ public class DefaultDataApprovalAuditService
         Set<Category> catDimensionConstraints = user.getUserCredentials().getCatDimensionConstraints();
 
         if ( currentUserService.currentUserIsSuper() ||
-            ( CollectionUtils.isEmpty( cogDimensionConstraints ) && CollectionUtils.isEmpty( catDimensionConstraints ) ) )
+            (CollectionUtils.isEmpty( cogDimensionConstraints ) && CollectionUtils.isEmpty( catDimensionConstraints )) )
         {
             return;
         }
 
-        Map<CategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local cached results
+        Map<CategoryOptionCombo, Boolean> readableOptionCombos = new HashMap<>(); // Local
+        // cached
+        // results
 
-        for (Iterator<DataApprovalAudit> i = audits.iterator(); i.hasNext(); )
+        for ( Iterator<DataApprovalAudit> i = audits.iterator(); i.hasNext(); )
         {
             CategoryOptionCombo optionCombo = i.next().getAttributeOptionCombo();
 
@@ -186,7 +188,8 @@ public class DefaultDataApprovalAuditService
      *
      * @param user the user.
      * @param optionCombo the record to test.
-     * @param cogDimensionConstraints category option combo group constraints, if any.
+     * @param cogDimensionConstraints category option combo group constraints,
+     *        if any.
      * @param catDimensionConstraints category constraints, if any.
      * @return whether the user can read the DataApprovalAudit.
      */
@@ -206,8 +209,8 @@ public class DefaultDataApprovalAuditService
     }
 
     /**
-     * Returns whether a user can read a data element category option
-     * given the user's category option group constraints, if any.
+     * Returns whether a user can read a data element category option given the
+     * user's category option group constraints, if any.
      * <p>
      * If the option belongs to *any* option group that is readable by the user
      * which belongs to a constrained option group set, then the user may see
@@ -215,7 +218,8 @@ public class DefaultDataApprovalAuditService
      *
      * @param user the user.
      * @param option the data element category option to test.
-     * @param cogDimensionConstraints category option combo group constraints, if any.
+     * @param cogDimensionConstraints category option combo group constraints,
+     *        if any.
      * @return whether the user can read the data element category option.
      */
     private boolean isOptionCogConstraintReadable( User user, CategoryOption option,
@@ -241,8 +245,8 @@ public class DefaultDataApprovalAuditService
     }
 
     /**
-     * Returns whether a user can read a data element category option
-     * given the user's category constraints, if any.
+     * Returns whether a user can read a data element category option given the
+     * user's category constraints, if any.
      * <p>
      * If the option belongs to *any* category that is constrained for the user,
      * and the option is readable by the user, return true.
@@ -260,7 +264,7 @@ public class DefaultDataApprovalAuditService
             return true; // No category dimension constraints.
         }
 
-        return !CollectionUtils.intersection ( catDimensionConstraints, option.getCategories() ).isEmpty()
+        return !CollectionUtils.intersection( catDimensionConstraints, option.getCategories() ).isEmpty()
             && aclService.canRead( user, option );
     }
 }

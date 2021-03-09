@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,19 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -49,15 +54,9 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 /**
- * This class has the utility methods to invoke REST endpoints for various HTTP methods.
+ * This class has the utility methods to invoke REST endpoints for various HTTP
+ * methods.
  *
  * @author vanyas
  */
@@ -67,12 +66,15 @@ public class HttpUtils
     private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
     /**
-     * Method to make an HTTP GET call to a given URL with/without authentication.
+     * Method to make an HTTP GET call to a given URL with/without
+     * authentication.
      *
-     * @throws Exception </pre>
+     * @throws Exception
+     *         </pre>
      */
     public static DhisHttpResponse httpGET( String requestURL, boolean authorize, String username, String password,
-        Map<String, String> headers, int timeout, boolean processResponse ) throws Exception
+        Map<String, String> headers, int timeout, boolean processResponse )
+        throws Exception
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -129,11 +131,14 @@ public class HttpUtils
     }
 
     /**
-     * Method to make an HTTP POST call to a given URL with/without authentication.
+     * Method to make an HTTP POST call to a given URL with/without
+     * authentication.
      *
      */
-    public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username, String password,
-        String contentType, int timeout ) throws Exception
+    public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username,
+        String password,
+        String contentType, int timeout )
+        throws Exception
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -200,12 +205,15 @@ public class HttpUtils
     }
 
     /**
-     * Method to make an HTTP DELETE call to a given URL with/without authentication.
+     * Method to make an HTTP DELETE call to a given URL with/without
+     * authentication.
      *
-     * @throws Exception </pre>
+     * @throws Exception
+     *         </pre>
      */
     public static DhisHttpResponse httpDELETE( String requestURL, boolean authorize, String username, String password,
-        Map<String, String> headers, int timeout ) throws Exception
+        Map<String, String> headers, int timeout )
+        throws Exception
     {
         CloseableHttpClient httpClient = HttpClients.createDefault();
 
@@ -253,11 +261,11 @@ public class HttpUtils
         }
     }
 
-
     /**
      * Processes the HttpResponse to create a DHisHttpResponse object.
      *
-     * @throws IOException </pre>
+     * @throws IOException
+     *         </pre>
      */
     private static DhisHttpResponse processResponse( String requestURL, String username, HttpResponse response )
         throws Exception
@@ -275,7 +283,8 @@ public class HttpUtils
 
                 if ( contentType != null && checkIfGzipContentType( contentType ) )
                 {
-                    GzipDecompressingEntity gzipDecompressingEntity = new GzipDecompressingEntity( response.getEntity() );
+                    GzipDecompressingEntity gzipDecompressingEntity = new GzipDecompressingEntity(
+                        response.getEntity() );
                     InputStream content = gzipDecompressingEntity.getContent();
                     output = IOUtils.toString( content, StandardCharsets.UTF_8 );
                 }
@@ -287,14 +296,16 @@ public class HttpUtils
             }
             else
             {
-                throw new Exception( "No content found in the response received from http POST call to " + requestURL + " with username " + username );
+                throw new Exception( "No content found in the response received from http POST call to " + requestURL
+                    + " with username " + username );
             }
 
             dhisHttpResponse = new DhisHttpResponse( response, output, statusCode );
         }
         else
         {
-            throw new Exception( "NULL response received from http POST call to " + requestURL + " with username " + username );
+            throw new Exception(
+                "NULL response received from http POST call to " + requestURL + " with username " + username );
         }
 
         return dhisHttpResponse;

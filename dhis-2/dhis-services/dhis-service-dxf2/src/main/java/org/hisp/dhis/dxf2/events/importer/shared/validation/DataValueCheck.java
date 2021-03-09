@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
@@ -193,7 +192,7 @@ public class DataValueCheck implements Checker
         final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
 
         return validationStrategy == null || validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
-            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED );
+            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED);
 
     }
 

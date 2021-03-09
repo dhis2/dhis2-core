@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.security;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -47,7 +46,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -65,6 +63,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -207,7 +206,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         enrollmentService.addEnrollment( createEnrollment( programA.getUid(), maleA.getUid() ),
             ImportOptions.getDefaultImportOptions() );
 
-        // this is required because the event import takes place through JDBC and
+        // this is required because the event import takes place through JDBC
+        // and
         // hibernate does not see
         // the values inserted by the JDBC session. Clearing the session, forces
         // hibernate to reload from db rather than
@@ -495,7 +495,8 @@ public class TrackerAccessManagerTest extends DhisSpringTest
         }
 
         // Cannot create events with evemntOu outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users search scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );
@@ -508,9 +509,11 @@ public class TrackerAccessManagerTest extends DhisSpringTest
 
         trackerOwnershipManager.transferOwnership( tei, programA, organisationUnitB, true, true );
 
-        // Cannot create events with eventOu outside capture scope, even if ownerOu is
+        // Cannot create events with eventOu outside capture scope, even if
+        // ownerOu is
         // also in capture scope
-        assertHasError( trackerAccessManager.canCreate( user, psi, false ), "User has no create access to organisation unit:" );
+        assertHasError( trackerAccessManager.canCreate( user, psi, false ),
+            "User has no create access to organisation unit:" );
 
         // Can read events if ownerOu falls into users capture scope
         assertNoErrors( trackerAccessManager.canRead( user, psi, false ) );

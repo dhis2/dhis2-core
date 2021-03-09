@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -37,11 +41,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -141,10 +140,12 @@ public class PreCheckValidateAndGenerateUidHook
     }
 
     /**
-     * Check if the given UID has a valid format. A null UID is considered valid.
-     * 
+     * Check if the given UID has a valid format. A null UID is considered
+     * valid.
+     *
      * @param uid a UID. The UID string can be null.
-     * @param reporter a {@see ValidationErrorReporter} to which the error is added
+     * @param reporter a {@see ValidationErrorReporter} to which the error is
+     *        added
      * @param args list of arguments for the Error report
      * @return true, if the UID is invalid
      */

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapping;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.mapping;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapping;
+
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.Category;
@@ -50,14 +54,9 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -81,10 +80,15 @@ public class MappingServiceTest
     private RenderService _renderService;
 
     private CategoryOption coA = createCategoryOption( 'A' );
+
     private Category caA = createCategory( 'A', coA );
+
     private DataElement deA = createDataElement( 'A' );
+
     private OrganisationUnit ouA = createOrganisationUnit( 'A' );
+
     private OrganisationUnitGroup ougA = createOrganisationUnitGroup( 'A' );
+
     private OrganisationUnitGroupSet ougsA = createOrganisationUnitGroupSet( 'A' );
 
     @Override
@@ -140,9 +144,12 @@ public class MappingServiceTest
     }
 
     @Test
-    public void testImportMapCreateAndUpdate() throws IOException {
-        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "create_map.json" ).getInputStream(), RenderFormat.JSON );
+    public void testImportMapCreateAndUpdate()
+        throws IOException
+    {
+        java.util.Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
+            .fromMetadata(
+                new ClassPathResource( "create_map.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -154,8 +161,8 @@ public class MappingServiceTest
 
         List<Map> maps = idObjectManager.getAll( Map.class );
         assertEquals( 1, maps.size() );
-        assertEquals( "test1", maps.get(0).getName() );
-        assertEquals( 1, maps.get(0).getMapViews().size() );
+        assertEquals( "test1", maps.get( 0 ).getName() );
+        assertEquals( 1, maps.get( 0 ).getMapViews().size() );
 
         metadata = renderService.fromMetadata(
             new ClassPathResource( "update_map.json" ).getInputStream(), RenderFormat.JSON );

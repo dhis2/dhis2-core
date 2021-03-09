@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
 import java.util.Map;
@@ -55,22 +54,22 @@ public interface EventStore
     Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx );
 
     /**
-     *
      * Key: event uid -> Value: List<DataValue>
      *
-     * @param programStageInstanceId a List of Program Stage Instance Primary Keys
-     * @return A Map, where the key is a Program Stage Instance Primary Key, and the
-     *         value is a List of {@see DataValue}
+     * @param programStageInstanceId a List of Program Stage Instance Primary
+     *        Keys
+     * @return A Map, where the key is a Program Stage Instance Primary Key, and
+     *         the value is a List of {@see DataValue}
      */
     Map<String, List<DataValue>> getDataValues( List<Long> programStageInstanceId );
 
     /**
-     * Fetches all the relationships having the Program Stage Instance id specified
-     * in the arg as "left" or "right" relationship
+     * Fetches all the relationships having the Program Stage Instance id
+     * specified in the arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of
-     *         {@see Relationship} objects
+     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
+     *         List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 

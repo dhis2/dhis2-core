@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.*;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
@@ -34,7 +33,6 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.relationship.RelationshipConstraint;
@@ -51,6 +49,8 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -86,11 +86,10 @@ public class RelationshipsValidationHook
     private void validateBidirectionalDuplicatedRelationships( ValidationErrorReporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
-        List<Pair<RelationshipItem, RelationshipItem>> relationships =
-            bundle.getRelationships()
-                .stream()
-                .map( r -> new ImmutablePair<>( r.getFrom(), r.getTo() ) )
-                .collect( Collectors.toList() );
+        List<Pair<RelationshipItem, RelationshipItem>> relationships = bundle.getRelationships()
+            .stream()
+            .map( r -> new ImmutablePair<>( r.getFrom(), r.getTo() ) )
+            .collect( Collectors.toList() );
 
         List<ImmutablePair<RelationshipItem, RelationshipItem>> bidirectionalRelationship = Lists
             .newArrayList( relationship )
@@ -142,7 +141,7 @@ public class RelationshipsValidationHook
             {
                 validateRelationshipConstraint( relationship.getFrom(),
                     optionalRelationshipType.get().getFromConstraint() )
-                    .stream()
+                        .stream()
                         .forEach( e -> reporter.addError( e ) );
             }
         }
@@ -157,8 +156,8 @@ public class RelationshipsValidationHook
             {
                 validateRelationshipConstraint( relationship.getTo(),
                     optionalRelationshipType.get().getToConstraint() )
-                    .stream()
-                    .forEach( e -> reporter.addError( e ) );
+                        .stream()
+                        .forEach( e -> reporter.addError( e ) );
                 ;
             }
         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config.views;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,11 @@ package org.hisp.dhis.sms.config.views;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config.views;
 
 /**
- *
- * Json view to keep confidential parameters from exposing through API and make sure their availability
- * while de-serialisation.
+ * Json view to keep confidential parameters from exposing through API and make
+ * sure their availability while de-serialisation.
  *
  * @Author Zubair Asghar.
  */

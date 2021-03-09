@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n.ui.resourcebundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,9 @@ package org.hisp.dhis.i18n.ui.resourcebundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.ui.resourcebundle;
 
-import org.hisp.dhis.common.comparator.LocaleNameComparator;
-import org.hisp.dhis.i18n.locale.LocaleManager;
-import org.hisp.dhis.commons.util.PathUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,7 +48,9 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.common.comparator.LocaleNameComparator;
+import org.hisp.dhis.commons.util.PathUtils;
+import org.hisp.dhis.i18n.locale.LocaleManager;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -151,7 +150,7 @@ public class DefaultResourceBundleManager
             locales = new ArrayList<>( getAvailableLocalesFromDir( dirPath ) );
         }
 
-        locales.sort(LocaleNameComparator.INSTANCE);
+        locales.sort( LocaleNameComparator.INSTANCE );
 
         return locales;
     }

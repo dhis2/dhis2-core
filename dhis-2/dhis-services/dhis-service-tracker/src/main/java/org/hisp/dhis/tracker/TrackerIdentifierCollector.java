@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,15 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
-import com.google.common.base.MoreObjects;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -46,17 +51,12 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import com.google.common.base.MoreObjects;
 
 /**
- * This class "collects" identifiers from all input objects.
- * This resulting map of all identifiers will then be used to "preheat/cache"
- * all the objects needed into memory to speed up the validation process.
+ * This class "collects" identifiers from all input objects. This resulting map
+ * of all identifiers will then be used to "preheat/cache" all the objects
+ * needed into memory to speed up the validation process.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
@@ -172,8 +172,8 @@ public class TrackerIdentifierCollector
             return;
         }
 
-        attributes.forEach( attribute ->
-            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
+        attributes.forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID,
+            attribute.getAttribute() ) );
     }
 
     private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,

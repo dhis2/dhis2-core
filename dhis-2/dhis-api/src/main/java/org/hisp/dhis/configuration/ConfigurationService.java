@@ -1,7 +1,5 @@
-package org.hisp.dhis.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
 import org.hisp.dhis.user.User;
 
@@ -36,31 +35,32 @@ import org.hisp.dhis.user.User;
 public interface ConfigurationService
 {
     String ID = ConfigurationService.class.getName();
-    
+
     /**
      * Sets the configuration.
-     * 
+     *
      * @param configuration the configuration.
      */
     void setConfiguration( Configuration configuration );
-    
+
     /**
      * Gets the configuration.
-     * 
+     *
      * @return the configuration.
      */
     Configuration getConfiguration();
-    
+
     /**
      * Indicates whether the given origin is CORS white listed.
-     * 
+     *
      * @param origin the origin.
      * @return true if the given origin is CORS white listed.
      */
     boolean isCorsWhitelisted( String origin );
 
     /**
-     * Indicates whether the current user is part of the feedback Recipients group
+     * Indicates whether the current user is part of the feedback Recipients
+     * group
      */
     boolean isUserInFeedbackRecipientUserGroup( User user );
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.parser.expression;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.parser.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.parser.expression;
 
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.parser.expression.ParserUtils.DOUBLE_VALUE_IF_NULL;
@@ -309,13 +308,13 @@ public class CommonExpressionVisitor
     /**
      * Handles nulls and missing values.
      * <p/>
-     * If we should replace nulls with the default value, then do so, and remember
-     * how many items found, and how many of them had values, for subsequent
-     * MissingValueStrategy analysis.
+     * If we should replace nulls with the default value, then do so, and
+     * remember how many items found, and how many of them had values, for
+     * subsequent MissingValueStrategy analysis.
      * <p/>
-     * If we should not replace nulls with the default value, then don't, as this is
-     * likely for some function that is testing for nulls, and a missing value
-     * should not count towards the MissingValueStrategy.
+     * If we should not replace nulls with the default value, then don't, as
+     * this is likely for some function that is testing for nulls, and a missing
+     * value should not count towards the MissingValueStrategy.
      *
      * @param value the (possibly null) value
      * @return the value we should return.
@@ -342,8 +341,8 @@ public class CommonExpressionVisitor
     /**
      * Validates a program stage id / data element id pair
      *
-     * @param text expression text containing both program stage id and data element
-     *        id
+     * @param text expression text containing both program stage id and data
+     *        element id
      * @param programStageId the program stage id
      * @param dataElementId the data element id
      * @return the ValueType of the data element
@@ -373,8 +372,8 @@ public class CommonExpressionVisitor
     }
 
     /**
-     * Regenerates an expression by visiting all the children of the expression node
-     * (including any terminal nodes).
+     * Regenerates an expression by visiting all the children of the expression
+     * node (including any terminal nodes).
      *
      * @param ctx the expression context
      * @return the regenerated expression (as a String)

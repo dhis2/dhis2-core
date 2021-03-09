@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.dxf2.events.importer.EventTestUtils.createDataValue;
@@ -74,7 +73,7 @@ public class EventDataValueAggregatorTest
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             new HashMap<>(), importOptions );
-        
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
@@ -100,7 +99,7 @@ public class EventDataValueAggregatorTest
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
-        
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 3 ) );
@@ -143,9 +142,9 @@ public class EventDataValueAggregatorTest
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(),
-            createEventDataValue( "abcd", "val1" ),
-            createEventDataValue( "efgh", "val2" ),
-            createEventDataValue( "ilmn", "val3" ) ) );
+                createEventDataValue( "abcd", "val1" ),
+                createEventDataValue( "efgh", "val2" ),
+                createEventDataValue( "ilmn", "val3" ) ) );
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
@@ -172,10 +171,10 @@ public class EventDataValueAggregatorTest
             createEventDataValue( "abcd", "val1" ),
             createEventDataValue( "efgh", "val2" ),
             createEventDataValue( "ilmn", "val3" ) ) );
-        
+
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             programStageInstanceMap, importOptions );
-        
+
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
         assertThat( dataValues.get( event1.getUid() ), hasSize( 0 ) );
@@ -217,7 +216,7 @@ public class EventDataValueAggregatorTest
             createEventDataValue( "ilmn", "val3" ) ) );
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-                programStageInstanceMap, importOptions );
+            programStageInstanceMap, importOptions );
 
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
@@ -237,13 +236,13 @@ public class EventDataValueAggregatorTest
 
         Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
-                createPsi( event1.getUid(),
-                        createEventDataValue( "abcd", "val1" ),
-                        createEventDataValue( "efgh", "val2" ),
-                        createEventDataValue( "ilmn", "val3" ) ) );
+            createPsi( event1.getUid(),
+                createEventDataValue( "abcd", "val1" ),
+                createEventDataValue( "efgh", "val2" ),
+                createEventDataValue( "ilmn", "val3" ) ) );
 
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
-                programStageInstanceMap, importOptions );
+            programStageInstanceMap, importOptions );
 
         assertThat( dataValues, is( notNullValue() ) );
         assertThat( dataValues.keySet(), hasSize( 1 ) );
@@ -267,11 +266,11 @@ public class EventDataValueAggregatorTest
 
             assertThat( dv.getValue(), is( value ) );
             assertThat( dv.getStoredBy(), is( nullValue() ) );
-            assertThat( dv.getLastUpdated(), is( notNullValue()  ) );
+            assertThat( dv.getLastUpdated(), is( notNullValue() ) );
 
         } );
     }
-    
+
     private Event createEvent( DataValue... dataValues )
     {
         Event event = new Event();

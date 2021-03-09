@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,8 +38,6 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
-
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -80,8 +79,7 @@ public class DataElementGroupSetResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() + " " +
+        String sql = "insert into " + getTempTableName() + " " +
             "select d.dataelementid as dataelementid, d.name as dataelementname, ";
 
         for ( DataElementGroupSet groupSet : objects )
@@ -89,14 +87,16 @@ public class DataElementGroupSetResourceTable
             sql += "(" +
                 "select deg.name from dataelementgroup deg " +
                 "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid " +
-                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " + groupSet.getId() + " " +
+                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
+                + groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
                 "limit 1) as " + quote( groupSet.getName() ) + ", ";
 
             sql += "(" +
                 "select deg.uid from dataelementgroup deg " +
                 "inner join dataelementgroupmembers degm on degm.dataelementgroupid = deg.dataelementgroupid " +
-                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = " + groupSet.getId() + " " +
+                "inner join dataelementgroupsetmembers degsm on degsm.dataelementgroupid = degm.dataelementgroupid and degsm.dataelementgroupsetid = "
+                + groupSet.getId() + " " +
                 "where degm.dataelementid = d.dataelementid " +
                 "limit 1) as " + quote( groupSet.getUid() ) + ", ";
         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.List;
 
@@ -41,21 +40,21 @@ public interface ProgramTempOwnershipAuditService
 
     /**
      * Adds program temp ownership audit
-     * 
+     *
      * @param programTempOwnershipAudit the audit to add
      */
     void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 
     /**
      * Deletes program temp ownership audit for the given program instance
-     * 
+     *
      * @param program the program
      */
     void deleteProgramTempOwnershipAudit( Program program );
 
     /**
      * Returns program temp ownership audits matching query params
-     * 
+     *
      * @param params program temp ownership audit query params
      * @return matching ProgramTempOwnershipAuditQueryParams
      */
@@ -63,7 +62,7 @@ public interface ProgramTempOwnershipAuditService
 
     /**
      * Returns count of program temp ownership audits matching query params
-     * 
+     *
      * @param params program temp ownership audit query params
      * @return count of ProgramTempOwnershipAuditQueryParams
      */

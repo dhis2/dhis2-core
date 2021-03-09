@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.junit.Assert.*;
+
+import java.util.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
@@ -38,10 +41,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.*;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Jim Grace
@@ -192,195 +191,238 @@ public class ProgramIndicatorServiceD2FunctionTest
     @Test
     public void testD2Condition()
     {
-        assertEquals("case when ((\"DataElmentA\" is not null)) then 1 + 4 else nullif(cast((case when \"DataElmentB\" >= 0 then 1 else 0 end) as double precision),0) end",
-            getSql("d2:condition( 'd2:hasValue(#{ProgrmStagA.DataElmentA})', 1+4, d2:zpvc(#{Program000B.DataElmentB}) )" ) );
+        assertEquals(
+            "case when ((\"DataElmentA\" is not null)) then 1 + 4 else nullif(cast((case when \"DataElmentB\" >= 0 then 1 else 0 end) as double precision),0) end",
+            getSql(
+                "d2:condition( 'd2:hasValue(#{ProgrmStagA.DataElmentA})', 1+4, d2:zpvc(#{Program000B.DataElmentB}) )" ) );
 
-        assertEquals("case when (((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) is not null)) " +
+        assertEquals(
+            "case when (((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) is not null)) "
+                +
                 "then 1 + 4 else nullif(cast((case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0) end",
-            getSqlEnrollment("d2:condition( \"d2:hasValue(#{ProgrmStagA.DataElmentA})\", 1+4, d2:zpvc(#{Program000B.DataElmentB}) )" ) );
+            getSqlEnrollment(
+                "d2:condition( \"d2:hasValue(#{ProgrmStagA.DataElmentA})\", 1+4, d2:zpvc(#{Program000B.DataElmentB}) )" ) );
     }
 
     @Test
     public void testD2Count()
     {
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSql("d2:count(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSql( "d2:count(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:count(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:count(#{ProgrmStagA.DataElmentA})" ) );
     }
 
     @Test
     public void testD2CountIfCondition()
     {
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce(\"DataElmentB\"::numeric,0) and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSql("d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')" ) );
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce(\"DataElmentB\"::numeric,0) and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSql( "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, ' >= #{Program000B.DataElmentB}')" ) );
 
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce(" +
-                "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by executiondate desc limit 1 )::numeric,0) " +
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" >= coalesce("
+                +
+                "(select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'Program000B' order by executiondate desc limit 1 )::numeric,0) "
+                +
                 "and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")" ) );
+            getSqlEnrollment(
+                "d2:countIfCondition( #{ProgrmStagA.DataElmentA}, \" >= #{Program000B.DataElmentB}\")" ) );
     }
 
     @Test
     public void testD2CountIfValue()
     {
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSql("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)" ) );
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSql( "d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)" ) );
 
-        assertEquals("(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)" ) );
+        assertEquals(
+            "(select count(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and \"DataElmentA\" = 10 and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:countIfValue(#{ProgrmStagA.DataElmentA}, 10)" ) );
     }
 
     @Test
     public void testD2DaysBetween()
     {
-        assertEquals("(cast(executiondate as date) - cast(\"DataElmentD\" as date))",
-            getSql("d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "(cast(executiondate as date) - cast(\"DataElmentD\" as date))",
+            getSql( "d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date) " +
+        assertEquals(
+            "(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date) "
+                +
                 "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))",
-            getSqlEnrollment("d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+            getSqlEnrollment( "d2:daysBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2HasValue()
     {
-        assertEquals("(\"DataElmentA\" is not null)",
-            getSql("d2:hasValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals( "(\"DataElmentA\" is not null)",
+            getSql( "d2:hasValue(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) is not null)",
-            getSqlEnrollment("d2:hasValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) is not null)",
+            getSqlEnrollment( "d2:hasValue(#{ProgrmStagA.DataElmentA})" ) );
     }
 
     @Test
     public void testD2MaxValue()
     {
-        assertEquals("\"DataElmentA\"",
-            getSql("d2:maxValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals( "\"DataElmentA\"",
+            getSql( "d2:maxValue(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("(select max(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:maxValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "(select max(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:maxValue(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("\"executiondate\"",
-            getSql("d2:maxValue(PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "\"executiondate\"",
+            getSql( "d2:maxValue(PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("(select max(\"executiondate\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:maxValue(PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals(
+            "(select max(\"executiondate\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:maxValue(PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2MinutesBetween()
     {
-        assertEquals("(extract(epoch from (cast(executiondate as timestamp) - cast(\"DataElmentD\" as timestamp))) / 60)",
-            getSql("d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals(
+            "(extract(epoch from (cast(executiondate as timestamp) - cast(\"DataElmentD\" as timestamp))) / 60)",
+            getSql( "d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("(extract(epoch from (cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as timestamp) " +
+        assertEquals(
+            "(extract(epoch from (cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as timestamp) "
+                +
                 "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as timestamp))) / 60)",
-            getSqlEnrollment("d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+            getSqlEnrollment( "d2:minutesBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2MinValue()
     {
-        assertEquals("\"DataElmentA\"",
-            getSql("d2:minValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals( "\"DataElmentA\"",
+            getSql( "d2:minValue(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("(select min(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:minValue(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "(select min(\"DataElmentA\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:minValue(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("\"executiondate\"",
-            getSql("d2:minValue(PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "\"executiondate\"",
+            getSql( "d2:minValue(PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("(select min(\"executiondate\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
-            getSqlEnrollment("d2:minValue(PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals(
+            "(select min(\"executiondate\") from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA')",
+            getSqlEnrollment( "d2:minValue(PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2MonthsBetween()
     {
-        assertEquals("((date_part('year',age(cast(executiondate as date), cast(\"DataElmentD\" as date)))) * 12 + date_part('month',age(cast(executiondate as date), cast(\"DataElmentD\" as date))))",
-            getSql("d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals(
+            "((date_part('year',age(cast(executiondate as date), cast(\"DataElmentD\" as date)))) * 12 + date_part('month',age(cast(executiondate as date), cast(\"DataElmentD\" as date))))",
+            getSql( "d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("((date_part('year',age(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), " +
-                "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date)))) " +
-                "* 12 + date_part('month',age(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), " +
+        assertEquals(
+            "((date_part('year',age(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), "
+                +
+                "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date)))) "
+                +
+                "* 12 + date_part('month',age(cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), "
+                +
                 "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))))",
-            getSqlEnrollment("d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+            getSqlEnrollment( "d2:monthsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2Oizp()
     {
-        assertEquals("((date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\" as date)))) * 12 + date_part('month',age(cast(executiondate as date), cast(\"DataElmentA\" as date))))",
-            getSql("d2:monthsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals(
+            "((date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\" as date)))) * 12 + date_part('month',age(cast(executiondate as date), cast(\"DataElmentA\" as date))))",
+            getSql( "d2:monthsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)",
-            getSql("d2:oizp(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals( "coalesce(case when \"DataElmentA\" >= 0 then 1 else 0 end, 0)",
+            getSql( "d2:oizp(#{ProgrmStagA.DataElmentA})" ) );
 
-        assertEquals("coalesce(case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end, 0)",
-            getSqlEnrollment("d2:oizp(#{ProgrmStagA.DataElmentA})" ) );
+        assertEquals(
+            "coalesce(case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end, 0)",
+            getSqlEnrollment( "d2:oizp(#{ProgrmStagA.DataElmentA})" ) );
     }
 
     @Test
     public void testD2RelationshipCount()
     {
-        assertEquals("(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
-            getSql("d2:relationshipCount()" ) );
+        assertEquals(
+            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            getSql( "d2:relationshipCount()" ) );
 
-        assertEquals("(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
-            getSqlEnrollment("d2:relationshipCount()" ) );
+        assertEquals(
+            "(select count(*) from relationship r join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            getSqlEnrollment( "d2:relationshipCount()" ) );
 
-        assertEquals("(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
-            getSql("d2:relationshipCount('RelatioTypA')" ) );
+        assertEquals(
+            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            getSql( "d2:relationshipCount('RelatioTypA')" ) );
 
-        assertEquals("(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
-            getSqlEnrollment("d2:relationshipCount('RelatioTypA')" ) );
+        assertEquals(
+            "(select count(*) from relationship r join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = 'RelatioTypA' join relationshipitem rifrom on rifrom.relationshipid = r.relationshipid join trackedentityinstance tei on rifrom.trackedentityinstanceid = tei.trackedentityinstanceid and tei.uid = ax.tei)",
+            getSqlEnrollment( "d2:relationshipCount('RelatioTypA')" ) );
     }
 
     @Test
     public void testD2WeeksBetween()
     {
-        assertEquals("((cast(executiondate as date) - cast(\"DataElmentA\" as date))/7)",
-            getSql("d2:weeksBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "((cast(executiondate as date) - cast(\"DataElmentA\" as date))/7)",
+            getSql( "d2:weeksBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("((cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date) " +
+        assertEquals(
+            "((cast((select executiondate from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date) "
+                +
                 "- cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))/7)",
-            getSqlEnrollment("d2:weeksBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+            getSqlEnrollment( "d2:weeksBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2YearsBetween()
     {
-        assertEquals("(date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\" as date))))",
-            getSql("d2:yearsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "(date_part('year',age(cast(executiondate as date), cast(\"DataElmentA\" as date))))",
+            getSql( "d2:yearsBetween(#{ProgrmStagA.DataElmentA}, PS_EVENTDATE:ProgrmStagA)" ) );
 
-        assertEquals("(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
-                "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < " +
-                "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), " +
-                "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < " +
-                "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))))",
-            getSqlEnrollment("d2:yearsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
+        assertEquals( "(date_part('year',age(cast((select executiondate from analytics_event_Program000A " +
+            "where analytics_event_Program000A.pi = ax.pi and executiondate is not null and executiondate < " +
+            "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date), "
+            +
+            "cast((select \"DataElmentD\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentD\" is not null and executiondate < "
+            +
+            "cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) as date))))",
+            getSqlEnrollment( "d2:yearsBetween(#{ProgrmStagA.DataElmentD}, PS_EVENTDATE:ProgrmStagA)" ) );
     }
 
     @Test
     public void testD2Zing()
     {
-        assertEquals("greatest(0,coalesce(\"DataElmentA\"::numeric,0) + 5)",
-            getSql("d2:zing(#{ProgrmStagA.DataElmentA} + 5)" ) );
+        assertEquals( "greatest(0,coalesce(\"DataElmentA\"::numeric,0) + 5)",
+            getSql( "d2:zing(#{ProgrmStagA.DataElmentA} + 5)" ) );
 
-        assertEquals("greatest(0,coalesce((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) + 5)",
-            getSqlEnrollment("d2:zing(#{ProgrmStagA.DataElmentA} + 5)" ) );
+        assertEquals(
+            "greatest(0,coalesce((select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) + 5)",
+            getSqlEnrollment( "d2:zing(#{ProgrmStagA.DataElmentA} + 5)" ) );
     }
 
     @Test
     public void testD2Zpvc()
     {
-        assertEquals("nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double precision),0)",
-            getSql("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" ) );
+        assertEquals(
+            "nullif(cast((case when \"DataElmentA\" >= 0 then 1 else 0 end + case when \"DataElmentB\" >= 0 then 1 else 0 end) as double precision),0)",
+            getSql( "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" ) );
 
-        assertEquals("nullif(cast((case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end " +
+        assertEquals(
+            "nullif(cast((case when (select \"DataElmentA\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentA\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end "
+                +
                 "+ case when (select \"DataElmentB\" from analytics_event_Program000A where analytics_event_Program000A.pi = ax.pi and \"DataElmentB\" is not null and executiondate < cast( '2020-01-10' as date ) and executiondate >= cast( '2020-01-09' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 ) >= 0 then 1 else 0 end) as double precision),0)",
-            getSqlEnrollment("d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" ) );
+            getSqlEnrollment( "d2:zpvc(#{ProgrmStagA.DataElmentA},#{ProgrmStagB.DataElmentB})" ) );
     }
 }

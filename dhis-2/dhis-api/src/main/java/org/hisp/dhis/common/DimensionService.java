@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.List;
 import java.util.Map;
@@ -65,8 +64,8 @@ public interface DimensionService
 
     /**
      * Gets a dimension item object which are among the data dimension item
-     * objects. The composite dimensional items themselves will be transient
-     * and the associated objects will be persistent.
+     * objects. The composite dimensional items themselves will be transient and
+     * the associated objects will be persistent.
      *
      * @param dimensionItem the dimension item identifier.
      * @return a dimensional item object.
@@ -93,11 +92,12 @@ public interface DimensionService
     DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId dimensionalItemId );
 
     /**
-     * Gets a set of dimension item objects from their ids.
-     * In case of two {@see DimensionalItemId} having the same ids, this function always returns a
-     * {@see DimensionalItemObject} corresponding to the {@see DimensionalItemId}
-     * with the Period Offset property higher/lower than 0.
-     * 
+     * Gets a set of dimension item objects from their ids. In case of two
+     * {@see DimensionalItemId} having the same ids, this function always
+     * returns a {@see DimensionalItemObject} corresponding to the
+     * {@see DimensionalItemId} with the Period Offset property higher/lower
+     * than 0.
+     *
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return the set of dimension item objects built from the ids.
      */
@@ -118,5 +118,6 @@ public interface DimensionService
      * @param itemIds a set of ids of the dimension item objects to get.
      * @return a map from the item ids to the dimension item objects.
      */
-    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap( Set<DimensionalItemId> itemIds );
+    Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
+        Set<DimensionalItemId> itemIds );
 }

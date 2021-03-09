@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
+
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.mock.MockI18nFormat;
 import org.junit.Test;
-
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.assertFalse;
 
 /**
  * @author Lars Helge Overland
@@ -62,7 +61,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -74,7 +74,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -86,9 +87,12 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 3, relatives.size() );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ),
+            relatives.get( 2 ) );
     }
 
     @Test
@@ -100,13 +104,20 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 7, relatives.size() );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ), relatives.get( 6 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ),
+            relatives.get( 6 ) );
     }
 
     @Test
@@ -118,20 +129,34 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 14, relatives.size() );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ), relatives.get( 6 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ), relatives.get( 7 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ), relatives.get( 8 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ), relatives.get( 9 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ), relatives.get( 10 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ), relatives.get( 11 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ), relatives.get( 12 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ), relatives.get( 13 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ),
+            relatives.get( 9 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ),
+            relatives.get( 10 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ),
+            relatives.get( 11 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ),
+            relatives.get( 12 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ),
+            relatives.get( 13 ) );
     }
 
     @Test
@@ -144,37 +169,67 @@ public class RelativePeriodTest
 
         assertEquals( 30, relatives.size() );
 
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 15 ), getDate( 2001, 6, 15 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 16 ), getDate( 2001, 6, 16 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 17 ), getDate( 2001, 6, 17 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 18 ), getDate( 2001, 6, 18 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 19 ), getDate( 2001, 6, 19 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 20 ), getDate( 2001, 6, 20 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 21 ), getDate( 2001, 6, 21 ) ), relatives.get( 6 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 22 ), getDate( 2001, 6, 22 ) ), relatives.get( 7 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 23 ), getDate( 2001, 6, 23 ) ), relatives.get( 8 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 24 ), getDate( 2001, 6, 24 ) ), relatives.get( 9 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 25 ), getDate( 2001, 6, 25 ) ), relatives.get( 10 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 26 ), getDate( 2001, 6, 26 ) ), relatives.get( 11 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 27 ), getDate( 2001, 6, 27 ) ), relatives.get( 12 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 28 ), getDate( 2001, 6, 28 ) ), relatives.get( 13 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 29 ), getDate( 2001, 6, 29 ) ), relatives.get( 14 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 30 ), getDate( 2001, 6, 30 ) ), relatives.get( 15 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 15 ), getDate( 2001, 6, 15 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 16 ), getDate( 2001, 6, 16 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 17 ), getDate( 2001, 6, 17 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 18 ), getDate( 2001, 6, 18 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 19 ), getDate( 2001, 6, 19 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 20 ), getDate( 2001, 6, 20 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 21 ), getDate( 2001, 6, 21 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 22 ), getDate( 2001, 6, 22 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 23 ), getDate( 2001, 6, 23 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 24 ), getDate( 2001, 6, 24 ) ),
+            relatives.get( 9 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 25 ), getDate( 2001, 6, 25 ) ),
+            relatives.get( 10 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 26 ), getDate( 2001, 6, 26 ) ),
+            relatives.get( 11 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 27 ), getDate( 2001, 6, 27 ) ),
+            relatives.get( 12 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 28 ), getDate( 2001, 6, 28 ) ),
+            relatives.get( 13 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 29 ), getDate( 2001, 6, 29 ) ),
+            relatives.get( 14 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 6, 30 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 15 ) );
 
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ), relatives.get( 16 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ), relatives.get( 17 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ), relatives.get( 18 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ), relatives.get( 19 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ), relatives.get( 20 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ), relatives.get( 21 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ), relatives.get( 22 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ), relatives.get( 23 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ), relatives.get( 24 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ), relatives.get( 25 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ), relatives.get( 26 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ), relatives.get( 27 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ), relatives.get( 28 ) );
-        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ), relatives.get( 29 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 1 ) ),
+            relatives.get( 16 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 2 ), getDate( 2001, 7, 2 ) ),
+            relatives.get( 17 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 3 ), getDate( 2001, 7, 3 ) ),
+            relatives.get( 18 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 4 ), getDate( 2001, 7, 4 ) ),
+            relatives.get( 19 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 5 ), getDate( 2001, 7, 5 ) ),
+            relatives.get( 20 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 6 ), getDate( 2001, 7, 6 ) ),
+            relatives.get( 21 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 7 ), getDate( 2001, 7, 7 ) ),
+            relatives.get( 22 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 8 ), getDate( 2001, 7, 8 ) ),
+            relatives.get( 23 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 9 ), getDate( 2001, 7, 9 ) ),
+            relatives.get( 24 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 10 ), getDate( 2001, 7, 10 ) ),
+            relatives.get( 25 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 11 ), getDate( 2001, 7, 11 ) ),
+            relatives.get( 26 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 12 ), getDate( 2001, 7, 12 ) ),
+            relatives.get( 27 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 13 ), getDate( 2001, 7, 13 ) ),
+            relatives.get( 28 ) );
+        assertEquals( new Period( new DailyPeriodType(), getDate( 2001, 7, 14 ), getDate( 2001, 7, 14 ) ),
+            relatives.get( 29 ) );
     }
 
     @Test
@@ -186,7 +241,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -198,7 +254,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -210,7 +267,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 15 ), getDate( 2001, 1, 28 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 15 ), getDate( 2001, 1, 28 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -222,7 +280,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 14 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 14 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -234,7 +293,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -246,7 +306,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -258,7 +319,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 9, 30 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 9, 30 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -270,7 +332,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -282,7 +345,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 12, 31 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -294,7 +358,8 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
@@ -306,18 +371,30 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 2, 1 ), getDate( 2000, 2, 29 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 5, 1 ), getDate( 2000, 5, 31 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 6, 1 ), getDate( 2000, 6, 30 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 7, 31 ) ), relatives.get( 6 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 8, 1 ), getDate( 2000, 8, 31 ) ), relatives.get( 7 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 9, 1 ), getDate( 2000, 9, 30 ) ), relatives.get( 8 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 10, 31 ) ), relatives.get( 9 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 11, 1 ), getDate( 2000, 11, 30 ) ), relatives.get( 10 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 12, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 11 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 1, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 2, 1 ), getDate( 2000, 2, 29 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 3, 1 ), getDate( 2000, 3, 31 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 4, 30 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 5, 1 ), getDate( 2000, 5, 31 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 6, 1 ), getDate( 2000, 6, 30 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 7, 31 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 8, 1 ), getDate( 2000, 8, 31 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 9, 1 ), getDate( 2000, 9, 30 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 10, 31 ) ),
+            relatives.get( 9 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 11, 1 ), getDate( 2000, 11, 30 ) ),
+            relatives.get( 10 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2000, 12, 1 ), getDate( 2000, 12, 31 ) ),
+            relatives.get( 11 ) );
     }
 
     @Test
@@ -329,9 +406,12 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 3, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 2 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 2 ) );
     }
 
     @Test
@@ -343,12 +423,18 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 6, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 2, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 3, 31 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 5 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 2, 1 ), getDate( 2001, 2, 28 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 3, 31 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 5 ) );
     }
 
     @Test
@@ -360,147 +446,207 @@ public class RelativePeriodTest
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 3, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 6, 30 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 9, 30 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 3, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 4, 1 ), getDate( 2000, 6, 30 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 9, 30 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2000, 10, 1 ), getDate( 2000, 12, 31 ) ),
+            relatives.get( 3 ) );
     }
-
-
 
     @Test
     public void testGetLast4BiWeeks()
     {
         RelativePeriods relativePeriods = new RelativePeriods().setLast4BiWeeks( true );
-        relativePeriods.setLastBiWeek(false);
+        relativePeriods.setLastBiWeek( false );
         relativePeriods.setThisBiWeek( false );
 
         List<Period> relatives = relativePeriods.getRelativePeriods( getDate( 2002, 1, 1 ), I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 5 ), getDate( 2001, 11, 18 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 19 ), getDate( 2001, 12, 2 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 3 ), getDate( 2001, 12, 16 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 17 ), getDate( 2001, 12, 30 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 5 ), getDate( 2001, 11, 18 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 11, 19 ), getDate( 2001, 12, 2 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 3 ), getDate( 2001, 12, 16 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new BiWeeklyPeriodType(), getDate( 2001, 12, 17 ), getDate( 2001, 12, 30 ) ),
+            relatives.get( 3 ) );
     }
 
     @Test
     public void testGetLast2SixMonths()
     {
-        List<Period> relatives = new RelativePeriods().setLast2SixMonths( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+        List<Period> relatives = new RelativePeriods().setLast2SixMonths( true ).getRelativePeriods(
+            getDate( 2001, 1, 1 ), I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 2, relatives.size() );
-        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 6, 30 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 1 ) );
+        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 6, 30 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new SixMonthlyPeriodType(), getDate( 2000, 7, 1 ), getDate( 2000, 12, 31 ) ),
+            relatives.get( 1 ) );
     }
 
     @Test
     public void testGetLast5Years()
     {
-        List<Period> relatives = new RelativePeriods().setLast5Years( true ).getRelativePeriods( getDate( 2001, 1, 1 ), I18N_FORMAT, false,
+        List<Period> relatives = new RelativePeriods().setLast5Years( true ).getRelativePeriods( getDate( 2001, 1, 1 ),
+            I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 5, relatives.size() );
-        assertEquals( new Period( new YearlyPeriodType(), getDate( 1996, 1, 1 ), getDate( 1996, 12, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new YearlyPeriodType(), getDate( 1997, 1, 1 ), getDate( 1997, 12, 31 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new YearlyPeriodType(), getDate( 1998, 1, 1 ), getDate( 1998, 12, 31 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new YearlyPeriodType(), getDate( 1999, 1, 1 ), getDate( 1999, 12, 31 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new YearlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) ), relatives.get( 4 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1996, 1, 1 ), getDate( 1996, 12, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1997, 1, 1 ), getDate( 1997, 12, 31 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1998, 1, 1 ), getDate( 1998, 12, 31 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 1999, 1, 1 ), getDate( 1999, 12, 31 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new YearlyPeriodType(), getDate( 2000, 1, 1 ), getDate( 2000, 12, 31 ) ),
+            relatives.get( 4 ) );
     }
 
     @Test
     public void testGetMonthsThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false,
+        List<Period> relatives = new RelativePeriods().setMonthsThisYear( true ).getRelativePeriods(
+            getDate( 2001, 4, 1 ), I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 2, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 3, 31 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) ), relatives.get( 6 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 8, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 7 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 9, 30 ) ), relatives.get( 8 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 10, 1 ), getDate( 2001, 10, 31 ) ), relatives.get( 9 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 11, 30 ) ), relatives.get( 10 ) );
-        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 12, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 11 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 1, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 2, 1 ), getDate( 2001, 2, 28 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 3, 31 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 4, 30 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 5, 31 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 6, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 7, 31 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 8, 1 ), getDate( 2001, 8, 31 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 9, 30 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 10, 1 ), getDate( 2001, 10, 31 ) ),
+            relatives.get( 9 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 11, 30 ) ),
+            relatives.get( 10 ) );
+        assertEquals( new Period( new MonthlyPeriodType(), getDate( 2001, 12, 1 ), getDate( 2001, 12, 31 ) ),
+            relatives.get( 11 ) );
     }
 
     @Test
     public void testGetBiMonthsThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), I18N_FORMAT, false,
+        List<Period> relatives = new RelativePeriods().setBiMonthsThisYear( true ).getRelativePeriods(
+            getDate( 2001, 4, 1 ), I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 6, relatives.size() );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 2, 28 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 4, 30 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 10, 31 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 5 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 2, 28 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 3, 1 ), getDate( 2001, 4, 30 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 5, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 8, 31 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 9, 1 ), getDate( 2001, 10, 31 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new BiMonthlyPeriodType(), getDate( 2001, 11, 1 ), getDate( 2001, 12, 31 ) ),
+            relatives.get( 5 ) );
     }
 
     @Test
     public void testGetLastWeek()
     {
-        List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ), I18N_FORMAT, false,
+        List<Period> relatives = new RelativePeriods().setLastWeek( true ).getRelativePeriods( getDate( 2012, 1, 20 ),
+            I18N_FORMAT, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 1, relatives.size() );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2012, 1, 9 ), getDate( 2012, 1, 15 ) ), relatives.get( 0 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2012, 1, 9 ), getDate( 2012, 1, 15 ) ),
+            relatives.get( 0 ) );
     }
 
     @Test
     public void testGetLast4Weeks()
     {
-        List<Period> relatives = new RelativePeriods().setLast4Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false,
+        List<Period> relatives = new RelativePeriods().setLast4Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ),
+            null, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 5 ), getDate( 2010, 4, 11 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 12 ), getDate( 2010, 4, 18 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 19 ), getDate( 2010, 4, 25 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 26 ), getDate( 2010, 5, 2 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 5 ), getDate( 2010, 4, 11 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 12 ), getDate( 2010, 4, 18 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 19 ), getDate( 2010, 4, 25 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 26 ), getDate( 2010, 5, 2 ) ),
+            relatives.get( 3 ) );
     }
 
     @Test
     public void testGetLast12Weeks()
     {
-        List<Period> relatives = new RelativePeriods().setLast12Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ), null, false,
+        List<Period> relatives = new RelativePeriods().setLast12Weeks( true ).getRelativePeriods( getDate( 2010, 5, 4 ),
+            null, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 12, relatives.size() );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 8 ), getDate( 2010, 2, 14 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 15 ), getDate( 2010, 2, 21 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 22 ), getDate( 2010, 2, 28 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 1 ), getDate( 2010, 3, 7 ) ), relatives.get( 3 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 8 ), getDate( 2010, 3, 14 ) ), relatives.get( 4 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 15 ), getDate( 2010, 3, 21 ) ), relatives.get( 5 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 22 ), getDate( 2010, 3, 28 ) ), relatives.get( 6 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 29 ), getDate( 2010, 4, 4 ) ), relatives.get( 7 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 5 ), getDate( 2010, 4, 11 ) ), relatives.get( 8 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 12 ), getDate( 2010, 4, 18 ) ), relatives.get( 9 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 19 ), getDate( 2010, 4, 25 ) ), relatives.get( 10 ) );
-        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 26 ), getDate( 2010, 5, 2 ) ), relatives.get( 11 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 8 ), getDate( 2010, 2, 14 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 15 ), getDate( 2010, 2, 21 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 2, 22 ), getDate( 2010, 2, 28 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 1 ), getDate( 2010, 3, 7 ) ),
+            relatives.get( 3 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 8 ), getDate( 2010, 3, 14 ) ),
+            relatives.get( 4 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 15 ), getDate( 2010, 3, 21 ) ),
+            relatives.get( 5 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 22 ), getDate( 2010, 3, 28 ) ),
+            relatives.get( 6 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 3, 29 ), getDate( 2010, 4, 4 ) ),
+            relatives.get( 7 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 5 ), getDate( 2010, 4, 11 ) ),
+            relatives.get( 8 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 12 ), getDate( 2010, 4, 18 ) ),
+            relatives.get( 9 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 19 ), getDate( 2010, 4, 25 ) ),
+            relatives.get( 10 ) );
+        assertEquals( new Period( new WeeklyPeriodType(), getDate( 2010, 4, 26 ), getDate( 2010, 5, 2 ) ),
+            relatives.get( 11 ) );
     }
 
     @Test
     public void testGetQuartersThisYear()
     {
-        List<Period> relatives = new RelativePeriods().setQuartersThisYear( true ).getRelativePeriods( getDate( 2001, 4, 1 ), null, false,
+        List<Period> relatives = new RelativePeriods().setQuartersThisYear( true ).getRelativePeriods(
+            getDate( 2001, 4, 1 ), null, false,
             FINANCIAL_YEAR_OCTOBER );
 
         assertEquals( 4, relatives.size() );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 3, 31 ) ), relatives.get( 0 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 6, 30 ) ), relatives.get( 1 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 9, 30 ) ), relatives.get( 2 ) );
-        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 10, 1 ), getDate( 2001, 12, 31 ) ), relatives.get( 3 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 1, 1 ), getDate( 2001, 3, 31 ) ),
+            relatives.get( 0 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 4, 1 ), getDate( 2001, 6, 30 ) ),
+            relatives.get( 1 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 7, 1 ), getDate( 2001, 9, 30 ) ),
+            relatives.get( 2 ) );
+        assertEquals( new Period( new QuarterlyPeriodType(), getDate( 2001, 10, 1 ), getDate( 2001, 12, 31 ) ),
+            relatives.get( 3 ) );
     }
 
     @Test

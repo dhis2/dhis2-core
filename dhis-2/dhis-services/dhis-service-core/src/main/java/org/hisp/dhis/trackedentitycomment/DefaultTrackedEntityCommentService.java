@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentitycomment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.trackedentitycomment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentitycomment;
 
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.stereotype.Service;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
@@ -76,14 +75,14 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean trackedEntityCommentExists( String uid )
     {
         return commentStore.exists( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<String> filterExistingNotes( List<String> uids )
     {
         return this.commentStore.filterExisting( uids );
@@ -97,7 +96,7 @@ public class DefaultTrackedEntityCommentService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public TrackedEntityComment getTrackedEntityComment( long id )
     {
         return commentStore.get( id );

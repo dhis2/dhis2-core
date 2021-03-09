@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.objectmapper;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,29 @@ package org.hisp.dhis.system.objectmapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.objectmapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-import org.hisp.quick.mapper.RowMapper;
 import org.hisp.dhis.organisationunit.OrganisationUnitRelationship;
+import org.hisp.quick.mapper.RowMapper;
 
 /**
  * @author Lars Helge Overland
  */
 public class OrganisationUnitRelationshipRowMapper
-    implements RowMapper<OrganisationUnitRelationship>, org.springframework.jdbc.core.RowMapper<OrganisationUnitRelationship>
-{    
+    implements RowMapper<OrganisationUnitRelationship>,
+    org.springframework.jdbc.core.RowMapper<OrganisationUnitRelationship>
+{
     @Override
     public OrganisationUnitRelationship mapRow( ResultSet resultSet )
         throws SQLException
     {
-        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ), resultSet.getLong( "organisationunitid" ) );
+        return new OrganisationUnitRelationship( resultSet.getLong( "parentid" ),
+            resultSet.getLong( "organisationunitid" ) );
     }
-    
+
     @Override
     public OrganisationUnitRelationship mapRow( ResultSet resultSet, int rowNum )
         throws SQLException

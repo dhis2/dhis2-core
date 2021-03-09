@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,23 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
+
+import java.util.Date;
 
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.relationship.RelationshipType;
 
-import java.util.Date;
-
 /**
- * Component responsible for generating a complete sub-query which fetches the aggregated values of the
- * specified Program Indicator.
- * This component is designed to be invoked when listing events or enrollments and the list requires an additional
- * value derived from the Program Indicator expression/filter.
+ * Component responsible for generating a complete sub-query which fetches the
+ * aggregated values of the specified Program Indicator. This component is
+ * designed to be invoked when listing events or enrollments and the list
+ * requires an additional value derived from the Program Indicator
+ * expression/filter.
  *
  * For instance:
+ *
  * <pre>
  * SELECT
  *    pi,
@@ -54,41 +55,46 @@ import java.util.Date;
  * </pre>
  *
  * An example of a generated sub-query is:
+ *
  * <pre>
  * avg((date_part('year', age(cast(executiondate as date), cast("iESIqZ0R0R0" as date)))))
  * FROM analytics_event_uy2gu8kt1jf as subax"
  * </pre>
- * Note that this component does not add the {@code SELECT } keyword to the generated query.
+ *
+ * Note that this component does not add the {@code SELECT } keyword to the
+ * generated query.
  *
  * @author Luciano Fiandesio
  */
 public interface ProgramIndicatorSubqueryBuilder
 {
     /**
-     * Generates the Program Indicator sub-query to be used as aggregation column within a Enrollment/Event
-     * list query.
+     * Generates the Program Indicator sub-query to be used as aggregation
+     * column within a Enrollment/Event list query.
      *
      * @param programIndicator a {@see ProgramIndicator} object
-     * @param outerSqlEntity a {@see AnalyticsType} object, representing the outer sql context
+     * @param outerSqlEntity a {@see AnalyticsType} object, representing the
+     *        outer sql context
      * @param earliestStartDate reporting start date
      * @param latestDate reporting end date
-     *
      * @return a String containing a Program Indicator sub-query
      */
     String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator, AnalyticsType outerSqlEntity,
         Date earliestStartDate, Date latestDate );
 
     /**
-     * Generates the Program Indicator sub-query to be used as aggregation column within a Enrollment/Event
-     * list query.
-     * This method accepts a {@see RelationshipType} object, that is used to filter the Program Indicator values
-     * by the type of relationship specified.
-     * For instance, given a "Mother->Child" relationship type, this method will generated a SQL that will fetch only
-     * the "Child" side of the relationship when aggregating the value for the Program Indicator
+     * Generates the Program Indicator sub-query to be used as aggregation
+     * column within a Enrollment/Event list query. This method accepts a
+     * {@see RelationshipType} object, that is used to filter the Program
+     * Indicator values by the type of relationship specified. For instance,
+     * given a "Mother->Child" relationship type, this method will generated a
+     * SQL that will fetch only the "Child" side of the relationship when
+     * aggregating the value for the Program Indicator
      *
      * @param programIndicator a {@see ProgramIndicator} object
      * @param relationshipType a {@see RelationshipType} object
-     * @param outerSqlEntity a {@see AnalyticsType} object, representing the outer sql context
+     * @param outerSqlEntity a {@see AnalyticsType} object, representing the
+     *        outer sql context
      * @param earliestStartDate reporting start date
      * @param latestDate reporting end date
      *

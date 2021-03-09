@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.List;
@@ -48,8 +47,8 @@ public interface TrackedEntityInstanceStore
      * Get a Map of {@see TrackedEntityInstance} by Primary Keys
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key is
-     *         the corresponding {@see TrackedEntityInstance}
+     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key
+     *         is the corresponding {@see TrackedEntityInstance}
      */
     Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx );
 
@@ -58,33 +57,34 @@ public interface TrackedEntityInstanceStore
      * "left" or "right" relationship
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
+     *         the key a List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids );
 
     /**
      *
      * @param ids @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the
-     *         key a List of {@see Attribute} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
+     *         the key a List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids );
 
     /**
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and the *
-     *         key a List of {@see ProgramOwner} objects
+     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
+     *         the * key a List of {@see ProgramOwner} objects
      */
     Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
 
     /**
-     * For each tei, get the list of programs for which the user has ownership. 
-     * 
+     * For each tei, get the list of programs for which the user has ownership.
+     *
      * @param ids a list of Tracked Entinty Instance primary keys
-     * @param ctx 
-     * @return Tei uids mapped to a list of program uids to which user has ownership
+     * @param ctx
+     * @return Tei uids mapped to a list of program uids to which user has
+     *         ownership
      */
     Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx );
 }

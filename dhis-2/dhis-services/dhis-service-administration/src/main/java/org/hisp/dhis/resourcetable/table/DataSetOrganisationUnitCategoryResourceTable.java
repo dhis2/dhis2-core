@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -81,8 +80,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
     }
 
     /**
-     * Iterate over data sets and associated organisation units. If data set
-     * has a category combination and the organisation unit has category options,
+     * Iterate over data sets and associated organisation units. If data set has
+     * a category combination and the organisation unit has category options,
      * find the intersection of the category option combinations linked to the
      * organisation unit through its category options, and the category option
      * combinations linked to the data set through its category combination. If
@@ -111,10 +110,13 @@ public class DataSetOrganisationUnitCategoryResourceTable
 
                             if ( orgUnitOptions.containsAll( optionComboOptions ) )
                             {
-                                Date startDate = DateUtils.min( optionComboOptions.stream().map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
-                                Date endDate = DateUtils.max( optionComboOptions.stream().map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
+                                Date startDate = DateUtils.min( optionComboOptions.stream()
+                                    .map( co -> co.getStartDate() ).collect( Collectors.toSet() ) );
+                                Date endDate = DateUtils.max( optionComboOptions.stream()
+                                    .map( co -> co.getAdjustedEndDate( dataSet ) ).collect( Collectors.toSet() ) );
 
-                                List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), optionCombo.getId(), startDate, endDate );
+                                List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(),
+                                    optionCombo.getId(), startDate, endDate );
 
                                 batchArgs.add( values.toArray() );
                             }
@@ -123,7 +125,8 @@ public class DataSetOrganisationUnitCategoryResourceTable
                 }
                 else
                 {
-                    List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(), defaultOptionCombo.getId(), null, null );
+                    List<Object> values = Lists.newArrayList( dataSet.getId(), orgUnit.getId(),
+                        defaultOptionCombo.getId(), null, null );
 
                     batchArgs.add( values.toArray() );
                 }

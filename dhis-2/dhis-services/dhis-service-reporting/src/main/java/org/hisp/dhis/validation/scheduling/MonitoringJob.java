@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation.scheduling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation.scheduling;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
@@ -112,7 +111,7 @@ public class MonitoringJob
 
         MonitoringJobParameters monitoringJobParameters = (MonitoringJobParameters) jobConfiguration.getJobParameters();
 
-        //TODO improve collection usage
+        // TODO improve collection usage
 
         try
         {
@@ -128,7 +127,7 @@ public class MonitoringJob
             else
             {
                 validationRules = groupUIDs.stream()
-                    .map(validationRuleService::getValidationRuleGroup)
+                    .map( validationRuleService::getValidationRuleGroup )
                     .filter( Objects::nonNull )
                     .map( ValidationRuleGroup::getMembers )
                     .filter( Objects::nonNull )
@@ -137,7 +136,8 @@ public class MonitoringJob
 
             if ( monitoringJobParameters.getRelativeStart() != 0 && monitoringJobParameters.getRelativeEnd() != 0 )
             {
-                Date startDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeStart() );
+                Date startDate = DateUtils.getDateAfterAddition( new Date(),
+                    monitoringJobParameters.getRelativeStart() );
                 Date endDate = DateUtils.getDateAfterAddition( new Date(), monitoringJobParameters.getRelativeEnd() );
 
                 periods = periodService.getPeriodsBetweenDates( startDate, endDate );

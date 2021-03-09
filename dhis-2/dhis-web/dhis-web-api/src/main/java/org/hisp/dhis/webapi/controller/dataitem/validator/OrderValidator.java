@@ -149,7 +149,7 @@ public class OrderValidator
 
                     if ( trimToEmpty( orderAttributeName ).equalsIgnoreCase( Order.Attribute.NAME.getName() )
                         && trimToEmpty( filterAttributeName )
-                        .equalsIgnoreCase( Filter.Attribute.DISPLAY_NAME.getName() ) )
+                            .equalsIgnoreCase( Filter.Attribute.DISPLAY_NAME.getName() ) )
                     {
                         throw new IllegalQueryException( new ErrorMessage( E2019, orderParam + " + " + filter ) );
                     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,9 +69,13 @@ import org.springframework.web.bind.annotation.*;
 public class SystemSettingController
 {
     private final SystemSettingManager systemSettingManager;
+
     private final RenderService renderService;
+
     private final WebMessageService webMessageService;
+
     private final CurrentUserService currentUserService;
+
     private final UserSettingService userSettingService;
 
     public SystemSettingController( SystemSettingManager systemSettingManager, RenderService renderService,
@@ -129,11 +132,14 @@ public class SystemSettingController
 
         systemSettingManager.saveSystemSetting( setting, valueObject );
 
-        webMessageService.send( WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response, request );
+        webMessageService.send(
+            WebMessageUtils.ok( "System setting '" + key + "' set to value '" + valueObject + "'." ), response,
+            request );
     }
 
     private void saveSystemSettingTranslation( String key, String locale, String value, SettingKey setting,
-        HttpServletResponse response, HttpServletRequest request) throws WebMessageException
+        HttpServletResponse response, HttpServletRequest request )
+        throws WebMessageException
     {
         try
         {
@@ -158,20 +164,24 @@ public class SystemSettingController
 
         if ( value == null && valuePayload == null )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Value must be specified as query param or as payload" ) );
         }
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { ContextUtils.CONTENT_TYPE_JSON } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_SYSTEM_SETTING')" )
-    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response, HttpServletRequest request )
+    public void setSystemSettingV29( @RequestBody Map<String, Object> settings, HttpServletResponse response,
+        HttpServletRequest request )
         throws WebMessageException
     {
-        List<String> invalidKeys = settings.keySet().stream().filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );
+        List<String> invalidKeys = settings.keySet().stream()
+            .filter( ( key ) -> !SettingKey.getByName( key ).isPresent() ).collect( Collectors.toList() );
 
         if ( invalidKeys.size() > 0 )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Key(s) is not supported: " + StringUtils.join( invalidKeys, ", " ) ) );
         }
 
         for ( String key : settings.keySet() )
@@ -195,7 +205,8 @@ public class SystemSettingController
     @RequestMapping( value = "/{key}", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
         ContextUtils.CONTENT_TYPE_HTML } )
     public @ResponseBody void getSystemSettingOrTranslationAsJson( @PathVariable( "key" ) String key,
-        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response ) throws IOException
+        @RequestParam( value = "locale", required = false ) String locale, HttpServletResponse response )
+        throws IOException
     {
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
@@ -218,7 +229,8 @@ public class SystemSettingController
 
             if ( localeToFetch.isPresent() )
             {
-                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(), localeToFetch.get() );
+                Optional<String> translation = systemSettingManager.getSystemSettingTranslation( settingKey.get(),
+                    localeToFetch.get() );
 
                 if ( translation.isPresent() )
                 {
@@ -257,8 +269,10 @@ public class SystemSettingController
         return Optional.empty();
     }
 
-    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_HTML } )
-    public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys, HttpServletResponse response )
+    @RequestMapping( method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_HTML } )
+    public void getSystemSettingsJson( @RequestParam( value = "key", required = false ) Set<String> keys,
+        HttpServletResponse response )
         throws IOException
     {
         Set<SettingKey> settingKeys = getSettingKeysToFetch( keys );

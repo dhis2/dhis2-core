@@ -1,5 +1,3 @@
-package org.hisp.dhis.security.action;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.security.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.action;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -36,12 +35,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.struts2.ServletActionContext;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;

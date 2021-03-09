@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
@@ -155,9 +154,9 @@ public abstract class ReportTableFacadeController
 
     protected static final String DEFAULTS = "INCLUDE";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Dependencies
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
     {
@@ -226,15 +225,15 @@ public abstract class ReportTableFacadeController
     @Qualifier( "xmlMapper" )
     protected ObjectMapper xmlMapper;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // GET
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET )
-    public @ResponseBody
-    RootNode getObjectList(
+    public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
-        HttpServletResponse response, HttpServletRequest request, User currentUser ) throws QueryParserException
+        HttpServletResponse response, HttpServletRequest request, User currentUser )
+        throws QueryParserException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
@@ -250,11 +249,12 @@ public abstract class ReportTableFacadeController
 
         if ( !aclService.canRead( currentUser, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
 
         // Force the load of Visualizations of type PIVOT_TABLE only.
-        filters.add("type:eq:" + PIVOT_TABLE);
+        filters.add( "type:eq:" + PIVOT_TABLE );
 
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );
 
@@ -296,13 +296,15 @@ public abstract class ReportTableFacadeController
     public @ResponseBody RootNode getObject(
         @PathVariable( "uid" ) String pvUid,
         @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = currentUserService.getCurrentUser();
 
         if ( !aclService.canRead( user, getEntityClass() ) )
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
 
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -323,7 +325,8 @@ public abstract class ReportTableFacadeController
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
         @RequestParam Map<String, String> rpParameters,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = currentUserService.getCurrentUser();
 
@@ -340,7 +343,8 @@ public abstract class ReportTableFacadeController
         {
             if ( !aclService.canRead( user, getEntityClass() ) )
             {
-                throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+                throw new ReadAccessDeniedException(
+                    "You don't have the proper permissions to read objects of this type." );
             }
 
             List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -352,9 +356,11 @@ public abstract class ReportTableFacadeController
 
             String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
+                CacheControl.noCache().cachePrivate().getHeaderValue() );
 
-            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + fieldFilter ), user );
+            return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
+                Lists.newArrayList( pvProperty + fieldFilter ), user );
         }
         finally
         {
@@ -365,7 +371,8 @@ public abstract class ReportTableFacadeController
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
     public void replaceTranslations(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
         List<Visualization> entities = getEntity( pvUid, options );
@@ -399,17 +406,20 @@ public abstract class ReportTableFacadeController
 
             if ( translation.getLocale() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" ).setErrorKlass( ReportTable.class ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "locale" )
+                    .setErrorKlass( ReportTable.class ) );
             }
 
             if ( translation.getProperty() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" ).setErrorKlass( ReportTable.class ) );
+                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "property" )
+                    .setErrorKlass( ReportTable.class ) );
             }
 
             if ( translation.getValue() == null )
             {
-                objectReport.addErrorReport( new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( ReportTable.class ) );
+                objectReport.addErrorReport(
+                    new ErrorReport( Translation.class, ErrorCode.E4000, "value" ).setErrorKlass( ReportTable.class ) );
             }
 
             typeReport.addObjectReport( objectReport );
@@ -437,7 +447,8 @@ public abstract class ReportTableFacadeController
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
         List<Visualization> entities = getEntity( pvUid, options );
@@ -461,14 +472,12 @@ public abstract class ReportTableFacadeController
         if ( isJson( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( jsonMapper.readTree( request.getInputStream() ) )
-            );
+                new PatchParams( jsonMapper.readTree( request.getInputStream() ) ) );
         }
         else if ( isXml( request ) )
         {
             patch = patchService.diff(
-                new PatchParams( xmlMapper.readTree( request.getInputStream() ) )
-            );
+                new PatchParams( xmlMapper.readTree( request.getInputStream() ) ) );
         }
 
         patchService.apply( patch, persistedObject );
@@ -478,8 +487,10 @@ public abstract class ReportTableFacadeController
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty, @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
+        @RequestParam Map<String, String> rpParameters,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         WebOptions options = new WebOptions( rpParameters );
 
@@ -492,7 +503,8 @@ public abstract class ReportTableFacadeController
 
         if ( !getSchema().haveProperty( pvProperty ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + ReportTable.class.getName() ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "Property " + pvProperty + " does not exist on " + ReportTable.class.getName() ) );
         }
 
         Property property = getSchema().getProperty( pvProperty );
@@ -523,7 +535,8 @@ public abstract class ReportTableFacadeController
     }
 
     private RootNode getObjectInternal( String uid, Map<String, String> parameters,
-        List<String> filters, List<String> fields, User user ) throws Exception
+        List<String> filters, List<String> fields, User user )
+        throws Exception
     {
         WebOptions options = new WebOptions( parameters );
         List<Visualization> entities = getEntity( uid, options );
@@ -589,9 +602,9 @@ public abstract class ReportTableFacadeController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // POST
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
@@ -621,7 +634,8 @@ public abstract class ReportTableFacadeController
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
-            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
+            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/"
+                + objectReport.getUid();
 
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
@@ -662,7 +676,8 @@ public abstract class ReportTableFacadeController
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )
         {
-            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/" + objectReport.getUid();
+            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/"
+                + objectReport.getUid();
 
             webMessage.setHttpStatus( HttpStatus.CREATED );
             response.setHeader( ContextUtils.HEADER_LOCATION, location );
@@ -677,11 +692,14 @@ public abstract class ReportTableFacadeController
 
     @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void setAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
@@ -703,11 +721,14 @@ public abstract class ReportTableFacadeController
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.POST )
     @ResponseStatus( HttpStatus.OK )
-    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void subscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
@@ -727,12 +748,14 @@ public abstract class ReportTableFacadeController
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // PUT
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void putJsonObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
 
@@ -770,8 +793,11 @@ public abstract class ReportTableFacadeController
         webMessageService.send( webMessage, response, request );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE, MediaType.TEXT_XML_VALUE } )
-    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    @RequestMapping( value = "/{uid}", method = RequestMethod.PUT, consumes = { MediaType.APPLICATION_XML_VALUE,
+        MediaType.TEXT_XML_VALUE } )
+    public void putXmlObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
 
@@ -809,13 +835,15 @@ public abstract class ReportTableFacadeController
         webMessageService.send( webMessage, response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DELETE
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void deleteObject( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
 
@@ -844,11 +872,14 @@ public abstract class ReportTableFacadeController
 
     @RequestMapping( value = "/{uid}/favorite", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void removeAsFavorite( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         if ( !getSchema().isFavoritable() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Objects of this class cannot be set as favorite" ) );
         }
 
         List<Visualization> entity = (List<Visualization>) getEntity( pvUid );
@@ -870,11 +901,14 @@ public abstract class ReportTableFacadeController
 
     @RequestMapping( value = "/{uid}/subscriber", method = RequestMethod.DELETE )
     @ResponseStatus( HttpStatus.OK )
-    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public void unsubscribe( @PathVariable( "uid" ) String pvUid, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         if ( !getSchema().isSubscribable() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Objects of this class cannot be subscribed to" ) );
         }
 
         List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
@@ -894,9 +928,9 @@ public abstract class ReportTableFacadeController
         webMessageService.send( WebMessageUtils.ok( message ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Identifiable object collections add, delete
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.GET )
     public @ResponseBody RootNode getCollectionItem(
@@ -905,7 +939,8 @@ public abstract class ReportTableFacadeController
         @PathVariable( "itemId" ) String pvItemId,
         @RequestParam Map<String, String> parameters,
         TranslateParams translateParams,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         User user = currentUserService.getCurrentUser();
         setUserContext( user, translateParams );
@@ -914,28 +949,32 @@ public abstract class ReportTableFacadeController
         {
             if ( !aclService.canRead( user, getEntityClass() ) )
             {
-                throw new ReadAccessDeniedException( "You don't have the proper permissions to read objects of this type." );
+                throw new ReadAccessDeniedException(
+                    "You don't have the proper permissions to read objects of this type." );
             }
 
-            RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(), Lists.newArrayList( pvProperty + "[:all]" ), user );
+            RootNode rootNode = getObjectInternal( pvUid, parameters, Lists.newArrayList(),
+                Lists.newArrayList( pvProperty + "[:all]" ), user );
 
             // TODO optimize this using field filter (collection filtering)
             if ( !rootNode.getChildren().isEmpty() && rootNode.getChildren().get( 0 ).isCollection() )
             {
-                rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node ->
-                {
+                rootNode.getChildren().get( 0 ).getChildren().stream().filter( Node::isComplex ).forEach( node -> {
                     node.getChildren().stream()
-                        .filter( child -> child.isSimple() && child.getName().equals( "id" ) && !((SimpleNode) child).getValue().equals( pvItemId ) )
+                        .filter( child -> child.isSimple() && child.getName().equals( "id" )
+                            && !((SimpleNode) child).getValue().equals( pvItemId ) )
                         .forEach( child -> rootNode.getChildren().get( 0 ).removeChild( node ) );
                 } );
             }
 
             if ( rootNode.getChildren().isEmpty() || rootNode.getChildren().get( 0 ).getChildren().isEmpty() )
             {
-                throw new WebMessageException( WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
+                throw new WebMessageException(
+                    WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
+                CacheControl.noCache().cachePrivate().getHeaderValue() );
 
             return rootNode;
         }
@@ -950,13 +989,17 @@ public abstract class ReportTableFacadeController
     public void addCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
+            IdentifiableObjects.class );
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getDeletions() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
@@ -964,13 +1007,17 @@ public abstract class ReportTableFacadeController
     public void addCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
+            IdentifiableObjects.class );
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getDeletions() ) );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getAdditions() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getDeletions() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getAdditions() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -978,26 +1025,32 @@ public abstract class ReportTableFacadeController
     public void replaceCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
+            IdentifiableObjects.class );
 
         collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.PUT, consumes = MediaType.APPLICATION_XML_VALUE )
     public void replaceCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
+            IdentifiableObjects.class );
 
         collectionService.clearCollectionItems( objects.get( 0 ), pvProperty );
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.POST )
@@ -1015,31 +1068,38 @@ public abstract class ReportTableFacadeController
             throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
-        collectionService.addCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        collectionService.addCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_JSON_VALUE )
     public void deleteCollectionItemsJson(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromJson( request.getInputStream(),
+            IdentifiableObjects.class );
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.DELETE, consumes = MediaType.APPLICATION_XML_VALUE )
     public void deleteCollectionItemsXml(
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
-        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(), IdentifiableObjects.class );
+        IdentifiableObjects identifiableObjects = renderService.fromXml( request.getInputStream(),
+            IdentifiableObjects.class );
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( identifiableObjects.getIdentifiableObjects() ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}/{itemId}", method = RequestMethod.DELETE )
@@ -1047,7 +1107,8 @@ public abstract class ReportTableFacadeController
         @PathVariable( "uid" ) String pvUid,
         @PathVariable( "property" ) String pvProperty,
         @PathVariable( "itemId" ) String pvItemId,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         List<Visualization> objects = (List<Visualization>) getEntity( pvUid );
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
@@ -1057,19 +1118,22 @@ public abstract class ReportTableFacadeController
             throw new WebMessageException( WebMessageUtils.notFound( ReportTable.class, pvUid ) );
         }
 
-        collectionService.delCollectionItems( objects.get( 0 ), pvProperty, Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        collectionService.delCollectionItems( objects.get( 0 ), pvProperty,
+            Lists.newArrayList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
-    protected ReportTable deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected ReportTable deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         return renderService.fromJson( request.getInputStream(), ReportTable.class );
     }
 
-    protected ReportTable deserializeXmlEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected ReportTable deserializeXmlEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         return renderService.fromXml( request.getInputStream(), ReportTable.class );
     }
@@ -1078,13 +1142,14 @@ public abstract class ReportTableFacadeController
      * Override to process a single entity after it has been retrieved from
      * storage and before it is returned to the view. Entity is null-safe.
      */
-    protected void postProcessResponseEntity( ReportTable entity, WebOptions options, Map<String, String> parameters ) throws Exception
+    protected void postProcessResponseEntity( ReportTable entity, WebOptions options, Map<String, String> parameters )
+        throws Exception
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected void setUserContext( TranslateParams translateParams )
     {
@@ -1100,16 +1165,20 @@ public abstract class ReportTableFacadeController
 
     protected Locale getLocaleWithDefault( TranslateParams translateParams )
     {
-        return translateParams.isTranslate() ?
-            translateParams.getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) ) : null;
+        return translateParams.isTranslate()
+            ? translateParams
+                .getLocaleWithDefault( (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            : null;
     }
 
-    protected List<Visualization> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<Visualization> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         List<Visualization> entityList;
 
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction(),
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction(),
             options.isTrue( "restrictToCaptureScope" ) );
 
         query.setDefaultOrder();
@@ -1298,7 +1367,8 @@ public abstract class ReportTableFacadeController
     {
         if ( inclusionStrategy != null )
         {
-            Optional<InclusionStrategy.Include> optional = Enums.getIfPresent( InclusionStrategy.Include.class, inclusionStrategy );
+            Optional<InclusionStrategy.Include> optional = Enums.getIfPresent( InclusionStrategy.Include.class,
+                inclusionStrategy );
 
             if ( optional.isPresent() )
             {
@@ -1312,11 +1382,12 @@ public abstract class ReportTableFacadeController
     /**
      * Serializes an object, tries to guess output format using this order.
      *
-     * @param request  HttpServletRequest from current session
+     * @param request HttpServletRequest from current session
      * @param response HttpServletResponse from current session
-     * @param object   Object to serialize
+     * @param object Object to serialize
      */
-    protected void serialize( HttpServletRequest request, HttpServletResponse response, Object object ) throws IOException
+    protected void serialize( HttpServletRequest request, HttpServletResponse response, Object object )
+        throws IOException
     {
         String type = request.getHeader( "Accept" );
         type = !StringUtils.isEmpty( type ) ? type : request.getContentType();
@@ -1348,7 +1419,8 @@ public abstract class ReportTableFacadeController
      * @param request HttpServletRequest from current session
      * @return Parsed entity or null if invalid type
      */
-    protected ReportTable deserialize( HttpServletRequest request ) throws IOException
+    protected ReportTable deserialize( HttpServletRequest request )
+        throws IOException
     {
         String type = request.getContentType();
         type = !StringUtils.isEmpty( type ) ? type : MediaType.APPLICATION_JSON_VALUE;
@@ -1428,9 +1500,9 @@ public abstract class ReportTableFacadeController
         return false;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Reflection helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private String entityName;
 

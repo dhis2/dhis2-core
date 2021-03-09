@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.params;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.params;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.params;
 
 import static org.junit.Assert.*;
 
@@ -40,8 +39,6 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.*;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
@@ -113,13 +110,16 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI() throws IOException {
+    public void testImportSuccessWithAtomicModeObjectIfThereIsAnErrorInOneTEI()
+        throws IOException
+    {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
+            .getInputStream();
 
         TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
         params.setUser( userA );
-        params.setAtomicMode(AtomicMode.OBJECT);
+        params.setAtomicMode( AtomicMode.OBJECT );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
 
         assertNotNull( trackerImportTeiReport );
@@ -130,13 +130,16 @@ public class AtomicModeIntegrationTest
     }
 
     @Test
-    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI() throws IOException {
+    public void testImportFailWithAtomicModeAllIfThereIsAnErrorInOneTEI()
+        throws IOException
+    {
 
-        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" ).getInputStream();
+        InputStream inputStream = new ClassPathResource( "tracker/one_valid_tei_and_one_invalid.json" )
+            .getInputStream();
 
         TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
         params.setUser( userA );
-        params.setAtomicMode(AtomicMode.ALL);
+        params.setAtomicMode( AtomicMode.ALL );
         TrackerImportReport trackerImportTeiReport = trackerImportService.importTracker( build( params ) );
 
         assertNotNull( trackerImportTeiReport );
@@ -146,21 +149,22 @@ public class AtomicModeIntegrationTest
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }
 
-    private TrackerImportParams build(TrackerBundleParams params) {
+    private TrackerImportParams build( TrackerBundleParams params )
+    {
         return TrackerImportParams.builder()
-                .user( params.getUser() )
-                .importMode( params.getImportMode() )
-                .importStrategy( params.getImportStrategy() )
+            .user( params.getUser() )
+            .importMode( params.getImportMode() )
+            .importStrategy( params.getImportStrategy() )
             .skipPatternValidation( params.isSkipTextPatternValidation() )
-                .identifiers( params.getIdentifiers() )
-                .atomicMode( params.getAtomicMode() )
-                .flushMode( params.getFlushMode() )
-                .validationMode( params.getValidationMode() )
-                .reportMode( params.getReportMode() )
-                .trackedEntities( params.getTrackedEntities() )
-                .enrollments( params.getEnrollments() )
-                .events( params.getEvents() )
-                .relationships( params.getRelationships() )
-                .build();
+            .identifiers( params.getIdentifiers() )
+            .atomicMode( params.getAtomicMode() )
+            .flushMode( params.getFlushMode() )
+            .validationMode( params.getValidationMode() )
+            .reportMode( params.getReportMode() )
+            .trackedEntities( params.getTrackedEntities() )
+            .enrollments( params.getEnrollments() )
+            .events( params.getEvents() )
+            .relationships( params.getRelationships() )
+            .build();
     }
 }

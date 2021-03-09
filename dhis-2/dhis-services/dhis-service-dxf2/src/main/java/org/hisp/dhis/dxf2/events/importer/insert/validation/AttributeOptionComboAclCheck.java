@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +48,7 @@ public class AttributeOptionComboAclCheck
     Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         ImportSummary importSummary = new ImportSummary();
         TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();

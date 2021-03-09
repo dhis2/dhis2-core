@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,9 +51,11 @@ public interface TrackedEntityInstanceService
     // READ
     // -------------------------------------------------------------------------
 
-    List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream ) throws IOException;
+    List<TrackedEntityInstance> getTrackedEntityInstancesJson( InputStream inputStream )
+        throws IOException;
 
-    List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream ) throws IOException;
+    List<TrackedEntityInstance> getTrackedEntityInstancesXml( InputStream inputStream )
+        throws IOException;
 
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation );
@@ -62,20 +63,20 @@ public interface TrackedEntityInstanceService
     /**
      * Fetches a List of {@see TrackedEntityInstance} based on the specified
      * parameters. This methods beh
-     * 
-     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance with
-     *        the query parameters
-     * @param params a {@see TrackedEntityInstanceParams} instance containing the
-     *        directives for how much data should be fetched (e.g. Enrollments,
-     *        Events, Relationships)
-     * @param skipAccessValidation whether access validation should be ignored
      *
+     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
+     *        with the query parameters
+     * @param params a {@see TrackedEntityInstanceParams} instance containing
+     *        the directives for how much data should be fetched (e.g.
+     *        Enrollments, Events, Relationships)
+     * @param skipAccessValidation whether access validation should be ignored
      * @return a List of {@see TrackedEntityInstance}
      */
     List<TrackedEntityInstance> getTrackedEntityInstances2( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
+    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+        boolean skipSearchScopeValidation );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );
 
@@ -92,16 +93,20 @@ public interface TrackedEntityInstanceService
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addTrackedEntityInstanceXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addTrackedEntityInstanceJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
         TrackedEntityInstanceParams params, User user );
 
-    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
+    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions );
 
-    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummaries addTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions, JobConfiguration jobId );
 
     ImportSummary addTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, ImportOptions importOptions );
 
@@ -109,13 +114,19 @@ public interface TrackedEntityInstanceService
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateTrackedEntityInstanceXml( String id, String programId, InputStream inputStream,
+        ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateTrackedEntityInstanceJson( String id, String programId, InputStream inputStream,
+        ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
+    ImportSummaries updateTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions );
 
-    ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, String programId, ImportOptions importOptions, boolean singleUpdate );
+    ImportSummary updateTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, String programId,
+        ImportOptions importOptions, boolean singleUpdate );
 
     void updateTrackedEntityInstancesSyncTimestamp( List<String> entityInstanceUIDs, Date lastSynced );
 
@@ -125,5 +136,6 @@ public interface TrackedEntityInstanceService
 
     ImportSummary deleteTrackedEntityInstance( String uid );
 
-    ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances, ImportOptions importOptions );
+    ImportSummaries deleteTrackedEntityInstances( List<TrackedEntityInstance> trackedEntityInstances,
+        ImportOptions importOptions );
 }

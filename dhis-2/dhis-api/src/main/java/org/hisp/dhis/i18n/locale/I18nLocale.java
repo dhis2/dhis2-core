@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n.locale;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,22 @@ package org.hisp.dhis.i18n.locale;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+package org.hisp.dhis.i18n.locale;
 
 import java.util.Locale;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * Wrapper for java.util.Locale for persistence purposes.
- * 
+ *
  * @author larshelg
  */
 public class I18nLocale
     extends BaseIdentifiableObject
-{    
+{
     private String locale;
 
     // -------------------------------------------------------------------------
@@ -48,7 +48,7 @@ public class I18nLocale
     // -------------------------------------------------------------------------
 
     public I18nLocale()
-    {        
+    {
         this.name = "English (United Kingdom)";
         this.locale = "en_GB";
     }
@@ -58,7 +58,7 @@ public class I18nLocale
         this.name = locale.getDisplayName();
         this.locale = locale.toString();
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -68,7 +68,7 @@ public class I18nLocale
     {
         return locale;
     }
-    
+
     public void setLocale( String locale )
     {
         this.locale = locale;

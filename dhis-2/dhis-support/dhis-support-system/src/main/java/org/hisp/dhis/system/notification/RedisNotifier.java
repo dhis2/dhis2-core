@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,7 @@ package org.hisp.dhis.system.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobType;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.system.notification;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -45,6 +36,16 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobType;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StringUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Notifier implementation backed by redis. It holds 2 types of data.
@@ -176,7 +177,8 @@ public class RedisNotifier implements Notifier
     {
         List<Notification> list = new ArrayList<>();
 
-        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1, -1 );
+        Set<String> lastJobUidSet = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( -1,
+            -1 );
         if ( !lastJobUidSet.iterator().hasNext() )
         {
             return list;
@@ -229,7 +231,8 @@ public class RedisNotifier implements Notifier
     @Override
     public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
     {
-        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0, -1 );
+        Set<String> notificationKeys = redisTemplate.boundZSetOps( generateNotificationOrderKey( jobType ) ).range( 0,
+            -1 );
         LinkedHashMap<String, LinkedList<Notification>> uidNotificationMap = new LinkedHashMap<>();
         notificationKeys
             .forEach( j -> uidNotificationMap.put( j, new LinkedList<>( getNotificationsByJobId( jobType, j ) ) ) );
@@ -362,7 +365,8 @@ public class RedisNotifier implements Notifier
             String lastJobUid = (String) lastJobUidSet.iterator().next();
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( lastJobUid );
 
-            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
+            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType )
+                : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {
@@ -384,7 +388,8 @@ public class RedisNotifier implements Notifier
             Class<?> existingSummaryType = Class.forName( existingSummaryTypeStr );
             Object serializedSummary = redisTemplate.boundHashOps( generateSummaryKey( jobType ) ).get( jobId );
 
-            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType ) : null;
+            return serializedSummary != null ? jsonMapper.readValue( (String) serializedSummary, existingSummaryType )
+                : null;
         }
         catch ( IOException | ClassNotFoundException ex )
         {

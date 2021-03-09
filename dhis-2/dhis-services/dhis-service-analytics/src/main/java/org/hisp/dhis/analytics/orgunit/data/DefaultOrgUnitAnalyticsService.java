@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.orgunit.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.orgunit.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.orgunit.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -35,6 +34,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsManager;
 import org.hisp.dhis.analytics.orgunit.OrgUnitAnalyticsService;
@@ -48,8 +49,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -86,8 +85,10 @@ public class DefaultOrgUnitAnalyticsService
 
         return new OrgUnitQueryParams.Builder()
             .withOrgUnits( idObjectManager.getObjects( OrganisationUnit.class, IdentifiableProperty.UID, ous ) )
-            .withOrgUnitGroupSets( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
-            .withColumns( DimensionalObjectUtils.asDimensionalObjectList( idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) ) )
+            .withOrgUnitGroupSets(
+                idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, ougs ) )
+            .withColumns( DimensionalObjectUtils.asDimensionalObjectList(
+                idObjectManager.getObjects( OrganisationUnitGroupSet.class, IdentifiableProperty.UID, cols ) ) )
             .build();
     }
 
@@ -98,9 +99,7 @@ public class DefaultOrgUnitAnalyticsService
 
         validate( params );
 
-        return params.isTableLayout() ?
-            getOrgUnitDataTableLayout( params ) :
-            getOrgUnitDataNormalized( params );
+        return params.isTableLayout() ? getOrgUnitDataTableLayout( params ) : getOrgUnitDataNormalized( params );
     }
 
     private Grid getOrgUnitDataNormalized( OrgUnitQueryParams params )
@@ -114,7 +113,7 @@ public class DefaultOrgUnitAnalyticsService
             grid.addRow()
                 .addValues( entry.getKey().split( DIMENSION_SEP ) )
                 .addValue( entry.getValue() );
-            } );
+        } );
 
         return grid;
     }
@@ -130,7 +129,8 @@ public class DefaultOrgUnitAnalyticsService
         validate( params );
 
         Map<String, Object> valueMap = new HashMap<>();
-        queryPlanner.planQuery( params ).forEach( query -> valueMap.putAll( analyticsManager.getOrgUnitData( query ) ) );
+        queryPlanner.planQuery( params )
+            .forEach( query -> valueMap.putAll( analyticsManager.getOrgUnitData( query ) ) );
         return valueMap;
     }
 
@@ -156,8 +156,8 @@ public class DefaultOrgUnitAnalyticsService
     private void addHeaders( OrgUnitQueryParams params, Grid grid )
     {
         grid.addHeader( new GridHeader( "orgunit", "Organisation unit", ValueType.TEXT, null, false, true ) );
-        params.getOrgUnitGroupSets().forEach( ougs ->
-            grid.addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, null, false, true ) ) );
+        params.getOrgUnitGroupSets().forEach( ougs -> grid
+            .addHeader( new GridHeader( ougs.getUid(), ougs.getDisplayName(), ValueType.TEXT, null, false, true ) ) );
         grid.addHeader( new GridHeader( "count", "Count", ValueType.INTEGER, null, false, false ) );
     }
 
@@ -169,8 +169,8 @@ public class DefaultOrgUnitAnalyticsService
         params.getOrgUnits()
             .forEach( ou -> items.put( ou.getUid(), new MetadataItem( ou.getDisplayName() ) ) );
         params.getOrgUnitGroupSets().stream()
-            .map(OrganisationUnitGroupSet::getOrganisationUnitGroups)
-            .flatMap(Collection::stream)
+            .map( OrganisationUnitGroupSet::getOrganisationUnitGroups )
+            .flatMap( Collection::stream )
             .forEach( oug -> items.put( oug.getUid(), new MetadataItem( oug.getDisplayName() ) ) );
 
         metadata.put( "items", items );

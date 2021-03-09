@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.HibernateException;
-import org.hibernate.engine.spi.SharedSessionContractImplementor;
-import org.hibernate.usertype.UserType;
+package org.hisp.dhis.hibernate;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
+
+import org.hibernate.HibernateException;
+import org.hibernate.engine.spi.SharedSessionContractImplementor;
+import org.hibernate.usertype.UserType;
 
 /**
  * Template for storing enums. Borrowed from http://community.jboss.org/wiki/
@@ -67,8 +66,10 @@ public class EnumUserType<E extends Enum<E>>
     }
 
     @Override
-    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl, Object owner )
-        throws HibernateException, SQLException
+    public Object nullSafeGet( ResultSet resultSet, String[] names, SharedSessionContractImplementor impl,
+        Object owner )
+        throws HibernateException,
+        SQLException
     {
         String name = resultSet.getString( names[0] );
         E result = null;
@@ -80,8 +81,10 @@ public class EnumUserType<E extends Enum<E>>
     }
 
     @Override
-    public void nullSafeSet( PreparedStatement preparedStatement, Object value, int index, SharedSessionContractImplementor impl )
-        throws HibernateException, SQLException
+    public void nullSafeSet( PreparedStatement preparedStatement, Object value, int index,
+        SharedSessionContractImplementor impl )
+        throws HibernateException,
+        SQLException
     {
         if ( null == value )
         {

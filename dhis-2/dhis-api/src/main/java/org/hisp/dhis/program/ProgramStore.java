@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.List;
 
@@ -48,8 +47,8 @@ public interface ProgramStore
      * Get {@link Program} by a type
      *
      * @param type The type of program. There are three types, include Multi
-     *             events with registration, Single event with registration and
-     *             Single event without registration
+     *        events with registration, Single event with registration and
+     *        Single event without registration
      * @return Program list by a type specified
      */
     List<Program> getByType( ProgramType type );
@@ -71,14 +70,15 @@ public interface ProgramStore
 
     /**
      * Get all Programs associated with the given DataEntryForm.
+     *
      * @param dataEntryForm the DataEntryForm.
      * @return a list of {@link Program}
      */
     List<Program> getByDataEntryForm( DataEntryForm dataEntryForm );
 
     /**
-     * Checks whether the given {@link OrganisationUnit} belongs to the specified
-     * {@link Program}
+     * Checks whether the given {@link OrganisationUnit} belongs to the
+     * specified {@link Program}
      */
     boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
 }

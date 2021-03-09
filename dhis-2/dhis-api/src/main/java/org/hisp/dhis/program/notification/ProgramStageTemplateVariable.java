@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,33 +25,36 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.notification.TemplateVariable;
+package org.hisp.dhis.program.notification;
 
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.notification.TemplateVariable;
+
 /**
- * Defines the variable expression names for a {@link ProgramNotificationTemplate}
- * on a {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
- *
+ * Defines the variable expression names for a
+ * {@link ProgramNotificationTemplate} on a
+ * {@link org.hisp.dhis.program.ProgramStage ProgramStage}.
+ * <p>
  * The supported variable names are:
  *
  * <ul>
- *     <li>program_name</li>
- *     <li>program_stage_name</li>
- *     <li>org_unit_name</li>
- *     <li>due_date</li>
- *     <li>days_since_due_date</li>
- *     <li>days_until_due_date</li>
- *     <li>current_date</li>
+ * <li>program_name</li>
+ * <li>program_stage_name</li>
+ * <li>org_unit_name</li>
+ * <li>due_date</li>
+ * <li>days_since_due_date</li>
+ * <li>days_until_due_date</li>
+ * <li>current_date</li>
  * </ul>
  *
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramStageTemplateVariable
-    implements TemplateVariable
+    implements
+    TemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
     PROGRAM_STAGE_NAME( "program_stage_name" ),
@@ -63,9 +64,9 @@ public enum ProgramStageTemplateVariable
     DAYS_UNTIL_DUE_DATE( "days_until_due_date" ),
     CURRENT_DATE( "current_date" );
 
-    private static final Map<String, ProgramStageTemplateVariable> variableNameMap =
-        EnumSet.allOf( ProgramStageTemplateVariable.class ).stream()
-            .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
+    private static final Map<String, ProgramStageTemplateVariable> variableNameMap = EnumSet
+        .allOf( ProgramStageTemplateVariable.class ).stream()
+        .collect( Collectors.toMap( ProgramStageTemplateVariable::getVariableName, e -> e ) );
 
     private final String variableName;
 

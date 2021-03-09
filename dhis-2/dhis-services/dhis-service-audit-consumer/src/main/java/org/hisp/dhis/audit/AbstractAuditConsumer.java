@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.audit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
 
 import javax.jms.TextMessage;
-import java.io.IOException;
+
+import lombok.extern.slf4j.Slf4j;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -42,16 +43,19 @@ public abstract class AbstractAuditConsumer
     implements AuditConsumer
 {
     protected AuditService auditService;
+
     protected ObjectMapper objectMapper;
 
     protected boolean isAuditLogEnabled;
+
     protected boolean isAuditDatabaseEnabled;
 
     protected void _consume( TextMessage message )
     {
         try
         {
-            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(), org.hisp.dhis.artemis.audit.Audit.class );
+            org.hisp.dhis.artemis.audit.Audit auditMessage = objectMapper.readValue( message.getText(),
+                org.hisp.dhis.artemis.audit.Audit.class );
 
             if ( auditMessage.getData() != null && !(auditMessage.getData() instanceof String) )
             {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.transformers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis.schema.transformers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.transformers;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.junit.Assert.*;
+
+import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -49,13 +49,13 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.Assert.*;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -80,7 +80,8 @@ public class UserPropertyTransformerTest
     private FieldFilterService fieldFilterService;
 
     @Test
-    public void testNodeServiceSerializer() throws JsonProcessingException
+    public void testNodeServiceSerializer()
+        throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
@@ -107,7 +108,8 @@ public class UserPropertyTransformerTest
     }
 
     @Test
-    public void testFieldNodeServiceSerializer() throws JsonProcessingException
+    public void testFieldNodeServiceSerializer()
+        throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
@@ -147,7 +149,8 @@ public class UserPropertyTransformerTest
     }
 
     @Test
-    public void testFieldNodeServiceSerializerPresetStar() throws JsonProcessingException
+    public void testFieldNodeServiceSerializerPresetStar()
+        throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
         simple.setUser( createUser( 'a' ) );
@@ -187,7 +190,8 @@ public class UserPropertyTransformerTest
     }
 
     @Test
-    public void testJsonSerializer() throws JsonProcessingException
+    public void testJsonSerializer()
+        throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
 
@@ -209,11 +213,13 @@ public class UserPropertyTransformerTest
 
         assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
         assertEquals( user.getUid(), simple.getUser().getUid() );
-        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid()
+        // );
     }
 
     @Test
-    public void testXmlSerializer() throws JsonProcessingException
+    public void testXmlSerializer()
+        throws JsonProcessingException
     {
         Simple simple = new Simple( 1, "Simple1" );
 
@@ -235,16 +241,19 @@ public class UserPropertyTransformerTest
 
         assertEquals( "usernamea", simple.getUser().getUserCredentials().getUsername() );
         assertEquals( user.getUid(), simple.getUser().getUid() );
-        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid() );
+        // assertEquals( uuid, simple.getUser().getUserCredentials().getUuid()
+        // );
     }
 
-    private void verifyJsonSource( String jsonSource ) throws JsonProcessingException
+    private void verifyJsonSource( String jsonSource )
+        throws JsonProcessingException
     {
         JsonNode root = jsonMapper.readTree( jsonSource );
         verifyJsonNode( root );
     }
 
-    private void verifyXmlSource( String xmlSource ) throws JsonProcessingException
+    private void verifyXmlSource( String xmlSource )
+        throws JsonProcessingException
     {
         JsonNode root = xmlMapper.readTree( xmlSource );
         verifyJsonNode( root );
@@ -270,8 +279,11 @@ public class UserPropertyTransformerTest
     public static class Simple
     {
         private int id;
+
         private String name;
+
         private User user;
+
         private List<User> users = new ArrayList<>();
 
         public Simple()
@@ -289,7 +301,6 @@ public class UserPropertyTransformerTest
         {
             return id;
         }
-
 
         @JsonProperty
         public String getName()

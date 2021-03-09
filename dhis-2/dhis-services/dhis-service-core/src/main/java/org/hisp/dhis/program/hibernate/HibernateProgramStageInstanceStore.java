@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.program.hibernate;
 
 import java.util.ArrayList;
@@ -68,11 +67,9 @@ public class HibernateProgramStageInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
     implements ProgramStageInstanceStore
 {
-    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS =
-        Sets.intersection(
-            NotificationTrigger.getAllApplicableToProgramStageInstance(),
-            NotificationTrigger.getAllScheduledTriggers()
-        );
+    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS = Sets.intersection(
+        NotificationTrigger.getAllApplicableToProgramStageInstance(),
+        NotificationTrigger.getAllScheduledTriggers() );
 
     public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -112,7 +109,8 @@ public class HibernateProgramStageInstanceStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
-            .addPredicate( root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
+            .addPredicate(
+                root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
     }
 
     @Override
@@ -122,7 +120,7 @@ public class HibernateProgramStageInstanceStore
 
         return getCount( builder, newJpaParameters()
             .addPredicate( root -> builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), time ) )
-            .count(builder::countDistinct) );
+            .count( builder::countDistinct ) );
     }
 
     @Override
@@ -166,7 +164,8 @@ public class HibernateProgramStageInstanceStore
         {
             if ( !uidsPartition.isEmpty() )
             {
-                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+                resultUids.addAll(
+                    getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
             }
         }
 
@@ -185,9 +184,11 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+        Date notificationDate )
     {
-        if ( notificationDate == null || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+        if ( notificationDate == null
+            || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -199,15 +200,14 @@ public class HibernateProgramStageInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        String hql =
-            "select distinct psi from ProgramStageInstance as psi " +
-                "inner join psi.programStage as ps " +
-                "where :notificationTemplate in elements(ps.notificationTemplates) " +
-                "and psi.dueDate is not null " +
-                "and psi.executionDate is null " +
-                "and psi.status != :skippedEventStatus " +
-                "and cast(:targetDate as date) = psi.dueDate " +
-                "and psi.deleted is false";
+        String hql = "select distinct psi from ProgramStageInstance as psi " +
+            "inner join psi.programStage as ps " +
+            "where :notificationTemplate in elements(ps.notificationTemplates) " +
+            "and psi.dueDate is not null " +
+            "and psi.executionDate is null " +
+            "and psi.status != :skippedEventStatus " +
+            "and cast(:targetDate as date) = psi.dueDate " +
+            "and psi.deleted is false";
 
         return getQuery( hql )
             .setParameter( "notificationTemplate", template )
@@ -216,7 +216,8 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramStageInstance>, Predicate>> predicates )
+    protected void preProcessPredicates( CriteriaBuilder builder,
+        List<Function<Root<ProgramStageInstance>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }

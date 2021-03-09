@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -39,8 +40,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1118;
 
 @Component
 public class AssignedUserValidationHook
@@ -60,13 +59,13 @@ public class AssignedUserValidationHook
 
             if ( !CodeGenerator.isValidUid( event.getAssignedUser().getUid() )
                 ||
-                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class, uid ) ==
-                    null )
+                reporter.getValidationContext().getBundle().getPreheat().get( TrackerIdScheme.UID, User.class,
+                    uid ) == null )
             {
                 TrackerErrorReport.TrackerErrorReportBuilder report = TrackerErrorReport.builder()
-                .errorCode( E1118 )
-                .errorKlass( Event.class )
-                .addArg( uid );
+                    .errorCode( E1118 )
+                    .errorKlass( Event.class )
+                    .addArg( uid );
 
                 reporter.addError( report );
             }

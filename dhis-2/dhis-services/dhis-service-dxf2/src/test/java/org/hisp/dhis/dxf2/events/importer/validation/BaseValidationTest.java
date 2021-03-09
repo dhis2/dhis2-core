@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.validation;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -41,7 +40,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -121,7 +119,8 @@ public abstract class BaseValidationTest
         assertThat( summary.getDescription(), is( description ) );
     }
 
-    protected void assertHasConflict( ImportSummary summary, Event event, String conflict ) {
+    protected void assertHasConflict( ImportSummary summary, Event event, String conflict )
+    {
 
         final Set<ImportConflict> conflicts = summary.getConflicts();
         for ( ImportConflict importConflict : conflicts )
@@ -131,7 +130,7 @@ public abstract class BaseValidationTest
                 return;
             }
         }
-        fail( "Conflict string [" + conflict +"] not found" );
+        fail( "Conflict string [" + conflict + "] not found" );
     }
 
     protected DataElement addToDataElementMap( DataElement de )

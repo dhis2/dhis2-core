@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dataset.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -54,7 +53,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Kristian Nordal
  */
-@Repository ( "org.hisp.dhis.dataset.DataSetStore" )
+@Repository( "org.hisp.dhis.dataset.DataSetStore" )
 public class HibernateDataSetStore
     extends HibernateIdentifiableObjectStore<DataSet>
     implements DataSetStore
@@ -108,7 +107,7 @@ public class HibernateDataSetStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<DataSet> parameters = newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) ) ;
+            .addPredicate( root -> builder.equal( root.get( "periodType" ), refreshedPeriodType ) );
 
         return getList( builder, parameters );
     }

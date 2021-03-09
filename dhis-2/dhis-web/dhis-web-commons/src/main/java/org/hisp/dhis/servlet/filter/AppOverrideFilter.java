@@ -1,7 +1,5 @@
-package org.hisp.dhis.servlet.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,45 +25,39 @@ package org.hisp.dhis.servlet.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import lombok.extern.slf4j.Slf4j;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+package org.hisp.dhis.servlet.filter;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
-import javax.servlet.Filter;
 import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.appmanager.App;
+import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import org.hisp.dhis.util.DateUtils;
-import org.hisp.dhis.appmanager.App;
-import org.hisp.dhis.appmanager.AppManager;
-import org.hisp.dhis.appmanager.AppStatus;
-import org.hisp.dhis.webapi.utils.ContextUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Austin McGee <austin@dhis2.org>
  */
- @Slf4j
- @Component
+@Slf4j
+@Component
 public class AppOverrideFilter
     extends OncePerRequestFilter
 {
@@ -75,15 +67,19 @@ public class AppOverrideFilter
     @Autowired
     private ObjectMapper jsonMapper;
 
-    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)";
-    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" + AppController.RESOURCE_PATH + "-(" + String.join("|", AppManager.BUNDLED_APPS) + ")/(.*)"
+    public static final String APP_PATH_PATTERN = "^/" + AppManager.BUNDLED_APP_PREFIX + "("
+        + String.join( "|", AppManager.BUNDLED_APPS ) + ")/(.*)";
+    // public static final String REDIRECT_APP_PATH_PATTERN = "^/" +
+    // AppController.RESOURCE_PATH + "-(" + String.join("|",
+    // AppManager.BUNDLED_APPS) + ")/(.*)"
 
     // -------------------------------------------------------------------------
     // Filter implementation
     // -------------------------------------------------------------------------
 
     // From AppController.java (some duplication)
-    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request, HttpServletResponse response )
+    private void serveInstalledAppResource( App app, String resourcePath, HttpServletRequest request,
+        HttpServletResponse response )
         throws IOException
     {
         // Get page requested
@@ -93,8 +89,10 @@ public class AppOverrideFilter
         // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( resourcePath ) )
         {
-            // If request was for manifest.webapp, check for * and replace with host
-            if ( app.getActivities() != null && app.getActivities().getDhis() != null && "*".equals( app.getActivities().getDhis().getHref() ) )
+            // If request was for manifest.webapp, check for * and replace with
+            // host
+            if ( app.getActivities() != null && app.getActivities().getDhis() != null
+                && "*".equals( app.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
                 log.debug( String.format( "Manifest context path: '%s'", contextPath ) );
@@ -144,7 +142,8 @@ public class AppOverrideFilter
 
     @Override
     protected void doFilterInternal( HttpServletRequest req, HttpServletResponse res, FilterChain chain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         String requestPath = req.getServletPath();
 

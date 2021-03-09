@@ -1,7 +1,5 @@
-package org.hisp.dhis.metadata.version.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.metadata.version.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.metadata.version.hibernate;
+
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.metadata.version.MetadataVersion;
@@ -37,22 +41,18 @@ import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.List;
-
-import static org.junit.Assert.*;
-
-
 /**
  * @author sultanm.
  */
 
-public class HibernateMetadataVersionStoreTest extends DhisSpringTest
+public class HibernateMetadataVersionStoreTest
+    extends DhisSpringTest
 {
     @Autowired
     private MetadataVersionStore metadataVersionStore;
 
-    public void testGetInitialVersion() throws Exception
+    public void testGetInitialVersion()
+        throws Exception
     {
         MetadataVersion metadataVersion1 = new MetadataVersion( "version1", VersionType.ATOMIC );
         metadataVersion1.setHashCode( "12232" );
@@ -67,13 +67,15 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetVersionByKey() throws Exception
+    public void testGetVersionByKey()
+        throws Exception
     {
         MetadataVersion metadataVersion = new MetadataVersion( "version1", VersionType.ATOMIC );
         metadataVersion.setHashCode( "12345" );
         metadataVersionStore.save( metadataVersion );
 
-        assertEquals( metadataVersion, metadataVersionStore.getVersionByKey( metadataVersionStore.getCurrentVersion().getId() ) );
+        assertEquals( metadataVersion,
+            metadataVersionStore.getVersionByKey( metadataVersionStore.getCurrentVersion().getId() ) );
         int nonExistingId = 9999;
 
         assertNull( metadataVersionStore.getVersionByKey( nonExistingId ) );
@@ -82,7 +84,8 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetVersionByName() throws Exception
+    public void testGetVersionByName()
+        throws Exception
     {
         MetadataVersion metadataVersion = new MetadataVersion( "version1", VersionType.ATOMIC );
         metadataVersion.setHashCode( "12345" );
@@ -93,7 +96,8 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
     }
 
     @Test
-    public void testGetAllVersionsInBetween() throws Exception
+    public void testGetAllVersionsInBetween()
+        throws Exception
     {
         DateTimeFormatter dateTimeFormatter = DateTimeFormat.forPattern( "yyyy-MM-dd HH:mm:ssZ" );
         org.joda.time.DateTime dateTime1 = dateTimeFormatter.parseDateTime( "2016-06-20 10:45:50Z" );
@@ -117,7 +121,8 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
         metadataVersion4.setCreated( dateTime3.toDate() );
         metadataVersionStore.save( metadataVersion4 );
 
-        List<MetadataVersion> allVersionsInBetween = metadataVersionStore.getAllVersionsInBetween( dateTime1.toDate(), dateTime2.toDate() );
+        List<MetadataVersion> allVersionsInBetween = metadataVersionStore.getAllVersionsInBetween( dateTime1.toDate(),
+            dateTime2.toDate() );
 
         assertEquals( 2, allVersionsInBetween.size() );
         assertEquals( metadataVersion2, allVersionsInBetween.get( 0 ) );
@@ -130,7 +135,8 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
     }
 
     @Test
-    public void testUpdate() throws Exception
+    public void testUpdate()
+        throws Exception
     {
         MetadataVersion metadataVersion = new MetadataVersion( "version1", VersionType.ATOMIC );
         metadataVersion.setHashCode( "12345" );
@@ -144,7 +150,8 @@ public class HibernateMetadataVersionStoreTest extends DhisSpringTest
     }
 
     @Test
-    public void testDelete() throws Exception
+    public void testDelete()
+        throws Exception
     {
         assertNull( metadataVersionStore.getVersionByName( "version1" ) );
     }

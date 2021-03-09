@@ -51,7 +51,8 @@ public class ParamPresenceChecker
      * check if the param is a non-blank String.
      *
      * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given paramsMap
+     * @param param the param to be validated, that lives inside the given
+     *        paramsMap
      * @return true if the param is a String and is not blank, false otherwise
      */
     public static boolean hasStringNonBlankPresence( final MapSqlParameterSource paramsMap, final String param )
@@ -66,7 +67,8 @@ public class ParamPresenceChecker
      * strings.
      *
      * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given paramsMap
+     * @param param the param to be validated, that lives inside the given
+     *        paramsMap
      * @return true if the param is a String, false otherwise
      */
     public static boolean hasStringPresence( final MapSqlParameterSource paramsMap, final String param )
@@ -79,8 +81,10 @@ public class ParamPresenceChecker
      * check if the param is a positive Integer.
      *
      * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given paramsMap
-     * @return true if the param is an Integer greater than ZERO, false otherwise
+     * @param param the param to be validated, that lives inside the given
+     *        paramsMap
+     * @return true if the param is an Integer greater than ZERO, false
+     *         otherwise
      */
     public static boolean hasIntegerPresence( final MapSqlParameterSource paramsMap, final String param )
     {
@@ -93,7 +97,8 @@ public class ParamPresenceChecker
      * check if the param is a non-empty Set.
      *
      * @param paramsMap the query params map
-     * @param param the param to be validated, that lives inside the given paramsMap
+     * @param param the param to be validated, that lives inside the given
+     *        paramsMap
      * @return true if the param is a Set and is not empty, false otherwise
      */
     public static boolean hasSetPresence( final MapSqlParameterSource paramsMap, final String param )

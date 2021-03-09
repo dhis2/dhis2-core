@@ -1,7 +1,5 @@
-package org.hisp.dhis.attribute;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -114,7 +113,7 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttribute( long id )
     {
         return attributeStore.get( id );
@@ -128,42 +127,42 @@ public class DefaultAttributeService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByName( String name )
     {
         return attributeStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Attribute getAttributeByCode( String code )
     {
         return attributeStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAllAttributes()
     {
         return new ArrayList<>( attributeStore.getAll() );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getMandatoryAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getMandatoryAttributes( klass ) );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Attribute> getUniqueAttributes( Class<?> klass )
     {
         return new ArrayList<>( attributeStore.getUniqueAttributes( klass ) );
@@ -175,7 +174,8 @@ public class DefaultAttributeService
 
     @Override
     @Transactional
-    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue ) throws NonUniqueAttributeValueException
+    public <T extends IdentifiableObject> void addAttributeValue( T object, AttributeValue attributeValue )
+        throws NonUniqueAttributeValueException
     {
         if ( object == null || attributeValue == null || attributeValue.getAttribute() == null )
         {
@@ -191,7 +191,7 @@ public class DefaultAttributeService
         if ( attribute.isUnique() )
         {
 
-            if (  !manager.isAttributeValueUnique( object.getClass(), object, attributeValue) )
+            if ( !manager.isAttributeValueUnique( object.getClass(), object, attributeValue ) )
             {
                 throw new NonUniqueAttributeValueException( attributeValue );
             }
@@ -206,7 +206,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void deleteAttributeValue( T object, AttributeValue attributeValue )
     {
         object.getAttributeValues()
-                .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
+            .removeIf( a -> a.getAttribute() == attributeValue.getAttribute() );
         manager.update( object );
     }
 
@@ -224,6 +224,7 @@ public class DefaultAttributeService
     public <T extends IdentifiableObject> void generateAttributes( List<T> entityList )
     {
         entityList.forEach( entity -> entity.getAttributeValues()
-            .forEach( attributeValue -> attributeValue.setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
+            .forEach( attributeValue -> attributeValue
+                .setAttribute( getAttribute( attributeValue.getAttribute().getUid() ) ) ) );
     }
 }

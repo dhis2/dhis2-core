@@ -1,7 +1,5 @@
-package org.hisp.dhis.option;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.option;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.option;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.ValueType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Lars Helge Overland
@@ -57,17 +56,23 @@ public class OptionServiceTest
     private OptionSet optionSetC = new OptionSet( "OptionSetC", ValueType.TEXT );
 
     private OptionGroup optionGroupA;
+
     private OptionGroup optionGroupB;
+
     private OptionGroup optionGroupC;
 
     private OptionGroupSet optionGroupSetA;
+
     private OptionGroupSet optionGroupSetB;
+
     private OptionGroupSet optionGroupSetC;
 
-
     private Option option1;
+
     private Option option2;
+
     private Option option3;
+
     private Option option4;
 
     @Override

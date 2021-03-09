@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -37,6 +36,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.apache.commons.lang.StringUtils;
@@ -67,8 +68,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableMap;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -119,46 +118,56 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
 
     private final static String PROGRAM_ID = "programid";
+
     private final static String PROGRAM_STAGE_ID = "programstageid";
+
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname " +
+    private final static String USER_ACCESS_SQL = "select eua.${column_name}, eua.useraccessid, ua.useraccessid, ua.access, ua.userid, ui.uid, ui.code, ui.surname, ui.firstname "
+        +
         "from ${table_name} eua " +
         "join useraccess ua on eua.useraccessid = ua.useraccessid " +
         "join userinfo ui on ui.userinfoid = ua.userid " +
         "order by eua.${column_name}";
 
-    private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid " +
+    private final static String USER_GROUP_ACCESS_SQL = "select ega.${column_name}, ega.usergroupaccessid, u.access, u.usergroupid, ug.uid "
+        +
         "from ${table_name} ega " +
         "join usergroupaccess u on ega.usergroupaccessid = u.usergroupaccessid " +
         "join usergroup ug on u.usergroupid = ug.usergroupid " +
         "order by ega.${column_name}";
 
-    // Caches the entire Program hierarchy, including Program Stages and ACL data
-    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>() {}
+    // Caches the entire Program hierarchy, including Program Stages and ACL
+    // data
+    private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
+    {
+    }
         .name( "eventImportProgramCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
     // Caches the User Groups and the Users belonging to each group
-    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>() {}
+    private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
+    {
+    }
         .name( "eventImportUserGroupCache_" + RandomStringUtils.randomAlphabetic( 5 ) )
         .expireAfterWrite( 5, TimeUnit.MINUTES )
         .permitNullValues( true )
         .loader( new CacheLoader<Long, Set<User>>()
         {
             @Override
-            public Set<User> load( Long userGroupId ) {
+            public Set<User> load( Long userGroupId )
+            {
                 return loadUserGroups( userGroupId );
             }
-        } ).build() ;
+        } ).build();
 
     public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment env )
     {
         super( jdbcTemplate );
         this.env = env;
     }
-    
+
     @Override
     public Map<String, Program> get( ImportOptions importOptions, List<Event> eventList )
     {
@@ -179,7 +188,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programsCache.removeAll();
             requiresReload = true;
         }
-        
+
         if ( requiresReload || programMap == null )
         {
             //
@@ -188,14 +197,16 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
             //
-            // Load User Access data for all the Programs (required for ACL checks)
+            // Load User Access data for all the Programs (required for ACL
+            // checks)
             //
             Map<Long, Set<UserAccess>> programUserAccessMap = loadUserAccessesForPrograms();
             Map<Long, Set<UserAccess>> programStageUserAccessMap = loadUserAccessesForProgramStages();
             Map<Long, Set<UserAccess>> tetUserAccessMap = loadUserAccessesForTrackedEntityTypes();
 
             //
-            // Load User Group Access data for all the Programs (required for ACL checks)
+            // Load User Group Access data for all the Programs (required for
+            // ACL checks)
             //
             Map<Long, Set<UserGroupAccess>> programUserGroupAccessMap = loadGroupUserAccessesForPrograms();
             Map<Long, Set<UserGroupAccess>> programStageUserGroupAccessMap = loadGroupUserAccessesForProgramStages();
@@ -211,7 +222,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         return programMap;
     }
-
 
     private void aggregateProgramAndAclData( Map<String, Program> programMap,
         Map<Long, Set<UserAccess>> programUserAccessMap,
@@ -253,7 +263,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         }
     }
 
-   private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
+    private Map<Long, Set<UserAccess>> loadUserAccessesForPrograms()
     {
         return fetchUserAccesses( replaceAclQuery( USER_ACCESS_SQL, "programuseraccesses", PROGRAM_ID ), PROGRAM_ID );
     }
@@ -303,7 +313,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<Long, Set<UserGroupAccess>> loadGroupUserAccessesForProgramStages()
     {
-        // TODO: can't use replace because the table programstageusergroupaccesses
+        // TODO: can't use replace because the table
+        // programstageusergroupaccesses
         // should use 'programstageid' as column name
         final String sql = "select psuga.programid as programstageid, psuga.usergroupaccessid, u.access, u.usergroupid, ug.uid "
             + "from programstageusergroupaccesses psuga "
@@ -355,7 +366,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             + "order by psde.programstageid";
 
         return jdbcTemplate.query( sql, ( ResultSet rs ) -> {
-            
+
             Map<Long, Set<DataElement>> results = new HashMap<>();
             long programStageId = 0;
             while ( rs.next() )
@@ -382,7 +393,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
         //
-        // Get the IdScheme for Programs. Programs should support also the Attribute
+        // Get the IdScheme for Programs. Programs should support also the
+        // Attribute
         // Scheme, based on JSONB
         //
         IdScheme idScheme = idSchemes.getProgramIdScheme();
@@ -428,8 +440,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setPublicAccess( rs.getString( "publicaccess" ) );
-                    // Do not add program stages without primary key (this should not really happen,
-                    // but the database does allow Program Stage without a Program Id
+                    // Do not add program stages without primary key (this
+                    // should not really happen,
+                    // but the database does allow Program Stage without a
+                    // Program Id
                     if ( rs.getLong( "ps_id" ) != 0 )
                     {
                         programStages.add( toProgramStage( rs ) );
@@ -468,9 +482,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Resolve the key to place in the Program Map, based on the Scheme specified in
-     * the request If the scheme is of type Attribute, use the attribute value from
-     * the JSONB column
+     * Resolve the key to place in the Program Map, based on the Scheme
+     * specified in the request If the scheme is of type Attribute, use the
+     * attribute value from the JSONB column
      */
     private String getProgramKey( IdScheme programIdScheme, ResultSet rs )
         throws SQLException
@@ -502,7 +516,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         return programStage;
     }
 
-    private UserAccess toUserAccess( ResultSet rs ) throws SQLException
+    private UserAccess toUserAccess( ResultSet rs )
+        throws SQLException
     {
         UserAccess userAccess = new UserAccess();
         userAccess.setId( rs.getInt( "useraccessid" ) );
@@ -516,7 +531,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         userAccess.setUser( user );
         return userAccess;
     }
-    
+
     private DataElement toDataElement( ResultSet rs )
         throws SQLException
     {
@@ -576,9 +591,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     }
 
     /**
-     * Check if the list of incoming Events contains one or more Program uid which
-     * is not in cache. Reload the entire program cache if a Program UID is not
-     * found
+     * Check if the list of incoming Events contains one or more Program uid
+     * which is not in cache. Reload the entire program cache if a Program UID
+     * is not found
      */
     private boolean requiresCacheReload( List<Event> events, Map<String, Program> programMap )
     {

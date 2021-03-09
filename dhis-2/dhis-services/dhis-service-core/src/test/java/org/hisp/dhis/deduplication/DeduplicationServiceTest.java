@@ -1,7 +1,5 @@
-package org.hisp.dhis.deduplication;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.deduplication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deduplication;
+
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
@@ -37,11 +41,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 @Category( IntegrationTest.class )
 public class DeduplicationServiceTest
@@ -92,7 +91,8 @@ public class DeduplicationServiceTest
         long id = deduplicationService.addPotentialDuplicate( potentialDuplicate );
 
         assertNotNull( id );
-        assertEquals( potentialDuplicate, deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ) );
+        assertEquals( potentialDuplicate,
+            deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ) );
     }
 
     @Test
@@ -155,7 +155,7 @@ public class DeduplicationServiceTest
         deduplicationService.addPotentialDuplicate( pd2 );
         deduplicationService.addPotentialDuplicate( pd3 );
 
-        query.setTeis( Arrays.asList( "ABCDEFGHIJ1") );
+        query.setTeis( Arrays.asList( "ABCDEFGHIJ1" ) );
 
         List<PotentialDuplicate> list = deduplicationService.getAllPotentialDuplicates( query );
 

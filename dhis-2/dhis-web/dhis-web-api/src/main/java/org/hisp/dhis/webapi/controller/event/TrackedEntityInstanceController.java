@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
@@ -37,7 +36,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.imageio.ImageIO;
@@ -195,15 +193,17 @@ public class TrackedEntityInstanceController
     // READ
     // -------------------------------------------------------------------------
 
-    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML, ContextUtils.CONTENT_TYPE_CSV } )
-    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria, HttpServletResponse response )
+    @GetMapping( produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_XML,
+        ContextUtils.CONTENT_TYPE_CSV } )
+    public @ResponseBody RootNode getTrackedEntityInstances( TrackedEntityInstanceCriteria criteria,
+        HttpServletResponse response )
     {
         List<TrackedEntityInstance> trackedEntityInstances;
 
         List<String> fields = getFieldsFromRequest();
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        
+
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
 
         if ( criteria.isUseLegacy() || (count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging()) )
@@ -224,11 +224,12 @@ public class TrackedEntityInstanceController
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
-        
+
         if ( !StringUtils.isEmpty( criteria.getAttachment() ) )
         {
-                response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION, "attachment; filename=" + criteria.getAttachment() );
-                response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
+            response.addHeader( ContextUtils.HEADER_CONTENT_DISPOSITION,
+                "attachment; filename=" + criteria.getAttachment() );
+            response.addHeader( ContextUtils.HEADER_CONTENT_TRANSFER_ENCODING, "binary" );
         }
 
         rootNode.addChild( fieldFilterService.toCollectionNode( TrackedEntityInstance.class,
@@ -316,7 +317,7 @@ public class TrackedEntityInstanceController
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        try (InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ))
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
         {
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;

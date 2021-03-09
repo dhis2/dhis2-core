@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
@@ -39,6 +38,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
@@ -56,8 +57,6 @@ import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -121,7 +120,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
                 psi.setDueDate( rs.getDate( "duedate" ) );
                 psi.setExecutionDate( rs.getDate( "executiondate" ) );
                 psi.setCompletedDate( rs.getDate( "completeddate" ) );
-                psi.setAttributeOptionCombo( getCatOptionCombo ( rs ) );
+                psi.setAttributeOptionCombo( getCatOptionCombo( rs ) );
                 try
                 {
                     psi.setEventDataValues( EventUtils.jsonToEventDataValues( jsonMapper, rs.getObject(
@@ -160,7 +159,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
 
         return ou;
     }
-    
+
     private ProgramStage getProgramStage( ImportOptions importOptions, Long programStageId )
     {
         Collection<Program> programs = this.programSupplier.get( importOptions, new ArrayList<>() ).values();

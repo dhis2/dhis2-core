@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -41,7 +40,8 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  */
 public class ThreadPoolManager
 {
-    // Thread factory that sets a user-defined thread name (useful for debugging purposes)
+    // Thread factory that sets a user-defined thread name (useful for debugging
+    // purposes)
 
     private final static ThreadFactory threadFactory = new ThreadFactoryBuilder()
         .setNameFormat( "TRACKER-TEI-FETCH-%d" )

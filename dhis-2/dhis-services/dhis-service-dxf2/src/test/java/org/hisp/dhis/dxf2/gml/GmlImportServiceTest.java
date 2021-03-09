@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.gml;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.gml;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.gml;
 
 import static org.hisp.dhis.common.coordinate.CoordinateUtils.getCoordinatesAsList;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
@@ -98,15 +97,12 @@ public class GmlImportServiceTest extends IntegrationTestBase
 
         /*
          * Create orgunits present in testGmlPayload.gml and set ID properties.
-         *      Name                    - FeatureType   - ID property
-         *      Bo                      - Poly          - Name
-         *      Bonthe                  - Multi         - Code
-         *      Ole Johan Dahls Hus     - Point         - Uid
-         *      Blindern                - Point (pos)   - Name
-         *      Forskningsparken        - Poly (list)   - Name
+         * Name - FeatureType - ID property Bo - Poly - Name Bonthe - Multi -
+         * Code Ole Johan Dahls Hus - Point - Uid Blindern - Point (pos) - Name
+         * Forskningsparken - Poly (list) - Name
          *
-         * Note: some of these are included to cover different coordinate element schemes
-         *       such as <posList>, <coordinates> and <pos>.
+         * Note: some of these are included to cover different coordinate
+         * element schemes such as <posList>, <coordinates> and <pos>.
          */
 
         userService = _userService;
@@ -116,13 +112,15 @@ public class GmlImportServiceTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( boOrgUnit );
 
         bontheOrgUnit = createOrganisationUnit( 'B' );
-        bontheOrgUnit.setName( "AA Bonthe" ); // Match on Code, therefore wrong name
+        bontheOrgUnit.setName( "AA Bonthe" ); // Match on Code, therefore wrong
+        // name
         bontheOrgUnit.setCode( "CODE_BONTHE" );
         organisationUnitService.addOrganisationUnit( bontheOrgUnit );
 
         ojdOrgUnit = createOrganisationUnit( 'C' );
         ojdOrgUnit.setUid( "ImspTQPwCqd" );
-        ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" ); // Match on UID, therefore wrong name
+        ojdOrgUnit.setName( "AA Ole Johan Dahls Hus" ); // Match on UID,
+        // therefore wrong name
         organisationUnitService.addOrganisationUnit( ojdOrgUnit );
 
         bliOrgUnit = createOrganisationUnit( 'D' );
@@ -164,7 +162,6 @@ public class GmlImportServiceTest extends IntegrationTestBase
         assertNotNull( bliOrgUnit.getGeometry() );
 
         assertNotNull( forskOrgUnit.getGeometry() );
-
 
         // Check if data is correct
         assertEquals( 1, getCoordinates( boOrgUnit ).size() );

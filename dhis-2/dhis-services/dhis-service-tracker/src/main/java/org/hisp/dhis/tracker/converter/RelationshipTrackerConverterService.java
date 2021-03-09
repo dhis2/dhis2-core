@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,11 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
-import org.hisp.dhis.tracker.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,9 +37,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.tracker.TrackerIdScheme;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Enrico Colasante
@@ -91,12 +87,11 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ?
-            from.getProgramInstance().getUid() : null );
-        relationshipItem.setEvent( from.getProgramStageInstance() != null ?
-            from.getProgramStageInstance().getUid() : null );
-        relationshipItem.setTrackedEntity( from.getTrackedEntityInstance() != null ?
-            from.getTrackedEntityInstance().getUid() : null );
+        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
+        relationshipItem
+            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
+        relationshipItem.setTrackedEntity(
+            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
         return relationshipItem;
     }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,19 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.util.List;
-
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-@Transactional(readOnly = true)
+@Transactional( readOnly = true )
 @Service( "org.hisp.dhis.program.EventSyncService" )
 public class DefaultEventSyncService implements EventSyncService
 {
@@ -60,7 +56,7 @@ public class DefaultEventSyncService implements EventSyncService
     // -------------------------------------------------------------------------
     // Implementation methods
     // -------------------------------------------------------------------------
-    
+
     @Override
     public List<ProgramStageInstance> getEvents( List<String> uids )
     {

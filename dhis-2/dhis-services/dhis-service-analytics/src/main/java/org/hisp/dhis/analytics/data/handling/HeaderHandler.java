@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data.handling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data.handling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data.handling;
 
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_HEADER_NAME;
 import static org.hisp.dhis.analytics.DataQueryParams.DENOMINATOR_ID;
@@ -99,11 +98,16 @@ public class HeaderHandler
 
             if ( params.isIncludeNumDen() )
             {
-                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
-                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) );
+                grid.addHeader( new GridHeader( NUMERATOR_ID, NUMERATOR_HEADER_NAME, NUMBER, Double.class.getName(),
+                    false, false ) )
+                    .addHeader( new GridHeader( DENOMINATOR_ID, DENOMINATOR_HEADER_NAME, NUMBER, Double.class.getName(),
+                        false, false ) )
+                    .addHeader(
+                        new GridHeader( FACTOR_ID, FACTOR_HEADER_NAME, NUMBER, Double.class.getName(), false, false ) )
+                    .addHeader( new GridHeader( MULTIPLIER_ID, MULTIPLIER_HEADER_NAME, NUMBER, Double.class.getName(),
+                        false, false ) )
+                    .addHeader( new GridHeader( DIVISOR_ID, DIVISOR_HEADER_NAME, NUMBER, Double.class.getName(), false,
+                        false ) );
             }
         }
     }

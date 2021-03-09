@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.fileresource.hibernate;
 
 import java.util.List;
@@ -75,7 +74,7 @@ public class HibernateFileResourceStore
                 "and dva.dataelementid in " +
                 "(select dataelementid from dataelement where valuetype = 'FILE_RESOURCE')) dva " +
                 "on dva.value = fr.uid " +
-                "where fr.isassigned = true; ", FileResource.class)
+                "where fr.isassigned = true; ", FileResource.class )
             .setParameter( "date", expires.toDate() )
             .getResultList();
 
@@ -85,10 +84,11 @@ public class HibernateFileResourceStore
     @Override
     public List<FileResource> getAllUnProcessedImages()
     {
-        return getQuery( "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-            .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
-            .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-            .setParameter( "hasMultipleStorageFiles", false )
-            .setMaxResults( 50 ).getResultList();
+        return getQuery(
+            "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
+                .setParameter( "domains", FileResourceDomain.getDomainForMultipleImages() )
+                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
+                .setParameter( "hasMultipleStorageFiles", false )
+                .setMaxResults( 50 ).getResultList();
     }
 }

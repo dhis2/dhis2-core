@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event.csv;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,20 @@ package org.hisp.dhis.dxf2.events.event.csv;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event.csv;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.event.EventStatus;
+import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -36,18 +48,6 @@ import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.vividsolutions.jts.io.ParseException;
 import com.vividsolutions.jts.io.WKTReader;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.event.EventStatus;
-import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -116,7 +116,8 @@ public class DefaultCsvEventService
 
     @Override
     public Events readEvents( InputStream inputStream, boolean skipFirst )
-        throws IOException, ParseException
+        throws IOException,
+        ParseException
     {
         Events events = new Events();
 
@@ -136,7 +137,8 @@ public class DefaultCsvEventService
                 event = new Event();
                 event.setEvent( dataValue.getEvent() );
                 event.setStatus( StringUtils.isEmpty( dataValue.getStatus() )
-                    ? EventStatus.ACTIVE : Enum.valueOf( EventStatus.class, dataValue.getStatus() ) );
+                    ? EventStatus.ACTIVE
+                    : Enum.valueOf( EventStatus.class, dataValue.getStatus() ) );
                 event.setProgram( dataValue.getProgram() );
                 event.setProgramStage( dataValue.getProgramStage() );
                 event.setEnrollment( dataValue.getEnrollment() );
@@ -145,7 +147,6 @@ public class DefaultCsvEventService
                 event.setDueDate( dataValue.getDueDate() );
                 event.setCompletedDate( dataValue.getCompletedDate() );
                 event.setCompletedBy( dataValue.getCompletedBy() );
-
 
                 if ( dataValue.getGeometry() != null )
                 {

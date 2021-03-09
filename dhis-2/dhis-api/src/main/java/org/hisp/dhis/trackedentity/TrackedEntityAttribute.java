@@ -1,25 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionItemType;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.textpattern.TextPattern;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +25,26 @@ import org.hisp.dhis.textpattern.TextPattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
+
+import org.hisp.dhis.common.BaseDimensionalItemObject;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DimensionItemType;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.textpattern.TextPattern;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
@@ -85,13 +85,14 @@ public class TrackedEntityAttribute
     private TextPattern textPattern;
 
     /**
-     * Field mask represent how the value should be formatted during input. This string will
-     * be validated as a TextPatternSegment of type TEXT.
+     * Field mask represent how the value should be formatted during input. This
+     * string will be validated as a TextPatternSegment of type TEXT.
      */
     private String fieldMask;
 
     /**
-     * The style representing how TrackedEntityAttributes should be presented on the client
+     * The style representing how TrackedEntityAttributes should be presented on
+     * the client
      */
     private ObjectStyle style;
 
@@ -200,7 +201,7 @@ public class TrackedEntityAttribute
     // DimensionalItemObject
     // -------------------------------------------------------------------------
 
-    //TODO dimension, not item
+    // TODO dimension, not item
 
     @Override
     public DimensionItemType getDimensionItemType()
@@ -456,7 +457,8 @@ public class TrackedEntityAttribute
         this.fieldMask = fieldMask;
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return "TrackedEntityAttribute{" +
             "description='" + description + '\'' +

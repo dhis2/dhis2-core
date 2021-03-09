@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,13 @@ package org.hisp.dhis.sms.command;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
-
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
@@ -45,20 +41,28 @@ import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.user.UserGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 @JacksonXmlRootElement( localName = "smscommand", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCommand
     extends BaseIdentifiableObject implements MetadataObject
 {
     public static final String WRONG_FORMAT_MESSAGE = "Wrong command format";
+
     public static final String MORE_THAN_ONE_ORGUNIT_MESSAGE = "Found more than one org unit for this number. Please specify one organisation unit";
+
     public static final String NO_USER_MESSAGE = "No user associated with this phone number. Please contact your supervisor.";
+
     public static final String ALERT_FEEDBACK = "Your alert message sent";
+
     public static final String PARAMETER_MISSING = "Mandatory parameter is missing";
+
     public static final String SUCCESS_MESSAGE = "Command has been processed successfully";
+
     public static final String NO_OU_FOR_PROGRAM = "Program is not assigned to user organisation unit.";
 
     private ParserType parserType = ParserType.ALERT_PARSER;

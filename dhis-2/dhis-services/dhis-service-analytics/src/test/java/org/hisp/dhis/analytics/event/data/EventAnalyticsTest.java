@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
+
+import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -41,10 +44,6 @@ import org.junit.Before;
 import org.mockito.Mock;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
-import static org.hisp.dhis.DhisConvenienceTest.*;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.mockito.Mockito.when;
-
 /**
  * @author Luciano Fiandesio
  */
@@ -54,7 +53,9 @@ public abstract class EventAnalyticsTest
     protected SqlRowSet rowSet;
 
     protected ProgramStage programStage;
+
     protected Program programA;
+
     protected DataElement dataElementA;
 
     @Before
@@ -79,16 +80,18 @@ public abstract class EventAnalyticsTest
         return params.build();
     }
 
-    protected EventQueryParams createRequestParamsWithFilter(ProgramStage withProgramStage, ValueType withQueryItemValueType )
+    protected EventQueryParams createRequestParamsWithFilter( ProgramStage withProgramStage,
+        ValueType withQueryItemValueType )
     {
-        EventQueryParams.Builder params = new EventQueryParams.Builder( createRequestParams( withProgramStage, withQueryItemValueType ) );
+        EventQueryParams.Builder params = new EventQueryParams.Builder(
+            createRequestParams( withProgramStage, withQueryItemValueType ) );
         QueryItem queryItem = params.build().getItems().get( 0 );
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "10" ) );
 
         return params.build();
     }
 
-    protected EventQueryParams createRequestParams( )
+    protected EventQueryParams createRequestParams()
     {
         return _createRequestParams();
     }
@@ -160,7 +163,7 @@ public abstract class EventAnalyticsTest
         when( rowSet.next() ).thenReturn( false );
     }
 
-    String getTable(String uid)
+    String getTable( String uid )
     {
         return getTableName() + "_" + uid;
 

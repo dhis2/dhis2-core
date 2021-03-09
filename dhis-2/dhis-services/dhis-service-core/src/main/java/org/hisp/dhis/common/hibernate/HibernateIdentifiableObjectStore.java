@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -45,6 +44,8 @@ import javax.persistence.criteria.Join;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
@@ -81,8 +82,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author bobj
@@ -135,13 +134,15 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
     public final Criteria getDataSharingCriteria()
     {
-        return getExecutableCriteria( getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
+        return getExecutableCriteria(
+            getDataSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_DATA ) );
     }
 
     @Override
     public final Criteria getSharingCriteria( User user )
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
+        return getExecutableCriteria(
+            getSharingDetachedCriteria( UserInfo.fromUser( user ), AclService.LIKE_READ_METADATA ) );
     }
 
     @Override
@@ -330,7 +331,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( !isReadAllowed( object, getCurrentUser() ) )
         {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
+            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
+                AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( object.toString() );
         }
 
@@ -415,7 +417,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         if ( !isReadAllowed( object, getCurrentUser() ) )
         {
-            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object, AuditLogUtil.ACTION_READ_DENIED );
+            AuditLogUtil.infoWrapper( log, currentUserService.getCurrentUsername(), object,
+                AuditLogUtil.ACTION_READ_DENIED );
             throw new ReadAccessDeniedException( String.valueOf( object ) );
         }
 
@@ -439,7 +442,6 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getSingleResult( builder, param );
     }
 
-
     @Override
     public T getByUniqueAttributeValue( Attribute attribute, String value )
     {
@@ -452,9 +454,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root ->
-                  builder.equal(
-                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+            .addPredicate( root -> builder.equal(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                    builder.literal( attribute.getUid() ), builder.literal( "value" ) ),
+                value ) );
 
         return getSingleResult( builder, param );
     }
@@ -471,9 +474,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         JpaQueryParameters<T> param = new JpaQueryParameters<T>()
             .addPredicates( getSharingPredicates( builder, userInfo ) )
-            .addPredicate( root ->
-                builder.equal(
-                    builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ), builder.literal( attribute.getUid() ),  builder.literal( "value" ) ) , value ) );
+            .addPredicate( root -> builder.equal(
+                builder.function( FUNCTION_JSONB_EXTRACT_PATH_TEXT, String.class, root.get( "attributeValues" ),
+                    builder.literal( attribute.getUid() ), builder.literal( "value" ) ),
+                value ) );
 
         return getSingleResult( builder, param );
     }
@@ -573,15 +577,18 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         for ( String word : nameWords )
         {
-            conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
+            conjunction
+                .add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
         }
 
-        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) )
+            .collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
 
         return getList( builder, param );
     }
 
-    public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue, int first, int max )
+    public List<T> getAllLikeNameAndEqualsAttribute( Set<String> nameWords, String attribute, String attributeValue,
+        int first, int max )
     {
         if ( StringUtils.isEmpty( attribute ) || StringUtils.isEmpty( attributeValue ) )
         {
@@ -605,12 +612,14 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         for ( String word : nameWords )
         {
-            conjunction.add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
+            conjunction
+                .add( root -> builder.like( builder.lower( root.get( "name" ) ), "%" + word.toLowerCase() + "%" ) );
         }
 
         conjunction.add( root -> builder.equal( builder.lower( root.get( attribute ) ), attributeValue ) );
 
-        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) ).collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
+        param.addPredicate( root -> builder.and( conjunction.stream().map( p -> p.apply( root ) )
+            .collect( Collectors.toList() ).toArray( new Predicate[0] ) ) );
 
         return getList( builder, param );
     }
@@ -801,7 +810,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
             return new ArrayList<>();
         }
 
-        //TODO Include paging to avoid exceeding max query length
+        // TODO Include paging to avoid exceeding max query length
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -934,9 +943,9 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return typedQuery.getResultList();
     }
 
-    //----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------
     // Data sharing
-    //----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------
 
     @Override
     public final List<T> getDataReadAll()
@@ -995,23 +1004,24 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         return getList( builder, parameters );
     }
 
-    //----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------
     // Supportive methods
-    //----------------------------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------
 
     /**
-     * Creates a criteria with sharing restrictions relative to the given
-     * user and access string.
+     * Creates a criteria with sharing restrictions relative to the given user
+     * and access string.
      */
     @Override
     public final Criteria getSharingCriteria()
     {
-        return getExecutableCriteria( getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
+        return getExecutableCriteria(
+            getSharingDetachedCriteria( currentUserService.getCurrentUserInfo(), AclService.LIKE_READ_METADATA ) );
     }
 
     /**
-     * Creates a detached criteria with data sharing restrictions relative to the
-     * given user and access string.
+     * Creates a detached criteria with data sharing restrictions relative to
+     * the given user and access string.
      *
      * @param user the user.
      * @param access the access string.
@@ -1064,10 +1074,10 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Creates a detached criteria with sharing restrictions relative to the given
-     * user and access string.
+     * Creates a detached criteria with sharing restrictions relative to the
+     * given user and access string.
      *
-     * @param user   the user.
+     * @param user the user.
      * @param access the access string.
      * @return a DetachedCriteria.
      */
@@ -1150,7 +1160,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user, String access )
+    public final List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, User user,
+        String access )
     {
         return getDataSharingPredicates( builder, UserInfo.fromUser( user ), access );
     }
@@ -1174,10 +1185,11 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     /**
-     * Get sharing predicates based on given user and AclService.LIKE_READ_METADATA
+     * Get sharing predicates based on given user and
+     * AclService.LIKE_READ_METADATA
      *
      * @param builder CriteriaBuilder
-     * @param user    User
+     * @param user User
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
@@ -1190,7 +1202,7 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Get sharing predicates based on Access string and current user
      *
      * @param builder CriteriaBuilder
-     * @param access  Access String
+     * @param access Access String
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
@@ -1203,12 +1215,13 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
      * Get sharing predicates based on given UserInfo and Access String
      *
      * @param builder CriteriaBuilder
-     * @param user    UserInfo
-     * @param access  Access String
+     * @param user UserInfo
+     * @param access Access String
      * @return List of Function<Root<T>, Predicate>
      */
     @Override
-    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    public List<Function<Root<T>, Predicate>> getSharingPredicates( CriteriaBuilder builder, UserInfo user,
+        String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
@@ -1259,7 +1272,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     }
 
     @Override
-    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user, String access )
+    public List<Function<Root<T>, Predicate>> getDataSharingPredicates( CriteriaBuilder builder, UserInfo user,
+        String access )
     {
         List<Function<Root<T>, Predicate>> predicates = new ArrayList<>();
 
@@ -1312,7 +1326,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
     // ----------------------------------------------------------------------
 
     /**
-     * Checks whether the given user has public access to the given identifiable object.
+     * Checks whether the given user has public access to the given identifiable
+     * object.
      *
      * @param user the user.
      * @param identifiableObject the identifiable object.

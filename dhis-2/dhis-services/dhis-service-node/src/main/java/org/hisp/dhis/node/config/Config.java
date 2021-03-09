@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.node.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.config;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -40,8 +39,8 @@ import com.google.common.collect.Maps;
 public class Config
 {
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in the
-     * Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in
+     * the Inclusions enum.
      *
      * @see org.hisp.dhis.node.config.InclusionStrategy.Include
      */
@@ -85,7 +84,8 @@ public class Config
         }
         Config config = (Config) o;
 
-        final boolean propertiesAreEqual = Arrays.deepEquals( properties.entrySet().toArray(), ((Config) o).getProperties().entrySet().toArray() );
+        final boolean propertiesAreEqual = Arrays.deepEquals( properties.entrySet().toArray(),
+            ((Config) o).getProperties().entrySet().toArray() );
 
         return Objects.equals( inclusionStrategy, config.inclusionStrategy )
             && propertiesAreEqual;
