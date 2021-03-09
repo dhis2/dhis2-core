@@ -35,10 +35,12 @@ import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasSetPre
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_AND;
@@ -91,7 +93,7 @@ public class FilteringStatement
     }
 
     public static String nameFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+                                        final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
@@ -102,7 +104,29 @@ public class FilteringStatement
         return EMPTY;
     }
 
-    public static String displayFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String shortNameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringPresence( paramsMap, SHORT_NAME ) )
+        {
+            return SPACED_LEFT_PARENTHESIS + column + ILIKE + SHORT_NAME + SPACED_RIGHT_PARENTHESIS;
+        }
+
+        return EMPTY;
+    }
+
+    public static String shortNameFiltering( final String columnOne, final String columnTwo,
+                                             final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringPresence( paramsMap, SHORT_NAME ) )
+        {
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + SHORT_NAME + " or " + columnTwo + ILIKE + SHORT_NAME
+                + SPACED_RIGHT_PARENTHESIS;
+        }
+
+        return EMPTY;
+    }
+
+    public static String displayNameFiltering( final String column, final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
@@ -112,14 +136,35 @@ public class FilteringStatement
         return EMPTY;
     }
 
-    public static String displayFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+    public static String displayNameFiltering( final String columnOne, final String columnTwo,
+                                               final MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
             return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + DISPLAY_NAME + " or " + columnTwo + ILIKE
-                + DISPLAY_NAME
-                + SPACED_RIGHT_PARENTHESIS;
+                + DISPLAY_NAME + SPACED_RIGHT_PARENTHESIS;
+        }
+
+        return EMPTY;
+    }
+
+    public static String displayShortNameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
+        {
+            return SPACED_LEFT_PARENTHESIS + column + ILIKE + DISPLAY_SHORT_NAME + SPACED_RIGHT_PARENTHESIS;
+        }
+
+        return EMPTY;
+    }
+
+    public static String displayShortNameFiltering( final String columnOne, final String columnTwo,
+                                                    final MapSqlParameterSource paramsMap )
+    {
+        if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
+        {
+            return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + DISPLAY_SHORT_NAME + " or " + columnTwo + ILIKE
+                + DISPLAY_SHORT_NAME + SPACED_RIGHT_PARENTHESIS;
         }
 
         return EMPTY;
@@ -161,7 +206,7 @@ public class FilteringStatement
     }
 
     public static String identifiableTokenFiltering( final String idColumn, final String codeColumn,
-        final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
+                                                     final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
     {
         if ( hasStringNonBlankPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
         {
@@ -187,7 +232,7 @@ public class FilteringStatement
     }
 
     private static String createRegexConditionForPhrase( final String column, final String[] filteringWords,
-        final String spacedAndOr, final String regexMatch )
+                                                         final String spacedAndOr, final String regexMatch )
     {
         if ( filteringWords != null && filteringWords.length > 0 && isNotBlank( column ) )
         {
@@ -212,7 +257,7 @@ public class FilteringStatement
     }
 
     private static String createRegexConditionForIdentifier( final String column, final String[] filteringWords,
-        final String spacedAndOr, final String regexMatch )
+                                                             final String spacedAndOr, final String regexMatch )
     {
         // Should only trigger when there is no more than one word in the
         // filtering.

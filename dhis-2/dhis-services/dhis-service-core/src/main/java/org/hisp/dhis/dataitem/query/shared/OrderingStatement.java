@@ -33,7 +33,9 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME_ORDER;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME_ORDER;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME_ORDER;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME_ORDER;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -50,23 +52,35 @@ public class OrderingStatement
     {
     }
 
-    public static String ordering( final String displayOrderingColumns, final String nameOrderingColumns,
-        final MapSqlParameterSource paramsMap )
+    public static String ordering( final String displayNameOrderingColumns, final String nameOrderingColumns,
+                                   final String displayShortNameOrderingColumns, final String shortNameOrderingColumns,
+                                   final MapSqlParameterSource paramsMap )
     {
-        if ( hasStringNonBlankPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayOrderingColumns ) )
+        if ( hasStringNonBlankPresence( paramsMap, DISPLAY_NAME_ORDER ) && isNotBlank( displayNameOrderingColumns ) )
         {
-            return buildOrderByStatement( displayOrderingColumns, (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
+            return buildOrderByStatement( displayNameOrderingColumns,
+                (String) paramsMap.getValue( DISPLAY_NAME_ORDER ) );
         }
         else if ( hasStringNonBlankPresence( paramsMap, NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
         {
             return buildOrderByStatement( nameOrderingColumns, (String) paramsMap.getValue( NAME_ORDER ) );
+        }
+        else if ( hasStringNonBlankPresence( paramsMap, SHORT_NAME_ORDER ) && isNotBlank( nameOrderingColumns ) )
+        {
+            return buildOrderByStatement( shortNameOrderingColumns, (String) paramsMap.getValue( SHORT_NAME_ORDER ) );
+        }
+        else if ( hasStringNonBlankPresence( paramsMap, DISPLAY_SHORT_NAME_ORDER )
+            && isNotBlank( displayShortNameOrderingColumns ) )
+        {
+            return buildOrderByStatement( displayShortNameOrderingColumns,
+                (String) paramsMap.getValue( DISPLAY_SHORT_NAME_ORDER ) );
         }
 
         return EMPTY;
     }
 
     private static String buildOrderByStatement( final String displayOrderingColumns,
-        final String ascOrDesc )
+                                                 final String ascOrDesc )
     {
         final StringBuilder orderBy = new StringBuilder();
         final String[] columns = trimToEmpty( displayOrderingColumns ).split( "," );

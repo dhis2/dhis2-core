@@ -37,21 +37,24 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayShortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiableTokenFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.valueTypeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
-import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
@@ -84,7 +87,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
         + " trackedentityattribute.uid, trackedentityattribute.name, trackedentityattribute.valuetype, trackedentityattribute.code,"
-        + " trackedentityattribute.sharing as trackedentityattribute_sharing, program.sharing as program_sharing";
+        + " trackedentityattribute.sharing as trackedentityattribute_sharing, program.sharing as program_sharing,"
+        + " trackedentityattribute.shortname, program.shortname as program_shortname";
 
     private static final String COMMON_UIDS = "program.uid, trackedentityattribute.uid";
 
@@ -96,7 +100,7 @@ public class ProgramAttributeQuery implements DataItemQuery
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     public ProgramAttributeQuery( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
+                                  final JdbcTemplate jdbcTemplate )
     {
         checkNotNull( jdbcTemplate );
 
@@ -118,11 +122,20 @@ public class ProgramAttributeQuery implements DataItemQuery
                 rowSet.getString( "program_name" ) ) + SPACE + trimToEmpty( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_name" ) ),
                 rowSet.getString( "program_name" ) ) + SPACE
-                + defaultIfBlank( trimToEmpty( rowSet.getString( "tea_i18n_name" ) ),
-                    trimToEmpty( rowSet.getString( "name" ) ) );
+                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
+                trimToEmpty( rowSet.getString( "name" ) ) );
+
+            final String shortName = trimToEmpty(
+                rowSet.getString( "program_shortname" ) ) + SPACE + trimToEmpty( rowSet.getString( "shortname" ) );
+            final String displayShortName = defaultIfBlank( trimToEmpty( rowSet.getString( "p_i18n_shortname" ) ),
+                rowSet.getString( "program_shortname" ) ) + SPACE
+                + defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_shortname" ) ),
+                trimToEmpty( rowSet.getString( "shortname" ) ) );
+
             final String uid = rowSet.getString( "program_uid" ) + "." + rowSet.getString( "uid" );
 
             dataItems.add( builder().name( name ).displayName( displayName ).id( uid )
+                .shortName( shortName ).displayShortName( displayShortName )
                 .code( rowSet.getString( "code" ) ).dimensionItemType( PROGRAM_ATTRIBUTE )
                 .programId( rowSet.getString( "program_uid" ) ).valueType( valueType ).build() );
         }
@@ -157,48 +170,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
-            // Selecting only rows that contains both programs and
-            // tracked entity attributes
-            // translations at the same time.
-            sql.append( selectRowsContainingBothTranslatedNames( false ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting only rows with translated programs.
-                .append( selectRowsContainingOnlyTranslatedProgramNames( false ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting only rows with translated tracked entity
-                // attributes.
-                .append( selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( false ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting ALL rows, not taking into consideration
-                // translations.
-                .append( selectAllRowsIgnoringAnyTranslation() )
-
-                /// AND excluding ALL translated rows previously selected
-                /// (translated programs and translated tracked entity
-                /// attributes).
-                .append( SPACED_WHERE + "(" + COMMON_UIDS + ") not in (" )
-
-                .append( selectRowsContainingBothTranslatedNames( true ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting only rows with translated programs.
-                .append( selectRowsContainingOnlyTranslatedProgramNames( true ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting only rows with translated tracked entity
-                // attributes.
-                .append( selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( true ) )
-
-                // Closing NOT IN exclusions.
-                .append( ")" );
+            // Selecting translated names.
+            sql.append( selectRowsContainingTranslatedName() );
         }
         else
         {
@@ -207,9 +180,10 @@ public class ProgramAttributeQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.name, trackedentityattribute.name, " + COMMON_UIDS
-                + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, tea_i18n_name,"
-                + " program_sharing, trackedentityattribute_sharing" );
+            " group by program.name, program.shortname, trackedentityattribute.name, " + COMMON_UIDS
+                + ", trackedentityattribute.valuetype, trackedentityattribute.code, p_i18n_name, i18n_name,"
+                + " program_sharing, trackedentityattribute_sharing, trackedentityattribute.shortname,"
+                + " i18n_shortname, p_i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -226,13 +200,16 @@ public class ProgramAttributeQuery implements DataItemQuery
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayFiltering( "t.p_i18n_name", "t.tea_i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.p_i18n_name", "t.i18n_name", paramsMap ) ) );
+        optionalFilters
+            .append( ifSet( displayShortNameFiltering( "t.p_i18n_shortname", "t.i18n_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.program_name", "t.name", paramsMap ) ) );
+        optionalFilters.append( ifSet( shortNameFiltering( "t.program_shortname", "t.shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.tea_i18n_name",
+        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
             "t.p_i18n_name", paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -241,8 +218,10 @@ public class ProgramAttributeQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.p_i18n_name, t.tea_i18n_name, t.uid",
-            "t.program_name, t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.p_i18n_name, t.i18n_name, t.uid",
+            "t.program_name, t.name, t.uid", "t.p_i18n_shortname,"
+                + " t.i18n_shortname, t.uid",
+            "t.program_shortname, t.shortname, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();
@@ -252,95 +231,22 @@ public class ProgramAttributeQuery implements DataItemQuery
         return fullStatement;
     }
 
-    private String selectRowsContainingBothTranslatedNames( final boolean onlyUidColumns )
+    private String selectRowsContainingTranslatedName()
     {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( onlyUidColumns )
-        {
-            sql.append( SPACED_SELECT + COMMON_UIDS );
-        }
-        else
-        {
-            sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value AS p_i18n_name, tea_displayname.value as tea_i18n_name" );
-        }
-
-        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
+        return new StringBuilder()
+            .append( SPACED_SELECT + COMMON_COLUMNS )
+            .append( translationNamesColumnsFor( "trackedentityattribute", true ) )
+            .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
-            .append(
-                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
-                    + LOCALE + " and p_displayname.property = 'NAME'" )
-            .append(
-                " join jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) on tea_displayname.locale = :"
-                    + LOCALE + " and tea_displayname.property = 'NAME'" );
-
-        return sql.toString();
-    }
-
-    private String selectRowsContainingOnlyTranslatedProgramNames( final boolean onlyUidColumns )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( onlyUidColumns )
-        {
-            sql.append( SPACED_SELECT + COMMON_UIDS );
-        }
-        else
-        {
-            sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", p_displayname.value as p_i18n_name, trackedentityattribute.name as tea_i18n_name" );
-        }
-
-        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
-            .append( JOINS )
-            .append(
-                " join jsonb_to_recordset(program.translations) as p_displayname(value TEXT, locale TEXT, property TEXT) on p_displayname.locale = :"
-                    + LOCALE + " and p_displayname.property = 'NAME'" )
-            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " not in (" )
-
-            // Exclude rows already fully translated.
-            .append( selectRowsContainingBothTranslatedNames( true ) )
-            .append( ")" );
-
-        return sql.toString();
-    }
-
-    private String selectRowsContainingOnlyTranslatedTrackedEntityAttributeNames( final boolean onlyUidColumns )
-    {
-        final StringBuilder sql = new StringBuilder();
-
-        if ( onlyUidColumns )
-        {
-            sql.append( SPACED_SELECT + COMMON_UIDS );
-        }
-        else
-        {
-            sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", program.name as p_i18n_name, tea_displayname.value as tea_i18n_name" );
-        }
-
-        sql.append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
-            .append( JOINS )
-            .append(
-                " join jsonb_to_recordset(trackedentityattribute.translations) as tea_displayname(value TEXT, locale TEXT, property TEXT) on tea_displayname.locale = :"
-                    + LOCALE + " and tea_displayname.property = 'NAME'" )
-            .append( SPACED_WHERE + "(" + COMMON_UIDS + ")" )
-            .append( " not in (" )
-
-            // Exclude rows already fully translated.
-            .append( selectRowsContainingBothTranslatedNames( true ) )
-            .append( ")" );
-
-        return sql.toString();
+            .append( translationNamesJoinsOn( "trackedentityattribute", true ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as p_i18n_name, trackedentityattribute.name as tea_i18n_name" )
+            .append( ", program.name as p_i18n_name, trackedentityattribute.name as i18n_name," +
+                " program.shortname as p_i18n_shortname, trackedentityattribute.shortname as i18n_shortname" )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS ).toString();
     }
