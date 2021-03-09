@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller.dimension;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -46,7 +45,7 @@ import org.springframework.stereotype.Component;
  * Small component specialized on pagination rules specific to dimension items.
  * This can be seen as a helper extension of
  * {@link DimensionController#getItems(String, Map, OrderParams)}.
- * 
+ *
  * @author maikel arabori
  */
 @Component
@@ -62,16 +61,17 @@ public class DimensionItemPageHandler
     }
 
     /**
-     * This method will add the pagination child node to the given root node. For
-     * this to happen the pagination flag must be set to true. See
+     * This method will add the pagination child node to the given root node.
+     * For this to happen the pagination flag must be set to true. See
      * {@link WebOptions#hasPaging(boolean)}.
-     * 
-     * @param rootNode the root node where the pagination node will be appended to.
+     *
+     * @param rootNode the root node where the pagination node will be appended
+     *        to.
      * @param webOptions the WebOptions settings.
      * @param dimensionUid the uid of the dimension queried in the API url. See
      *        {@link DimensionController#getItems(String, Map, OrderParams)}.
-     * @param totalOfItems the total of items. This is represented as page total.
-     *        See {@link Pager#getTotal()}.
+     * @param totalOfItems the total of items. This is represented as page
+     *        total. See {@link Pager#getTotal()}.
      */
     void addPaginationToNodeIfEnabled( final RootNode rootNode, final WebOptions webOptions,
         final String dimensionUid, final int totalOfItems )

@@ -1,5 +1,3 @@
-package org.hisp.dhis.webapi.security.config;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.security.config;
 
 import java.util.Set;
 
@@ -42,7 +41,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
 import org.hisp.dhis.webapi.security.DHIS2BasicAuthenticationEntryPoint;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -99,10 +97,11 @@ public class DhisWebApiWebSecurityConfig
 
     /**
      * This configuration class is responsible for setting up the OAuth2 /token
-     * endpoint and /authorize endpoint. This config is a modification of the config
-     * that is automatically enabled by using the @EnableAuthorizationServer
-     * annotation. The spring-security-oauth2 project is deprecated, but as of
-     * August 19, 2020; there is still no other viable alternative available.
+     * endpoint and /authorize endpoint. This config is a modification of the
+     * config that is automatically enabled by using
+     * the @EnableAuthorizationServer annotation. The spring-security-oauth2
+     * project is deprecated, but as of August 19, 2020; there is still no other
+     * viable alternative available.
      */
     @Configuration
     @Order( 1001 )
@@ -124,8 +123,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
-
 
         @Override
         protected void configure( HttpSecurity http )
@@ -331,9 +328,10 @@ public class DhisWebApiWebSecurityConfig
         }
 
         /**
-         * This AuthenticationManager is responsible for authorizing access, refresh and
-         * code OAuth2 tokens from the /token and /authorize endpoints. It is used only
-         * by the OAuth2AuthenticationProcessingFilter.
+         * This AuthenticationManager is responsible for authorizing access,
+         * refresh and code OAuth2 tokens from the /token and /authorize
+         * endpoints. It is used only by the
+         * OAuth2AuthenticationProcessingFilter.
          */
         private AuthenticationManager oauthAuthenticationManager( HttpSecurity http )
         {

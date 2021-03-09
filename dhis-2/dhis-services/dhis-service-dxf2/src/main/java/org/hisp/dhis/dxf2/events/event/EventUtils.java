@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -36,6 +35,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -51,9 +53,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Luciano Fiandesio
@@ -81,10 +80,11 @@ public class EventUtils
     }
 
     /**
-     * Converts a Set of {@see EventDataValue} into a JSON string using the provided
-     * Jackson {@see ObjectMapper} This method, before serializing to JSON, if first
-     * transforms the Set into a Map, where the Map key is the EventDataValue
-     * DataElement UID and the Map value is the actual {@see EventDataValue}.
+     * Converts a Set of {@see EventDataValue} into a JSON string using the
+     * provided Jackson {@see ObjectMapper} This method, before serializing to
+     * JSON, if first transforms the Set into a Map, where the Map key is the
+     * EventDataValue DataElement UID and the Map value is the actual
+     * {@see EventDataValue}.
      *
      * @param dataValues a Set of {@see EventDataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
@@ -127,8 +127,8 @@ public class EventUtils
      * Note that the EventDataValue payload is stored as a map: {dataelementid:{
      * ...}, {dataelementid:{ ...} }
      *
-     * Therefore, the conversion is a bit convoluted, since the payload has to be
-     * converted into a Map and then into a Set
+     * Therefore, the conversion is a bit convoluted, since the payload has to
+     * be converted into a Map and then into a Set
      */
     public static Set<EventDataValue> jsonToEventDataValues( ObjectMapper jsonMapper, Object eventsDataValues )
         throws JsonProcessingException

@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.spring2fa;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.security.spring2fa;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.spring2fa;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.routines.LongValidator;
@@ -85,7 +85,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
             throw new BadCredentialsException( "Invalid username or password" );
         }
 
-        // Initialize all required properties of user credentials since these will become detached
+        // Initialize all required properties of user credentials since these
+        // will become detached
 
         userCredentials.getAllAuthorities();
 
@@ -95,11 +96,11 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
 
         if ( userCredentials.isTwoFA() )
         {
-            TwoFactorWebAuthenticationDetails authDetails =
-                (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
 
             // -------------------------------------------------------------------------
-            // Check whether account is locked due to multiple failed login attempts
+            // Check whether account is locked due to multiple failed login
+            // attempts
             // -------------------------------------------------------------------------
 
             if ( authDetails == null )
@@ -129,7 +130,8 @@ public class TwoFactorAuthenticationProvider extends DaoAuthenticationProvider
         }
 
         // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using UserCredentials as principal
+        // Delegate authentication downstream, using UserCredentials as
+        // principal
         // -------------------------------------------------------------------------
 
         Authentication result = super.authenticate( auth );

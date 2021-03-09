@@ -1,6 +1,5 @@
-package org.hisp.dhis.db.migration.v33;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,12 @@ package org.hisp.dhis.db.migration.v33;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v33;
+
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+import javax.annotation.Nonnull;
 
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -36,19 +41,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.SerializationUtils;
 
-import javax.annotation.Nonnull;
-import java.sql.ResultSet;
-import java.sql.Statement;
-
 /**
  * @author Volker Schmidt
  */
-public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends BaseJavaMigration
+public class V2_33_13__Migrate_text_based_system_settings_to_use_enums
+    extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_33_13__Migrate_text_based_system_settings_to_use_enums.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_33_13__Migrate_text_based_system_settings_to_use_enums.class );
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         update( context, "systemsetting", "systemsettingid", "keyCacheStrategy", CacheStrategy.class );
         update( context, "systemsetting", "systemsettingid", "keyAnalysisDisplayProperty", DisplayProperty.class );
@@ -57,11 +61,15 @@ public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends B
     }
 
     @SuppressWarnings( "unchecked" )
-    protected void update( @Nonnull Context context, @Nonnull String tableName, @Nonnull String primaryKeyColumnName, @Nonnull String settingName, @Nonnull Class<? extends Enum> enumClass ) throws Exception
+    protected void update( @Nonnull Context context, @Nonnull String tableName, @Nonnull String primaryKeyColumnName,
+        @Nonnull String settingName, @Nonnull Class<? extends Enum> enumClass )
+        throws Exception
     {
-        try ( final Statement stmt = context.getConnection().createStatement( ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_UPDATABLE ) )
+        try ( final Statement stmt = context.getConnection().createStatement( ResultSet.TYPE_FORWARD_ONLY,
+            ResultSet.CONCUR_UPDATABLE ) )
         {
-            final String query = "SELECT " + primaryKeyColumnName + ",name,value FROM " + tableName + " WHERE name='" + settingName + "'";
+            final String query = "SELECT " + primaryKeyColumnName + ",name,value FROM " + tableName + " WHERE name='"
+                + settingName + "'";
             try ( final ResultSet rs = stmt.executeQuery( query ) )
             {
                 while ( rs.next() )
@@ -90,21 +98,24 @@ public class V2_33_13__Migrate_text_based_system_settings_to_use_enums extends B
 
                     try
                     {
-                        convertedValue = Enum.valueOf( enumClass, valueObject.toString().trim().replace( ' ', '_' ).toUpperCase() );
+                        convertedValue = Enum.valueOf( enumClass,
+                            valueObject.toString().trim().replace( ' ', '_' ).toUpperCase() );
                     }
                     catch ( IllegalArgumentException e )
                     {
                         convertedValue = null;
 
                         rs.deleteRow();
-                        log.error( "Could not convert setting '" + valueObject + "' of id '" + id + " (record deleted)." );
+                        log.error(
+                            "Could not convert setting '" + valueObject + "' of id '" + id + " (record deleted)." );
                     }
 
                     if ( convertedValue != null )
                     {
                         rs.updateBytes( 3, SerializationUtils.serialize( convertedValue ) );
                         rs.updateRow();
-                        log.info( "Migrated " + tableName + " value of type " + name + " (id=" + id + ") from '" + valueObject + "' to '" + convertedValue + "'" );
+                        log.info( "Migrated " + tableName + " value of type " + name + " (id=" + id + ") from '"
+                            + valueObject + "' to '" + convertedValue + "'" );
                     }
                 }
             }

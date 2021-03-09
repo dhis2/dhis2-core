@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -62,8 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Enums;
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -163,8 +162,7 @@ public class DefaultMetadataImportService implements MetadataImportService
             return importReport;
         }
 
-        Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey ->
-        {
+        Lists.newArrayList( importReport.getTypeReportMap().keySet() ).forEach( typeReportKey -> {
             if ( importReport.getTypeReportMap().get( typeReportKey ).getStats().getTotal() == 0 )
             {
                 importReport.getTypeReportMap().remove( typeReportKey );
@@ -175,8 +173,7 @@ public class DefaultMetadataImportService implements MetadataImportService
 
             if ( ImportReportMode.ERRORS == params.getImportReportMode() )
             {
-                Lists.newArrayList( typeReport.getObjectReportMap().keySet() ).forEach( objectReportKey ->
-                {
+                Lists.newArrayList( typeReport.getObjectReportMap().keySet() ).forEach( objectReportKey -> {
                     if ( typeReport.getObjectReportMap().get( objectReportKey ).getErrorReportsByCode().isEmpty() )
                     {
                         typeReport.getObjectReportMap().remove( objectReportKey );
@@ -206,20 +203,27 @@ public class DefaultMetadataImportService implements MetadataImportService
         params.setSkipSharing( getBooleanWithDefault( parameters, "skipSharing", false ) );
         params.setSkipTranslation( getBooleanWithDefault( parameters, "skipTranslation", false ) );
         params.setSkipValidation( getBooleanWithDefault( parameters, "skipValidation", false ) );
-        params.setUserOverrideMode( getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
-        params.setImportMode( getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
-        params.setPreheatMode( getEnumWithDefault( PreheatMode.class, parameters, "preheatMode", PreheatMode.REFERENCE ) );
-        params.setIdentifier( getEnumWithDefault( PreheatIdentifier.class, parameters, "identifier", PreheatIdentifier.UID ) );
-        params.setImportStrategy( getEnumWithDefault( ImportStrategy.class, parameters, "importStrategy", ImportStrategy.CREATE_AND_UPDATE ) );
+        params.setUserOverrideMode(
+            getEnumWithDefault( UserOverrideMode.class, parameters, "userOverrideMode", UserOverrideMode.NONE ) );
+        params.setImportMode(
+            getEnumWithDefault( ObjectBundleMode.class, parameters, "importMode", ObjectBundleMode.COMMIT ) );
+        params.setPreheatMode(
+            getEnumWithDefault( PreheatMode.class, parameters, "preheatMode", PreheatMode.REFERENCE ) );
+        params.setIdentifier(
+            getEnumWithDefault( PreheatIdentifier.class, parameters, "identifier", PreheatIdentifier.UID ) );
+        params.setImportStrategy( getEnumWithDefault( ImportStrategy.class, parameters, "importStrategy",
+            ImportStrategy.CREATE_AND_UPDATE ) );
         params.setAtomicMode( getEnumWithDefault( AtomicMode.class, parameters, "atomicMode", AtomicMode.ALL ) );
         params.setMergeMode( getEnumWithDefault( MergeMode.class, parameters, "mergeMode", MergeMode.REPLACE ) );
         params.setFlushMode( getEnumWithDefault( FlushMode.class, parameters, "flushMode", FlushMode.AUTO ) );
-        params.setImportReportMode( getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
+        params.setImportReportMode(
+            getEnumWithDefault( ImportReportMode.class, parameters, "importReportMode", ImportReportMode.ERRORS ) );
         params.setFirstRowIsHeader( getBooleanWithDefault( parameters, "firstRowIsHeader", true ) );
 
         if ( getBooleanWithDefault( parameters, "async", false ) )
         {
-            JobConfiguration jobId = new JobConfiguration( "metadataImport", JobType.METADATA_IMPORT, params.getUser().getUid(), true );
+            JobConfiguration jobId = new JobConfiguration( "metadataImport", JobType.METADATA_IMPORT,
+                params.getUser().getUid(), true );
             notifier.clear( jobId );
             params.setId( jobId );
         }
@@ -236,7 +240,8 @@ public class DefaultMetadataImportService implements MetadataImportService
 
             if ( overrideUser == null )
             {
-                throw new MetadataImportException( "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
+                throw new MetadataImportException(
+                    "UserOverrideMode.SELECTED is enabled, but overrideUser parameter does not point to a valid user." );
             }
             else
             {
@@ -247,9 +252,9 @@ public class DefaultMetadataImportService implements MetadataImportService
         return params;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     private boolean getBooleanWithDefault( Map<String, List<String>> parameters, String key, boolean defaultValue )
     {
@@ -263,7 +268,8 @@ public class DefaultMetadataImportService implements MetadataImportService
         return "true".equals( value.toLowerCase() );
     }
 
-    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
+    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
+        String key, T defaultValue )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
@@ -284,7 +290,8 @@ public class DefaultMetadataImportService implements MetadataImportService
 
         for ( Class<? extends IdentifiableObject> klass : bundle.getObjectMap().keySet() )
         {
-            bundle.getObjectMap().get( klass ).forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
+            bundle.getObjectMap().get( klass )
+                .forEach( o -> prepareObject( (BaseIdentifiableObject) o, bundle, params ) );
         }
     }
 
@@ -295,7 +302,8 @@ public class DefaultMetadataImportService implements MetadataImportService
             aclService.resetSharing( object, bundle.getUser() );
         }
 
-        if ( object.getUser() == null || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
+        if ( object.getUser() == null
+            || bundle.getPreheat().get( params.getPreheatIdentifier(), User.class, object.getUser().getUid() ) == null )
         {
             object.setUser( bundle.getUser() );
         }

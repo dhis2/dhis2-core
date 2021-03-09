@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.common.*;
-import org.springframework.util.Assert;
+package org.hisp.dhis.program;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,34 +34,58 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.*;
+import org.springframework.util.Assert;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+
 /**
  * @author Chau Thu Tran
  */
 @JacksonXmlRootElement( localName = "programIndicator", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramIndicator
-    extends BaseDataDimensionalItemObject implements MetadataObject
+    extends BaseDataDimensionalItemObject
+    implements MetadataObject
 {
     public static final String DB_SEPARATOR_ID = "_";
 
     public static final String SEPARATOR_ID = "\\.";
+
     public static final String KEY_DATAELEMENT = "#";
+
     public static final String KEY_ATTRIBUTE = "A";
+
     public static final String KEY_PROGRAM_VARIABLE = "V";
+
     public static final String KEY_CONSTANT = "C";
 
     public static final String VAR_ENROLLMENT_DATE = "enrollment_date";
+
     public static final String VAR_INCIDENT_DATE = "incident_date";
 
     private static final String ANALYTICS_VARIABLE_REGEX = "V\\{analytics_period_(start|end)\\}";
+
     private static final Pattern ANALYTICS_VARIABLE_PATTERN = Pattern.compile( ANALYTICS_VARIABLE_REGEX );
 
     public static final String VALID = "valid";
+
     public static final String EXPRESSION_NOT_VALID = "expression_not_valid";
 
-    private static final Set<AnalyticsPeriodBoundary> DEFAULT_EVENT_TYPE_BOUNDARIES = ImmutableSet.<AnalyticsPeriodBoundary>builder().
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) ).
-        add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE, AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) ).build();
-    
+    private static final Set<AnalyticsPeriodBoundary> DEFAULT_EVENT_TYPE_BOUNDARIES = ImmutableSet
+        .<AnalyticsPeriodBoundary> builder()
+        .add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD ) )
+        .add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD ) )
+        .build();
+
     private Program program;
 
     private String expression;
@@ -93,7 +104,7 @@ public class ProgramIndicator
     private Set<ProgramIndicatorGroup> groups = new HashSet<>();
 
     private AnalyticsType analyticsType = AnalyticsType.EVENT;
-    
+
     private Set<AnalyticsPeriodBoundary> analyticsPeriodBoundaries = new HashSet<>();
 
     private ObjectStyle style;
@@ -146,40 +157,49 @@ public class ProgramIndicator
     }
 
     /**
-     * Indicates whether the program indicator has standard reporting period boundaries, and can use the 
-     * pre-aggregated data in the analytics tables directly, or whether a custom set of boundaries is used. 
-     * @return true if the program indicator uses custom boundaries that the database query will need to 
-     * handle.
+     * Indicates whether the program indicator has standard reporting period
+     * boundaries, and can use the pre-aggregated data in the analytics tables
+     * directly, or whether a custom set of boundaries is used.
+     *
+     * @return true if the program indicator uses custom boundaries that the
+     *         database query will need to handle.
      */
     public Boolean hasNonDefaultBoundaries()
     {
-        return this.analyticsPeriodBoundaries.size() != 2 || ( this.analyticsType == AnalyticsType.EVENT &&
+        return this.analyticsPeriodBoundaries.size() != 2 || (this.analyticsType == AnalyticsType.EVENT &&
             !this.analyticsPeriodBoundaries.containsAll( DEFAULT_EVENT_TYPE_BOUNDARIES ) ||
-            this.analyticsType == AnalyticsType.ENROLLMENT );
+            this.analyticsType == AnalyticsType.ENROLLMENT);
     }
 
     /**
-     * Checks if indicator expression or indicator filter expression contains V{analytics_period_end} or V{analytics_period_start}. It will be use in conjunction with hasNonDefaultBoundaries() in order to
-     * split sql queries for each period provided.
+     * Checks if indicator expression or indicator filter expression contains
+     * V{analytics_period_end} or V{analytics_period_start}. It will be use in
+     * conjunction with hasNonDefaultBoundaries() in order to split sql queries
+     * for each period provided.
+     *
      * @return true if expression has analytics period variables.
      */
     public boolean hasAnalyticsVariables()
     {
         return ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.expression, "" ) ).find() ||
-               ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();
+            ANALYTICS_VARIABLE_PATTERN.matcher( StringUtils.defaultIfBlank( this.filter, "" ) ).find();
     }
 
     /**
-     * Indicates whether the program indicator includes event boundaries, to be applied if the program indicator queries event data.
+     * Indicates whether the program indicator includes event boundaries, to be
+     * applied if the program indicator queries event data.
      */
     public Boolean hasEventBoundary()
     {
         return getEndEventBoundary() != null || getStartEventBoundary() != null;
     }
-    
+
     /**
-     * Returns the boundary for the latest event date to include in the further evaluation.
-     * @return The analytics period boundary that defines the event end date. Null if none is found.
+     * Returns the boundary for the latest event date to include in the further
+     * evaluation.
+     *
+     * @return The analytics period boundary that defines the event end date.
+     *         Null if none is found.
      */
     public AnalyticsPeriodBoundary getEndEventBoundary()
     {
@@ -187,16 +207,19 @@ public class ProgramIndicator
         {
             if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isEndBoundary() )
             {
-                return boundary;                
+                return boundary;
             }
         }
 
         return null;
     }
-    
+
     /**
-     * Returns the boundary for the earliest event date to include in the further evaluation.
-     * @return The analytics period boundary that defines the event start date. Null if none is found.
+     * Returns the boundary for the earliest event date to include in the
+     * further evaluation.
+     *
+     * @return The analytics period boundary that defines the event start date.
+     *         Null if none is found.
      */
     public AnalyticsPeriodBoundary getStartEventBoundary()
     {
@@ -204,7 +227,7 @@ public class ProgramIndicator
         {
             if ( boundary.isEventDateBoundary() && boundary.getAnalyticsPeriodBoundaryType().isStartBoundary() )
             {
-                return boundary;                
+                return boundary;
             }
         }
 
@@ -212,8 +235,10 @@ public class ProgramIndicator
     }
 
     /**
-     * Determines wether there exists any analytics period boundaries that has type "Event in program stage".
-     * @return true if any boundary exists with type  "Event in program stage"
+     * Determines wether there exists any analytics period boundaries that has
+     * type "Event in program stage".
+     *
+     * @return true if any boundary exists with type "Event in program stage"
      */
     public boolean hasEventDateCohortBoundary()
     {
@@ -226,10 +251,11 @@ public class ProgramIndicator
         }
         return false;
     }
-    
+
     /**
-     * Returns any analytics period boundaries that has type "Event in program stage", organized as a map
-     * where the program stage is the key, and the list of boundaries for that program stage is the value.
+     * Returns any analytics period boundaries that has type "Event in program
+     * stage", organized as a map where the program stage is the key, and the
+     * list of boundaries for that program stage is the value.
      */
     public Map<String, Set<AnalyticsPeriodBoundary>> getEventDateCohortBoundaryByProgramStage()
     {
@@ -238,10 +264,13 @@ public class ProgramIndicator
         {
             if ( boundary.isEnrollmentHavingEventDateCohortBoundary() )
             {
-                Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN.matcher( boundary.getBoundaryTarget() );
-                Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                Matcher matcher = AnalyticsPeriodBoundary.COHORT_HAVING_PROGRAM_STAGE_PATTERN
+                    .matcher( boundary.getBoundaryTarget() );
+                Assert.isTrue( matcher.find(), "Can not parse program stage pattern for analyticsPeriodBoundary "
+                    + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
                 String programStage = matcher.group( AnalyticsPeriodBoundary.PROGRAM_STAGE_REGEX_GROUP );
-                Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary " + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
+                Assert.isTrue( programStage != null, "Can not find programStage for analyticsPeriodBoundary "
+                    + boundary.getUid() + " - boundaryTarget: " + boundary.getBoundaryTarget() );
                 if ( !map.containsKey( programStage ) )
                 {
                     map.put( programStage, new HashSet<>() );
@@ -249,7 +278,7 @@ public class ProgramIndicator
                 map.get( programStage ).add( boundary );
             }
         }
-        
+
         return map;
     }
 
@@ -353,7 +382,7 @@ public class ProgramIndicator
     {
         this.analyticsType = analyticsType;
     }
-    
+
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "analyticsPeriodBoundaries", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "analyticsPeriodBoundary", namespace = DxfNamespaces.DXF_2_0 )
@@ -366,7 +395,6 @@ public class ProgramIndicator
     {
         this.analyticsPeriodBoundaries = analyticsPeriodBoundaries;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

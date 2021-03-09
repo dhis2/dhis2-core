@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.organisationunit;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.metadata.Metadata;
@@ -45,9 +48,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Lars Helge Overland
@@ -96,7 +97,8 @@ public class FilledOrganisationUnitLevelController
                 throw new WebMessageException( WebMessageUtils.conflict( "Name must be specified" ) );
             }
 
-            organisationUnitService.addOrUpdateOrganisationUnitLevel( new OrganisationUnitLevel( level.getLevel(), level.getName(), level.getOfflineLevels() ) );
+            organisationUnitService.addOrUpdateOrganisationUnitLevel(
+                new OrganisationUnitLevel( level.getLevel(), level.getName(), level.getOfflineLevels() ) );
         }
     }
 }

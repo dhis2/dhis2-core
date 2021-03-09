@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.oidc;
-
 /*
- * Copyright (c) 2004-2004-2021, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.security.oidc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.oidc;
 
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.AUTHORIZATION_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
@@ -116,14 +115,13 @@ public final class GenericOidcProviderConfigParser
     private static final Set<String> VALID_KEY_NAMES = KEY_REQUIRED_MAP.keySet();
 
     /**
-     * Parses the DHIS.conf file for valid OIDC provider configuration(s). See the
-     * DHIS2 manual for how to configure a OIDC provider correctly.
+     * Parses the DHIS.conf file for valid OIDC provider configuration(s). See
+     * the DHIS2 manual for how to configure a OIDC provider correctly.
      *
      * @param properties The config file Properties object
-     *
      * @return A List of maps for each successfully parsed provider with
-     *         corresponding key/values, the valid configuration property keys are
-     *         defined in
+     *         corresponding key/values, the valid configuration property keys
+     *         are defined in
      *         {@link org.hisp.dhis.security.oidc.provider.AbstractOidcProvider}
      */
     public static List<Map<String, String>> parse( Properties properties )
@@ -180,10 +178,10 @@ public final class GenericOidcProviderConfigParser
     }
 
     /**
-     * Makes sure that all required properties are present in the providerConfig map
+     * Makes sure that all required properties are present in the providerConfig
+     * map
      *
      * @param providerConfig map of config
-     *
      * @return valid or not valid
      */
     private static boolean validateRequiredProperties( Map<String, String> providerConfig )

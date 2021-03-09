@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.lang3.Validate;
 import org.hisp.dhis.category.CategoryOption;
@@ -39,18 +47,10 @@ import org.hisp.dhis.period.Period;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 /**
- * This class keeps track of a validation analysis. It contains information about the initial params of the analysis,
- * The current state of the analysis and the final results of the analysis.
+ * This class keeps track of a validation analysis. It contains information
+ * about the initial params of the analysis, The current state of the analysis
+ * and the final results of the analysis.
  *
  * @author Stian Sandvold
  */
@@ -205,7 +205,7 @@ public class ValidationRunContext
 
     public int getNumberOfTasks()
     {
-        return ( orgUnits.size() + ORG_UNITS_PER_TASK - 1 ) / ORG_UNITS_PER_TASK;
+        return (orgUnits.size() + ORG_UNITS_PER_TASK - 1) / ORG_UNITS_PER_TASK;
     }
 
     public boolean isAnalysisComplete()
@@ -232,7 +232,8 @@ public class ValidationRunContext
         }
 
         /**
-         * Builds the actual ValidationRunContext object configured with the builder
+         * Builds the actual ValidationRunContext object configured with the
+         * builder
          *
          * @return a new ValidationParam based on the builders configuration
          */
@@ -283,7 +284,8 @@ public class ValidationRunContext
         }
 
         /**
-         * This is an optional constraint to which attributeCombo we should check
+         * This is an optional constraint to which attributeCombo we should
+         * check
          *
          * @param attributeCombo
          */
@@ -294,7 +296,8 @@ public class ValidationRunContext
         }
 
         /**
-         * This is the default attributeOptionCombo which should always be present
+         * This is the default attributeOptionCombo which should always be
+         * present
          *
          * @param defaultAttributeCombo
          */
@@ -350,7 +353,7 @@ public class ValidationRunContext
                 List<ValidationResult> res = context.initialValidationResults
                     .getValue( validationResult.getOrganisationUnit(), validationResult.getValidationRule(),
                         validationResult.getPeriod() );
-                
+
                 if ( res == null )
                 {
                     res = new ArrayList<>();

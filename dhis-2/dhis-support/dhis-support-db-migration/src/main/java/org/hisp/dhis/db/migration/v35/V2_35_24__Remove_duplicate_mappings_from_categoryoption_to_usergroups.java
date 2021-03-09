@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v35;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v35;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v35;
 
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -35,14 +34,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
@@ -56,27 +55,29 @@ public class V2_35_24__Remove_duplicate_mappings_from_categoryoption_to_usergrou
 
     private static final String CATEGORYOPTIONID = "categoryoptionid";
 
-    private static final String CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING = "SELECT count(*),categoryoptionid,name,usergroupid  " + 
-        "FROM   (SELECT deco.*,uga.* " + 
-        "       FROM   dataelementcategoryoption deco " + 
-        "       LEFT JOIN dataelementcategoryoptionusergroupaccesses couga " + 
-        "               ON deco.categoryoptionid = couga.categoryoptionid " + 
-        "       LEFT JOIN usergroupaccess uga " + 
-        "               ON couga.usergroupaccessid = uga.usergroupaccessid) AS decouga " + 
+    private static final String CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING = "SELECT count(*),categoryoptionid,name,usergroupid  "
+        +
+        "FROM   (SELECT deco.*,uga.* " +
+        "       FROM   dataelementcategoryoption deco " +
+        "       LEFT JOIN dataelementcategoryoptionusergroupaccesses couga " +
+        "               ON deco.categoryoptionid = couga.categoryoptionid " +
+        "       LEFT JOIN usergroupaccess uga " +
+        "               ON couga.usergroupaccessid = uga.usergroupaccessid) AS decouga " +
         "GROUP  BY categoryoptionid,name,usergroupid HAVING count(*) > 1";
 
-    private static final String GET_ACCESS_STRING_FOR_CO_UG_COMBO = "SELECT usergroupaccessid,usergroupid,categoryoptionid, " + 
-        "CASE " + 
-        "WHEN access = '--------' THEN 1 " + 
-        "WHEN access = 'r-------' THEN 2 " + 
-        "WHEN access LIKE '_w------' THEN 3 " + 
-        "WHEN access LIKE '__r-----' THEN 4 " + 
-        "WHEN access LIKE '___w----' THEN 5 " + 
-        "ELSE 0 " + 
-        "END as accesslevel " + 
-        "FROM   (SELECT couga.categoryoptionid,uga.*  " + 
-        "       FROM  dataelementcategoryoptionusergroupaccesses couga " + 
-        "       LEFT JOIN usergroupaccess uga " + 
+    private static final String GET_ACCESS_STRING_FOR_CO_UG_COMBO = "SELECT usergroupaccessid,usergroupid,categoryoptionid, "
+        +
+        "CASE " +
+        "WHEN access = '--------' THEN 1 " +
+        "WHEN access = 'r-------' THEN 2 " +
+        "WHEN access LIKE '_w------' THEN 3 " +
+        "WHEN access LIKE '__r-----' THEN 4 " +
+        "WHEN access LIKE '___w----' THEN 5 " +
+        "ELSE 0 " +
+        "END as accesslevel " +
+        "FROM   (SELECT couga.categoryoptionid,uga.*  " +
+        "       FROM  dataelementcategoryoptionusergroupaccesses couga " +
+        "       LEFT JOIN usergroupaccess uga " +
         "               ON couga.usergroupaccessid = uga.usergroupaccessid " +
         " WHERE  categoryoptionid IN (%s)  and usergroupid IN (%s)) AS decouga order by accesslevel desc";
 
@@ -93,24 +94,25 @@ public class V2_35_24__Remove_duplicate_mappings_from_categoryoption_to_usergrou
         Set<String> userGroupIds = new HashSet<>();
         long totalCount = 0;
 
-        //1. Check if there are duplicate mappings. If not simply return.
+        // 1. Check if there are duplicate mappings. If not simply return.
         try ( Statement stmt = context.getConnection().createStatement();
             ResultSet rs = stmt.executeQuery( CHECK_DUPLICATE_CATOPT_USERGROUP_MAPPING ); )
         {
             if ( rs.next() == false )
             {
-                log.info( "No duplicate mappings for categoryoption to usergroups. Skipping duplicate cleanup migration" );
+                log.info(
+                    "No duplicate mappings for categoryoption to usergroups. Skipping duplicate cleanup migration" );
                 return;
             }
             else
             {
                 DuplicateCategoryOptionUserGroupWithCount duplicateCatOptUsrgrp = null;
                 do
-                {       
+                {
                     duplicateCatOptUsrgrp = new DuplicateCategoryOptionUserGroupWithCount();
                     duplicateCatOptUsrgrp.setName( rs.getString( "name" ) );
                     duplicateCatOptUsrgrp.setCategoryOptionId( rs.getLong( CATEGORYOPTIONID ) );
-                    catOptIds.add( rs.getString( CATEGORYOPTIONID )  );
+                    catOptIds.add( rs.getString( CATEGORYOPTIONID ) );
                     duplicateCatOptUsrgrp.setUserGroupId( rs.getLong( USERGROUPID ) );
                     userGroupIds.add( rs.getString( USERGROUPID ) );
                     duplicateCatOptUsrgrp.setCount( rs.getInt( "count" ) );
@@ -121,17 +123,20 @@ public class V2_35_24__Remove_duplicate_mappings_from_categoryoption_to_usergrou
             }
         }
 
-        Set<Pair<String,String>> catOptUsrGroupPairs = new HashSet<>();
+        Set<Pair<String, String>> catOptUsrGroupPairs = new HashSet<>();
         Set<String> deleteUserGroupAccessIds = new HashSet<>();
 
         String catOptIdsCommaSeparated = StringUtils.join( catOptIds, "," );
         String userGroupIdsCommaSeparated = StringUtils.join( userGroupIds, "," );
 
-        // 2. Get ordered access strings for each categoryoptionid and  usergroupid combination 
+        // 2. Get ordered access strings for each categoryoptionid and
+        // usergroupid combination
         try ( Statement stmt = context.getConnection().createStatement();
-            ResultSet rs = stmt.executeQuery( String.format( GET_ACCESS_STRING_FOR_CO_UG_COMBO, catOptIdsCommaSeparated, userGroupIdsCommaSeparated ) ); )
+            ResultSet rs = stmt
+                .executeQuery( String.format( GET_ACCESS_STRING_FOR_CO_UG_COMBO, catOptIdsCommaSeparated,
+                    userGroupIdsCommaSeparated ) ); )
         {
-            Pair<String,String> currentPair = null;
+            Pair<String, String> currentPair = null;
             while ( rs.next() )
             {
                 currentPair = Pair.of( rs.getString( CATEGORYOPTIONID ), rs.getString( USERGROUPID ) );
@@ -154,12 +159,16 @@ public class V2_35_24__Remove_duplicate_mappings_from_categoryoption_to_usergrou
 
         try ( Statement stmt = context.getConnection().createStatement(); )
         {
-            //Delete redundant usergroupaccessid from dataelementcategoryoptionusergroupaccesses table
-            int deletedCougaCount = stmt.executeUpdate( String.format( DELETE_CATOPT_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
-            log.info( "Deleted userGroupAccessIds from dataelementcategoryoptionusergroupaccesses table : " + deletedCougaCount );
+            // Delete redundant usergroupaccessid from
+            // dataelementcategoryoptionusergroupaccesses table
+            int deletedCougaCount = stmt
+                .executeUpdate( String.format( DELETE_CATOPT_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
+            log.info( "Deleted userGroupAccessIds from dataelementcategoryoptionusergroupaccesses table : "
+                + deletedCougaCount );
 
-            //Delete redundant usergroupaccessid from usergroupaccess table
-            int deletedUgaCount = stmt.executeUpdate( String.format( DELETE_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
+            // Delete redundant usergroupaccessid from usergroupaccess table
+            int deletedUgaCount = stmt
+                .executeUpdate( String.format( DELETE_USRGRP_ACCESS, usrGrpAccessIdsCommaSeparated ) );
             log.info( "Deleted userGroupAccessIds from usergroupaccess table : " + deletedUgaCount );
         }
     }
@@ -170,7 +179,10 @@ public class V2_35_24__Remove_duplicate_mappings_from_categoryoption_to_usergrou
 class DuplicateCategoryOptionUserGroupWithCount
 {
     private String name;
+
     private long categoryOptionId;
+
     private long userGroupId;
+
     private int count;
 }

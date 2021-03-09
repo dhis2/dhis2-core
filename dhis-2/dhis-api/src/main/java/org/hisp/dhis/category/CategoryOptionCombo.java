@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,13 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
@@ -45,10 +43,12 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Aselefew
@@ -252,7 +252,7 @@ public class CategoryOptionCombo
      * restrictions and their intersection is empty.
      *
      * @return valid organisation units for this (attribute) category option
-     * combo.
+     *         combo.
      */
     public Set<OrganisationUnit> getOrganisationUnits()
     {
@@ -278,9 +278,9 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the latest category option start date for this category
-     * option combo. The combo is only valid between the latest start
-     * date of any options and the earliest end date of any options.
+     * Gets the latest category option start date for this category option
+     * combo. The combo is only valid between the latest start date of any
+     * options and the earliest end date of any options.
      *
      * @return the latest option start date for this combo.
      */
@@ -292,8 +292,9 @@ public class CategoryOptionCombo
         {
             if ( co.getStartDate() != null )
             {
-                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() ) ?
-                    co.getStartDate() : latestStartDate);
+                latestStartDate = (latestStartDate == null || latestStartDate.before( co.getStartDate() )
+                    ? co.getStartDate()
+                    : latestStartDate);
             }
         }
 
@@ -301,13 +302,13 @@ public class CategoryOptionCombo
     }
 
     /**
-     * Gets the earliest category option end date for this category
-     * option combo. The combo is only valid between the latest start
-     * date of any options and the earliest end date of any options.
+     * Gets the earliest category option end date for this category option
+     * combo. The combo is only valid between the latest start date of any
+     * options and the earliest end date of any options.
      * <p>
      * Note that this end date does not take into account any possible
-     * extensions to the category end dates for aggregate data entry
-     * in data sets with openPeriodsAfterCoEndDate.
+     * extensions to the category end dates for aggregate data entry in data
+     * sets with openPeriodsAfterCoEndDate.
      *
      * @return the latest option start date for this combo.
      */
@@ -319,8 +320,9 @@ public class CategoryOptionCombo
         {
             if ( co.getEndDate() != null )
             {
-                earliestEndDate = ( earliestEndDate == null || earliestEndDate.after( co.getEndDate() ) ?
-                    co.getStartDate() : earliestEndDate);
+                earliestEndDate = (earliestEndDate == null || earliestEndDate.after( co.getEndDate() )
+                    ? co.getStartDate()
+                    : earliestEndDate);
             }
         }
 
@@ -346,7 +348,7 @@ public class CategoryOptionCombo
 
         for ( CategoryOption co : getCategoryOptions() )
         {
-            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate ) ) )
+            if ( co.getStartDate() != null && (latestStartDate == null || co.getStartDate().after( latestStartDate )) )
             {
                 latestStartDate = co.getStartDate();
             }
@@ -355,7 +357,7 @@ public class CategoryOptionCombo
                 ? co.getAdjustedEndDate( dataSet )
                 : co.getAdjustedEndDate( dataElement );
 
-            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate ) ) )
+            if ( coEndDate != null && (earliestEndDate == null || coEndDate.before( earliestEndDate )) )
             {
                 earliestEndDate = coEndDate;
             }
@@ -389,8 +391,7 @@ public class CategoryOptionCombo
         {
             List<CategoryOption> options = category.getCategoryOptions();
 
-            optionLoop:
-            for ( CategoryOption option : categoryOptions )
+            optionLoop: for ( CategoryOption option : categoryOptions )
             {
                 if ( options.contains( option ) )
                 {

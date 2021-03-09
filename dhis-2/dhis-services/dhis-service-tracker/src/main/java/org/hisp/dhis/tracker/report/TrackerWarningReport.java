@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -34,6 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import lombok.Builder;
+import lombok.Data;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.tracker.TrackerIdScheme;
@@ -45,9 +47,6 @@ import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Builder;
-import lombok.Data;
 
 /**
  * @author Enrico Colasante
@@ -137,7 +136,8 @@ public class TrackerWarningReport
 
             String warningMessage = MessageFormat.format( warningCode.getMessage(), args.toArray( new Object[0] ) );
 
-            return new TrackerWarningReport( this.mainKlass, warningMessage, this.warningCode, this.listIndex, this.mainId,
+            return new TrackerWarningReport( this.mainKlass, warningMessage, this.warningCode, this.listIndex,
+                this.mainId,
                 this.mainKlass, this.warningProperties, this.value );
         }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.config.jackson.geometry;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.config.jackson.geometry;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.config.jackson.geometry;
 
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
 import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
@@ -46,7 +45,7 @@ public class JtsXmlModule
         this( new GeometryFactory() );
     }
 
-    @SuppressWarnings({"rawtypes","unchecked"})
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
     public JtsXmlModule( GeometryFactory geometryFactory )
     {
         super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );

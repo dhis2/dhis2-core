@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
@@ -180,11 +179,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns the dynamic select column names to use in a group by clause.
-     * Dimensions come first and query items second. Program indicator expressions
-     * are converted to SQL expressions. When grouping with non-default analytics
-     * period boundaries, all periods are skipped in the group clause, as non
-     * default boundaries is defining their own period groups within their where
-     * clause.
+     * Dimensions come first and query items second. Program indicator
+     * expressions are converted to SQL expressions. When grouping with
+     * non-default analytics period boundaries, all periods are skipped in the
+     * group clause, as non default boundaries is defining their own period
+     * groups within their where clause.
      */
     private List<String> getGroupByColumnNames( EventQueryParams params )
     {
@@ -193,8 +192,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions. In
-     * the case of non-default
+     * second. Program indicator expressions are converted to SQL expressions.
+     * In the case of non-default
      * boundaries{@link EventQueryParams#hasNonDefaultBoundaries}, the period is
      * hard coded into the select statement with "(isoPeriod) as (periodType)".
      */
@@ -205,14 +204,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions. In
-     * the case of non-default
+     * second. Program indicator expressions are converted to SQL expressions.
+     * In the case of non-default
      * boundaries{@link EventQueryParams#hasNonDefaultBoundaries}, the period is
      * hard coded into the select statement with "(isoPeriod) as (periodType)".
      *
      * @param isGroupByClause used to avoid grouping by period when using
-     *        non-default boundaries where the column content would be hard coded.
-     *        Used by the group-by calls.
+     *        non-default boundaries where the column content would be hard
+     *        coded. Used by the group-by calls.
      */
     private List<String> getSelectColumns( EventQueryParams params, boolean isGroupByClause )
     {
@@ -240,7 +239,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( !params.hasPeriods() && params.hasFilterPeriods() )
             {
-                // Assuming same period type for all period filters, as the query planner splits
+                // Assuming same period type for all period filters, as the
+                // query planner splits
                 // into one query per period type
 
                 Period period = (Period) params.getFilterPeriods().get( 0 );
@@ -514,12 +514,13 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns an item value for the given query, query item and value. Assumes that
-     * data dimensions are collapsed for the given query. Returns the short name of
-     * the given query item followed by the item value. If the given query item has
-     * a legend set, the item value is treated as an id and substituted with the
-     * matching legend name. If the given query item has an option set, the item
-     * value is treated as a code and substituted with the matching option name.
+     * Returns an item value for the given query, query item and value. Assumes
+     * that data dimensions are collapsed for the given query. Returns the short
+     * name of the given query item followed by the item value. If the given
+     * query item has a legend set, the item value is treated as an id and
+     * substituted with the matching legend name. If the given query item has an
+     * option set, the item value is treated as a code and substituted with the
+     * matching option name.
      *
      * @param item the {@link QueryItem}.
      * @param itemValue the item value.
@@ -569,9 +570,10 @@ public abstract class AbstractJdbcEventAnalyticsManager
     }
 
     /**
-     * Returns an SQL to select the expression or column of the item. If the item is
-     * a program indicator, the program indicator expression is returned; if the
-     * item is a data element, the item column name is returned.
+     * Returns an SQL to select the expression or column of the item. If the
+     * item is a program indicator, the program indicator expression is
+     * returned; if the item is a data element, the item column name is
+     * returned.
      *
      * @param item the {@link QueryItem}.
      */
@@ -672,8 +674,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
     /**
      * Wraps the provided interface around a common exception handling strategy
      *
-     * @param r a {@see Runnable} interface containing the code block to execute and
-     *        wrap around the exception handling
+     * @param r a {@see Runnable} interface containing the code block to execute
+     *        and wrap around the exception handling
      */
     void withExceptionHandling( Runnable r )
     {
@@ -700,21 +702,21 @@ public abstract class AbstractJdbcEventAnalyticsManager
     protected abstract String getSelectClause( EventQueryParams params );
 
     /**
-     * Generates the SQL for the from-clause. Generally this means which analytics
-     * table to get data from.
+     * Generates the SQL for the from-clause. Generally this means which
+     * analytics table to get data from.
      *
-     * @param params the {@link EventQueryParams} that define what is going to be
-     *        queried.
+     * @param params the {@link EventQueryParams} that define what is going to
+     *        be queried.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getFromClause( EventQueryParams params );
 
     /**
-     * Generates the SQL for the where-clause. Generally this means adding filters,
-     * grouping and ordering to the SQL.
+     * Generates the SQL for the where-clause. Generally this means adding
+     * filters, grouping and ordering to the SQL.
      *
-     * @param params the {@link EventQueryParams} that defines the details of the
-     *        filters, grouping and ordering.
+     * @param params the {@link EventQueryParams} that defines the details of
+     *        the filters, grouping and ordering.
      * @return SQL to add to the analytics query.
      */
     protected abstract String getWhereClause( EventQueryParams params );

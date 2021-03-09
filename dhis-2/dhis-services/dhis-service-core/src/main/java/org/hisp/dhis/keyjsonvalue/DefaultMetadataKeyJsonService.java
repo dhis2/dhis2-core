@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,22 +24,23 @@ package org.hisp.dhis.keyjsonvalue;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+package org.hisp.dhis.keyjsonvalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.metadata.version.MetadataVersionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
-public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
+public class DefaultMetadataKeyJsonService
+    implements MetadataKeyJsonService
 {
     private final KeyJsonValueStore keyJsonValueStore;
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 /**
  * @author Viet Nguyen
@@ -48,7 +47,9 @@ public class DefaultProgramTrackedEntityAttributeGroupService
 
     private final IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore;
 
-    public DefaultProgramTrackedEntityAttributeGroupService(@Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore) {
+    public DefaultProgramTrackedEntityAttributeGroupService(
+        @Qualifier( "org.hisp.dhis.program.ProgramTrackedEntityAttributeGroupStore" ) IdentifiableObjectStore<ProgramTrackedEntityAttributeGroup> attributeGroupStore )
+    {
         this.attributeGroupStore = attributeGroupStore;
     }
 
@@ -80,21 +81,21 @@ public class DefaultProgramTrackedEntityAttributeGroupService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( long id )
     {
         return attributeGroupStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramTrackedEntityAttributeGroup getProgramTrackedEntityAttributeGroup( String uid )
     {
         return attributeGroupStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<ProgramTrackedEntityAttributeGroup> getAllProgramTrackedEntityAttributeGroups()
     {
         return attributeGroupStore.getAll();

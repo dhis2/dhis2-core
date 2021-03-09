@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityattributevalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.trackedentityattributevalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityattributevalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -41,13 +47,6 @@ import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.Collection;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 /**
  * @author Abyot Asalefew
@@ -107,7 +106,8 @@ public class DefaultTrackedEntityAttributeValueService
 
         if ( config.isEnabled( CHANGELOG_TRACKER ) )
         {
-            trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+            trackedEntityAttributeValueAuditService
+                .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
         }
 
         deleteFileValue( attributeValue );
@@ -238,7 +238,8 @@ public class DefaultTrackedEntityAttributeValueService
 
             if ( config.isEnabled( CHANGELOG_TRACKER ) )
             {
-                trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
+                trackedEntityAttributeValueAuditService
+                    .addTrackedEntityAttributeValueAudit( trackedEntityAttributeValueAudit );
             }
 
             attributeValueStore.update( attributeValue );

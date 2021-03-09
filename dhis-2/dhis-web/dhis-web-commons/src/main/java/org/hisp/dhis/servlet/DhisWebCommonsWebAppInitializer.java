@@ -1,7 +1,5 @@
-package org.hisp.dhis.servlet;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.servlet;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.servlet;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
+import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
-import java.util.EnumSet;
+
+import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
+import org.springframework.core.annotation.Order;
+import org.springframework.web.WebApplicationInitializer;
 
 @Order( 12 )
 public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer

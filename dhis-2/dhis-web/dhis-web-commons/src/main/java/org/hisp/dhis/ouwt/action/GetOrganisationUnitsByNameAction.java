@@ -1,7 +1,5 @@
-package org.hisp.dhis.ouwt.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.ouwt.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.ouwt.action;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,10 +53,10 @@ public class GetOrganisationUnitsByNameAction
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     // -------------------------------------------------------------------------
     // Input
     // -------------------------------------------------------------------------
@@ -93,17 +92,17 @@ public class GetOrganisationUnitsByNameAction
         User user = currentUserService.getCurrentUser();
 
         OrganisationUnitQueryParams params = new OrganisationUnitQueryParams();
-        
+
         if ( user != null && user.hasOrganisationUnit() )
         {
             params.setParents( user.getOrganisationUnits() );
-        }        
-        
+        }
+
         params.setQuery( term );
         params.setMax( MAX );
-        
+
         organisationUnits = organisationUnitService.getOrganisationUnitsByQuery( params );
-        
+
         return SUCCESS;
     }
 }

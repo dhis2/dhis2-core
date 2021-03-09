@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -337,7 +336,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         when( constantService.getAllConstants() ).thenReturn( constants );
         when( i18nManager.getI18n() ).thenReturn( i18n );
-        when ( i18n.getString( anyString() ) ).thenReturn( env_variable );
+        when( i18n.getString( anyString() ) ).thenReturn( env_variable );
 
         Map<String, DataItem> itemStore = subject.getItemStore( ListUtils.newList( programRuleVariableA,
             programRuleVariableB, programRuleVariableC ) );
@@ -345,17 +344,19 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         assertNotNull( itemStore );
         assertTrue( itemStore.containsKey( programRuleVariableA.getName() ) );
         assertEquals( itemStore.get( programRuleVariableA.getName() ).getDisplayName(),
-                ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableA.getDisplayName(), programRuleVariableA.getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableB.getName() ) );
         assertEquals( itemStore.get( programRuleVariableB.getName() ).getDisplayName(),
-              ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(), programRuleVariableB.getAttribute().getDisplayFormName(),
-              programRuleVariableB.getAttribute().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableB.getAttribute().getDisplayName(),
+                programRuleVariableB.getAttribute().getDisplayFormName(),
+                programRuleVariableB.getAttribute().getName() ) );
 
         assertTrue( itemStore.containsKey( programRuleVariableC.getName() ) );
         assertEquals( itemStore.get( programRuleVariableC.getName() ).getDisplayName(),
-             ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
-             programRuleVariableC.getDataElement().getFormName(), programRuleVariableC.getDataElement().getName() ) );
+            ObjectUtils.firstNonNull( programRuleVariableC.getDataElement().getDisplayFormName(),
+                programRuleVariableC.getDataElement().getFormName(),
+                programRuleVariableC.getDataElement().getName() ) );
 
         assertTrue( itemStore.containsKey( constant.getUid() ) );
         assertEquals( itemStore.get( constant.getUid() ).getDisplayName(), "Gravity" );

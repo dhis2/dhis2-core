@@ -1,7 +1,5 @@
-package org.hisp.dhis.setting;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.setting;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.setting;
 
 import static org.junit.Assert.*;
 
@@ -46,7 +45,9 @@ public class SystemSettingStoreTest
     private SystemSettingStore systemSettingStore;
 
     private SystemSetting settingA;
+
     private SystemSetting settingB;
+
     private SystemSetting settingC;
 
     @Override
@@ -95,15 +96,15 @@ public class SystemSettingStoreTest
         long id = settingA.getId();
 
         settingA = systemSettingStore.get( id );
-        
+
         assertEquals( "Value1", settingA.getDisplayValue() );
-        
+
         settingA.setDisplayValue( "Value2" );
-        
+
         systemSettingStore.update( settingA );
 
         settingA = systemSettingStore.get( id );
-        
+
         assertEquals( "Value2", settingA.getDisplayValue() );
     }
 

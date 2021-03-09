@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,8 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -40,12 +35,18 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
  * @author markusbekken
  */
 @JacksonXmlRootElement( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleVariable
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The program that the variable belongs to
@@ -61,13 +62,13 @@ public class ProgramRuleVariable
      * value from the most recent event in the current enrollment, regardless of
      * program stage.datalement_uID needs to be specified.
      * dataelement_current_event Get a specific data elements value, but only
-     * within the current event. dataelement_previous_event Get a specific
-     * data elements value, specifically from the event preceding the current
-     * event, if this exists. calculated_value Do not assign the variable a
-     * hard-linked source, it will be populated by rules with assignvariable
-     * actions(i.e. calculation rules). tei_attribute Get a specific attribute
-     * from the current tracked entity. the linked attribute will be used to
-     * lookup the attributes uID value.
+     * within the current event. dataelement_previous_event Get a specific data
+     * elements value, specifically from the event preceding the current event,
+     * if this exists. calculated_value Do not assign the variable a hard-linked
+     * source, it will be populated by rules with assignvariable actions(i.e.
+     * calculation rules). tei_attribute Get a specific attribute from the
+     * current tracked entity. the linked attribute will be used to lookup the
+     * attributes uID value.
      */
     private ProgramRuleVariableSourceType sourceType;
 
@@ -90,8 +91,8 @@ public class ProgramRuleVariable
     private DataElement dataElement;
 
     /**
-     * If the dataElement or trackedEntityAttribute is connected to an option set,
-     * use this option sets code(and not the name) as value
+     * If the dataElement or trackedEntityAttribute is connected to an option
+     * set, use this option sets code(and not the name) as value
      */
     private boolean useCodeForOptionSet;
 

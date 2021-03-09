@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 
 import java.awt.geom.Point2D;
 import java.util.Locale;
@@ -53,8 +54,6 @@ import org.hisp.dhis.util.DateUtils;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-
 /**
  * @author Lars Helge Overland
  */
@@ -63,11 +62,18 @@ public class ValidationUtils
     private static final String NUM_PAT = "((-?[0-9]+)(\\.[0-9]+)?)";
 
     private static final Pattern POINT_PATTERN = Pattern.compile( "\\[(.+),\\s?(.+)\\]" );
+
     private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
+
     private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
+
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile( "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" );
+
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
-    private static final Pattern BBOX_PATTERN = Pattern.compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+
+    private static final Pattern BBOX_PATTERN = Pattern
+        .compile( "^" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + ",\\s*?" + NUM_PAT + "$" );
+
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
     private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
@@ -137,7 +143,7 @@ public class ValidationUtils
     /**
      * Validates whether a date string is valid for the given Locale.
      *
-     * @param date   the date string.
+     * @param date the date string.
      * @param locale the Locale
      * @return true if the date string is valid, false otherwise.
      */
@@ -308,8 +314,8 @@ public class ValidationUtils
 
     /**
      * Returns the longitude from the given coordinate. Returns null if the
-     * coordinate string is not valid. The coordinate is on the form
-     * longitude / latitude.
+     * coordinate string is not valid. The coordinate is on the form longitude /
+     * latitude.
      *
      * @param coordinate the coordinate string.
      * @return the longitude.
@@ -328,8 +334,8 @@ public class ValidationUtils
 
     /**
      * Returns the latitude from the given coordinate. Returns null if the
-     * coordinate string is not valid. The coordinate is on the form
-     * longitude / latitude.
+     * coordinate string is not valid. The coordinate is on the form longitude /
+     * latitude.
      *
      * @param coordinate the coordinate string.
      * @return the latitude.
@@ -375,7 +381,7 @@ public class ValidationUtils
      * The coordinate is on the form longitude / latitude.
      *
      * @param longitude the longitude string.
-     * @param latitude  the latitude string.
+     * @param latitude the latitude string.
      * @return a coordinate string.
      */
     public static String getCoordinate( String longitude, String latitude )
@@ -384,10 +390,9 @@ public class ValidationUtils
     }
 
     /**
-     * Checks if the given data value is valid according to the value type of the
-     * given data element. Considers the value to be valid if null or empty.
-     * Returns a string if the valid is invalid, possible
-     * values are:
+     * Checks if the given data value is valid according to the value type of
+     * the given data element. Considers the value to be valid if null or empty.
+     * Returns a string if the valid is invalid, possible values are:
      * <p/>
      * <ul>
      * <li>data_element_or_type_null_or_empty</li>
@@ -403,7 +408,7 @@ public class ValidationUtils
      * <li>value_not_valid_date</li>
      * </ul>
      *
-     * @param value       the data value.
+     * @param value the data value.
      * @param dataElement the data element.
      * @return null if the value is valid, a string if not.
      */
@@ -418,7 +423,8 @@ public class ValidationUtils
     }
 
     /**
-     * Indicates whether the given data value is valid according to the given value type.
+     * Indicates whether the given data value is valid according to the given
+     * value type.
      *
      * @param value the data value.
      * @param valueType the {@link ValueType}.
@@ -507,15 +513,16 @@ public class ValidationUtils
      * Indicates whether the given value is zero and not zero significant
      * according to its data element.
      *
-     * @param value       the data value.
+     * @param value the data value.
      * @param dataElement the data element.
      */
     public static boolean dataValueIsZeroAndInsignificant( String value, DataElement dataElement )
     {
         AggregationType aggregationType = dataElement.getAggregationType();
 
-        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) && !dataElement.isZeroIsSignificant() &&
-            !( aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE );
+        return dataElement.getValueType().isNumeric() && MathUtils.isZero( value ) && !dataElement.isZeroIsSignificant()
+            &&
+            !(aggregationType == AggregationType.AVERAGE_SUM_ORG_UNIT || aggregationType == AggregationType.AVERAGE);
     }
 
     /**
@@ -545,8 +552,8 @@ public class ValidationUtils
     }
 
     /**
-     * Checks if the given stored by value is valid. Returns null if valid and a string
-     * if invalid, possible values are:
+     * Checks if the given stored by value is valid. Returns null if valid and a
+     * string if invalid, possible values are:
      * </p>
      * <ul>
      * <li>stored_by_length_greater_than_max_length</li>
@@ -571,7 +578,8 @@ public class ValidationUtils
     }
 
     /**
-     * Checks to see if given parameter is a valid hex color string (#xxx and #xxxxxx, xxx, xxxxxx).
+     * Checks to see if given parameter is a valid hex color string (#xxx and
+     * #xxxxxx, xxx, xxxxxx).
      *
      * @param value Value to check against
      * @return true if value is a hex color string, false otherwise
@@ -604,8 +612,8 @@ public class ValidationUtils
     }
 
     /**
-     * Returns normalized boolean value. Supports a set of true and false values, indicated in
-     * BOOL_FALSE_VARIANTS and BOOL_TRUE_VARIANTS sets.
+     * Returns normalized boolean value. Supports a set of true and false
+     * values, indicated in BOOL_FALSE_VARIANTS and BOOL_TRUE_VARIANTS sets.
      *
      * @param bool input value
      * @param valueType type of value. Return boolean value if type is boolean.
@@ -613,9 +621,9 @@ public class ValidationUtils
      */
     public static String normalizeBoolean( String bool, ValueType valueType )
     {
-        if( ValueType.BOOLEAN_TYPES.contains( valueType ) )
+        if ( ValueType.BOOLEAN_TYPES.contains( valueType ) )
         {
-            if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY)
+            if ( BOOL_FALSE_VARIANTS.contains( bool ) && valueType != ValueType.TRUE_ONLY )
             {
                 return DataValue.FALSE;
             }
@@ -627,17 +635,21 @@ public class ValidationUtils
 
         return bool;
     }
+
     /**
-     * Validates that the clazz and valueType or optionSet combination supports the given RenderingType set.
+     * Validates that the clazz and valueType or optionSet combination supports
+     * the given RenderingType set.
+     *
      * @param clazz the class to validate
      * @param valueType the valuetype to validate
      * @param optionSet is the class an optionset?
      * @param type the RenderingType to validate
      * @return true if RenderingType is supported, false if not.
      */
-    public static boolean validateRenderingType( Class<?> clazz, ValueType valueType, boolean optionSet, ValueTypeRenderingType type )
+    public static boolean validateRenderingType( Class<?> clazz, ValueType valueType, boolean optionSet,
+        ValueTypeRenderingType type )
     {
-        if ( valueType != null && type.equals( ValueTypeRenderingType.DEFAULT ))
+        if ( valueType != null && type.equals( ValueTypeRenderingType.DEFAULT ) )
         {
             return true;
         }
@@ -655,6 +667,7 @@ public class ValidationUtils
 
     /**
      * Validates a whatsapp handle
+     *
      * @param whatsapp
      * @return
      */
@@ -666,6 +679,7 @@ public class ValidationUtils
 
     /**
      * Validate an international phone number
+     *
      * @param phoneNumber
      * @return
      */

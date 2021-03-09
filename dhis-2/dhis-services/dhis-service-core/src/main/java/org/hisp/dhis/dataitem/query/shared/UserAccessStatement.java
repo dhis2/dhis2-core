@@ -54,8 +54,8 @@ public class UserAccessStatement
     }
 
     /**
-     * Creates a sharing statement for the given table and paramsMap. It will also
-     * take consideration user groups if this is set in the paramsMap. This
+     * Creates a sharing statement for the given table and paramsMap. It will
+     * also take consideration user groups if this is set in the paramsMap. This
      * statement will check sharing conditions for Metadata ONLY.
      *
      * @param table the table to check for access
@@ -87,8 +87,8 @@ public class UserAccessStatement
     }
 
     /**
-     * Creates a sharing statement for the given tables and paramsMap. It will also
-     * take consideration user groups if this is set in the paramsMap. This
+     * Creates a sharing statement for the given tables and paramsMap. It will
+     * also take consideration user groups if this is set in the paramsMap. This
      * statement will check sharing conditions for Metadata ONLY.
      *
      * @param tableOne the first table to check for access

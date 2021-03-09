@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
@@ -256,7 +255,8 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
             categoryOptionB );
         Period period = createPeriod( "201907" );
 
-        String payload = createPayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA, categoryOptionB );
+        String payload = createPayload( period, organisationUnit, dataSetA, categoryCombo, categoryOptionA,
+            categoryOptionB );
 
         whenNew( MetadataCaches.class ).withNoArguments().thenReturn( metaDataCaches );
 
@@ -311,7 +311,8 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         CategoryCombo categoryCombo, CategoryOption... categoryOptions )
     {
         return "{\"completeDataSetRegistrations\":[{\"cc\":\"" + categoryCombo.getUid() + "\","
-            + "\"cp\":\"" + Arrays.stream( categoryOptions ).map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) )
+            + "\"cp\":\""
+            + Arrays.stream( categoryOptions ).map( CategoryOption::getUid ).collect( Collectors.joining( ";" ) )
             + "\"," + "\"dataSet\":\"" + dataSet.getUid() + "\"," + "\"period\":\"" + period.getIsoDate() + "\","
             + "\"organisationUnit\":\"" + organisationUnit.getUid() + "\"," + "\"completed\":true}]}";
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,14 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static junit.framework.TestCase.assertEquals;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.util.Locale;
+
 import org.apache.http.HttpStatus;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,11 +47,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.util.Locale;
-
-import static junit.framework.TestCase.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -61,13 +61,14 @@ public class TranslationWebApiTest
 
     @Test
     @Ignore
-    public void testOK() throws Exception
+    public void testOK()
+        throws Exception
     {
         // TODO: NEEDS TO GET WORKING
         Locale locale = Locale.FRENCH;
 
         MockHttpSession session = getSession( "ALL" );
-        CategoryCombo categoryCombo = createCategoryCombo('C');
+        CategoryCombo categoryCombo = createCategoryCombo( 'C' );
         identifiableObjectManager.save( categoryCombo );
 
         DataElement dataElementA = createDataElement( 'A', categoryCombo );
@@ -76,7 +77,8 @@ public class TranslationWebApiTest
 
         String valueToCheck = "frenchTranslated";
 
-        dataElementA.getTranslations().add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
+        dataElementA.getTranslations()
+            .add( new Translation( locale.getLanguage(), TranslationProperty.NAME, valueToCheck ) );
 
         mvc.perform( put( "/dataElements/" + dataElementA.getUid() + "/translations" )
             .session( session )
@@ -84,8 +86,10 @@ public class TranslationWebApiTest
             .content( TestUtils.convertObjectToJsonBytes( dataElementA ) ) )
             .andExpect( status().is( HttpStatus.SC_NO_CONTENT ) );
 
-        MvcResult result = mvc.perform( get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
-            .contentType( TestUtils.APPLICATION_JSON_UTF8 ) ).andReturn();
+        MvcResult result = mvc.perform(
+            get( "/dataElements/" + dataElementA.getUid() + "?locale=" + locale.getLanguage() ).session( session )
+                .contentType( TestUtils.APPLICATION_JSON_UTF8 ) )
+            .andReturn();
 
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( result.getResponse().getContentAsString() );

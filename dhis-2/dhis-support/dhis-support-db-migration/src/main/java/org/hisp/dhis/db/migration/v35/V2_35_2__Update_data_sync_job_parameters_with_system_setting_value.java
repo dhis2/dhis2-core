@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v35;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v35;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v35;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -57,18 +56,23 @@ import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value extends BaseJavaMigration
+public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value
+    extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_35_2__Update_data_sync_job_parameters_with_system_setting_value.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_35_2__Update_data_sync_job_parameters_with_system_setting_value.class );
+
     private static final String DATA_VALUES_SYNC_PAGE_SIZE_KEY = "syncDataValuesPageSize";
 
     private final ObjectReader reader;
+
     private final ObjectWriter writer;
 
     public V2_35_2__Update_data_sync_job_parameters_with_system_setting_value()
     {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+        mapper.activateDefaultTyping(
+            BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
         mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
         JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
@@ -77,14 +81,17 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         int dataValuesPageSize = fetchDataValuesPageSizeData( context );
         updateJobParamaters( context, dataValuesPageSize );
         removeEntryFromSystemSettingTable( context );
     }
 
-    private int fetchDataValuesPageSizeData( final Context context ) throws SQLException, JsonProcessingException
+    private int fetchDataValuesPageSizeData( final Context context )
+        throws SQLException,
+        JsonProcessingException
     {
         int dataValuesPageSize = fetchDataValuesPageSizeFromSystemSettings( context );
 
@@ -96,13 +103,14 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
         return dataValuesPageSize;
     }
 
-    private int fetchDataValuesPageSizeFromSystemSettings( final Context context ) throws SQLException
+    private int fetchDataValuesPageSizeFromSystemSettings( final Context context )
+        throws SQLException
     {
         int dataValuesPageSize = 0;
 
-        String sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE_KEY +"';";
+        String sql = "SELECT value FROM systemsetting WHERE name = '" + DATA_VALUES_SYNC_PAGE_SIZE_KEY + "';";
         try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
             if ( rs.next() )
             {
@@ -116,16 +124,17 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     private int fetchDatavaluesPageSizeFromMetadataSyncJobConfiguration( final Context context )
-        throws SQLException, JsonProcessingException
+        throws SQLException,
+        JsonProcessingException
     {
         int dataValuesPageSize = 0;
 
         String sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
             "WHERE jobtype = '" + JobType.META_DATA_SYNC.name() + "';";
         try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( sql ); )
+            ResultSet rs = stmt.executeQuery( sql ); )
         {
-            if ( rs.next())
+            if ( rs.next() )
             {
                 MetadataSyncJobParameters jobparams = reader
                     .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -138,7 +147,8 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
     }
 
     private void updateJobParamaters( final Context context, int dataValuesPageSize )
-        throws JsonProcessingException, SQLException
+        throws JsonProcessingException,
+        SQLException
     {
         if ( dataValuesPageSize > 0 )
         {
@@ -147,9 +157,9 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
             String sql = "SELECT jobconfigurationid, jsonbjobparameters FROM jobconfiguration " +
                 "WHERE jobtype = '" + JobType.DATA_SYNC.name() + "';";
             try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( sql ); )
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
-                while ( rs.next())
+                while ( rs.next() )
                 {
                     DataSynchronizationJobParameters jobparams = reader
                         .readValue( rs.getString( "jsonbjobparameters" ) );
@@ -162,7 +172,8 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
             for ( Map.Entry<Integer, JobParameters> jobParams : updatedJobParameters.entrySet() )
             {
                 try ( PreparedStatement ps = context.getConnection()
-                    .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ) )
+                    .prepareStatement(
+                        "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobconfigurationid = ?;" ) )
                 {
                     PGobject pg = new PGobject();
                     pg.setType( "jsonb" );
@@ -177,7 +188,8 @@ public class V2_35_2__Update_data_sync_job_parameters_with_system_setting_value 
         }
     }
 
-    private void removeEntryFromSystemSettingTable( final Context context ) throws SQLException
+    private void removeEntryFromSystemSettingTable( final Context context )
+        throws SQLException
     {
         try ( Statement stmt = context.getConnection().createStatement() )
         {

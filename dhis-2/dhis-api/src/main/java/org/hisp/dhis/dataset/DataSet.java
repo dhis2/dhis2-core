@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,14 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -68,11 +65,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.joda.time.DateTime;
 
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * This class is used for defining the standardized DataSets. A DataSet consists
@@ -95,10 +95,12 @@ public class DataSet
     private PeriodType periodType;
 
     /**
-     * The dataInputPeriods is a set of periods with opening and closing dates, which determines the period
-     * of which data can belong (period) and at which dates (between opening and closing dates) actually registering
-     * this data is allowed. The same period can exist at the same time with different opening and closing dates to
-     * allow for multiple periods for registering data.
+     * The dataInputPeriods is a set of periods with opening and closing dates,
+     * which determines the period of which data can belong (period) and at
+     * which dates (between opening and closing dates) actually registering this
+     * data is allowed. The same period can exist at the same time with
+     * different opening and closing dates to allow for multiple periods for
+     * registering data.
      */
     private Set<DataInputPeriod> dataInputPeriods = new HashSet<>();
 
@@ -138,7 +140,7 @@ public class DataSet
      * Property indicating if the dataset could be collected using mobile data
      * entry.
      */
-    private boolean mobile; //TODO Remove, mobile service is now removed
+    private boolean mobile; // TODO Remove, mobile service is now removed
 
     /**
      * Indicating custom data entry form, can be null.
@@ -210,8 +212,8 @@ public class DataSet
     private boolean validCompleteOnly;
 
     /**
-     * Property indicating whether a comment is required for all fields in a form
-     * which are not entered, including false for boolean values.
+     * Property indicating whether a comment is required for all fields in a
+     * form which are not entered, including false for boolean values.
      */
     private boolean noValueRequiresComment;
 
@@ -222,24 +224,27 @@ public class DataSet
     private boolean skipOffline;
 
     /**
-     * Property indicating whether it should enable data elements decoration in forms.
+     * Property indicating whether it should enable data elements decoration in
+     * forms.
      */
     private boolean dataElementDecoration;
 
     /**
-     * Render default and section forms with tabs instead of multiple sections in one page
+     * Render default and section forms with tabs instead of multiple sections
+     * in one page
      */
     private boolean renderAsTabs;
 
     /**
-     * Render multi-organisationUnit forms either with OU vertically or horizontally.
+     * Render multi-organisationUnit forms either with OU vertically or
+     * horizontally.
      */
     private boolean renderHorizontally;
 
     /**
-    * Property indicating whether all compulsory fields should be filled before completing
-    * data set
-    */
+     * Property indicating whether all compulsory fields should be filled before
+     * completing data set
+     */
     private boolean compulsoryFieldsCompleteOnly;
 
     private ObjectStyle style;
@@ -346,7 +351,7 @@ public class DataSet
      * Adds a data set element using this data set, the given data element and
      * the given category combo.
      *
-     * @param dataElement   the data element.
+     * @param dataElement the data element.
      * @param categoryCombo the category combination.
      */
     public boolean addDataSetElement( DataElement dataElement, CategoryCombo categoryCombo )
@@ -462,8 +467,7 @@ public class DataSet
     public Set<DataElement> getDataElements()
     {
         return ImmutableSet.copyOf(
-                dataSetElements.stream().map(DataSetElement::getDataElement).collect( Collectors.toSet() )
-        );
+            dataSetElements.stream().map( DataSetElement::getDataElement ).collect( Collectors.toSet() ) );
     }
 
     public Set<DataElement> getDataElementsInSections()
@@ -519,8 +523,8 @@ public class DataSet
     }
 
     /**
-     * Indicates whether this data set has a category combination which is different
-     * from the default category combination.
+     * Indicates whether this data set has a category combination which is
+     * different from the default category combination.
      */
     public boolean hasCategoryCombo()
     {
@@ -532,7 +536,7 @@ public class DataSet
      * expiry days.
      *
      * @param period the period to compare with.
-     * @param now    the date indicating now, uses current date if null.
+     * @param now the date indicating now, uses current date if null.
      */
     public boolean isLocked( User user, Period period, Date now )
     {
@@ -548,12 +552,14 @@ public class DataSet
     }
 
     /**
-     * Checks if the given period and date combination conforms to any of the dataInputPeriods.
-     * Returns true if no dataInputPeriods exists, or the combination conforms to at least one dataInputPeriod.
+     * Checks if the given period and date combination conforms to any of the
+     * dataInputPeriods. Returns true if no dataInputPeriods exists, or the
+     * combination conforms to at least one dataInputPeriod.
      *
      * @param period
      * @param date
-     * @return true if period and date conforms to a dataInputPeriod, or no dataInputPeriods exists.
+     * @return true if period and date conforms to a dataInputPeriod, or no
+     *         dataInputPeriods exists.
      */
     public boolean isDataInputPeriodAndDateAllowed( Period period, Date date )
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.minmax;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.minmax;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.minmax;
+
+import java.io.Serializable;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
-import java.io.Serializable;
 
 /**
  * @author Kristian Nordal
@@ -55,7 +55,7 @@ public class MinMaxDataElement
     private OrganisationUnit source;
 
     private DataElement dataElement;
-    
+
     private CategoryOptionCombo optionCombo;
 
     private int min;
@@ -66,13 +66,14 @@ public class MinMaxDataElement
 
     // -------------------------------------------------------------------------
     // Constructors
-    // ------------------------------------------------------------------------- 
-    
+    // -------------------------------------------------------------------------
+
     public MinMaxDataElement()
     {
     }
 
-    public MinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo, int min, int max,
+    public MinMaxDataElement( OrganisationUnit source, DataElement dataElement, CategoryOptionCombo optionCombo,
+        int min, int max,
         boolean generated )
     {
         this.source = source;
@@ -85,16 +86,16 @@ public class MinMaxDataElement
 
     // -------------------------------------------------------------------------
     // Equals and hashCode
-    // ------------------------------------------------------------------------- 
+    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + max;        
+        result = prime * result + max;
         result = prime * result + min;
-        
+
         return result;
     }
 
@@ -105,35 +106,35 @@ public class MinMaxDataElement
         {
             return true;
         }
-        
+
         if ( obj == null )
         {
             return false;
         }
-        
+
         if ( getClass() != obj.getClass() )
         {
             return false;
         }
-        
+
         final MinMaxDataElement other = (MinMaxDataElement) obj;
-        
+
         if ( max != other.max )
         {
             return false;
         }
-        
+
         if ( min != other.min )
         {
             return false;
         }
-        
+
         return true;
     }
-    
+
     // -------------------------------------------------------------------------
     // Setters and getters
-    // ------------------------------------------------------------------------- 
+    // -------------------------------------------------------------------------
 
     public long getId()
     {
@@ -219,11 +220,11 @@ public class MinMaxDataElement
 
     public void mergeWith( MinMaxDataElement other )
     {
-       source = other.getSource() == null ? source : other.getSource();
-       dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
-       optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
-       min = other.getMin();
-       max = other.getMax();
-       generated = other.isGenerated();
+        source = other.getSource() == null ? source : other.getSource();
+        dataElement = other.getDataElement() == null ? dataElement : other.getDataElement();
+        optionCombo = other.getOptionCombo() == null ? optionCombo : other.getOptionCombo();
+        min = other.getMin();
+        max = other.getMax();
+        generated = other.isGenerated();
     }
 }

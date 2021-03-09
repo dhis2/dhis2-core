@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v34;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v34;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v34;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -46,32 +45,39 @@ import org.springframework.util.SerializationUtils;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type extends BaseJavaMigration
+public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type
+    extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data_type.class );
 
-    private static final String CHECK_JOB_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
+    private static final String CHECK_JOB_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE "
+        +
         "table_name = 'jobconfiguration' AND column_name = 'jobstatus';";
 
-    private static final String CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE " +
+    private static final String CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL = "SELECT data_type FROM information_schema.columns WHERE "
+        +
         "table_name = 'jobconfiguration' AND column_name = 'lastexecutedstatus';";
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         migrateJobStatusColumn( context );
         migrateLastExecutedStatusColumn( context );
     }
 
-    private void migrateJobStatusColumn( final Context context ) throws Exception
+    private void migrateJobStatusColumn( final Context context )
+        throws Exception
     {
-        //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
+        // 1. Check whether migration is needed at all. Maybe it was already
+        // applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
         try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL ); )
+            ResultSet rs = stmt.executeQuery( CHECK_JOB_STATUS_DATA_TYPE_SQL ); )
         {
-            if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ))
+            if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
                 continueWithMigration = true;
             }
@@ -79,17 +85,20 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
         if ( continueWithMigration )
         {
-            //2. Create a new JobStatus column of type VARCHAR in jobconfiguration table
+            // 2. Create a new JobStatus column of type VARCHAR in
+            // jobconfiguration table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
-                stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobstatusvarchar VARCHAR(120)" );
+                stmt.executeUpdate(
+                    "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS jobstatusvarchar VARCHAR(120)" );
             }
 
-            //3. Move existing jobstatus from bytearray column into varchar column
+            // 3. Move existing jobstatus from bytearray column into varchar
+            // column
             Map<Integer, byte[]> jobStatusByteMap = new HashMap<>();
             String sql = "SELECT jobconfigurationid, jobstatus FROM jobconfiguration WHERE jobstatus IS NOT NULL";
             try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( sql ); )
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -122,13 +131,15 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
                 }
             } );
 
-            //4. Delete old byte array column for JobStatus in jobconfiguration table
+            // 4. Delete old byte array column for JobStatus in jobconfiguration
+            // table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN jobstatus" );
             }
 
-            //5. Rename new jobstatusvarchar column to the name of the now deleted column
+            // 5. Rename new jobstatusvarchar column to the name of the now
+            // deleted column
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN jobstatusvarchar TO jobstatus" );
@@ -136,13 +147,15 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
         }
     }
 
-    private void migrateLastExecutedStatusColumn( final Context context ) throws Exception
+    private void migrateLastExecutedStatusColumn( final Context context )
+        throws Exception
     {
-        //1. Check whether migration is needed at all. Maybe it was already applied. -> Achieves that script can be
+        // 1. Check whether migration is needed at all. Maybe it was already
+        // applied. -> Achieves that script can be
         // run multiple times without worries
         boolean continueWithMigration = false;
         try ( Statement stmt = context.getConnection().createStatement();
-              ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL ); )
+            ResultSet rs = stmt.executeQuery( CHECK_LAST_EXECUTED_STATUS_DATA_TYPE_SQL ); )
         {
             if ( rs.next() && rs.getString( "data_type" ).equals( "bytea" ) )
             {
@@ -152,18 +165,21 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
         if ( continueWithMigration )
         {
-            //2. Create a new LastExecutedStatus column of type VARCHAR in jobconfiguration table
+            // 2. Create a new LastExecutedStatus column of type VARCHAR in
+            // jobconfiguration table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
-                stmt.executeUpdate( "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS lastexecutedstatusvarchar VARCHAR(120)" );
+                stmt.executeUpdate(
+                    "ALTER TABLE jobconfiguration ADD COLUMN IF NOT EXISTS lastexecutedstatusvarchar VARCHAR(120)" );
             }
 
-            //3. Move existing lastexecutedstatus from bytearray column into varchar column
+            // 3. Move existing lastexecutedstatus from bytearray column into
+            // varchar column
             Map<Integer, byte[]> lastExecutedStatusByteMap = new HashMap<>();
             String sql = "SELECT jobconfigurationid, lastexecutedstatus FROM jobconfiguration " +
                 "WHERE lastexecutedstatus IS NOT NULL";
             try ( Statement stmt = context.getConnection().createStatement();
-                  ResultSet rs = stmt.executeQuery( sql ); )
+                ResultSet rs = stmt.executeQuery( sql ); )
             {
                 while ( rs.next() )
                 {
@@ -174,7 +190,8 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
 
             lastExecutedStatusByteMap.forEach( ( id, lastExecutedStatusByteArray ) -> {
 
-                JobStatus lastExecutedStatus = (JobStatus) SerializationUtils.deserialize( lastExecutedStatusByteArray );
+                JobStatus lastExecutedStatus = (JobStatus) SerializationUtils
+                    .deserialize( lastExecutedStatusByteArray );
                 if ( lastExecutedStatus == null )
                 {
                     log.error( "Flyway java migration error: Parsing LastExecutedStatus byte array failed." );
@@ -197,22 +214,26 @@ public class V2_34_5__Convert_job_configuration_binary_columns_into_varchar_data
                 }
             } );
 
-            //4. Delete old byte array column for LastExecutedStatus in jobconfiguration table
+            // 4. Delete old byte array column for LastExecutedStatus in
+            // jobconfiguration table
             try ( Statement stmt = context.getConnection().createStatement() )
             {
                 stmt.executeUpdate( "ALTER TABLE jobconfiguration DROP COLUMN lastexecutedstatus" );
             }
 
-            //5. Rename new lastexecutedstatusvarchar column to the name of the now deleted column
+            // 5. Rename new lastexecutedstatusvarchar column to the name of the
+            // now deleted column
             try ( Statement stmt = context.getConnection().createStatement() )
             {
-                stmt.executeUpdate( "ALTER TABLE jobconfiguration RENAME COLUMN lastexecutedstatusvarchar TO lastexecutedstatus" );
+                stmt.executeUpdate(
+                    "ALTER TABLE jobconfiguration RENAME COLUMN lastexecutedstatusvarchar TO lastexecutedstatus" );
             }
 
-            //6. Set default values where NULL is present
+            // 6. Set default values where NULL is present
             try ( Statement stmt = context.getConnection().createStatement() )
             {
-                stmt.executeUpdate( "UPDATE jobconfiguration SET lastexecutedstatus = 'NOT_STARTED' WHERE lastexecutedstatus IS NULL" );
+                stmt.executeUpdate(
+                    "UPDATE jobconfiguration SET lastexecutedstatus = 'NOT_STARTED' WHERE lastexecutedstatus IS NULL" );
             }
         }
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.servlet.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,7 @@ package org.hisp.dhis.servlet.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import lombok.extern.slf4j.Slf4j;
+package org.hisp.dhis.servlet.filter;
 
 import java.io.IOException;
 
@@ -41,8 +38,7 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletResponse;
 
-
-
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -51,11 +47,10 @@ import javax.servlet.http.HttpServletResponse;
 @Slf4j
 @WebFilter( urlPatterns = {
     "/"
-},
-    initParams = {
-        @WebInitParam( name = "redirectPath", value = "dhis-web-commons-about/redirect.action" ),
-        @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
-    } )
+}, initParams = {
+    @WebInitParam( name = "redirectPath", value = "dhis-web-commons-about/redirect.action" ),
+    @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
+} )
 public class HttpRedirectFilter
     implements Filter
 {
@@ -75,20 +70,22 @@ public class HttpRedirectFilter
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain )
-        throws IOException {
+        throws IOException
+    {
         log.debug( "Redirecting to: " + redirectPath );
-        
+
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
         if ( redirectPath == null )
         {
-            String msg = "HttpRedirectFilter was not properly initialised. \"" + REDIRECT_PATH_KEY + "\" must be specified.";
-            
+            String msg = "HttpRedirectFilter was not properly initialised. \"" + REDIRECT_PATH_KEY
+                + "\" must be specified.";
+
             httpResponse.setContentType( "text/plain" );
             httpResponse.getWriter().print( msg );
 
             log.warn( msg );
-            
+
             return;
         }
 

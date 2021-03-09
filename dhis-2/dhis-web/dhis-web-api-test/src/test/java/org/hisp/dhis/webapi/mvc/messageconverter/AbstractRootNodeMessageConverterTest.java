@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.mvc.messageconverter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,18 @@ package org.hisp.dhis.webapi.mvc.messageconverter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.mvc.messageconverter;
 
-import com.google.common.net.HttpHeaders;
+import static org.mockito.Mockito.CALLS_REAL_METHODS;
+import static org.mockito.Mockito.withSettings;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.ZipInputStream;
+
 import org.apache.commons.io.IOUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.NodeService;
@@ -43,15 +51,7 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.mock.http.MockHttpOutputMessage;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.ZipInputStream;
-
-import static org.mockito.Mockito.CALLS_REAL_METHODS;
-import static org.mockito.Mockito.withSettings;
+import com.google.common.net.HttpHeaders;
 
 /**
  * Unit tests for {@link AbstractRootNodeMessageConverter}.
@@ -130,92 +130,115 @@ public class AbstractRootNodeMessageConverterTest
     }
 
     @Test
-    public void writeInternalWithoutAttachmentUncompressed() throws IOException
+    public void writeInternalWithoutAttachmentUncompressed()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         converter.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
-        Assert.assertEquals( rootNode.getName(), new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
+        Assert.assertEquals( rootNode.getName(),
+            new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
     }
 
     @Test
-    public void writeInternalWithAttachmentUncompressed() throws IOException
+    public void writeInternalWithAttachmentUncompressed()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converter.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx", httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        Assert.assertEquals( rootNode.getName(), new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
+        Assert.assertEquals( "attachment; filename=metadata.xzx",
+            httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        Assert.assertEquals( rootNode.getName(),
+            new String( httpOutputMessage.getBodyAsBytes(), StandardCharsets.UTF_8 ) );
     }
 
     @Test
-    public void writeInternalWithAttachmentGzip() throws IOException
+    public void writeInternalWithAttachmentGzip()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converterGzip.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.gz", httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        Assert.assertEquals( "attachment; filename=metadata.xzx.gz",
+            httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
         Assert.assertEquals( rootNode.getName(),
-            IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ), StandardCharsets.UTF_8 ) );
+            IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ),
+                StandardCharsets.UTF_8 ) );
     }
 
     @Test
-    public void writeInternalWithoutAttachmentGzip() throws IOException
+    public void writeInternalWithoutAttachmentGzip()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         converterGzip.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.gz", httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        Assert.assertEquals( "attachment; filename=metadata.xzx.gz",
+            httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
         Assert.assertEquals( rootNode.getName(),
-            IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ), StandardCharsets.UTF_8 ) );
+            IOUtils.toString( new GZIPInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) ),
+                StandardCharsets.UTF_8 ) );
     }
 
     @Test
-    public void writeInternalWithoutAttachmentZip() throws IOException
+    public void writeInternalWithoutAttachmentZip()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         converterZip.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.zip", httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        final ZipInputStream zipInputStream = new ZipInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
+        Assert.assertEquals( "attachment; filename=metadata.xzx.zip",
+            httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        final ZipInputStream zipInputStream = new ZipInputStream(
+            new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
         Assert.assertNotNull( zipInputStream.getNextEntry() );
         Assert.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
     }
 
     @Test
-    public void writeInternalWithAttachmentZip() throws IOException
+    public void writeInternalWithAttachmentZip()
+        throws IOException
     {
         Mockito.doAnswer( invocation -> {
             ((OutputStream) invocation.getArgument( 2 )).write( rootNode.getName().getBytes( StandardCharsets.UTF_8 ) );
             return null;
-        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ), Mockito.any( OutputStream.class ) );
+        } ).when( nodeService ).serialize( Mockito.same( rootNode ), Mockito.eq( "other/xzx" ),
+            Mockito.any( OutputStream.class ) );
         httpOutputMessage.getHeaders().set( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=metadata" );
         converterZip.writeInternal( rootNode, httpOutputMessage );
         Assert.assertNotNull( httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ) );
         Assert.assertEquals( 1, httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).size() );
-        Assert.assertEquals( "attachment; filename=metadata.xzx.zip", httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
-        final ZipInputStream zipInputStream = new ZipInputStream( new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
+        Assert.assertEquals( "attachment; filename=metadata.xzx.zip",
+            httpOutputMessage.getHeaders().get( HttpHeaders.CONTENT_DISPOSITION ).get( 0 ) );
+        final ZipInputStream zipInputStream = new ZipInputStream(
+            new ByteArrayInputStream( httpOutputMessage.getBodyAsBytes() ) );
         Assert.assertNotNull( zipInputStream.getNextEntry() );
         Assert.assertEquals( rootNode.getName(), IOUtils.toString( zipInputStream, StandardCharsets.UTF_8 ) );
     }

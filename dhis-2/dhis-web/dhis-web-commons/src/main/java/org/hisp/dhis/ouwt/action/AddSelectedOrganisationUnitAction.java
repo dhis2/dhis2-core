@@ -1,7 +1,5 @@
-package org.hisp.dhis.ouwt.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.ouwt.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
+package org.hisp.dhis.ouwt.action;
 
 import java.util.Collection;
 import java.util.List;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.ouwt.manager.OrganisationUnitSelectionManager;
+
+import com.opensymphony.xwork2.Action;
+
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20 14:26:09Z andegje $
+ * @version $Id: AddSelectedOrganisationUnitAction.java 2869 2007-02-20
+ *          14:26:09Z andegje $
  */
 public class AddSelectedOrganisationUnitAction
     implements Action
@@ -94,12 +95,12 @@ public class AddSelectedOrganisationUnitAction
             for ( String currentId : id )
             {
                 OrganisationUnit unit = organisationUnitService.getOrganisationUnit( currentId );
-    
+
                 if ( unit == null )
                 {
                     throw new RuntimeException( "OrganisationUnit with id " + id + " doesn't exist" );
                 }
-    
+
                 selectedUnits.add( unit );
             }
         }

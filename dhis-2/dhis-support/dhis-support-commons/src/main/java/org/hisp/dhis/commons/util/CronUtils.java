@@ -1,6 +1,5 @@
-package org.hisp.dhis.commons.util;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 /**
  * @author Stian Sandvold
@@ -51,7 +51,8 @@ public class CronUtils
     }
 
     /**
-     * Generates a cron pattern that will execute every day at the given hour:minute
+     * Generates a cron pattern that will execute every day at the given
+     * hour:minute
      *
      * @param minutes
      * @param hours
@@ -65,12 +66,12 @@ public class CronUtils
             String.valueOf( hours ),
             "*/1",
             null,
-            null
-        );
+            null );
     }
 
     /**
-     * Generates a cron pattern that will execute every week at the dayOfWeek at hour:minute
+     * Generates a cron pattern that will execute every week at the dayOfWeek at
+     * hour:minute
      *
      * @param minutes
      * @param hours
@@ -85,12 +86,14 @@ public class CronUtils
             String.valueOf( hours ),
             null,
             null,
-            Weekday.values()[(dayOfWeek % 7)].name // both 0 and 7 are valid as Sunday in crontab patterns
+            Weekday.values()[(dayOfWeek % 7)].name // both 0 and 7 are valid as
+        // Sunday in crontab patterns
         );
     }
 
     /**
-     * Generates a cron pattern that will execute every month at the dayOfMonth at hour:minute
+     * Generates a cron pattern that will execute every month at the dayOfMonth
+     * at hour:minute
      *
      * @param minutes
      * @param hours
@@ -105,18 +108,18 @@ public class CronUtils
             String.valueOf( hours ),
             String.valueOf( dayOfMonth ),
             "*/1",
-            null
-        );
+            null );
     }
 
     /**
-     * Joins together each segment of a cron pattern into a complete cron pattern.
+     * Joins together each segment of a cron pattern into a complete cron
+     * pattern.
      *
      * @param seconds a valid cron segment
      * @param minutes a valid cron segment
-     * @param hours   a valid cron segment
-     * @param days    a valid cron segment
-     * @param months  a valid cron segment
+     * @param hours a valid cron segment
+     * @param days a valid cron segment
+     * @param months a valid cron segment
      * @param weekday a valid cron segment (MON-SUN)
      * @return a cron pattern
      */
@@ -129,7 +132,6 @@ public class CronUtils
             (hours == null ? "*" : hours),
             (days == null ? "*" : days),
             (months == null ? "*" : months),
-            (weekday == null ? "*" : weekday)
-        );
+            (weekday == null ? "*" : weekday) );
     }
 }

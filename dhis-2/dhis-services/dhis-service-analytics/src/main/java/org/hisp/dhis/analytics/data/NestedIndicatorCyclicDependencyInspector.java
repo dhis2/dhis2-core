@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
@@ -78,7 +77,8 @@ public class NestedIndicatorCyclicDependencyInspector
     /**
      * Initiate the inspection, by invoking the recursive 'inspect' function.
      *
-     * @param dimensionalItemObjects a List of root {@link DimensionalItemObject} as Indicators.
+     * @param dimensionalItemObjects a List of root
+     *        {@link DimensionalItemObject} as Indicators.
      */
     public void inspect( List<DimensionalItemObject> dimensionalItemObjects )
     {
@@ -93,8 +93,8 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Recursively add all the given Indicator's nested Indicators (if any) to the
-     * tree.
+     * Recursively add all the given Indicator's nested Indicators (if any) to
+     * the tree.
      *
      * @param indicator The Indicator to add to the main Indicators tree.
      * @param tree the complete Indicator tree.
@@ -117,12 +117,13 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Add the List of Indicators as Nodes to the given Tree. Fails if any of the
-     * indicator UIDs is already present in the tree as direct ancestors.
+     * Add the List of Indicators as Nodes to the given Tree. Fails if any of
+     * the indicator UIDs is already present in the tree as direct ancestors.
      *
      * @param indicators list of Indicators to add to the tree.
      * @param tree the full tree built so far.
-     * @param parent the UID of the parent node to which to attach the indicators.
+     * @param parent the UID of the parent node to which to attach the
+     *        indicators.
      */
     public void add( List<Indicator> indicators, TreeNode<String> tree, String parent )
     {
@@ -138,7 +139,8 @@ public class NestedIndicatorCyclicDependencyInspector
             {
                 TreeNode<String> mNode = parentNode;
 
-                // Navigate backward from the parent node to verify that a direct ancestor
+                // Navigate backward from the parent node to verify that a
+                // direct ancestor
                 // doesn't have the same UID as the current indicator
                 do
                 {
@@ -151,7 +153,8 @@ public class NestedIndicatorCyclicDependencyInspector
                 while ( !mNode.isRoot() );
             }
 
-            // Check that the node to add doesn't have the same value as the parent
+            // Check that the node to add doesn't have the same value as the
+            // parent
             if ( parentNode.data().equals( indicator.getUid() ) )
             {
                 throw new CyclicReferenceException( format( ERROR_STRING, indicator.getUid() ) );
@@ -164,12 +167,12 @@ public class NestedIndicatorCyclicDependencyInspector
     }
 
     /**
-     * Fetch the indicators referenced in the numerator and denominator expression
-     * for the given indicator.
+     * Fetch the indicators referenced in the numerator and denominator
+     * expression for the given indicator.
      *
      * @param indicator an {@link Indicator}.
-     * @return a List of direct descendants indicators of the current indicator, or
-     *         an empty List if the current indicator has no descendants.
+     * @return a List of direct descendants indicators of the current indicator,
+     *         or an empty List if the current indicator has no descendants.
      */
     private List<Indicator> getDescendants( Indicator indicator )
     {

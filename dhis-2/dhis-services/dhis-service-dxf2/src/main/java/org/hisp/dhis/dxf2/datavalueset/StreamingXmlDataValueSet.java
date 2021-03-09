@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
-import org.hisp.staxwax.reader.XMLReader;
-import org.hisp.staxwax.writer.XMLWriter;
 import org.hisp.dhis.dxf2.datavalue.DataValue;
 import org.hisp.dhis.dxf2.datavalue.StreamingXmlDataValue;
+import org.hisp.staxwax.reader.XMLReader;
+import org.hisp.staxwax.writer.XMLWriter;
 
 /**
  * @author Lars Helge Overland
@@ -40,16 +39,18 @@ public class StreamingXmlDataValueSet
     extends DataValueSet
 {
     private static final String XMLNS = "xmlns";
+
     private static final String NS = "http://dhis2.org/schema/dxf/2.0";
+
     private static final String TRUE = "true";
 
     private XMLWriter writer;
 
     private XMLReader reader;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructor
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public StreamingXmlDataValueSet( XMLWriter writer )
     {
@@ -66,44 +67,50 @@ public class StreamingXmlDataValueSet
         this.reader.moveToStartElement( FIELD_DATAVALUESET );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public String getIdScheme()
     {
         return idScheme = idScheme == null ? reader.getAttributeValue( FIELD_IDSCHEME ) : idScheme;
     }
-    
+
     @Override
     public String getDataElementIdScheme()
     {
-        return dataElementIdScheme = dataElementIdScheme == null ? reader.getAttributeValue( FIELD_DATAELEMENTIDSCHEME ) : dataElementIdScheme;
+        return dataElementIdScheme = dataElementIdScheme == null ? reader.getAttributeValue( FIELD_DATAELEMENTIDSCHEME )
+            : dataElementIdScheme;
     }
 
     @Override
     public String getOrgUnitIdScheme()
     {
-        return orgUnitIdScheme = orgUnitIdScheme == null ? reader.getAttributeValue( FIELD_ORGUNITIDSCHEME ) : orgUnitIdScheme;
+        return orgUnitIdScheme = orgUnitIdScheme == null ? reader.getAttributeValue( FIELD_ORGUNITIDSCHEME )
+            : orgUnitIdScheme;
     }
 
     @Override
     public String getCategoryOptionComboIdScheme()
     {
-        return categoryOptionComboIdScheme = categoryOptionComboIdScheme == null ? reader.getAttributeValue( FIELD_CATEGORYOPTCOMBOIDSCHEME ) : categoryOptionComboIdScheme;
+        return categoryOptionComboIdScheme = categoryOptionComboIdScheme == null
+            ? reader.getAttributeValue( FIELD_CATEGORYOPTCOMBOIDSCHEME )
+            : categoryOptionComboIdScheme;
     }
 
     @Override
     public String getDataSetIdScheme()
     {
-        return dataSetIdScheme = dataSetIdScheme == null ? reader.getAttributeValue( FIELD_DATASETIDSCHEME ) : dataSetIdScheme;
+        return dataSetIdScheme = dataSetIdScheme == null ? reader.getAttributeValue( FIELD_DATASETIDSCHEME )
+            : dataSetIdScheme;
     }
-    
+
     @Override
     public Boolean getDryRun()
     {
-        return dryRun = dryRun == null ? ( TRUE.equals( reader.getAttributeValue( FIELD_DRYRUN ) ) ? Boolean.TRUE : null ) : dryRun;
+        return dryRun = dryRun == null ? (TRUE.equals( reader.getAttributeValue( FIELD_DRYRUN ) ) ? Boolean.TRUE : null)
+            : dryRun;
     }
 
     @Override
@@ -139,9 +146,11 @@ public class StreamingXmlDataValueSet
     @Override
     public String getAttributeOptionCombo()
     {
-        return attributeOptionCombo = attributeOptionCombo == null ? reader.getAttributeValue( FIELD_ATTRIBUTE_OPTION_COMBO ) : attributeOptionCombo;
+        return attributeOptionCombo = attributeOptionCombo == null
+            ? reader.getAttributeValue( FIELD_ATTRIBUTE_OPTION_COMBO )
+            : attributeOptionCombo;
     }
-    
+
     @Override
     public boolean hasNextDataValue()
     {
@@ -154,16 +163,16 @@ public class StreamingXmlDataValueSet
         return new StreamingXmlDataValue( reader );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public void setIdScheme( String idScheme )
     {
         writer.writeAttribute( FIELD_IDSCHEME, idScheme );
     }
-    
+
     @Override
     public void setDataElementIdScheme( String dataElementIdScheme )
     {
@@ -181,7 +190,7 @@ public class StreamingXmlDataValueSet
     {
         writer.writeAttribute( FIELD_CATEGORYOPTCOMBOIDSCHEME, categoryOptionComboIdScheme );
     }
-    
+
     @Override
     public void setDataSetIdScheme( String dataSetIdScheme )
     {
@@ -211,7 +220,7 @@ public class StreamingXmlDataValueSet
     {
         writer.writeAttribute( FIELD_ORGUNIT, orgUnit );
     }
-    
+
     @Override
     public DataValue getDataValueInstance()
     {

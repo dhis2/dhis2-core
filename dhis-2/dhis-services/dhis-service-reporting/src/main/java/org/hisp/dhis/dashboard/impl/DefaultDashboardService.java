@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard.impl;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,17 @@ package org.hisp.dhis.dashboard.impl;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard.impl;
 
-import com.google.common.collect.Sets;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppType;
@@ -59,17 +66,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+import com.google.common.collect.Sets;
 
 /**
- * Note: The remove associations methods must be altered if caching is introduced.
+ * Note: The remove associations methods must be altered if caching is
+ * introduced.
  *
  * @author Lars Helge Overland
  */
@@ -78,6 +79,7 @@ public class DefaultDashboardService
     implements DashboardService
 {
     private static final int HITS_PER_OBJECT = 6;
+
     private static final int MAX_HITS_PER_OBJECT = 25;
 
     // -------------------------------------------------------------------------
@@ -125,51 +127,71 @@ public class DefaultDashboardService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DashboardSearchResult search( String query )
     {
         return search( query, new HashSet<>(), null, null );
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
+    @Transactional( readOnly = true )
+    public DashboardSearchResult search( String query, Set<DashboardItemType> maxTypes, Integer count,
+        Integer maxCount )
     {
         Set<String> words = Sets.newHashSet( query.split( TextUtils.SPACE ) );
 
-        List<App> dashboardApps = appManager.getAppsByType( AppType.DASHBOARD_WIDGET, new HashSet<>( appManager.getApps( null ) ) );
+        List<App> dashboardApps = appManager.getAppsByType( AppType.DASHBOARD_WIDGET,
+            new HashSet<>( appManager.getApps( null ) ) );
 
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setUsers( userService.getAllUsersBetweenByName( query, 0, getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
-        result.setVisualizations( convertFrom( visualizationStore.getAllLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setCharts( visualizationStore.getChartsLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
-        result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( visualizationStore.getPivotTablesLikeName( words, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
-        result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
-        result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
+        result.setUsers( userService.getAllUsersBetweenByName( query, 0,
+            getMax( DashboardItemType.USERS, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( convertFrom( visualizationStore.getAllLikeName( words, 0,
+            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setCharts( visualizationStore.getChartsLikeName( words, 0,
+            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setEventCharts( objectManager.getBetweenLikeName( EventChart.class, words, 0,
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
+        result.setMaps( objectManager.getBetweenLikeName( Map.class, words, 0,
+            getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( visualizationStore.getPivotTablesLikeName( words, 0,
+            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setEventReports( objectManager.getBetweenLikeName( EventReport.class, words, 0,
+            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setReports( objectManager.getBetweenLikeName( Report.class, words, 0,
+            getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
+        result.setResources( objectManager.getBetweenLikeName( Document.class, words, 0,
+            getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
         result.setApps( appManager.getAppsByName( query, dashboardApps, "ilike" ) );
 
         return result;
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DashboardSearchResult search( Set<DashboardItemType> maxTypes, Integer count, Integer maxCount )
     {
         DashboardSearchResult result = new DashboardSearchResult();
 
-        result.setVisualizations( convertFrom( objectManager.getBetweenSorted( Visualization.class, 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
-        result.setCharts( visualizationStore.getCharts( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0, getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
-        result.setMaps( objectManager.getBetweenSorted( Map.class, 0, getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
-        result.setReportTables( visualizationStore.getPivotTables( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
-        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0, getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
-        result.setReports( objectManager.getBetweenSorted( Report.class, 0, getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
-        result.setResources( objectManager.getBetweenSorted( Document.class, 0, getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
-        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET, getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
+        result.setVisualizations( convertFrom( objectManager.getBetweenSorted( Visualization.class, 0,
+            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) ) );
+        result.setCharts(
+            visualizationStore.getCharts( 0, getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setEventCharts( objectManager.getBetweenSorted( EventChart.class, 0,
+            getMax( DashboardItemType.EVENT_CHART, maxTypes, count, maxCount ) ) );
+        result.setMaps( objectManager.getBetweenSorted( Map.class, 0,
+            getMax( DashboardItemType.MAP, maxTypes, count, maxCount ) ) );
+        result.setReportTables( visualizationStore.getPivotTables( 0,
+            getMax( DashboardItemType.VISUALIZATION, maxTypes, count, maxCount ) ) );
+        result.setEventReports( objectManager.getBetweenSorted( EventReport.class, 0,
+            getMax( DashboardItemType.EVENT_REPORT, maxTypes, count, maxCount ) ) );
+        result.setReports( objectManager.getBetweenSorted( Report.class, 0,
+            getMax( DashboardItemType.REPORTS, maxTypes, count, maxCount ) ) );
+        result.setResources( objectManager.getBetweenSorted( Document.class, 0,
+            getMax( DashboardItemType.RESOURCES, maxTypes, count, maxCount ) ) );
+        result.setApps( appManager.getApps( AppType.DASHBOARD_WIDGET,
+            getMax( DashboardItemType.APP, maxTypes, count, maxCount ) ) );
 
         return result;
     }
@@ -274,7 +296,7 @@ public class DefaultDashboardService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void mergeDashboard( Dashboard dashboard )
     {
         if ( dashboard.getItems() != null )
@@ -287,7 +309,7 @@ public class DefaultDashboardService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public void mergeDashboardItem( DashboardItem item )
     {
         if ( item.getVisualization() != null )
@@ -365,14 +387,14 @@ public class DefaultDashboardService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Dashboard getDashboard( long id )
     {
         return dashboardStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Dashboard getDashboard( String uid )
     {
         return dashboardStore.getByUid( uid );
@@ -390,14 +412,14 @@ public class DefaultDashboardService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DashboardItem getDashboardItem( String uid )
     {
         return dashboardItemStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem )
     {
         return dashboardItemStore.getDashboardFromDashboardItem( dashboardItem );
@@ -410,56 +432,56 @@ public class DefaultDashboardService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countChartDashboardItems( Chart chart )
     {
         return dashboardItemStore.countChartDashboardItems( chart );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countReportTableDashboardItems( ReportTable reportTable )
     {
         return dashboardItemStore.countReportTableDashboardItems( reportTable );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countMapDashboardItems( Map map )
     {
         return dashboardItemStore.countMapDashboardItems( map );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countEventChartDashboardItems( EventChart eventChart )
     {
         return dashboardItemStore.countEventChartDashboardItems( eventChart );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countVisualizationDashboardItems( Visualization visualization )
     {
         return dashboardItemStore.countVisualizationDashboardItems( visualization );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countReportDashboardItems( Report report )
     {
         return dashboardItemStore.countReportDashboardItems( report );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countDocumentDashboardItems( Document document )
     {
         return dashboardItemStore.countDocumentDashboardItems( document );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int countUserDashboardItems( User user )
     {
         return dashboardItemStore.countUserDashboardItems( user );

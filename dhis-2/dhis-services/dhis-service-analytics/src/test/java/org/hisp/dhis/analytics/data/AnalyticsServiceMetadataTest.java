@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,27 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataelement.DataElementGroup;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
-import org.hisp.dhis.period.MonthlyPeriodType;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.YearlyPeriodType;
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.*;
-import java.util.concurrent.CompletableFuture;
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.CoreMatchers.allOf;
@@ -64,6 +42,28 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
+import org.hisp.dhis.period.MonthlyPeriodType;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.YearlyPeriodType;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
+
 /**
  * @author Luciano Fiandesio
  */
@@ -75,36 +75,32 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
     {
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
-                eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
+            eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
                 .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void metadataContainsOuLevelData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
-                // PERIOD
-                .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
-                // DATA ELEMENTS
-                .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
-                // FILTERS (OU)
-                .withFilters( Collections.singletonList(
-                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                        new DimensionalKeywords(
-                            Lists.newArrayList(
-                                buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
-                                buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) )
-                            ),
-                            ImmutableList.of(
-                                new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                                new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                        )
-                    ) )
-                )
-                .build();
+            // PERIOD
+            .withPeriod( new Period( YearlyPeriodType.getPeriodFromIsoString( "2017W10" ) ) )
+            // DATA ELEMENTS
+            .withDataElements( newArrayList( createDataElement( 'A', new CategoryCombo() ) ) ).withIgnoreLimit( true )
+            // FILTERS (OU)
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    new DimensionalKeywords(
+                        Lists.newArrayList(
+                            buildOrgUnitLevel( 2, "wjP19dkFeIk", "District", null ),
+                            buildOrgUnitLevel( 1, "tTUf91fCytl", "Chiefdom", "OU_12345" ) ) ),
+                    ImmutableList.of(
+                        new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
+            .build();
 
-        initMock(params);
+        initMock( params );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -120,7 +116,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void metadataContainsIndicatorGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
@@ -135,18 +131,17 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
                     new DimensionalKeywords( Collections.singletonList( indicatorGroup ) ),
-                        Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
-                            createDataElement( 'B', new CategoryCombo() ) ) ) ) )
+                    Lists.newArrayList( new Indicator(), new Indicator(), createDataElement( 'A', new CategoryCombo() ),
+                        createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withFilters( Collections.singletonList(
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                    ImmutableList.of(   new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
-                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" )
-                    ) ) ) )
+                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                        new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
             .withIgnoreLimit( true )
             .withSkipData( true )
             .build();
 
-        initMock(params);
+        initMock( params );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
@@ -155,12 +150,11 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             allOf(
                 hasProperty( "name", is( indicatorGroup.getName() ) ),
                 hasProperty( "uid", is( indicatorGroup.getUid() ) ),
-                hasProperty( "code", is( indicatorGroup.getCode() ) )
-            ) );
+                hasProperty( "code", is( indicatorGroup.getCode() ) ) ) );
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void metadataContainsOuGroupData()
     {
         DataQueryParams params = DataQueryParams.newBuilder()
@@ -173,11 +167,11 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                 new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
                     new DimensionalKeywords(
                         Lists.newArrayList( new BaseNameableObject( "tTUf91fCytl", "OU_12345", "Chiefdom" ) ) ),
-                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
+                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ),
                         new OrganisationUnit( "bbb", "bbb", "OU_2", null, null, "c2" ) ) ) ) )
-                .build();
+            .build();
 
-        initMock(params);
+        initMock( params );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -187,7 +181,7 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void metadataContainsDataElementGroupMetadata()
     {
         List<DimensionalItemObject> periods = new ArrayList<>();
@@ -201,18 +195,18 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             .withDimensions( Lists.newArrayList(
                 new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods ),
                 new BaseDimensionalObject( "dx", DimensionType.DATA_X, DISPLAY_NAME_DATA_X, "display name",
-                new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
+                    new DimensionalKeywords( Collections.singletonList( dataElementGroup ) ),
                     Lists.newArrayList(
                         createDataElement( 'A', new CategoryCombo() ),
                         createDataElement( 'B', new CategoryCombo() ) ) ) ) )
-                .withFilters( Collections.singletonList(
-                    new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
-                        ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
-                .withIgnoreLimit( true )
-                .withSkipData( true )
-                .build();
+            .withFilters( Collections.singletonList(
+                new BaseDimensionalObject( "ou", DimensionType.ORGANISATION_UNIT, null, DISPLAY_NAME_ORGUNIT,
+                    ImmutableList.of( new OrganisationUnit( "aaa", "aaa", "OU_1", null, null, "c1" ) ) ) ) )
+            .withIgnoreLimit( true )
+            .withSkipData( true )
+            .build();
 
-        initMock(params);
+        initMock( params );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
@@ -221,12 +215,11 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
             allOf(
                 hasProperty( "name", is( dataElementGroup.getName() ) ),
                 hasProperty( "uid", is( dataElementGroup.getUid() ) ),
-                hasProperty( "code", is( dataElementGroup.getCode() ) )
-            ) );
+                hasProperty( "code", is( dataElementGroup.getCode() ) ) ) );
     }
 
     @Test
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void metadataContainsRelativePeriodItem()
     {
 
@@ -237,8 +230,8 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
         BaseDimensionalObject periodDimension = new BaseDimensionalObject( "pe", DimensionType.PERIOD, periods );
 
         DimensionalKeywords dimensionalKeywords = new DimensionalKeywords();
-        dimensionalKeywords.addGroupBy(THIS_QUARTER.name(), "This quarter");
-        periodDimension.setDimensionalKeywords(dimensionalKeywords);
+        dimensionalKeywords.addGroupBy( THIS_QUARTER.name(), "This quarter" );
+        periodDimension.setDimensionalKeywords( dimensionalKeywords );
 
         DataQueryParams params = DataQueryParams.newBuilder()
             // DATA ELEMENTS
@@ -248,12 +241,12 @@ public class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
                         createDataElement( 'B', new CategoryCombo() ) ) ) ) )
             .withSkipData( true ).build();
 
-        initMock(params);
+        initMock( params );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
         Map<String, Object> items = (Map<String, Object>) grid.getMetaData().get( "items" );
-        assertTrue(items.containsKey(THIS_QUARTER.name()));
+        assertTrue( items.containsKey( THIS_QUARTER.name() ) );
     }
 
     private OrganisationUnitLevel buildOrgUnitLevel( int level, String uid, String name, String code )

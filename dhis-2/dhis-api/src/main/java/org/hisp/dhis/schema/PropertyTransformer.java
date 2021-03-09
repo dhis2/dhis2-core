@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.schema;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema;
 
 /**
- * Interface for converting from one object to another. The main use case being supporting
- * property transformers, these are transformers that are applied BEFORE any field filtering
- * takes place, and hides the original object completely.
- *
- * The main reason for using a property transformer is to either collapse an object (a deeply nested
- * object can be replaced with a more relevant one), or to smooth the transition when planning domain
- * object changes (this so the frontend can start working on the new payloads before all internals are
+ * Interface for converting from one object to another. The main use case being
+ * supporting property transformers, these are transformers that are applied
+ * BEFORE any field filtering takes place, and hides the original object
+ * completely.
+ * <p>
+ * The main reason for using a property transformer is to either collapse an
+ * object (a deeply nested object can be replaced with a more relevant one), or
+ * to smooth the transition when planning domain object changes (this so the
+ * frontend can start working on the new payloads before all internals are
  * finished refactoring).
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>

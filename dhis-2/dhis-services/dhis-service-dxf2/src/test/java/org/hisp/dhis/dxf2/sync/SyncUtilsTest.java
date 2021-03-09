@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.sync;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
+
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
@@ -35,18 +37,19 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertThat;
-
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
 public class SyncUtilsTest extends DhisSpringTest
 {
     private static final String USERNAME = "user";
+
     private static final String PASSWORD = "pass";
+
     private static final String URL = "https://localhost:8080";
+
     private static final String EVENTS_URL = URL + SyncEndpoint.EVENTS.getPath();
+
     private static final String EVENTS_URL_WITH_SYNC_STRATEGY = EVENTS_URL + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX;
 
     @Autowired
@@ -71,7 +74,8 @@ public class SyncUtilsTest extends DhisSpringTest
     {
         systemSettingManager.saveSystemSetting( SettingKey.REMOTE_INSTANCE_URL, URL );
 
-        SystemInstance systemInstance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager, SyncEndpoint.EVENTS );
+        SystemInstance systemInstance = SyncUtils.getRemoteInstanceWithSyncImportStrategy( systemSettingManager,
+            SyncEndpoint.EVENTS );
         assertThat( systemInstance.getUrl(), is( EVENTS_URL_WITH_SYNC_STRATEGY ) );
     }
 }

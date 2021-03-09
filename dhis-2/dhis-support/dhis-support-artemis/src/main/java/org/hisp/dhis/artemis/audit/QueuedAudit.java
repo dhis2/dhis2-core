@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Luciano Fiandesio
  */
-public class QueuedAudit implements Delayed
+public class QueuedAudit
+    implements Delayed
 {
     private final long origin;
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +36,9 @@ import java.util.List;
 public class CombinationGenerator<T>
 {
     private List<List<T>> objects; // List of object lists
+
     private int[] indexes; // Current index for each array
+
     private int no; // No of arrays
 
     private CombinationGenerator( List<List<T>> objects )
@@ -48,7 +49,7 @@ public class CombinationGenerator<T>
 
         if ( no > 0 )
         {
-            indexes[no-1]--; // Rewind last index to simplify looping
+            indexes[no - 1]--; // Rewind last index to simplify looping
         }
     }
 
@@ -84,7 +85,8 @@ public class CombinationGenerator<T>
     {
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last position in array
+            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
+            // position in array
             {
                 return true;
             }
@@ -94,7 +96,8 @@ public class CombinationGenerator<T>
     }
 
     /**
-     * Returns the next combination. Returns null if there are no more combinations.
+     * Returns the next combination. Returns null if there are no more
+     * combinations.
      */
     public List<T> getNext()
     {
@@ -102,13 +105,17 @@ public class CombinationGenerator<T>
 
         for ( int i = no - 1; i >= 0; i-- )
         {
-            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last position in list, increment index and break
+            if ( indexes[i] < objects.get( i ).size() - 1 ) // Not at last
+            // position in list,
+            // increment index
+            // and break
             {
                 indexes[i]++;
                 current = getCurrent();
                 break;
             }
-            else // At last position in list, reset index to 0 and continue to increment next list
+            else // At last position in list, reset index to 0 and continue to
+            // increment next list
             {
                 if ( hasNext() ) // Don't reset if at end
                 {

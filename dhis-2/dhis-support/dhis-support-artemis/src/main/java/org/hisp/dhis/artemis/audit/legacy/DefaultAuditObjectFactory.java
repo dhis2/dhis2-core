@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.legacy;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.artemis.audit.legacy;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.legacy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A factory for constructing {@see org.hisp.dhis.audit.Audit} data payloads.
@@ -50,7 +51,7 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
 {
     private final ObjectMapper objectMapper;
 
-    public DefaultAuditObjectFactory( @Qualifier("hibernateAwareJsonMapper") ObjectMapper objectMapper )
+    public DefaultAuditObjectFactory( @Qualifier( "hibernateAwareJsonMapper" ) ObjectMapper objectMapper )
     {
         this.objectMapper = objectMapper;
     }

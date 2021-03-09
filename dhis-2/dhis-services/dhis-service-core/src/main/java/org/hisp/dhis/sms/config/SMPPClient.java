@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import java.io.IOException;
 import java.util.*;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
@@ -47,8 +48,6 @@ import org.jsmpp.util.DeliveryReceiptState;
 import org.jsmpp.util.TimeFormatter;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Zubair Asghar.
  */
@@ -57,7 +56,9 @@ import lombok.extern.slf4j.Slf4j;
 public class SMPPClient
 {
     private static final String SOURCE = "DHIS2";
+
     private static final String SENDING_FAILED = "SMS sending failed";
+
     private static final String SESSION_ERROR = "SMPP Session cannot be null";
 
     private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
@@ -91,7 +92,7 @@ public class SMPPClient
 
         for ( OutboundMessage message : batch.getMessages() )
         {
-            OutboundMessageResponse response =  send( session, message.getText(), message.getRecipients(), config );
+            OutboundMessageResponse response = send( session, message.getText(), message.getRecipients(), config );
 
             responses.add( response );
         }
@@ -105,14 +106,18 @@ public class SMPPClient
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients, SMPPGatewayConfig config )
+    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients,
+        SMPPGatewayConfig config )
     {
         OutboundMessageResponse response = new OutboundMessageResponse();
         SubmitMultiResult result = null;
         try
         {
-            result = session.submitMultiple( config.getSystemType(), config.getTypeOfNumber(), config.getNumberPlanIndicator(), SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1, TIME_FORMATTER.format( new Date() ), null,
-                new RegisteredDelivery( SMSCDeliveryReceipt.SUCCESS_FAILURE ), ReplaceIfPresentFlag.DEFAULT, new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed() ), (byte) 0,
+            result = session.submitMultiple( config.getSystemType(), config.getTypeOfNumber(),
+                config.getNumberPlanIndicator(), SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1,
+                TIME_FORMATTER.format( new Date() ), null,
+                new RegisteredDelivery( SMSCDeliveryReceipt.SUCCESS_FAILURE ), ReplaceIfPresentFlag.DEFAULT,
+                new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed() ), (byte) 0,
                 text.getBytes() );
 
             log.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
@@ -153,7 +158,8 @@ public class SMPPClient
             }
             else
             {
-                String failureCause = DeliveryReceiptState.valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId();
+                String failureCause = DeliveryReceiptState
+                    .valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId();
 
                 log.error( failureCause );
                 response.setDescription( failureCause );
@@ -171,7 +177,7 @@ public class SMPPClient
 
     private void stop( SMPPSession session )
     {
-        if( session != null )
+        if ( session != null )
         {
             session.unbindAndClose();
         }
@@ -181,7 +187,8 @@ public class SMPPClient
     {
         try
         {
-            SMPPSession session = new SMPPSession( config.getUrlTemplate(), config.getPort(), getBindParameters( config ) );
+            SMPPSession session = new SMPPSession( config.getUrlTemplate(), config.getPort(),
+                getBindParameters( config ) );
 
             log.info( "SMPP client connected to SMSC: " + config.getUrlTemplate() );
             return session;
@@ -196,7 +203,8 @@ public class SMPPClient
 
     private BindParameter getBindParameters( SMPPGatewayConfig config )
     {
-       return new BindParameter( config.getBindType(), config.getUsername(), config.getPassword(), config.getSystemType(),
+        return new BindParameter( config.getBindType(), config.getUsername(), config.getPassword(),
+            config.getSystemType(),
             config.getTypeOfNumber(), config.getNumberPlanIndicator(), null );
     }
 
@@ -205,7 +213,7 @@ public class SMPPClient
         Address[] addresses = new Address[recipients.size()];
         int i = 0;
 
-        for( String number : recipients )
+        for ( String number : recipients )
         {
             addresses[i] = new Address( TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
             i++;

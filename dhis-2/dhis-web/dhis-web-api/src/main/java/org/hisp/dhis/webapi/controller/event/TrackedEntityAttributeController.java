@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
 import java.util.Date;
 import java.util.List;
@@ -82,12 +81,10 @@ public class TrackedEntityAttributeController
     @RequestMapping( value = "/{id}/generateAndReserve", method = RequestMethod.GET, produces = {
         ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody
-    List<ReservedValue> generateAndReserveValues(
+    public @ResponseBody List<ReservedValue> generateAndReserveValues(
         @RequestParam( required = false, defaultValue = "1" ) Integer numberToReserve,
         @RequestParam( required = false, defaultValue = "60" ) Integer expiration,
-        @PathVariable String id
-    )
+        @PathVariable String id )
         throws WebMessageException
     {
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -101,10 +98,12 @@ public class TrackedEntityAttributeController
     }
 
     /**
-     * This method is legacy and will do the same as generateAndReserveValues, but with only 3 days expiration.
-     * The use-case for this endpoint is to get a single id when filling in the form, so we assume the form is
-     * submitted within 3 days. generateAndReserveValues is designed to account for offline devices that need to
-     * reserve ids in batches for a longer period of time.
+     * This method is legacy and will do the same as generateAndReserveValues,
+     * but with only 3 days expiration. The use-case for this endpoint is to get
+     * a single id when filling in the form, so we assume the form is submitted
+     * within 3 days. generateAndReserveValues is designed to account for
+     * offline devices that need to reserve ids in batches for a longer period
+     * of time.
      *
      * @param id
      * @return The id generated
@@ -112,11 +111,9 @@ public class TrackedEntityAttributeController
      */
     @RequestMapping( value = "/{id}/generate", method = RequestMethod.GET )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody
-    ReservedValue legacyQueryTrackedEntityInstancesJson(
+    public @ResponseBody ReservedValue legacyQueryTrackedEntityInstancesJson(
         @PathVariable String id,
-        @RequestParam( required = false, defaultValue = "3" ) Integer expiration
-    )
+        @RequestParam( required = false, defaultValue = "3" ) Integer expiration )
         throws WebMessageException
     {
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -131,8 +128,7 @@ public class TrackedEntityAttributeController
 
     @RequestMapping( value = "/{id}/requiredValues", method = RequestMethod.GET )
     @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-    public @ResponseBody
-    Map<String, List<String>> getRequiredValues( @PathVariable String id )
+    public @ResponseBody Map<String, List<String>> getRequiredValues( @PathVariable String id )
         throws WebMessageException
     {
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute( id );
@@ -156,9 +152,10 @@ public class TrackedEntityAttributeController
     private List<ReservedValue> reserve( String id, int numberToReserve, int daysToLive )
         throws WebMessageException
     {
-        if ( numberToReserve > 1000 || numberToReserve < 1)
+        if ( numberToReserve > 1000 || numberToReserve < 1 )
         {
-            throw new WebMessageException( WebMessageUtils.badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
+            throw new WebMessageException(
+                WebMessageUtils.badRequest( "You can only reserve between 1 and 1000 values in a single request." ) );
         }
 
         Map<String, List<String>> params = context.getParameterValuesMap();

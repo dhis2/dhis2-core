@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 import org.hisp.dhis.security.Authority;
 import org.hisp.dhis.security.AuthorityType;
 
+import com.google.common.collect.Lists;
+
 /**
  * @author markusbekken
  */
-public class ProgramRuleSchemaDescriptor implements SchemaDescriptor
+public class ProgramRuleSchemaDescriptor
+    implements SchemaDescriptor
 {
     public static final String SINGULAR = "programRule";
 
@@ -53,8 +54,10 @@ public class ProgramRuleSchemaDescriptor implements SchemaDescriptor
         schema.setRelativeApiEndpoint( API_ENDPOINT );
         schema.setOrder( 1620 );
 
-        schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAM_RULE_ADD", "F_PROGRAM_RULE_MANAGEMENT" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAM_RULE_DELETE", "F_PROGRAM_RULE_MANAGEMENT" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.CREATE,
+            Lists.newArrayList( "F_PROGRAM_RULE_ADD", "F_PROGRAM_RULE_MANAGEMENT" ) ) );
+        schema.getAuthorities().add( new Authority( AuthorityType.DELETE,
+            Lists.newArrayList( "F_PROGRAM_RULE_DELETE", "F_PROGRAM_RULE_MANAGEMENT" ) ) );
 
         return schema;
     }

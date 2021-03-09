@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -65,7 +64,8 @@ public class EventGeoValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
         programStage = (programStage == null && program.isWithoutRegistration())
-            ? program.getProgramStageByStage( 1 ) : programStage;
+            ? program.getProgramStageByStage( 1 )
+            : programStage;
         if ( programStage == null )
         {
             return;

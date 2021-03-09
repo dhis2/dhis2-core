@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,11 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -43,8 +40,11 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Kristian Nordal
@@ -76,8 +76,9 @@ public class Period
     private transient String isoPeriod;
 
     /**
-     * Transient boolean. If true, this Period has been created as a consequence of
-     * a Dimensional Item Object having an Offset Period value higher/lower than 0
+     * Transient boolean. If true, this Period has been created as a consequence
+     * of a Dimensional Item Object having an Offset Period value higher/lower
+     * than 0
      */
     private transient boolean shifted = false;
 
@@ -169,8 +170,8 @@ public class Period
     }
 
     /**
-     * Copies the transient properties (name) from the argument Period
-     * to this Period.
+     * Copies the transient properties (name) from the argument Period to this
+     * Period.
      *
      * @param other Period to copy from.
      * @return this Period.
@@ -235,7 +236,7 @@ public class Period
      *
      * @param type the period type.
      * @return the potential number of periods of the given period type spanned
-     * by this period.
+     *         by this period.
      */
     public int getPeriodSpan( PeriodType type )
     {
@@ -301,7 +302,7 @@ public class Period
 
         return getEndDate().after( period.getEndDate() );
     }
-    
+
     /**
      * Returns a unique key suitable for caching and lookups.
      */

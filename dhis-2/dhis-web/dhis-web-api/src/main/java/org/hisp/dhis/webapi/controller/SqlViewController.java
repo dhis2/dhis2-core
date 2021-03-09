@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,14 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -50,10 +54,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.List;
-import java.util.Set;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -77,8 +78,7 @@ public class SqlViewController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{uid}/data", method = RequestMethod.GET, produces = ContextUtils.CONTENT_TYPE_JSON )
-    public @ResponseBody
-    RootNode getViewJson( @PathVariable( "uid" ) String uid,
+    public @ResponseBody RootNode getViewJson( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -90,8 +90,7 @@ public class SqlViewController
     }
 
     @RequestMapping( value = "/{uid}/data.xml", method = RequestMethod.GET )
-    public @ResponseBody
-    RootNode getViewXml( @PathVariable( "uid" ) String uid,
+    public @ResponseBody RootNode getViewXml( @PathVariable( "uid" ) String uid,
         SqlViewQuery query, HttpServletResponse response )
         throws WebMessageException
     {
@@ -105,18 +104,21 @@ public class SqlViewController
     @RequestMapping( value = "/{uid}/data.csv", method = RequestMethod.GET )
     public void getViewCsv( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         SqlView sqlView = validateView( uid );
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
+            filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".csv";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, sqlView.getCacheStrategy(), filename, true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, sqlView.getCacheStrategy(), filename,
+            true );
 
         GridUtils.toCsv( grid, response.getWriter() );
     }
@@ -124,18 +126,21 @@ public class SqlViewController
     @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
     public void getViewXls( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         SqlView sqlView = validateView( uid );
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
+            filters, fields );
 
         String filename = CodecUtils.filenameEncode( grid.getTitle() ) + ".xls";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, sqlView.getCacheStrategy(), filename, true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, sqlView.getCacheStrategy(), filename,
+            true );
 
         GridUtils.toXls( grid, response.getOutputStream() );
     }
@@ -181,14 +186,16 @@ public class SqlViewController
     @RequestMapping( value = "/{uid}/data.pdf", method = RequestMethod.GET )
     public void getViewPdf( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Set<String> criteria, @RequestParam( required = false ) Set<String> var,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         SqlView sqlView = validateView( uid );
 
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
-        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ), filters, fields );
+        Grid grid = sqlViewService.getSqlViewGrid( sqlView, SqlView.getCriteria( criteria ), SqlView.getCriteria( var ),
+            filters, fields );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, sqlView.getCacheStrategy() );
 
@@ -266,7 +273,8 @@ public class SqlViewController
         return sqlView;
     }
 
-    private RootNode buildResponse( SqlView sqlView, SqlViewQuery query ) throws WebMessageException
+    private RootNode buildResponse( SqlView sqlView, SqlViewQuery query )
+        throws WebMessageException
     {
         List<String> filters = Lists.newArrayList( contextService.getParameterValues( "filter" ) );
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
@@ -279,8 +287,8 @@ public class SqlViewController
         if ( !query.isSkipPaging() )
         {
             query.setTotal( grid.getHeight() );
-            grid.limitGrid( ( query.getPage() - 1 ) * query.getPageSize(),
-                Integer.min(query.getPage() * query.getPageSize(), grid.getHeight() ) );
+            grid.limitGrid( (query.getPage() - 1) * query.getPageSize(),
+                Integer.min( query.getPage() * query.getPageSize(), grid.getHeight() ) );
             rootNode.addChild( NodeUtils.createPager( query.getPager() ) );
         }
 

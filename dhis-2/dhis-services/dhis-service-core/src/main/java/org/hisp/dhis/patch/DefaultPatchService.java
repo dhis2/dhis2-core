@@ -1,7 +1,5 @@
-package org.hisp.dhis.patch;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,17 @@ package org.hisp.dhis.patch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.patch;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -48,14 +52,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -285,28 +285,28 @@ public class DefaultPatchService implements PatchService
 
         switch ( node.getNodeType() )
         {
-            case OBJECT:
-                List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
+        case OBJECT:
+            List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
 
-                for ( String fieldName : fieldNames )
-                {
-                    mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
-                }
+            for ( String fieldName : fieldNames )
+            {
+                mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
+            }
 
-                break;
-            case ARRAY:
-                Collection<Object> identifiers = new ArrayList<>();
+            break;
+        case ARRAY:
+            Collection<Object> identifiers = new ArrayList<>();
 
-                for ( JsonNode jsonNode : node )
-                {
-                    identifiers.add( getValue( jsonNode ) );
-                }
+            for ( JsonNode jsonNode : node )
+            {
+                identifiers.add( getValue( jsonNode ) );
+            }
 
-                mutations.add( new Mutation( path, identifiers ) );
-                break;
-            default:
-                mutations.add( new Mutation( path, getValue( node ) ) );
-                break;
+            mutations.add( new Mutation( path, identifiers ) );
+            break;
+        default:
+            mutations.add( new Mutation( path, getValue( node ) ) );
+            break;
         }
 
         return mutations;
@@ -316,14 +316,14 @@ public class DefaultPatchService implements PatchService
     {
         switch ( node.getNodeType() )
         {
-            case BOOLEAN:
-                return node.booleanValue();
-            case NUMBER:
-                return node.numberValue();
-            case STRING:
-                return node.textValue();
-            case NULL:
-                return null;
+        case BOOLEAN:
+            return node.booleanValue();
+        case NUMBER:
+            return node.numberValue();
+        case STRING:
+            return node.textValue();
+        case NULL:
+            return null;
         }
 
         return null;
@@ -386,7 +386,8 @@ public class DefaultPatchService implements PatchService
         if ( property.isCollection() )
         {
             Collection<Object> collection = ReflectionUtils.invokeMethod( target, property.getGetterMethod() );
-            Collection<Object> sourceCollection = Collection.class.isInstance( value ) ? (Collection<Object>) value : Lists.newArrayList( value );
+            Collection<Object> sourceCollection = Collection.class.isInstance( value ) ? (Collection<Object>) value
+                : Lists.newArrayList( value );
 
             if ( collection == null )
             {
@@ -407,7 +408,10 @@ public class DefaultPatchService implements PatchService
                     Schema schema = schemaService.getDynamicSchema( property.getItemKlass() );
 
                     Query query = Query.from( schema );
-                    query.add( Restrictions.eq( "id", object ) ); // optimize by using .in(..) query
+                    query.add( Restrictions.eq( "id", object ) ); // optimize by
+                    // using
+                    // .in(..)
+                    // query
 
                     List<? extends IdentifiableObject> objects = queryService.query( query );
 

@@ -1,13 +1,5 @@
-package org.hisp.dhis.message;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.List;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +25,13 @@ import java.util.List;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -42,30 +41,32 @@ public interface MessageConversationStore
 {
     /**
      * Returns a list of MessageConversations.
-     * 
+     *
      * @param user the User for which the MessageConversations are sent to, or
      *        all if null.
      * @param first the first record number to return, or all if null.
      * @param max the max number of records to return, or all if null.
      * @return a list of MessageConversations.
      */
-    List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status, boolean followUpOnly, boolean unreadOnly, Integer first, Integer max );
+    List<MessageConversation> getMessageConversations( User user, MessageConversationStatus status,
+        boolean followUpOnly, boolean unreadOnly, Integer first, Integer max );
 
     /**
      * Returns the MessageConversations given by the supplied UIDs.
      *
-     * @param messageConversationUids the UIDs of the MessageConversations to get.
+     * @param messageConversationUids the UIDs of the MessageConversations to
+     *        get.
      * @return a collection of MessageConversations.
      */
     List<MessageConversation> getMessageConversations( Collection<String> messageConversationUids );
-    
+
     long getUnreadUserMessageConversationCount( User user );
-    
+
     int deleteMessages( User sender );
-    
+
     int deleteUserMessages( User user );
-    
+
     int removeUserFromMessageConversations( User lastSender );
-    
+
     List<UserMessage> getLastRecipients( User user, Integer first, Integer max );
 }

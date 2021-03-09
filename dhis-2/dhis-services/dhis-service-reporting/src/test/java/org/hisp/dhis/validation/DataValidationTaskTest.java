@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.*;
@@ -90,15 +89,23 @@ public class DataValidationTaskTest
     public MockitoRule rule = MockitoJUnit.rule();
 
     private PeriodType MONTHLY = PeriodType.getPeriodTypeFromIsoString( "201901" );
+
     private DataValidationTask subject;
+
     private DataElement deA;
+
     private List<OrganisationUnit> organisationUnits;
+
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
 
     private Period p1;
+
     private Period p2;
+
     private Period p3;
+
     private Map<String, Constant> constantMap;
 
     @Before
@@ -138,7 +145,8 @@ public class DataValidationTaskTest
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
+        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
+            Operator.not_equal_to );
 
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
         PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
@@ -157,10 +165,11 @@ public class DataValidationTaskTest
 
         List<DeflatedDataValue> deflatedDataValues = new ArrayList<>();
 
-        DataValue dv = createDataValue(deA, createPeriod("201901"), ouA, "12.4", createCategoryOptionCombo('B', 'C'));
+        DataValue dv = createDataValue( deA, createPeriod( "201901" ), ouA, "12.4",
+            createCategoryOptionCombo( 'B', 'C' ) );
 
-        DeflatedDataValue ddv = new DeflatedDataValue(dv);
-        deflatedDataValues.add(ddv);
+        DeflatedDataValue ddv = new DeflatedDataValue( dv );
+        deflatedDataValues.add( ddv );
 
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
             .thenReturn( deflatedDataValues );
@@ -168,8 +177,8 @@ public class DataValidationTaskTest
         Map<DimensionalItemObject, Double> vals = new HashMap<>();
         vals.put( deA, 12.4 );
 
-        mockExpressionService(leftExpression, vals, ctx, 8.4);
-        mockExpressionService(rightExpression, vals, ctx, -10.0);
+        mockExpressionService( leftExpression, vals, ctx, 8.4 );
+        mockExpressionService( rightExpression, vals, ctx, -10.0 );
 
         when( expressionService.getExpressionValue( "8.4!=-10.0", SIMPLE_TEST ) ).thenReturn( true );
 
@@ -185,7 +194,8 @@ public class DataValidationTaskTest
         Expression leftExpression = createExpression2( 'A', "#{FUrCpcvMAmC.OrDRjJL9bTS}" );
         Expression rightExpression = createExpression2( 'B', "-10" );
 
-        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression, Operator.not_equal_to );
+        ValidationRuleExtended vre = createValidationRuleExtended( leftExpression, rightExpression,
+            Operator.not_equal_to );
 
         List<PeriodTypeExtended> periodTypes = new ArrayList<>();
         PeriodTypeExtended periodType = createPeriodTypeExtended( vre );
@@ -206,7 +216,7 @@ public class DataValidationTaskTest
 
         // Return no values!
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) )
-                .thenReturn( deflatedDataValues );
+            .thenReturn( deflatedDataValues );
 
         subject.init( organisationUnits, ctx, analyticsService );
         subject.run();
@@ -214,20 +224,22 @@ public class DataValidationTaskTest
         assertThat( ctx.getValidationResults().size(), is( 0 ) );
     }
 
-
-
-    private void mockExpressionService(Expression expression, Map<DimensionalItemObject, Double> vals, ValidationRunContext ctx, Double val) {
-
-        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p1.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+    private void mockExpressionService( Expression expression, Map<DimensionalItemObject, Double> vals,
+        ValidationRunContext ctx, Double val )
+    {
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p2.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+            ctx.getConstantMap(), null, p1.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
 
         when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
-                ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) ).thenReturn( val );
+            ctx.getConstantMap(), null, p2.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
+
+        when( expressionService.getExpressionValue( expression.getExpression(), VALIDATION_RULE_EXPRESSION, vals,
+            ctx.getConstantMap(), null, p3.getDaysInPeriod(), expression.getMissingValueStrategy() ) )
+                .thenReturn( val );
     }
-
 
     private ValidationRuleExtended createValidationRuleExtended( Expression left, Expression right, Operator op )
     {

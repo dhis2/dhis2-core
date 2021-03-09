@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,17 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
-
 
 /**
  * @author Zubair Asghar
  */
 public interface TrackerObjectDeletionService
 {
-    TrackerTypeReport deleteEnrollments(TrackerBundle bundle, TrackerType trackerType );
+    TrackerTypeReport deleteEnrollments( TrackerBundle bundle, TrackerType trackerType );
 
     TrackerTypeReport deleteEvents( TrackerBundle bundle, TrackerType trackerType );
 

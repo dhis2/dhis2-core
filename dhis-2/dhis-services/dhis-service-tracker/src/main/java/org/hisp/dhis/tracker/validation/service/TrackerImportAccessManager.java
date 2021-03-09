@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.service;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -44,28 +43,33 @@ import org.hisp.dhis.user.User;
 public interface TrackerImportAccessManager
 {
     /**
-     * Same as {@link OrganisationUnitService#isInUserSearchHierarchyCached(User, OrganisationUnit)}
-     * Checks the importing user has access to "search hierarchy" of the input OrganisationUnit.
+     * Same as
+     * {@link OrganisationUnitService#isInUserSearchHierarchyCached(User, OrganisationUnit)}
+     * Checks the importing user has access to "search hierarchy" of the input
+     * OrganisationUnit.
      *
      * @param reporter error reporter instance
-     * @param orgUnit  input orgUnit to validate against
+     * @param orgUnit input orgUnit to validate against
      */
     void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
 
     /**
-     * Same as {@link OrganisationUnitService#isInUserHierarchyCached(User, OrganisationUnit)}
-     * Checks the importing user has access to "capture hierarchy" of the input OrganisationUnit.
+     * Same as
+     * {@link OrganisationUnitService#isInUserHierarchyCached(User, OrganisationUnit)}
+     * Checks the importing user has access to "capture hierarchy" of the input
+     * OrganisationUnit.
      *
      * @param reporter error reporter instance
-     * @param orgUnit  input orgUnit to validate against
+     * @param orgUnit input orgUnit to validate against
      */
     void checkOrgUnitInCaptureScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit );
 
     /**
      * Checks the importing user has write access to the TrackedEntityType.
      *
-     * @param reporter          error reporter instance
-     * @param trackedEntityType teiType to check importing user has write access to
+     * @param reporter error reporter instance
+     * @param trackedEntityType teiType to check importing user has write access
+     *        to
      */
     void checkTeiTypeWriteAccess( ValidationErrorReporter reporter, TrackedEntityType trackedEntityType );
 
@@ -84,21 +88,21 @@ public interface TrackerImportAccessManager
      * <p>
      * 1. Check user is in "search scope" of the program's org. unit.
      *
-     * @param reporter        error reporter instance
+     * @param reporter error reporter instance
      * @param programInstance enrollment to check user has read access
      */
     void checkReadEnrollmentAccess( ValidationErrorReporter reporter, ProgramInstance programInstance );
 
     /**
-     * Check importing user has write access to enrollment.
-     * 1. Check user has write access to program
+     * Check importing user has write access to enrollment. 1. Check user has
+     * write access to program
      * <p>
-     * 2 If program is registration, check :
-     * a. Check that user has read access to program tei type.
-     * b. Check has access to the tei - program combination.
+     * 2 If program is registration, check : a. Check that user has read access
+     * to program tei type. b. Check has access to the tei - program
+     * combination.
      *
-     * @param reporter        error reporter instance
-     * @param program         program to check user has write access
+     * @param reporter error reporter instance
+     * @param program program to check user has write access
      * @param programInstance enrollment to check user has write access
      */
     void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
@@ -107,31 +111,30 @@ public interface TrackerImportAccessManager
     /**
      * Check importing user has write access to event.
      * <p>
-     * Check user has access to either "search scope or capture scope" according to isCreatableInSearchScope()
+     * Check user has access to either "search scope or capture scope" according
+     * to isCreatableInSearchScope()
      * <p>
-     * Check program stage is registration.
-     * If it is a registration check:
-     * 1. Program stage write access
-     * 2. Program read access
-     * 3. Pprogram tei type. read access
-     * 4. Tei - Program combination access
+     * Check program stage is registration. If it is a registration check: 1.
+     * Program stage write access 2. Program read access 3. Pprogram tei type.
+     * read access 4. Tei - Program combination access
      * <p>
-     * If NOT a registration check:
-     * 1. Program write access
+     * If NOT a registration check: 1. Program write access
      * <p>
-     * If event has a Attribute Option Combo:
-     * 1. Check user has write access to the combo.
+     * If event has a Attribute Option Combo: 1. Check user has write access to
+     * the combo.
      *
-     * @param reporter             error reporter instance
+     * @param reporter error reporter instance
      * @param programStageInstance event to check user has write access to
      */
     void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStageInstance programStageInstance );
 
     /**
-     * Loops trough all CategoryOptionCombo options and check that the importing user has write access to all of them.
+     * Loops trough all CategoryOptionCombo options and check that the importing
+     * user has write access to all of them.
      *
-     * @param reporter            error reporter instance
-     * @param categoryOptionCombo CategoryOptionCombo to check user has write access
+     * @param reporter error reporter instance
+     * @param categoryOptionCombo CategoryOptionCombo to check user has write
+     *        access
      */
     void checkWriteCategoryOptionComboAccess( ValidationErrorReporter reporter,
         CategoryOptionCombo categoryOptionCombo );

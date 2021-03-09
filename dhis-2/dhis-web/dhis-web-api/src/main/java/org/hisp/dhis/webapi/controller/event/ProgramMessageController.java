@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,23 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
 import org.hisp.dhis.program.message.ProgramMessageQueryParams;
@@ -38,10 +49,8 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
@@ -50,15 +59,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Zubair <rajazubair.asghar@gmail.com>
@@ -96,7 +96,8 @@ public class ProgramMessageController
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Date beforeDate,
         @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize,
         HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
         ProgramMessageQueryParams params = programMessageService.getFromUrl( ou, programInstance, programStageInstance,
             messageStatus, page, pageSize, afterDate, beforeDate );
@@ -114,7 +115,8 @@ public class ProgramMessageController
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( value = "/scheduled", method = RequestMethod.GET )
-    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response ) throws IOException
+    public void getScheduledMessage( @RequestParam( required = false ) Date scheduledAt, HttpServletResponse response )
+        throws IOException
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceStore.getAll();
 
@@ -135,11 +137,12 @@ public class ProgramMessageController
         @RequestParam( required = false ) String programStageInstance,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance, programStageInstance,
-                null, page, pageSize, afterDate, null );
-
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance,
+            programStageInstance,
+            null, page, pageSize, afterDate, null );
 
         List<ProgramMessage> programMessages = programMessageService.getProgramMessages( params );
 
@@ -153,7 +156,8 @@ public class ProgramMessageController
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SENDSMS')" )
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
     public void saveMessages( HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
         ProgramMessageBatch batch = renderService.fromJson( request.getInputStream(), ProgramMessageBatch.class );
 

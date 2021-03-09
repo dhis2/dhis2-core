@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
@@ -68,7 +67,8 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
     public Map<String, OrganisationUnit> get( ImportOptions importOptions, List<Event> events )
     {
         //
-        // Get the IdScheme for Org Units. Org Units should support also the Attribute
+        // Get the IdScheme for Org Units. Org Units should support also the
+        // Attribute
         // Scheme, based on JSONB
         //
         IdScheme idScheme = importOptions.getIdSchemes().getOrgUnitIdScheme();
@@ -79,7 +79,8 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         }
 
         //
-        // Collect all the org unit IDs (based on the IdScheme) to pass as SQL query
+        // Collect all the org unit IDs (based on the IdScheme) to pass as SQL
+        // query
         // argument
         //
         // @formatter:off
@@ -112,12 +113,14 @@ public class OrganisationUnitSupplier extends AbstractSupplier<Map<String, Organ
         if ( idScheme.isAttribute() )
         {
             //
-            // Attribute IdScheme handling: use Postgres JSONB custom clauses to query the
+            // Attribute IdScheme handling: use Postgres JSONB custom clauses to
+            // query the
             // "attributvalues" column
             //
             // The column is expected to contain a JSON structure like so:
             //
-            // {"ie9wfkGw8GX": {"value": "Some value", "attribute": {"id": "ie9wfkGw8GX"}}}
+            // {"ie9wfkGw8GX": {"value": "Some value", "attribute": {"id":
+            // "ie9wfkGw8GX"}}}
             //
             // The 'ie9wfkGw8GX' uid is the attribute identifier
             //

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.job;
+
+import java.io.IOException;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import java.io.IOException;
 
 /**
  * @author Zubair Asghar
@@ -77,7 +77,8 @@ public abstract class BaseMessageManager
     }
 
     public TrackerSideEffectDataBundle toBundle( TextMessage message )
-        throws JMSException, IOException
+        throws JMSException,
+        IOException
     {
         String payload = message.getText();
 

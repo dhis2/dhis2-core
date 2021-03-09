@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.paging;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.paging;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.paging;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +40,12 @@ import org.hisp.dhis.common.IdentifiableObject;
 public class Paging
 {
     public static final int DEFAULT_PAGE_SIZE = 50;
+
     private static final int PAGE_OFFSET = 2; // Each side of current page
-    private static final int PAGE_TOTAL_OFFSET = PAGE_OFFSET * 2; // Both sides of current page
+
+    private static final int PAGE_TOTAL_OFFSET = PAGE_OFFSET * 2; // Both sides
+    // of current
+    // page
 
     private int currentPage;
 
@@ -66,12 +69,12 @@ public class Paging
 
     public String getBaseLink()
     {
-        return link.indexOf( "?" ) < 0 ? ( link + "?" ) : ( link + "&" );
+        return link.indexOf( "?" ) < 0 ? (link + "?") : (link + "&");
     }
 
     public int getNumberOfPages()
     {
-        return  total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
+        return total % pageSize == 0 ? total / pageSize : total / pageSize + 1;
     }
 
     /**
@@ -81,12 +84,21 @@ public class Paging
     {
         int startPage = 1;
 
-        if ( currentPage > PAGE_OFFSET ) // Far enough from start, set start page
+        if ( currentPage > PAGE_OFFSET ) // Far enough from start, set start
+        // page
         {
             startPage = currentPage - PAGE_OFFSET;
         }
 
-        if ( ( getNumberOfPages() - startPage ) < PAGE_TOTAL_OFFSET ) // Too close to end, decrease start page to maintain page range length
+        if ( (getNumberOfPages() - startPage) < PAGE_TOTAL_OFFSET ) // Too close
+        // to end,
+        // decrease
+        // start
+        // page to
+        // maintain
+        // page
+        // range
+        // length
         {
             startPage = getNumberOfPages() - PAGE_TOTAL_OFFSET;
         }
@@ -104,8 +116,8 @@ public class Paging
      */
     public int getStartPos()
     {
-        int startPos = currentPage <= 0 ? 0 : ( currentPage - 1 ) * pageSize;
-        startPos = ( startPos >  total ) ? total : startPos;
+        int startPos = currentPage <= 0 ? 0 : (currentPage - 1) * pageSize;
+        startPos = (startPos > total) ? total : startPos;
         return startPos;
     }
 
@@ -114,8 +126,8 @@ public class Paging
      */
     public int getEndPos()
     {
-    	int endPos = getStartPos() + pageSize;
-        endPos = ( endPos > total ) ? total : endPos;
+        int endPos = getStartPos() + pageSize;
+        endPos = (endPos > total) ? total : endPos;
         return endPos;
     }
 
@@ -176,7 +188,8 @@ public class Paging
         {
             for ( IdentifiableObject object : objects )
             {
-                if ( object != null && object.getDisplayName() != null && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
+                if ( object != null && object.getDisplayName() != null
+                    && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
                 {
                     count++;
                 }
@@ -199,7 +212,8 @@ public class Paging
         return list.subList( first, last );
     }
 
-    public static <T extends IdentifiableObject> List<T> getObjectsBetweenByName( Collection<T> objects, String name, int first, int max )
+    public static <T extends IdentifiableObject> List<T> getObjectsBetweenByName( Collection<T> objects, String name,
+        int first, int max )
     {
         final List<T> list = new ArrayList<>();
 
@@ -207,7 +221,8 @@ public class Paging
         {
             for ( T object : objects )
             {
-                if ( object != null && object.getDisplayName() != null && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
+                if ( object != null && object.getDisplayName() != null
+                    && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
                 {
                     list.add( object );
                 }
@@ -231,7 +246,8 @@ public class Paging
         {
             for ( T object : objects )
             {
-                if ( object != null && object.getDisplayName() != null && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
+                if ( object != null && object.getDisplayName() != null
+                    && object.getDisplayName().toLowerCase().contains( name.toLowerCase() ) )
                 {
                     list.add( object );
                 }

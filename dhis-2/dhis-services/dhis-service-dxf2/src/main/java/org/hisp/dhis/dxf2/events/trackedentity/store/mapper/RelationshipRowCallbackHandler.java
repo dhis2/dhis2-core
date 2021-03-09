@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store.mapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -102,20 +102,22 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship>
     }
 
     /**
-     * The SQL query that generates the ResultSet used by this  {@see RowCallbackHandler} fetches both sides of a
-     * relationship: since each side can be a Tracked Entity Instance, a Program Instance or a Program Stage Instance,
-     * the query adds an "hint" to the final result to help this Handler to correctly associate the type to the left or
-     * right side of the relationship.
-     * The "typeWithUid" variable contains the UID of the object and a string representing the type.
-     * E.g.
+     * The SQL query that generates the ResultSet used by this
+     * {@see RowCallbackHandler} fetches both sides of a relationship: since
+     * each side can be a Tracked Entity Instance, a Program Instance or a
+     * Program Stage Instance, the query adds an "hint" to the final result to
+     * help this Handler to correctly associate the type to the left or right
+     * side of the relationship. The "typeWithUid" variable contains the UID of
+     * the object and a string representing the type. E.g.
+     * <p>
+     * tei|dj3382832 psi|332983893
+     * <p>
+     * This function parses the string and extract the type and the uid, in
+     * order to instantiate the appropriate object and assign it to the
+     * {@see RelationshipItem}
      *
-     * tei|dj3382832
-     * psi|332983893
-     *
-     * This function parses the string and extract the type and the uid, in order to instantiate the appropriate object
-     * and assign it to the {@see RelationshipItem}
-     *
-     * @param typeWithUid a String containing the object type and the UID of the object, separated by | (pipe)
+     * @param typeWithUid a String containing the object type and the UID of the
+     *        object, separated by | (pipe)
      * @return a {@see RelationshipItem}
      */
     private RelationshipItem createItem( String typeWithUid )

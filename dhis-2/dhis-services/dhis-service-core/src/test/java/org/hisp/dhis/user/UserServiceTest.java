@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
 import static org.hisp.dhis.setting.SettingKey.CAN_GRANT_OWN_USER_AUTHORITY_GROUPS;
 import static org.junit.Assert.assertEquals;
@@ -68,13 +67,19 @@ public class UserServiceTest
     private SystemSettingManager systemSettingManager;
 
     private OrganisationUnit unitA;
+
     private OrganisationUnit unitB;
+
     private OrganisationUnit unitC;
+
     private OrganisationUnit unitD;
+
     private OrganisationUnit unitE;
 
     private UserAuthorityGroup roleA;
+
     private UserAuthorityGroup roleB;
+
     private UserAuthorityGroup roleC;
 
     @Override
@@ -529,7 +534,8 @@ public class UserServiceTest
         userService.addUserCredentials( credentialsB );
         userService.addUserCredentials( credentialsC );
 
-        List<User> users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ), Collections.singletonList( "email:idesc" ) );
+        List<User> users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ),
+            Collections.singletonList( "email:idesc" ) );
         assertEquals( 3, users.size() );
         assertEquals( userA, users.get( 0 ) );
         assertEquals( userB, users.get( 1 ) );
@@ -541,7 +547,8 @@ public class UserServiceTest
         assertEquals( userB, users.get( 0 ) );
         assertEquals( userC, users.get( 1 ) );
 
-        users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ), Collections.singletonList( "firstName:asc" ) );
+        users = userService.getUsers( new UserQueryParams().addOrganisationUnit( unitA ),
+            Collections.singletonList( "firstName:asc" ) );
         assertEquals( 3, users.size() );
         assertEquals( userA, users.get( 0 ) );
         assertEquals( userB, users.get( 2 ) );
@@ -621,7 +628,7 @@ public class UserServiceTest
 
         params.setUser( userB );
 
-        users = userService.getUsers( params);
+        users = userService.getUsers( params );
 
         assertEquals( 0, users.size() );
 
@@ -629,7 +636,7 @@ public class UserServiceTest
 
         params.setUser( userC );
 
-        users = userService.getUsers( params);
+        users = userService.getUsers( params );
 
         assertEquals( 0, users.size() );
 

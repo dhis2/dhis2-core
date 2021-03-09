@@ -1,7 +1,5 @@
-package org.hisp.dhis.notification.logging;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.notification.logging;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.notification.logging;
 
 import java.util.List;
 
@@ -43,8 +42,8 @@ public interface NotificationLoggingService
     ExternalNotificationLogEntry get( String uid );
 
     /**
-     *
-     * @param templateUid is the uid for the notification template which this log entry is associated to.
+     * @param templateUid is the uid for the notification template which this
+     *        log entry is associated to.
      * @return log entry if exists otherwise null.
      */
     ExternalNotificationLogEntry getByTemplateUid( String templateUid );
@@ -74,7 +73,8 @@ public interface NotificationLoggingService
     /**
      *
      * @param templateUid Uid of the template which needs to be sent.
-     * @return true in case there is no log entry for this template uid or template is eligible for sending more then once. Otherwise false.
+     * @return true in case there is no log entry for this template uid or
+     *         template is eligible for sending more then once. Otherwise false.
      */
     boolean isValidForSending( String templateUid );
 

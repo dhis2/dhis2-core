@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import java.util.Collection;
 import java.util.List;
@@ -44,14 +43,16 @@ public interface AnalyticsTableManager
     String TABLE_TEMP_SUFFIX = "_temp";
 
     /**
-     * Returns the {@link AnalyticsTableType} of analytics table which this manager handles.
+     * Returns the {@link AnalyticsTableType} of analytics table which this
+     * manager handles.
      *
      * @return type of analytics table.
      */
     AnalyticsTableType getAnalyticsTableType();
 
     /**
-     * Returns a {@link AnalyticsTable} with a list of yearly {@link AnalyticsTablePartition}.
+     * Returns a {@link AnalyticsTable} with a list of yearly
+     * {@link AnalyticsTablePartition}.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @return the analytics table with partitions.
@@ -66,7 +67,8 @@ public interface AnalyticsTableManager
     Set<String> getExistingDatabaseTables();
 
     /**
-     * Checks if the database content is in valid state for analytics table generation.
+     * Checks if the database content is in valid state for analytics table
+     * generation.
      *
      * @return null if valid, a descriptive string if invalid.
      */
@@ -80,7 +82,8 @@ public interface AnalyticsTableManager
     void preCreateTables( AnalyticsTableUpdateParams params );
 
     /**
-     * Removes updated and deleted data from tables for "latest" partition update.
+     * Removes updated and deleted data from tables for "latest" partition
+     * update.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param tables the list of {@link AnalyticsTable}.
@@ -104,12 +107,12 @@ public interface AnalyticsTableManager
     Future<?> createIndexesAsync( ConcurrentLinkedQueue<AnalyticsIndex> indexes );
 
     /**
-     * Attempts to drop the analytics table with partitions and rename the temporary
-     * table with partitions as replacement.
+     * Attempts to drop the analytics table with partitions and rename the
+     * temporary table with partitions as replacement.
      * <p>
-     * If this is a partial update and the master table currently exists, the master
-     * table is not swapped and instead the inheritance of the partitions are set to
-     * the existing master table.
+     * If this is a partial update and the master table currently exists, the
+     * master table is not swapped and instead the inheritance of the partitions
+     * are set to the existing master table.
      *
      * @param params the {@link AnalyticsTableUpdateParams}.
      * @param table the analytics table.
@@ -124,7 +127,8 @@ public interface AnalyticsTableManager
      * @param tablePartitions the analytics table partitions.
      * @return a future representing the asynchronous task.
      */
-    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params, ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
+    Future<?> populateTablesAsync( AnalyticsTableUpdateParams params,
+        ConcurrentLinkedQueue<AnalyticsTablePartition> tablePartitions );
 
     /**
      * Invokes analytics table SQL hooks for the table type.
@@ -167,7 +171,8 @@ public interface AnalyticsTableManager
      * given aggregation level.
      *
      * @param partitions the analytics table partitions.
-     * @param dataElements the data element identifiers to apply aggregation levels for.
+     * @param dataElements the data element identifiers to apply aggregation
+     *        levels for.
      * @param aggregationLevel the aggregation level.
      * @return a future representing the asynchronous task.
      */

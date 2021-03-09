@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -55,18 +54,21 @@ public class ReportTemplateController
     private ContextUtils contextUtils;
 
     @RequestMapping( value = "/reportTemplate.xml", method = RequestMethod.GET, produces = "application/xml" )
-    public void getReportDesignJrxml( HttpServletResponse response ) throws Exception
+    public void getReportDesignJrxml( HttpServletResponse response )
+        throws Exception
     {
         serveTemplate( response, ContextUtils.CONTENT_TYPE_XML, "jasper-report-template.jrxml" );
     }
 
     @RequestMapping( value = "/reportTemplate.html", method = RequestMethod.GET, produces = "application/xml" )
-    public void getReportDesignHtml( HttpServletResponse response ) throws Exception
+    public void getReportDesignHtml( HttpServletResponse response )
+        throws Exception
     {
         serveTemplate( response, ContextUtils.CONTENT_TYPE_HTML, "html-report-template.html" );
     }
 
-    private void serveTemplate( HttpServletResponse response, String contentType, String template ) throws IOException
+    private void serveTemplate( HttpServletResponse response, String contentType, String template )
+        throws IOException
     {
         contextUtils.configureResponse( response, contentType, CacheStrategy.CACHE_1_HOUR, template, true );
 

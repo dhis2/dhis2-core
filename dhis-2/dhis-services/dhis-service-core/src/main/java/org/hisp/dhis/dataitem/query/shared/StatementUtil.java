@@ -51,9 +51,9 @@ public class StatementUtil
     public static final String SPACED_AND = " and ";
 
     /**
-     * This method is specific for strings used in "ilike" filters where some non
-     * accepted characters will fail at querying time. It will only replace common
-     * characters by the form accepted in SQL ilike queries.
+     * This method is specific for strings used in "ilike" filters where some
+     * non accepted characters will fail at querying time. It will only replace
+     * common characters by the form accepted in SQL ilike queries.
      *
      * @param value the value where characters will ve replaced.
      * @return the input value with the characters replaced.

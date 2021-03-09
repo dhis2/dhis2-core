@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertEquals;
@@ -73,14 +72,19 @@ public class DashboardServiceTest
     private IdentifiableObjectManager objectManager;
 
     private Dashboard dbA;
+
     private Dashboard dbB;
 
     private DashboardItem diA;
+
     private DashboardItem diB;
+
     private DashboardItem diC;
+
     private DashboardItem diD;
 
     private Visualization vzA;
+
     private Visualization vzB;
 
     private Document dcA;
@@ -220,13 +224,14 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
+            vzA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );
     }
 
-    @Test( expected = DeleteNotAllowedException.class)
+    @Test( expected = DeleteNotAllowedException.class )
     public void testDeleteWithDashboardItem()
     {
         Program prA = createProgram( 'A', null, null );
@@ -245,7 +250,8 @@ public class DashboardServiceTest
 
         dashboardService.saveDashboard( dashboard );
 
-        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART, eventChart.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dashboard.getUid(), DashboardItemType.EVENT_CHART,
+            eventChart.getUid() );
 
         assertNotNull( itemA );
 

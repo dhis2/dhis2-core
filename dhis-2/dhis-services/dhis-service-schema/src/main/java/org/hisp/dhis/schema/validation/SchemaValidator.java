@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.schema.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.feedback.ErrorReport;
+package org.hisp.dhis.schema.validation;
 
 import java.util.List;
+
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -38,25 +37,28 @@ import java.util.List;
 public interface SchemaValidator
 {
     /**
-     * Validate embedded object against its schema, the object is required to be non-null and have a schema associated with it.
+     * Validate embedded object against its schema, the object is required to be
+     * non-null and have a schema associated with it.
      *
-     * @param object      Object to validate
+     * @param object Object to validate
      * @param parentClass Only include persisted properties
-     * @return WebMessage   containing validation response
+     * @return WebMessage containing validation response
      */
     List<ErrorReport> validateEmbeddedObject( Object object, Class<?> parentClass );
 
     /**
-     * Validate object against its schema, the object is required to be non-null and have a schema associated with it.
+     * Validate object against its schema, the object is required to be non-null
+     * and have a schema associated with it.
      *
-     * @param object    Object to validate
+     * @param object Object to validate
      * @param persisted Only include persisted properties
      * @return WebMessage containing validation response
      */
     List<ErrorReport> validate( Object object, boolean persisted );
 
     /**
-     * Validate object against its schema, the object is required to be non-null and have a schema associated with it.
+     * Validate object against its schema, the object is required to be non-null
+     * and have a schema associated with it.
      * <p>
      * Only persisted values will be checked.
      *

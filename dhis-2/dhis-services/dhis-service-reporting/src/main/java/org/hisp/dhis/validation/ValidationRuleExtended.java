@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,14 +36,14 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 /**
  * Holds information for each validation rule that is needed during a validation
  * run (either interactive or a scheduled run).
- * 
+ *
  * By computing these values once at the start of a validation run, we avoid the
  * overhead of having to compute them during the processing of every
  * organisation unit. For some of these properties this is also important
  * because they should be copied from Hibernate lazy collections before the
  * multi-threaded part of the run starts, otherwise the threads may not be able
  * to access these values.
- * 
+ *
  * @author Jim Grace
  */
 public class ValidationRuleExtended

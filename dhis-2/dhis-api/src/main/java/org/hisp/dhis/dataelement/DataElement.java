@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,19 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -60,16 +63,13 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.TranslationProperty;
 import org.joda.time.DateTime;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 /**
  * A DataElement is a definition (meta-information about) of the entities that
@@ -83,10 +83,12 @@ import static org.hisp.dhis.dataset.DataSet.NO_EXPIRY;
  * @author Kristian Nordal
  */
 @JacksonXmlRootElement( localName = "dataElement", namespace = DxfNamespaces.DXF_2_0 )
-public class DataElement extends BaseDimensionalItemObject
+public class DataElement
+    extends BaseDimensionalItemObject
     implements MetadataObject, ValueTypedDimensionalItemObject
 {
-    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
+    public static final String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(),
+        TranslationProperty.SHORT_NAME.getName(),
         TranslationProperty.DESCRIPTION.getName(), TranslationProperty.FORM_NAME.getName() };
 
     /**
@@ -159,8 +161,8 @@ public class DataElement extends BaseDimensionalItemObject
     private ObjectStyle style;
 
     /**
-     * Field mask represent how the value should be formatted during input. This string will
-     * be validated as a TextPatternSegment of type TEXT.
+     * Field mask represent how the value should be formatted during input. This
+     * string will be validated as a TextPatternSegment of type TEXT.
      */
     private String fieldMask;
 
@@ -222,7 +224,7 @@ public class DataElement extends BaseDimensionalItemObject
      */
     public Set<CategoryCombo> getCategoryCombos()
     {
-        return ImmutableSet.<CategoryCombo>builder()
+        return ImmutableSet.<CategoryCombo> builder()
             .addAll( dataSetElements.stream()
                 .filter( DataSetElement::hasCategoryCombo )
                 .map( DataSetElement::getCategoryCombo )
@@ -282,7 +284,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Indicates whether the value type of this data element is a file (externally stored resource)
+     * Indicates whether the value type of this data element is a file
+     * (externally stored resource)
      */
     public boolean isFileType()
     {
@@ -342,9 +345,9 @@ public class DataElement extends BaseDimensionalItemObject
 
     /**
      * Returns the PeriodType of the DataElement, based on the PeriodType of the
-     * DataSet which the DataElement is associated with. If this data element has
-     * multiple data sets, the data set with the highest collection frequency is
-     * returned.
+     * DataSet which the DataElement is associated with. If this data element
+     * has multiple data sets, the data set with the highest collection
+     * frequency is returned.
      */
     public PeriodType getPeriodType()
     {
@@ -354,8 +357,8 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Returns the PeriodTypes of the DataElement, based on the PeriodType of the
-     * DataSets which the DataElement is associated with.
+     * Returns the PeriodTypes of the DataElement, based on the PeriodType of
+     * the DataSets which the DataElement is associated with.
      */
     public Set<PeriodType> getPeriodTypes()
     {
@@ -363,9 +366,9 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Indicates whether this data element requires approval of data. Returns true
-     * if only one of the data sets associated with this data element requires
-     * approval.
+     * Indicates whether this data element requires approval of data. Returns
+     * true if only one of the data sets associated with this data element
+     * requires approval.
      */
     public boolean isApproveData()
     {
@@ -515,14 +518,15 @@ public class DataElement extends BaseDimensionalItemObject
      * with this data element.
      *
      * @param period the period.
-     * @param now    the date used as basis.
+     * @param now the date used as basis.
      * @return true or false.
      */
     public boolean isExpired( Period period, Date now )
     {
         int expiryDays = getExpiryDays();
 
-        return expiryDays != DataSet.NO_EXPIRY && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
+        return expiryDays != DataSet.NO_EXPIRY
+            && new DateTime( period.getEndDate() ).plusDays( expiryDays ).isBefore( new DateTime( now ) );
     }
 
     /**
@@ -560,7 +564,7 @@ public class DataElement extends BaseDimensionalItemObject
     // DimensionalItemObject
     // -------------------------------------------------------------------------
 
-    //TODO can also be dimension
+    // TODO can also be dimension
 
     @Override
     public DimensionItemType getDimensionItemType()
@@ -588,7 +592,7 @@ public class DataElement extends BaseDimensionalItemObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ValueType getValueType()
     {
-        //TODO return optionSet != null ? optionSet.getValueType() : valueType;
+        // TODO return optionSet != null ? optionSet.getValueType() : valueType;
         return valueType;
     }
 
@@ -725,11 +729,13 @@ public class DataElement extends BaseDimensionalItemObject
     }
 
     /**
-     * Checks if the combination of period and date is allowed for any of the dataSets associated with the dataElement
+     * Checks if the combination of period and date is allowed for any of the
+     * dataSets associated with the dataElement
      *
      * @param period period to check
-     * @param date   date to check
-     * @return true if no dataSets exists, or at least one dataSet has a valid DataInputPeriod for the period and date.
+     * @param date date to check
+     * @return true if no dataSets exists, or at least one dataSet has a valid
+     *         DataInputPeriod for the period and date.
      */
     public boolean isDataInputAllowedForPeriodAndDate( Period period, Date date )
     {

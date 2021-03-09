@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.filter;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -68,14 +67,15 @@ public class FilterUtils
     }
 
     /**
-     * Filters the given collection using the given {@link Filter} retaining only
-     * items which does NOT pass the filter evaluation.
+     * Filters the given collection using the given {@link Filter} retaining
+     * only items which does NOT pass the filter evaluation.
      *
      * @param <T> type.
      * @param collection the {@link Collection}.
      * @param filter the filter.
      * @param <V> the type of the collection members.
-     * @return the inverse filtered collection, null if any input parameter is null.
+     * @return the inverse filtered collection, null if any input parameter is
+     *         null.
      */
     public static <T extends Collection<V>, V> T inverseFilter( T collection, Filter<V> filter )
     {

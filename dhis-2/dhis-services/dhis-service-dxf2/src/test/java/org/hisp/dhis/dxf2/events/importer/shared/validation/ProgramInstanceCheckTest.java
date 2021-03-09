@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
@@ -129,7 +128,8 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-            "Tracked entity instance: " + tei.getUid() + " has multiple active enrollments in program: " + program.getUid() );
+            "Tracked entity instance: " + tei.getUid() + " has multiple active enrollments in program: "
+                + program.getUid() );
     }
 
     @Test
@@ -160,7 +160,7 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         ProgramInstance programInstance1 = new ProgramInstance();
         ProgramInstance programInstance2 = new ProgramInstance();
         when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
-                .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
+            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
 
         event.setProgram( programNoReg.getUid() );
 
@@ -169,6 +169,6 @@ public class ProgramInstanceCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-                "Multiple active program instances exists for program: " + programNoReg.getUid() );
+            "Multiple active program instances exists for program: " + programNoReg.getUid() );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataintegrity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataintegrity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.hamcrest.Matchers.*;
@@ -63,13 +62,13 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionService;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.program.ProgramIndicatorService;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.validation.ValidationRuleService;
 import org.junit.Before;
@@ -86,6 +85,7 @@ import org.mockito.junit.MockitoRule;
 public class DataIntegrityServiceTest
 {
     private static final String INVALID_EXPRESSION = "INVALID_EXPRESSION";
+
     @Mock
     private I18nManager i18nManager;
 
@@ -105,6 +105,7 @@ public class DataIntegrityServiceTest
     private OrganisationUnitGroupService organisationUnitGroupService;
 
     private DataElement elementA;
+
     private DataElement elementB;
 
     @Mock
@@ -146,30 +147,43 @@ public class DataIntegrityServiceTest
     private IndicatorType indicatorTypeA;
 
     private Indicator indicatorA;
+
     private Indicator indicatorB;
+
     private Indicator indicatorC;
 
     private IndicatorGroup indicatorGroupA;
 
     private DataSet dataSetA;
+
     private DataSet dataSetB;
 
     private OrganisationUnit unitA;
+
     private OrganisationUnit unitB;
+
     private OrganisationUnit unitC;
+
     private OrganisationUnit unitD;
+
     private OrganisationUnit unitE;
+
     private OrganisationUnit unitF;
+
     private List<OrganisationUnit> allOrgUnits;
 
     private OrganisationUnitGroup unitGroupA;
+
     private OrganisationUnitGroup unitGroupB;
+
     private OrganisationUnitGroup unitGroupC;
 
     private Program programA;
+
     private Program programB;
 
     private ProgramRule programRuleA;
+
     private ProgramRule programRuleB;
 
     private ProgramRuleVariable programRuleVariableA;
@@ -190,7 +204,6 @@ public class DataIntegrityServiceTest
     // -------------------------------------------------------------------------
     // Fixture
     // -------------------------------------------------------------------------
-
 
     private void setUpFixtures()
     {
@@ -220,7 +233,7 @@ public class DataIntegrityServiceTest
         unitE = createOrganisationUnit( 'E', unitD );
         unitF = createOrganisationUnit( 'F' );
         unitA.setParent( unitC );
-        allOrgUnits = newArrayList(unitA, unitB, unitC, unitD, unitE, unitF);
+        allOrgUnits = newArrayList( unitA, unitB, unitC, unitD, unitE, unitF );
 
         dataSetA = createDataSet( 'A', new MonthlyPeriodType() );
         dataSetB = createDataSet( 'B', new QuarterlyPeriodType() );
@@ -292,48 +305,48 @@ public class DataIntegrityServiceTest
     public void testGetDataElementsWithoutDataSet()
     {
         subject.getDataElementsWithoutDataSet();
-        verify(dataElementService).getDataElementsWithoutDataSets();
-        verifyNoMoreInteractions(dataElementService);
+        verify( dataElementService ).getDataElementsWithoutDataSets();
+        verifyNoMoreInteractions( dataElementService );
     }
 
     @Test
     public void testGetDataElementsWithoutGroups()
     {
         subject.getDataElementsWithoutGroups();
-        verify(dataElementService).getDataElementsWithoutGroups();
-        verifyNoMoreInteractions(dataElementService);
+        verify( dataElementService ).getDataElementsWithoutGroups();
+        verifyNoMoreInteractions( dataElementService );
     }
 
     @Test
     public void testGetDataElementsAssignedToDataSetsWithDifferentPeriodType()
     {
         String seed = "abcde";
-        Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
+        Map<String, DataElement> dataElements = createRandomDataElements( 6, seed );
 
         DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
         dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 1) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 2) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 3) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 4) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 1 ) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 2 ) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 3 ) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 4 ) );
 
         DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
         dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 4) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 5) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 6) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 1) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 4 ) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 5 ) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 6 ) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 1 ) );
 
-        when( dataElementService.getAllDataElements() ).thenReturn(new ArrayList<>(dataElements.values()));
+        when( dataElementService.getAllDataElements() ).thenReturn( new ArrayList<>( dataElements.values() ) );
         when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
 
         SortedMap<DataElement, Collection<DataSet>> result = subject
             .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
 
-        assertThat( result.get( dataElements.get(seed + 4) ), hasSize( 2 ) );
-        assertThat( result.get( dataElements.get(seed + 1) ), hasSize( 2 ) );
-        assertThat( result.get( dataElements.get(seed + 4) ), containsInAnyOrder( dataSet1, dataSet2 ) );
-        assertThat( result.get( dataElements.get(seed + 1) ), containsInAnyOrder( dataSet1, dataSet2 ) );
+        assertThat( result.get( dataElements.get( seed + 4 ) ), hasSize( 2 ) );
+        assertThat( result.get( dataElements.get( seed + 1 ) ), hasSize( 2 ) );
+        assertThat( result.get( dataElements.get( seed + 4 ) ), containsInAnyOrder( dataSet1, dataSet2 ) );
+        assertThat( result.get( dataElements.get( seed + 1 ) ), containsInAnyOrder( dataSet1, dataSet2 ) );
     }
 
     @Test
@@ -341,85 +354,84 @@ public class DataIntegrityServiceTest
     {
 
         String seed = "abcde";
-        Map<String, DataElement> dataElements = createRandomDataElements(6, seed);
+        Map<String, DataElement> dataElements = createRandomDataElements( 6, seed );
 
         DataSet dataSet1 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
         dataSet1.setPeriodType( PeriodType.getPeriodTypeFromIsoString( "2011" ) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 1) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 2) );
-        dataSet1.addDataSetElement( dataElements.get(seed + 3) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 1 ) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 2 ) );
+        dataSet1.addDataSetElement( dataElements.get( seed + 3 ) );
 
         DataSet dataSet2 = rnd.randomObject( DataSet.class, "periodType", "workflow" );
         dataSet2.setPeriodType( PeriodType.getByIndex( 5 ) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 4) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 5) );
-        dataSet2.addDataSetElement( dataElements.get(seed + 6) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 4 ) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 5 ) );
+        dataSet2.addDataSetElement( dataElements.get( seed + 6 ) );
 
-        when( dataElementService.getAllDataElements() ).thenReturn(new ArrayList<>(dataElements.values()));
+        when( dataElementService.getAllDataElements() ).thenReturn( new ArrayList<>( dataElements.values() ) );
         when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSet1, dataSet2 ) );
 
         SortedMap<DataElement, Collection<DataSet>> result = subject
-                .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
-        assertThat(result.keySet(), hasSize(0));
+            .getDataElementsAssignedToDataSetsWithDifferentPeriodTypes();
+        assertThat( result.keySet(), hasSize( 0 ) );
     }
-
 
     @Test
     public void testGetDataSetsNotAssignedToOrganisationUnits()
     {
-        when(dataSetService.getAllDataSets()).thenReturn(newArrayList(dataSetA, dataSetB));
+        when( dataSetService.getAllDataSets() ).thenReturn( newArrayList( dataSetA, dataSetB ) );
         Collection<DataSet> expected = subject.getDataSetsNotAssignedToOrganisationUnits();
-        assertThat(expected, hasSize(1));
-        assertThat(expected, hasItem(dataSetB));
+        assertThat( expected, hasSize( 1 ) );
+        assertThat( expected, hasItem( dataSetB ) );
     }
 
     @Test
     public void testGetIndicatorsWithIdenticalFormulas()
     {
-        when(indicatorService.getAllIndicators()).thenReturn(newArrayList(indicatorA, indicatorB, indicatorC));
+        when( indicatorService.getAllIndicators() ).thenReturn( newArrayList( indicatorA, indicatorB, indicatorC ) );
         Set<Set<Indicator>> expected = subject.getIndicatorsWithIdenticalFormulas();
 
         Collection<Indicator> violation = expected.iterator().next();
-        assertThat(expected, hasSize(1));
-        assertThat(violation, hasSize(2));
-        assertThat(violation, hasItem(indicatorB));
-        assertThat(violation, hasItem(indicatorC));
+        assertThat( expected, hasSize( 1 ) );
+        assertThat( violation, hasSize( 2 ) );
+        assertThat( violation, hasItem( indicatorB ) );
+        assertThat( violation, hasItem( indicatorC ) );
     }
 
     @Test
     public void testGetIndicatorsWithoutGroups()
     {
         subject.getIndicatorsWithoutGroups();
-        verify(indicatorService).getIndicatorsWithoutGroups();
-        verifyNoMoreInteractions(dataElementService);
+        verify( indicatorService ).getIndicatorsWithoutGroups();
+        verifyNoMoreInteractions( dataElementService );
     }
 
     @Test
     public void testGetOrganisationUnitsWithCyclicReferences()
     {
-        when(organisationUnitService.getAllOrganisationUnits()).thenReturn(allOrgUnits);
+        when( organisationUnitService.getAllOrganisationUnits() ).thenReturn( allOrgUnits );
 
         Collection<OrganisationUnit> expected = subject.getOrganisationUnitsWithCyclicReferences();
-        assertThat(expected, hasSize(3));
-        assertThat(expected, hasItems(unitA, unitB, unitC));
+        assertThat( expected, hasSize( 3 ) );
+        assertThat( expected, hasItems( unitA, unitB, unitC ) );
     }
 
     @Test
     public void testGetOrphanedOrganisationUnits()
     {
-        when(organisationUnitService.getAllOrganisationUnits()).thenReturn(allOrgUnits);
+        when( organisationUnitService.getAllOrganisationUnits() ).thenReturn( allOrgUnits );
 
         Collection<OrganisationUnit> expected = subject.getOrphanedOrganisationUnits();
-        assertThat(expected, hasSize(1));
-        assertThat(expected, hasItem(unitF));
+        assertThat( expected, hasSize( 1 ) );
+        assertThat( expected, hasItem( unitF ) );
     }
 
     @Test
     public void testGetOrganisationUnitsWithoutGroups()
     {
         subject.getOrganisationUnitsWithoutGroups();
-        verify(organisationUnitService).getOrganisationUnitsWithoutGroups();
-        verifyNoMoreInteractions(organisationUnitService);
+        verify( organisationUnitService ).getOrganisationUnitsWithoutGroups();
+        verifyNoMoreInteractions( organisationUnitService );
     }
 
     @Test
@@ -443,7 +455,8 @@ public class DataIntegrityServiceTest
     {
         programRuleVariableA.setProgram( programA );
 
-        when( programRuleVariableService.getVariablesWithNoDataElement() ).thenReturn( Arrays.asList( programRuleVariableA ) );
+        when( programRuleVariableService.getVariablesWithNoDataElement() )
+            .thenReturn( Arrays.asList( programRuleVariableA ) );
 
         Map<Program, Collection<ProgramRuleVariable>> actual = subject.getProgramRuleVariablesWithNoDataElement();
 
@@ -460,7 +473,8 @@ public class DataIntegrityServiceTest
     {
         programRuleActionA.setProgramRule( programRuleA );
 
-        when( programRuleActionService.getProgramActionsWithNoLinkToDataObject() ).thenReturn( Arrays.asList( programRuleActionA ) );
+        when( programRuleActionService.getProgramActionsWithNoLinkToDataObject() )
+            .thenReturn( Arrays.asList( programRuleActionA ) );
 
         Map<ProgramRule, Collection<ProgramRuleAction>> actual = subject.getProgramRuleActionsWithNoDataObject();
 
@@ -483,7 +497,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
-            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
+            .thenThrow( new ParserException( INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorExpressions();
 
@@ -504,7 +518,7 @@ public class DataIntegrityServiceTest
         when( programIndicatorService.getAllProgramIndicators() ).thenReturn( Arrays.asList( programIndicator ) );
 
         when( expressionService.getExpressionDescription( anyString(), any() ) )
-            .thenThrow( new ParserException(  INVALID_EXPRESSION ) );
+            .thenThrow( new ParserException( INVALID_EXPRESSION ) );
 
         Map<ProgramIndicator, String> invalidExpressions = subject.getInvalidProgramIndicatorFilters();
 
@@ -531,12 +545,13 @@ public class DataIntegrityServiceTest
         assertTrue( invalidExpressions.isEmpty() );
     }
 
-    private Map<String, DataElement> createRandomDataElements(int quantity, String uidSeed) {
+    private Map<String, DataElement> createRandomDataElements( int quantity, String uidSeed )
+    {
 
-        return IntStream.range( 1, quantity + 1 ).mapToObj(i -> {
+        return IntStream.range( 1, quantity + 1 ).mapToObj( i -> {
             DataElement d = rnd.randomObject( DataElement.class );
             d.setUid( uidSeed + i );
             return d;
-        } ).collect( Collectors.toMap(DataElement::getUid, Function.identity()) );
+        } ).collect( Collectors.toMap( DataElement::getUid, Function.identity() ) );
     }
 }

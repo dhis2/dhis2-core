@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,15 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import static java.util.stream.Collectors.toList;
 
 import java.sql.PreparedStatement;
 import java.util.List;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,9 +44,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
-
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -78,7 +77,8 @@ public class JdbcEventCommentStore implements EventCommentStore
     {
         try
         {
-            // List of PSI that has at least one non empty comment (i.e. PSI having comments
+            // List of PSI that has at least one non empty comment (i.e. PSI
+            // having comments
             // that can actually be saved)
             // In resulting PSI list, all comments without text are removed.
             List<ProgramStageInstance> programStageInstances = batch.stream()
@@ -117,7 +117,8 @@ public class JdbcEventCommentStore implements EventCommentStore
     {
         if ( psi.getId() > 0 )
         {
-            // if the PSI is already in the db, fetch the latest sort order for the
+            // if the PSI is already in the db, fetch the latest sort order for
+            // the
             // notes, to avoid conflicts
             return jdbcTemplate.queryForObject(
                 "select coalesce(max(sort_order) + 1, 1) from programstageinstancecomments where programstageinstanceid = "

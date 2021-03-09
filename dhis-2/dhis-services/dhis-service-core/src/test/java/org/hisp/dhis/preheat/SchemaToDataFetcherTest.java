@@ -1,7 +1,5 @@
-package org.hisp.dhis.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.preheat;
 
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -61,10 +60,11 @@ import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
 import com.google.common.collect.Lists;
+
 /**
  * @author Luciano Fiandesio
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings( "unchecked" )
 public class SchemaToDataFetcherTest extends DhisConvenienceTest
 {
     private SchemaToDataFetcher subject;
@@ -81,7 +81,6 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
-
     @Before
     public void setUp()
     {
@@ -92,21 +91,20 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     @Test
     public void verifyInput()
     {
-        assertThat(subject.fetch( null ), hasSize(0));
+        assertThat( subject.fetch( null ), hasSize( 0 ) );
     }
 
     @Test
     public void verifyUniqueFieldsAreMappedToHibernateObject()
     {
-       Schema schema = createSchema( DataElement.class, "dataElement",
-           Stream.of(
-            createUniqueProperty( Integer.class, "id", true, true ),
-            createProperty( String.class, "name", true, true ),
-            createUniqueProperty( String.class, "code", true, true ),
-            createProperty( Date.class, "created", true, true ),
-            createProperty( Date.class, "lastUpdated", true, true ),
-            createProperty( Integer.class, "int", true, true )).collect(toList())
-       );
+        Schema schema = createSchema( DataElement.class, "dataElement",
+            Stream.of(
+                createUniqueProperty( Integer.class, "id", true, true ),
+                createProperty( String.class, "name", true, true ),
+                createUniqueProperty( String.class, "code", true, true ),
+                createProperty( Date.class, "created", true, true ),
+                createProperty( Date.class, "lastUpdated", true, true ),
+                createProperty( Integer.class, "int", true, true ) ).collect( toList() ) );
 
         mockSession( "SELECT code,id from " + schema.getKlass().getSimpleName() );
 
@@ -125,17 +123,13 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
             allOf(
                 hasProperty( "code", is( "abc" ) ),
-                hasProperty( "id", is( 123456L ) )
-            ),
+                hasProperty( "id", is( 123456L ) ) ),
             allOf(
                 hasProperty( "code", is( "bce" ) ),
-                hasProperty( "id", is( 123888L ) )
-            ),
+                hasProperty( "id", is( 123888L ) ) ),
             allOf(
                 hasProperty( "code", is( "def" ) ),
-                hasProperty( "id", is( 123999L ) )
-            )
-        ) );
+                hasProperty( "id", is( 123999L ) ) ) ) );
     }
 
     @Test
@@ -144,8 +138,7 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         Schema schema = createSchema( DummyDataElement.class, "dummyDataElement",
             Stream.of(
                 createUniqueProperty( String.class, "url", true, true ),
-                createUniqueProperty( String.class, "code", true, true )).collect(toList())
-        );
+                createUniqueProperty( String.class, "code", true, true ) ).collect( toList() ) );
 
         mockSession( "SELECT code,url from " + schema.getKlass().getSimpleName() );
 
@@ -163,14 +156,11 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
 
         assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
             allOf(
-                    hasProperty( "code", is( "def" ) ),
-                    hasProperty( "url", is( "http://also-ok" ) )
-            ),
+                hasProperty( "code", is( "def" ) ),
+                hasProperty( "url", is( "http://also-ok" ) ) ),
             allOf(
-                    hasProperty( "code", is( "abc" ) ),
-                    hasProperty( "url", is( "http://ok" ) )
-            )
-        ) );
+                hasProperty( "code", is( "abc" ) ),
+                hasProperty( "url", is( "http://ok" ) ) ) ) );
     }
 
     @Test
@@ -180,16 +170,15 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
             Stream.of(
                 createProperty( String.class, "name", true, true ),
                 createUniqueProperty( String.class, "url", true, true ),
-                createProperty( String.class, "code", true, true )).collect(toList())
-        );
+                createProperty( String.class, "code", true, true ) ).collect( toList() ) );
 
         mockSession( "SELECT url from " + schema.getKlass().getSimpleName() );
 
         List<Object> l = new ArrayList();
 
-        l.add(  "http://ok"  );
-        l.add(  "http://is-ok"  );
-        l.add(  "http://also-ok"  );
+        l.add( "http://ok" );
+        l.add( "http://is-ok" );
+        l.add( "http://also-ok" );
 
         when( query.getResultList() ).thenReturn( l );
 
@@ -198,17 +187,12 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         assertThat( result, hasSize( 3 ) );
 
         assertThat( result, IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf(
-                        hasProperty( "url", is( "http://also-ok" ) )
-                ),
-                allOf(
-                        hasProperty( "url", is( "http://ok" ) )
-                ),
-                allOf(
-                        hasProperty( "url", is( "http://is-ok" ) )
-                )
-        ) );
-
+            allOf(
+                hasProperty( "url", is( "http://also-ok" ) ) ),
+            allOf(
+                hasProperty( "url", is( "http://ok" ) ) ),
+            allOf(
+                hasProperty( "url", is( "http://is-ok" ) ) ) ) );
 
     }
 
@@ -226,10 +210,9 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
     public void verifyNoSqlWhenNoUniquePropertyExist()
     {
         Schema schema = createSchema( SMSCommand.class, "smsCommand",
-                Stream.of(
-                        createProperty( String.class, "name", true, true ),
-                        createProperty( String.class, "id", true, true ) ).collect( toList() )
-        );
+            Stream.of(
+                createProperty( String.class, "name", true, true ),
+                createProperty( String.class, "id", true, true ) ).collect( toList() ) );
 
         subject.fetch( schema );
 
@@ -242,8 +225,8 @@ public class SchemaToDataFetcherTest extends DhisConvenienceTest
         when( query.setReadOnly( true ) ).thenReturn( query );
     }
 
-    private Schema createSchema(Class<? extends IdentifiableObject> klass, String singularName,
-                               List<Property> properties )
+    private Schema createSchema( Class<? extends IdentifiableObject> klass, String singularName,
+        List<Property> properties )
     {
         Schema schema = new Schema( klass, singularName, singularName + "s" );
 

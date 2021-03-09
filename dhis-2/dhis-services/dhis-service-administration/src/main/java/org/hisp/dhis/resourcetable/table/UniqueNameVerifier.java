@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +25,27 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
-import org.hisp.dhis.common.BaseDimensionalObject;
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.hisp.dhis.system.util.SqlUtils.quote;
+import org.hisp.dhis.common.BaseDimensionalObject;
 
 /**
  * @author Luciano Fiandesio
  */
-public class UniqueNameVerifier {
+public class UniqueNameVerifier
+{
 
     protected List<String> columnNames = new ArrayList<>();
 
     /**
-     * Returns the short name in quotes for the given {@see BaseDimensionalObject}, ensuring
-     * that the short name is unique across the list of BaseDimensionalObject this
-     * class operates on
+     * Returns the short name in quotes for the given
+     * {@see BaseDimensionalObject}, ensuring that the short name is unique
+     * across the list of BaseDimensionalObject this class operates on
      *
      * @param baseDimensionalObject a {@see BaseDimensionalObject}
      * @return a unique, quoted short name
@@ -53,7 +53,7 @@ public class UniqueNameVerifier {
     protected String ensureUniqueShortName( BaseDimensionalObject baseDimensionalObject )
     {
         String columnName = quote( baseDimensionalObject.getShortName()
-                + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
+            + (columnNames.contains( baseDimensionalObject.getShortName() ) ? columnNames.size() : "") );
 
         this.columnNames.add( baseDimensionalObject.getShortName() );
 
@@ -61,8 +61,8 @@ public class UniqueNameVerifier {
     }
 
     /**
-     * Returns the name in quotes, ensuring
-     * that the name is unique across the list of objects this class operates on
+     * Returns the name in quotes, ensuring that the name is unique across the
+     * list of objects this class operates on
      *
      * @param name a String
      * @return a unique, quoted name

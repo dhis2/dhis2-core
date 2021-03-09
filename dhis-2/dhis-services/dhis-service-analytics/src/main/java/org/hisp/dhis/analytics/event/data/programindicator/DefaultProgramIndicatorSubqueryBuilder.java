@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data.programindicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data.programindicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -77,21 +76,24 @@ public class DefaultProgramIndicatorSubqueryBuilder
     public String getAggregateClauseForProgramIndicator( ProgramIndicator programIndicator,
         RelationshipType relationshipType, AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
     {
-        return getAggregateClauseForPIandRelationshipType( programIndicator, relationshipType, outerSqlEntity, earliestStartDate, latestDate );
+        return getAggregateClauseForPIandRelationshipType( programIndicator, relationshipType, outerSqlEntity,
+            earliestStartDate, latestDate );
     }
 
     /**
-     * Generate a subquery based on the result of a Program Indicator and an (optional) Relationship Type
+     * Generate a subquery based on the result of a Program Indicator and an
+     * (optional) Relationship Type
      *
      * @param programIndicator a {@see ProgramIndicator} object
      * @param relationshipType an optional {@see RelationshipType} object
-     * @param outerSqlEntity a {@see AnalyticsType} object, representing the outer sql context
+     * @param outerSqlEntity a {@see AnalyticsType} object, representing the
+     *        outer sql context
      * @param earliestStartDate reporting start date
      * @param latestDate reporting end date
-     *
      * @return a String containing a Program Indicator sub-query
      */
-    private String getAggregateClauseForPIandRelationshipType( ProgramIndicator programIndicator, RelationshipType relationshipType,
+    private String getAggregateClauseForPIandRelationshipType( ProgramIndicator programIndicator,
+        RelationshipType relationshipType,
         AnalyticsType outerSqlEntity, Date earliestStartDate, Date latestDate )
     {
         // Define aggregation function (avg, sum, ...) //
@@ -99,7 +101,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
             AggregationType.CUSTOM.getValue() );
 
         // Get sql construct from Program indicator expression //
-        String aggregateSql = getPrgIndSql( programIndicator.getExpression(), programIndicator, earliestStartDate, latestDate );
+        String aggregateSql = getPrgIndSql( programIndicator.getExpression(), programIndicator, earliestStartDate,
+            latestDate );
 
         // closes the function parenthesis ( avg( ... ) )
         aggregateSql += ")";
@@ -113,7 +116,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
         // Get WHERE condition from Program indicator filter
         if ( !Strings.isNullOrEmpty( programIndicator.getFilter() ) )
         {
-            aggregateSql += " AND " + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
+            aggregateSql += " AND "
+                + getPrgIndSql( programIndicator.getFilter(), programIndicator, earliestStartDate, latestDate );
         }
 
         return "(SELECT " + function + " (" + aggregateSql + ")";
@@ -132,13 +136,11 @@ public class DefaultProgramIndicatorSubqueryBuilder
      * Rules:
      *
      * 1) outer = event | inner = enrollment -> pi = ax.pi (enrollment is the
-     * enrollmennt linked to the inline event)
-     * 2) outer = enrollment | inner = event -> pi = ax.pi
-     * 3) outer = event | inner = event -> psi = ax.psi (inner operate
-     * on same event as outer)
-     * 4) outer = enrollemnt | inner = enrollment -> pi =
-     * ax.pi (enrollment operates on the same enrollment as outer)
-     * 5) if RelationshipType, call the RelationshipTypeJoinGenerator
+     * enrollmennt linked to the inline event) 2) outer = enrollment | inner =
+     * event -> pi = ax.pi 3) outer = event | inner = event -> psi = ax.psi
+     * (inner operate on same event as outer) 4) outer = enrollemnt | inner =
+     * enrollment -> pi = ax.pi (enrollment operates on the same enrollment as
+     * outer) 5) if RelationshipType, call the RelationshipTypeJoinGenerator
      *
      * @param outerSqlEntity the outer sql type (enrollment or event)
      * @param pi a Program Indicator object
@@ -150,7 +152,8 @@ public class DefaultProgramIndicatorSubqueryBuilder
         String condition = "";
         if ( relationshipType != null )
         {
-            condition = RelationshipTypeJoinGenerator.generate( SUBQUERY_TABLE_ALIAS, relationshipType, pi.getAnalyticsType() );
+            condition = RelationshipTypeJoinGenerator.generate( SUBQUERY_TABLE_ALIAS, relationshipType,
+                pi.getAnalyticsType() );
         }
         else
         {

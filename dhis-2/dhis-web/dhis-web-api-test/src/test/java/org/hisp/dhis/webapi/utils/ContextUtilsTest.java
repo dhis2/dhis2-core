@@ -1,6 +1,5 @@
-package org.hisp.dhis.webapi.utils;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.webapi.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.utils;
 
 import static java.time.ZonedDateTime.now;
 import static java.time.temporal.ChronoUnit.DAYS;
@@ -139,7 +139,8 @@ public class ContextUtilsTest
         assertEquals( "max-age=" + CACHE_6AM_TOMORROW.toSeconds() + ", public", response.getHeader( "Cache-Control" ) );
 
         response.reset();
-        systemSettingManager.saveSystemSetting( CACHE_STRATEGY, getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
+        systemSettingManager.saveSystemSetting( CACHE_STRATEGY,
+            getAsRealClass( CACHE_STRATEGY.getName(), CACHE_1_HOUR.toString() ) );
         contextUtils.configureResponse( response, null, RESPECT_SYSTEM_SETTING, null, false );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
@@ -193,7 +194,8 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, 10 );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false, params.getLatestEndDate() );
+        contextUtils.configureAnalyticsResponse( response, null, overriddenCacheStrategy, null, false,
+            params.getLatestEndDate() );
         assertEquals( "max-age=3600, public", response.getHeader( "Cache-Control" ) );
     }
 
@@ -219,8 +221,9 @@ public class ContextUtilsTest
         systemSettingManager.saveSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR, ttlFactor );
 
         response.reset();
-        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false, params.getLatestEndDate() );
-        assertEquals( "max-age=" + timeToLive +", public", response.getHeader( "Cache-Control" ) );
+        contextUtils.configureAnalyticsResponse( response, null, respectSystemSetting, null, false,
+            params.getLatestEndDate() );
+        assertEquals( "max-age=" + timeToLive + ", public", response.getHeader( "Cache-Control" ) );
     }
 
     @Test

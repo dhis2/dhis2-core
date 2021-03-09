@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.is;
@@ -101,8 +100,8 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case1( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 2: Event has 'attributeOptionCombo' value set, but it's not found ->
-         * fetch default coc
+         * Case 2: Event has 'attributeOptionCombo' value set, but it's not
+         * found -> fetch default coc
          */
         case2( ImportOptions.getDefaultImportOptions() );
 
@@ -112,14 +111,15 @@ public class CategoryOptionComboSupplierTest extends AbstractSupplierTest<Catego
         case3( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 4: Event has no 'attributeCategoryOptions' or 'attributeOptionCombo'
-         * values set -> fetch default coc
+         * Case 4: Event has no 'attributeCategoryOptions' or
+         * 'attributeOptionCombo' values set -> fetch default coc
          */
         case4( ImportOptions.getDefaultImportOptions() );
 
         /*
-         * Case 5: Event has both 'attributeCategoryOptions' and 'attributeOptionCombo'
-         * values set attributeOptionCombo is used to fetch the coc
+         * Case 5: Event has both 'attributeCategoryOptions' and
+         * 'attributeOptionCombo' values set attributeOptionCombo is used to
+         * fetch the coc
          */
         case5( ImportOptions.getDefaultImportOptions() );
     }

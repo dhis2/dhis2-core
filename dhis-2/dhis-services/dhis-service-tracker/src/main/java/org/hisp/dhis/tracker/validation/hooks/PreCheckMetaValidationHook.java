@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -48,8 +48,6 @@ import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
-
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -228,7 +226,8 @@ public class PreCheckMetaValidationHook
 
     private Program fetchProgramFromProgramStage( Event event, TrackerBundle bundle, ProgramStage programStage )
     {
-        Program program;// We use a little trick here to put a program into the event and bundle
+        Program program;// We use a little trick here to put a program into the
+        // event and bundle
         // if program is missing from event but exists on the program stage.
         // TODO: This trick mutates the data, try to avoid this...
         program = programStage.getProgram();

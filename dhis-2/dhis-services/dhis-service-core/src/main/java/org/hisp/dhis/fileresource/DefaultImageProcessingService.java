@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -36,13 +35,13 @@ import java.util.Map;
 
 import javax.imageio.ImageIO;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.imgscalr.Scalr;
 import org.springframework.stereotype.Service;
 
 import com.google.common.collect.ImmutableMap;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @Author Zubair Asghar.
@@ -101,7 +100,8 @@ public class DefaultImageProcessingService implements ImageProcessingService
 
     private BufferedImage resize( BufferedImage image, ImageSize dimensions )
     {
-        return Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_TO_WIDTH, dimensions.width, dimensions.height );
+        return Scalr.resize( image, Scalr.Method.BALANCED, Scalr.Mode.FIT_TO_WIDTH, dimensions.width,
+            dimensions.height );
     }
 
     private boolean isInputValid( FileResource fileResource, File file )
@@ -114,7 +114,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
 
         if ( file.exists() )
         {
-            try ( InputStream is = new BufferedInputStream( new FileInputStream( file ) ))
+            try ( InputStream is = new BufferedInputStream( new FileInputStream( file ) ) )
             {
                 String mimeType = URLConnection.guessContentTypeFromStream( is );
                 return FileResource.IMAGE_CONTENT_TYPES.contains( mimeType );
@@ -135,6 +135,7 @@ public class DefaultImageProcessingService implements ImageProcessingService
     private static class ImageSize
     {
         int width;
+
         int height;
 
         ImageSize( int width, int height )

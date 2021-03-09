@@ -1,7 +1,5 @@
-package org.hisp.dhis.external.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.external.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.util;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,8 +46,8 @@ public abstract class LogOnceLogger
     private static Set<String> logged = ConcurrentHashMap.newKeySet();
 
     /**
-     * Creates a log entry with a specific Log level. The entry will be logged only
-     * once
+     * Creates a log entry with a specific Log level. The entry will be logged
+     * only once
      *
      * @param log The SLF4J log to use
      * @param level The SLF4J log level

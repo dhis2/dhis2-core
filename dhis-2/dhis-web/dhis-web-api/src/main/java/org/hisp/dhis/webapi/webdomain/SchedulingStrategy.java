@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.webdomain;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.webdomain;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.webdomain;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -41,17 +40,17 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class SchedulingStrategy
 {
     private String resourceTableStrategy;
-    
+
     private String analyticsStrategy;
-    
+
     private String dataMartStrategy;
-    
+
     private String monitoringStrategy;
-    
+
     private String dataSynchStrategy;
 
     private String dataStatisticsStrategy;
-    
+
     public SchedulingStrategy()
     {
     }
@@ -64,7 +63,7 @@ public class SchedulingStrategy
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getResourceTableStrategy()
     {
-       return resourceTableStrategy;
+        return resourceTableStrategy;
     }
 
     public void setResourceTableStrategy( String resourceTableStrategy )

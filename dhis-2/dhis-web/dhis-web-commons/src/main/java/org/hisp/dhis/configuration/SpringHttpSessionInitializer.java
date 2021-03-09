@@ -1,5 +1,3 @@
-package org.hisp.dhis.configuration;
-
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -27,6 +25,7 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
 import org.hisp.dhis.webapi.filter.DefaultSessionConfiguration;
 import org.springframework.session.web.context.AbstractHttpSessionApplicationInitializer;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
+
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -37,16 +40,14 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 /**
- * This package private class holds the context for deciding on data approval permissions.
- * The context contains both system settings and some qualities of the user.
+ * This package private class holds the context for deciding on data approval
+ * permissions. The context contains both system settings and some qualities of
+ * the user.
  * <p>
- * This class is especially efficient if the settings are set once and
- * then used several times to generate ApprovalPermissions for different
- * DataApproval objects.
+ * This class is especially efficient if the settings are set once and then used
+ * several times to generate ApprovalPermissions for different DataApproval
+ * objects.
  *
  * @author Jim Grace
  */
@@ -54,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 class DataApprovalPermissionsEvaluator
 {
     private DataApprovalLevelService dataApprovalLevelService;
+
     private OrganisationUnitService organisationUnitService;
 
     private User user;
@@ -61,7 +63,9 @@ class DataApprovalPermissionsEvaluator
     private boolean acceptanceRequiredForApproval;
 
     private boolean authorizedToApprove;
+
     private boolean authorizedToApproveAtLowerLevels;
+
     private boolean authorizedToAcceptAtLowerLevels;
 
     private boolean mayViewLowerLevelUnapprovedData;
@@ -87,8 +91,8 @@ class DataApprovalPermissionsEvaluator
     }
 
     /**
-     * Allocates and populates the context for determining user permissions
-     * on one or more DataApproval objects.
+     * Allocates and populates the context for determining user permissions on
+     * one or more DataApproval objects.
      *
      * @param currentUserService Current user service
      * @param organisationUnitService OrganisationUnit service
@@ -97,8 +101,8 @@ class DataApprovalPermissionsEvaluator
      * @return context for determining user permissions
      */
     public static DataApprovalPermissionsEvaluator makePermissionsEvaluator( CurrentUserService currentUserService,
-            OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
-            DataApprovalLevelService dataApprovalLevelService )
+        OrganisationUnitService organisationUnitService, SystemSettingManager systemSettingManager,
+        DataApprovalLevelService dataApprovalLevelService )
     {
         DataApprovalPermissionsEvaluator ev = new DataApprovalPermissionsEvaluator();
 
@@ -107,13 +111,17 @@ class DataApprovalPermissionsEvaluator
 
         ev.user = currentUserService.getCurrentUser();
 
-        ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager.getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
+        ev.acceptanceRequiredForApproval = (Boolean) systemSettingManager
+            .getSystemSetting( SettingKey.ACCEPTANCE_REQUIRED_FOR_APPROVAL );
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
         ev.authorizedToApprove = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE );
-        ev.authorizedToApproveAtLowerLevels = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS );
-        ev.authorizedToAcceptAtLowerLevels = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
-        Boolean authorizedToViewUnapprovedData = ev.user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
+        ev.authorizedToApproveAtLowerLevels = ev.user.getUserCredentials()
+            .isAuthorized( DataApproval.AUTH_APPROVE_LOWER_LEVELS );
+        ev.authorizedToAcceptAtLowerLevels = ev.user.getUserCredentials()
+            .isAuthorized( DataApproval.AUTH_ACCEPT_LOWER_LEVELS );
+        Boolean authorizedToViewUnapprovedData = ev.user.getUserCredentials()
+            .isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA );
 
         ev.mayViewLowerLevelUnapprovedData = !hideUnapprovedData || authorizedToViewUnapprovedData;
 
@@ -126,16 +134,16 @@ class DataApprovalPermissionsEvaluator
     }
 
     /**
-     * Evaluates approval permissions in the approval status according to
-     * the context of system settings and user information.
+     * Evaluates approval permissions in the approval status according to the
+     * context of system settings and user information.
      * <p>
      * Also adjusts the approval state as necessary if acceptances are not
      * configured.
      * <p>
      * If there is a data permissions state, also takes this into account.
      * <p>
-     * It is assumed that the org units have been filtered already for only
-     * the org units that a user may see (read).
+     * It is assumed that the org units have been filtered already for only the
+     * org units that a user may see (read).
      *
      * @param status the data approval status (if any)
      * @param workflow the data approval workflow
@@ -150,52 +158,82 @@ class DataApprovalPermissionsEvaluator
 
         if ( status.getOrganisationUnitUid() == null )
         {
-            log.debug( "getPermissions organisationUnitUid null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit [null]" );
+            log.debug( "getPermissions organisationUnitUid null for user "
+                + (user == null ? "(null)" : user.getUsername()) + " orgUnit [null]" );
 
             permissions.setMayReadData( true );
 
             return; // No approval permissions set.
         }
 
-        DataApprovalLevel userApprovalLevel = getUserApprovalLevelWithCache( status.getOrganisationUnitUid(), workflow );
+        DataApprovalLevel userApprovalLevel = getUserApprovalLevelWithCache( status.getOrganisationUnitUid(),
+            workflow );
 
         if ( userApprovalLevel == null )
         {
-            log.debug( "getPermissions userApprovalLevel null for user " + ( user == null ? "(null)" : user.getUsername() ) + " orgUnit " + status.getOrganisationUnitUid() );
+            log.debug( "getPermissions userApprovalLevel null for user "
+                + (user == null ? "(null)" : user.getUsername()) + " orgUnit " + status.getOrganisationUnitUid() );
 
             permissions.setMayReadData( true );
 
-            return; // Can't find user approval level, so no approval permissions are set.
+            return; // Can't find user approval level, so no approval
+            // permissions are set.
         }
 
         int userLevelIndex = getWorkflowLevelIndex( userApprovalLevel, workflow );
 
         DataApprovalLevel dal = status.getActionLevel();
-        int dataLevelIndex = ( dal != null ? getWorkflowLevelIndex( dal, workflow ) : workflow.getLevels().size() - 1 );
+        int dataLevelIndex = (dal != null ? getWorkflowLevelIndex( dal, workflow ) : workflow.getLevels().size() - 1);
 
         boolean approvableAtNextHigherLevel = s.isApproved() && dal != null && dataLevelIndex > 0;
 
-        int approveLevelIndex = approvableAtNextHigherLevel ? dataLevelIndex - 1 : dataLevelIndex; // Level index (if any) at which data could next be approved.
+        int approveLevelIndex = approvableAtNextHigherLevel ? dataLevelIndex - 1 : dataLevelIndex; // Level
+        // index
+        // (if
+        // any)
+        // at
+        // which
+        // data
+        // could
+        // next
+        // be
+        // approved.
 
         boolean mayApprove = false;
         boolean mayUnapprove = false;
         boolean mayAccept = false;
         boolean mayUnaccept = false;
 
-        if ( ( ( authorizedToApprove && userLevelIndex == approveLevelIndex ) || ( authorizedToApproveAtLowerLevels && userLevelIndex < approveLevelIndex ) )
-            && ( !s.isApproved() || ( approvableAtNextHigherLevel && ( s.isAccepted() || !acceptanceRequiredForApproval ) ) ) )
+        if ( ((authorizedToApprove && userLevelIndex == approveLevelIndex)
+            || (authorizedToApproveAtLowerLevels && userLevelIndex < approveLevelIndex))
+            && (!s.isApproved()
+                || (approvableAtNextHigherLevel && (s.isAccepted() || !acceptanceRequiredForApproval))) )
         {
-            mayApprove = s.isApprovable() || approvableAtNextHigherLevel; // (If approved at one level, may approve for the next higher level.)
+            mayApprove = s.isApprovable() || approvableAtNextHigherLevel; // (If
+            // approved
+            // at
+            // one
+            // level,
+            // may
+            // approve
+            // for
+            // the
+            // next
+            // higher
+            // level.)
         }
 
-        if ( ( authorizedToApprove && userLevelIndex == dataLevelIndex && ( !s.isAccepted() || !acceptanceRequiredForApproval ) ) || ( authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex ) )
+        if ( (authorizedToApprove && userLevelIndex == dataLevelIndex
+            && (!s.isAccepted() || !acceptanceRequiredForApproval))
+            || (authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex) )
         {
             mayUnapprove = s.isUnapprovable();
         }
 
-        if ( authorizedToAcceptAtLowerLevels && ( userLevelIndex == dataLevelIndex - 1 || ( authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex ) ) )
+        if ( authorizedToAcceptAtLowerLevels && (userLevelIndex == dataLevelIndex - 1
+            || (authorizedToApproveAtLowerLevels && userLevelIndex < dataLevelIndex)) )
         {
-            mayAccept =  s.isAcceptable();
+            mayAccept = s.isAcceptable();
             mayUnaccept = s.isUnacceptable();
 
             if ( s.isUnapprovable() )
@@ -205,7 +243,7 @@ class DataApprovalPermissionsEvaluator
         }
 
         boolean mayReadData = mayApprove || mayUnapprove || mayAccept || mayUnaccept ||
-                ( userLevelIndex >= dataLevelIndex || mayViewLowerLevelUnapprovedData );
+            (userLevelIndex >= dataLevelIndex || mayViewLowerLevelUnapprovedData);
 
         if ( !acceptanceRequiredForApproval )
         {
@@ -236,7 +274,8 @@ class DataApprovalPermissionsEvaluator
         userApprovalLevel = USER_APPROVAL_LEVEL_CACHE.get( user.getId() + "-" + organisationUnitUid,
             c -> dataApprovalLevelService.getUserApprovalLevel( user,
                 organisationUnitService.getOrganisationUnit( organisationUnitUid ),
-                dataApprovalWorkflow.getSortedLevels() ) ).orElse( null );
+                dataApprovalWorkflow.getSortedLevels() ) )
+            .orElse( null );
 
         return userApprovalLevel;
     }

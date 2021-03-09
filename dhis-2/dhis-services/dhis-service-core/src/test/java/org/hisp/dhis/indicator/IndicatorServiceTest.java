@@ -1,7 +1,5 @@
-package org.hisp.dhis.indicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.indicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.indicator;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -355,8 +354,10 @@ public class IndicatorServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( indicatorA.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION, denominatorTranslated ) );
+        listObjectTranslation.add(
+            new Translation( locale.getLanguage(), TranslationProperty.NUMERATOR_DESCRIPTION, numeratorTranslated ) );
+        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.DENOMINATOR_DESCRIPTION,
+            denominatorTranslated ) );
 
         identifiableObjectManager.updateTranslations( indicatorA, listObjectTranslation );
 

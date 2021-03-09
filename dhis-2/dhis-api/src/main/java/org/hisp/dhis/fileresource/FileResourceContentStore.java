@@ -1,7 +1,5 @@
-package org.hisp.dhis.fileresource;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fileresource;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fileresource;
 
 import java.io.File;
 import java.io.IOException;
@@ -43,13 +42,16 @@ public interface FileResourceContentStore
 {
     /**
      * Get the content bytes of a FileResource from the file store.
+     *
      * @param key the key.
-     * @return a ByteSource which provides a stream to the content or null if the content cannot be found or read.
+     * @return a ByteSource which provides a stream to the content or null if
+     *         the content cannot be found or read.
      */
     InputStream getFileResourceContent( String key );
-    
+
     /**
      * Get the content length of a FileResource from the file store.
+     *
      * @param key the key.
      * @return the content length
      */
@@ -58,8 +60,8 @@ public interface FileResourceContentStore
     /**
      * Save the contents of the byte array to the file store.
      *
-     * @param fileResource the FileResource object. Must be complete and include the storageKey,
-     *                     contentLength, contentMd5 and name.
+     * @param fileResource the FileResource object. Must be complete and include
+     *        the storageKey, contentLength, contentMd5 and name.
      * @param bytes the byte array.
      * @return the key on success or null if saving failed.
      */
@@ -72,11 +74,12 @@ public interface FileResourceContentStore
      * @param file the File. Will be consumed upon deletion.
      * @return the key on success or null if saving failed.
      */
-    String saveFileResourceContent( FileResource fileResource, File file);
+    String saveFileResourceContent( FileResource fileResource, File file );
 
     /**
      * Save the content of image files.
-     * @param fileResource  the FileResource object.
+     *
+     * @param fileResource the FileResource object.
      * @param imageFile will map image dimension to its associated file.
      * @return the key on success or null if saving failed.
      */
@@ -84,12 +87,14 @@ public interface FileResourceContentStore
 
     /**
      * Delete the content bytes of a file resource.
+     *
      * @param key the key.
      */
     void deleteFileResourceContent( String key );
 
     /**
      * Check existence of a file.
+     *
      * @param key key of the file.
      * @return true if the file exists in the file store, false otherwise.
      */
@@ -97,15 +102,21 @@ public interface FileResourceContentStore
 
     /**
      * Create a signed GET request which gives access to the content.
+     *
      * @param key the key.
-     * @return a URI containing the signed GET request or null if signed requests are not supported.
+     * @return a URI containing the signed GET request or null if signed
+     *         requests are not supported.
      */
     URI getSignedGetContentUri( String key );
 
     /**
-     * Copies the content of a stream to the resource stored under key to the output stream.
+     * Copies the content of a stream to the resource stored under key to the
+     * output stream.
+     *
      * @param key the key used to store a resource
      * @param output the output stream to copy the stream into
      */
-    void copyContent( String key, OutputStream output ) throws IOException, NoSuchElementException;
+    void copyContent( String key, OutputStream output )
+        throws IOException,
+        NoSuchElementException;
 }

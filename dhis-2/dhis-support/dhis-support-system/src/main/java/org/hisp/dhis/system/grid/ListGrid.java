@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.grid;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +25,7 @@ package org.hisp.dhis.system.grid;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.google.common.collect.Iterables;
-
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRField;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.commons.math3.stat.regression.SimpleRegression;
-import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
-import org.hisp.dhis.system.util.MathUtils;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
-import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
+package org.hisp.dhis.system.grid;
 
 import java.io.Serializable;
 import java.sql.ResultSet;
@@ -60,6 +41,25 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRField;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.math3.stat.regression.SimpleRegression;
+import org.apache.commons.math3.util.Precision;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.adapter.JacksonRowDataSerializer;
+import org.hisp.dhis.system.util.MathUtils;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.google.common.collect.Iterables;
+
 /**
  * @author Lars Helge Overland
  */
@@ -67,6 +67,7 @@ public class ListGrid
     implements Grid, Serializable
 {
     private static final String REGRESSION_SUFFIX = "_regression";
+
     private static final String CUMULATIVE_SUFFIX = "_cumulative";
 
     /**
@@ -117,7 +118,8 @@ public class ListGrid
     private int currentRowReadIndex = -1;
 
     /**
-     * Represents a mapping between column names and the index of the column in the grid.
+     * Represents a mapping between column names and the index of the column in
+     * the grid.
      */
     private Map<String, Integer> columnIndexMap = new HashMap<>();
 
@@ -519,7 +521,8 @@ public class ListGrid
 
         if ( grid.size() != columnValues.size() )
         {
-            throw new IllegalStateException( "Number of column values (" + columnValues.size() + ") is not equal to number of rows (" + grid.size() + ")" );
+            throw new IllegalStateException( "Number of column values (" + columnValues.size()
+                + ") is not equal to number of rows (" + grid.size() + ")" );
         }
 
         for ( int i = 0; i < grid.size(); i++ )
@@ -540,7 +543,8 @@ public class ListGrid
 
         if ( grid.size() != columnValues.size() )
         {
-            throw new IllegalStateException( "Number of column values (" + columnValues.size() + ") is not equal to number of rows (" + grid.size() + ")" );
+            throw new IllegalStateException( "Number of column values (" + columnValues.size()
+                + ") is not equal to number of rows (" + grid.size() + ")" );
         }
 
         for ( int i = 0; i < grid.size(); i++ )
@@ -689,7 +693,8 @@ public class ListGrid
     {
         if ( startPos < 0 || endPos < startPos || endPos > getHeight() )
         {
-            throw new IllegalStateException( "Illegal start / end pos: " + startPos + ", " + endPos + ", " + getHeight() );
+            throw new IllegalStateException(
+                "Illegal start / end pos: " + startPos + ", " + endPos + ", " + getHeight() );
         }
 
         grid = grid.subList( startPos, endPos );
@@ -765,7 +770,8 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + REGRESSION_SUFFIX,
-                    header.getColumn() + REGRESSION_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + REGRESSION_SUFFIX, header.getValueType(), header.getType(), header.isHidden(),
+                    header.isMeta() );
 
                 addHeader( regressionHeader );
             }
@@ -816,7 +822,8 @@ public class ListGrid
             if ( header != null )
             {
                 GridHeader regressionHeader = new GridHeader( header.getName() + CUMULATIVE_SUFFIX,
-                    header.getColumn() + CUMULATIVE_SUFFIX, header.getValueType(), header.getType(), header.isHidden(), header.isMeta() );
+                    header.getColumn() + CUMULATIVE_SUFFIX, header.getValueType(), header.getType(), header.isHidden(),
+                    header.isMeta() );
 
                 addHeader( regressionHeader );
             }
@@ -871,7 +878,8 @@ public class ListGrid
     }
 
     @Override
-    public Grid substituteMetaData( int sourceColumnIndex, int targetColumnIndex, Map<? extends Object, ? extends Object> metaDataMap )
+    public Grid substituteMetaData( int sourceColumnIndex, int targetColumnIndex,
+        Map<? extends Object, ? extends Object> metaDataMap )
     {
         if ( metaDataMap == null )
         {
@@ -1059,7 +1067,8 @@ public class ListGrid
 
                 if ( maxLimit > 0 && i > maxLimit )
                 {
-                    throw new IllegalStateException( "Number of rows produced by query is larger than the max limit: " + maxLimit );
+                    throw new IllegalStateException(
+                        "Number of rows produced by query is larger than the max limit: " + maxLimit );
                 }
             }
         }
@@ -1090,7 +1099,8 @@ public class ListGrid
         {
             if ( rowLength != null && rowLength != row.size() )
             {
-                throw new IllegalStateException( "Grid rows do not have the same number of cells, previous: " + rowLength + ", this: " + row.size() + ", at row: " + rowPos );
+                throw new IllegalStateException( "Grid rows do not have the same number of cells, previous: "
+                    + rowLength + ", this: " + row.size() + ", at row: " + rowPos );
             }
 
             rowPos++;
@@ -1149,6 +1159,7 @@ public class ListGrid
         implements Comparator<List<Object>>
     {
         private int columnIndex;
+
         private int order;
 
         protected GridRowComparator( int columnIndex, int order )
@@ -1161,8 +1172,10 @@ public class ListGrid
         @SuppressWarnings( "unchecked" )
         public int compare( List<Object> list1, List<Object> list2 )
         {
-            boolean list1Invalid = list1 == null || list1.get( columnIndex ) == null || !(list1.get( columnIndex ) instanceof Comparable<?>);
-            boolean list2Invalid = list2 == null || list2.get( columnIndex ) == null || !(list2.get( columnIndex ) instanceof Comparable<?>);
+            boolean list1Invalid = list1 == null || list1.get( columnIndex ) == null
+                || !(list1.get( columnIndex ) instanceof Comparable<?>);
+            boolean list2Invalid = list2 == null || list2.get( columnIndex ) == null
+                || !(list2.get( columnIndex ) instanceof Comparable<?>);
 
             if ( list1Invalid && list2Invalid )
             {

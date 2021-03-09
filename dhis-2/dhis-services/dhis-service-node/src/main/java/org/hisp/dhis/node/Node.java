@@ -1,7 +1,5 @@
-package org.hisp.dhis.node;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.node;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node;
+
+import java.util.List;
 
 import org.hisp.dhis.schema.Property;
 import org.springframework.core.Ordered;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface Node extends Ordered
+public interface Node
+    extends Ordered
 {
     /**
      * Name of this node.
@@ -67,8 +67,8 @@ public interface Node extends Ordered
     boolean is( NodeType type );
 
     /**
-     * Helper that checks if node is of simple type, useful to checking if
-     * you are allowed to add children to this node.
+     * Helper that checks if node is of simple type, useful to checking if you
+     * are allowed to add children to this node.
      *
      * @return true if type is simple
      * @see org.hisp.dhis.node.NodeType
@@ -99,8 +99,8 @@ public interface Node extends Ordered
     boolean isMetadata();
 
     /**
-     * Namespace for this node. Not all serializers support this, and its up to the
-     * NodeSerializer implementation to decide what to do with this.
+     * Namespace for this node. Not all serializers support this, and its up to
+     * the NodeSerializer implementation to decide what to do with this.
      *
      * @return namespace
      * @see org.hisp.dhis.node.NodeSerializer
@@ -108,8 +108,8 @@ public interface Node extends Ordered
     String getNamespace();
 
     /**
-     * Comment for this node. Not all serializers support this, and its up to the
-     * NodeSerializer implementation to decide what to do with this.
+     * Comment for this node. Not all serializers support this, and its up to
+     * the NodeSerializer implementation to decide what to do with this.
      *
      * @return namespace
      * @see org.hisp.dhis.node.NodeSerializer
@@ -149,8 +149,9 @@ public interface Node extends Ordered
     <T extends Node> void addChildren( Iterable<T> children );
 
     /**
-     * Get all child notes associated with this node. Please note that the returned list is a copy
-     * of the internal list, and changes to the list will not be reflected in the node.
+     * Get all child notes associated with this node. Please note that the
+     * returned list is a copy of the internal list, and changes to the list
+     * will not be reflected in the node.
      *
      * @return List of child nodes associated with this node
      */

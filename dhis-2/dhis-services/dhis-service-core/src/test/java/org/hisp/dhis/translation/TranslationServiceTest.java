@@ -1,7 +1,5 @@
-package org.hisp.dhis.translation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
+
+import static org.junit.Assert.assertEquals;
+
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -49,12 +54,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -113,7 +112,8 @@ public class TranslationServiceTest
 
         String translatedValue = "Option FormName Translated";
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( option, listObjectTranslation );
 
@@ -148,7 +148,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( relationship.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( relationship, listObjectTranslation );
 
@@ -158,14 +159,15 @@ public class TranslationServiceTest
     @Test
     public void testFormNameTranslationForProgramStageSection()
     {
-        ProgramStageSection programStageSection = createProgramStageSection( 'A' , 0 );
+        ProgramStageSection programStageSection = createProgramStageSection( 'A', 0 );
         manager.save( programStageSection );
 
         String translatedValue = "ProgramStageSection FormName Translated";
 
         Set<Translation> listObjectTranslation = new HashSet<>( programStageSection.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programStageSection, listObjectTranslation );
 
@@ -182,7 +184,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( programStage.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programStage, listObjectTranslation );
 
@@ -203,7 +206,8 @@ public class TranslationServiceTest
 
         Set<Translation> listObjectTranslation = new HashSet<>( programSection.getTranslations() );
 
-        listObjectTranslation.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        listObjectTranslation
+            .add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
 
         manager.updateTranslations( programSection, listObjectTranslation );
 
@@ -225,8 +229,10 @@ public class TranslationServiceTest
         String toFromNameTranslated = "To from name translated";
 
         Set<Translation> translations = new HashSet<>();
-        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME, toFromNameTranslated ) );
-        translations.add(  new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME, fromToNameTranslated ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME,
+            toFromNameTranslated ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME,
+            fromToNameTranslated ) );
 
         manager.updateTranslations( relationshipType, translations );
 

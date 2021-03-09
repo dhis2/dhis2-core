@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity;
 
 import static org.hisp.dhis.system.notification.NotificationLevel.ERROR;
 import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALUE_MAX_LENGTH;
@@ -42,6 +41,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
@@ -108,8 +109,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.vividsolutions.jts.geom.Geometry;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -123,7 +122,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
     protected TrackedEntityAttributeService trackedEntityAttributeService;
-    
+
     protected TrackedEntityTypeService trackedEntityTypeService;
 
     protected RelationshipService _relationshipService;
@@ -141,7 +140,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     protected EnrollmentService enrollmentService;
 
     protected ProgramInstanceService programInstanceService;
-    
+
     protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
     protected CurrentUserService currentUserService;
@@ -183,11 +182,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     /**
      * Merges the two sets, if the passed condition is true
      *
-     * @param set1      a Set
-     * @param set2      a second Set
+     * @param set1 a Set
+     * @param set2 a second Set
      * @param condition a boolean condition
-     * @return if condition is true, a new Set consisting of the first and second
-     * set. If false, the first set
+     * @return if condition is true, a new Set consisting of the first and
+     *         second set. If false, the first set
      */
     private Set<TrackedEntityAttribute> mergeIf( Set<TrackedEntityAttribute> set1, Set<TrackedEntityAttribute> set2,
         boolean condition )
@@ -262,19 +261,20 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
 
         final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
-        
+
         if ( ids.isEmpty() )
         {
             return Collections.emptyList();
         }
-        
-        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params, queryParams );
+
+        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params,
+            queryParams );
 
         addSearchAudit( trackedEntityInstances, queryParams.getUser() );
-           
+
         return trackedEntityInstances;
     }
-    
+
     private void addSearchAudit( List<TrackedEntityInstance> trackedEntityInstances, User user )
     {
         if ( trackedEntityInstances.isEmpty() )
@@ -299,7 +299,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
         }
     }
-    
+
     @Override
     @Transactional( readOnly = true )
     public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
@@ -319,7 +319,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     @Transactional( readOnly = true )
     public TrackedEntityInstance getTrackedEntityInstance( String uid, User user )
     {
-        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid, user ), TrackedEntityInstanceParams.TRUE, user );
+        return getTrackedEntityInstance( teiService.getTrackedEntityInstance( uid, user ),
+            TrackedEntityInstanceParams.TRUE, user );
     }
 
     @Override
@@ -363,7 +364,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             throw new IllegalQueryException( errors.toString() );
         }
 
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService.getAllUserReadableTrackedEntityAttributes( user );
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes( user );
 
         return getTei( daoTrackedEntityInstance, readableAttributes, params, user );
     }
@@ -446,8 +448,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             ? dtoEntityInstance.getTrackedEntityInstance()
             : CodeGenerator.generateUid() );
 
-        String storedBy = !StringUtils.isEmpty( dtoEntityInstance.getStoredBy() ) ? dtoEntityInstance.getStoredBy() :
-            (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() ) ? "system-process" : importOptions.getUser().getUsername());
+        String storedBy = !StringUtils.isEmpty( dtoEntityInstance.getStoredBy() ) ? dtoEntityInstance.getStoredBy()
+            : (importOptions.getUser() == null || StringUtils.isEmpty( importOptions.getUser().getUsername() )
+                ? "system-process"
+                : importOptions.getUser().getUsername());
 
         daoEntityInstance.setStoredBy( storedBy );
 
@@ -504,7 +508,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
      * database (regardless of the 'deleted' state)
      *
      * @param trackedEntityInstances TEIs to import
-     * @param importSummaries        ImportSummaries used for import
+     * @param importSummaries ImportSummaries used for import
      * @return TEIs that is possible to import (pass validation)
      */
     private List<TrackedEntityInstance> resolveImportableTeis( List<TrackedEntityInstance> trackedEntityInstances,
@@ -721,7 +725,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 String message = "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance()
                     + " does not exist";
 
-                if ( teiService.trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
+                if ( teiService
+                    .trackedEntityInstanceExistsIncludingDeleted( dtoEntityInstance.getTrackedEntityInstance() ) )
                 {
                     message = "You are trying to add or update tracked entity instance "
                         + dtoEntityInstance.getTrackedEntityInstance() + " that has already been deleted";
@@ -993,7 +998,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 Relationship relationship = new Relationship();
                 relationship.setRelationship( uid );
                 return relationship;
-        } ).collect( Collectors.toList() );
+            } ).collect( Collectors.toList() );
 
         for ( Relationship relationship : dtoEntityInstance.getRelationships() )
         {
@@ -1157,7 +1162,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         for ( Attribute dtoAttribute : dtoEntityInstance.getAttributes() )
         {
-            String storedBy = getStoredBy( dtoAttribute, new ImportSummary(), User.username( user, Constants.UNKNOWN ) );
+            String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
+                User.username( user, Constants.UNKNOWN ) );
 
             TrackedEntityAttributeValue existingAttributeValue = teiAttributeToValueMap
                 .get( dtoAttribute.getAttribute() );
@@ -1166,12 +1172,16 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
             if ( existingAttributeValue != null ) // value exists
             {
-                if ( !existingAttributeValue.getValue().equals( dtoAttribute.getValue() ) ) // value is changed, do
-                                                                                            // update
+                if ( !existingAttributeValue.getValue().equals( dtoAttribute.getValue() ) ) // value
+                // is
+                // changed,
+                // do
+                // update
                 {
                     existingAttributeValue.setStoredBy( storedBy );
                     existingAttributeValue.setValue( dtoAttribute.getValue() );
-                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue, user );
+                    trackedEntityAttributeValueService.updateTrackedEntityAttributeValue( existingAttributeValue,
+                        user );
                 }
             }
             else // value is new, do add
@@ -1222,7 +1232,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 daoEntityInstance.addAttributeValue( daoAttributeValue );
 
-                String storedBy = getStoredBy( dtoAttribute, new ImportSummary(), User.username( user, Constants.UNKNOWN ) );
+                String storedBy = getStoredBy( dtoAttribute, new ImportSummary(),
+                    User.username( user, Constants.UNKNOWN ) );
                 daoAttributeValue.setStoredBy( storedBy );
 
                 trackedEntityAttributeValueService.addTrackedEntityAttributeValue( daoAttributeValue );
@@ -1265,14 +1276,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             .collect( Collectors.toMap( tav -> tav.getAttribute().getUid(), tav -> tav ) );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // VALIDATION
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private void validateAttributeType( Attribute attribute, ImportOptions importOptions,
         Set<ImportConflict> importConflicts )
     {
-        //Cache is populated. I should hit it.
+        // Cache is populated. I should hit it.
         TrackedEntityAttribute daoTrackedEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
             attribute.getAttribute() );
 
@@ -1328,9 +1339,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( teiExistsInDatabase )
         {
-            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(), importOptions.getUser() );
+            daoEntityInstance = teiService.getTrackedEntityInstance( dtoEntityInstance.getTrackedEntityInstance(),
+                importOptions.getUser() );
 
-            if ( daoEntityInstance == null ) {
+            if ( daoEntityInstance == null )
+            {
                 return;
             }
 
@@ -1346,7 +1359,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         {
             if ( StringUtils.isNotEmpty( attribute.getValue() ) )
             {
-                // Cache was populated in prepareCaches, so I should hit the cache
+                // Cache was populated in prepareCaches, so I should hit the
+                // cache
                 TrackedEntityAttribute daoEntityAttribute = getTrackedEntityAttribute( importOptions.getIdSchemes(),
                     attribute.getAttribute() );
 
@@ -1359,8 +1373,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( attribute.getValue() != null && attribute.getValue().length() > TEA_VALUE_MAX_LENGTH )
                 {
-                    // We shorten the value to first 25 characters, since we dont want to post a 1200+ string back.
-                    importConflicts.add( new ImportConflict( "Attribute.value", String.format( "Value exceeds the character limit of %s characters: '%s...'", TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
+                    // We shorten the value to first 25 characters, since we
+                    // dont want to post a 1200+ string back.
+                    importConflicts.add( new ImportConflict( "Attribute.value",
+                        String.format( "Value exceeds the character limit of %s characters: '%s...'",
+                            TEA_VALUE_MAX_LENGTH, attribute.getValue().substring( 0, 25 ) ) ) );
                 }
 
                 TrackedEntityAttributeValue trackedEntityAttributeValue = teiAttributeValueMap
@@ -1377,7 +1394,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
                 if ( daoEntityAttribute.isUnique() )
                 {
-                    //Cache was populated in prepareCaches, so I should hit the cache
+                    // Cache was populated in prepareCaches, so I should hit the
+                    // cache
                     OrganisationUnit organisationUnit = getOrganisationUnit( importOptions.getIdSchemes(),
                         dtoEntityInstance.getOrgUnit() );
                     checkAttributeUniquenessWithinScope( daoEntityInstance, daoEntityAttribute, attribute.getValue(),
@@ -1516,7 +1534,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             importConflicts.add( new ImportConflict( tei.getUid(),
                 "Tracked entity instance " + tei.getUid()
                     + " cannot be deleted as it has associated enrollments and user does not have authority "
-                + Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
+                    + Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) );
         }
 
         List<String> errors = trackerAccessManager.canWrite( user, tei );

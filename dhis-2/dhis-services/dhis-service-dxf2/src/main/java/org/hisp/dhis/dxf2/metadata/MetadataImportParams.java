@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MergeMode;
@@ -47,11 +48,10 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -65,8 +65,9 @@ public class MetadataImportParams
     private User user;
 
     /**
-     * How should the user property be handled, by default it is left as is. You can override this
-     * to use current user, or a selected user instead (not yet supported).
+     * How should the user property be handled, by default it is left as is. You
+     * can override this to use current user, or a selected user instead (not
+     * yet supported).
      */
     private UserOverrideMode userOverrideMode = UserOverrideMode.NONE;
 
@@ -111,7 +112,8 @@ public class MetadataImportParams
     private FlushMode flushMode = FlushMode.AUTO;
 
     /**
-     * Decides how much to report back to the user (errors only, or a more full per object report).
+     * Decides how much to report back to the user (errors only, or a more full
+     * per object report).
      */
     private ImportReportMode importReportMode = ImportReportMode.ERRORS;
 
@@ -340,11 +342,13 @@ public class MetadataImportParams
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isMetadataSyncImport() {
+    public boolean isMetadataSyncImport()
+    {
         return metadataSyncImport;
     }
 
-    public void setMetadataSyncImport(boolean metadataSyncImport) {
+    public void setMetadataSyncImport( boolean metadataSyncImport )
+    {
         this.metadataSyncImport = metadataSyncImport;
     }
 

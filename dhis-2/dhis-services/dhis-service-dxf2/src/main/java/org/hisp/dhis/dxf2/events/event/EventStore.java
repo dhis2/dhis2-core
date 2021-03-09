@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,14 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.dxf2.events.report.EventRow;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 
@@ -44,24 +42,23 @@ import org.hisp.dhis.user.User;
 public interface EventStore
 {
     /**
-     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored
-     * at this stage.
+     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored at
+     * this stage.
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
-     *
      * @return a list of saved program stage instances
      */
-    List<ProgramStageInstance> saveEvents(List<ProgramStageInstance> programStageInstances );
+    List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
 
     /**
-     * Updates a List of {@see ProgramStageInstance}. Notes are not stored
-     * at this stage.
+     * Updates a List of {@see ProgramStageInstance}. Notes are not stored at
+     * this stage.
      *
      * @param programStageInstances a List of {@see ProgramStageInstance}
      *
      * @return a list of saved program stage instances
      */
-    List<ProgramStageInstance> updateEvents(List<ProgramStageInstance> programStageInstances );
+    List<ProgramStageInstance> updateEvents( List<ProgramStageInstance> programStageInstances );
 
     List<Event> getEvents( EventSearchParams params, List<OrganisationUnit> organisationUnits,
         Map<String, Set<String>> psdesWithSkipSyncTrue );
@@ -73,16 +70,16 @@ public interface EventStore
     int getEventCount( EventSearchParams params, List<OrganisationUnit> organisationUnits );
 
     /**
-     * Delete list of given events to be removed. This operation also remove comments
-     * connected to each Event.
+     * Delete list of given events to be removed. This operation also remove
+     * comments connected to each Event.
      *
      * @param events List to be removed
      */
     void delete( List<Event> events );
 
     /**
-     * Updates the "last updated" and "last updated By" of the
-     * Tracked Entity Instances matching the provided list of UIDs
+     * Updates the "last updated" and "last updated By" of the Tracked Entity
+     * Instances matching the provided list of UIDs
      *
      * @param teiUid a List of Tracked Entity Instance uid
      * @param user the User to use for the last update by value. Can be null.

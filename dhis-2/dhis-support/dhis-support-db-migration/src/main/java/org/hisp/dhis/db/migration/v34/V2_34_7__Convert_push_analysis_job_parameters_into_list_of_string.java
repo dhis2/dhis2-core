@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v34;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,12 @@ package org.hisp.dhis.db.migration.v34;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v34;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
 import org.apache.commons.lang3.StringUtils;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
@@ -43,26 +41,32 @@ import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator;
 
 /**
  * @author Zubair Asghar.
  */
-public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string extends BaseJavaMigration
+public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string
+    extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string.class );
 
     @Override
-    public void migrate( Context context ) throws Exception
+    public void migrate( Context context )
+        throws Exception
     {
         String pushAnalysisUid = null;
 
         try ( Statement statement = context.getConnection().createStatement() )
         {
-            ResultSet resultSet = statement.executeQuery( "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
-                JobType.PUSH_ANALYSIS.name() + "';" );
+            ResultSet resultSet = statement.executeQuery(
+                "select jsonbjobparameters->1->'pushAnalysis' from public.jobconfiguration where jobtype = '" +
+                    JobType.PUSH_ANALYSIS.name() + "';" );
 
             if ( resultSet.next() )
             {
@@ -74,13 +78,15 @@ public class V2_34_7__Convert_push_analysis_job_parameters_into_list_of_string e
         if ( pushAnalysisUid != null )
         {
             ObjectMapper mapper = new ObjectMapper();
-            mapper.activateDefaultTyping( BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
+            mapper.activateDefaultTyping(
+                BasicPolymorphicTypeValidator.builder().allowIfBaseType( JobParameters.class ).build() );
             mapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
 
             JavaType resultingJavaType = mapper.getTypeFactory().constructType( JobParameters.class );
             ObjectWriter writer = mapper.writerFor( resultingJavaType );
 
-            try ( PreparedStatement ps = context.getConnection().prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
+            try ( PreparedStatement ps = context.getConnection()
+                .prepareStatement( "UPDATE jobconfiguration SET jsonbjobparameters = ? where  jobtype = ?;" ) )
             {
                 PushAnalysisJobParameters jobParameters = new PushAnalysisJobParameters( pushAnalysisUid );
 

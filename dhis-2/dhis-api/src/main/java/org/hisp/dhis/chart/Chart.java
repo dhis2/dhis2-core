@@ -1,7 +1,5 @@
-package org.hisp.dhis.chart;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,15 @@ package org.hisp.dhis.chart;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.chart;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.common.AnalyticsType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -45,12 +47,10 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.user.User;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
-import static org.apache.commons.lang3.StringUtils.isEmpty;
-import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -190,9 +190,9 @@ public class Chart
     /**
      * Sets all dimensions for this chart.
      *
-     * @param series   the series dimension.
+     * @param series the series dimension.
      * @param category the category dimension.
-     * @param filter   the filter dimension.
+     * @param filter the filter dimension.
      */
     public void setDimensions( String series, String category, String filter )
     {
@@ -260,7 +260,8 @@ public class Chart
     }
 
     // -------------------------------------------------------------------------
-    // Temporary overriding getters so the Schema properties are read as mandatory.
+    // Temporary overriding getters so the Schema properties are read as
+    // mandatory.
     // Required in order to enable backward support during the migration to the
     // new Visualization API
     // -------------------------------------------------------------------------
@@ -269,7 +270,7 @@ public class Chart
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
     @Description( "The name of this Object. Required and unique." )
-    @PropertyRange( min = 1, max = 230)
+    @PropertyRange( min = 1, max = 230 )
     @Property( required = TRUE )
     public String getName()
     {

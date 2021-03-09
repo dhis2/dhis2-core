@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.webapi.controller.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.sms;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -51,14 +59,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-
 /**
  * Zubair <rajazubair.asghar@gmail.com>
  */
@@ -68,10 +68,15 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 public class SmsInboundController extends AbstractCrudController<IncomingSms>
 {
     private final WebMessageService webMessageService;
+
     private final IncomingSmsService incomingSMSService;
+
     private final RenderService renderService;
+
     private final SMSCommandService smsCommandService;
+
     private final UserService userService;
+
     private final CurrentUserService currentUserService;
 
     public SmsInboundController(
@@ -111,7 +116,8 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
             throw new WebMessageException( WebMessageUtils.conflict( "Message must be specified" ) );
         }
 
-        long smsId = incomingSMSService.save( message, originator, gateway, receivedTime, getUserByPhoneNumber( originator, message ) );
+        long smsId = incomingSMSService.save( message, originator, gateway, receivedTime,
+            getUserByPhoneNumber( originator, message ) );
 
         webMessageService.send( WebMessageUtils.ok( "Received SMS: " + smsId ), response, request );
     }
@@ -119,7 +125,8 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/json" }, produces = { "application/json" } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
     public void receiveSMSMessage( HttpServletRequest request, HttpServletResponse response )
-        throws WebMessageException, IOException
+        throws WebMessageException,
+        IOException
     {
         IncomingSms sms = renderService.fromJson( request.getInputStream(), IncomingSms.class );
         sms.setUser( getUserByPhoneNumber( sms.getOriginator(), sms.getText() ) );
@@ -149,7 +156,8 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
     @RequestMapping( value = "/{uid}", method = RequestMethod.DELETE, produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessage( @PathVariable String uid, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessage( @PathVariable String uid, HttpServletRequest request,
+        HttpServletResponse response )
         throws WebMessageException
     {
         IncomingSms sms = incomingSMSService.get( uid );
@@ -161,13 +169,13 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
 
         incomingSMSService.delete( uid );
 
-        webMessageService.send( WebMessageUtils.ok( "IncomingSms with "+ uid + " deleted" ), response, request );
+        webMessageService.send( WebMessageUtils.ok( "IncomingSms with " + uid + " deleted" ), response, request );
     }
-
 
     @RequestMapping( method = RequestMethod.DELETE, produces = "application/json" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_MOBILE_SETTINGS')" )
-    public void deleteInboundMessages( @RequestParam List<String> ids, HttpServletRequest request, HttpServletResponse response )
+    public void deleteInboundMessages( @RequestParam List<String> ids, HttpServletRequest request,
+        HttpServletResponse response )
     {
         ids.forEach( incomingSMSService::delete );
 
@@ -178,9 +186,11 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
     // SUPPORTIVE METHOD
     // -------------------------------------------------------------------------
 
-    private User getUserByPhoneNumber( String phoneNumber, String text ) throws WebMessageException
+    private User getUserByPhoneNumber( String phoneNumber, String text )
+        throws WebMessageException
     {
-        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ), ParserType.UNREGISTERED_PARSER );
+        SMSCommand unregisteredParser = smsCommandService.getSMSCommand( SmsUtils.getCommandString( text ),
+            ParserType.UNREGISTERED_PARSER );
 
         List<User> users = userService.getUsersByPhoneNumber( phoneNumber );
 
@@ -199,18 +209,21 @@ public class SmsInboundController extends AbstractCrudController<IncomingSms>
             }
 
             // No user belong to this phone number
-            throw new WebMessageException( WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "User's phone number is not registered in the system" ) );
         }
 
         return users.iterator().next();
     }
 
-    private User handleCompressedCommands( User currentUser, String phoneNumber ) throws WebMessageException
+    private User handleCompressedCommands( User currentUser, String phoneNumber )
+        throws WebMessageException
     {
         if ( currentUser != null && !phoneNumber.equals( currentUser.getPhoneNumber() ) )
         {
             // current user does not belong to this number
-            throw new WebMessageException( WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Originator's number does not match user's Phone number" ) );
         }
 
         return currentUser;

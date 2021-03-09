@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * This interface is responsible for retrieving aggregated data. Data will be
@@ -53,21 +52,24 @@ import java.util.Map;
  * identifiers and the third column will contain aggregated values. Note that
  * the organisation unit is excluded since it is defined as a filter:
  * </p>
+ *
  * <pre>
- * {@code
- * DataQueryParams params = new DataQueryParams();
+ * {
+ *     &#64;code
+ *     DataQueryParams params = new DataQueryParams();
  *
- * params.setIndicators( indicators );
- * params.setPeriod( period );
- * params.setFilterOrganisationUnit( organisationUnit );
+ *     params.setIndicators( indicators );
+ *     params.setPeriod( period );
+ *     params.setFilterOrganisationUnit( organisationUnit );
  *
- * Grid grid = analyticsService.getAggregatedDataValues( params );
+ *     Grid grid = analyticsService.getAggregatedDataValues( params );
  * }
  * </pre>
  * <p>
  * The returned grid has a metaData object which contains metadata about the
  * response, such as a mapping between the UIDs and names of metadata objects.
- * For valid keys refer to the key property of {@link AnalyticsMetaDataKey}.</p>
+ * For valid keys refer to the key property of {@link AnalyticsMetaDataKey}.
+ * </p>
  * <p>
  * Example usage for including category option combos in the response. Note that
  * the index position of category option combos will follow the order of when
@@ -78,6 +80,7 @@ import java.util.Map;
  * option combo identifier and an organisation unit identifier in that order.
  * The map values will be the aggregated values of type Double:
  * </p>
+ *
  * <pre>
  * {@code
  * DataQueryParams params = DataQueryParams.newBuilder();
@@ -96,9 +99,9 @@ public interface AnalyticsService
 {
     /**
      * Generates aggregated values for the given query.
-     *
-     * If meta data is included in the query, the meta data map of the grid
-     * will contain keys described in {@link AnalyticsMetaDataKey}.
+     * <p>
+     * If meta data is included in the query, the meta data map of the grid will
+     * contain keys described in {@link AnalyticsMetaDataKey}.
      *
      * @param params the data query parameters.
      * @return aggregated data as a Grid object.
@@ -111,8 +114,8 @@ public interface AnalyticsService
      * in columns and rows dimension arguments. If columns and rows are null or
      * empty, the normalized table will be returned.
      *
-     * If meta data is included in the query, the meta data map of the grid
-     * will contain keys described in {@link AnalyticsMetaDataKey}.
+     * If meta data is included in the query, the meta data map of the grid will
+     * contain keys described in {@link AnalyticsMetaDataKey}.
      *
      * @param params the data query parameters.
      * @param columns the identifiers of the dimensions to use as columns.
@@ -124,8 +127,8 @@ public interface AnalyticsService
     /**
      * Generates a raw data value grid for the given query. The grid will
      * represent a table with denormalized raw data. This means that no
-     * aggregation will be performed on the data, and dimensions specified
-     * in the query will be present for each row.
+     * aggregation will be performed on the data, and dimensions specified in
+     * the query will be present for each row.
      *
      * @param params the data query parameters.
      * @return raw data as a Grid object.
@@ -133,8 +136,8 @@ public interface AnalyticsService
     Grid getRawDataValues( DataQueryParams params );
 
     /**
-     * Generates a data value set for the given query. The query must contain
-     * a data, period and organisation unit dimension.
+     * Generates a data value set for the given query. The query must contain a
+     * data, period and organisation unit dimension.
      *
      * @param params the data query parameters.
      * @return a data value set representing aggregated data.

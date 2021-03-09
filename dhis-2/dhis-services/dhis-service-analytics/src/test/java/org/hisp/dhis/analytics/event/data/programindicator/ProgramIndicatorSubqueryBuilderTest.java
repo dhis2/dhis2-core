@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data.programindicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data.programindicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data.programindicator;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hisp.dhis.DhisConvenienceTest.*;
@@ -35,7 +34,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 
-import org.hisp.dhis.analytics.event.data.programindicator.DefaultProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -100,8 +98,8 @@ public class ProgramIndicatorSubqueryBuilderTest
     }
 
     /**
-     * This tests also verify that the join after WHERE is changing when outer join
-     * is type EVENT
+     * This tests also verify that the join after WHERE is changing when outer
+     * join is type EVENT
      */
     @Test
     public void verifyProgramIndicatorWithoutAggregationTypeReturnsAvg()
@@ -150,12 +148,12 @@ public class ProgramIndicatorSubqueryBuilderTest
 
         assertThat( sql, is( "(SELECT avg (distinct psi) FROM analytics_event_" + program.getUid().toLowerCase()
             + " as subax WHERE  subax.tei in (select tei.uid from trackedentityinstance tei " +
-                "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
-                "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
-                "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
-                "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
-                "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
-                "WHERE rty.relationshiptypeid = " + relationshipType.getId() + " AND tei.uid = ax.tei ))" ) );
+            "LEFT JOIN relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid  " +
+            "LEFT JOIN relationship r on r.from_relationshipitemid = ri.relationshipitemid " +
+            "LEFT JOIN relationshipitem ri2 on r.to_relationshipitemid = ri2.relationshipitemid " +
+            "LEFT JOIN relationshiptype rty on rty.relationshiptypeid = r.relationshiptypeid " +
+            "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid " +
+            "WHERE rty.relationshiptypeid = " + relationshipType.getId() + " AND tei.uid = ax.tei ))" ) );
     }
 
     @Test

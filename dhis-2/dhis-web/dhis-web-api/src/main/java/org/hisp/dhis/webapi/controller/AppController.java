@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,21 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Lists;
+import java.io.File;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.appmanager.App;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.appmanager.AppStatus;
@@ -59,15 +68,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -79,6 +81,7 @@ import java.util.regex.Pattern;
 public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
+
     public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
     @Autowired
@@ -139,7 +142,8 @@ public class AppController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void installApp( @RequestParam( "file" ) MultipartFile file )
-        throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
         File tempFile = File.createTempFile( "IMPORT_", "_ZIP" );
         file.transferTo( tempFile );
@@ -165,7 +169,8 @@ public class AppController
     @RequestMapping( value = "/{app}/**", method = RequestMethod.GET )
     public void renderApp( @PathVariable( "app" ) String app,
         HttpServletRequest request, HttpServletResponse response )
-        throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
         App application = appManager.getApp( app );
 
@@ -194,7 +199,8 @@ public class AppController
 
         if ( application.getAppState() == AppStatus.DELETION_IN_PROGRESS )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "App '" + app + "' deletion is still in progress." ) );
         }
 
         log.debug( String.format( "App page name: '%s'", pageName ) );
@@ -202,8 +208,10 @@ public class AppController
         // Handling of 'manifest.webapp'
         if ( "manifest.webapp".equals( pageName ) )
         {
-            // If request was for manifest.webapp, check for * and replace with host
-            if ( application.getActivities() != null && application.getActivities().getDhis() != null && "*".equals( application.getActivities().getDhis().getHref() ) )
+            // If request was for manifest.webapp, check for * and replace with
+            // host
+            if ( application.getActivities() != null && application.getActivities().getDhis() != null
+                && "*".equals( application.getActivities().getDhis().getHref() ) )
             {
                 String contextPath = ContextUtils.getContextPath( request );
 
@@ -275,7 +283,8 @@ public class AppController
     @PreAuthorize( "hasRole('ALL') or hasRole('M_dhis-web-app-management')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void setConfig( HttpServletRequest request )
-        throws IOException, WebMessageException
+        throws IOException,
+        WebMessageException
     {
         Map<String, String> config = renderService.fromJson( request.getInputStream(), Map.class );
 
@@ -285,9 +294,9 @@ public class AppController
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private String getUrl( String path, String app )
     {
@@ -298,7 +307,8 @@ public class AppController
             path = path.substring( prefix.length() );
         }
 
-        // if path is prefixed by any protocol, clear it out (this is to ensure that only files inside app directory can be resolved)
+        // if path is prefixed by any protocol, clear it out (this is to ensure
+        // that only files inside app directory can be resolved)
         path = REGEX_REMOVE_PROTOCOL.matcher( path ).replaceAll( "" );
 
         return path;

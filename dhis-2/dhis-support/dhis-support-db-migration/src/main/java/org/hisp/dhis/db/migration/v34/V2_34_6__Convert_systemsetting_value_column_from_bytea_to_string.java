@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v34;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v34;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v34;
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
@@ -61,25 +60,31 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  * @author Ameen Mohamed (ameen@dhis2.org)
  */
 @SuppressWarnings( "deprecation" )
-public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string extends BaseJavaMigration
+public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string
+    extends BaseJavaMigration
 {
-    private static final Logger log = LoggerFactory.getLogger( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
+    private static final Logger log = LoggerFactory
+        .getLogger( V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string.class );
 
-    private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns " +
+    private static final String CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL = "SELECT data_type FROM information_schema.columns "
+        +
         "WHERE table_name = 'systemsetting' AND column_name = 'value';";
-    
+
     private static final String SMS_CONFIGURATION_SETTING_NAME = "keySmsSetting";
-    
-    //Copied from SimplisticHttpGetGateway.java
+
+    // Copied from SimplisticHttpGetGateway.java
     public static final String KEY_TEXT = "text";
+
     public static final String KEY_RECIPIENT = "recipients";
 
     @Override
-    public void migrate( final Context context ) throws Exception
+    public void migrate( final Context context )
+        throws Exception
     {
         try
         {
-            //1. Check whether migration is needed at all. Maybe it was already applied.
+            // 1. Check whether migration is needed at all. Maybe it was already
+            // applied.
             boolean continueWithMigration = false;
             try ( Statement stmt = context.getConnection().createStatement();
                 ResultSet rs = stmt.executeQuery( CHECK_SYSTEM_SETTING_VALUE_TYPE_SQL ); )
@@ -92,25 +97,27 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
 
             if ( continueWithMigration )
             {
-                //2. Fetch the data to convert if available
+                // 2. Fetch the data to convert if available
                 Set<SystemSetting> systemSettingsToConvert = fetchExistingSystemSettings( context );
 
-                //3. Create a new column of type varchar in systemsetting table
+                // 3. Create a new column of type varchar in systemsetting table
                 try ( Statement stmt = context.getConnection().createStatement() )
                 {
                     stmt.executeUpdate( "ALTER TABLE systemsetting ADD COLUMN IF NOT EXISTS value_text TEXT" );
                 }
 
-                //4. Fill the new column with transformed data
+                // 4. Fill the new column with transformed data
                 fillNewColWithTransformedData( context, systemSettingsToConvert );
 
-                //5. Delete old byte array column for value in systemsetting table
+                // 5. Delete old byte array column for value in systemsetting
+                // table
                 try ( Statement stmt = context.getConnection().createStatement() )
                 {
                     stmt.executeUpdate( "ALTER TABLE systemsetting DROP COLUMN value" );
                 }
 
-                //6. Rename new value_text column to the name of the recently deleted column
+                // 6. Rename new value_text column to the name of the recently
+                // deleted column
                 try ( Statement stmt = context.getConnection().createStatement() )
                 {
                     stmt.executeUpdate( "ALTER TABLE systemsetting RENAME COLUMN value_text TO value" );
@@ -139,10 +146,11 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
                 SystemSetting systemSetting = new SystemSetting();
                 systemSetting.setId( rs.getLong( "systemsettingid" ) );
                 systemSetting.setName( name );
-               
+
                 if ( SMS_CONFIGURATION_SETTING_NAME.equals( name ) )
                 {
-                    SmsConfiguration smsConfiguration = (SmsConfiguration) SerializationUtils.deserialize( rs.getBytes( "value" ) );
+                    SmsConfiguration smsConfiguration = (SmsConfiguration) SerializationUtils
+                        .deserialize( rs.getBytes( "value" ) );
                     updateSmsConfiguration( smsConfiguration );
                     systemSetting.setValue( smsConfiguration );
                 }
@@ -161,7 +169,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         throws JsonProcessingException
     {
         ObjectMapper objectMapper = new ObjectMapper();
-        
+
         ObjectMapper specialObjectMapper = new ObjectMapper();
         specialObjectMapper.setVisibility( specialObjectMapper.getSerializationConfig()
             .getDefaultVisibilityChecker()
@@ -169,7 +177,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
             .withGetterVisibility( Visibility.NONE )
             .withSetterVisibility( Visibility.NONE )
             .withCreatorVisibility( Visibility.NONE ) );
-        
+
         try ( PreparedStatement ps = context.getConnection()
             .prepareStatement( "UPDATE systemsetting SET value_text = ? WHERE systemsettingid = ?" ) )
         {
@@ -201,7 +209,7 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         {
             return;
         }
-        
+
         List<SmsGatewayConfig> existingGatewayConfigs = smsConfiguration.getGateways();
 
         List<SmsGatewayConfig> updatedGatewayConfigs = new ArrayList<>();
@@ -210,7 +218,8 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         {
             if ( gatewayConfig instanceof GenericHttpGetGatewayConfig )
             {
-                GenericHttpGatewayConfig newGatewayConfig = convertToNewSmsGenericConfig( (GenericHttpGetGatewayConfig) gatewayConfig );
+                GenericHttpGatewayConfig newGatewayConfig = convertToNewSmsGenericConfig(
+                    (GenericHttpGetGatewayConfig) gatewayConfig );
                 updatedGatewayConfigs.add( newGatewayConfig );
             }
             else
@@ -231,7 +240,8 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         newGatewayConfig.setParameters( gatewayConfig.getParameters() );
         newGatewayConfig.setPassword( gatewayConfig.getPassword() );
         newGatewayConfig.setUid( gatewayConfig.getUid() );
-        newGatewayConfig.setUrlTemplate( gatewayConfig.getUrlTemplate() + "?" + createConfigurationTemplateFromConfig( gatewayConfig ) );
+        newGatewayConfig.setUrlTemplate(
+            gatewayConfig.getUrlTemplate() + "?" + createConfigurationTemplateFromConfig( gatewayConfig ) );
         newGatewayConfig.setUseGet( true );
         newGatewayConfig.setSendUrlParameters( true );
         newGatewayConfig.setUsername( gatewayConfig.getUsername() );
@@ -244,19 +254,22 @@ public class V2_34_6__Convert_systemsetting_value_column_from_bytea_to_string ex
         StringBuilder configTemplateBuilder = new StringBuilder();
         if ( !StringUtils.isEmpty( gatewayConfig.getMessageParameter() ) )
         {
-            configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "={" ).append( KEY_TEXT ).append( "}&" );
+            configTemplateBuilder.append( gatewayConfig.getMessageParameter() ).append( "={" ).append( KEY_TEXT )
+                .append( "}&" );
         }
 
         if ( !StringUtils.isEmpty( gatewayConfig.getRecipientParameter() ) )
         {
-            configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "={" ).append( KEY_RECIPIENT ).append( "}&" );
+            configTemplateBuilder.append( gatewayConfig.getRecipientParameter() ).append( "={" ).append( KEY_RECIPIENT )
+                .append( "}&" );
         }
 
         for ( GenericGatewayParameter parameter : gatewayConfig.getParameters() )
         {
             if ( !parameter.isHeader() )
             {
-                configTemplateBuilder.append( parameter.getKey() ).append( "={" ).append( parameter.getKey() ).append( "}&" );
+                configTemplateBuilder.append( parameter.getKey() ).append( "={" ).append( parameter.getKey() )
+                    .append( "}&" );
             }
         }
         return configTemplateBuilder.toString();

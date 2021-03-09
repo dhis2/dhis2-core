@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,20 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -68,15 +78,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -124,7 +125,9 @@ public class SharingController
     // -------------------------------------------------------------------------
 
     @RequestMapping( method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response ) throws IOException, WebMessageException
+    public void getSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         type = getSharingType( type );
 
@@ -138,7 +141,8 @@ public class SharingController
 
         if ( object == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -164,7 +168,8 @@ public class SharingController
 
             if ( aclService.canMakePublic( user, klass ) )
             {
-                access = AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ ).enable( AccessStringHelper.Permission.WRITE ).build();
+                access = AccessStringHelper.newInstance().enable( AccessStringHelper.Permission.READ )
+                    .enable( AccessStringHelper.Permission.WRITE ).build();
             }
             else
             {
@@ -215,7 +220,10 @@ public class SharingController
     }
 
     @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT }, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void setSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response, HttpServletRequest request ) throws IOException, WebMessageException
+    public void setSharing( @RequestParam String type, @RequestParam String id, HttpServletResponse response,
+        HttpServletRequest request )
+        throws IOException,
+        WebMessageException
     {
         type = getSharingType( type );
 
@@ -230,12 +238,14 @@ public class SharingController
 
         if ( object == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "Object of type " + type + " with ID " + id + " was not found." ) );
         }
 
-        if ( ( object instanceof SystemDefaultMetadataObject ) && ( (SystemDefaultMetadataObject) object ).isDefault() )
+        if ( (object instanceof SystemDefaultMetadataObject) && ((SystemDefaultMetadataObject) object).isDefault() )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Sharing settings of system default metadata object of type " + type + " cannot be modified." ) );
+            throw new WebMessageException( WebMessageUtils.conflict(
+                "Sharing settings of system default metadata object of type " + type + " cannot be modified." ) );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -249,7 +259,8 @@ public class SharingController
 
         if ( !AccessStringHelper.isValid( sharing.getObject().getPublicAccess() ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Invalid public access string: " + sharing.getObject().getPublicAccess() ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "Invalid public access string: " + sharing.getObject().getPublicAccess() ) );
         }
 
         // ---------------------------------------------------------------------
@@ -276,7 +287,8 @@ public class SharingController
         {
             if ( AccessStringHelper.hasDataSharing( object.getPublicAccess() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
             }
         }
 
@@ -301,14 +313,16 @@ public class SharingController
 
             if ( !AccessStringHelper.isValid( sharingUserGroupAccess.getAccess() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() ) );
+                throw new WebMessageException( WebMessageUtils
+                    .conflict( "Invalid user group access string: " + sharingUserGroupAccess.getAccess() ) );
             }
 
             if ( !schema.isDataShareable() )
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserGroupAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    throw new WebMessageException(
+                        WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
                 }
             }
 
@@ -341,14 +355,16 @@ public class SharingController
 
             if ( !AccessStringHelper.isValid( sharingUserAccess.getAccess() ) )
             {
-                throw new WebMessageException( WebMessageUtils.conflict( "Invalid user access string: " + sharingUserAccess.getAccess() ) );
+                throw new WebMessageException(
+                    WebMessageUtils.conflict( "Invalid user access string: " + sharingUserAccess.getAccess() ) );
             }
 
             if ( !schema.isDataShareable() )
             {
                 if ( AccessStringHelper.hasDataSharing( sharingUserAccess.getAccess() ) )
                 {
-                    throw new WebMessageException( WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
+                    throw new WebMessageException(
+                        WebMessageUtils.conflict( "Data sharing is not enabled for this object." ) );
                 }
             }
 
@@ -379,7 +395,9 @@ public class SharingController
 
     @RequestMapping( value = "/search", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
     public void searchUserGroups( @RequestParam String key, @RequestParam( required = false ) Integer pageSize,
-        HttpServletResponse response ) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         if ( key == null )
         {
@@ -498,7 +516,7 @@ public class SharingController
     /**
      * This method is being used only during the deprecation process of the
      * Pivot/ReportTable API. It must be removed once the process is complete.
-     * 
+     *
      * @return "visualization" if the given type is equals to "reportTable" or
      *         "chart", otherwise it returns the given type itself.
      */

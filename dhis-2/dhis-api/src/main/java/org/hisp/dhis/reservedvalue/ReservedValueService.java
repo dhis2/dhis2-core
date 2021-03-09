@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,24 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.textpattern.TextPattern;
-import org.hisp.dhis.textpattern.TextPatternGenerationException;
+package org.hisp.dhis.reservedvalue;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.textpattern.TextPattern;
+import org.hisp.dhis.textpattern.TextPatternGenerationException;
 
 /**
  * @author Stian Sandvold
  */
 public interface ReservedValueService
 {
-    List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values, Date expires )
-        throws ReserveValueException, TextPatternGenerationException;
+    List<ReservedValue> reserve( TextPattern textPattern, int numberOfReservations, Map<String, String> values,
+        Date expires )
+        throws ReserveValueException,
+        TextPatternGenerationException;
 
     boolean useReservedValue( TextPattern textPattern, String value );
 

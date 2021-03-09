@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
@@ -53,15 +61,6 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -181,7 +180,8 @@ public class PreCheckDataRelationsValidationHook
                 }
                 else
                 {
-                    // FIXME: we probably need to take in consideration the idScheme
+                    // FIXME: we probably need to take in consideration the
+                    // idScheme
                     event.setEnrollment( programInstances.get( 0 ).getUid() );
                 }
             }
@@ -222,14 +222,16 @@ public class PreCheckDataRelationsValidationHook
         }
     }
 
-    //TODO: This method needs some love and care, the logic here is very hard to read.
+    // TODO: This method needs some love and care, the logic here is very hard
+    // to read.
     protected void validateEventCategoryCombo( ValidationErrorReporter reporter,
         Event event, Program program )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
         TrackerPreheat preheat = reporter.getValidationContext().getBundle().getPreheat();
 
-        // if event has "attribute option combo" set only, fetch the aoc directly
+        // if event has "attribute option combo" set only, fetch the aoc
+        // directly
         boolean optionComboIsEmpty = StringUtils.isEmpty( event.getAttributeOptionCombo() );
         boolean categoryOptionsIsEmpty = StringUtils.isEmpty( event.getAttributeCategoryOptions() );
 

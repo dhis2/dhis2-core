@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.action;
 
 import com.opensymphony.xwork2.Action;
 
@@ -37,45 +36,82 @@ public abstract class AbstractRelativePeriodsAction
     implements Action
 {
     protected boolean reportingMonth;
-    protected boolean last3Days;
-    protected boolean last7Days;
-    protected boolean last14Days;
-    protected boolean lastMonth;
-    protected boolean reportingWeek;
-    protected boolean lastQuarter;
-    protected boolean reportingBimonth;
-    protected boolean lastBiMonth;
-    protected boolean reportingQuarter;
-    protected boolean last6Months;
-    protected boolean lastSixMonth;
-    protected boolean reportingSixMonth;
-    protected boolean weeksThisYear;
-    protected boolean monthsThisYear;
-    protected boolean biMonthsThisYear;
-    protected boolean quartersThisYear;
-    protected boolean thisYear;
-    protected boolean reportingDay;
-    protected boolean monthsLastYear;
-    protected boolean quartersLastYear;
-    protected boolean last5Years;
-    protected boolean lastYear;
-    protected boolean last4Quarters;
-    protected boolean last2SixMonths;
-    protected boolean thisFinancialYear;
-    protected boolean lastFinancialYear;
-    protected boolean last3Months;
-    protected boolean last12Months;
-    protected boolean last6BiMonths;
-    protected boolean last5FinancialYears;
-    protected boolean lastWeek;
-    protected boolean reportingBiWeek;
-    protected boolean lastBiWeek;
-    protected boolean last4Weeks;
-    protected boolean last4BiWeeks;
-    protected boolean last12Weeks;
-    protected boolean last52Weeks;
-    protected boolean yesterday;
 
+    protected boolean last3Days;
+
+    protected boolean last7Days;
+
+    protected boolean last14Days;
+
+    protected boolean lastMonth;
+
+    protected boolean reportingWeek;
+
+    protected boolean lastQuarter;
+
+    protected boolean reportingBimonth;
+
+    protected boolean lastBiMonth;
+
+    protected boolean reportingQuarter;
+
+    protected boolean last6Months;
+
+    protected boolean lastSixMonth;
+
+    protected boolean reportingSixMonth;
+
+    protected boolean weeksThisYear;
+
+    protected boolean monthsThisYear;
+
+    protected boolean biMonthsThisYear;
+
+    protected boolean quartersThisYear;
+
+    protected boolean thisYear;
+
+    protected boolean reportingDay;
+
+    protected boolean monthsLastYear;
+
+    protected boolean quartersLastYear;
+
+    protected boolean last5Years;
+
+    protected boolean lastYear;
+
+    protected boolean last4Quarters;
+
+    protected boolean last2SixMonths;
+
+    protected boolean thisFinancialYear;
+
+    protected boolean lastFinancialYear;
+
+    protected boolean last3Months;
+
+    protected boolean last12Months;
+
+    protected boolean last6BiMonths;
+
+    protected boolean last5FinancialYears;
+
+    protected boolean lastWeek;
+
+    protected boolean reportingBiWeek;
+
+    protected boolean lastBiWeek;
+
+    protected boolean last4Weeks;
+
+    protected boolean last4BiWeeks;
+
+    protected boolean last12Weeks;
+
+    protected boolean last52Weeks;
+
+    protected boolean yesterday;
 
     public void setReportingMonth( boolean reportingMonth )
     {
@@ -212,7 +248,7 @@ public abstract class AbstractRelativePeriodsAction
         this.last52Weeks = last52Weeks;
     }
 
-    public void setReportingDay ( boolean reportingDay )
+    public void setReportingDay( boolean reportingDay )
     {
         this.reportingDay = reportingDay;
     }

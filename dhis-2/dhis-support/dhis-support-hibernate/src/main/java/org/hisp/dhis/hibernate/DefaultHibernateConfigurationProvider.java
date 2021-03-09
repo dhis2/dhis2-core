@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,10 +42,9 @@ import java.util.Properties;
 import javax.annotation.PostConstruct;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-
-
 import org.hibernate.cfg.Configuration;
 import org.hibernate.cfg.Environment;
 import org.hisp.dhis.commons.util.SystemUtils;
@@ -69,11 +67,17 @@ public class DefaultHibernateConfigurationProvider
     private Configuration configuration = null;
 
     private static final String MAPPING_RESOURCES_ROOT = "org/hisp/dhis/";
+
     private static final String FILENAME_CACHE_NAMES = "hibernate-caches.txt";
+
     private static final String PROP_EHCACHE_PEER_PROVIDER_RIM_URLS = "ehcache.peer.provider.rmi.urls";
+
     private static final String PROP_EHCACHE_PEER_LISTENER_HOSTNAME = "ehcache.peer.listener.hostname";
+
     private static final String PROP_EHCACHE_PEER_LISTENER_PORT = "ehcache.peer.listener.port";
+
     private static final String PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT = "ehcache.peer.listener.remote.object.port";
+
     private static final String FILENAME_EHCACHE_REPLICATION = "/ehcache-replication.xml";
 
     @Autowired
@@ -86,7 +90,9 @@ public class DefaultHibernateConfigurationProvider
     private String defaultPropertiesFile = "hibernate-default.properties";
 
     private List<Resource> jarResources = new ArrayList<>();
+
     private List<Resource> dirResources = new ArrayList<>();
+
     private List<String> clusterHostnames = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -130,7 +136,8 @@ public class DefaultHibernateConfigurationProvider
 
                 jarResources.add( new FileSystemResource( file.getAbsolutePath() ) );
 
-                log.debug( String.format( "Adding jar in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
+                log.debug(
+                    String.format( "Adding jar in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
 
                 config.addJar( file );
             }
@@ -140,7 +147,8 @@ public class DefaultHibernateConfigurationProvider
 
                 dirResources.add( new FileSystemResource( file ) );
 
-                log.debug( String.format( "Adding directory in which to search for hbm.xml files: %s", file.getAbsolutePath() ) );
+                log.debug( String.format( "Adding directory in which to search for hbm.xml files: %s",
+                    file.getAbsolutePath() ) );
 
                 config.addDirectory( file );
             }
@@ -226,12 +234,17 @@ public class DefaultHibernateConfigurationProvider
     {
         Properties props = new Properties();
 
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), Environment.DIALECT, props );
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), Environment.DRIVER, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ), Environment.DIALECT,
+            props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_DRIVER_CLASS ), Environment.DRIVER,
+            props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_URL ), Environment.URL, props );
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER, props );
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS, props );
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_USERNAME ), Environment.USER,
+            props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_PASSWORD ), Environment.PASS,
+            props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ),
+            Environment.C3P0_MAX_SIZE, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MIN_SIZE ),
             ConfigurationKey.CONNECTION_POOL_MIN_SIZE.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE ),
@@ -248,11 +261,13 @@ public class DefaultHibernateConfigurationProvider
             ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN.getKey(), props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT ),
             ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT.getKey(), props );
-        putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
+        putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ),
+            ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
 
-        if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
+        if ( SystemUtils.isTestRun( environment.getActiveProfiles() ) )
         {
-            putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );
+            putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ),
+                Environment.HBM2DDL_AUTO, props );
             putIfExists( "false", "hibernate.cache.use_second_level_cache", props );
             putIfExists( "false", "hibernate.cache.use_query_cache", props );
         }
@@ -317,12 +332,13 @@ public class DefaultHibernateConfigurationProvider
     {
         String instanceHost = configurationProvider.getProperty( ConfigurationKey.CLUSTER_HOSTNAME );
         String instancePort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_PORT );
-        String remoteObjectPort = configurationProvider.getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
+        String remoteObjectPort = configurationProvider
+            .getProperty( ConfigurationKey.CLUSTER_CACHE_REMOTE_OBJECT_PORT );
         String clusterMembers = configurationProvider.getProperty( ConfigurationKey.CLUSTER_MEMBERS );
 
         // Split using comma delimiter along with possible spaces in between
 
-        String[] clusterMemberList = clusterMembers.trim().split("\\s*,\\s*");
+        String[] clusterMemberList = clusterMembers.trim().split( "\\s*,\\s*" );
 
         List<String> cacheNames = getCacheNames();
 
@@ -336,7 +352,7 @@ public class DefaultHibernateConfigurationProvider
 
             clusterHostnames.add( member );
 
-            log.info("Found cluster instance: " + member);
+            log.info( "Found cluster instance: " + member );
         }
 
         String rmiUrls = StringUtils.removeEnd( rmiUrlBuilder.toString(), "|" );
@@ -351,7 +367,8 @@ public class DefaultHibernateConfigurationProvider
         System.setProperty( PROP_EHCACHE_PEER_PROVIDER_RIM_URLS, rmiUrls );
         System.setProperty( PROP_EHCACHE_PEER_LISTENER_REMOTE_OBJECT_PORT, remoteObjectPort );
 
-        log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls + ", " + remoteObjectPort  );
+        log.info( "Ehcache config properties: " + instanceHost + ", " + instancePort + ", " + rmiUrls + ", "
+            + remoteObjectPort );
     }
 
     /**

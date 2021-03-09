@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -76,7 +75,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -445,7 +443,8 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
-    // TODO: Need help setting up this test. Need a user with all access, but lacking the F_EDIT_EXPIRED auth.
+    // TODO: Need help setting up this test. Need a user with all access, but
+    // lacking the F_EDIT_EXPIRED auth.
     @Test
     @Ignore( "Need to setup metadata with user without F_EDIT_EXPIRED" )
     public void testMissingCompletedDate()
@@ -488,8 +487,9 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1052 ) ) ) );
 
         // TODO: Need help setting this up.
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1043 ) ) ) );
+        // assertThat( report.getErrorReports(),
+        // hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1043 )
+        // ) ) );
     }
 
     @Test
@@ -643,7 +643,7 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1038 ) ) ) );
     }
 
-    //TODO: Can't get this to work, the preheater? inserts a program instance.
+    // TODO: Can't get this to work, the preheater? inserts a program instance.
     @Test
     @Ignore( "Can't get this to work, the preheater? inserts a program instance." )
     public void testTeiMultipleActiveEnrollmentsInNonRegProgram()
@@ -667,7 +667,7 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1040 ) ) ) );
     }
 
-    //TODO: Delete not working yet
+    // TODO: Delete not working yet
     @Test
     @Ignore( "Delete not yet working" )
     public void testEventAlreadyDeleted()
@@ -721,8 +721,9 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
     }
 
-    //TODO: Needs clarification, can't test this error: E1082.
-    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+    // TODO: Needs clarification, can't test this error: E1082.
+    // See comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
     @Test
     @Ignore( "Needs clarification, can't test this error: E1082. Maybe because delete not yet working" )
     public void testProgramStageDeleted()
@@ -764,8 +765,9 @@ public class EventImportValidationTest
         assertEquals( 0, trackerBundle.getEnrollments().size() );
     }
 
-    //TODO: Can't provoke this state
-    // see comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
+    // TODO: Can't provoke this state
+    // see comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
     @Test
     @Ignore( "Can't provoke this state" )
     public void testIsRegButNoTei()
@@ -798,13 +800,13 @@ public class EventImportValidationTest
         throws IOException
     {
         Date now = new Date();
-        
+
         // When
-        
-        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
-        
+
+        ValidateAndCommitTestUnit createAndUpdate = createEvent( "tracker/validations/events-with-notes-data.json" );
+
         // Then
-        
+
         // Fetch the UID of the newly created event
         final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
@@ -822,16 +824,19 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
+    public void testValidateAndAddNotesToUpdatedEvent()
+        throws IOException
+    {
 
         Date now = new Date();
-        
+
         // Given -> Creates an event with 3 notes
-        createEvent("tracker/validations/events-with-notes-data.json");
-        
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
         // When -> Update the event and adds 3 more notes
-        final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
-        
+        final ValidateAndCommitTestUnit createAndUpdate = createEvent(
+            "tracker/validations/events-with-notes-update-data.json" );
+
         // Then
         final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
@@ -841,7 +846,7 @@ public class EventImportValidationTest
         Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
 
             TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
-            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
+            assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
@@ -882,7 +887,7 @@ public class EventImportValidationTest
         fail( "Can't find a comment starting or ending with " + commentText );
         return null;
     }
-    
+
     private ProgramStageInstance getEventFromReport( ValidateAndCommitTestUnit createAndUpdate )
     {
         final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();

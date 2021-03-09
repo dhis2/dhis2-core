@@ -1,7 +1,5 @@
-package org.hisp.dhis.document;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +25,54 @@ package org.hisp.dhis.document;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.document;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "document", namespace = DxfNamespaces.DXF_2_0 )
 public class Document
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
-     * Can be either a valid URL, or the path (filename) of a file.
-     * If the external property is true, this should be an URL.
-     * If the external property is false, this should be the filename
+     * Can be either a valid URL, or the path (filename) of a file. If the
+     * external property is true, this should be an URL. If the external
+     * property is false, this should be the filename
      */
     private String url;
 
     /**
-     * A reference to the file associated with the Document. If document represents
-     * an URL or a file uploaded before this property was added, this will be null.
+     * A reference to the file associated with the Document. If document
+     * represents an URL or a file uploaded before this property was added, this
+     * will be null.
      */
     private FileResource fileResource;
 
     /**
-     * Determines if this document refers to a file (!external) or URL (external).
+     * Determines if this document refers to a file (!external) or URL
+     * (external).
      */
     private boolean external;
 
     /**
-     * The content type of the file referred to by the document, or null if document
-     * refers to an URL
+     * The content type of the file referred to by the document, or null if
+     * document refers to an URL
      */
     private String contentType;
 
     /**
-     * Flags whether the file should be displayed in-browser or downloaded.
-     * true should trigger a download of the file when accessing the document data
+     * Flags whether the file should be displayed in-browser or downloaded. true
+     * should trigger a download of the file when accessing the document data
      */
     private Boolean attachment = false;
 

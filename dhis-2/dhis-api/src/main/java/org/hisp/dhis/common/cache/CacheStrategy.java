@@ -1,7 +1,5 @@
-package org.hisp.dhis.common.cache;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common.cache;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common.cache;
 
 import static java.util.concurrent.TimeUnit.DAYS;
 import static java.util.concurrent.TimeUnit.HOURS;
@@ -34,9 +33,9 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.hisp.dhis.util.DateUtils.getSecondsUntilTomorrow;
 
 /**
- * CacheStrategies express web request caching settings.
- * Note that {@link #RESPECT_SYSTEM_SETTING} should only be used on a
- * per-object-basis (i.e. never as a system wide setting).
+ * CacheStrategies express web request caching settings. Note that
+ * {@link #RESPECT_SYSTEM_SETTING} should only be used on a per-object-basis
+ * (i.e. never as a system wide setting).
  *
  * @author Halvdan Hoem Grelland
  */

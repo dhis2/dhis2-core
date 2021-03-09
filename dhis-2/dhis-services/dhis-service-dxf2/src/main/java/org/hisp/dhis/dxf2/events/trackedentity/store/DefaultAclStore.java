@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.trackedentity.store;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.dxf2.events.trackedentity.store;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.trackedentity.store;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import java.util.List;
 
 /**
  * @author Luciano Fiandesio
@@ -54,7 +53,8 @@ public class DefaultAclStore
         + USER_SQL_PARAM_NAME + ")";
 
     private final static String USERGROUPACCESS_CONDITION = "(SELECT usergroupaccessid FROM usergroupaccess "
-        + "WHERE access LIKE '__r%' AND usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :" + USER_SQL_PARAM_NAME
+        + "WHERE access LIKE '__r%' AND usergroupid IN (SELECT usergroupid FROM usergroupmembers WHERE userid = :"
+        + USER_SQL_PARAM_NAME
         + "))";
 
     private final static String GET_TEI_TYPE_ACL = "SELECT trackedentitytypeid FROM trackedentitytype "

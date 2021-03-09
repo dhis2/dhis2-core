@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 public class TrackerImporterAssertErrors
 {
@@ -71,6 +70,5 @@ public class TrackerImporterAssertErrors
 
     public static final String GEOMETRY_CANT_BE_NULL = "Geometry can not be null";
 
-    public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD =
-        "Implementing class fail to override this method!";
+    public static final String IMPLEMENTING_CLASS_FAIL_TO_OVERRIDE_THIS_METHOD = "Implementing class fail to override this method!";
 }

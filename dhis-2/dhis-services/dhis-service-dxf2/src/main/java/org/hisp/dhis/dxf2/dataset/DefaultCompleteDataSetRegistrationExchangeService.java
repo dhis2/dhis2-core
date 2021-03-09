@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,22 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -84,16 +94,8 @@ import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Nonnull;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -105,7 +107,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 {
     private static final int CACHE_MISS_THRESHOLD = 500;
 
-    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME, IdScheme.CODE );
+    private static final Set<IdScheme> EXPORT_ID_SCHEMES = ImmutableSet.of( IdScheme.UID, IdScheme.NAME,
+        IdScheme.CODE );
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -272,7 +275,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsXml( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId )
     {
         try
         {
@@ -295,13 +299,15 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     }
 
     @Override
-    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions, JobConfiguration jobId )
+    public ImportSummary saveCompleteDataSetRegistrationsJson( InputStream in, ImportOptions importOptions,
+        JobConfiguration jobId )
     {
         try
         {
             in = StreamUtils.wrapAndCheckCompressionFormat( in );
 
-            CompleteDataSetRegistrations completeDataSetRegistrations = jsonMapper.readValue( in, CompleteDataSetRegistrations.class );
+            CompleteDataSetRegistrations completeDataSetRegistrations = jsonMapper.readValue( in,
+                CompleteDataSetRegistrations.class );
 
             return saveCompleteDataSetRegistrations( importOptions, jobId, completeDataSetRegistrations );
         }
@@ -388,7 +394,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     {
         IdSchemes schemes = params.getOutputIdSchemes();
 
-        // If generic IdScheme is set to ID -> override to UID, for others: nullify field (inherits from generic scheme)
+        // If generic IdScheme is set to ID -> override to UID, for others:
+        // nullify field (inherits from generic scheme)
 
         if ( !EXPORT_ID_SCHEMES.contains( schemes.getIdScheme() ) )
         {
@@ -453,7 +460,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         log.info( "Import options: " + importOptions );
 
-        ImportConfig cfg = new ImportConfig( this.systemSettingManager, this.categoryService, completeRegistrations, importOptions );
+        ImportConfig cfg = new ImportConfig( this.systemSettingManager, this.categoryService, completeRegistrations,
+            importOptions );
 
         // ---------------------------------------------------------------------
         // Set up meta-data
@@ -476,7 +484,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         int totalCount = batchImport( completeRegistrations, cfg, importSummary, metaDataCallables, caches );
 
-        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary, ImportSummary.class );
+        notifier.notify( id, NotificationLevel.INFO, "Import done", true ).addJobSummary( id, importSummary,
+            ImportSummary.class );
 
         ImportCount count = importSummary.getImportCount();
 
@@ -578,12 +587,12 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                 continue;
             }
 
-
             // ---------------------------------------------------------------------
             // Compulsory fields validation
             // ---------------------------------------------------------------------
 
-            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields( mdProps.dataSet, mdProps.period,
+            List<DataElementOperand> missingDataElementOperands = registrationService.getMissingCompulsoryFields(
+                mdProps.dataSet, mdProps.period,
                 mdProps.orgUnit, mdProps.attrOptCombo );
 
             if ( !missingDataElementOperands.isEmpty() )
@@ -727,8 +736,9 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     /**
      * Check write permission for {@see DataSet} and {@see CategoryOptionCombo}
      *
-     * @param user               currently logged-in user
-     * @param metaDataProperties {@see MetaDataProperties} containing the objects to check
+     * @param user currently logged-in user
+     * @param metaDataProperties {@see MetaDataProperties} containing the
+     *        objects to check
      */
     private List<String> validateDataAccess( User user, MetadataProperties metaDataProperties )
     {
@@ -864,7 +874,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
     {
         if ( !caches.getDataSets().isCacheLoaded() && exceedsThreshold( caches.getDataSets() ) )
         {
-            caches.getDataSets().load( idObjManager.getAll( DataSet.class ), ds -> ds.getPropertyValue( config.getDsScheme() ) );
+            caches.getDataSets().load( idObjManager.getAll( DataSet.class ),
+                ds -> ds.getPropertyValue( config.getDsScheme() ) );
 
             log.info( "Data set cache heated after cache miss threshold reached" );
         }
@@ -877,7 +888,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
             log.info( "Org unit cache heated after cache miss threshold reached" );
         }
 
-        // TODO Consider need for checking/re-heating attrOptCombo and period caches
+        // TODO Consider need for checking/re-heating attrOptCombo and period
+        // caches
 
         if ( !caches.getAttrOptionCombos().isCacheLoaded() && exceedsThreshold( caches.getAttrOptionCombos() ) )
         {
@@ -903,7 +915,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
 
         if ( aoc == null )
         {
-            CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(), false );
+            CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cdsr.getCc(), cdsr.getCp(),
+                false );
             aoc = attributeOptionCombo != null ? attributeOptionCombo.getUid() : aoc;
         }
         return new MetadataProperties( cache.getDataSets().get( ds, callables.getDataSetCallable().setId( ds ) ),
@@ -959,7 +972,8 @@ public class DefaultCompleteDataSetRegistrationExchangeService
                     new ImportConflict( cdsr.getOrganisationUnit(), "Organisation unit not found or not accessible" ) );
             }
 
-            // Ensure AOC is set is required, or is otherwise set to the default COC
+            // Ensure AOC is set is required, or is otherwise set to the default
+            // COC
 
             if ( attrOptCombo == null )
             {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -48,16 +47,17 @@ public class UidGenerator
 {
     /**
      * Generates a valid uid and assign it to the uid field of each event.
-     *
-     * If the event has the 'event' field populated, it will be used for the 'uid' value
-     *
-     * Generates a valid uid and assign it to all the notes of each event (if the UID
-     * is missing)
+     * <p>
+     * If the event has the 'event' field populated, it will be used for the
+     * 'uid' value
+     * <p>
+     * Generates a valid uid and assign it to all the notes of each event (if
+     * the UID is missing)
      *
      * @param events a List of {@see Events}
      * @return a List of {@see Events} with the uid field populated
      */
-    public List<Event> assignUidToEvents(List<Event> events )
+    public List<Event> assignUidToEvents( List<Event> events )
     {
         for ( Event event : events )
         {

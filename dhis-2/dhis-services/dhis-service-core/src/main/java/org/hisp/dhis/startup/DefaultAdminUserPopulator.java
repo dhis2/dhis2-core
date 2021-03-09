@@ -1,7 +1,5 @@
-package org.hisp.dhis.startup;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,22 @@ package org.hisp.dhis.startup;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.startup;
 
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Set;
+import java.util.UUID;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 
-import java.util.Set;
-import java.util.UUID;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -82,8 +83,7 @@ public class DefaultAdminUserPopulator
         "F_UNCOMPLETE_EVENT",
         "F_EDIT_EXPIRED",
         "F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION",
-        "F_TRACKER_IMPORTER_EXPERIMENTAL"
-    );
+        "F_TRACKER_IMPORTER_EXPERIMENTAL" );
 
     private final UserService userService;
 
@@ -96,7 +96,8 @@ public class DefaultAdminUserPopulator
     @Override
     public void executeInTransaction()
     {
-        // If there is no users in the system we assume we need a default admin user.
+        // If there is no users in the system we assume we need a default admin
+        // user.
         if ( userService.getUserCount() > 0 )
         {
             return;

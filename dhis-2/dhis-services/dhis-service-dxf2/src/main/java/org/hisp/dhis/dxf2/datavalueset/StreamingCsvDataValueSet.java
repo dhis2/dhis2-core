@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
 import java.io.IOException;
 
@@ -43,28 +42,29 @@ public class StreamingCsvDataValueSet
     extends DataValueSet
 {
     private CsvWriter writer;
-    
+
     private CsvReader reader;
-    
+
     public StreamingCsvDataValueSet( CsvWriter writer )
     {
         this.writer = writer;
-        
+
         try
         {
-            this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write headers
+            this.writer.writeRecord( StreamingCsvDataValue.getHeaders() ); // Write
+            // headers
         }
         catch ( IOException ex )
         {
             throw new RuntimeException( "Failed to write CSV headers", ex );
         }
     }
-    
+
     public StreamingCsvDataValueSet( CsvReader reader )
     {
         this.reader = reader;
     }
-    
+
     @Override
     public boolean hasNextDataValue()
     {
@@ -104,10 +104,10 @@ public class StreamingCsvDataValueSet
         {
             writer.close();
         }
-        
+
         if ( reader != null )
         {
             reader.close();
         }
-    }    
+    }
 }

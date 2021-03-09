@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.context;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -124,7 +123,7 @@ public class AttributeOptionComboLoader
      * @return a {@see CategoryOptionCombo}
      */
     public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
-                                                        String attributeOptionCombo, IdScheme idScheme )
+        String attributeOptionCombo, IdScheme idScheme )
     {
         final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
 
@@ -133,11 +132,12 @@ public class AttributeOptionComboLoader
 
     /**
      * Fetches the default {@see CategoryOptionCombo}
+     *
      * @return a {@see CategoryOptionCombo} or null
      */
     public CategoryOptionCombo getDefault()
     {
-        return  loadCategoryOptionCombo( IdScheme.NAME, "default" );
+        return loadCategoryOptionCombo( IdScheme.NAME, "default" );
     }
 
     /**
@@ -238,7 +238,9 @@ public class AttributeOptionComboLoader
         return id;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions ) {
+    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId,
+        Set<CategoryOption> categoryOptions )
+    {
 
         final String key = "categorycomboid";
         final String categoryComboKey = resolveId( idScheme, key, categoryComboId );
@@ -255,7 +257,8 @@ public class AttributeOptionComboLoader
 
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
-            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
+            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ),
+                ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
 
         if ( categoryOptionCombos.size() == 1 )
         {
@@ -269,10 +272,11 @@ public class AttributeOptionComboLoader
     }
 
     /**
-     * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided IdScheme)
+     * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided
+     * IdScheme)
      *
-     * The {@see CategoryOptionCombo} contains tha associated {@see CategoryCombo}
-     * and all the associated {@see CategoryOption}
+     * The {@see CategoryOptionCombo} contains tha associated
+     * {@see CategoryCombo} and all the associated {@see CategoryOption}
      *
      * @param idScheme a {@see IdScheme}
      * @param id the {@see CategoryOptionCombo} id to use
@@ -282,7 +286,7 @@ public class AttributeOptionComboLoader
     {
         String key = "categoryoptioncomboid";
 
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
             .put( "key", key )
             .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );

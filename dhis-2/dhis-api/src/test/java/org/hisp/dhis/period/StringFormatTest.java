@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,14 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.Calendar;
 import java.util.Date;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author bobj
@@ -61,11 +61,15 @@ public class StringFormatTest
         Period year1 = new Period( new YearlyPeriodType(), getDate( 2010, 1, 1 ), getDate( 2010, 12, 31 ) );
         Period quarter1 = new Period( new QuarterlyPeriodType(), getDate( 2010, 1, 1 ), getDate( 2010, 3, 31 ) );
         Period semester1 = new Period( new SixMonthlyPeriodType(), getDate( 2010, 1, 1 ), getDate( 2010, 6, 30 ) );
-        Period semesterApril1 = new Period( new SixMonthlyAprilPeriodType(), getDate( 2010, 4, 1 ), getDate( 2010, 9, 30 ) );
+        Period semesterApril1 = new Period( new SixMonthlyAprilPeriodType(), getDate( 2010, 4, 1 ),
+            getDate( 2010, 9, 30 ) );
         Period biMonth1 = new Period( new BiMonthlyPeriodType(), getDate( 2010, 3, 1 ), getDate( 2010, 4, 30 ) );
-        Period financialApril = new Period( new FinancialAprilPeriodType(), getDate( 2010, 4, 1 ), getDate( 2011, 3, 31 ) );
-        Period financialJuly = new Period( new FinancialJulyPeriodType(), getDate( 2010, 7, 1 ), getDate( 2011, 6, 30 ) );
-        Period financialOct = new Period( new FinancialOctoberPeriodType(), getDate( 2010, 10, 1 ), getDate( 2011, 9, 30 ) );
+        Period financialApril = new Period( new FinancialAprilPeriodType(), getDate( 2010, 4, 1 ),
+            getDate( 2011, 3, 31 ) );
+        Period financialJuly = new Period( new FinancialJulyPeriodType(), getDate( 2010, 7, 1 ),
+            getDate( 2011, 6, 30 ) );
+        Period financialOct = new Period( new FinancialOctoberPeriodType(), getDate( 2010, 10, 1 ),
+            getDate( 2011, 9, 30 ) );
 
         assertEquals( "Day format", "20100101", day1.getIsoDate() );
         assertEquals( "Month format", "201001", month1.getIsoDate() );
@@ -77,7 +81,7 @@ public class StringFormatTest
         assertEquals( "Financial April", "2010April", financialApril.getIsoDate() );
         assertEquals( "Financial July", "2010July", financialJuly.getIsoDate() );
         assertEquals( "Financial Oct", "2010Oct", financialOct.getIsoDate() );
-        
+
         assertEquals( day1, PeriodType.getPeriodFromIsoString( "20100101" ) );
         assertEquals( month1, PeriodType.getPeriodFromIsoString( "201001" ) );
         assertEquals( year1, PeriodType.getPeriodFromIsoString( "2010" ) );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.documentation.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,33 @@ package org.hisp.dhis.webapi.documentation.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.documentation.controller;
+
+import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
+import static org.springframework.restdocs.payload.PayloadDocumentation.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.http.HttpStatus;
-import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.constant.Constant;
-import org.hisp.dhis.category.CategoryOptionGroup;
-import org.hisp.dhis.category.CategoryOptionGroupSet;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryOptionGroup;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.chart.ChartType;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.constant.Constant;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementGroupSet;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -74,19 +86,6 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.payload.FieldDescriptor;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hisp.dhis.program.ProgramIndicator.KEY_PROGRAM_VARIABLE;
-import static org.springframework.restdocs.payload.PayloadDocumentation.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 /**
  * @author Viet Nguyen <viet@dhis2.org>
  */
@@ -117,7 +116,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
     }
 
     @Test
-    public void testGetAll() throws Exception
+    public void testGetAll()
+        throws Exception
     {
         Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaultObjectMap = manager.getDefaults();
         IdentifiableObject defaultTestObject = defaultObjectMap.get( testClass );
@@ -133,18 +133,19 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         fieldDescriptors.addAll( ResponseDocumentation.pager() );
         fieldDescriptors.add( fieldWithPath( schema.getPlural() ).description( schema.getPlural() ) );
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
+        mvc.perform(
+            get( schema.getRelativeApiEndpoint() ).session( session ).accept( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( TestUtils.APPLICATION_JSON_UTF8 ) )
             .andExpect( jsonPath( "$." + schema.getPlural() ).isArray() )
             .andExpect( jsonPath( "$." + schema.getPlural() + ".length()" ).value( valueToTest ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/all",
-                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) )
-            ) );
+                responseFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
     }
 
     @Test
-    public void testGetByIdOk() throws Exception
+    public void testGetByIdOk()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
@@ -152,7 +153,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         manager.save( object );
         Set<FieldDescriptor> fieldDescriptors = TestUtils.getFieldDescriptors( schema );
 
-        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", object.getUid() ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( get( schema.getRelativeApiEndpoint() + "/{id}", object.getUid() ).session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isOk() )
             .andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) )
             .andExpect( jsonPath( "$.name" ).value( object.getName() ) )
@@ -161,7 +163,8 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
     }
 
     @Test
-    public void testCreate() throws Exception
+    public void testCreate()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         T object = createTestObject( testClass, 'A' );
@@ -174,12 +177,12 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             .content( TestUtils.convertObjectToJsonBytes( object ) ) )
             .andExpect( status().is( createdStatus ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/create",
-                requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) )
-            );
+                requestFields( fieldDescriptors.toArray( new FieldDescriptor[fieldDescriptors.size()] ) ) ) );
     }
 
     @Test
-    public void testUpdate() throws Exception
+    public void testUpdate()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
@@ -198,25 +201,29 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
     }
 
     @Test
-    public void testDeleteByIdOk() throws Exception
+    public void testDeleteByIdOk()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
         T object = createTestObject( testClass, 'A' );
         manager.save( object );
 
-        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", object.getUid() ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", object.getUid() ).session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().is( deleteStatus ) )
             .andDo( documentPrettyPrint( schema.getPlural() + "/delete" ) );
 
     }
 
     @Test
-    public void testDeleteById404() throws Exception
+    public void testDeleteById404()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
 
-        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", "deabcdefghA" ).session( session ).accept( MediaType.APPLICATION_JSON ) )
+        mvc.perform( delete( schema.getRelativeApiEndpoint() + "/{id}", "deabcdefghA" ).session( session )
+            .accept( MediaType.APPLICATION_JSON ) )
             .andExpect( status().isNotFound() );
     }
 
@@ -325,8 +332,10 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
             Constant constantA = createConstant( uniqueName, 7.0 );
             manager.save( constantA );
 
-            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - " + KEY_PROGRAM_VARIABLE + "{"
-                    + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+            String expressionA = "( " + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "} - "
+                + KEY_PROGRAM_VARIABLE + "{"
+                + ProgramIndicator.VAR_INCIDENT_DATE + "} )  / " + ProgramIndicator.KEY_CONSTANT + "{"
+                + constantA.getUid() + "}";
 
             return (T) createProgramIndicator( uniqueName, program, expressionA, null );
         }
@@ -404,9 +413,9 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
         {
             return (T) new Option( "Option" + uniqueName, "code" + uniqueName );
         }
-        else if ( OptionSet.class.isAssignableFrom( clazz ))
+        else if ( OptionSet.class.isAssignableFrom( clazz ) )
         {
-            return (T) new OptionSet( "OptionSet" +uniqueName, ValueType.TEXT );
+            return (T) new OptionSet( "OptionSet" + uniqueName, ValueType.TEXT );
         }
         else if ( ProgramTrackedEntityAttributeGroup.class.isAssignableFrom( clazz ) )
         {
@@ -419,7 +428,7 @@ public abstract class AbstractWebApiTest<T extends IdentifiableObject>
 
             return (T) group;
         }
-        else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ))
+        else if ( ProgramTrackedEntityAttribute.class.isAssignableFrom( clazz ) )
         {
             Program pr = createProgram( 'A' );
             TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );

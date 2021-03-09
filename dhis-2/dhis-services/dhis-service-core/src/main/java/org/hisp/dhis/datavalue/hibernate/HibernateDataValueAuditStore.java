@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.datavalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue.hibernate;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
@@ -44,15 +53,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Quang Nguyen
@@ -77,7 +78,6 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
 
         this.periodStore = periodStore;
     }
-
 
     // -------------------------------------------------------------------------
     // DataValueAuditStore implementation
@@ -116,7 +116,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     @Override
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
@@ -128,7 +129,7 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
         {
             return getList( builder, newJpaParameters()
                 .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
-                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                    Collectors.toList() ).toArray( new Predicate[predicates.size()] ) ) )
                 .addOrder( root -> builder.desc( root.get( "created" ) ) ) );
         }
         else
@@ -138,18 +139,21 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     @Override
-    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
-        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType, int first, int max )
+    public List<DataValueAudit> getDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType,
+        int first, int max )
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements,
+            periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
 
         if ( !predicates.isEmpty() )
         {
             return getList( builder, newJpaParameters()
                 .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
-                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                    Collectors.toList() ).toArray( new Predicate[predicates.size()] ) ) )
                 .addOrder( root -> builder.desc( root.get( "created" ) ) )
                 .setFirstResult( first )
                 .setMaxResults( max ) );
@@ -161,18 +165,20 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     @Override
-    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods, List<OrganisationUnit> organisationUnits,
+    public int countDataValueAudits( List<DataElement> dataElements, List<Period> periods,
+        List<OrganisationUnit> organisationUnits,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, AuditType auditType )
     {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
 
-        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements, periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
+        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, dataElements,
+            periods, organisationUnits, categoryOptionCombo, attributeOptionCombo, auditType );
 
         if ( !predicates.isEmpty() )
         {
             return getCount( builder, newJpaParameters()
                 .addPredicate( root -> builder.and( predicates.stream().map( p -> p.apply( root ) ).collect(
-                    Collectors.toList() ).toArray( new Predicate[ predicates.size() ] ) ) )
+                    Collectors.toList() ).toArray( new Predicate[predicates.size()] ) ) )
                 .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
 
         }
@@ -183,8 +189,8 @@ public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValu
     }
 
     /**
-     * Returns a list of Predicates generated from given parameters. Returns an empty list if given Period does not
-     * exist in database.
+     * Returns a list of Predicates generated from given parameters. Returns an
+     * empty list if given Period does not exist in database.
      *
      * @param builder the {@link CriteriaBuilder}.
      * @param dataElements the list of data elements.

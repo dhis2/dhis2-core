@@ -1,31 +1,5 @@
-package org.hisp.dhis.maintenance;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.Collections;
-import java.util.List;
-
-import org.hisp.dhis.common.DeleteNotAllowedException;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
-import org.hisp.dhis.commons.util.PageRange;
-import org.hisp.dhis.dataapproval.DataApprovalAuditService;
-import org.hisp.dhis.dataapproval.DataApprovalService;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
-import org.hisp.dhis.datavalue.DataValueAuditService;
-import org.hisp.dhis.datavalue.DataValueService;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.user.*;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +25,31 @@ import lombok.extern.slf4j.Slf4j;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.maintenance;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Collections;
+import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.commons.util.PageRange;
+import org.hisp.dhis.dataapproval.DataApprovalAuditService;
+import org.hisp.dhis.dataapproval.DataApprovalService;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
+import org.hisp.dhis.datavalue.DataValueAuditService;
+import org.hisp.dhis.datavalue.DataValueService;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
+import org.hisp.dhis.user.*;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -87,7 +86,8 @@ public class DefaultMaintenanceService
     public DefaultMaintenanceService( MaintenanceStore maintenanceStore, PeriodService periodService,
         UserService userService, CurrentUserService currentUserService, DataValueService dataValueService,
         DataValueAuditService dataValueAuditService, CompleteDataSetRegistrationService completeRegistrationService,
-        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService, ApplicationEventPublisher eventPublisher )
+        DataApprovalService dataApprovalService, DataApprovalAuditService dataApprovalAuditService,
+        ApplicationEventPublisher eventPublisher )
     {
 
         checkNotNull( maintenanceStore );
@@ -214,8 +214,7 @@ public class DefaultMaintenanceService
     {
         User user = currentUserService.getCurrentUser();
 
-
-        if ( user == null  || !user.isSuper() )
+        if ( user == null || !user.isSuper() )
         {
             return false;
         }
@@ -240,7 +239,8 @@ public class DefaultMaintenanceService
 
         PageRange range = new PageRange( userCount ).setPageSize( 200 );
         List<int[]> pages = range.getPages();
-        Collections.reverse( pages ); // Iterate from end since users are deleted
+        Collections.reverse( pages ); // Iterate from end since users are
+        // deleted
 
         log.debug( "Pages: " + pages );
 

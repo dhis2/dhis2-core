@@ -1,7 +1,5 @@
-package org.hisp.dhis.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.notification;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Sets;
+import static java.lang.String.format;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.util.*;
+import java.util.function.Function;
+
 import org.apache.commons.lang3.RandomUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,12 +43,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
-import java.util.*;
-import java.util.function.Function;
-
-import static java.lang.String.format;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -58,7 +58,9 @@ public class BaseNotificationMessageRendererTest
     private BaseNotificationMessageRenderer<Entity> renderer;
 
     private static final Pair<String, String> ATTR_A = ImmutablePair.of( "a1234567890", "Attribute A value" );
+
     private static final Pair<String, String> ATTR_B = ImmutablePair.of( "b1234567890", "Attribute B value" );
+
     private static final Pair<String, String> ATTR_NULL = ImmutablePair.of( "n1234567890", null );
 
     @Before
@@ -189,8 +191,7 @@ public class BaseNotificationMessageRendererTest
 
         int tooLong = RandomUtils.nextInt(
             BaseNotificationMessageRenderer.SMS_CHAR_LIMIT + 1,
-            BaseNotificationMessageRenderer.SMS_CHAR_LIMIT + 100
-        );
+            BaseNotificationMessageRenderer.SMS_CHAR_LIMIT + 100 );
 
         String templateString = CodeGenerator.generateCode( tooLong );
         NotificationTemplate template = template( templateString );
@@ -208,8 +209,7 @@ public class BaseNotificationMessageRendererTest
 
         int tooLong = RandomUtils.nextInt(
             BaseNotificationMessageRenderer.EMAIL_CHAR_LIMIT + 1,
-            BaseNotificationMessageRenderer.EMAIL_CHAR_LIMIT + 100
-        );
+            BaseNotificationMessageRenderer.EMAIL_CHAR_LIMIT + 100 );
 
         String templateString = CodeGenerator.generateCode( tooLong );
         NotificationTemplate template = Mockito.spy( template( templateString ) );
@@ -252,19 +252,23 @@ public class BaseNotificationMessageRendererTest
     /**
      * Thin mock implementation on top of BaseNotificationMessageRenderer
      */
-    static class MockNotificationMessageRenderer extends BaseNotificationMessageRenderer<Entity>
+    static class MockNotificationMessageRenderer
+        extends BaseNotificationMessageRenderer<Entity>
     {
-        static final ImmutableMap<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS =
-            ImmutableMap.<TemplateVariable, Function<Entity, String>>builder()
-                .put( EntityTemplateVariable.a, e -> e.propertyA )
-                .put( EntityTemplateVariable.b, e -> e.propertyB )
-                .build();
+        static final ImmutableMap<TemplateVariable, Function<Entity, String>> VARIABLE_RESOLVERS = ImmutableMap
+            .<TemplateVariable, Function<Entity, String>> builder()
+            .put( EntityTemplateVariable.a, e -> e.propertyA )
+            .put( EntityTemplateVariable.b, e -> e.propertyB )
+            .build();
 
-        static final Map<String, String> ATTRIBUTE_VALUES = new HashMap<String, String>() {{
-            put( ATTR_A.getKey(), ATTR_A.getValue() );
-            put( ATTR_B.getKey(), ATTR_B.getValue() );
-            put( ATTR_NULL.getKey(), ATTR_NULL.getValue() );
-        }};
+        static final Map<String, String> ATTRIBUTE_VALUES = new HashMap<String, String>()
+        {
+            {
+                put( ATTR_A.getKey(), ATTR_A.getValue() );
+                put( ATTR_B.getKey(), ATTR_B.getValue() );
+                put( ATTR_NULL.getKey(), ATTR_NULL.getValue() );
+            }
+        };
 
         @Override
         protected Map<TemplateVariable, Function<Entity, String>> getVariableResolvers()
@@ -303,8 +307,8 @@ public class BaseNotificationMessageRendererTest
     static class Entity
     {
         final String propertyA;
-        final String propertyB;
 
+        final String propertyB;
 
         Entity( String propertyA, String propertyB )
         {
@@ -313,9 +317,12 @@ public class BaseNotificationMessageRendererTest
         }
     }
 
-    enum EntityTemplateVariable implements TemplateVariable
+    enum EntityTemplateVariable
+        implements
+        TemplateVariable
     {
-        a ( "a" ), b ( "b" );
+        a( "a" ),
+        b( "b" );
 
         final String variableName;
 

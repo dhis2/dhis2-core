@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,21 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.commons.collection.ListUtils;
-import org.junit.Test;
-
-import java.util.AbstractSequentialList;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+package org.hisp.dhis.commons.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.commons.util.TextUtils.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+
+import java.util.AbstractSequentialList;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+
+import org.hisp.dhis.commons.collection.ListUtils;
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -51,7 +50,9 @@ public class TextUtilsTest
 
     enum Disease
     {
-        ANTIBIOTIC_RESISTANT_INFECTION, MALARIA, CHRONIC_WASTING_DISEASE;
+        ANTIBIOTIC_RESISTANT_INFECTION,
+        MALARIA,
+        CHRONIC_WASTING_DISEASE;
     }
 
     @Test
@@ -60,7 +61,8 @@ public class TextUtilsTest
         assertEquals( "<a href=\"http://dhis2.org\">http://dhis2.org</a>", htmlLinks( "http://dhis2.org" ) );
         assertEquals( "<a href=\"https://dhis2.org\">https://dhis2.org</a>", htmlLinks( "https://dhis2.org" ) );
         assertEquals( "<a href=\"http://www.dhis2.org\">www.dhis2.org</a>", htmlLinks( "www.dhis2.org" ) );
-        assertEquals( "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
+        assertEquals(
+            "Navigate to <a href=\"http://dhis2.org\">http://dhis2.org</a> or <a href=\"http://www.dhis2.com\">www.dhis2.com</a> to read more.",
             htmlLinks( "Navigate to http://dhis2.org or www.dhis2.com to read more." ) );
     }
 
@@ -85,8 +87,10 @@ public class TextUtilsTest
     @Test
     public void testGetTokens()
     {
-        assertEquals( new ArrayList<>( Arrays.asList( "John", "Doe", "Main", "Road", "25" ) ), TextUtils.getTokens( "John Doe Main Road 25" ) );
-        assertEquals( new ArrayList<>( Arrays.asList( "Ted,Johnson", "Upper-Road", "45" ) ), TextUtils.getTokens( "Ted,Johnson Upper-Road 45" ) );
+        assertEquals( new ArrayList<>( Arrays.asList( "John", "Doe", "Main", "Road", "25" ) ),
+            TextUtils.getTokens( "John Doe Main Road 25" ) );
+        assertEquals( new ArrayList<>( Arrays.asList( "Ted,Johnson", "Upper-Road", "45" ) ),
+            TextUtils.getTokens( "Ted,Johnson Upper-Road 45" ) );
     }
 
     @Test
@@ -104,9 +108,12 @@ public class TextUtilsTest
     {
         assertEquals( null, TextUtils.removeLastAnd( null ) );
         assertEquals( "", TextUtils.removeLastAnd( "" ) );
-        assertEquals( "and name='tom' and name='john' ", TextUtils.removeLastAnd( "and name='tom' and name='john' and" ) );
-        assertEquals( "and name='tom' and name='john' ", TextUtils.removeLastAnd( "and name='tom' and name='john' and " ) );
-        assertEquals( "and name='tom' and name='john' ", TextUtils.removeLastAnd( "and name='tom' and name='john' and  " ) );
+        assertEquals( "and name='tom' and name='john' ",
+            TextUtils.removeLastAnd( "and name='tom' and name='john' and" ) );
+        assertEquals( "and name='tom' and name='john' ",
+            TextUtils.removeLastAnd( "and name='tom' and name='john' and " ) );
+        assertEquals( "and name='tom' and name='john' ",
+            TextUtils.removeLastAnd( "and name='tom' and name='john' and  " ) );
     }
 
     @Test
@@ -139,7 +146,8 @@ public class TextUtilsTest
     @Test
     public void testGetPrettyEnumName()
     {
-        assertEquals( "Antibiotic resistant infection", TextUtils.getPrettyEnumName( Disease.ANTIBIOTIC_RESISTANT_INFECTION ) );
+        assertEquals( "Antibiotic resistant infection",
+            TextUtils.getPrettyEnumName( Disease.ANTIBIOTIC_RESISTANT_INFECTION ) );
         assertEquals( "Chronic wasting disease", TextUtils.getPrettyEnumName( Disease.CHRONIC_WASTING_DISEASE ) );
         assertEquals( "Malaria", TextUtils.getPrettyEnumName( Disease.MALARIA ) );
     }
@@ -177,7 +185,8 @@ public class TextUtilsTest
     @Test
     public void testReplace()
     {
-        String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement", "{column}", "name" );
+        String actual = TextUtils.replace( "select * from {table} where {column} = 'Foo'", "{table}", "dataelement",
+            "{column}", "name" );
 
         assertEquals( "select * from dataelement where name = 'Foo'", actual );
 

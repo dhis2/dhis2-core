@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.outgoing;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mobile.outgoing;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.outgoing;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -54,7 +53,7 @@ public class ShowSendSMSFormAction
 
     @Autowired
     private UserGroupService userGroupService;
-    
+
     @Autowired
     private GatewayAdministrationService gatewayAdminService;
 
@@ -97,7 +96,7 @@ public class ShowSendSMSFormAction
         throws Exception
     {
         gatewayMap = gatewayAdminService.getGatewayConfigurationMap();
-        
+
         userGroups = new ArrayList<>( userGroupService.getAllUserGroups() );
 
         Collections.sort( userGroups );

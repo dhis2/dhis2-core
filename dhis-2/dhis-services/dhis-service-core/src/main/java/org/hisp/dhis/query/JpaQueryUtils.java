@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,12 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import org.apache.commons.lang.StringUtils;
-import org.hisp.dhis.schema.Property;
-import org.springframework.context.i18n.LocaleContextHolder;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -39,10 +39,10 @@ import javax.persistence.criteria.Order;
 import javax.persistence.criteria.Path;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import org.apache.commons.lang.StringUtils;
+import org.hisp.dhis.schema.Property;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -60,8 +60,9 @@ public class JpaQueryUtils
 
     /**
      * Generate a String comparison Predicate base on input parameters.
-     *
-     * Example: JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     * <p>
+     * Example: JpaUtils.stringPredicateCaseSensitive( builder, root.get( "name"
+     * ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -72,13 +73,14 @@ public class JpaQueryUtils
     public static Predicate stringPredicateCaseSensitive( CriteriaBuilder builder,
         Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
     {
-        return stringPredicate(  builder,  expressionPath, objectValue, searchMode, true );
+        return stringPredicate( builder, expressionPath, objectValue, searchMode, true );
     }
 
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example:  JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name" ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
+     * Example: JpaUtils.stringPredicateIgnoreCase( builder, root.get( "name"
+     * ),key , JpaUtils.StringSearchMode.ANYWHERE ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -89,13 +91,14 @@ public class JpaQueryUtils
     public static Predicate stringPredicateIgnoreCase( CriteriaBuilder builder,
         Expression<String> expressionPath, Object objectValue, StringSearchMode searchMode )
     {
-        return stringPredicate(  builder,  expressionPath, objectValue, searchMode, false );
+        return stringPredicate( builder, expressionPath, objectValue, searchMode, false );
     }
 
     /**
      * Generate a String comparison Predicate base on input parameters.
      *
-     * Example: JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key + "%", JpaUtils.StringSearchMode.LIKE, false ) )
+     * Example: JpaUtils.stringPredicate( builder, root.get( "name" ), "%" + key
+     * + "%", JpaUtils.StringSearchMode.LIKE, false ) )
      *
      * @param builder CriteriaBuilder
      * @param expressionPath Property Path for query
@@ -118,18 +121,20 @@ public class JpaQueryUtils
 
         switch ( searchMode )
         {
-            case EQUALS:
-                return builder.equal( path, attrValue );
-            case ENDING_LIKE:
-                return builder.like( path, "%" + attrValue );
-            case STARTING_LIKE:
-                return builder.like( path, attrValue + "%" );
-            case ANYWHERE:
-                return builder.like( path, "%" + attrValue + "%" );
-            case LIKE:
-                return builder.like( path, (String) attrValue ); // assume user provide the wild cards
-            default:
-                throw new IllegalStateException( "expecting a search mode!" );
+        case EQUALS:
+            return builder.equal( path, attrValue );
+        case ENDING_LIKE:
+            return builder.like( path, "%" + attrValue );
+        case STARTING_LIKE:
+            return builder.like( path, attrValue + "%" );
+        case ANYWHERE:
+            return builder.like( path, "%" + attrValue + "%" );
+        case LIKE:
+            return builder.like( path, (String) attrValue ); // assume user
+        // provide the wild
+        // cards
+        default:
+            throw new IllegalStateException( "expecting a search mode!" );
         }
     }
 
@@ -141,9 +146,11 @@ public class JpaQueryUtils
 
         EQUALS( "eq" ), // Match exactly
         ANYWHERE( "any" ), // Like search with '%' prefix and suffix
-        STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before searching
+        STARTING_LIKE( "sl" ), // Like search and add a '%' prefix before
+        // searching
         LIKE( "li" ), // User provides the wild card
-        ENDING_LIKE( "el" ); // LIKE search and add a '%' suffix before searching
+        ENDING_LIKE( "el" ); // LIKE search and add a '%' suffix before
+        // searching
 
         private final String code;
 
@@ -172,30 +179,35 @@ public class JpaQueryUtils
     }
 
     /**
-     * Use for parsing filter parameter for Object which doesn't extend IdentifiableObject.
+     * Use for parsing filter parameter for Object which doesn't extend
+     * IdentifiableObject.
      */
-    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator, String value )
+    public static Predicate getPredicate( CriteriaBuilder builder, Property property, Path<?> path, String operator,
+        String value )
     {
         switch ( operator )
         {
-            case "in" :
-                return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
-            case "eq" :
-                return  builder.equal( path, QueryUtils.parseValue( property.getKlass(), value )  );
-            default:
-                throw new QueryParserException( "Query operator is not supported : " + operator );
+        case "in":
+            return path.in( QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+        case "eq":
+            return builder.equal( path, QueryUtils.parseValue( property.getKlass(), value ) );
+        default:
+            throw new QueryParserException( "Query operator is not supported : " + operator );
         }
     }
 
     /**
-     * Creates the query language order expression without the leading <code>ORDER BY</code>.
+     * Creates the query language order expression without the leading
+     * <code>ORDER BY</code>.
      *
      * @param orders the orders that should be created to a string.
      * @param alias the entity alias that will be used for prefixing.
-     * @return the string order expression or <code>null</code> if none should be used.
+     * @return the string order expression or <code>null</code> if none should
+     *         be used.
      */
     @Nullable
-    public static String createOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders, @Nullable String alias )
+    public static String createOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders,
+        @Nullable String alias )
     {
         if ( orders == null )
         {
@@ -231,34 +243,37 @@ public class JpaQueryUtils
     }
 
     /**
-     * Creates the query language order expression for selects that must be selected in order to
-     * be able to order by these expressions. This is required for ordering on case insensitive
-     * expressions since
+     * Creates the query language order expression for selects that must be
+     * selected in order to be able to order by these expressions. This is
+     * required for ordering on case insensitive expressions since
      *
      * @param orders the orders that should be created to a string.
-     * @param alias  the entity alias that will be used for prefixing.
-     * @return the string order expression selects or <code>null</code> if none should be used.
+     * @param alias the entity alias that will be used for prefixing.
+     * @return the string order expression selects or <code>null</code> if none
+     *         should be used.
      */
     @Nullable
-    public static String createSelectOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders, @Nullable String alias )
+    public static String createSelectOrderExpression( @Nullable List<org.hisp.dhis.query.Order> orders,
+        @Nullable String alias )
     {
         if ( orders == null )
         {
             return null;
         }
 
-        return StringUtils.defaultIfEmpty( orders.stream().filter( o -> o.isPersisted() && isIgnoreCase( o ) ).map( o -> {
-            final StringBuilder sb = new StringBuilder( "lower(" );
+        return StringUtils
+            .defaultIfEmpty( orders.stream().filter( o -> o.isPersisted() && isIgnoreCase( o ) ).map( o -> {
+                final StringBuilder sb = new StringBuilder( "lower(" );
 
-            if ( alias != null )
-            {
-                sb.append( alias ).append( '.' );
-            }
+                if ( alias != null )
+                {
+                    sb.append( alias ).append( '.' );
+                }
 
-            sb.append( o.getProperty().getName() ).append( ')' );
+                sb.append( o.getProperty().getName() ).append( ')' );
 
-            return sb.toString();
-        } ).collect( Collectors.joining( "," ) ), null );
+                return sb.toString();
+            } ).collect( Collectors.joining( "," ) ), null );
     }
 
     private static boolean isIgnoreCase( org.hisp.dhis.query.Order o )

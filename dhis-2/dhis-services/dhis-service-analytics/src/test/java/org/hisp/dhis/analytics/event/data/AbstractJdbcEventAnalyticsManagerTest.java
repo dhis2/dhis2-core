@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -41,7 +40,6 @@ import static org.mockito.Mockito.when;
 import java.util.Date;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -68,6 +66,8 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -292,26 +292,27 @@ public class AbstractJdbcEventAnalyticsManagerTest
 
         DataElement deA = createDataElement( 'A', ValueType.ORGANISATION_UNIT, AggregationType.NONE );
         DimensionalObject periods = new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD,
-                Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
+            Lists.newArrayList( MonthlyPeriodType.getPeriodFromIsoString( "201701" ) ) );
 
         DimensionalObject orgUnits = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
-                DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
+            DimensionType.ORGANISATION_UNIT, "ouA", Lists.newArrayList( createOrganisationUnit( 'A' ) ) );
 
         QueryItem qiA = new QueryItem( deA, null, deA.getValueType(), deA.getAggregationType(), null );
 
         // When
         EventQueryParams params = new EventQueryParams.Builder()
-                .addDimension( periods )
-                .addDimension( orgUnits )
-                .addItem( qiA )
-                .withCoordinateField( deA.getUid() )
-                .withSkipData( true )
-                .withSkipMeta( false )
-                .withStartDate(new Date() )
-                .withEndDate( new Date() )
-                // the not null condition is only triggered by this flag (or withGeometry) being true
-                .withCoordinatesOnly( true )
-                .build();
+            .addDimension( periods )
+            .addDimension( orgUnits )
+            .addItem( qiA )
+            .withCoordinateField( deA.getUid() )
+            .withSkipData( true )
+            .withSkipMeta( false )
+            .withStartDate( new Date() )
+            .withEndDate( new Date() )
+            // the not null condition is only triggered by this flag (or
+            // withGeometry) being true
+            .withCoordinatesOnly( true )
+            .build();
 
         final String whereClause = this.subject.getWhereClause( params );
 

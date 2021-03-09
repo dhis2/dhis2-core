@@ -1,7 +1,5 @@
-package org.hisp.dhis.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,8 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.util;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
@@ -43,6 +36,13 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -50,36 +50,51 @@ import java.util.zip.ZipOutputStream;
 public class ContextUtils
 {
     public static final String CONTENT_TYPE_PDF = "application/pdf";
+
     public static final String CONTENT_TYPE_ZIP = "application/zip";
+
     public static final String CONTENT_TYPE_GZIP = "application/gzip";
+
     public static final String CONTENT_TYPE_JSON = "application/json";
+
     public static final String CONTENT_TYPE_HTML = "text/html";
+
     public static final String CONTENT_TYPE_TEXT = "text/plain";
+
     public static final String CONTENT_TYPE_XML = "application/xml";
+
     public static final String CONTENT_TYPE_CSV = "application/csv";
+
     public static final String CONTENT_TYPE_PNG = "image/png";
+
     public static final String CONTENT_TYPE_JPG = "image/jpeg";
+
     public static final String CONTENT_TYPE_EXCEL = "application/vnd.ms-excel";
+
     public static final String CONTENT_TYPE_JAVASCRIPT = "application/javascript";
 
     public static final String HEADER_USER_AGENT = "User-Agent";
+
     public static final String HEADER_IF_NONE_MATCH = "If-None-Match";
+
     public static final String HEADER_ETAG = "ETag";
 
     private static final String QUOTE = "\"";
-    
-    private static final Map<String, String> CONTENT_TYPE_MAP = new HashMap<String, String>() 
-    { {
-        put( "pdf", CONTENT_TYPE_PDF );
-        put( "zip", CONTENT_TYPE_ZIP );
-        put( "json", CONTENT_TYPE_JSON );
-        put( "html", CONTENT_TYPE_HTML );
-        put( "txt", CONTENT_TYPE_TEXT );
-        put( "xml", CONTENT_TYPE_XML );
-        put( "csv", CONTENT_TYPE_CSV );
-        put( "png", CONTENT_TYPE_PNG );
-        put( "xls", CONTENT_TYPE_EXCEL );
-    } };
+
+    private static final Map<String, String> CONTENT_TYPE_MAP = new HashMap<String, String>()
+    {
+        {
+            put( "pdf", CONTENT_TYPE_PDF );
+            put( "zip", CONTENT_TYPE_ZIP );
+            put( "json", CONTENT_TYPE_JSON );
+            put( "html", CONTENT_TYPE_HTML );
+            put( "txt", CONTENT_TYPE_TEXT );
+            put( "xml", CONTENT_TYPE_XML );
+            put( "csv", CONTENT_TYPE_CSV );
+            put( "png", CONTENT_TYPE_PNG );
+            put( "xls", CONTENT_TYPE_EXCEL );
+        }
+    };
 
     public static String getContentType( String type, String defaultType )
     {
@@ -138,77 +153,79 @@ public class ContextUtils
                 }
             }
         }
-        
+
         return null;
     }
-        
+
     /**
      * Clears the given collection if it is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from 
-     * the "If-None-Match" header value, generates an ETag based on the given 
+     * cache validation. This method looks up the ETag sent in the request from
+     * the "If-None-Match" header value, generates an ETag based on the given
      * collection of IdentifiableObjects and compares them for equality. If this
-     * evaluates to true, it will set status code 304 Not Modified on the response
-     * and remove all elements from the given list. It will also set the ETag header
-     * on the response in any case.
-     * 
+     * evaluates to true, it will set status code 304 Not Modified on the
+     * response and remove all elements from the given list. It will also set
+     * the ETag header on the response in any case.
+     *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
      * @return true if the eTag values are equals, false otherwise.
      */
-    public static boolean clearIfNotModified( HttpServletRequest request, HttpServletResponse response, Collection<? extends IdentifiableObject> objects )
+    public static boolean clearIfNotModified( HttpServletRequest request, HttpServletResponse response,
+        Collection<? extends IdentifiableObject> objects )
     {
         String tag = QUOTE + IdentifiableObjectUtils.getLastUpdatedTag( objects ) + QUOTE;
-        
+
         response.setHeader( HEADER_ETAG, tag );
-        
+
         String inputTag = request.getHeader( HEADER_IF_NONE_MATCH );
 
         if ( objects != null && inputTag != null && inputTag.equals( tag ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
-            
+
             objects.clear();
-            
+
             return true;
         }
-        
+
         return false;
     }
 
     /**
      * Returns true if the given object is not modified according to the HTTP
-     * cache validation. This method looks up the ETag sent in the request from 
-     * the "If-None-Match" header value, generates an ETag based on the given 
+     * cache validation. This method looks up the ETag sent in the request from
+     * the "If-None-Match" header value, generates an ETag based on the given
      * collection of IdentifiableObjects and compares them for equality. If this
-     * evaluates to true, it will set status code 304 Not Modified on the response.
-     * It will also set the ETag header on the response in any case.
-     * 
+     * evaluates to true, it will set status code 304 Not Modified on the
+     * response. It will also set the ETag header on the response in any case.
+     *
      * @param request the HttpServletRequest.
      * @param response the HttpServletResponse.
      * @return true if the eTag values are equals, false otherwise.
      */
-    public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response, IdentifiableObject object )
+    public static boolean isNotModified( HttpServletRequest request, HttpServletResponse response,
+        IdentifiableObject object )
     {
         String tag = IdentifiableObjectUtils.getLastUpdatedTag( object );
-        
+
         response.setHeader( HEADER_ETAG, tag );
-        
+
         String inputTag = request.getHeader( HEADER_IF_NONE_MATCH );
 
         if ( object != null && inputTag != null && tag != null && inputTag.equals( tag ) )
         {
             response.setStatus( HttpServletResponse.SC_NOT_MODIFIED );
-            
+
             return true;
         }
-        
+
         return false;
     }
 
     /**
-     * Creates a ZipOutputStream based on the HttpServletResponse and puts a
-     * new ZipEntry with the given filename to it.
-     * 
+     * Creates a ZipOutputStream based on the HttpServletResponse and puts a new
+     * ZipEntry with the given filename to it.
+     *
      * @param out the output stream.
      * @param fileName the filename of the file inside the ZIP archive.
      * @return a ZipOutputStream
@@ -218,7 +235,7 @@ public class ContextUtils
         throws IOException
     {
         ZipOutputStream zipOut = new ZipOutputStream( out );
-        zipOut.putNextEntry( new ZipEntry( fileName ) );        
+        zipOut.putNextEntry( new ZipEntry( fileName ) );
         return zipOut;
     }
 }

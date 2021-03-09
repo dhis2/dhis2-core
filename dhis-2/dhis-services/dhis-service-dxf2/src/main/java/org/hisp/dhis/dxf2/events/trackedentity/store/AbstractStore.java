@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.trackedentity.store;
 
 import java.util.ArrayList;
@@ -103,7 +102,8 @@ public abstract class AbstractStore
         String getRelationshipsHavingIdSQL = String.format( GET_RELATIONSHIP_ID_BY_ENTITYTYPE_SQL,
             getRelationshipEntityColumn(), getRelationshipEntityColumn() );
 
-        // Get all the relationship ids that have at least one relationship item having
+        // Get all the relationship ids that have at least one relationship item
+        // having
         // the ids in the tei|pi|psi column (depending on the subclass)
 
         List<Map<String, Object>> relationshipIdsList = jdbcTemplate.queryForList( getRelationshipsHavingIdSQL,
@@ -127,34 +127,31 @@ public abstract class AbstractStore
     abstract String getRelationshipEntityColumn();
 
     /**
-     *
      * @param sql an sql statement to which we want to "attach" the ACL sharing
      *        condition
-     * @param ctx the {@see AAggregateContext} object containing information about
-     *        the current user
-     * @param aclSql the sql statement as WHERE condition to filter out elements for
-     *        which the user has no sharing access
-     *
+     * @param ctx the {@see AAggregateContext} object containing information
+     *        about the current user
+     * @param aclSql the sql statement as WHERE condition to filter out elements
+     *        for which the user has no sharing access
      * @return a merge between the sql and the aclSql
      */
     protected String withAclCheck( String sql, AggregateContext ctx, String aclSql )
     {
         return ctx.isSuperUser() ? sql : sql + " AND " + aclSql;
     }
-    
+
     protected String applySortOrder( String sql, String sortOrderIds, String idColumn )
     {
         StringBuilder qb = new StringBuilder();
         qb.append( "select * from (" );
-        qb.append(sql);
+        qb.append( sql );
         qb.append( ") as t JOIN unnest('{" );
-        qb.append( sortOrderIds);
-        qb.append("}'::bigint[]) WITH ORDINALITY s(");
-        qb.append(idColumn);
-        qb.append(", sortorder) USING (");
-        qb.append(idColumn);
-        qb.append(")ORDER  BY s.sortorder")
-        ;
+        qb.append( sortOrderIds );
+        qb.append( "}'::bigint[]) WITH ORDINALITY s(" );
+        qb.append( idColumn );
+        qb.append( ", sortorder) USING (" );
+        qb.append( idColumn );
+        qb.append( ")ORDER  BY s.sortorder" );
         return qb.toString();
     }
 
@@ -162,7 +159,8 @@ public abstract class AbstractStore
      * Execute a SELECT statement and maps the results to the specified Mapper
      *
      * @param sql The SELECT statement to execute
-     * @param handler the {@see RowCallbackHandler} to use for mapping a Resultset to an object
+     * @param handler the {@see RowCallbackHandler} to use for mapping a
+     *        Resultset to an object
      * @param ids the list of primary keys mapped to the :ids parameter
      *
      * @return a Multimap where the keys are of the same type as the specified

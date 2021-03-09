@@ -58,7 +58,7 @@ public class PaginationHelper
      * @return the list of "paginated" items
      */
     public static List<DataItem> paginate( final WebOptions options,
-                                           List<DataItem> itemViewObjects )
+        List<DataItem> itemViewObjects )
     {
         state( options.getPage() > 0, "Current page must be greater than zero." );
         state( options.getPageSize() > 0, "Page size must be greater than zero." );

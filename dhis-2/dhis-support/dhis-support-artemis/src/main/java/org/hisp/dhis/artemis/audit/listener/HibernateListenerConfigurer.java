@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,14 @@ package org.hisp.dhis.artemis.audit.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit.listener;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.PersistenceUnit;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hibernate.event.service.spi.EventListenerRegistry;
 import org.hibernate.event.spi.EventType;
@@ -39,9 +41,6 @@ import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
-
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 /**
  * This component configures the Hibernate Auditing listeners. The listeners are
@@ -61,11 +60,20 @@ public class HibernateListenerConfigurer
     @PersistenceUnit
     private EntityManagerFactory emf;
 
-    @NonNull private final PostInsertAuditListener postInsertAuditListener;
-    @NonNull private final PostUpdateAuditListener postUpdateEventListener;
-    @NonNull private final PostDeleteAuditListener postDeleteEventListener;
-    @NonNull private final PostLoadAuditListener postLoadEventListener;
-    @NonNull private final AuditMatrix auditMatrix;
+    @NonNull
+    private final PostInsertAuditListener postInsertAuditListener;
+
+    @NonNull
+    private final PostUpdateAuditListener postUpdateEventListener;
+
+    @NonNull
+    private final PostDeleteAuditListener postDeleteEventListener;
+
+    @NonNull
+    private final PostLoadAuditListener postLoadEventListener;
+
+    @NonNull
+    private final AuditMatrix auditMatrix;
 
     @PostConstruct
     protected void init()

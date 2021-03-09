@@ -1,6 +1,5 @@
-package org.hisp.dhis.pushanalysis;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,23 +25,25 @@ package org.hisp.dhis.pushanalysis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.pushanalysis;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.base.MoreObjects;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.user.UserGroup;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.base.MoreObjects;
 
 /**
- * PushAnalysis generates reports based on a Dashboard, and sends them to UserGroups
- * at given Intervals.
+ * PushAnalysis generates reports based on a Dashboard, and sends them to
+ * UserGroups at given Intervals.
  *
  * @author Stian Sandvold
  */
@@ -62,7 +63,8 @@ public class PushAnalysis
     private String title;
 
     /**
-     * The message will be written in the report. Used to explain or describe reports to users
+     * The message will be written in the report. Used to explain or describe
+     * reports to users
      */
     private String message;
 

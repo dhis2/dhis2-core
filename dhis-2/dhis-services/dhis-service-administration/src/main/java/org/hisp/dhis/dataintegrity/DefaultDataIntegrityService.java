@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataintegrity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataintegrity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataintegrity;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.collection.ListUtils.getDuplicates;
@@ -36,9 +35,11 @@ import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
@@ -69,8 +70,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -284,7 +283,8 @@ public class DefaultDataIntegrityService
     {
         Collection<DataSet> dataSets = dataSetService.getAllDataSets();
 
-        return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() ).collect( Collectors.toList() );
+        return dataSets.stream().filter( ds -> ds.getSources() == null || ds.getSources().isEmpty() )
+            .collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -344,11 +344,12 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(), INDICATOR_EXPRESSION );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getNumerator(),
+                INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
-                invalids.put( indicator, i18n.getString(result.getKey()) );
+                invalids.put( indicator, i18n.getString( result.getKey() ) );
             }
         }
 
@@ -363,11 +364,12 @@ public class DefaultDataIntegrityService
 
         for ( Indicator indicator : indicatorService.getAllIndicators() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(), INDICATOR_EXPRESSION );
+            ExpressionValidationOutcome result = expressionService.expressionIsValid( indicator.getDenominator(),
+                INDICATOR_EXPRESSION );
 
             if ( !result.isValid() )
             {
-                invalids.put( indicator, i18n.getString(result.getKey()) );
+                invalids.put( indicator, i18n.getString( result.getKey() ) );
             }
         }
 
@@ -478,7 +480,9 @@ public class DefaultDataIntegrityService
     {
         List<OrganisationUnit> units = organisationUnitService.getAllOrganisationUnits();
 
-        return units.stream().filter( ou -> ou.getParent() == null && ( ou.getChildren() == null || ou.getChildren().size() == 0 ) ).collect( Collectors.toList() );
+        return units.stream()
+            .filter( ou -> ou.getParent() == null && (ou.getChildren() == null || ou.getChildren().size() == 0) )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -492,8 +496,7 @@ public class DefaultDataIntegrityService
     {
         Collection<OrganisationUnitGroupSet> groupSets = organisationUnitGroupService.getAllOrganisationUnitGroupSets();
 
-        TreeMap<OrganisationUnit, Collection<OrganisationUnitGroup>> targets =
-            new TreeMap<>();
+        TreeMap<OrganisationUnit, Collection<OrganisationUnitGroup>> targets = new TreeMap<>();
 
         for ( OrganisationUnitGroupSet groupSet : groupSets )
         {
@@ -526,7 +529,8 @@ public class DefaultDataIntegrityService
     {
         Collection<ValidationRule> validationRules = validationRuleService.getAllValidationRules();
 
-        return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() ).collect( Collectors.toList() );
+        return validationRules.stream().filter( r -> r.getGroups() == null || r.getGroups().isEmpty() )
+            .collect( Collectors.toList() );
     }
 
     @Override
@@ -537,11 +541,12 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+            ExpressionValidationOutcome result = expressionService
+                .expressionIsValid( rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
-                invalids.put( rule, i18n.getString(result.getKey()) );
+                invalids.put( rule, i18n.getString( result.getKey() ) );
             }
         }
 
@@ -556,11 +561,12 @@ public class DefaultDataIntegrityService
 
         for ( ValidationRule rule : validationRuleService.getAllValidationRules() )
         {
-            ExpressionValidationOutcome result = expressionService.expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+            ExpressionValidationOutcome result = expressionService
+                .expressionIsValid( rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
             if ( !result.isValid() )
             {
-                invalids.put( rule, i18n.getString(result.getKey()) );
+                invalids.put( rule, i18n.getString( result.getKey() ) );
             }
         }
 
@@ -574,14 +580,16 @@ public class DefaultDataIntegrityService
 
         report.setDataElementsWithoutDataSet( new ArrayList<>( getDataElementsWithoutDataSet() ) );
         report.setDataElementsWithoutGroups( new ArrayList<>( getDataElementsWithoutGroups() ) );
-        report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes( getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
+        report.setDataElementsAssignedToDataSetsWithDifferentPeriodTypes(
+            getDataElementsAssignedToDataSetsWithDifferentPeriodTypes() );
         report.setDataElementsViolatingExclusiveGroupSets( getDataElementsViolatingExclusiveGroupSets() );
         report.setDataElementsInDataSetNotInForm( getDataElementsInDataSetNotInForm() );
         report.setInvalidCategoryCombos( getInvalidCategoryCombos() );
 
         log.info( "Checked data elements" );
 
-        report.setDataSetsNotAssignedToOrganisationUnits( new ArrayList<>( getDataSetsNotAssignedToOrganisationUnits() ) );
+        report.setDataSetsNotAssignedToOrganisationUnits(
+            new ArrayList<>( getDataSetsNotAssignedToOrganisationUnits() ) );
 
         log.info( "Checked data sets" );
 
@@ -597,11 +605,13 @@ public class DefaultDataIntegrityService
 
         log.info( "Checked periods" );
 
-        report.setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
+        report
+            .setOrganisationUnitsWithCyclicReferences( new ArrayList<>( getOrganisationUnitsWithCyclicReferences() ) );
         report.setOrphanedOrganisationUnits( new ArrayList<>( getOrphanedOrganisationUnits() ) );
         report.setOrganisationUnitsWithoutGroups( new ArrayList<>( getOrganisationUnitsWithoutGroups() ) );
         report.setOrganisationUnitsViolatingExclusiveGroupSets( getOrganisationUnitsViolatingExclusiveGroupSets() );
-        report.setOrganisationUnitGroupsWithoutGroupSets( new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
+        report.setOrganisationUnitGroupsWithoutGroupSets(
+            new ArrayList<>( getOrganisationUnitGroupsWithoutGroupSets() ) );
         report.setValidationRulesWithoutGroups( new ArrayList<>( getValidationRulesWithoutGroups() ) );
 
         log.info( "Checked organisation units" );
@@ -759,10 +769,11 @@ public class DefaultDataIntegrityService
     {
         List<ProgramRuleAction> ruleActions = programRuleActionService.getProgramRuleActionsWithNoStageId();
 
-        return groupActionsByProgramRule( ruleActions );    }
+        return groupActionsByProgramRule( ruleActions );
+    }
 
     @Override
-    public  Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
+    public Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement()
     {
         List<ProgramRuleVariable> ruleVariables = programRuleVariableService.getVariablesWithNoDataElement();
 
@@ -785,7 +796,7 @@ public class DefaultDataIntegrityService
         }
         catch ( ParserException e )
         {
-           return e.getMessage();
+            return e.getMessage();
         }
 
         return null;
@@ -810,7 +821,8 @@ public class DefaultDataIntegrityService
         return collectionMap;
     }
 
-    private  Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram( List<ProgramRuleVariable> ruleVariables )
+    private Map<Program, Collection<ProgramRuleVariable>> groupVariablesByProgram(
+        List<ProgramRuleVariable> ruleVariables )
     {
         Map<Program, Collection<ProgramRuleVariable>> collectionMap = new HashMap<>();
 
@@ -829,7 +841,8 @@ public class DefaultDataIntegrityService
         return collectionMap;
     }
 
-    private  Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule( List<ProgramRuleAction> ruleActions )
+    private Map<ProgramRule, Collection<ProgramRuleAction>> groupActionsByProgramRule(
+        List<ProgramRuleAction> ruleActions )
     {
         Map<ProgramRule, Collection<ProgramRuleAction>> collectionMap = new HashMap<>();
 

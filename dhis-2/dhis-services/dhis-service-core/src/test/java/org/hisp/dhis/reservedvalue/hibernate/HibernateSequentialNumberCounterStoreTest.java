@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue.hibernate;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
@@ -101,7 +100,7 @@ public class HibernateSequentialNumberCounterStoreTest
         }
 
         assertEquals( threadCount, futures.size() );
-        
+
         Set<Integer> allIds = new HashSet<>();
         List<Integer> allIdList = new ArrayList<>();
         for ( List<Integer> integers : resultList )
@@ -110,37 +109,36 @@ public class HibernateSequentialNumberCounterStoreTest
             allIdList.addAll( integers );
         }
 
-        assertThat( allIds, hasSize( threadCount * 50 ));
+        assertThat( allIds, hasSize( threadCount * 50 ) );
 
         Collections.sort( allIdList );
         assertThat( allIdList.get( 0 ), is( 1 ) );
-        assertThat( allIdList.get( allIdList.size() -1  ), is( 50 * threadCount ) );
+        assertThat( allIdList.get( allIdList.size() - 1 ), is( 50 * threadCount ) );
     }
 
     @Test
     public void test1()
-            throws InterruptedException,
-            ExecutionException
+        throws InterruptedException,
+        ExecutionException
     {
         test( 1 );
     }
 
     @Test
     public void test4()
-            throws InterruptedException,
-            ExecutionException
+        throws InterruptedException,
+        ExecutionException
     {
         test( 4 );
     }
 
     @Test
     public void test8()
-            throws InterruptedException,
-            ExecutionException
+        throws InterruptedException,
+        ExecutionException
     {
-        test( 8);
+        test( 8 );
     }
-
 
     @Test
     public void test16()
@@ -150,15 +148,14 @@ public class HibernateSequentialNumberCounterStoreTest
         test( 16 );
     }
 
-
     @Test
     public void test32()
-            throws InterruptedException,
-            ExecutionException
+        throws InterruptedException,
+        ExecutionException
     {
         test( 32 );
     }
-    
+
     @Test
     public void deleteCounter()
     {
@@ -182,7 +179,7 @@ public class HibernateSequentialNumberCounterStoreTest
     {
         return true;
     }
-    
+
     @Configuration
     static class TestConfig
     {

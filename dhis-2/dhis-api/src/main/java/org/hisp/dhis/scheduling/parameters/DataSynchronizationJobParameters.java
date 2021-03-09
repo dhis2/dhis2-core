@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling.parameters;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.scheduling.parameters;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
@@ -51,6 +50,7 @@ public class DataSynchronizationJobParameters implements JobParameters
     private static final long serialVersionUID = 153645562301563469L;
 
     static final int PAGE_SIZE_MIN = 50;
+
     public static final int PAGE_SIZE_MAX = 30000;
 
     private int pageSize = 10000;
@@ -79,8 +79,7 @@ public class DataSynchronizationJobParameters implements JobParameters
                     "pageSize",
                     PAGE_SIZE_MIN,
                     PAGE_SIZE_MAX,
-                    pageSize )
-            );
+                    pageSize ) );
         }
 
         return Optional.empty();

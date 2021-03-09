@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.oprovider;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,10 @@ package org.hisp.dhis.webapi.oprovider;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.oprovider;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.SerializationUtils;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.oauth2.DefaultClientDetailsUserDetailsService;
@@ -82,7 +82,8 @@ public class DhisOauthAuthenticationProvider extends DaoAuthenticationProvider
         }
 
         // -------------------------------------------------------------------------
-        // Delegate authentication downstream, using UserCredentials as principal
+        // Delegate authentication downstream, using UserCredentials as
+        // principal
         // -------------------------------------------------------------------------
 
         Authentication result = super.authenticate( auth );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.enrollment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.dxf2.events.enrollment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.enrollment;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
@@ -37,10 +40,6 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,9 +52,11 @@ public interface EnrollmentService
     // READ
     // -------------------------------------------------------------------------
 
-    List<Enrollment> getEnrollmentsJson( InputStream inputStream ) throws IOException;
+    List<Enrollment> getEnrollmentsJson( InputStream inputStream )
+        throws IOException;
 
-    List<Enrollment> getEnrollmentsXml( InputStream inputStream ) throws IOException;
+    List<Enrollment> getEnrollmentsXml( InputStream inputStream )
+        throws IOException;
 
     Enrollment getEnrollment( String id );
 
@@ -63,7 +64,8 @@ public interface EnrollmentService
 
     Enrollment getEnrollment( ProgramInstance programInstance, TrackedEntityInstanceParams params );
 
-    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params, boolean skipOwnershipCheck );
+    Enrollment getEnrollment( User user, ProgramInstance programInstance, TrackedEntityInstanceParams params,
+        boolean skipOwnershipCheck );
 
     List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
 
@@ -75,31 +77,39 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions );
 
-    ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
 
     ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+        TrackedEntityInstance trackedEntityInstance, boolean clearSession );
 
     // -------------------------------------------------------------------------
     // UPDATE
     // -------------------------------------------------------------------------
 
-    ImportSummary updateEnrollmentJson( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateEnrollmentJson( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
-    ImportSummary updateEnrollmentForNoteJson( String id, InputStream inputStream ) throws IOException;
+    ImportSummary updateEnrollmentForNoteJson( String id, InputStream inputStream )
+        throws IOException;
 
-    ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions ) throws IOException;
+    ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions )
+        throws IOException;
 
     ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions, TrackedEntityInstance daoTrackedEntityInstance );
+    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
+        TrackedEntityInstance daoTrackedEntityInstance );
 
-    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+        boolean clearSession );
 
     ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
 
@@ -117,5 +127,6 @@ public interface EnrollmentService
 
     ImportSummary deleteEnrollment( String uid );
 
-    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+        boolean clearSession );
 }

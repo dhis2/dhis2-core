@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,17 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
-import com.google.common.collect.Maps;
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.Authorities;
@@ -44,14 +51,7 @@ import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_VALUE_MAP_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_INSTANCE_CANT_BE_NULL;
+import com.google.common.collect.Maps;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -141,7 +141,8 @@ public class EnrollmentAttributeValidationHook
             .map( TrackedEntityAttributeValue::getAttribute )
             .collect( Collectors.toSet() );
 
-        // 2. Map all program attr. that match tei attr. into map. of attr:is mandatory
+        // 2. Map all program attr. that match tei attr. into map. of attr:is
+        // mandatory
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = program.getProgramAttributes().stream()
             .filter( v -> trackedEntityAttributes.contains( v.getAttribute() ) )
             .collect( Collectors.toMap(
@@ -153,9 +154,11 @@ public class EnrollmentAttributeValidationHook
             TrackedEntityAttribute attribute = entry.getKey();
             Boolean attributeIsMandatory = entry.getValue();
 
-            // TODO: This is quite ugly and should be considered to be solved differently,
-            //  e.i. authorization should be handled in one common place.
-            // NB: ! This authority MUST only be used in SYNC mode! This needs to be added to the check
+            // TODO: This is quite ugly and should be considered to be solved
+            // differently,
+            // e.i. authorization should be handled in one common place.
+            // NB: ! This authority MUST only be used in SYNC mode! This needs
+            // to be added to the check
             boolean userIsAuthorizedToIgnoreRequiredValueValidation = !reporter.getValidationContext().getBundle()
                 .getUser()
                 .isAuthorized( Authorities.F_IGNORE_TRACKER_REQUIRED_VALUE_VALIDATION.getAuthority() );
@@ -177,7 +180,7 @@ public class EnrollmentAttributeValidationHook
         {
             for ( Map.Entry<String, String> entry : attributeValueMap.entrySet() )
             {
-                //Only Program attributes is allowed for enrollment
+                // Only Program attributes is allowed for enrollment
                 reporter.addError( newReport( TrackerErrorCode.E1019 )
                     .addArg( entry.getKey() + "=" + entry.getValue() ) );
             }

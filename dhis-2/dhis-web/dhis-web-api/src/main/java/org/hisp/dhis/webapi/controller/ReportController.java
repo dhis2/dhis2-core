@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,20 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.j2ee.servlets.BaseHttpServlet;
 import net.sf.jasperreports.j2ee.servlets.ImageServlet;
+
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -56,13 +64,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Date;
-import java.util.List;
-
-import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -91,7 +92,8 @@ public class ReportController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateReportDesign( @PathVariable( "uid" ) String uid,
         @RequestBody String designContent,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
 
@@ -105,7 +107,8 @@ public class ReportController
     }
 
     @RequestMapping( value = "/{uid}/design", method = RequestMethod.GET )
-    public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response ) throws Exception
+    public void getReportDesign( @PathVariable( "uid" ) String uid, HttpServletResponse response )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
 
@@ -121,11 +124,13 @@ public class ReportController
 
         if ( report.isTypeHtml() )
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE, filenameEncode( report.getName() ) + ".html", true );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.NO_CACHE,
+                filenameEncode( report.getName() ) + ".html", true );
         }
         else
         {
-            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE, filenameEncode( report.getName() ) + ".jrxml", true );
+            contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE,
+                filenameEncode( report.getName() ) + ".jrxml", true );
         }
 
         response.getWriter().write( report.getDesignContent() );
@@ -140,9 +145,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF, false );
+        getReport( request, response, uid, organisationUnitUid, period, date, "pdf", ContextUtils.CONTENT_TYPE_PDF,
+            false );
     }
 
     @RequestMapping( value = "/{uid}/data.xls", method = RequestMethod.GET )
@@ -150,9 +157,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL, true );
+        getReport( request, response, uid, organisationUnitUid, period, date, "xls", ContextUtils.CONTENT_TYPE_EXCEL,
+            true );
     }
 
     @RequestMapping( value = "/{uid}/data.html", method = RequestMethod.GET )
@@ -160,9 +169,11 @@ public class ReportController
         @RequestParam( value = "ou", required = false ) String organisationUnitUid,
         @RequestParam( value = "pe", required = false ) String period,
         @RequestParam( value = "date", required = false ) Date date,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
-        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML, false );
+        getReport( request, response, uid, organisationUnitUid, period, date, "html", ContextUtils.CONTENT_TYPE_HTML,
+            false );
     }
 
     // -------------------------------------------------------------------------
@@ -176,7 +187,8 @@ public class ReportController
      */
     @RequestMapping( value = "/jasperReports/img", method = RequestMethod.GET )
     public void getJasperImage( @RequestParam String image,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         new ImageServlet().service( request, response );
     }
@@ -185,8 +197,10 @@ public class ReportController
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid, String organisationUnitUid, String isoPeriod,
-        Date date, String type, String contentType, boolean attachment ) throws Exception
+    private void getReport( HttpServletRequest request, HttpServletResponse response, String uid,
+        String organisationUnitUid, String isoPeriod,
+        Date date, String type, String contentType, boolean attachment )
+        throws Exception
     {
         Report report = reportService.getReport( uid );
 
@@ -213,13 +227,15 @@ public class ReportController
         {
             date = date != null ? date : new DateTime().minusMonths( 1 ).toDate();
 
-            Period period = isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod ) : new MonthlyPeriodType().createPeriod( date );
+            Period period = isoPeriod != null ? PeriodType.getPeriodFromIsoString( isoPeriod )
+                : new MonthlyPeriodType().createPeriod( date );
 
             String filename = CodecUtils.filenameEncode( report.getName() ) + "." + type;
 
             contextUtils.configureResponse( response, contentType, report.getCacheStrategy(), filename, attachment );
 
-            JasperPrint print = reportService.renderReport( response.getOutputStream(), uid, period, organisationUnitUid, type );
+            JasperPrint print = reportService.renderReport( response.getOutputStream(), uid, period,
+                organisationUnitUid, type );
 
             if ( ReportType.HTML.name().equalsIgnoreCase( type ) )
             {

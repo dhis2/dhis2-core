@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +36,8 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 
 /**
- * This interface is implemented by classes that can validate an {@see ObjectBundle}
+ * This interface is implemented by classes that can validate an
+ * {@see ObjectBundle}
  *
  * @author Luciano Fiandesio
  */
@@ -51,9 +51,8 @@ public interface ValidationCheck
      * @param persistedObjects a List of IdentifiableObject
      * @param nonPersistedObjects a List of IdentifiableObject
      * @param importStrategy the {@link ImportStrategy}
-     * @param context a {@link ValidationContext} containing the services required
-     *         for validation
-     *
+     * @param context a {@link ValidationContext} containing the services
+     *        required for validation
      * @return a {@link TypeReport}
      */
     TypeReport check( ObjectBundle bundle, Class<? extends IdentifiableObject> klass,

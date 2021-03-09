@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.variable;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program.variable;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.variable;
 
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
@@ -46,9 +45,11 @@ public class vValueCount
 
         for ( String uid : visitor.getDataElementAndAttributeIdentifiers() )
         {
-            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid ) + " is not null then 1 else 0 end + ";
+            sql += "case when " + visitor.getStatementBuilder().columnQuote( uid )
+                + " is not null then 1 else 0 end + ";
         }
 
-        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType() + "),0)";
+        return TextUtils.removeLast( sql, "+" ).trim() + ") as " + visitor.getStatementBuilder().getDoubleColumnType()
+            + "),0)";
     }
 }

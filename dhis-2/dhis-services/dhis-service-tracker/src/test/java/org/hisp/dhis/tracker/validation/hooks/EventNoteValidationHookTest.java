@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.common.collect.Iterables.concat;
 import static com.google.common.collect.Lists.newArrayList;
@@ -152,14 +151,15 @@ public class EventNoteValidationHookTest
 
         // When
         when( commentService.filterExistingNotes( argument.capture() ) ).thenReturn(
-                notes.stream().map( Note::getNote ).collect( Collectors.toList() ) );
+            notes.stream().map( Note::getNote ).collect( Collectors.toList() ) );
 
         this.hook.validateEvent( mock( ValidationErrorReporter.class ), event );
 
         // Then
         assertThat( event.getNotes(), hasSize( 5 ) );
         List<String> value = argument.getValue();
-        // make sure that the filterExistingNotes was called only with uid belonging to notes with text
+        // make sure that the filterExistingNotes was called only with uid
+        // belonging to notes with text
         assertThat( value, containsInAnyOrder( newArrayList( concat( notes, existingNotes ) ).stream()
             .map( Note::getNote ).toArray() ) );
 

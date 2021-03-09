@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,12 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
@@ -42,36 +42,47 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.program.ProgramStage;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public interface DimensionalObject
     extends NameableObject
 {
     String DATA_X_DIM_ID = "dx"; // in, de, ds, do
+
     String DATA_COLLAPSED_DIM_ID = "dy"; // Collapsed event data dimensions
+
     String CATEGORYOPTIONCOMBO_DIM_ID = "co";
+
     String ATTRIBUTEOPTIONCOMBO_DIM_ID = "ao";
+
     String PERIOD_DIM_ID = "pe";
+
     String ORGUNIT_DIM_ID = "ou";
+
     String ORGUNIT_GROUP_DIM_ID = "oug"; // Used for org unit target
+
     String ITEM_DIM_ID = "item";
 
     String DIMENSION_SEP = "-";
 
     String LONGITUDE_DIM_ID = "longitude";
+
     String LATITUDE_DIM_ID = "latitude";
 
     String DIMENSION_NAME_SEP = ":";
+
     String OPTION_SEP = ";";
+
     String ITEM_SEP = "-";
+
     String PROGRAMSTAGE_SEP = ".";
 
-    List<String> STATIC_DIMS = ImmutableList.<String>builder().add(
+    List<String> STATIC_DIMS = ImmutableList.<String> builder().add(
         LONGITUDE_DIM_ID, LATITUDE_DIM_ID ).build();
 
     Map<String, String> PRETTY_NAMES = DimensionalObjectUtils.asMap(
@@ -80,19 +91,17 @@ public interface DimensionalObject
         PERIOD_DIM_ID, "Period",
         ORGUNIT_DIM_ID, "Organisation unit" );
 
-    Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet.<Class<? extends IdentifiableObject>>builder().
-        add( Category.class ).
-        add( DataElementGroupSet.class ).
-        add( OrganisationUnitGroupSet.class ).
-        add( CategoryOptionGroupSet.class ).build();
+    Set<Class<? extends IdentifiableObject>> DYNAMIC_DIMENSION_CLASSES = ImmutableSet
+        .<Class<? extends IdentifiableObject>> builder().add( Category.class ).add( DataElementGroupSet.class )
+        .add( OrganisationUnitGroupSet.class ).add( CategoryOptionGroupSet.class ).build();
 
-    Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap.<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>>builder().
-        put( Category.class, CategoryOption.class ).
-        put( DataElementGroupSet.class, DataElementGroup.class ).
-        put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class ).
-        put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();
+    Map<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> DIMENSION_CLASS_ITEM_CLASS_MAP = ImmutableMap
+        .<Class<? extends DimensionalObject>, Class<? extends DimensionalItemObject>> builder()
+        .put( Category.class, CategoryOption.class ).put( DataElementGroupSet.class, DataElementGroup.class )
+        .put( OrganisationUnitGroupSet.class, OrganisationUnitGroup.class )
+        .put( CategoryOptionGroupSet.class, CategoryOptionGroup.class ).build();
 
-    Set<ValueType> ARITHMETIC_VALUE_TYPES = ImmutableSet.<ValueType>builder().add(
+    Set<ValueType> ARITHMETIC_VALUE_TYPES = ImmutableSet.<ValueType> builder().add(
         ValueType.BOOLEAN, ValueType.TRUE_ONLY, ValueType.NUMBER, ValueType.INTEGER,
         ValueType.INTEGER_POSITIVE, ValueType.INTEGER_NEGATIVE, ValueType.INTEGER_ZERO_OR_POSITIVE,
         ValueType.UNIT_INTERVAL, ValueType.PERCENTAGE ).build();

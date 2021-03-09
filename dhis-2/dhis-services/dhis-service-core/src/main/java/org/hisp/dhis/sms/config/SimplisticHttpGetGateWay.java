@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.text.StringSubstitutor;
@@ -45,7 +46,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -53,12 +53,10 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component( "org.hisp.dhis.sms.config.SimplisticHttpGetGateWay" )
 public class SimplisticHttpGetGateWay
-        extends SmsGateway
+    extends SmsGateway
 {
     private final PBEStringEncryptor pbeStringEncryptor;
 
@@ -68,8 +66,8 @@ public class SimplisticHttpGetGateWay
     // Dependencies
     // -------------------------------------------------------------------------
 
-
-    public SimplisticHttpGetGateWay( RestTemplate restTemplate, @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
+    public SimplisticHttpGetGateWay( RestTemplate restTemplate,
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor )
     {
         checkNotNull( restTemplate );
         checkNotNull( pbeStringEncryptor );
@@ -116,7 +114,8 @@ public class SimplisticHttpGetGateWay
 
             if ( genericConfig.isSendUrlParameters() )
             {
-                uriBuilder = UriComponentsBuilder.fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
+                uriBuilder = UriComponentsBuilder
+                    .fromHttpUrl( config.getUrlTemplate() + "?" + requestEntity.getBody() );
             }
             else
             {
@@ -125,7 +124,8 @@ public class SimplisticHttpGetGateWay
 
             uri = uriBuilder.build().encode().toUri();
 
-            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST, requestEntity, String.class );
+            responseEntity = restTemplate.exchange( uri, genericConfig.isUseGet() ? HttpMethod.GET : HttpMethod.POST,
+                requestEntity, String.class );
         }
         catch ( HttpClientErrorException ex )
         {
@@ -149,7 +149,10 @@ public class SimplisticHttpGetGateWay
 
     private HttpEntity<String> getRequestEntity( GenericHttpGatewayConfig config, String text, Set<String> recipients )
     {
-        final StringSubstitutor substitutor = new StringSubstitutor( getRequestData( config, text, recipients ) ); // Matches on ${...}
+        final StringSubstitutor substitutor = new StringSubstitutor(
+            getRequestData( config, text, recipients ) ); // Matches
+        // on
+        // ${...}
 
         String data = substitutor.replace( config.getConfigurationTemplate() );
 
@@ -201,7 +204,8 @@ public class SimplisticHttpGetGateWay
 
     private String encodeAndDecryptParameter( GenericGatewayParameter parameter )
     {
-        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() ) : parameter.getValue();
+        String value = parameter.isConfidential() ? pbeStringEncryptor.decrypt( parameter.getValue() )
+            : parameter.getValue();
 
         return parameter.isEncode() ? Base64.getEncoder().encodeToString( value.getBytes() ) : value;
     }

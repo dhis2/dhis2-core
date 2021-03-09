@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
@@ -62,17 +61,23 @@ import com.google.common.collect.Maps;
 public class DimensionalObjectUtils
 {
     public static final String COMPOSITE_DIM_OBJECT_ESCAPED_SEP = "\\.";
+
     public static final String COMPOSITE_DIM_OBJECT_PLAIN_SEP = ".";
+
     public static final String TITLE_ITEM_SEP = ", ";
+
     public static final String NULL_REPLACEMENT = "[n/a]";
+
     public static final String NAME_SEP = "_";
+
     public static final String COL_SEP = " ";
 
     /**
      * Matching data element operand, program data element, program attribute,
      * data set reporting rate metric.
      */
-    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern.compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
+    private static final Pattern COMPOSITE_DIM_OBJECT_PATTERN = Pattern
+        .compile( "(?<id1>\\w+)\\.(?<id2>\\w+|\\*)(\\.(?<id3>\\w+|\\*))?" );
 
     public static List<DimensionalObject> getCopies( List<DimensionalObject> dimensions )
     {
@@ -115,7 +120,8 @@ public class DimensionalObjectUtils
     /**
      * Creates a two-dimensional array of dimension items based on the list of
      * DimensionalObjects. I.e. the list of items of each DimensionalObject is
-     * converted to an array and inserted into the outer array in the same order.
+     * converted to an array and inserted into the outer array in the same
+     * order.
      *
      * @param dimensions the list of DimensionalObjects.
      * @return a two-dimensional array of NameableObjects.
@@ -144,11 +150,11 @@ public class DimensionalObjectUtils
     {
         Map<T, T> map = new HashMap<>();
 
-        if ( elements != null && ( elements.length % 2 == 0 ) )
+        if ( elements != null && (elements.length % 2 == 0) )
         {
             for ( int i = 0; i < elements.length; i += 2 )
             {
-                map.put( elements[i], elements[i+1] );
+                map.put( elements[i], elements[i + 1] );
             }
         }
 
@@ -172,10 +178,10 @@ public class DimensionalObjectUtils
 
     /**
      * Retrieves the dimension options from the given string. Looks for the part
-     * succeeding the dimension name separator, if exists, splits the string part
-     * on the option separator and returns the resulting values. If the dimension
-     * name separator does not exist an empty list is returned, indicating that
-     * all dimension options should be used.
+     * succeeding the dimension name separator, if exists, splits the string
+     * part on the option separator and returns the resulting values. If the
+     * dimension name separator does not exist an empty list is returned,
+     * indicating that all dimension options should be used.
      */
     public static List<String> getDimensionItemsFromParam( String param )
     {
@@ -230,8 +236,8 @@ public class DimensionalObjectUtils
 
     /**
      * Retrieves the value from a keyword parameter string, which is on the
-     * format {@code <KEYWORD>-<VALUE>}. Returns null of parameter string
-     * is not on the correct format.
+     * format {@code <KEYWORD>-<VALUE>}. Returns null of parameter string is not
+     * on the correct format.
      *
      * @param param the string parameter.
      */
@@ -262,10 +268,10 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Sets items on the given dimension based on the unique values of the matching
-     * column in the given grid. Items are BaseNameableObjects where the name,
-     * code and short name properties are set to the column value. The dimension
-     * analytics type must be equal to EVENT.
+     * Sets items on the given dimension based on the unique values of the
+     * matching column in the given grid. Items are BaseNameableObjects where
+     * the name, code and short name properties are set to the column value. The
+     * dimension analytics type must be equal to EVENT.
      *
      * @param dimension the dimension.
      * @param naForNull indicates whether a [n/a] string should be used as
@@ -322,15 +328,15 @@ public class DimensionalObjectUtils
         for ( int i = 0; i < split.length; i += 2 )
         {
             QueryOperator operator = QueryOperator.fromString( split[i] );
-            String value = split[i+1];
+            String value = split[i + 1];
 
             if ( operator != null )
             {
-                boolean ignoreOperator = ( QueryOperator.LIKE.equals( operator ) || QueryOperator.IN.equals( operator ) );
+                boolean ignoreOperator = (QueryOperator.LIKE.equals( operator ) || QueryOperator.IN.equals( operator ));
 
                 value = value.replaceAll( QueryFilter.OPTION_SEP, TITLE_ITEM_SEP );
 
-                filterItems.add( ( ignoreOperator ? StringUtils.EMPTY : ( operator.getValue() + " " ) ) + value );
+                filterItems.add( (ignoreOperator ? StringUtils.EMPTY : (operator.getValue() + " ")) + value );
             }
         }
 
@@ -366,8 +372,8 @@ public class DimensionalObjectUtils
      * Returns the second identifier in a composite dimension object identifier.
      *
      * @param compositeItem the composite dimension object identifier.
-     * @return the second identifier, or null if not a valid composite identifier
-     *         or no match.
+     * @return the second identifier, or null if not a valid composite
+     *         identifier or no match.
      */
     public static String getSecondIdentifer( String compositeItem )
     {
@@ -405,7 +411,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list with erasure DimensionalItemObject based on the given collection.
+     * Returns a list with erasure DimensionalItemObject based on the given
+     * collection.
      *
      * @param collection the collection.
      * @return a list of DimensionalItemObjects.
@@ -416,7 +423,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list with erasure DimensionalObject based on the given collection.
+     * Returns a list with erasure DimensionalObject based on the given
+     * collection.
      *
      * @param collection the collection.
      * @return a list of DimensionalObjects.
@@ -427,15 +435,15 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a list typed with the desired erasure based on the given collection.
-     * This operation implies an unchecked cast and it is the responsibility of
-     * the caller to make sure the cast is valid. A copy of the given list will
-     * be returned.
+     * Returns a list typed with the desired erasure based on the given
+     * collection. This operation implies an unchecked cast and it is the
+     * responsibility of the caller to make sure the cast is valid. A copy of
+     * the given list will be returned.
      *
      * @param collection the collection.
      * @return a list.
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public static <T extends DimensionalItemObject> List<T> asTypedList( Collection<DimensionalItemObject> collection )
     {
         List<T> list = new ArrayList<>();
@@ -486,7 +494,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns dimension item identifiers for the given collection of DimensionalItemObject.
+     * Returns dimension item identifiers for the given collection of
+     * DimensionalItemObject.
      *
      * @param objects the DimensionalItemObjects.
      * @return a list of dimension item identifiers.
@@ -497,7 +506,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Gets a set of unique data elements based on the given collection of operands.
+     * Gets a set of unique data elements based on the given collection of
+     * operands.
      *
      * @param operands the collection of operands.
      * @return a set of data elements.
@@ -514,8 +524,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Gets a set of unique category option combinations based on the given collection
-     * of operands.
+     * Gets a set of unique category option combinations based on the given
+     * collection of operands.
      *
      * @param operands the collection of operands.
      * @return a set of category option combinations.
@@ -529,14 +539,14 @@ public class DimensionalObjectUtils
                 CategoryOptionCombo coc = o.getCategoryOptionCombo();
                 coc.setPeriodOffset( o.getPeriodOffset() );
                 return coc;
-                
+
             } )
             .collect( Collectors.toSet() );
     }
 
     /**
-     * Gets a set of unique attribute option combinations based on the given collection
-     * of operands.
+     * Gets a set of unique attribute option combinations based on the given
+     * collection of operands.
      *
      * @param operands the collection of operands.
      * @return a set of category option combinations.
@@ -563,7 +573,8 @@ public class DimensionalObjectUtils
      * @param idScheme the identifier scheme.
      * @return a mapping between dimension item identifiers.
      */
-    public static Map<String, String> getDimensionItemIdSchemeMap( Collection<? extends DimensionalItemObject> objects, IdScheme idScheme )
+    public static Map<String, String> getDimensionItemIdSchemeMap( Collection<? extends DimensionalItemObject> objects,
+        IdScheme idScheme )
     {
         Map<String, String> map = Maps.newHashMap();
 
@@ -575,21 +586,24 @@ public class DimensionalObjectUtils
     /**
      * Returns a mapping between the base dimension item identifier and the
      * dimension item identifier defined by the given identifier scheme. For
-     * each operand, the data element and category option combo identifiers
-     * are included in the mapping, not the operand itself.
+     * each operand, the data element and category option combo identifiers are
+     * included in the mapping, not the operand itself.
      *
      * @param dataElementOperands the data element operands.
      * @param idScheme the identifier scheme.
      * @return a mapping between dimension item identifiers.
      */
-    public static Map<String, String> getDataElementOperandIdSchemeMap( Collection<DataElementOperand> dataElementOperands, IdScheme idScheme )
+    public static Map<String, String> getDataElementOperandIdSchemeMap(
+        Collection<DataElementOperand> dataElementOperands, IdScheme idScheme )
     {
         Map<String, String> map = Maps.newHashMap();
 
         for ( DataElementOperand operand : dataElementOperands )
         {
-            map.put( operand.getDataElement().getDimensionItem(), operand.getDataElement().getDimensionItem( IdScheme.from( idScheme ) ) );
-            map.put( operand.getCategoryOptionCombo().getDimensionItem(), operand.getCategoryOptionCombo().getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( operand.getDataElement().getDimensionItem(),
+                operand.getDataElement().getDimensionItem( IdScheme.from( idScheme ) ) );
+            map.put( operand.getCategoryOptionCombo().getDimensionItem(),
+                operand.getCategoryOptionCombo().getDimensionItem( IdScheme.from( idScheme ) ) );
         }
 
         return map;
@@ -609,8 +623,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Replaces total {@link DataElementOperand} items with {@link DataElement} items
-     * in the given list of items.
+     * Replaces total {@link DataElementOperand} items with {@link DataElement}
+     * items in the given list of items.
      *
      * @param items the list of items.
      * @return a list of dimensional item objects.
@@ -621,7 +635,8 @@ public class DimensionalObjectUtils
         {
             DimensionalItemObject item = items.get( i );
 
-            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() ) && ((DataElementOperand) item).isTotal() )
+            if ( DimensionItemType.DATA_ELEMENT_OPERAND.equals( item.getDimensionItemType() )
+                && ((DataElementOperand) item).isTotal() )
             {
                 items.set( i, ((DataElementOperand) item).getDataElement() );
             }
@@ -632,9 +647,11 @@ public class DimensionalObjectUtils
 
     /**
      * Generates a key based on the given lists of {@link NameableObject}. Uses
-     * the identifiers for each nameable object, sorts them and writes them out as a key.
+     * the identifiers for each nameable object, sorts them and writes them out
+     * as a key.
      *
-     * @param column list of dimension items representing a column, cannot be null.
+     * @param column list of dimension items representing a column, cannot be
+     *        null.
      * @param row list of dimension items representing a row, cannot be null.
      * @return an identifier representing a column item and a row item.
      */
@@ -657,8 +674,8 @@ public class DimensionalObjectUtils
     }
 
     /**
-     * Returns a map with sorted keys. Keys are sorted by splitting on the '-' character
-     * and sorting the components alphabetically.
+     * Returns a map with sorted keys. Keys are sorted by splitting on the '-'
+     * character and sorting the components alphabetically.
      *
      * @param valueMap the mapping of keys and values.
      * @return a map with sorted keys.

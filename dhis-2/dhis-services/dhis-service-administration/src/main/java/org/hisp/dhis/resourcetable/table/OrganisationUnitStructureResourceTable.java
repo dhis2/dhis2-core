@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
+
+import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,8 +42,6 @@ import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
 import com.google.common.collect.Lists;
-
-import static org.hisp.dhis.system.util.SqlUtils.quote;
 
 /**
  * @author Lars Helge Overland
@@ -73,12 +72,12 @@ public class OrganisationUnitStructureResourceTable
     {
         StringBuilder sql = new StringBuilder();
 
-        sql.append( "create table " ).append( getTempTableName() ).
-            append( " (organisationunitid bigint not null primary key, organisationunituid character(11), level integer" );
+        sql.append( "create table " ).append( getTempTableName() ).append(
+            " (organisationunitid bigint not null primary key, organisationunituid character(11), level integer" );
 
-        for ( int k = 1 ; k <= organisationUnitLevels; k++ )
+        for ( int k = 1; k <= organisationUnitLevels; k++ )
         {
-            sql.append( ", " ).append( quote( "idlevel" + k ) ).append (" bigint, " )
+            sql.append( ", " ).append( quote( "idlevel" + k ) ).append( " bigint, " )
                 .append( quote( "uidlevel" + k ) ).append( " character(11), " )
                 .append( quote( "namelevel" + k ) ).append( " text" );
         }

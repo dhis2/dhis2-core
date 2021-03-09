@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataapproval.DataApprovalService;
 import org.hisp.dhis.dataelement.DataElement;
@@ -44,16 +53,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -115,49 +115,49 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataSet getDataSet( long id )
     {
         return dataSetStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataSet getDataSet( String uid )
     {
         return dataSetStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataSet getDataSetNoAcl( String uid )
     {
         return dataSetStore.getByUidNoAcl( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getDataSetsByDataEntryForm( DataEntryForm dataEntryForm )
     {
         return dataSetStore.getDataSetsByDataEntryForm( dataEntryForm );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getAllDataSets()
     {
         return dataSetStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getDataSetsByPeriodType( PeriodType periodType )
     {
         return dataSetStore.getDataSetsByPeriodType( periodType );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getUserDataRead( User user )
     {
         if ( user == null )
@@ -169,7 +169,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getAllDataRead()
     {
         User user = currentUserService.getCurrentUser();
@@ -178,7 +178,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getAllDataWrite()
     {
         User user = currentUserService.getCurrentUser();
@@ -187,7 +187,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataSet> getUserDataWrite( User user )
     {
         if ( user == null )
@@ -224,35 +224,35 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public LockException getLockException( long id )
     {
         return lockExceptionStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getLockExceptionCount()
     {
         return lockExceptionStore.getCount();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<LockException> getAllLockExceptions()
     {
         return lockExceptionStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<LockException> getLockExceptionsBetween( int first, int max )
     {
         return lockExceptionStore.getAllOrderedName( first, max );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<LockException> getLockExceptionCombinations()
     {
         return lockExceptionStore.getCombinations();
@@ -273,22 +273,24 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public boolean isLocked( User user,  DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
+    @Transactional( readOnly = true )
+    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, Date now )
     {
-        return dataSet.isLocked( user, period, now ) && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
+        return dataSet.isLocked( user, period, now )
+            && lockExceptionStore.getCount( dataSet, period, organisationUnit ) == 0L;
     }
 
     @Override
-    @Transactional(readOnly = true)
-    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo, Date now )
+    @Transactional( readOnly = true )
+    public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
+        CategoryOptionCombo attributeOptionCombo, Date now )
     {
         return isLocked( user, dataSet, period, organisationUnit, now ) ||
             dataApprovalService.isApproved( dataSet.getWorkflow(), period, organisationUnit, attributeOptionCombo );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isLocked( User user, DataSet dataSet, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now, boolean useOrgUnitChildren )
     {
@@ -314,7 +316,7 @@ public class DefaultDataSetService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public boolean isLocked( User user, DataElement dataElement, Period period, OrganisationUnit organisationUnit,
         CategoryOptionCombo attributeOptionCombo, Date now )
     {
@@ -375,7 +377,8 @@ public class DefaultDataSetService
         return new ArrayList<>( returnList );
     }
 
-    private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds, Collection<LockException> lockExceptions )
+    private List<LockException> getLockExceptionByOrganisationUnit( String operator, String orgUnitIds,
+        Collection<LockException> lockExceptions )
     {
 
         List<String> ids = parseIdFromString( orgUnitIds, operator );
@@ -385,7 +388,8 @@ public class DefaultDataSetService
             .collect( Collectors.toList() );
     }
 
-    private List<LockException> getLockExceptionByDataSet( String operator, String dataSetIds, Collection<LockException> lockExceptions )
+    private List<LockException> getLockExceptionByDataSet( String operator, String dataSetIds,
+        Collection<LockException> lockExceptions )
     {
         List<String> ids = parseIdFromString( dataSetIds, operator );
 
@@ -394,7 +398,8 @@ public class DefaultDataSetService
             .collect( Collectors.toList() );
     }
 
-    private List<LockException> getLockExceptionByPeriod( String operator, String periods, Collection<LockException> lockExceptions )
+    private List<LockException> getLockExceptionByPeriod( String operator, String periods,
+        Collection<LockException> lockExceptions )
     {
         List<String> ids = parseIdFromString( periods, operator );
 

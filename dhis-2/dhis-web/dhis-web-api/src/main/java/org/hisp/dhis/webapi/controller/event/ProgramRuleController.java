@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.feedback.Status;
@@ -45,8 +46,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletResponse;
 
 /**
  *
@@ -68,12 +67,12 @@ public class ProgramRuleController
     }
 
     @RequestMapping( value = "/condition/description", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
-    public void validateCondition( @RequestBody String condition, @RequestParam String programId, HttpServletResponse response )
+    public void validateCondition( @RequestBody String condition, @RequestParam String programId,
+        HttpServletResponse response )
     {
         I18n i18n = i18nManager.getI18n();
 
         DescriptiveWebMessage message = new DescriptiveWebMessage();
-
 
         RuleValidationResult result = programRuleEngineService.getDescription( condition, programId );
 
@@ -87,7 +86,8 @@ public class ProgramRuleController
         }
         else
         {
-            message.setDescription( ObjectUtils.firstNonNull( result.getErrorMessage(), result.getException().getMessage() ) );
+            message.setDescription(
+                ObjectUtils.firstNonNull( result.getErrorMessage(), result.getException().getMessage() ) );
 
             message.setStatus( Status.ERROR );
 

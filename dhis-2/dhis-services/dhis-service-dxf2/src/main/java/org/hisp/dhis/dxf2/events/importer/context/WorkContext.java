@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 
@@ -34,6 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import lombok.Builder;
+import lombok.Getter;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -51,9 +53,6 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
-import lombok.Builder;
-import lombok.Getter;
-
 /**
  * This class acts as a cache for data required during the Event import process.
  *
@@ -66,40 +65,42 @@ public class WorkContext
     private final ImportOptions importOptions;
 
     /**
-     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for a
-     * detailed explanation of the data kept in this map
-     *
+     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for
+     * a detailed explanation of the data kept in this map
+     * <p>
      * Map: key -> Program ID (based on IdScheme) value -> Program
      */
     private final Map<String, Program> programsMap;
 
     /**
      * Holds a Map of all {@see OrganisationUnit} associated to the Events to
-     * import. Each {@see OrganisationUnit} also contain the complete hierarchy (
-     * via .getParent() )
+     * import. Each {@see OrganisationUnit} also contain the complete hierarchy
+     * ( via .getParent() )
      *
      * Map: key -> Event UID value -> OrganisationUnit
      */
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events to
-     * import.
+     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events
+     * to import.
      *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance, canBeUpdatedByCurrentUser boolean>
+     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
+     * canBeUpdatedByCurrentUser boolean>
      */
     private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramInstance} associated to the Events to import.
+     * Holds a Map of all {@see ProgramInstance} associated to the Events to
+     * import.
      *
      * Map: key -> Event UID value -> ProgramInstance
      */
     private final Map<String, ProgramInstance> programInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramStageInstance} associated to the Events to
-     * import.
+     * Holds a Map of all {@see ProgramStageInstance} associated to the Events
+     * to import.
      *
      * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
      */
@@ -123,11 +124,11 @@ public class WorkContext
     /**
      * Holds a Map of the EventDataValue for each event. Each entry value in the
      * Map, has a Set of EventDataValue, which have been already "prepared" for
-     * update (insert/update). This means that the "incoming" Data Values have been
-     * merged with the already existing Data Values (in case of an update). This is
-     * the "reference" Map for Data Values during the Event import process, meaning
-     * that the import components should only reference this Map when dealing with
-     * Event Data Values (validation, etc)
+     * update (insert/update). This means that the "incoming" Data Values have
+     * been merged with the already existing Data Values (in case of an update).
+     * This is the "reference" Map for Data Values during the Event import
+     * process, meaning that the import components should only reference this
+     * Map when dealing with Event Data Values (validation, etc)
      *
      */
     private final Map<String, Set<EventDataValue>> eventDataValueMap;
@@ -137,9 +138,9 @@ public class WorkContext
     private final Map<String, Note> notesMap;
 
     /**
-     * Holds a Map of Program ID (primary key) and List of Org Unit ID associated to
-     * each program. Note that the List only contains the Org Unit ID of org units
-     * that are specified in the payload.
+     * Holds a Map of Program ID (primary key) and List of Org Unit ID
+     * associated to each program. Note that the List only contains the Org Unit
+     * ID of org units that are specified in the payload.
      */
     private final Map<Long, List<Long>> programWithOrgUnitsMap;
 
@@ -173,14 +174,14 @@ public class WorkContext
         }
         return null;
     }
-    
+
     public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
     {
         final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
-    
+
     public Optional<ProgramStageInstance> getProgramStageInstance( String event )
     {
         return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );

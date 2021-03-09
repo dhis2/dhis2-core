@@ -1,7 +1,5 @@
-package org.hisp.dhis.apphub;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.apphub;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.apphub;
+
+import java.util.regex.Pattern;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -37,8 +38,6 @@ import org.springframework.http.MediaType;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
-import java.util.regex.Pattern;
 
 /**
  * @author Lars Helge Overland
@@ -72,7 +71,8 @@ public class AppHubUtils
     }
 
     /**
-     * Validate the API version. Must start with {@code v} followed by an integer.
+     * Validate the API version. Must start with {@code v} followed by an
+     * integer.
      *
      * @param apiVersion the API version string.
      * @throws IllegalQueryException if the API version is invalid.
@@ -99,8 +99,8 @@ public class AppHubUtils
     }
 
     /**
-     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to
-     * accept a {@code application/json} response.
+     * Returns an {@link HttpEntity} with {@link HttpHeaders} set to accept a
+     * {@code application/json} response.
      *
      * @return a {@link HttpEntity}.
      */

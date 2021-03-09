@@ -1,6 +1,5 @@
-package org.hisp.dhis.program;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.ProgramIndicator.KEY_ATTRIBUTE;
 import static org.hisp.dhis.program.ProgramIndicator.KEY_DATAELEMENT;
@@ -218,7 +218,7 @@ public class ProgramIndicatorServiceTest
         deHDate.setDomainType( DataElementDomain.TRACKER );
         deHDate.setUid( "DataElmentH" );
 
-        dataElementService.addDataElement(deAInteger);
+        dataElementService.addDataElement( deAInteger );
         dataElementService.addDataElement( deB );
         dataElementService.addDataElement( deC );
         dataElementService.addDataElement( deD );
@@ -260,13 +260,13 @@ public class ProgramIndicatorServiceTest
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
 
         programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
-                incidentDate, organisationUnit );
+            incidentDate, organisationUnit );
 
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
 
         programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
-                incidentDate, organisationUnit );
+            incidentDate, organisationUnit );
 
         // TODO enroll twice?
 
@@ -294,9 +294,9 @@ public class ProgramIndicatorServiceTest
         // ---------------------------------------------------------------------
 
         ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
-                psA, enrollmentDate, incidentDate, organisationUnit );
+            psA, enrollmentDate, incidentDate, organisationUnit );
         ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
-                psB, enrollmentDate, incidentDate, organisationUnit );
+            psB, enrollmentDate, incidentDate, organisationUnit );
 
         Set<ProgramStageInstance> programStageInstances = new HashSet<>();
         programStageInstances.add( stageInstanceA );
@@ -315,8 +315,10 @@ public class ProgramIndicatorServiceTest
         // ProgramIndicator
         // ---------------------------------------------------------------------
 
-        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE + "}, " + KEY_PROGRAM_VARIABLE + "{"
-                + ProgramIndicator.VAR_INCIDENT_DATE + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid() + "}";
+        String expressionA = "( d2:daysBetween(" + KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_ENROLLMENT_DATE
+            + "}, " + KEY_PROGRAM_VARIABLE + "{"
+            + ProgramIndicator.VAR_INCIDENT_DATE + "}) )  / " + ProgramIndicator.KEY_CONSTANT + "{" + constantA.getUid()
+            + "}";
         indicatorA = createProgramIndicator( 'A', programA, expressionA, null );
         programA.getProgramIndicators().add( indicatorA );
 
@@ -326,21 +328,26 @@ public class ProgramIndicatorServiceTest
         indicatorC = createProgramIndicator( 'C', programA, "0", null );
         programA.getProgramIndicators().add( indicatorC );
 
-        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{" + ProgramIndicator.VAR_INCIDENT_DATE + "}";
+        String expressionD = "0 + A + 4 + " + ProgramIndicator.KEY_PROGRAM_VARIABLE + "{"
+            + ProgramIndicator.VAR_INCIDENT_DATE + "}";
         indicatorD = createProgramIndicator( 'D', programB, expressionD, null );
 
-        String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_DATAELEMENT + "{"
-                + psB.getUid() + "." + deAInteger.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + " + KEY_ATTRIBUTE
-                + "{" + atB.getUid() + "}";
-        String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} > 10";
+        String expressionE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_DATAELEMENT
+            + "{"
+            + psB.getUid() + "." + deAInteger.getUid() + "} - " + KEY_ATTRIBUTE + "{" + atA.getUid() + "} + "
+            + KEY_ATTRIBUTE
+            + "{" + atB.getUid() + "}";
+        String filterE = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} + " + KEY_ATTRIBUTE + "{"
+            + atA.getUid() + "} > 10";
         indicatorE = createProgramIndicator( 'E', programB, expressionE, filterE );
 
         String expressionF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "}";
         String filterF = KEY_DATAELEMENT + "{" + psA.getUid() + "." + deAInteger.getUid() + "} > " +
             KEY_ATTRIBUTE + "{" + atA.getUid() + "}";
         indicatorF = createProgramIndicator( 'F', AnalyticsType.ENROLLMENT, programB, expressionF, filterF );
-        indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary(AnalyticsPeriodBoundary.EVENT_DATE,
-            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ), 10) );
+        indicatorF.getAnalyticsPeriodBoundaries().add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
+            AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, PeriodType.getByNameIgnoreCase( "daily" ),
+            10 ) );
     }
 
     // -------------------------------------------------------------------------
@@ -461,7 +468,8 @@ public class ProgramIndicatorServiceTest
         String expected = "\"DataElmentA\" is not null or \"Attribute0A\" is not null";
         String expression = "#{ProgrmStagA.DataElmentA} - A{Attribute0A}";
 
-        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.EVENT ) );
+        assertEquals( expected,
+            programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.EVENT ) );
     }
 
     @Test
@@ -470,15 +478,18 @@ public class ProgramIndicatorServiceTest
         String expected = "\"Attribute0A\" is not null or \"ProgrmStagA_DataElmentA\" is not null";
         String expression = "#{ProgrmStagA.DataElmentA} - A{Attribute0A}";
 
-        assertEquals( expected, programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.ENROLLMENT ) );
+        assertEquals( expected,
+            programIndicatorService.getAnyValueExistsClauseAnalyticsSql( expression, AnalyticsType.ENROLLMENT ) );
     }
 
     @Test
     public void testGetAnalyticsSQl()
     {
-        String expected = "coalesce(\"" + deAInteger.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid() + "\"::numeric,0) > 10";
+        String expected = "coalesce(\"" + deAInteger.getUid() + "\"::numeric,0) + coalesce(\"" + atA.getUid()
+            + "\"::numeric,0) > 10";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
+        assertEquals( expected,
+            programIndicatorService.getAnalyticsSql( indicatorE.getFilter(), indicatorE, new Date(), new Date() ) );
     }
 
     @Test
@@ -486,7 +497,8 @@ public class ProgramIndicatorServiceTest
     {
         String expected = "((cast(incidentdate as date) - cast(enrollmentdate as date))) / 7.0";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), indicatorA, new Date(), new Date() ) );
+        assertEquals( expected,
+            programIndicatorService.getAnalyticsSql( indicatorA.getExpression(), indicatorA, new Date(), new Date() ) );
     }
 
     @Test
@@ -516,13 +528,17 @@ public class ProgramIndicatorServiceTest
     @Test
     public void testFilterExpressionValidityWithD2FunctionsAndDifferentValueTypes()
     {
-        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deAInteger.getUid() + "})" ) );
-        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deEText.getUid() + "})" ) );
-        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deFNumber.getUid() + "})" ) );
-        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deGBoolean.getUid() + "})" ) );
-        assertTrue( programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deHDate.getUid() + "})" ) );
+        assertTrue( programIndicatorService
+            .filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deAInteger.getUid() + "})" ) );
+        assertTrue(
+            programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deEText.getUid() + "})" ) );
+        assertTrue( programIndicatorService
+            .filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deFNumber.getUid() + "})" ) );
+        assertTrue( programIndicatorService
+            .filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deGBoolean.getUid() + "})" ) );
+        assertTrue(
+            programIndicatorService.filterIsValid( "d2:hasValue(#{" + psA.getUid() + "." + deHDate.getUid() + "})" ) );
     }
-
 
     @Test
     public void testValueCount()
@@ -533,7 +549,8 @@ public class ProgramIndicatorServiceTest
 
         String expression = "#{ProgrmStagA.DataElmentA} + A{Attribute0A} + V{value_count}";
 
-        assertEquals( expected, programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
+        assertEquals( expected,
+            programIndicatorService.getAnalyticsSql( expression, indicatorA, new Date(), new Date() ) );
     }
 
     @Test
@@ -554,9 +571,10 @@ public class ProgramIndicatorServiceTest
         // Generated subquery, since indicatorF is type Enrollment
 
         String expected = "coalesce((select \"DataElmentA\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentA\" is not null and executiondate < cast( '"
-                + "2020-01-11" + "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - " +
-                "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
-                + "2020-01-11" + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
+            + "2020-01-11" +
+            "' as date ) and ps = 'ProgrmStagA' order by executiondate desc limit 1 )::numeric,0) - " +
+            "coalesce((select \"DataElmentC\" from analytics_event_Program000B where analytics_event_Program000B.pi = axx1.pi and \"DataElmentC\" is not null and executiondate < cast( '"
+            + "2020-01-11" + "' as date ) and ps = 'ProgrmStagB' order by executiondate desc limit 1 )::numeric,0)";
 
         String expression = "#{ProgrmStagA.DataElmentA} - #{ProgrmStagB.DataElmentC}";
 

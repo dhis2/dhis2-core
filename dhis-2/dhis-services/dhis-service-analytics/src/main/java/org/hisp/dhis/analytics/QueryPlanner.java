@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import java.util.List;
 
@@ -42,18 +41,19 @@ public interface QueryPlanner
 {
     /**
      * Creates a DataQueryGroups object. It is mandatory to group the queries by
-     * the following criteria: 1) partition / year 2) organisation unit level
-     * 3) period type 4) aggregation type. The DataQueryGroups contains groups of
-     * queries. The query groups should be run in sequence while the queries within
-     * each group should be run in parallel for optimal performance. Currently
-     * queries with different {@link AnalyticsAggregationType} are run in sequence.
-     *
-     * If the number of queries produced by this grouping is equal or
-     * larger than the number of optimal queries, those queries are returned. If
-     * not it will split on the data element dimension, data set dimension and
+     * the following criteria: 1) partition / year 2) organisation unit level 3)
+     * period type 4) aggregation type. The DataQueryGroups contains groups of
+     * queries. The query groups should be run in sequence while the queries
+     * within each group should be run in parallel for optimal performance.
+     * Currently queries with different {@link AnalyticsAggregationType} are run
+     * in sequence.
+     * <p>
+     * If the number of queries produced by this grouping is equal or larger
+     * than the number of optimal queries, those queries are returned. If not it
+     * will split on the data element dimension, data set dimension and
      * organisation unit dimension, and return immediately after each step if
      * optimal queries are met.
-     *
+     * <p>
      * It does not attempt to split on period dimension as splitting on columns
      * with low cardinality typically does not improve performance.
      *
@@ -61,7 +61,7 @@ public interface QueryPlanner
      * @param plannerParams the query planner parameters.
      * @return a {@link DataQueryGroups} object.
      */
-    DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams  )
+    DataQueryGroups planQuery( DataQueryParams params, QueryPlannerParams plannerParams )
         throws IllegalQueryException;
 
     /**
@@ -83,10 +83,10 @@ public interface QueryPlanner
 
     /**
      * If organisation units appear as dimensions; groups the given query into
-     * sub queries based on the level of the organisation units. Sets the organisation
-     * unit level on each query. If organisation units appear as filter; replaces
-     * the organisation unit filter with one filter for each level. Sets the dimension
-     * names and filter names respectively.
+     * sub queries based on the level of the organisation units. Sets the
+     * organisation unit level on each query. If organisation units appear as
+     * filter; replaces the organisation unit filter with one filter for each
+     * level. Sets the dimension names and filter names respectively.
      *
      * @param params the data query parameters.
      * @return a list of data query parameters.
@@ -96,9 +96,9 @@ public interface QueryPlanner
     /**
      * If periods appear as dimensions in the given query; groups the query into
      * sub queries based on the period type of the periods. Sets the period type
-     * name on each query. If periods appear as filters; replaces the period filter
-     * with one filter for each period type. Sets the dimension names and filter
-     * names respectively.
+     * name on each query. If periods appear as filters; replaces the period
+     * filter with one filter for each period type. Sets the dimension names and
+     * filter names respectively.
      *
      * @param params the data query parameters.
      * @return a list of data query parameters.
@@ -106,12 +106,13 @@ public interface QueryPlanner
     List<DataQueryParams> groupByPeriodType( DataQueryParams params );
 
     /**
-     * If periods appear as dimensions in the given query; groups the given query
-     * into sub queries based on start and end dates, i.e. one query per period.
-     * Marks the period dimension as fixed and sets the dimension name to the period
-     * ISO name. Sets the start date and end date properties. If periods appear
-     * as filters in the given query; sets the start date and end date properties
-     * based on the first period and removes the period dimension.
+     * If periods appear as dimensions in the given query; groups the given
+     * query into sub queries based on start and end dates, i.e. one query per
+     * period. Marks the period dimension as fixed and sets the dimension name
+     * to the period ISO name. Sets the start date and end date properties. If
+     * periods appear as filters in the given query; sets the start date and end
+     * date properties based on the first period and removes the period
+     * dimension.
      *
      * @param params the data query parameters.
      * @return a list of data query parameters.

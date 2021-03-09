@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodType;
-
-import java.util.Date;
+package org.hisp.dhis.datavalue;
 
 import static org.hisp.dhis.category.CategoryOptionCombo.DEFAULT_TOSTRING;
 
+import java.util.Date;
+
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodType;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+
 /**
- * The purpose of this class is to avoid the overhead of creating objects
- * for associated objects, in order to reduce heap space usage during export.
+ * The purpose of this class is to avoid the overhead of creating objects for
+ * associated objects, in order to reduce heap space usage during export.
  *
  * @author Lars Helge Overland
  * @version $Id$
@@ -353,9 +353,8 @@ public class DeflatedDataValue
 
     public String getCategoryOptionComboNameParsed()
     {
-        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ?
-            "" :
-            categoryOptionComboName;
+        return categoryOptionComboName != null && categoryOptionComboName.equals( DEFAULT_TOSTRING ) ? ""
+            : categoryOptionComboName;
     }
 
     // -------------------------------------------------------------------------

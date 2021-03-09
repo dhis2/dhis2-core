@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,8 +24,22 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+package org.hisp.dhis.tracker.validation;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.core.Every.everyItem;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -60,20 +72,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.core.Every.everyItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -148,8 +146,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -202,8 +201,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -239,8 +239,9 @@ public class TeTaValidationTest
 
         trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -267,8 +268,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_fileresource_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -312,8 +314,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_generated_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -358,8 +361,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_too_long_text_value.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -391,8 +395,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_encryption_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -427,8 +432,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -448,8 +454,9 @@ public class TeTaValidationTest
 
         trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_unique_data.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         bundle = TrackerBundleParams.builder()
             .trackedEntities( trackerBundle.getTrackedEntities() )
@@ -479,8 +486,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_format_value.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -512,8 +520,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_image_value.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 
@@ -548,8 +557,9 @@ public class TeTaValidationTest
 
         TrackerBundle trackerBundle = renderService
             .fromJson( new ClassPathResource( "tracker/validations/te-program_with_tea_invalid_value_isnull.json" )
-                    .getInputStream(),
-                TrackerBundleParams.class ).toTrackerBundle();
+                .getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         User user = userService.getUser( ADMIN_USER_UID );
 

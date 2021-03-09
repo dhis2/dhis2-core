@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
 import java.io.Serializable;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
+
+import com.fasterxml.jackson.annotation.JsonView;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -116,21 +115,22 @@ public class GenericGatewayParameter
         {
             return true;
         }
-        if (o == null || getClass() != o.getClass() )
+        if ( o == null || getClass() != o.getClass() )
         {
             return false;
         }
 
         GenericGatewayParameter parameter = (GenericGatewayParameter) o;
         return header == parameter.header &&
-                encode == parameter.encode &&
-                confidential == parameter.confidential &&
-                Objects.equals( key, parameter.key ) &&
-                Objects.equals( value, parameter.value );
+            encode == parameter.encode &&
+            confidential == parameter.confidential &&
+            Objects.equals( key, parameter.key ) &&
+            Objects.equals( value, parameter.value );
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
 
         return Objects.hash( key, value, header, encode, confidential );
     }

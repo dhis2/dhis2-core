@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentitycomment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,7 @@ package org.hisp.dhis.trackedentitycomment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
+package org.hisp.dhis.trackedentitycomment;
 
 import java.util.List;
 
@@ -62,17 +60,16 @@ public interface TrackedEntityCommentService
     boolean trackedEntityCommentExists( String uid );
 
     /**
-     * Filters out existing {@see TrackedEntityComment} uids from a List of uids.
-     *
+     * Filters out existing {@see TrackedEntityComment} uids from a List of
+     * uids.
+     * <p>
      * Given a List:
-     *
-     * uid: abcd
-     * uid: cdef
-     * uid: ghil
-     * uid: mnop
-     *
-     * and assuming that "cdef" and "abcd" are associated to two TrackedEntityComment in the database,
-     * this method returns "ghil" and "mnop"
+     * <p>
+     * uid: abcd uid: cdef uid: ghil uid: mnop
+     * <p>
+     * and assuming that "cdef" and "abcd" are associated to two
+     * TrackedEntityComment in the database, this method returns "ghil" and
+     * "mnop"
      *
      * @param uids a List of {@see TrackedEntityComment} uid
      * @return a List of uid that are not present in the database

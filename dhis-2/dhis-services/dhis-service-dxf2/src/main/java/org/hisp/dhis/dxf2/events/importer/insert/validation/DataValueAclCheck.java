@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.insert.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import java.util.List;
 import java.util.Map;
@@ -49,7 +48,7 @@ import org.hisp.dhis.user.User;
 public class DataValueAclCheck implements Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
         final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
@@ -59,10 +58,11 @@ public class DataValueAclCheck implements Checker
         final User user = ctx.getImportOptions().getUser();
         final ImportSummary importSummary = new ImportSummary();
 
-        // Note that here we are passing a ProgramStageInstance, which during a INSERT
+        // Note that here we are passing a ProgramStageInstance, which during a
+        // INSERT
         // operation
         // is going to be null, so the ACL method will not be able to check that
-        final Set<EventDataValue> dataValues = eventDataValueMap.get(event.getUid());
+        final Set<EventDataValue> dataValues = eventDataValueMap.get( event.getUid() );
 
         for ( EventDataValue dataValue : dataValues )
         {

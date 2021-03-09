@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.serializers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,17 @@ package org.hisp.dhis.node.serializers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.serializers;
 
-import com.fasterxml.jackson.databind.JsonSerializer;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.XmlFactory;
-import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Date;
+import java.util.List;
+
+import javax.xml.stream.XMLOutputFactory;
+import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.XMLStreamWriter;
+
 import org.hisp.dhis.node.AbstractNodeSerializer;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
@@ -45,13 +48,11 @@ import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.xml.stream.XMLOutputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamWriter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.XmlFactory;
+import com.fasterxml.jackson.dataformat.xml.ser.ToXmlGenerator;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -78,20 +79,23 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startSerialize( RootNode rootNode, OutputStream outputStream ) throws Exception
+    protected void startSerialize( RootNode rootNode, OutputStream outputStream )
+        throws Exception
     {
         writer = xmlFactory.createXMLStreamWriter( outputStream );
         writer.setDefaultNamespace( rootNode.getDefaultNamespace() );
     }
 
     @Override
-    protected void flushStream() throws Exception
+    protected void flushStream()
+        throws Exception
     {
         writer.flush();
     }
 
     @Override
-    protected void startWriteRootNode( RootNode rootNode ) throws Exception
+    protected void startWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         writer.writeStartDocument( "UTF-8", "1.0" );
 
@@ -104,14 +108,16 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteRootNode( RootNode rootNode ) throws Exception
+    protected void endWriteRootNode( RootNode rootNode )
+        throws Exception
     {
         writer.writeEndElement();
         writer.writeEndDocument();
     }
 
     @Override
-    protected void startWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void startWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
         String value = null;
 
@@ -159,7 +165,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteSimpleNode( SimpleNode simpleNode ) throws Exception
+    protected void endWriteSimpleNode( SimpleNode simpleNode )
+        throws Exception
     {
         if ( !simpleNode.isAttribute() )
         {
@@ -168,19 +175,22 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void startWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void startWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         writeStartElement( complexNode );
     }
 
     @Override
-    protected void endWriteComplexNode( ComplexNode complexNode ) throws Exception
+    protected void endWriteComplexNode( ComplexNode complexNode )
+        throws Exception
     {
         writer.writeEndElement();
     }
 
     @Override
-    protected void startWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void startWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         if ( collectionNode.isWrapping() && !collectionNode.getChildren().isEmpty() )
         {
@@ -189,7 +199,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     }
 
     @Override
-    protected void endWriteCollectionNode( CollectionNode collectionNode ) throws Exception
+    protected void endWriteCollectionNode( CollectionNode collectionNode )
+        throws Exception
     {
         if ( collectionNode.isWrapping() && !collectionNode.getChildren().isEmpty() )
         {
@@ -197,7 +208,8 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
         }
     }
 
-    private void writeStartElement( Node node ) throws XMLStreamException
+    private void writeStartElement( Node node )
+        throws XMLStreamException
     {
         if ( !StringUtils.isEmpty( node.getComment() ) )
         {
@@ -217,18 +229,21 @@ public class StAXNodeSerializer extends AbstractNodeSerializer
     /**
      * @param simpleNode the {@link SimpleNode}.
      * @param writer the {@link XMLStreamWriter}.
-     *
-     * @return true if given simpleNode has been serialized using custom JsonSerializer
+     * @return true if given simpleNode has been serialized using custom
+     *         JsonSerializer
      * @throws IllegalAccessException
      * @throws InstantiationException
      * @throws IOException
      */
     private boolean handledCustomSerializer( SimpleNode simpleNode, XMLStreamWriter writer )
-        throws IllegalAccessException, InstantiationException, IOException
+        throws IllegalAccessException,
+        InstantiationException,
+        IOException
     {
         if ( simpleNode.getProperty() != null )
         {
-            JsonSerialize declaredAnnotation = simpleNode.getProperty().getGetterMethod().getAnnotation( JsonSerialize.class );
+            JsonSerialize declaredAnnotation = simpleNode.getProperty().getGetterMethod()
+                .getAnnotation( JsonSerialize.class );
             if ( declaredAnnotation != null )
             {
                 Class<? extends JsonSerializer> serializer = declaredAnnotation.using();

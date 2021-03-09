@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.commons.util.TextUtils.joinHyphen;
@@ -35,8 +34,6 @@ import java.awt.geom.Point2D;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.cache.Cache;
@@ -77,7 +74,7 @@ public class DefaultOrganisationUnitService
     private static Cache<Boolean> IN_USER_ORG_UNIT_HIERARCHY_CACHE;
 
     private static Cache<Boolean> IN_USER_ORG_UNIT_SEARCH_HIERARCHY_CACHE;
-    
+
     private static Cache<Boolean> USER_CAPTURE_ORG_COUNT_THRESHOLD_CACHE;
 
     // -------------------------------------------------------------------------
@@ -371,7 +368,8 @@ public class DefaultOrganisationUnitService
     public List<OrganisationUnit> getOrganisationUnitsAtOrgUnitLevels( Collection<OrganisationUnitLevel> levels,
         Collection<OrganisationUnit> parents )
     {
-        return getOrganisationUnitsAtLevels( levels.stream().map( OrganisationUnitLevel::getLevel ).collect( Collectors.toList() ),
+        return getOrganisationUnitsAtLevels(
+            levels.stream().map( OrganisationUnitLevel::getLevel ).collect( Collectors.toList() ),
             parents );
     }
 
@@ -561,7 +559,7 @@ public class DefaultOrganisationUnitService
         } )
             .orElse( false );
     }
-    
+
     // -------------------------------------------------------------------------
     // OrganisationUnitHierarchy
     // -------------------------------------------------------------------------
@@ -872,7 +870,8 @@ public class DefaultOrganisationUnitService
             }
             else
             {
-                // Get top search point through top level org unit which contains coordinate
+                // Get top search point through top level org unit which
+                // contains coordinate
 
                 List<OrganisationUnit> orgUnitsTopLevel = getTopLevelOrgUnitWithPoint( longitude, latitude, 1,
                     getNumberOfOrganisationalLevels() - 1 );
@@ -883,7 +882,8 @@ public class DefaultOrganisationUnitService
                 }
             }
 
-            // Search children org units to get the lowest level org unit that contains
+            // Search children org units to get the lowest level org unit that
+            // contains
             // coordinate
 
             if ( topOrgUnit != null )
@@ -932,7 +932,8 @@ public class DefaultOrganisationUnitService
     // -------------------------------------------------------------------------
 
     /**
-     * Searches organisation units until finding one with polygon containing point.
+     * Searches organisation units until finding one with polygon containing
+     * point.
      */
     private List<OrganisationUnit> getTopLevelOrgUnitWithPoint( double longitude, double latitude, int searchLevel,
         int stopLevel )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,19 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
@@ -48,18 +59,6 @@ import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -71,7 +70,7 @@ public class TrackedEntityAttributeValidationHook
 
     public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService )
     {
-        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService  );
+        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
     }
 
     @Autowired
@@ -116,26 +115,29 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-//            if ( StringUtils.isEmpty( attribute.getValue() ) )
+            // if ( StringUtils.isEmpty( attribute.getValue() ) )
             if ( attribute.getValue() == null )
             {
-                //continue; ??? Just continue on empty and null?
-                // TODO: Is this really correct? This check was not here originally
-                //  Enrollment attr check fails on null so why not here too?
+                // continue; ??? Just continue on empty and null?
+                // TODO: Is this really correct? This check was not here
+                // originally
+                // Enrollment attr check fails on null so why not here too?
                 reporter.addError( newReport( TrackerErrorCode.E1076 )
                     .addArg( attribute ) );
                 continue;
             }
 
-            // TODO: Should we really validate existing data? this sounds like a mix of con
-//            TrackedEntityAttributeValue trackedEntityAttributeValue = valueMap.get( tea.getUid() );
-//            if ( trackedEntityAttributeValue == null )
-//            {
+            // TODO: Should we really validate existing data? this sounds like a
+            // mix of con
+            // TrackedEntityAttributeValue trackedEntityAttributeValue =
+            // valueMap.get( tea.getUid() );
+            // if ( trackedEntityAttributeValue == null )
+            // {
             TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
             trackedEntityAttributeValue.setEntityInstance( tei );
             trackedEntityAttributeValue.setValue( attribute.getValue() );
             trackedEntityAttributeValue.setAttribute( tea );
-//            }
+            // }
 
             validateAttributeValue( reporter, trackedEntityAttributeValue );
             validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
@@ -161,7 +163,8 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( MAX_ATTR_VALUE_LENGTH ) );
         }
 
-        // Validate if that encryption is configured properly if someone sets value to (confidential)
+        // Validate if that encryption is configured properly if someone sets
+        // value to (confidential)
         boolean isConfidential = teav.getAttribute().isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
         if ( isConfidential && !encryptionStatusOk )
@@ -170,7 +173,8 @@ public class TrackedEntityAttributeValidationHook
                 .addArg( teav ) );
         }
 
-        // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
+        // Uses ValidationUtils to check that the data value corresponds to the
+        // data value type set on the attribute
         String result = dataValueIsValid( teav.getValue(), teav.getAttribute().getValueType() );
         if ( result != null )
         {
@@ -193,9 +197,11 @@ public class TrackedEntityAttributeValidationHook
         }
 
         // TODO: Should we check the text pattern even if its not generated?
-        // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
+        // TextPatternValidationUtils.validateTextPatternValue(
+        // attribute.getTextPattern(), value )
 
-        //TODO: Can't provoke this error since metadata importer won't allow null, empty or invalid patterns.
+        // TODO: Can't provoke this error since metadata importer won't allow
+        // null, empty or invalid patterns.
         if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1111 )
@@ -206,7 +212,8 @@ public class TrackedEntityAttributeValidationHook
         {
             String oldValue = existingValue != null ? existingValue.getValue() : null;
 
-            // We basically ignore the pattern validation if the value is reserved or already
+            // We basically ignore the pattern validation if the value is
+            // reserved or already
             // assigned i.e. input eq. already persisted value.
             boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
                 reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );

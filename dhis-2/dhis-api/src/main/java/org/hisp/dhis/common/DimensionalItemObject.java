@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
+import java.util.List;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.legend.LegendSet;
 
-import java.util.List;
-
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public interface DimensionalItemObject
     extends NameableObject
 {
@@ -45,8 +44,7 @@ public interface DimensionalItemObject
     String getDimensionItem();
 
     /**
-     * Gets the dimension item identifier based on the given
-     * identifier scheme.
+     * Gets the dimension item identifier based on the given identifier scheme.
      *
      * @param idScheme the identifier scheme.
      */
@@ -63,10 +61,9 @@ public interface DimensionalItemObject
     List<LegendSet> getLegendSets();
 
     /**
-     * Gets the first legend set in the legend set list. This
-     * field is derived from {@link DimensionalObject#getLegendSet()} and
-     * is not persisted.
-     *
+     * Gets the first legend set in the legend set list. This field is derived
+     * from {@link DimensionalObject#getLegendSet()} and is not persisted.
+     * <p>
      * Will be removed from serialization in 2.28.
      */
     LegendSet getLegendSet();
@@ -87,16 +84,17 @@ public interface DimensionalItemObject
     boolean hasAggregationType();
 
     /**
-     * Gets the total aggregation type, meaning how total values
-     * should be aggregated across multiple values.
+     * Gets the total aggregation type, meaning how total values should be
+     * aggregated across multiple values.
      */
     TotalAggregationType getTotalAggregationType();
 
     /**
-     * Gets a Period Offset: the offset can be applied within an Indicator formula
-     * in order to "shift" the query period by the offset value (e.g. Jan 2020 with
-     * offset 1 becomes Feb 2020). An offset with value 0 means no offset.
-     * 
+     * Gets a Period Offset: the offset can be applied within an Indicator
+     * formula in order to "shift" the query period by the offset value (e.g.
+     * Jan 2020 with offset 1 becomes Feb 2020). An offset with value 0 means no
+     * offset.
+     *
      * @return an int.
      */
     int getPeriodOffset();

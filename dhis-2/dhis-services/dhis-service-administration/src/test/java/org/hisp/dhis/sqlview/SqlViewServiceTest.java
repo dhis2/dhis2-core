@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sqlview;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -81,7 +80,7 @@ public class SqlViewServiceTest
         + "FROM dataelement AS de, datavalue AS dv, period AS p " + "WHERE de.dataelementid=dv.dataelementid "
         + "AND dv.periodid=p.periodid LIMIT 10";
 
-    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; " ;
+    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -199,7 +198,8 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4311 );
 
-        SqlView sqlView = new SqlView( "Name", "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -209,7 +209,8 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4311 );
 
-        SqlView sqlView = new SqlView( "Name", "WITH foo as (SELECT * FROM organisationunit) commit", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "WITH foo as (SELECT * FROM organisationunit) commit",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -219,7 +220,8 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4311 );
 
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -259,7 +261,9 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4307 );
 
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name",
+            "select * from dataelement where valueType = '${valueType}' and aggregationtype = '${aggregationType}'",
+            SqlViewType.QUERY );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
@@ -282,7 +286,8 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4310 );
 
-        SqlView sqlView = new SqlView( "Name", "select username,password from users,dataapprovallevel", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select username,password from users,dataapprovallevel",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -292,7 +297,8 @@ public class SqlViewServiceTest
     {
         assertIllegalQueryEx( exception, ErrorCode.E4311 );
 
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement; delete from dataelement",
+            SqlViewType.QUERY );
 
         sqlViewService.saveSqlView( sqlView );
 
@@ -302,7 +308,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessA()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}'", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select * from dataelement where valueType = '${valueType}'",
+            SqlViewType.QUERY );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "valueType", "int" );
@@ -313,7 +320,9 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessB()
     {
-        SqlView sqlView = new SqlView( "Name", "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name",
+            "select ug.name from usergroup ug where ug.name ~* '^OU\\s(\\w.*)\\sAgency\\s(\\w.*)\\susers$'",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -321,7 +330,9 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessC()
     {
-        SqlView sqlView = new SqlView( "Name", "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name",
+            "SELECT a.dataelementid as dsd_id,a.name as dsd_name,b.dataelementid as ta_id,b.ta_name FROM dataelement a",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -329,7 +340,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessD()
     {
-        SqlView sqlView = new SqlView( "Name", "SELECT name, created, lastupdated FROM dataelement", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "SELECT name, created, lastupdated FROM dataelement",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -337,7 +349,8 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessE()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from datavalue where storedby = '${_current_username}'", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select * from datavalue where storedby = '${_current_username}'",
+            SqlViewType.QUERY );
 
         sqlViewService.validateSqlView( sqlView, null, null );
     }
@@ -345,7 +358,9 @@ public class SqlViewServiceTest
     @Test
     public void testValidateSuccessF()
     {
-        SqlView sqlView = new SqlView( "Name", "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name",
+            "select * from dataset where timelydays = ${timelyDays} and userid = ${_current_user_id}",
+            SqlViewType.QUERY );
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "timelyDays", "15" );
@@ -370,7 +385,8 @@ public class SqlViewServiceTest
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
 
-        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}",
+            SqlViewType.QUERY );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 

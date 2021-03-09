@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +24,10 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+package org.hisp.dhis.tracker.validation;
 
-import com.google.common.collect.ImmutableList;
-import org.hisp.dhis.tracker.validation.hooks.*;
+import static java.util.stream.Collectors.toMap;
 
 import java.util.Comparator;
 import java.util.List;
@@ -38,11 +35,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
-import static java.util.stream.Collectors.toMap;
+import org.hisp.dhis.tracker.validation.hooks.*;
+
+import com.google.common.collect.ImmutableList;
 
 /**
- * Configuration class for the tracker importer validation hook ordering.
- * The Hooks will be run in the same order they apear in this class.
+ * Configuration class for the tracker importer validation hook ordering. The
+ * Hooks will be run in the same order they apear in this class.
  *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -80,12 +79,12 @@ public class TrackerImportValidationConfig
         EnrollmentRuleValidationHook.class,
         EventRuleValidationHook.class,
 
-        AssignedUserValidationHook.class
-    );
+        AssignedUserValidationHook.class );
 
     /**
-     * Map structure to hold the index (int) of each element in the VALIDATION_ORDER as the value and the class as key.
-     * This map is used for sorting a list of TrackerValidationHooks classes.
+     * Map structure to hold the index (int) of each element in the
+     * VALIDATION_ORDER as the value and the class as key. This map is used for
+     * sorting a list of TrackerValidationHooks classes.
      */
     protected static final Map<Class<? extends TrackerValidationHook>, Integer> VALIDATION_ORDER_MAP = IntStream
         .range( 0, VALIDATION_ORDER.size() )
@@ -93,13 +92,14 @@ public class TrackerImportValidationConfig
         .collect( toMap( VALIDATION_ORDER::get, Function.identity() ) );
 
     /**
-     * Sort the hooks in the order they are represented in the above VALIDATION_ORDER list.
+     * Sort the hooks in the order they are represented in the above
+     * VALIDATION_ORDER list.
      *
      * @param hooks list to sort
      */
     public static void sortHooks( List<TrackerValidationHook> hooks )
     {
-        //TODO: Make some tests to check this is correctly configured
+        // TODO: Make some tests to check this is correctly configured
         hooks.sort( Comparator.comparingInt( o -> VALIDATION_ORDER_MAP.get( o.getClass() ) ) );
     }
 }
