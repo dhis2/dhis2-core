@@ -1983,29 +1983,22 @@ public abstract class DhisConvenienceTest
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient )
     {
-        return new ProgramNotificationTemplate(
-            name,
-            "Subject",
-            "Message",
-            trigger,
-            recipient,
-            Sets.newHashSet(),
-            days,
-            null, null );
+        ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
+        pnt.setName( name );
+        pnt.setSubjectTemplate( "Subject" );
+        pnt.setMessageTemplate( "Message" );
+        pnt.setNotificationTrigger( trigger );
+        pnt.setNotificationRecipient( recipient );
+        pnt.setDeliveryChannels( Sets.newHashSet() );
+        pnt.setRelativeScheduledDays( days );
+
+        return pnt;
     }
 
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
     {
-        return new ProgramNotificationTemplate(
-            name,
-            "Subject",
-            "Message",
-            trigger,
-            recipient,
-            Sets.newHashSet(),
-            days,
-            null, null );
+        return createProgramNotificationTemplate( name, days, trigger, recipient, null );
     }
 
     public static DataSetNotificationTemplate createDataSetNotificationTemplate(
@@ -2013,16 +2006,14 @@ public abstract class DhisConvenienceTest
         DataSetNotificationTrigger dataSetNotificationTrigger,
         Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
-        return new DataSetNotificationTemplate(
-            Sets.newHashSet(),
-            Sets.newHashSet(),
-            "Message",
-            notificationRecipient,
-            dataSetNotificationTrigger,
-            "Subject",
-            null,
-            relativeScheduledDays,
-            sendStrategy );
+        DataSetNotificationTemplate dsnt = new DataSetNotificationTemplate();
+        dsnt.setMessageTemplate( "Message" );
+        dsnt.setNotificationRecipient( notificationRecipient );
+        dsnt.setDataSetNotificationTrigger( dataSetNotificationTrigger );
+        dsnt.setRelativeScheduledDays( relativeScheduledDays );
+        dsnt.setSendStrategy( sendStrategy );
+
+        return dsnt;
     }
 
     public static ValidationNotificationTemplate createValidationNotificationTemplate( String name )
