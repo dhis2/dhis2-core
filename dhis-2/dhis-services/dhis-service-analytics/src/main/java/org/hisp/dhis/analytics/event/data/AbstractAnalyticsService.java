@@ -28,24 +28,12 @@ package org.hisp.dhis.analytics.event.data;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.EventQueryValidator;
-import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.user.User;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ITEMS;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_NAME_HIERARCHY;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.PAGER;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
@@ -54,6 +42,31 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentif
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentGraphMap;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.getParentNameGraphMap;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.analytics.event.EventQueryValidator;
+import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.MetadataItem;
+import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.user.User;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Luciano Fiandesio
@@ -199,14 +212,17 @@ public abstract class AbstractAnalyticsService
             metadataItemMap.put( value.getUid(), new MetadataItem( value.getDisplayProperty( params.getDisplayProperty() ), includeDetails ? value.getUid() : null, value.getCode() ) );
         }
 
-        params.getItemLegends().forEach( legend -> metadataItemMap.put( legend.getUid(),
+        params.getItemLegends().stream().filter( legend -> legend != null ).forEach( legend -> metadataItemMap.put(
+            legend.getUid(),
             new MetadataItem( legend.getDisplayName(), includeDetails ? legend.getUid() : null, legend.getCode() ) ) );
 
-        params.getItemOptions().forEach( option -> metadataItemMap.put( option.getUid(),
+        params.getItemOptions().stream().filter( option -> option != null ).forEach( option -> metadataItemMap.put(
+            option.getUid(),
             new MetadataItem( option.getDisplayName(), includeDetails ? option.getUid() : null, option.getCode() ) ) );
 
-        params.getItemsAndItemFilters().forEach( item -> metadataItemMap.put( item.getItemId(),
-            new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
+        params.getItemsAndItemFilters().stream().filter( item -> item != null )
+            .forEach( item -> metadataItemMap.put( item.getItemId(),
+                new MetadataItem( item.getItem().getDisplayName(), includeDetails ? item.getItem() : null ) ) );
 
         return metadataItemMap;
     }
