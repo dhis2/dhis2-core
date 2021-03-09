@@ -92,6 +92,8 @@ public class HibernateTrackedEntityInstanceStore
     extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
+    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
+
     private static final String OFFSET = "OFFSET";
 
     private static final String LIMIT = "LIMIT";
@@ -1163,22 +1165,27 @@ public class HibernateTrackedEntityInstanceStore
             }
             else
             {
+                extractDynamicOrderField( innerOrder, params, orderFields, prop );
+            }
+        }
+    }
 
-                for ( QueryItem item : params.getAttributes() )
+    private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
+        ArrayList<String> orderFields, String[] prop )
+    {
+        for ( QueryItem item : params.getAttributes() )
+        {
+            if ( prop[0].equals( item.getItemId() ) )
+            {
+                if ( innerOrder )
                 {
-                    if ( prop[0].equals( item.getItemId() ) )
-                    {
-                        if ( innerOrder )
-                        {
-                            orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
-                        }
-                        else
-                        {
-                            orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + SPACE + prop[1] );
-                        }
-                        break;
-                    }
+                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
                 }
+                else
+                {
+                    orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + SPACE + prop[1] );
+                }
+                break;
             }
         }
     }
@@ -1264,13 +1271,13 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.COMPLETED.name()
+                    + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE + EventStatus.COMPLETED.name()
                     + "' and ";
             }
             else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.ACTIVE.name()
+                    + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE + EventStatus.ACTIVE.name()
                     + "' and ";
             }
             else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
@@ -1285,7 +1292,7 @@ public class HibernateTrackedEntityInstanceStore
             }
             else if ( params.isEventStatus( EventStatus.SKIPPED ) )
             {
-                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '"
+                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE
                     + EventStatus.SKIPPED.name() + "' and ";
             }
         }
