@@ -1998,7 +1998,7 @@ public abstract class DhisConvenienceTest
     public static ProgramNotificationTemplate createProgramNotificationTemplate(
         String name, int days, NotificationTrigger trigger, ProgramNotificationRecipient recipient, Date scheduledDate )
     {
-        return createProgramNotificationTemplate( name, days, trigger, recipient, null );
+        return createProgramNotificationTemplate( name, days, trigger, recipient );
     }
 
     public static DataSetNotificationTemplate createDataSetNotificationTemplate(

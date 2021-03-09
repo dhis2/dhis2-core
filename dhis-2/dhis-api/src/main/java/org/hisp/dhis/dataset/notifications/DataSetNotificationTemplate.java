@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -57,6 +58,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @EqualsAndHashCode( callSuper = true )
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetNotificationTemplate

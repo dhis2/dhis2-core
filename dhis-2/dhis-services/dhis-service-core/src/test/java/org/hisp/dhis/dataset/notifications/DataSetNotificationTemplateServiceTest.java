@@ -172,8 +172,12 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testSaveGet()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupA ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
+
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
@@ -188,13 +192,20 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testDelete()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupA ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
+
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupB ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -219,13 +230,19 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetAll()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupA ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupB ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -241,13 +258,19 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetNotificationsByTriggerType()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupA ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
-            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = DataSetNotificationTemplate.builder().dataSets( dataSets ).deliveryChannels( channels )
+            .messageTemplate( message )
+            .notificationRecipient( notificationRecipient ).dataSetNotificationTrigger( completion )
+            .subjectTemplate( subject )
+            .recipientUserGroup( userGroupB ).sendStrategy( SendStrategy.SINGLE_NOTIFICATION ).build();
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
