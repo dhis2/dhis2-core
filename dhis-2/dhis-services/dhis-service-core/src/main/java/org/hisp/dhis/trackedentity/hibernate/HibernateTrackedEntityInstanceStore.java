@@ -901,43 +901,46 @@ public class HibernateTrackedEntityInstanceStore
             String end = getMediumDateString( params.getEventEndDate() );
             events.append( whereHlp.whereAnd() );
 
-            if ( params.isEventStatus( EventStatus.SCHEDULE ) || params.isEventStatus( EventStatus.OVERDUE ) )
-            {
-                events.append( "PSI.status IS NOT NULL " );
-            }
-            else
-            {
-                events
-                    .append( "PSI.status = '" )
-                    .append( params.getEventStatus() )
-                    .append( "' " );
-            }
-
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.status = '" )
+                    .append( EventStatus.COMPLETED.name() ).append( "' " );
             }
             else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.status = '" )
+                    .append( EventStatus.ACTIVE.name() ).append( "' " );
             }
             else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
             {
-                events
-                    .append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
-                    .append( "AND PSI.executiondate IS NULL " )
-                    .append( "AND date(now()) <= date(PSI.duedate) " );
+                events.append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.status IS NOT NULL" )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.executiondate IS NULL" )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) <= date(PSI.duedate) " );
             }
             else if ( params.isEventStatus( EventStatus.OVERDUE ) )
             {
-                events
-                    .append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
-                    .append( "AND PSI.executiondate IS NULL " )
-                    .append( "AND date(now()) > date(PSI.duedate) " );
+                events.append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.status IS NOT NULL" )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.executiondate IS NULL" )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) > date(PSI.duedate) " );
             }
             else if ( params.isEventStatus( EventStatus.SKIPPED ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( "PSI.status = '" )
+                    .append( EventStatus.SKIPPED.name() ).append( "' " );
             }
         }
 
