@@ -28,9 +28,11 @@
 package org.hisp.dhis.dataapproval;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +43,8 @@ import org.springframework.stereotype.Component;
 public class DataApprovalDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+
+    private static final DeletionVeto VETO = new DeletionVeto( DataApproval.class );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -53,37 +54,32 @@ public class DataApprovalDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataApproval.class.getSimpleName();
+        whenVetoing( DataApprovalLevel.class, this::allowDeleteDataApprovalLevel );
+        whenVetoing( DataApprovalWorkflow.class, this::allowDeleteDataApprovalWorkflow );
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
-    @Override
-    public String allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
+    private DeletionVeto allowDeleteDataApprovalLevel( DataApprovalLevel dataApprovalLevel )
     {
         String sql = "select count(*) from dataapproval where dataapprovallevelid=" + dataApprovalLevel.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    private DeletionVeto allowDeleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
         String sql = "select count(*) from dataapproval where workflowid=" + workflow.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "select count(*) from dataapproval where attributeoptioncomboid=" + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

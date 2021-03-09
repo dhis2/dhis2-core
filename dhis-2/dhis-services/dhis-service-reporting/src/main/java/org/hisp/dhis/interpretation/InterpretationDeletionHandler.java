@@ -28,11 +28,13 @@
 package org.hisp.dhis.interpretation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
 import org.hisp.dhis.mapping.Map;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.stereotype.Component;
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Component;
 public class InterpretationDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( Interpretation.class );
+
     private final InterpretationService interpretationService;
 
     public InterpretationDeletionHandler( InterpretationService interpretationService )
@@ -54,13 +58,14 @@ public class InterpretationDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return Interpretation.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
+        whenVetoing( Map.class, this::allowDeleteMap );
+        whenVetoing( Visualization.class, this::allowDeleteVisualization );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         List<Interpretation> interpretations = interpretationService.getInterpretations();
 
@@ -74,15 +79,13 @@ public class InterpretationDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteMap( Map map )
+    private DeletionVeto allowDeleteMap( Map map )
     {
-        return interpretationService.countMapInterpretations( map ) == 0 ? null : ERROR;
+        return interpretationService.countMapInterpretations( map ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteVisualization( Visualization visualization )
+    private DeletionVeto allowDeleteVisualization( Visualization visualization )
     {
-        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? null : ERROR;
+        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? ACCEPT : VETO;
     }
 }
