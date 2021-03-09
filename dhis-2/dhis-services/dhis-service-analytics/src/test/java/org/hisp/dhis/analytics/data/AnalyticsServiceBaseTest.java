@@ -41,11 +41,11 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
-import org.hisp.dhis.analytics.data.handling.DataAggregator;
-import org.hisp.dhis.analytics.data.handling.DataHandler;
-import org.hisp.dhis.analytics.data.handling.HeaderHandler;
-import org.hisp.dhis.analytics.data.handling.MetadataHandler;
-import org.hisp.dhis.analytics.data.handling.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.DataAggregator;
+import org.hisp.dhis.analytics.data.handler.DataHandler;
+import org.hisp.dhis.analytics.data.handler.HeaderHandler;
+import org.hisp.dhis.analytics.data.handler.MetadataHandler;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -120,8 +120,7 @@ public abstract class AnalyticsServiceBaseTest
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager,
-            nestedIndicatorCyclicDependencyInspector );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
 
         HeaderHandler headerHandler = new HeaderHandler();
         MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );

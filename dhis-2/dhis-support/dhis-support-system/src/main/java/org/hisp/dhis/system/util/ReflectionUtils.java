@@ -384,10 +384,10 @@ public class ReflectionUtils
         return fields;
     }
 
-    public static List<String> getAllFieldNames( Class<?> klass )
+    public static Set<String> getAllFieldNames( Class<?> klass )
     {
         List<Field> fields = getAllFields( klass );
-        return fields.stream().map( Field::getName ).collect( Collectors.toList() );
+        return fields.stream().map( Field::getName ).collect( Collectors.toSet() );
     }
 
     private static Method _findMethod( Class<?> clazz, String name )

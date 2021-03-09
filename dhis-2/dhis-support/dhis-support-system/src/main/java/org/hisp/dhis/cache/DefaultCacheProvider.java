@@ -32,12 +32,17 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
+
+import com.google.api.client.util.Lists;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of
@@ -45,10 +50,19 @@ import org.springframework.stereotype.Component;
  *
  * @author Jan Bernitt
  */
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Component( "defaultCacheProvider" )
 public class DefaultCacheProvider implements CacheProvider
 {
+    private static final long SIZE_1 = 1;
+
+    private static final long SIZE_100 = 100;
+
+    private static final long SIZE_1K = 1_000;
+
+    private static final long SIZE_10K = 10_000;
+
+    private static final long SIZE_20K = 20_000;
 
     /**
      * Enum is used to make sure we do not use same region twice. Each method
@@ -81,14 +95,17 @@ public class DefaultCacheProvider implements CacheProvider
         canDataWriteCocCache,
         analyticsSql,
         dataElementCache,
-        propertyTransformerCache
+        propertyTransformerCache,
+        programRulesCache
     }
+
+    private final List<Cache> allCaches = Lists.newArrayList();
 
     private final CacheBuilderProvider cacheBuilderProvider;
 
     private final Environment environment;
 
-    private int orZeroInTestRun( int value )
+    private long orZeroInTestRun( long value )
     {
         return isTestRun( environment.getActiveProfiles() ) ? 0 : value;
     }
@@ -98,278 +115,312 @@ public class DefaultCacheProvider implements CacheProvider
         return cacheBuilderProvider.newCacheBuilder();
     }
 
+    private <V> Cache<V> registerCache( Cache<V> cache )
+    {
+        allCaches.add( cache );
+        return cache;
+    }
+
     @Override
     public <V> Cache<V> createAnalyticsResponseCache( Duration initialExpirationTime )
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.analyticsResponse.name() )
             .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createAppCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.appCache.name() )
-            .build();
+            .build() );
     }
 
+    /**
+     * Cache for default objects such as default category combination and
+     * default category option combination which are permanent and will never
+     * change.
+     */
     @Override
     public <V> Cache<V> createDefaultObjectCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.defaultObjectCache.name() )
-            .expireAfterAccess( 2, TimeUnit.HOURS )
+            .expireAfterAccess( 12, TimeUnit.HOURS )
             .withInitialCapacity( 4 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_100 ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createIsDataApprovedCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.isDataApproved.name() )
-            .expireAfterAccess( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .expireAfterWrite( 12, TimeUnit.HOURS )
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createAllConstantsCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.allConstantsCache.name() )
-            .expireAfterAccess( 2, TimeUnit.MINUTES )
+            .expireAfterWrite( 2, TimeUnit.MINUTES )
             .withInitialCapacity( 1 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 1 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_1 ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createInUserOrgUnitHierarchyCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserOuHierarchy.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createInUserSearchOrgUnitHierarchyCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserSearchOuHierarchy.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createUserCaptureOrgUnitThresholdCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userCaptureOuCountThreshold.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createPeriodIdCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.periodIdCache.name() )
             .expireAfterWrite( 24, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createUserAccountRecoverAttemptCache( V defaultValue )
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userAccountRecoverAttempt.name() )
-            .expireAfterWrite( 15, TimeUnit.MINUTES )
+            .expireAfterWrite( 15, MINUTES )
             .withDefaultValue( defaultValue )
-            .build();
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createUserFailedLoginAttemptCache( V defaultValue )
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userFailedLoginAttempt.name() )
-            .expireAfterWrite( 15, TimeUnit.MINUTES )
+            .expireAfterWrite( 15, MINUTES )
             .withDefaultValue( defaultValue )
-            .build();
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createProgramOwnerCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.programOwner.name() )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( 1000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createProgramTempOwnerCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.programTempOwner.name() )
             .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( 4000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
-    public <V> Cache<V> createUserIdCacheCache()
+    public <V> Cache<V> createUserIdCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userIdCache.name() )
-            .expireAfterAccess( 1, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( 200 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 4000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createCurrentUserGroupInfoCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.currentUserGroupInfoCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .forceInMemory()
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createUserSettingCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createAttrOptionComboIdCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.attrOptionComboIdCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createSystemSettingCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.systemSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( 400 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
+            .build() );
     }
 
+    /**
+     * Cache for Google API access tokens. Expiration is set to 10 minutes after
+     * access to match the expiration of Google service tokens.
+     */
     @Override
     public <V> Cache<V> createGoogleAccessTokenCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.googleAccessToken.name() )
-            .expireAfterAccess( 10, TimeUnit.MINUTES )
+            .expireAfterAccess( 10, MINUTES )
             .withMaximumSize( orZeroInTestRun( 1 ) )
-            .build();
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createDataItemsPaginationCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataItemsPagination.name() )
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 20000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createMetadataAttributesCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.metadataAttributes.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createCanDataWriteCocCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.canDataWriteCocCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 10000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createAnalyticsSqlCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.analyticsSql.name() )
-            .expireAfterAccess( 10, TimeUnit.HOURS )
+            .expireAfterWrite( 10, TimeUnit.HOURS )
             .withInitialCapacity( 10000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 50000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createDataElementCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataElementCache.name() )
-            .expireAfterAccess( 60, TimeUnit.MINUTES )
+            .expireAfterWrite( 60, TimeUnit.MINUTES )
             .withInitialCapacity( 1000 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 50000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
+            .build() );
     }
 
     @Override
     public <V> Cache<V> createPropertyTransformerCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.propertyTransformerCache.name() )
-            .expireAfterAccess( 12, TimeUnit.HOURS )
+            .expireAfterWrite( 12, TimeUnit.HOURS )
             .withInitialCapacity( 20 )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( 30000 ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_20K ) )
+            .build() );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramRulesCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programRulesCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( SIZE_1K ) )
+            .build() );
+    }
+
+    @EventListener
+    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
+    {
+        allCaches.forEach( Cache::invalidateAll );
     }
 }

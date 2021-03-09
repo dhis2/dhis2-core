@@ -144,18 +144,7 @@ public class UserController
         List<Order> orders )
         throws QueryParserException
     {
-        UserQueryParams params = new UserQueryParams();
-        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
-        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
-        params.setCanManage( options.isTrue( "canManage" ) );
-        params.setAuthSubset( options.isTrue( "authSubset" ) );
-        params.setLastLogin( options.getDate( "lastLogin" ) );
-        params.setInactiveMonths( options.getInt( "inactiveMonths" ) );
-        params.setInactiveSince( options.getDate( "inactiveSince" ) );
-        params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
-        params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
-        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
-        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+        UserQueryParams params = makeUserQueryParams( options );
 
         String ou = options.get( "ou" );
 
@@ -170,35 +159,72 @@ public class UserController
             params.setAuthSubset( true );
         }
 
-        params.setPrefetchUserGroups( filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) ) );
+        boolean hasUserGroupFilter = filters.stream().anyMatch( f -> f.startsWith( "userGroups." ) );
+        params.setPrefetchUserGroups( hasUserGroupFilter );
 
-        int count = userService.getUserCount( params );
-
-        if ( options.hasPaging() && filters.isEmpty() )
+        if ( filters.isEmpty() && options.hasPaging() )
         {
-            Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
-            metadata.setPager( pager );
-            params.setFirst( pager.getOffset() );
-            params.setMax( pager.getPageSize() );
+            metadata.setPager( makePager( options, params ) );
         }
 
-        List<String> ordersAsString = orders == null ? null
-            : orders.stream().map( Order::toOrderString ).collect( Collectors.toList() );
+        Query query = makeQuery( options, filters, orders, params );
 
-        List<User> users = userService.getUsers( params, ordersAsString );
+        return (List<User>) queryService.query( query );
+    }
 
+    private Pager makePager( WebOptions options, UserQueryParams params )
+    {
+        long count = userService.getUserCount( params );
+
+        Pager pager = new Pager( options.getPage(), count, options.getPageSize() );
+        params.setFirst( pager.getOffset() );
+        params.setMax( pager.getPageSize() );
+
+        return pager;
+    }
+
+    private Query makeQuery( WebOptions options, List<String> filters,
+        List<Order> orders, UserQueryParams params )
+    {
         Pagination pagination = CollectionUtils.isEmpty( filters ) ? new Pagination() : getPaginationData( options );
+
+        List<String> ordersAsString = (orders == null) ? null
+            : orders.stream()
+                .map( Order::toOrderString )
+                .collect( Collectors.toList() );
 
         /*
          * Keep the memory query on the result
          */
-        Query query = queryService.getQueryFromUrl( getEntityClass(),
-            filters, orders, pagination, options.getRootJunction() );
-        query.setDefaultOrder();
-        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
-        query.setObjects( users );
+        Query query = queryService
+            .getQueryFromUrl( getEntityClass(), filters, orders, pagination, options.getRootJunction() );
 
-        return (List<User>) queryService.query( query );
+        // Fetches all users if there are no query, i.e only filters...
+        List<User> users = userService.getUsers( params, ordersAsString );
+
+        query.setObjects( users );
+        query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
+        query.setDefaultOrder();
+
+        return query;
+    }
+
+    private UserQueryParams makeUserQueryParams( WebOptions options )
+    {
+        UserQueryParams params = new UserQueryParams();
+        params.setQuery( StringUtils.trimToNull( options.get( "query" ) ) );
+        params.setPhoneNumber( StringUtils.trimToNull( options.get( "phoneNumber" ) ) );
+        params.setCanManage( options.isTrue( "canManage" ) );
+        params.setAuthSubset( options.isTrue( "authSubset" ) );
+        params.setLastLogin( options.getDate( "lastLogin" ) );
+        params.setInactiveMonths( options.getInt( "inactiveMonths" ) );
+        params.setInactiveSince( options.getDate( "inactiveSince" ) );
+        params.setSelfRegistered( options.isTrue( "selfRegistered" ) );
+        params.setInvitationStatus( UserInvitationStatus.fromValue( options.get( "invitationStatus" ) ) );
+        params.setUserOrgUnits( options.isTrue( "userOrgUnits" ) );
+        params.setIncludeOrgUnitChildren( options.isTrue( "includeChildren" ) );
+
+        return params;
     }
 
     @Override
@@ -255,18 +281,7 @@ public class UserController
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
     @Override
@@ -274,36 +289,41 @@ public class UserController
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postObject( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    private void postObject( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+    }
+
+    private void postInvite( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateInviteUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postObject( request, response, inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -311,40 +331,7 @@ public class UserController
     public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        for ( User user : users.getUsers() )
-        {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
-    }
-
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml",
@@ -353,16 +340,17 @@ public class UserController
     public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromXml( request.getInputStream(), Users.class );
+        postInvites( request, renderService.fromXml( request.getInputStream(), Users.class ) );
+    }
 
+    private void postInvites( HttpServletRequest request, Users users )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
+            validateInviteUser( user, currentUser );
         }
 
         for ( User user : users.getUsers() )
@@ -425,10 +413,7 @@ public class UserController
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( existingUser, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( existingUser, currentUser );
 
         Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
 
@@ -709,7 +694,7 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateCreateUser( User user, User currentUser )
+    private void validateCreateUser( User user, User currentUser )
         throws WebMessageException
     {
         if ( !aclService.canCreate( currentUser, getEntityClass() ) )
@@ -733,8 +718,6 @@ public class UserController
                     WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
-
-        return true;
     }
 
     /**
@@ -764,13 +747,10 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateInviteUser( User user, User currentUser )
+    private void validateInviteUser( User user, User currentUser )
         throws WebMessageException
     {
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return false;
-        }
+        validateCreateUser( user, currentUser );
 
         UserCredentials credentials = user.getUserCredentials();
 
@@ -787,8 +767,6 @@ public class UserController
         {
             throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
         }
-
-        return true;
     }
 
     /**

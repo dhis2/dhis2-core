@@ -27,14 +27,9 @@
  */
 package org.hisp.dhis.common;
 
-import org.hisp.dhis.translation.TranslationProperty;
-
 public interface NameableObject
     extends IdentifiableObject
 {
-    String[] I18N_PROPERTIES = { TranslationProperty.NAME.getName(), TranslationProperty.SHORT_NAME.getName(),
-        TranslationProperty.DESCRIPTION.getName() };
-
     String getShortName();
 
     String getDisplayShortName();

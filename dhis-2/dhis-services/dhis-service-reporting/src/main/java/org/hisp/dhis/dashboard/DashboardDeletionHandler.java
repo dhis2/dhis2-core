@@ -47,13 +47,12 @@ public class DashboardDeletionHandler extends DeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return Dashboard.class.getSimpleName();
+        whenDeleting( DashboardItem.class, this::deleteDashboardItem );
     }
 
-    @Override
-    public void deleteDashboardItem( DashboardItem dashboardItem )
+    private void deleteDashboardItem( DashboardItem dashboardItem )
     {
         Dashboard dashboard = dashboardService.getDashboardFromDashboardItem( dashboardItem );
 

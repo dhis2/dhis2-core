@@ -67,7 +67,7 @@ public class SizeNodeTransformer implements NodeTransformer
             return new SimpleNode( property.getName(), ((String) ((SimpleNode) node).getValue()).length(),
                 property.isAttribute() );
         }
-        else if ( property.is( PropertyType.INTEGER ) || property.is( PropertyType.NUMBER ) )
+        else if ( property.is( PropertyType.INTEGER, PropertyType.NUMBER ) )
         {
             return new SimpleNode( property.getName(), ((SimpleNode) node).getValue(), property.isAttribute() );
         }

@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.tracker.bundle.persister;
 
-import java.util.List;
-
 import org.hibernate.Session;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -50,18 +47,11 @@ public class RelationshipPersister
 {
     private final TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter;
 
-    public RelationshipPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService,
+    public RelationshipPersister( ReservedValueService reservedValueService,
         TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverter )
     {
-        super( bundleHooks, reservedValueService );
+        super( reservedValueService );
         this.relationshipConverter = relationshipConverter;
-    }
-
-    @Override
-    protected void runPreCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getRelationships()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.preCreate( Relationship.class, o, bundle ) ) );
     }
 
     @Override
@@ -131,12 +121,5 @@ public class RelationshipPersister
     protected TrackerType getType()
     {
         return TrackerType.RELATIONSHIP;
-    }
-
-    @Override
-    protected void runPostCreateHooks( TrackerBundle bundle )
-    {
-        bundle.getRelationships()
-            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( Relationship.class, o, bundle ) ) );
     }
 }

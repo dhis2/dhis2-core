@@ -80,6 +80,10 @@ public enum ErrorCode
     E2031( "User does not have write access to category option combo: `{0}`" ),
     E2032( "Data value does not exist" ),
     E2033( "Follow-up must be specified" ),
+    E2034( "Filter not supported: `{0}`" ),
+    E2035( "Operator not supported: `{0}`" ),
+    E2036( "Combination not supported: `{0}`" ),
+    E2037( "Order not supported: `{0}`" ),
 
     /* Outlier detection */
     E2200( "At least one data element must be specified" ),
@@ -145,7 +149,7 @@ public enum ErrorCode
     E4028( "Option set `{0}` already contains option `{1}`" ),
     E4029( "Job parameters cannot be null for job type: {0}" ),
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
-    E4031( "A program rule with name `{0}` and program uid `{1}` already exists" ),
+
     E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
 
     /* SQL views */

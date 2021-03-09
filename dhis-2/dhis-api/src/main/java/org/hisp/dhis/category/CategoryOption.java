@@ -36,14 +36,12 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -56,7 +54,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOption
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject, OrganisationUnitAssignable
+    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -227,14 +225,6 @@ public class CategoryOption
             : getAdjustedEndDate( dataElement );
     }
 
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getDisplayFormName()
-    {
-        return getTranslation( TranslationProperty.FORM_NAME, getFormNameFallback() );
-    }
-
     // -------------------------------------------------------------------------
     // DimensionalItemObject
     // -------------------------------------------------------------------------
@@ -273,7 +263,6 @@ public class CategoryOption
         this.endDate = endDate;
     }
 
-    @Override
     @JsonProperty
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -283,7 +272,6 @@ public class CategoryOption
         return organisationUnits;
     }
 
-    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;

@@ -243,6 +243,7 @@ public class AuditIntegrationTest extends IntegrationTestBase
     }
 
     @Test
+    @SuppressWarnings( "unchecked" )
     public void testSaveProgram()
         throws IOException
     {

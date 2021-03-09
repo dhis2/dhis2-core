@@ -209,11 +209,12 @@
         setButtonBlocked();
 
         $fileInput.fileupload( {
-            url: '../api/fileResources',
+            url: '../api/dataValues/file',
             paramName: 'file',
             multipart: true,
             replaceFileInput: false,
             progressInterval: 250, /* ms */
+            formData: formData,
             start: function( e ) {
                 $button.button( 'disable' );
                 $progressBar.toggleClass( 'upload-progress-bar-complete', false );
@@ -231,11 +232,7 @@
             },
             done: function( e, data ) {
                 var fileResource = data.result.response.fileResource;
-                $input.val( fileResource.id );
-
-                saveFileResource( dataElementId, optionComboId, $input.attr( 'id' ), fileResource, function() {
-                    onFileDataValueSavedSuccess( fileResource );
-                } );
+                onFileDataValueSavedSuccess( fileResource );
             }
         } );
 

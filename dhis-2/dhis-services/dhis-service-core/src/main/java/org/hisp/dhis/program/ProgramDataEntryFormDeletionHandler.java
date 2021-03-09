@@ -43,10 +43,6 @@ import org.springframework.stereotype.Component;
 public class ProgramDataEntryFormDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataEntryFormService dataEntryFormService;
 
     private final ProgramStageService programStageService;
@@ -60,17 +56,12 @@ public class ProgramDataEntryFormDeletionHandler
         this.programStageService = programStageService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataEntryForm.class.getSimpleName();
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
     }
 
-    @Override
     public void deleteProgramStage( ProgramStage programStage )
     {
         DataEntryForm dataEntryForm = programStage.getDataEntryForm();

@@ -28,19 +28,23 @@
 package org.hisp.dhis.translation;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.chart.ChartType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -52,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.visualization.Visualization;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -94,11 +99,11 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( dataElementA.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME, translatedName ) );
+        translations.add( new Translation( locale.getLanguage(), "NAME", translatedName ) );
         translations
-            .add( new Translation( locale.getLanguage(), TranslationProperty.SHORT_NAME, translatedShortName ) );
+            .add( new Translation( locale.getLanguage(), "SHORT_NAME", translatedShortName ) );
         translations
-            .add( new Translation( locale.getLanguage(), TranslationProperty.DESCRIPTION, translatedDescription ) );
+            .add( new Translation( locale.getLanguage(), "DESCRIPTION", translatedDescription ) );
 
         manager.updateTranslations( dataElementA, translations );
 
@@ -121,7 +126,7 @@ public class TranslationServiceTest
 
         String translatedValue = "Option FormName Translated";
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( option, translations );
 
@@ -156,7 +161,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( relationship.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( relationship, translations );
 
@@ -173,7 +178,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programStageSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programStageSection, translations );
 
@@ -190,7 +195,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programStage.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programStage, translations );
 
@@ -211,7 +216,7 @@ public class TranslationServiceTest
 
         Set<Translation> translations = new HashSet<>( programSection.getTranslations() );
 
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.FORM_NAME, translatedValue ) );
+        translations.add( new Translation( locale.getLanguage(), "FORM_NAME", translatedValue ) );
 
         manager.updateTranslations( programSection, translations );
 
@@ -232,14 +237,98 @@ public class TranslationServiceTest
         String toFromNameTranslated = "To from name translated";
 
         Set<Translation> translations = new HashSet<>();
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_TO_FROM_NAME,
+        translations.add( new Translation( locale.getLanguage(), "RELATIONSHIP_TO_FROM_NAME",
             toFromNameTranslated ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.RELATIONSHIP_FROM_TO_NAME,
+        translations.add( new Translation( locale.getLanguage(), "RELATIONSHIP_FROM_TO_NAME",
             fromToNameTranslated ) );
 
         manager.updateTranslations( relationshipType, translations );
 
         assertEquals( fromToNameTranslated, relationshipType.getDisplayFromToName() );
         assertEquals( toFromNameTranslated, relationshipType.getDisplayToFromName() );
+    }
+
+    @Test
+    public void testChartTranslations()
+    {
+        Program prA = createProgram( 'A', null, null );
+        manager.save( prA );
+
+        EventChart ecA = new EventChart( "ecA" );
+        ecA.setProgram( prA );
+        ecA.setType( ChartType.COLUMN );
+        ecA.setBaseLineLabel( "BaseLineLabel" );
+        ecA.setDomainAxisLabel( "DomainAxisLabel" );
+        ecA.setRangeAxisLabel( "RangeAxisLabel" );
+        ecA.setTargetLineLabel( "TargetLineLabel" );
+        ecA.setTitle( "Title" );
+        ecA.setSubtitle( "SubTitle" );
+
+        manager.save( ecA );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), "baseLineLabel",
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "domainAxisLabel",
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "rangeAxisLabel",
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "targetLineLabel",
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "title",
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), "subtitle",
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( ecA, translations );
+
+        EventChart updated = manager.get( EventChart.class, ecA.getUid() );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testVisualizationTranslations()
+    {
+        Visualization visualization = createVisualization( 'A' );
+        visualization.setBaseLineLabel( "BaseLineLabel" );
+        visualization.setDomainAxisLabel( "DomainAxisLabel" );
+        visualization.setRangeAxisLabel( "RangeAxisLabel" );
+        visualization.setTargetLineLabel( "TargetLineLabel" );
+        visualization.setTitle( "Title" );
+        visualization.setSubtitle( "SubTitle" );
+
+        manager.save( visualization );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), "baseLineLabel",
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "domainAxisLabel",
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "rangeAxisLabel",
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "targetLineLabel",
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), "title",
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), "subtitle",
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( visualization, translations );
+
+        Visualization updated = manager.get( Visualization.class, visualization.getUid() );
+        assertNotNull( updated );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
     }
 }

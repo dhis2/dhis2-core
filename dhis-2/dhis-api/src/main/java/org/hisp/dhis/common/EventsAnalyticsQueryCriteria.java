@@ -48,7 +48,7 @@ import org.hisp.dhis.program.ProgramStatus;
 public class EventsAnalyticsQueryCriteria
 {
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT QUERY AND AGGREGATE ANALYTICS
+    // Event and aggregate analytics
     // -------------------------------------------------------------------------
 
     /**
@@ -112,7 +112,7 @@ public class EventsAnalyticsQueryCriteria
     private String rows;
 
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT AGGREGATE ANALYTICS ONLY
+    // Event aggregate analytics only
     // -------------------------------------------------------------------------
 
     /**
@@ -218,7 +218,7 @@ public class EventsAnalyticsQueryCriteria
     private String coordinateField;
 
     // -------------------------------------------------------------------------
-    // VALID FOR EVENT QUERY ANALYTICS ONLY
+    // Event query analytics only
     // -------------------------------------------------------------------------
 
     /**

@@ -27,17 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.input.NullInputStream;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
@@ -56,7 +51,6 @@ import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -66,8 +60,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -78,19 +70,14 @@ import com.google.common.io.ByteSource;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class FileResourceController
 {
-    private static final String DEFAULT_FILENAME = "untitled";
-
-    private static final String DEFAULT_CONTENT_TYPE = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
-
-    // ---------------------------------------------------------------------
-    // Dependencies
-    // ---------------------------------------------------------------------
-
     @Autowired
     private CurrentUserService currentUserService;
 
     @Autowired
     private FileResourceService fileResourceService;
+
+    @Autowired
+    private FileResourceUtils fileResourceUtils;
 
     // -------------------------------------------------------------------------
     // Controller methods
@@ -160,31 +147,7 @@ public class FileResourceController
         throws WebMessageException,
         IOException
     {
-        String filename = StringUtils
-            .defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
-
-        String contentType = file.getContentType();
-        contentType = FileResourceUtils.isValidContentType( contentType ) ? contentType : DEFAULT_CONTENT_TYPE;
-
-        long contentLength = file.getSize();
-
-        log.info( "File uploaded with filename: '{}', original filename: '{}', content type: '{}', content length: {}",
-            filename, file.getOriginalFilename(), file.getContentType(), contentLength );
-
-        if ( contentLength <= 0 )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Could not read file or file is empty." ) );
-        }
-
-        ByteSource bytes = new MultipartFileByteSource( file );
-
-        String contentMd5 = bytes.hash( Hashing.md5() ).toString();
-
-        FileResource fileResource = new FileResource( filename, contentType, contentLength, contentMd5, domain );
-
-        File tmpFile = FileResourceUtils.toTempFile( file );
-
-        fileResourceService.saveFileResource( fileResource, tmpFile );
+        FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
@@ -218,34 +181,5 @@ public class FileResourceController
         }
 
         return false;
-    }
-
-    // -------------------------------------------------------------------------
-    // Inner classes
-    // -------------------------------------------------------------------------
-
-    private class MultipartFileByteSource
-        extends ByteSource
-    {
-        private MultipartFile file;
-
-        public MultipartFileByteSource( MultipartFile file )
-        {
-            this.file = file;
-        }
-
-        @Override
-        public InputStream openStream()
-            throws IOException
-        {
-            try
-            {
-                return file.getInputStream();
-            }
-            catch ( IOException ioe )
-            {
-                return new NullInputStream( 0 );
-            }
-        }
     }
 }

@@ -40,7 +40,6 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.OrganisationUnitAssignable;
 import org.hisp.dhis.common.VersionedObject;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
@@ -54,7 +53,7 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserAuthorityGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -70,7 +69,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "program", namespace = DxfNamespaces.DXF_2_0 )
 public class Program
     extends BaseNameableObject
-    implements VersionedObject, MetadataObject, OrganisationUnitAssignable
+    implements VersionedObject, MetadataObject
 {
     private String formName;
 
@@ -407,7 +406,6 @@ public class Program
         this.version = version;
     }
 
-    @Override
     @JsonProperty( "organisationUnits" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "organisationUnits", namespace = DxfNamespaces.DXF_2_0 )
@@ -417,7 +415,6 @@ public class Program
         return organisationUnits;
     }
 
-    @Override
     public void setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
@@ -447,9 +444,10 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "enrollmentDateLabel", key = "ENROLLMENT_DATE_LABEL" )
     public String getDisplayEnrollmentDateLabel()
     {
-        return getTranslation( TranslationProperty.ENROLLMENT_DATE_LABEL, getEnrollmentDateLabel() );
+        return getTranslation( "ENROLLMENT_DATE_LABEL", getEnrollmentDateLabel() );
     }
 
     public void setEnrollmentDateLabel( String enrollmentDateLabel )
@@ -467,9 +465,10 @@ public class Program
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "incidentDateLabel", key = "INCIDENT_DATE_LABEL" )
     public String getDisplayIncidentDateLabel()
     {
-        return getTranslation( TranslationProperty.INCIDENT_DATE_LABEL, getIncidentDateLabel() );
+        return getTranslation( "INCIDENT_DATE_LABEL", getIncidentDateLabel() );
     }
 
     public void setIncidentDateLabel( String incidentDateLabel )

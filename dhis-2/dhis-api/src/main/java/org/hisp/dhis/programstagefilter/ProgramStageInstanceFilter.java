@@ -33,6 +33,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -42,7 +43,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageInstanceFilter extends BaseIdentifiableObject implements MetadataObject
+public class ProgramStageInstanceFilter extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     private static final long serialVersionUID = 1L;
@@ -114,6 +116,14 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
     public String getDescription()
     {
         return description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
+    public String getDisplayDescription()
+    {
+        return getTranslation( "DESCRIPTION", getDescription() );
     }
 
     public void setDescription( String description )

@@ -137,8 +137,8 @@ public class UserServiceTest
     @Test
     public void testGetUserCredentialsByUsernames()
     {
-        User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
+        addUser( 'A' );
+        addUser( 'B' );
 
         assertEquals( 2, userService.getUserCredentialsByUsernames( asList( "UsernameA", "UsernameB" ) ).size() );
         assertEquals( 2,
@@ -200,9 +200,9 @@ public class UserServiceTest
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
         User userA = addUser( 'A', unitA );
-        User userB = addUser( 'B', unitB );
+        addUser( 'B', unitB );
         User userC = addUser( 'C', unitC );
-        User userD = addUser( 'D', unitD );
+        addUser( 'D', unitD );
 
         UserQueryParams params = new UserQueryParams()
             .addOrganisationUnit( unitA )
@@ -257,7 +257,7 @@ public class UserServiceTest
         User userB = addUser( 'B', unitB );
         User userC = addUser( 'C', unitC );
         User userD = addUser( 'D', unitD );
-        User userE = addUser( 'E', unitE );
+        addUser( 'E', unitE );
 
         UserQueryParams params = new UserQueryParams()
             .setUser( currentUser )
@@ -331,9 +331,9 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = addUser( 'A', credentials -> credentials.getUser().setPhoneNumber( "73647271" ) );
+        addUser( 'A', credentials -> credentials.getUser().setPhoneNumber( "73647271" ) );
         User userB = addUser( 'B', credentials -> credentials.getUser().setPhoneNumber( "23452134" ) );
-        User userC = addUser( 'C', credentials -> credentials.getUser().setPhoneNumber( "14543232" ) );
+        addUser( 'C', credentials -> credentials.getUser().setPhoneNumber( "14543232" ) );
 
         List<User> users = userService.getUsersByPhoneNumber( "23452134" );
 
@@ -356,7 +356,7 @@ public class UserServiceTest
     {
         User userA = addUser( 'A' );
         User userB = addUser( 'B' );
-        User userC = addUser( 'C' );
+        addUser( 'C' );
 
         // Match
         assertEquals( userA, userService.getUserByIdentifier( userA.getUid() ) );
@@ -464,11 +464,11 @@ public class UserServiceTest
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
         User userA = addUser( 'A' );
-        User userB = addUser( 'B' );
-        User userC = addUser( 'C' );
-        User userD = addUser( 'D' );
-        User userE = addUser( 'E' );
-        User userF = addUser( 'F' );
+        addUser( 'B' );
+        addUser( 'C' );
+        addUser( 'D' );
+        addUser( 'E' );
+        addUser( 'F' );
 
         UserQueryParams params = new UserQueryParams();
         params.setQuery( "rstnameA" );
@@ -483,9 +483,9 @@ public class UserServiceTest
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
         User userA = addUser( 'A', UserCredentials::setSelfRegistered, true );
-        User userB = addUser( 'B' );
+        addUser( 'B' );
         User userC = addUser( 'C', UserCredentials::setSelfRegistered, true );
-        User userD = addUser( 'D' );
+        addUser( 'D' );
 
         UserQueryParams params = new UserQueryParams();
         params.setSelfRegistered( true );
@@ -500,9 +500,9 @@ public class UserServiceTest
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
         User userA = addUser( 'A', unitA, unitB );
-        User userB = addUser( 'B', unitB );
+        addUser( 'B', unitB );
         User userC = addUser( 'C', unitA );
-        User userD = addUser( 'D', unitB );
+        addUser( 'D', unitB );
 
         UserQueryParams params = new UserQueryParams();
         params.getOrganisationUnits().add( unitA );
@@ -516,9 +516,9 @@ public class UserServiceTest
     {
         systemSettingManager.saveSystemSetting( CAN_GRANT_OWN_USER_AUTHORITY_GROUPS, true );
 
-        User userA = addUser( 'A' );
+        addUser( 'A' );
         User userB = addUser( 'B', UserCredentials::setInvitation, true );
-        User userC = addUser( 'C' );
+        addUser( 'C' );
         User userD = addUser( 'D', UserCredentials::setInvitation, true );
 
         UserQueryParams params = new UserQueryParams();
@@ -537,9 +537,9 @@ public class UserServiceTest
     public void testGetExpiringUser()
     {
         User userA = addUser( 'A' );
-        User userB = addUser( 'B', UserCredentials::setDisabled, true );
+        addUser( 'B', UserCredentials::setDisabled, true );
         User userC = addUser( 'C' );
-        User userD = addUser( 'D', UserCredentials::setDisabled, true );
+        addUser( 'D', UserCredentials::setDisabled, true );
 
         assertContainsOnly( userService.getExpiringUsers(), userA, userC );
     }
@@ -558,8 +558,9 @@ public class UserServiceTest
             credentials.setDisabled( true );
             credentials.setLastLogin( fourMonthAgo );
         } );
-        User userC = addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
-        User userD = addUser( 'D' );
+
+        addUser( 'C', UserCredentials::setLastLogin, twentyTwoDaysAgo );
+        addUser( 'D' );
 
         // User A gets disabled, B would but already was, C is active, D last
         // login is still null

@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -102,7 +103,7 @@ public class EventTrackerConverterService
                 event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
             }
 
-            event.setFollowup( psi.getProgramInstance().getFollowup() );
+            event.setFollowup( BooleanUtils.toBoolean( psi.getProgramInstance().getFollowup() ) );
             event.setEnrollmentStatus( EnrollmentStatus.fromProgramStatus( psi.getProgramInstance().getStatus() ) );
             event.setStatus( psi.getStatus() );
             event.setOccurredAt( DateUtils.instantFromDate( psi.getExecutionDate() ) );

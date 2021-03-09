@@ -1621,12 +1621,9 @@ public abstract class DhisConvenienceTest
     public static ProgramMessage createProgramMessage( String text, String subject,
         ProgramMessageRecipients recipients, ProgramMessageStatus status, Set<DeliveryChannel> channels )
     {
-        ProgramMessage message = new ProgramMessage();
-        message.setText( text );
-        message.setSubject( subject );
-        message.setRecipients( recipients );
-        message.setMessageStatus( status );
-        message.setDeliveryChannels( channels );
+        ProgramMessage message = ProgramMessage.builder().text( text )
+            .subject( subject ).recipients( recipients )
+            .messageStatus( status ).deliveryChannels( channels ).build();
 
         return message;
     }
@@ -1720,6 +1717,44 @@ public abstract class DhisConvenienceTest
         teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
         relationshipType.setName( "Person_to_person_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createTeiToEnrollmentRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_enrollment_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createTeiToEventRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_event_" + uniqueCharacter );
         relationshipType.setBidirectional( isBidirectional );
         relationshipType.setFromConstraint( teiConstraintA );
         relationshipType.setToConstraint( teiConstraintB );

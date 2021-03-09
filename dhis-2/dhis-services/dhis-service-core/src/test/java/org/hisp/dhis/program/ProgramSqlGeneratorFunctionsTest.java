@@ -485,7 +485,7 @@ public class ProgramSqlGeneratorFunctionsTest
         assertThat( sql, is( "ln(distinct pi)" ) );
 
         sql = test( "log(V{event_count},3)" );
-        assertThat( sql, is( "log(3,distinct psi)" ) );
+        assertThat( sql, is( "log(3,psi)" ) );
     }
 
     @Test

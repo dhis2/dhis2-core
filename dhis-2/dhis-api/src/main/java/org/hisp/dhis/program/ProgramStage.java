@@ -47,7 +47,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -353,9 +353,10 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "executionDateLabel", key = "EXECUTION_DATE_LABEL" )
     public String getDisplayExecutionDateLabel()
     {
-        return getTranslation( TranslationProperty.EXECUTION_DATE_LABEL, getExecutionDateLabel() );
+        return getTranslation( "EXECUTION_DATE_LABEL", getExecutionDateLabel() );
     }
 
     public void setExecutionDateLabel( String executionDateLabel )
@@ -373,9 +374,10 @@ public class ProgramStage
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "dueDateLabel", key = "DUE_DATE_LABEL" )
     public String getDisplayDueDateLabel()
     {
-        return getTranslation( TranslationProperty.DUE_DATE_LABEL, getDueDateLabel() );
+        return getTranslation( "DUE_DATE_LABEL", getDueDateLabel() );
     }
 
     public void setDueDateLabel( String dueDateLabel )

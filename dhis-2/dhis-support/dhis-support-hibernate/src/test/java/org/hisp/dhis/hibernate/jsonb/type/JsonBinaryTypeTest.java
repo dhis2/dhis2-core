@@ -27,6 +27,16 @@
  */
 package org.hisp.dhis.hibernate.jsonb.type;
 
+import static org.hisp.dhis.render.type.ValueTypeRenderingType.BAR_CODE;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
+import org.hisp.dhis.render.DeviceRenderTypeMap;
+import org.hisp.dhis.render.RenderDevice;
+import org.hisp.dhis.render.type.ValueTypeRenderingObject;
 import org.hisp.dhis.translation.Translation;
 import org.junit.Assert;
 import org.junit.Before;
@@ -66,5 +76,36 @@ public class JsonBinaryTypeTest
     public void deepCopyNull()
     {
         Assert.assertNull( jsonBinaryType.deepCopy( null ) );
+    }
+
+    @Test
+    public void testEquals()
+    {
+        DeviceRenderTypeMap<ValueTypeRenderingObject> objOne = getDeviceRenderTypeAs(
+            this::getValueTypeRenderingObject );
+        DeviceRenderTypeMap<Map<String, Object>> objTwo = getDeviceRenderTypeAs( this::getMap );
+
+        assertTrue( jsonBinaryType.equals( objOne, objTwo ) );
+    }
+
+    private <T> DeviceRenderTypeMap<T> getDeviceRenderTypeAs( Supplier<T> genericInstanceSupplier )
+    {
+        DeviceRenderTypeMap<T> objectDeviceRenderTypeMap = new DeviceRenderTypeMap<>();
+        objectDeviceRenderTypeMap.put( RenderDevice.MOBILE, genericInstanceSupplier.get() );
+        return objectDeviceRenderTypeMap;
+    }
+
+    private ValueTypeRenderingObject getValueTypeRenderingObject()
+    {
+        ValueTypeRenderingObject valueTypeRenderingObject = new ValueTypeRenderingObject();
+        valueTypeRenderingObject.setType( BAR_CODE );
+        return valueTypeRenderingObject;
+    }
+
+    private Map<String, Object> getMap()
+    {
+        Map<String, Object> map = new HashMap<>();
+        map.put( "type", BAR_CODE.name() );
+        return map;
     }
 }
