@@ -27,23 +27,29 @@
  */
 package org.hisp.dhis.tracker.preheat.mappers;
 
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.List;
+
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, OptionSetMapper.class } )
-public interface DataElementMapper extends PreheatMapper<DataElement>
+@Mapper( uses = DebugMapper.class )
+public interface OptionSetMapper extends PreheatMapper<OptionSet>
 {
-    DataElementMapper INSTANCE = Mappers.getMapper( DataElementMapper.class );
+    OptionSetMapper INSTANCE = Mappers.getMapper( OptionSetMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
     @Mapping( target = "uid" )
-    @Mapping( target = "code" )
     @Mapping( target = "name" )
-    @Mapping( target = "valueType" )
-    @Mapping( target = "optionSet" )
-    DataElement map( DataElement dataElement );
+    @Mapping( target = "code" )
+    @Mapping( target = "options", qualifiedByName = "options" )
+    OptionSet map( OptionSet optionSet );
+
+    @Named( "options" )
+    List<Option> mapOptionValues( List<Option> options );
 }
