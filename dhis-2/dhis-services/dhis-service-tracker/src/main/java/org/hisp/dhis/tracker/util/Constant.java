@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.mapping;
+package org.hisp.dhis.tracker.util;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import java.beans.Introspector;
+import java.util.Set;
 
-/**
- * @author Lars Helge Overland
- */
-@Component( "org.hisp.dhis.mapping.MapDeletionHandler" )
-public class MapDeletionHandler
-    extends DeletionHandler
+import javax.imageio.ImageIO;
+
+import org.hisp.dhis.tracker.preheat.supplier.classStrategy.GenericStrategy;
+
+import com.google.common.collect.ImmutableSet;
+
+public class Constant
 {
-    // TODO remove this?
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected String getClassName()
+    private Constant()
     {
-        return Map.class.getSimpleName();
     }
+
+    public static final int MAX_ATTR_VALUE_LENGTH = 1200;
+
+    public static final String GENERIC_STRATEGY_BEAN = Introspector
+        .decapitalize( GenericStrategy.class.getSimpleName() );
+
+    public static final int SPLIT_LIST_PARTITION_SIZE = 20_000;
+
+    public static final int ATTRIBUTE_VALUE_MAX_LENGTH = 50000;
+
+    public static final Set<String> VALID_IMAGE_FORMATS = ImmutableSet.<String> builder().add(
+        ImageIO.getReaderFormatNames() ).build();
 }

@@ -32,10 +32,13 @@ import static org.junit.Assert.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.util.Arrays;
 import java.util.Optional;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -117,6 +120,12 @@ public class TrackedEntityAttributeServiceTest
         tea.setUnique( true );
         tea.setValueType( ValueType.TEXT );
         tea.setOrgunitScope( false );
+    }
+
+    @Test( expected = IllegalArgumentException.class )
+    public void shouldThrowWhenTeaIsNull()
+    {
+        trackedEntityAttributeService.validateValueType( null, "" );
     }
 
     @Test
@@ -206,5 +215,48 @@ public class TrackedEntityAttributeServiceTest
         teaValue = "2019-01-01";
         result = trackedEntityAttributeService.validateValueType( tea, teaValue );
         assertNull( result );
+    }
+
+    @Test
+    public void successWhenTeaOptionValueIsValid()
+    {
+        tea.setUid( "uid" );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        tea.setOptionSet( optionSet );
+
+        assertNull( trackedEntityAttributeService.validateValueType( tea, "CODE" ) );
+    }
+
+    @Test
+    public void failWhenTeaOptionValueIsNotValid()
+    {
+        tea.setUid( "uid" );
+
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option();
+        option.setCode( "CODE" );
+
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+
+        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        tea.setOptionSet( optionSet );
+
+        assertNotNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );
+    }
+
+    @Test
+    public void doNothingWhenTeaOptionValueIsNull()
+    {
+        tea.setUid( "uid" );
+        assertNull( trackedEntityAttributeService.validateValueType( tea, "COE" ) );
     }
 }

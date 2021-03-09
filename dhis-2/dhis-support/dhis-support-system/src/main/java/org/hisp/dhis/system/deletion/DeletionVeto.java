@@ -25,20 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
-
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.system.deletion;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Jan Bernitt
  */
-@Component
-public class OAuth2ClientDeletionHandler extends DeletionHandler
+public final class DeletionVeto
 {
-    @Override
-    protected String getClassName()
+
+    /**
+     * Deletion is not vetoed but accepted
+     */
+    public static final DeletionVeto ACCEPT = new DeletionVeto( "" );
+
+    private final String message;
+
+    public DeletionVeto( Class<?> parent, Class<?> vetoed )
     {
-        return OAuth2Client.class.getName();
+        this( parent.getSimpleName() + "." + vetoed.getSimpleName() );
+    }
+
+    public DeletionVeto( Class<?> vetoed, String hint )
+    {
+        this( vetoed.getSimpleName() + " (" + hint + ")" );
+    }
+
+    public DeletionVeto( Class<?> vetoed )
+    {
+        this( vetoed.getSimpleName() );
+    }
+
+    private DeletionVeto( String message )
+    {
+        this.message = message;
+    }
+
+    public boolean isVetoed()
+    {
+        return this != ACCEPT;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "DeletionVeto{" + "message='" + message + '\'' + '}';
     }
 }

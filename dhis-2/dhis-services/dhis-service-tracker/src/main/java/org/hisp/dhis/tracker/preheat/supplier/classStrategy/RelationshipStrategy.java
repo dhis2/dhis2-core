@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
-import static org.hisp.dhis.tracker.preheat.supplier.ClassBasedSupplier.SPLIT_LIST_PARTITION_SIZE;
-
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +45,7 @@ import org.hisp.dhis.tracker.preheat.DetachUtils;
 import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.mappers.RelationshipMapper;
+import org.hisp.dhis.tracker.util.Constant;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -86,7 +85,7 @@ public class RelationshipStrategy implements ClassBasedSupplierStrategy
     {
         return entry.getKey() ? entry.getValue().stream()
             .map( relationshipStore::getByRelationshipKey )
-            : Lists.partition( entry.getValue(), SPLIT_LIST_PARTITION_SIZE ).stream()
+            : Lists.partition( entry.getValue(), Constant.SPLIT_LIST_PARTITION_SIZE ).stream()
                 .map( relationshipStore::getByUid )
                 .flatMap( Collection::stream );
     }

@@ -28,10 +28,12 @@
 package org.hisp.dhis.trackedentityattributevalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
@@ -43,9 +45,8 @@ import org.springframework.stereotype.Component;
 public class TrackedEntityAttributeValueDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityAttributeValue.class,
+        "Some values are still assigned to this attribute" );
 
     private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -55,18 +56,14 @@ public class TrackedEntityAttributeValueDeletionHandler
         this.attributeValueService = attributeValueService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return TrackedEntityAttributeValue.class.getSimpleName();
+        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
+        whenVetoing( TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute );
     }
 
-    @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
+    private void deleteTrackedEntityInstance( TrackedEntityInstance instance )
     {
         Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
             .getTrackedEntityAttributeValues( instance );
@@ -77,10 +74,8 @@ public class TrackedEntityAttributeValueDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    private DeletionVeto allowDeleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
-        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? null
-            : "Some values are still assigned to this attribute";
+        return attributeValueService.getCountOfAssignedTrackedEntityAttributeValues( attribute ) == 0 ? ACCEPT : VETO;
     }
 }

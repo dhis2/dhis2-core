@@ -50,7 +50,6 @@ import org.hisp.dhis.tracker.AtomicMode;
 import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleHook;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackerDto;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
@@ -65,13 +64,10 @@ import org.hisp.dhis.tracker.report.TrackerTypeReport;
 public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends BaseIdentifiableObject>
     implements TrackerPersister<T, V>
 {
-    protected List<TrackerBundleHook> bundleHooks;
-
     protected final ReservedValueService reservedValueService;
 
-    public AbstractTrackerPersister( List<TrackerBundleHook> bundleHooks, ReservedValueService reservedValueService )
+    protected AbstractTrackerPersister( ReservedValueService reservedValueService )
     {
-        this.bundleHooks = bundleHooks;
         this.reservedValueService = reservedValueService;
     }
 
@@ -92,12 +88,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         TrackerTypeReport typeReport = new TrackerTypeReport( getType() );
 
         List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
-
-        //
-        // Execute pre-create hooks - if any
-        //
-        runPreCreateHooks( bundle );
-        session.flush();
 
         //
         // Extract the entities to persist from the Bundle
@@ -188,13 +178,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             }
         }
 
-        session.flush();
-
-        //
-        // Execute post-create hooks - if any
-        //
-        runPostCreateHooks( bundle );
-
         typeReport.getSideEffectDataBundles().addAll( sideEffectDataBundles );
 
         return typeReport;
@@ -205,12 +188,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     // TEMPLATE METHODS //
     // // // // // // // //
     // // // // // // // //
-
-    /**
-     * Executes the configured pre-creation hooks. This method takes place only
-     * once, just before the objects persistence
-     */
-    protected abstract void runPreCreateHooks( TrackerBundle bundle );
 
     /**
      * Converts an object implementing the {@link TrackerDto} interface into the
@@ -274,12 +251,6 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
      * Get the Tracker Type for which the current Persister is responsible for.
      */
     protected abstract TrackerType getType();
-
-    /**
-     * Executes the configured post-creation hooks. This method takes place only
-     * once, after all objects have been persisted.
-     */
-    protected abstract void runPostCreateHooks( TrackerBundle bundle );
 
     @SuppressWarnings( "unchecked" )
     private List<T> getByType( TrackerType type, TrackerBundle bundle )

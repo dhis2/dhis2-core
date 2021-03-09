@@ -25,20 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.util;
 
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.function.Function;
+
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.common.ValueType;
 
 /**
- * @author Halvdan Hoem Grelland
+ * @author Luca Cambi
  */
-public class ProgramNotificationTemplateDeletionHandler
-    extends DeletionHandler
+@Builder
+@Getter
+public class ValueTypeValidationFunction
 {
-    @Override
-    protected String getClassName()
-    {
-        return ProgramNotificationTemplate.class.getSimpleName();
-    }
+    private Function<String, Boolean> function;
+
+    private ValueType valueType;
+
+    private String message;
 }

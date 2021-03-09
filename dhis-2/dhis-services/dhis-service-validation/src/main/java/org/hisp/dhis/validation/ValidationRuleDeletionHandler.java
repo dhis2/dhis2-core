@@ -42,10 +42,6 @@ import org.springframework.stereotype.Component;
 public class ValidationRuleDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ValidationRuleService validationRuleService;
 
     public ValidationRuleDeletionHandler( ValidationRuleService validationRuleService )
@@ -54,18 +50,14 @@ public class ValidationRuleDeletionHandler
         this.validationRuleService = validationRuleService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ValidationRule.class.getSimpleName();
+        whenDeletingEmbedded( Expression.class, this::deleteExpression );
+        whenDeleting( ValidationRuleGroup.class, this::deleteValidationRuleGroup );
     }
 
-    @Override
-    public void deleteExpression( Expression expression )
+    private void deleteExpression( Expression expression )
     {
         Iterator<ValidationRule> iterator = validationRuleService.getAllValidationRules().iterator();
 
@@ -85,8 +77,7 @@ public class ValidationRuleDeletionHandler
         }
     }
 
-    @Override
-    public void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
+    private void deleteValidationRuleGroup( ValidationRuleGroup validationRuleGroup )
     {
         for ( ValidationRule rule : validationRuleGroup.getMembers() )
         {

@@ -35,6 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import org.hamcrest.CoreMatchers;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -147,6 +148,31 @@ public class EventDefaultEnrollmentPreProcessorTest
         preProcessor.process( bundle );
 
         assertThat( event.getTrackedEntity(), is( teiUid ) );
+    }
+
+    @Test
+    public void verifyTrackedEntityValueIsSetToNullIfEnrollmentHasNullTei()
+    {
+        String enrollmentUid = CodeGenerator.generateUid();
+
+        ProgramInstance programInstance = rnd.randomObject( ProgramInstance.class );
+        programInstance.setUid( enrollmentUid );
+        programInstance.setEntityInstance( null );
+
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.setEnrollments(
+            ImmutableMap.of( TrackerIdScheme.UID, ImmutableMap.of( enrollmentUid, programInstance ) ) );
+
+        Event event = new Event();
+        event.setEnrollment( enrollmentUid );
+
+        TrackerBundle bundle = TrackerBundle.builder()
+            .preheat( preheat )
+            .events( Collections.singletonList( event ) ).build();
+
+        preProcessor.process( bundle );
+
+        assertThat( event.getTrackedEntity(), CoreMatchers.nullValue() );
     }
 
 }

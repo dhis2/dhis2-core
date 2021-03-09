@@ -25,20 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataset.notifications;
+package org.hisp.dhis.tracker.config;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
-/**
- * Created by zubair@dhis2.org on 20.07.17.
- */
+import org.hisp.dhis.tracker.preheat.supplier.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-public class DataSetNotificationTemplateDeletionHandler
-    extends DeletionHandler
+import com.google.common.collect.ImmutableList;
+
+@Configuration
+public class TrackerPreheatConfig
 {
-    @Override
-    protected String getClassName()
+    private final List<Class<? extends PreheatSupplier>> preheatOrder = ImmutableList.of(
+        ClassBasedSupplier.class,
+        ProgramInstanceSupplier.class,
+        ProgramInstancesWithAtLeastOneEventSupplier.class,
+        ProgramStageInstanceProgramStageMapSupplier.class,
+        ProgramOrgUnitsSupplier.class,
+        PeriodTypeSupplier.class,
+        UniqueAttributesSupplier.class,
+        UserSupplier.class,
+        FileResourceSupplier.class );
+
+    @Bean( "preheatOrder" )
+    public List<String> getPreheatOrder()
     {
-        return DataSetNotificationTemplate.class.getSimpleName();
+        return preheatOrder.stream().map( Class::getSimpleName )
+            .collect( Collectors.toList() );
+    }
+
+    @Bean( "preheatStrategies" )
+    public Map<String, String> getPreheatStrategies()
+    {
+        return new PreheatStrategyScanner().scanSupplierStrategies();
     }
 }

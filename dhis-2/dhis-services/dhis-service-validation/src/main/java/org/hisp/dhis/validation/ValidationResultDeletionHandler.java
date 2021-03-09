@@ -28,11 +28,13 @@
 package org.hisp.dhis.validation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Component;
 public class ValidationResultDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( ValidationResult.class );
 
     private final ValidationResultService validationResultService;
 
@@ -53,13 +56,16 @@ public class ValidationResultDeletionHandler
     }
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ValidationResult.class.getSimpleName();
+        whenDeleting( ValidationRule.class, this::deleteValidationRule );
+        whenDeleting( Period.class, this::deletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
+        whenVetoing( ValidationRule.class, this::allowDeleteValidationRule );
     }
 
-    @Override
-    public void deleteValidationRule( ValidationRule validationRule )
+    private void deleteValidationRule( ValidationRule validationRule )
     {
         validationResultService.getAllValidationResults().forEach( validationResult -> {
             if ( validationResult.getValidationRule().equals( validationRule ) )
@@ -69,8 +75,7 @@ public class ValidationResultDeletionHandler
         } );
     }
 
-    @Override
-    public void deletePeriod( Period period )
+    private void deletePeriod( Period period )
     {
         validationResultService.getAllValidationResults().forEach( validationResult -> {
             if ( validationResult.getPeriod().equals( period ) )
@@ -80,8 +85,7 @@ public class ValidationResultDeletionHandler
         } );
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit organisationUnit )
+    private void deleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         validationResultService.getAllValidationResults().forEach( validationResult -> {
             if ( validationResult.getOrganisationUnit().equals( organisationUnit ) )
@@ -91,8 +95,7 @@ public class ValidationResultDeletionHandler
         } );
     }
 
-    @Override
-    public void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
+    private void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo )
     {
         validationResultService.getAllValidationResults().forEach( validationResult -> {
             if ( validationResult.getAttributeOptionCombo().equals( dataElementCategoryOptionCombo ) )
@@ -102,18 +105,17 @@ public class ValidationResultDeletionHandler
         } );
     }
 
-    @Override
-    public String allowDeleteValidationRule( ValidationRule validationRule )
+    private DeletionVeto allowDeleteValidationRule( ValidationRule validationRule )
     {
         for ( ValidationResult validationResult : validationResultService.getAllValidationResults() )
         {
             if ( validationResult.getValidationRule().equals( validationRule ) )
             {
-                return ERROR;
+                return VETO;
             }
         }
 
-        return null;
+        return ACCEPT;
     }
 
 }
