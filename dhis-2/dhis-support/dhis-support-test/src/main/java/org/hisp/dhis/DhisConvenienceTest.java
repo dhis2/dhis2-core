@@ -196,6 +196,8 @@ import com.google.common.hash.Hashing;
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
+    private static final String MESSAGE_TEXT = "Message";
+
     protected static final String BASE_UID = "abcdefghij";
 
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -1986,7 +1988,7 @@ public abstract class DhisConvenienceTest
         ProgramNotificationTemplate pnt = new ProgramNotificationTemplate();
         pnt.setName( name );
         pnt.setSubjectTemplate( "Subject" );
-        pnt.setMessageTemplate( "Message" );
+        pnt.setMessageTemplate( MESSAGE_TEXT );
         pnt.setNotificationTrigger( trigger );
         pnt.setNotificationRecipient( recipient );
         pnt.setDeliveryChannels( Sets.newHashSet() );
@@ -2007,7 +2009,7 @@ public abstract class DhisConvenienceTest
         Integer relativeScheduledDays, SendStrategy sendStrategy )
     {
         DataSetNotificationTemplate dsnt = new DataSetNotificationTemplate();
-        dsnt.setMessageTemplate( "Message" );
+        dsnt.setMessageTemplate( MESSAGE_TEXT );
         dsnt.setNotificationRecipient( notificationRecipient );
         dsnt.setDataSetNotificationTrigger( dataSetNotificationTrigger );
         dsnt.setRelativeScheduledDays( relativeScheduledDays );
@@ -2023,7 +2025,7 @@ public abstract class DhisConvenienceTest
 
         template.setName( name );
         template.setSubjectTemplate( "Subject" );
-        template.setMessageTemplate( "Message" );
+        template.setMessageTemplate( MESSAGE_TEXT );
         template.setNotifyUsersInHierarchyOnly( false );
 
         return template;
