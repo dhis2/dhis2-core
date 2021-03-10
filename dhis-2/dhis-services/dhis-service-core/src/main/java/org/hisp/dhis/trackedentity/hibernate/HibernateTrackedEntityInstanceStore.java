@@ -584,6 +584,11 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * Uses the same basis as the getQuery method, but replaces the projection with a count and ignores order and limit
+     * @param params params defining the query
+     * @return a count SQL query
+     */
     private String getCountQuery( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
@@ -597,6 +602,11 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * Generates the projection of the main query. Includes two optional columns, deleted and tea_values
+     * @param params
+     * @return an SQL projection
+     */
     private String getQuerySelect( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
@@ -613,11 +623,23 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * Generates the projection of the main query when doing a count query.
+     * @param params
+     * @return an SQL projection
+     */
     private String getQueryCountSelect( TrackedEntityInstanceQueryParams params )
     {
         return "SELECT count(instance) FROM ( ";
     }
 
+    /**
+     * Generates the SQL of the subquery, used to find the correct subset of tracked entity instances to return.
+     * Orchestrates all the different segments of the SQL into a complete subquery.
+     * @param params
+     * @param isCountQuery indicates if the query is a count query. In that case we skip order and limit.
+     * @return an SQL subquery
+     */
     private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery )
     {
         SqlHelper whereAnd = new SqlHelper( true );
@@ -626,18 +648,19 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQuerySelect( params ) )
             .append( " FROM trackedentityinstance TEI " )
 
-            // INNER JOIN on constraints
-            .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
+            // The following segments are all INNER JOIN, attempting to reduce the number of teis to return
+            .append( getFromSubQueryJoinAttributeConditions( params ) )
             .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
             .append( getFromSubQueryJoinOrgUnitConditions( params ) )
 
             // LEFT JOIN attributes we need to sort on.
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
 
-            // WHERE
+            // WHERE segments for tei, and for program instance (and program stage instance)
             .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
             .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) );
 
+        // sorting is uneccesary and limit would return the wrong results for a count query.
         if ( !isCountQuery )
         {
             // SORT
@@ -652,6 +675,12 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * The subquery projection. If we are sorting by attribute, we need to include the value in the subquery
+     * projection.
+     * @param params
+     * @return a SQL projection
+     */
     private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
@@ -669,6 +698,12 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * Generates a list of columns for projections if we are ordering by attributes.
+     * @param params
+     * @return a list of columns to be used in the subquery SQL projection, or empty string if no attributes are used
+     * for ordering.
+     */
     private String getFromSubQueryOrderAttributes( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder orderAttributes = new StringBuilder();
@@ -685,10 +720,20 @@ public class HibernateTrackedEntityInstanceStore
         return orderAttributes.toString();
     }
 
+    /**
+     * Generates the WHERE-clause of the subquery SQL related to tracked entity instances.
+     * @param whereAnd tracking if where has been invoked or not
+     * @param params
+     * @return a SQL segment for the WHERE clause used in the subquery
+     */
     private String getFromSubQueryTrackedEntityConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
     {
         StringBuilder trackedEntity = new StringBuilder();
 
+        /*
+         * If the user has specified a tracked entity type, we only have one, if not, it will be a collection of all TET
+         * the user can access.
+         */
         if ( params.hasTrackedEntityType() )
         {
             trackedEntity
@@ -725,7 +770,12 @@ public class HibernateTrackedEntityInstanceStore
         return trackedEntity.toString();
     }
 
-    private String getFromSubQueryJoinAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    /**
+     * Generates SQL for INNER JOINing attribute values. One INNER JOIN for each attribute to search for.
+     * @param params
+     * @return a series of 1 or more SQL INNER JOINs, or empty string if no query or attribute filters exists.
+     */
+    private String getFromSubQueryJoinAttributeConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -748,6 +798,15 @@ public class HibernateTrackedEntityInstanceStore
         return attributes.toString();
     }
 
+    /**
+     * Generates a single INNER JOIN for searching for an attribute by query strings.
+     * Searches are done using lower() expression, since attribute values are case insensitive.
+     * The query search is extremely slow compared to alternatives.
+     * A query string (Can be multiple) has to match at least 1 attribute value for each attribute we have access to.
+     * We use Regex to search, allowing both exact match and with wildcards (EQ or LIKE).
+     * @param params
+     * @param attributes
+     */
     private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
         StringBuilder attributes )
     {
@@ -788,6 +847,12 @@ public class HibernateTrackedEntityInstanceStore
         attributes.append( ")" );
     }
 
+    /**
+     * Generates a single INNER JOIN for each attribute we are searching on. We can search by a range of operators.
+     * All searching is using lower() since attribute values are case insensitive.
+     * @param attributes
+     * @param filterItems
+     */
     private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
     {
         for ( QueryItem queryItem : filterItems )
@@ -821,6 +886,13 @@ public class HibernateTrackedEntityInstanceStore
         }
     }
 
+    /**
+     * Generates the LEFT JOINs used for attributes we are ordering by (If any). We use LEFT JOIN to avoid removing any
+     * rows if there is no value for a given attribute and tei. The result of this LEFT JOIN is used in the subquery
+     * projection, and ordering in the subquery and main query.
+     * @param params
+     * @return a SQL LEFT JOIN for attributes used for ordering, or empty string if not attributes is used in order.
+     */
     private String getFromSubQueryJoinOrderByAttributes( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder joinOrderAttributes = new StringBuilder();
@@ -848,6 +920,11 @@ public class HibernateTrackedEntityInstanceStore
         return joinOrderAttributes.toString();
     }
 
+    /**
+     * Generates an INNER JOIN for program owner. This segment is only included if program is specified.
+     * @param params
+     * @return a SQL INNER JOIN for program owner, or empty string if no program is specified.
+     */
     private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
     {
         if ( !params.hasProgram() )
@@ -863,6 +940,14 @@ public class HibernateTrackedEntityInstanceStore
             .toString();
     }
 
+    /**
+     * Generates an INNER JOIN for organisation units. If a program is specified, we join on program ownership (PO), if
+     * not we join by tracked entity instance (TEI).
+     * Based on the ouMode, they will boil down to either DESCENDANTS (requiring matching on PATH), ALL (No constraints)
+     * or not DESCENDANTS or ALL (SELECTED) which will match against a collection of ids.
+     * @param params
+     * @return a SQL INNER JOIN for organisation units
+     */
     private String getFromSubQueryJoinOrgUnitConditions( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder orgUnits = new StringBuilder();
@@ -902,6 +987,13 @@ public class HibernateTrackedEntityInstanceStore
         return orgUnits.toString();
     }
 
+    /**
+     * Generates an EXISTS condition for program instance (and program stage instance if specified). The EXIST will
+     * allow us to filter by enrollments with a low overhead. This condition only applies when a program is specified.
+     * @param whereAnd indicator tracking whether WHERE has been invoked or not
+     * @param params
+     * @return an SQL EXISTS clause for programinstance, or empty string if not program is specified.
+     */
     private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
         TrackedEntityInstanceQueryParams params )
     {
@@ -918,6 +1010,9 @@ public class HibernateTrackedEntityInstanceStore
             .append( "SELECT PI.trackedentityinstanceid " )
             .append( "FROM programinstance PI " );
 
+        /*
+         * Events depends on program, so we do the event filtering within the enrollment clause.
+         */
         if ( params.hasFilterForEvents() )
         {
             program.append( getFromSubQueryProgramStageInstance( params ) );
@@ -987,6 +1082,12 @@ public class HibernateTrackedEntityInstanceStore
         return program.toString();
     }
 
+    /**
+     * Generates an INNER JOIN with the program instances if event-filters are specified. In the case of user assignment
+     * is part of the filter, we join with the userinfo table as well.
+     * @param params
+     * @return an SQL INNER JOIN for filtering on events.
+     */
     private String getFromSubQueryProgramStageInstance( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder events = new StringBuilder();
@@ -997,6 +1098,9 @@ public class HibernateTrackedEntityInstanceStore
             .append( "SELECT PSI.programinstanceid " )
             .append( "FROM programstageinstance PSI " );
 
+        /*
+         * If filtering on assigned user, we join with the userinfo table to get users by uid.
+         */
         if ( params.hasAssignedUsers() )
         {
             events
@@ -1009,6 +1113,10 @@ public class HibernateTrackedEntityInstanceStore
                 .append( ") AU ON AU.userid = PSI.assigneduserid" );
         }
 
+        /*
+         * Each of the statuses has special conditions that needs to be met. The following code handles the different
+         * statuses and conditions.
+         */
         if ( params.hasEventStatus() )
         {
             String start = getMediumDateString( params.getEventStartDate() );
@@ -1112,6 +1220,15 @@ public class HibernateTrackedEntityInstanceStore
         return events.toString();
     }
 
+    /**
+     * Helper method for making a date condition. The format is "[WHERE|AND] date >= start AND date <= end".
+     *
+     * @param whereHelper tracking whether WHERE has been invoked or not
+     * @param column the column for filter on
+     * @param start the start date
+     * @param end the end date
+     * @return a SQL filter for finding dates between two dates.
+     */
     private String getQueryDateConditionBetween( SqlHelper whereHelper, String column, String start, String end )
     {
         StringBuilder dateBetween = new StringBuilder();
@@ -1131,13 +1248,22 @@ public class HibernateTrackedEntityInstanceStore
         return dateBetween.toString();
     }
 
+    /**
+     * Generates SQL for LEFT JOINing relevant tables with the teis we have in our result. After the subquery, we know
+     * which teis we are returning, but these LEFT JOINs will add any extra information we need. For example attribute
+     * values, tet uid, tea uid, etc.
+     * @param params
+     * @return a SQL with several LEFT JOINS, one for each relevant table to retrieve information from.
+     */
     private String getQueryRelatedTables( TrackedEntityInstanceQueryParams params )
     {
         List<QueryItem> attributes = params.getAttributes();
         StringBuilder relatedTables = new StringBuilder();
 
+        // We always get TET uid
         relatedTables.append( "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TEI.trackedentitytypeid " );
 
+        // As long as we have any attributes, we join them in to get their value, as well as the TEA for the TEA uid.
         if ( !attributes.isEmpty() )
         {
             String attributeString = getCommaDelimitedString( attributes.stream()
@@ -1158,6 +1284,13 @@ public class HibernateTrackedEntityInstanceStore
         return relatedTables.toString();
     }
 
+    /**
+     * Generates the GROUP BY clause of the query. This is only needed when we are projecting any attributes. If any
+     * attributes are present we are aggregating them into a string. In case we are ordering by an attribute, we also
+     * need to include that column in the group by.
+     * @param params
+     * @return a SQL GROUP BY clause, or empty string if no attributes are specified.
+     */
     private String getQueryGroupBy( TrackedEntityInstanceQueryParams params )
     {
         if ( params.getAttributes().isEmpty() )
@@ -1192,6 +1325,14 @@ public class HibernateTrackedEntityInstanceStore
         return groupBy.toString();
     }
 
+    /**
+     * Generates the ORDER BY clause. This clause is used both in the subquery and main query. When using it in the
+     * subquery, we want to make sure we get the right teis. When we order in the main query, it's to make sure we return
+     * the results in the correct order, since order might be mixed after GROUP BY.
+     * @param innerOrder indicates whether this is the subquery order by or main query order by
+     * @param params
+     * @return a SQL ORDER BY clause.
+     */
     private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params )
     {
         List<String> cols = getStaticGridColumns();
@@ -1261,6 +1402,11 @@ public class HibernateTrackedEntityInstanceStore
         }
     }
 
+    /**
+     * Helper method for getting all attributes with a filter.
+     * @param params
+     * @return a list of QueryItem, each representing an attribute with 1 or more filters.
+     */
     private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
     {
         if ( params.getOrders() != null )
@@ -1277,6 +1423,27 @@ public class HibernateTrackedEntityInstanceStore
         return Lists.newArrayList();
     }
 
+    /**
+     * Generates the LIMIT and OFFSET part of the subquery. The limit is decided by several factors:
+     * 1. maxteilimit in a TET or Program
+     * 2. PageSize and Offset
+     * 3. No paging
+     *
+     * If maxteilimit is not 0, it means this is the hard limit of the number of results. In the case where there
+     * exists more results than maxteilimit, we should return an error to the user (This prevents snooping outside the
+     * users capture scope to some degree). 0 means no maxteilimit, or it's not applicable.
+     *
+     * If we have maxteilimit and paging on, we set the limit to maxteilimit.
+     *
+     * If we dont have maxteilimit, and paging on, we set normal paging parameters
+     *
+     * If neither maxteilimit or paging is set, we have no limit.
+     *
+     * The limit is set in the subquery, so the latter joins have fewer rows to consider.
+     *
+     * @param params
+     * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be deducted.
+     */
     private String getFromSubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder limitOffset = new StringBuilder();

@@ -1,7 +1,7 @@
 package org.hisp.dhis.commons.util;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2019, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,8 +49,6 @@ public class SqlHelper
 
     private boolean andInvoked = false;
 
-    private boolean onAndInvoked = false;
-
     public SqlHelper()
     {
     }
@@ -69,21 +67,6 @@ public class SqlHelper
     public String whereAnd()
     {
         String str = whereInvoked ? "and" : "where";
-
-        whereInvoked = true;
-
-        return includeSpaces ? " " + str + " " : str;
-    }
-
-    /**
-     * Returns "where" the first time it is invoked, then "or" for subsequent
-     * invocations.
-     *
-     * @return "where" or "or".
-     */
-    public String whereOr()
-    {
-        String str = whereInvoked ? "or" : "where";
 
         whereInvoked = true;
 
@@ -150,4 +133,18 @@ public class SqlHelper
         return includeSpaces ? " " + str + " " : str;
     }
 
+    /**
+     * Returns "and" the first time it is invoked, then "or" for subsequent
+     * invocations.
+     *
+     * @return "and" or "or".
+     */
+    public String andOr()
+    {
+        final String str = andOrInvoked ? "or" : "and";
+
+        andOrInvoked = true;
+
+        return includeSpaces ? " " + str + " " : str;
+    }
 }
