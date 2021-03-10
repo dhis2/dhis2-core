@@ -2,14 +2,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
@@ -18,6 +17,12 @@ import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
 /**
+ * This tests uses the {@link JsonSchema} information the server provides to
+ * create an object for each {@link org.hisp.dhis.schema.Schema} (some won't
+ * work) and then delete it again.
+ *
+ * When objects depend upon other objects these are created first.
+ *
  * @author Jan Bernitt
  */
 public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
@@ -52,54 +57,40 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonSchema> schemas = GET( "/schemas" )
             .content().getList( "schemas", JsonSchema.class );
 
-        long start = System.currentTimeMillis();
         JsonGenerator generator = new JsonGenerator( schemas );
 
+        int testedSchemas = 0;
         for ( JsonSchema schema : schemas )
         {
-            if ( schema.isEmbeddedObject()
-                || !schema.isIdentifiableObject()
-                || !schema.getApiEndpoint().exists()
-                || IGNORED_SCHEMAS.contains( schema.getName() ) )
+            if ( !isExcludedFromTest( schema ) )
             {
-                continue;
-            }
-            try
-            {
-                System.out.println( "\n\n====[" + schema.getName() + "]====" );
+                testedSchemas++;
                 Map<String, String> objects = generator.generateObjects( schema );
-
                 String id = "";
                 String endpoint = "";
+                // create needed object(s)
+                // last created is the one we want to test for schema
+                // those before might be objects it depends upon that
+                // need to be created first
                 for ( Entry<String, String> entry : objects.entrySet() )
                 {
                     endpoint = entry.getKey();
-                    String body = entry.getValue();
-                    System.out.println( "URL: " + endpoint );
-                    System.out.println( "Body: " + body );
-                    id = assertStatus( HttpStatus.CREATED, POST( endpoint, body ) );
+                    id = assertStatus( HttpStatus.CREATED, POST( endpoint, entry.getValue() ) );
                 }
+                // delete the last created object
+                // (the one belonging to the tested schema)
                 assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + id ) );
 
-                // String uid = assertSeries( SUCCESSFUL, POST( "/" + endpoint,
-                // body ) );
-                // assertSeries( SUCCESSFUL, DELETE( "/" + endpoint + "/" + uid
-                // ) );
-                System.out.println( "X " + schema.getName() );
-            }
-            catch ( Throwable ex )
-            {
-                ex.printStackTrace( System.out );
             }
         }
-        System.out.println( "done in " + (System.currentTimeMillis() - start) + "ms" );
+        assertTrue( "make sure we actually test schemas", testedSchemas >= 60 );
     }
 
-    @Test
-    public void testCreateWithID()
+    private boolean isExcludedFromTest( JsonSchema schema )
     {
-        String uid = CodeGenerator.generateUid();
-        assertEquals( uid,
-            assertStatus( HttpStatus.CREATED, POST( "/userGroups", "{'name': 'group', 'id':'" + uid + "'}" ) ) );
+        return schema.isEmbeddedObject()
+            || !schema.isIdentifiableObject()
+            || !schema.getApiEndpoint().exists()
+            || IGNORED_SCHEMAS.contains( schema.getName() );
     }
 }

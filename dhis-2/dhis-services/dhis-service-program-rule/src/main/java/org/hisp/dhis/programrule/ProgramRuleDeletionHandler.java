@@ -82,7 +82,7 @@ public class ProgramRuleDeletionHandler
         ProgramStage programStage = programStageSection.getProgramStage();
         if ( programStage == null )
         {
-            return null;
+            return DeletionVeto.ACCEPT;
         }
         String programRules = programRuleService
             .getProgramRule( programStage.getProgram() )

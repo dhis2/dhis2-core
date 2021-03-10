@@ -39,6 +39,24 @@ public class JsonGenerator
         }
     }
 
+    /**
+     * Generates a mapping between a relative API endpoint path (the path used
+     * with POST to create objects) and a JSON payload to POST to the endpoint
+     * to create the generated object.
+     *
+     * When objects have mandatory references to other objects these are also
+     * contained in the returned map.
+     *
+     * The iteration order of the map entries is such that the first entry has
+     * no dependencies, the second might depend on the first, the thrid on the
+     * first and second and so forth until finally the last entry is the entry
+     * for the given {@link JsonSchema} that we actually want to create in the
+     * first place.
+     *
+     * @param schema a DHIS2 schema definition as returned by the server
+     * @return a ordered mapping for relative API endpoint path to JSON body for
+     *         that endpoint (POST in iteration order)
+     */
     public Map<String, String> generateObjects( JsonSchema schema )
     {
         Map<String, String> objects = new LinkedHashMap<>();
