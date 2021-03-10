@@ -79,13 +79,8 @@ public class ProgramRuleDeletionHandler
 
     private DeletionVeto allowDeleteProgramStageSection( ProgramStageSection programStageSection )
     {
-        ProgramStage programStage = programStageSection.getProgramStage();
-        if ( programStage == null )
-        {
-            return DeletionVeto.ACCEPT;
-        }
         String programRules = programRuleService
-            .getProgramRule( programStage.getProgram() )
+            .getProgramRule( programStageSection.getProgramStage().getProgram() )
             .stream()
             .filter( pr -> isLinkedToProgramStageSection( programStageSection, pr ) )
             .map( BaseIdentifiableObject::getName )
