@@ -155,7 +155,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @Autowired
     protected CurrentUserService currentUserService;
-    
+
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
@@ -251,12 +251,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                     calculatePaginationCountKey( currentUser, filters, options ),
                     () -> count( options, filters, orders ) );
             }
-            
+
             pager = new Pager( options.getPage(), count, options.getPageSize() );
         }
 
         restrictToCaptureScope( entities, options, rpParameters );
-        
+
         postProcessResponseEntities( entities, options, rpParameters );
 
         handleLinksAndAccess( entities, fields, false );
@@ -532,7 +532,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         entities = (List<T>) queryService.query( query );
 
-        handleLinksAndAccess( entities, fields, false );
+        handleLinksAndAccess( entities, fields, true );
 
         handleAttributeValues( entities, fields );
 
@@ -1168,8 +1168,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected Pagination getPaginationData(WebOptions options )
     {
         return PaginationUtils.getPaginationData( options );
-    } 
-    
+    }
+
     private void restrictToCaptureScope( List<T> entityList, WebOptions options, Map<String, String> parameters )
     {
         if ( !options.isTrue( "restrictToCaptureScope" ) || CollectionUtils.isEmpty( entityList )
@@ -1204,7 +1204,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             }
         }
     }
-    
+
     @SuppressWarnings( "unchecked" )
     protected List<T> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
         throws QueryParserException

@@ -82,7 +82,7 @@ public class HibernateUserStore
         DeletedObjectService deletedObjectService, AclService aclService, SchemaService schemaService )
     {
         super( sessionFactory, jdbcTemplate, publisher, User.class, currentUserService, deletedObjectService,
-            aclService, false );
+            aclService, true );
 
         checkNotNull( schemaService );
         this.schemaService = schemaService;

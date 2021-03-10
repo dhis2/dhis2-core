@@ -37,7 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.adapter.UidJsonSerializer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -157,7 +156,7 @@ public class UserGroup
     }
 
     @JsonProperty( "users" )
-    @JsonSerialize( using = UidJsonSerializer.class )
+    @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "users", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
     public Set<User> getMembers()

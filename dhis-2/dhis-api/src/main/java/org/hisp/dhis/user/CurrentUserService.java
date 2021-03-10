@@ -93,7 +93,6 @@ public interface CurrentUserService
 
     /**
      * Return Set of UserGroup's ID which current User belong to
-     * @return
      */
     Set<Long> getCurrentUserUserGroupIds( UserInfo userInfo );
 }

@@ -231,7 +231,6 @@ public class DefaultHibernateConfigurationProvider
         putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_POOL_MAX_SIZE ), Environment.C3P0_MAX_SIZE, props );
         putIfExists( configurationProvider.getProperty( ConfigurationKey.ENCRYPTION_PASSWORD ), ConfigurationKey.ENCRYPTION_PASSWORD.getKey(), props );
 
-
         if ( SystemUtils.isTestRun(environment.getActiveProfiles()) )
         {
             putIfExists( configurationProvider.getProperty( ConfigurationKey.CONNECTION_SCHEMA ), Environment.HBM2DDL_AUTO, props );

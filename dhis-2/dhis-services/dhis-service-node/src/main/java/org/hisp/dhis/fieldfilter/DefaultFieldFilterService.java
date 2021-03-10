@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.collection.spi.PersistentCollection;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -311,12 +310,6 @@ public class DefaultFieldFilterService implements FieldFilterService
                 if ( property.isCollection() )
                 {
                     Collection<?> collection = (Collection<?>) returnValue;
-
-                    if ( collection instanceof PersistentCollection )
-                    {
-                        PersistentCollection persistentCollection = (PersistentCollection) collection;
-                        persistentCollection.getStoredSnapshot();
-                    }
 
                     child = new CollectionNode( property.getCollectionName(), collection.size() );
                     child.setNamespace( property.getNamespace() );
