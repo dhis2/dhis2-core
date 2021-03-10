@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningRep
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -186,7 +187,10 @@ public abstract class AbstractTrackerDtoValidationHook
 
                     for ( Option option : optionalObject.getOptionSet().getOptions() )
                     {
-                        log.info( optionalObject.getUid() + " -> " + option.getCode() );
+                        if ( null != option )
+                            log.info( optionalObject.getUid() + " -> " + option.getCode() );
+                        else
+                            log.info( "Option is null!" );
                     }
                 }
                 else
@@ -194,7 +198,7 @@ public abstract class AbstractTrackerDtoValidationHook
                     log.info( "Option values are null for " + optionalObject.getUid() );
                 }
 
-                addErrorIf( () -> optionSet.getOptions().stream()
+                addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
                     .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
                     optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
                     optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
