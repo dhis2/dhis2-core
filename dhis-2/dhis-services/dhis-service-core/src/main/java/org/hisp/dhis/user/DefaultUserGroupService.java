@@ -267,6 +267,7 @@ public class DefaultUserGroupService
     @Transactional( readOnly = true )
     public String getDisplayName( String uid )
     {
-        return userGroupNameCache.get( uid, n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
+         return userGroupNameCache.get( uid,
+            n -> userGroupStore.getByUid( uid ).getDisplayName() ).orElse( null );
     }
 }
