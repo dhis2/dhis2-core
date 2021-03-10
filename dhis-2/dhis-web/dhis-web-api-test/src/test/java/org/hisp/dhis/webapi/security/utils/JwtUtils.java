@@ -37,6 +37,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import net.minidev.json.JSONObject;
+
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.Assert;
@@ -62,8 +64,6 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-
-import net.minidev.json.JSONObject;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

@@ -30,6 +30,7 @@ package org.hisp.dhis.security.oidc.provider;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.List;
@@ -82,7 +83,7 @@ public class GenericOidcProviderBuilderTest
         assertEquals( "IdPorten", r.getLoginText() );
         assertEquals( "testClientId", r.getClientRegistration().getClientId() );
         assertEquals( "testClientSecret!#!?", r.getClientRegistration().getClientSecret() );
-        assertEquals( true, r.getClientRegistration().getScopes().contains( "pid" ) );
+        assertTrue( r.getClientRegistration().getScopes().contains( "pid" ) );
 
         assertEquals( "https://oidc-ver2.difi.no/token",
             r.getClientRegistration().getProviderDetails().getTokenUri() );
@@ -116,7 +117,6 @@ public class GenericOidcProviderBuilderTest
 
         String client_id = android.get( "client_id" );
         assertEquals( "externalClientId", client_id );
-
     }
 
     @Test
