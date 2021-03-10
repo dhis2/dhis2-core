@@ -69,6 +69,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -181,6 +183,9 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private CachingMap<String, CategoryOptionCombo> aocCache;
 
     @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
+    @Mock
     private Environment environment;
 
     @Mock
@@ -201,9 +206,11 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         user = new User();
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
+        when( dhisConfigurationProvider.getProperty( ConfigurationKey.CACHE_MULTIPLICATOR_FACTOR ) ).thenReturn( "1" );
         CacheBuilderProvider cacheBuilderProvider = new DefaultCacheBuilderProvider();
 
-        DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment );
+        DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment,
+            dhisConfigurationProvider );
         InputUtils inputUtils = new InputUtils( categoryService, idObjManager, cacheContext );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService,
