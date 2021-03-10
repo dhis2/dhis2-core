@@ -18,7 +18,7 @@ public interface JsonProperty extends JsonObject
         return getString( "klass" ).parsedClass();
     }
 
-    default Class<?> getitemKlass()
+    default Class<?> getItemKlass()
     {
         return getString( "itemKlass" ).parsedClass();
     }
@@ -56,6 +56,11 @@ public interface JsonProperty extends JsonObject
     default JsonURL getNamespace()
     {
         return get( "namespace", JsonURL.class );
+    }
+
+    default String getRelativeApiEndpoint()
+    {
+        return getString( "relativeApiEndpoint" ).string();
     }
 
     default Number getMin()

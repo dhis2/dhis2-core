@@ -82,8 +82,13 @@ public class ProgramRuleDeletionHandler
     @Override
     public String allowDeleteProgramStageSection( ProgramStageSection programStageSection )
     {
+        ProgramStage programStage = programStageSection.getProgramStage();
+        if ( programStage == null )
+        {
+            return null;
+        }
         String programRules = programRuleService
-            .getProgramRule( programStageSection.getProgramStage().getProgram() )
+            .getProgramRule( programStage.getProgram() )
             .stream()
             .filter( pr -> isLinkedToProgramStageSection( programStageSection, pr ) )
             .map( BaseIdentifiableObject::getName )
