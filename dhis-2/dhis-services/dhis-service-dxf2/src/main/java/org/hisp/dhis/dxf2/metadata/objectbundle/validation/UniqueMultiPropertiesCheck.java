@@ -28,9 +28,11 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
+import static org.hisp.dhis.feedback.ErrorCode.E5005;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +41,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -56,12 +57,10 @@ public class UniqueMultiPropertiesCheck implements ValidationCheck
 
         Schema schema = context.getSchemaService().getSchema( klass );
 
-        Map<List<String>, List<String>> propertyValuesToObjectUids = new HashMap<>();
+        Map<List<String>, List<IdentifiableObject>> propertyValuesToObjects = new HashMap<>();
 
         for ( IdentifiableObject identifiableObject : nonPersistedObjects )
         {
-            List<ErrorReport> errorReports = new ArrayList<>();
-
             for ( Map.Entry<Collection<String>, Collection<Function<IdentifiableObject, String>>> entry : schema
                 .getUniqueMultiPropertiesExctractors().entrySet() )
             {
@@ -69,28 +68,57 @@ public class UniqueMultiPropertiesCheck implements ValidationCheck
                     .map( valueExtractor -> valueExtractor.apply( identifiableObject ) )
                     .collect( Collectors.toList() );
 
-                if ( !propertyValuesToObjectUids.containsKey( propertyValues ) )
+                if ( !propertyValuesToObjects.containsKey( propertyValues ) )
                 {
-                    propertyValuesToObjectUids.put( propertyValues, new ArrayList<>() );
+                    propertyValuesToObjects.put( propertyValues, new ArrayList<>() );
                 }
 
-                if ( !propertyValuesToObjectUids.get( propertyValues ).isEmpty() )
-                {
-                    errorReports.add( new ErrorReport( klass, ErrorCode.E5005,
-                        String.join( ", ", entry.getKey() ),
-                        identifiableObject.getUid(),
-                        String.join( ", ", propertyValuesToObjectUids.get( propertyValues ) ) ) );
-                }
-
-                propertyValuesToObjectUids.get( propertyValues ).add( identifiableObject.getUid() );
-            }
-
-            if ( !errorReports.isEmpty() )
-            {
-                addObjectReports( errorReports, typeReport, identifiableObject, bundle );
-                context.markForRemoval( identifiableObject );
+                propertyValuesToObjects.get( propertyValues ).add( identifiableObject );
             }
         }
+
+        propertyValuesToObjects.entrySet()
+            .forEach(
+                pValuesObjectsEntry -> addErrorIfNecessary( context, bundle, klass, typeReport, pValuesObjectsEntry ) );
+
         return typeReport;
+    }
+
+    private void addErrorIfNecessary( ValidationContext context, ObjectBundle bundle,
+        Class<? extends IdentifiableObject> klass, TypeReport typeReport,
+        Map.Entry<List<String>, List<IdentifiableObject>> pValuesObjectsEntry )
+    {
+        if ( pValuesObjectsEntry.getValue().size() > 1 )
+        {
+            pValuesObjectsEntry.getValue()
+                .forEach( identifiableObject -> addErrorToTypeReport(
+                    typeReport,
+                    klass,
+                    identifiableObject,
+                    pValuesObjectsEntry,
+                    bundle,
+                    context ) );
+        }
+    }
+
+    private void addErrorToTypeReport( TypeReport typeReport, Class<? extends IdentifiableObject> klass,
+        IdentifiableObject identifiableObject, Map.Entry<List<String>, List<IdentifiableObject>> pValuesObjectsEntry,
+        ObjectBundle bundle, ValidationContext context )
+    {
+        addObjectReports( toErrorReports( klass, pValuesObjectsEntry ), typeReport, identifiableObject, bundle );
+        context.markForRemoval( identifiableObject );
+    }
+
+    private List<ErrorReport> toErrorReports( Class<? extends IdentifiableObject> klass,
+        Map.Entry<List<String>, List<IdentifiableObject>> entry )
+    {
+        return Collections.singletonList(
+            new ErrorReport(
+                klass,
+                E5005,
+                String.join( ", ", entry.getKey() ),
+                entry.getValue().stream()
+                    .map( IdentifiableObject::getUid )
+                    .collect( Collectors.joining( ", " ) ) ) );
     }
 }
