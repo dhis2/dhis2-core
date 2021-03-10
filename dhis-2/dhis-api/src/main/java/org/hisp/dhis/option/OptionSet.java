@@ -163,7 +163,7 @@ public class OptionSet
     @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
     public List<Option> getOptions()
     {
-        return options.stream().filter( Objects::nonNull ).collect( Collectors.toList() );
+        return options;
     }
 
     public void setOptions( List<Option> options )
