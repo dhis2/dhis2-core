@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.ValueTypedDimensionalItemObject;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -56,6 +57,7 @@ import org.springframework.core.Ordered;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public abstract class AbstractTrackerDtoValidationHook
     implements TrackerValidationHook
 {
@@ -172,12 +174,32 @@ public abstract class AbstractTrackerDtoValidationHook
     protected <T extends ValueTypedDimensionalItemObject> void validateOptionSet( ValidationErrorReporter reporter,
         T optionalObject, String value )
     {
+        log.info( "Validating options set for " + optionalObject.getUid() );
+
         Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream()
-                .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
-                optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
-                    .collect( Collectors.joining( "," ) ) ) );
+            .ifPresent( optionSet -> {
+
+                if ( null != optionalObject.getOptionSet().getOptions() )
+                {
+                    log.info( optionalObject.getUid() + " option values ref -> "
+                        + optionalObject.getOptionSet().getOptions().toString() );
+
+                    for ( Option option : optionalObject.getOptionSet().getOptions() )
+                    {
+                        log.info( optionalObject.getUid() + " -> " + option.getCode() );
+                    }
+                }
+                else
+                {
+                    log.info( "Option values are null for " + optionalObject.getUid() );
+                }
+
+                addErrorIf( () -> optionSet.getOptions().stream()
+                    .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
+                    optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
+                    optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
+                        .collect( Collectors.joining( "," ) ) );
+            } );
     }
 
     /**
