@@ -114,4 +114,6 @@ public interface UserStore
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    String getDisplayName( String userUid );
 }

@@ -96,7 +96,9 @@ public class DefaultCacheProvider implements CacheProvider
         analyticsSql,
         dataElementCache,
         propertyTransformerCache,
-        programRulesCache
+        programRulesCache,
+        userGroupNameCache,
+        userDisplayNameCache
     }
 
     private final List<Cache> allCaches = Lists.newArrayList();
@@ -422,5 +424,29 @@ public class DefaultCacheProvider implements CacheProvider
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         allCaches.forEach( Cache::invalidateAll );
+    }
+
+    @Override
+    public <V> Cache<V> createUserGroupNameCache()
+    {
+        return this.<V> newBuilder()
+            .forRegion( Region.userGroupNameCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( 1000 ) )
+            .build();
+    }
+
+    @Override
+    public <V> Cache<V> createUserDisplayNameCache()
+    {
+        return this.<V> newBuilder()
+            .forRegion( Region.userDisplayNameCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( 20 )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( 500000 ) )
+            .build();
     }
 }

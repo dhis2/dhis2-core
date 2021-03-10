@@ -35,6 +35,7 @@ import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -47,7 +48,6 @@ import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
@@ -108,9 +108,8 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         assertTrue( translations.isEmpty() );
 
-        PUT( "/users/" + id + "/translations",
-            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
-                .content( HttpStatus.NO_CONTENT );
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/users/" + id + "/translations",
+            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" ) );
 
         translations = GET( "/users/{id}/translations", id )
             .content().getArray( "translations" );
@@ -231,6 +230,26 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testPutJsonObject_skipTranslations()
+    {
+        // first the updated entity needs to be created
+        String mapId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + mapId + "/translations",
+            "{'translations':[{'property':'NAME','locale':'no','value':'norsk test'}," +
+                "{'property':'DESCRIPTION','locale':'no','value':'norsk test beskrivelse'}]}" ) );
+        // verify we have translations
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", mapId )
+            .content().getArray( "translations" ).size() );
+
+        // now put object with skipping translations
+        assertSeries( SUCCESSFUL,
+            PUT( "/userGroups/" + mapId + "?skipTranslation=true", "{'name':'Europa'}" ) );
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", mapId )
+            .content().getArray( "translations" ).size() );
+    }
+
+    @Test
     public void testDeleteObject()
     {
         // first the deleted entity needs to be created
@@ -247,7 +266,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
         // add an item to the collection
-        assertSeries( Series.SUCCESSFUL, POST( "/userGroups/" + groupId + "/users/" + userId ) );
+        assertSeries( SUCCESSFUL, POST( "/userGroups/" + groupId + "/users/" + userId ) );
 
         assertUserGroupHasOnlyUser( groupId, userId );
     }

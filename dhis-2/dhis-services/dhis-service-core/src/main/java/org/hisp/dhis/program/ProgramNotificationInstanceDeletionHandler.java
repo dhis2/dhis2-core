@@ -28,12 +28,14 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,6 +46,8 @@ import org.springframework.stereotype.Component;
 public class ProgramNotificationInstanceDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( ProgramNotificationInstance.class );
+
     private final ProgramNotificationInstanceService programNotificationInstanceService;
 
     public ProgramNotificationInstanceDeletionHandler(
@@ -55,13 +59,15 @@ public class ProgramNotificationInstanceDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ProgramNotificationInstance.class.getSimpleName();
+        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+        whenVetoing( ProgramInstance.class, this::allowDeleteProgramInstance );
+        whenVetoing( ProgramStageInstance.class, this::allowDeleteProgramStageInstance );
     }
 
-    @Override
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( ProgramInstance programInstance )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances( programInstance );
@@ -69,8 +75,7 @@ public class ProgramNotificationInstanceDeletionHandler
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    @Override
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances( programStageInstance );
@@ -78,21 +83,19 @@ public class ProgramNotificationInstanceDeletionHandler
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    @Override
-    public String allowDeleteProgramInstance( ProgramInstance programInstance )
+    private DeletionVeto allowDeleteProgramInstance( ProgramInstance programInstance )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( programInstance );
 
-        return instances == null || instances.isEmpty() ? null : ERROR;
+        return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( programStageInstance );
 
-        return instances == null || instances.isEmpty() ? null : ERROR;
+        return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
 }

@@ -38,6 +38,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -60,18 +61,15 @@ public class ProgramRuleDeletionHandler
         this.programRuleService = programRuleService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ProgramRule.class.getSimpleName();
+        whenDeleting( Program.class, this::deleteProgram );
+        whenVetoing( ProgramStageSection.class, this::allowDeleteProgramStageSection );
+        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         for ( ProgramRule programRule : programRuleService.getProgramRule( program ) )
         {
@@ -79,8 +77,7 @@ public class ProgramRuleDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteProgramStageSection( ProgramStageSection programStageSection )
+    private DeletionVeto allowDeleteProgramStageSection( ProgramStageSection programStageSection )
     {
         ProgramStage programStage = programStageSection.getProgramStage();
         if ( programStage == null )
@@ -94,11 +91,12 @@ public class ProgramRuleDeletionHandler
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
-        return StringUtils.isBlank( programRules ) ? null : programRules;
+        return StringUtils.isBlank( programRules )
+            ? DeletionVeto.ACCEPT
+            : new DeletionVeto( ProgramRule.class, programRules );
     }
 
-    @Override
-    public String allowDeleteProgramStage( ProgramStage programStage )
+    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         String programRules = programRuleService
             .getProgramRule( programStage.getProgram() )
@@ -107,7 +105,9 @@ public class ProgramRuleDeletionHandler
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
-        return StringUtils.isBlank( programRules ) ? null : programRules;
+        return StringUtils.isBlank( programRules )
+            ? DeletionVeto.ACCEPT
+            : new DeletionVeto( ProgramRule.class, programRules );
     }
 
     private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )

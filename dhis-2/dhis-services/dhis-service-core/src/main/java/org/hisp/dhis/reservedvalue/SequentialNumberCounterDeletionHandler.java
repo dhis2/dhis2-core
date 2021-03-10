@@ -45,13 +45,12 @@ public class SequentialNumberCounterDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return SequentialNumberCounter.class.getSimpleName();
+        whenDeleting( TrackedEntityAttribute.class, this::deleteTrackedEntityAttribute );
     }
 
-    @Override
-    public void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
+    private void deleteTrackedEntityAttribute( TrackedEntityAttribute attribute )
     {
         sequentialNumberCounterStore.deleteCounter( attribute.getUid() );
     }
