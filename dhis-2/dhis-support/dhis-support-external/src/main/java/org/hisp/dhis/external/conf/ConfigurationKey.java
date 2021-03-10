@@ -44,6 +44,7 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
+    SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -145,8 +146,7 @@ public enum ConfigurationKey
     DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
-    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
-    CACHE_MULTIPLICATOR_FACTOR( "system.cache.factor", "0.5", false );
+    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false );
 
     private final String key;
 

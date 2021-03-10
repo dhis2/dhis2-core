@@ -30,13 +30,7 @@ package org.hisp.dhis.dxf2.dataset;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.assertIllegalQueryEx;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -206,7 +200,8 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         user = new User();
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
-        when( dhisConfigurationProvider.getProperty( ConfigurationKey.CACHE_MULTIPLICATOR_FACTOR ) ).thenReturn( "1" );
+        when( dhisConfigurationProvider.getProperty( ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR ) )
+            .thenReturn( "1" );
         CacheBuilderProvider cacheBuilderProvider = new DefaultCacheBuilderProvider();
 
         DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment,
