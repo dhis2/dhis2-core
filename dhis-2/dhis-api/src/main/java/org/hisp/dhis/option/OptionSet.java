@@ -30,15 +30,11 @@ package org.hisp.dhis.option;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -167,7 +163,7 @@ public class OptionSet
     @JacksonXmlProperty( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
     public List<Option> getOptions()
     {
-        return options;
+        return options.stream().filter( Objects::nonNull ).collect( Collectors.toList() );
     }
 
     public void setOptions( List<Option> options )
