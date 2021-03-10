@@ -7,7 +7,7 @@ DHIS 2 is a flexible information system for data capture, management, validation
 
 Issues can be reported and browsed in [JIRA](https://jira.dhis2.org).
 
-For documentation please visit the [documentation portal](https://docs.dhis2.org/).
+For documentation visit the [documentation portal](https://docs.dhis2.org/).
 
 You can download pre-built WAR files from the [continuous integration server](https://ci.dhis2.org/).
 
@@ -15,9 +15,11 @@ You can explore various demos of DHIS 2 in the [play environment](https://play.d
 
 For support and discussions visit the [community forum](https://community.dhis2.org/).
 
-For general info please visit the [project web page](https://www.dhis2.org/).
+For general info visit the [project web page](https://www.dhis2.org/).
 
-For software developer resources please visit the [developer portal](https://developers.dhis2.org/).
+For software developer resources visit the [developer portal](https://developers.dhis2.org/).
+
+To contribute to the software read the [contributor guidelines](https://developers.dhis2.org/docs/conceptual/contribute).
 
 The software is open source and released under the [BSD license](https://opensource.org/licenses/BSD-2-Clause).
 
@@ -25,8 +27,8 @@ The software is open source and released under the [BSD license](https://opensou
 
 This repository contains the source code for the server-side component of DHIS 2, which is developed in [Java](https://www.java.com/en/) and built with [Maven](https://maven.apache.org/). 
 
-To build it you must first install the root POM file, navigate to the dhis-web directory and then build the web POM file.
+To build it you must first install the root `POM` file, navigate to the `dhis-web` directory and then build the web `POM` file.
 
-Check [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) for the procedure to make it run locally.
+Read the [contributing](https://github.com/dhis2/dhis2-core/blob/master/CONTRIBUTING.md) page to learn how to run locally.
 
 [![Build Status](https://travis-ci.com/dhis2/dhis2-core.svg?branch=master)](https://travis-ci.org/dhis2/dhis2-core)
