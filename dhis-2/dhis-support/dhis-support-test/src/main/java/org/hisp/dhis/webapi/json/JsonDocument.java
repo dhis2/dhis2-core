@@ -86,8 +86,9 @@ public final class JsonDocument implements Serializable
             char[] pointer = new char[index - start + 1];
             Arrays.fill( pointer, ' ' );
             pointer[pointer.length - 1] = '^';
-            return String.format( "Unexpected character at position %d,%n%s%n%s expected `%s`",
-                index, section, new String( pointer ), expected );
+            String expectedText = expected == '~' ? "start of value" : "`" + expected + "`";
+            return String.format( "Unexpected character at position %d,%n%s%n%s expected %s",
+                index, section, new String( pointer ), expectedText );
         }
     }
 
@@ -147,7 +148,7 @@ public final class JsonDocument implements Serializable
          */
         default int size()
         {
-            throw new UnsupportedOperationException( getType() + " node has no size" );
+            throw new UnsupportedOperationException( getType() + " node has no size property." );
         }
 
         /**
@@ -158,7 +159,7 @@ public final class JsonDocument implements Serializable
          */
         default boolean isEmpty()
         {
-            throw new UnsupportedOperationException( getType() + "node has no empty" );
+            throw new UnsupportedOperationException( getType() + " node has no empty property." );
         }
 
         /**
@@ -655,7 +656,7 @@ public final class JsonDocument implements Serializable
         if ( !object.containsKey( property ) )
         {
             throw new JsonPathException(
-                String.format( "Path %s does not exist, object %s does not have a property %s", path,
+                String.format( "Path `%s` does not exist, object `%s` does not have a property `%s`", path,
                     parent.getPath(), property ) );
         }
     }
@@ -665,7 +666,7 @@ public final class JsonDocument implements Serializable
         if ( index > array.size() )
         {
             throw new JsonPathException(
-                String.format( "Path %s does not exist, array %s has only %d elements.", path, parent.getPath(),
+                String.format( "Path `%s` does not exist, array `%s` has only `%d` elements.", path, parent.getPath(),
                     array.size() ) );
         }
     }
@@ -675,7 +676,7 @@ public final class JsonDocument implements Serializable
         if ( parent.getType() != expected )
         {
             throw new JsonPathException(
-                String.format( "Path %s does not exist, parent %s is not an %s but a %s node.", path,
+                String.format( "Path `%s` does not exist, parent `%s` is not an %s but a %s node.", path,
                     parent.getPath(), expected, parent.getType() ) );
         }
     }
@@ -898,7 +899,7 @@ public final class JsonDocument implements Serializable
     {
         if ( index >= json.length )
         {
-            throw new JsonFormatException( "Expected " + expected + " but reach EOI:" + getEndSection( json, index ) );
+            throw new JsonFormatException( "Expected " + expected + " but reach EOI: " + getEndSection( json, index ) );
         }
         if ( json[index] != expected )
         {

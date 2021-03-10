@@ -49,7 +49,6 @@ import org.junit.Test;
  */
 public class JsonResponseTest
 {
-
     @Test
     public void testCustomObjectType()
     {
