@@ -27,27 +27,8 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static java.time.ZoneId.systemDefault;
-import static java.time.ZonedDateTime.now;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
-import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
-
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import javax.annotation.Nullable;
-
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -70,7 +51,22 @@ import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.collect.Lists;
+import javax.annotation.Nullable;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.time.ZoneId.systemDefault;
+import static java.time.ZonedDateTime.now;
+import static org.hisp.dhis.common.CodeGenerator.isValidUid;
+import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
+import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 
 /**
  * @author Chau Thu Tran
@@ -820,7 +816,6 @@ public class DefaultUserService
     @Override
     public String getDisplayName( String userUid )
     {
-        Optional<String> displayName = userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );
-        return displayName.isPresent() ? displayName.get() : null;
+        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
     }
 }
