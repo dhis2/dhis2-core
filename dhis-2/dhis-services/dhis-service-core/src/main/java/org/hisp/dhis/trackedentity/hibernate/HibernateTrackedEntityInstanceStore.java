@@ -469,6 +469,77 @@ public class HibernateTrackedEntityInstanceStore
         return count;
     }
 
+    /**
+     * Generates SQL based on "params". The purpose of the SQL is to retrieve a list of
+     * tracked entity instances, and additionally any requested attributes (If defined in params).
+     *
+     * The params are validated before we generate the SQL, so the only access-related SQL is the inner join o
+     * organisation units.
+     *
+     * The general structure of the query is as follows:
+     *
+     * select (main_projection)
+     * from (constraint_subquery)
+     * left join (additional_information)
+     * group by (main_groupby)
+     * order by (order)
+     *
+     * The constraint_subquery looks as follows:
+     *
+     * select (subquery_projection)
+     * from (tracked entity instances)
+     * inner join (attribute_constraints)
+     * [inner join (program_owner)]
+     * inner join (organisation units)
+     * left join (attribute_orderby)
+     * where exist(program_constraint)
+     * order by (order)
+     * limit (limit_offset)
+     *
+     * main_projection:
+     *  Will have an aggregate string of attributevalues (uid:value) as well as basic tei-info.
+     * constraint_subquery:
+     *  Includes all SQL related to narrowing down the number of tei's we are looking for. We use inner join primarily
+     *  for this, as well as exists for program instances. Do make sure we get the right selection, we also use left
+     *  join on attributes, when we are sorting by attributes, before we sort and finally limit the selection.
+     * subquery_projection:
+     *  Has all the required information for knowing what teis to return and how to order them
+     * attribute_constraints:
+     *  We inner join the attributes, and add 3 conditions: tei id, tea id and value. This uses a
+     *  (tei, tea, lower(value)) index. For each attribute constraints, we add subsequent inner joins.
+     * program_owner:
+     *  Only included when a program is specified. If included, it will join on 3 columns: tei, program and ou. We
+     *  have an index for this (program, ou, tei) which allows a scan only lookup
+     * attribute_orderby:
+     *  When a user specified an attribute in the order param, we need to join that attribute (We do left join, in case
+     *  the value is not there. This join is not for removing resulting records). After joining it and projecting it,
+     *  we can order by it.
+     * program_constraint:
+     *  If a program is specified, it indicates the tei must be enrolled in that program. Since the relation between
+     *  tei and enrollments are not 1:1, but 1:many, we use exists to avoid duplicate rows of tei, allowing us to avoid
+     *  grouping the result before we order and limit. This saves a lot of time.
+     *  NOTE: Within the program_constraint, we also have a subquery to deal with any event-related constraints. These
+     *  can either be constraints on any static properties, or user assignment. For user assignment, we also join with
+     *  the userinfo table. For events, we have an index (status, executiondate) which speeds up the lookup
+     *  significantly
+     * order:
+     *  Order is used both in the subquery and the main query. The sort depends on the params (see more info on the
+     *  related method). We order the subquery to make sure we get correct results before we limit. We order the main
+     *  query since the aggregation mixes up the order, so to return a consistent order, we order again.
+     * limit_offset:
+     *  The limit and offset is set based on a combination of params: program and tet can have a maxtei limit, which
+     *  only applies during a search outside the users capture scope. If applied, it will throw an error if the number
+     *  of results exceeds the limit. Otherwise we use paging. If no paging is set, there is no limit.
+     * additional_information:
+     *  Here we do a left join with any relevant information needed for the result: tet name, any attributes to project,
+     *  etc. We left join, since we don't want to reduce the results, just add information.
+     * main_groupby:
+     *  The purpose of this group by, is to aggregate any attributes added in additional_information
+     *
+     *
+     * @param params params defining the query
+     * @return SQL string
+     */
     private String getQuery( TrackedEntityInstanceQueryParams params )
     {
         return new StringBuilder()
