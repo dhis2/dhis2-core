@@ -487,6 +487,7 @@ public final class JsonDocument implements Serializable
                 }
                 if ( c == '\\' )
                 {
+                    checkEscapedCharExists( json, index );
                     switch ( json[index++] )
                     {
                     case 'u': // unicode uXXXX
@@ -681,6 +682,15 @@ public final class JsonDocument implements Serializable
         }
     }
 
+    private static void checkEscapedCharExists( char[] json, int index )
+    {
+        if ( index >= json.length )
+        {
+            throw new JsonFormatException(
+                "Expected escaped character but reached EOI: " + getEndSection( json, index ) );
+        }
+    }
+
     private JsonNode getClosestIndexedParent( String path )
     {
         String parentPath = getParentPath( path );
@@ -795,6 +805,7 @@ public final class JsonDocument implements Serializable
             }
             if ( c == '\\' )
             {
+                checkEscapedCharExists( json, index );
                 // hop over escaped char or unicode
                 index += json[index] == 'u' ? 5 : 1;
             }
