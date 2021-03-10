@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.user;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -166,5 +168,14 @@ public class UserStoreTest
         assertNotNull( currentUserGroupInfo );
         assertEquals( 0, currentUserGroupInfo.getUserGroupUIDs().size() );
         assertEquals( userA.getUid(), currentUserGroupInfo.getUserUID() );
+    }
+
+    @Test
+    public void testGetDisplayName()
+    {
+        User userA = createUser( 'A' );
+        userStore.save( userA );
+
+        assertEquals( "FirstNameA SurnameA", userStore.getDisplayName( userA.getUid() ) );
     }
 }

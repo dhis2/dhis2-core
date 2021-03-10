@@ -51,6 +51,8 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -79,6 +81,12 @@ public class DefaultFieldFilterServiceTest
     @Mock
     private AttributeService attributeService;
 
+    @Mock
+    private UserGroupService userGroupService;
+
+    @Mock
+    private UserService userService;
+
     private DefaultFieldFilterService service;
 
     @Rule
@@ -91,7 +99,7 @@ public class DefaultFieldFilterServiceTest
         CacheProvider cacheProvider = mock( CacheProvider.class );
         when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
         service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
-            attributeService, cacheProvider, new HashSet<>() );
+            attributeService, cacheProvider, userGroupService, userService, new HashSet<>() );
     }
 
     @Test

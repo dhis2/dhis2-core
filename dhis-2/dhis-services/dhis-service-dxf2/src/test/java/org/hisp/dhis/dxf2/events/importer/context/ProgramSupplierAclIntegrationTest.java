@@ -121,9 +121,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final User user = createUser( "A" );
         final Program program = createProgram( 'A' );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
 
         Set<UserAccess> userAccesses = new HashSet<>();
         userAccesses.add( userAccess );
@@ -151,9 +149,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
 
         program.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( program, false );
@@ -219,9 +215,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
 
         final ProgramStage programStage = createProgramStage( 'B', 1 );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
         programStage.setUserAccesses( singleton( userAccess ) );
 
         manager.save( programStage, false );
@@ -338,9 +332,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
 
-        UserAccess userAccess = new UserAccess();
-        userAccess.setUser( user );
-        userAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
 
         tet.setUserAccesses( Collections.singleton( userAccess ) );
         manager.save( tet, false );
@@ -374,9 +366,7 @@ public class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationT
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
 
-        UserGroupAccess userGroupAccess = new UserGroupAccess();
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setAccess( AccessStringHelper.DATA_READ_WRITE );
+        UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
 
         tet.setUserGroupAccesses( singleton( userGroupAccess ) );
         manager.save( tet, false );
