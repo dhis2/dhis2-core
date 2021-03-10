@@ -196,6 +196,8 @@ public class HibernateTrackedEntityInstanceStore
         log.debug( "Tracked entity instance query SQL: " + sql );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
+        checkMaxTeiCountReached( params, rowSet );
+
         List<Long> ids = new ArrayList<>();
 
         while ( rowSet.next() )
@@ -1205,19 +1207,9 @@ public class HibernateTrackedEntityInstanceStore
                     String columnName = TrackedEntityInstanceQueryParams.OrderColumn.getColumn( order.getField() );
                     orderFields.add( columnName + " " + order.getDirection() );
                 }
-                else if ( isAttributeOrder( params, order.getField() )
-                    || isAttributeFilterOrder( params, order.getField() ) )
+                else
                 {
-                    if ( innerOrder )
-                    {
-                        orderFields
-                            .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
-                    }
-                    else
-                    {
-                        orderFields.add(
-                            "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE + order.getDirection() );
-                    }
+                    extractDynamicOrderField( innerOrder, params, orderFields, order );
                 }
             }
 
@@ -1234,6 +1226,25 @@ public class HibernateTrackedEntityInstanceStore
         else
         {
             return "";
+        }
+    }
+
+    private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
+        ArrayList<String> orderFields, OrderParam order )
+    {
+        if ( isAttributeOrder( params, order.getField() )
+            || isAttributeFilterOrder( params, order.getField() ) )
+        {
+            if ( innerOrder )
+            {
+                orderFields
+                    .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+            }
+            else
+            {
+                orderFields.add(
+                    "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE + order.getDirection() );
+            }
         }
     }
 
@@ -1267,44 +1278,6 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return false;
-    }
-
-    private void extractOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params, List<String> cols,
-        ArrayList<String> orderFields, String order )
-    {
-        String[] prop = order.split( ":" );
-
-        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
-        {
-            if ( cols.contains( prop[0] ) )
-            {
-                orderFields.add( prop[0] + SPACE + prop[1] );
-            }
-            else
-            {
-                extractDynamicOrderField( innerOrder, params, orderFields, prop );
-            }
-        }
-    }
-
-    private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
-        ArrayList<String> orderFields, String[] prop )
-    {
-        for ( QueryItem item : params.getAttributes() )
-        {
-            if ( prop[0].equals( item.getItemId() ) )
-            {
-                if ( innerOrder )
-                {
-                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
-                }
-                else
-                {
-                    orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + SPACE + prop[1] );
-                }
-                break;
-            }
-        }
     }
 
     private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
