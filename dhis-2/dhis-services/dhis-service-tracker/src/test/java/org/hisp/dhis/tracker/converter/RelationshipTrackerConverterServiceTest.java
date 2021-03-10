@@ -32,11 +32,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.render.RenderService;
@@ -63,13 +65,15 @@ public class RelationshipTrackerConverterServiceTest
     extends DhisSpringTest
 {
 
-    private final static String MOTHER_TO_CHILD_RELATIONSHIP_TYPE = "dDrh5UyCyvQ";
+    private final static String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
-    private final static String CHILD_TO_MOTHER_RELATIONSHIP_TYPE = "tBeOL0DL026";
+    private final static String TEI_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
 
-    private final static String MOTHER = "Ea0rRdBPAIp";
+    private final static String TEI = "IOR1AXXl24H";
 
-    private final static String CHILD = "G1afLIEKt8A";
+    private final static String ENROLLMENT = "TvctPPhpD8u";
+
+    private final static String EVENT = "D9PbzJY8bJO";
 
     @Autowired
     @Qualifier( "relationshipTrackerConverterService" )
@@ -94,7 +98,19 @@ public class RelationshipTrackerConverterServiceTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private ProgramService programService;
 
     private TrackerBundle trackerBundle;
 
@@ -110,26 +126,38 @@ public class RelationshipTrackerConverterServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
+        Program program = createProgram( 'A' );
+        programService.addProgram( program );
+
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStageService.saveProgramStage( programStage );
+
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit,
+        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit,
             trackedEntityAttribute );
-        trackedEntityInstanceA.setUid( MOTHER );
-        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit,
-            trackedEntityAttribute );
-        trackedEntityInstanceB.setUid( CHILD );
+        trackedEntityInstance.setUid( TEI );
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setProgram( program );
+        programInstance.setUid( ENROLLMENT );
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setUid( EVENT );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setProgramStage( programStage );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
+        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
+        programInstanceService.addProgramInstance( programInstance );
+        programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A', null, trackedEntityType,
+        RelationshipType relationshipTypeA = createTeiToEnrollmentRelationshipType( 'A', program, trackedEntityType,
             false );
-        relationshipTypeA.setUid( MOTHER_TO_CHILD_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType,
+        relationshipTypeA.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
+        RelationshipType relationshipTypeB = createTeiToEventRelationshipType( 'B', program, trackedEntityType,
             false );
-        relationshipTypeB.setUid( CHILD_TO_MOTHER_RELATIONSHIP_TYPE );
+        relationshipTypeB.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
 
@@ -153,15 +181,15 @@ public class RelationshipTrackerConverterServiceTest
         assertEquals( 2, from.size() );
 
         from.forEach( relationship -> {
-            if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
             }
-            else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( EVENT, relationship.getTo().getProgramStageInstance().getUid() );
             }
             else
             {
@@ -185,15 +213,15 @@ public class RelationshipTrackerConverterServiceTest
         assertEquals( 2, to.size() );
 
         from.forEach( relationship -> {
-            if ( MOTHER_TO_CHILD_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( MOTHER, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( CHILD, relationship.getTo().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
             }
-            else if ( CHILD_TO_MOTHER_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( CHILD, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( MOTHER, relationship.getTo().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( EVENT, relationship.getTo().getProgramStageInstance().getUid() );
             }
             else
             {

@@ -28,12 +28,14 @@
 package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -46,11 +48,9 @@ public class DataValueDeletionHandler
     extends
     DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( DataValue.class );
 
-    private JdbcTemplate jdbcTemplate;
+    private final JdbcTemplate jdbcTemplate;
 
     public DataValueDeletionHandler( JdbcTemplate jdbcTemplate )
     {
@@ -59,46 +59,41 @@ public class DataValueDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataValue.class.getSimpleName();
+        whenVetoing( DataElement.class, this::allowDeleteDataElement );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where dataelementid=" + dataElement.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeletePeriod( Period period )
+    private DeletionVeto allowDeletePeriod( Period period )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where periodid=" + period.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where sourceid=" + unit.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "SELECT COUNT(*) FROM datavalue where categoryoptioncomboid=" + optionCombo.getId()
             + " or attributeoptioncomboid=" + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

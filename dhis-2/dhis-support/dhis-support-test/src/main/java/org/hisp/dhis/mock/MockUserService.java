@@ -396,4 +396,10 @@ public class MockUserService
     {
         throw new UnsupportedOperationException( "Not supported by this mock!" );
     }
+
+    @Override
+    public String getDisplayName( String userUid )
+    {
+        return null;
+    }
 }

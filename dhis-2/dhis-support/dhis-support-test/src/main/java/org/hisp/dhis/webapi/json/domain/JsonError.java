@@ -90,7 +90,8 @@ public interface JsonError extends JsonObject
                 }
             }
         };
-        str.append( getMessage() );
+        String message = getMessage();
+        str.append( message != null ? message : "(no error message in response)" );
         if ( getTypeReport().exists() )
         {
             printer.accept( getTypeReport().getErrorReports() );

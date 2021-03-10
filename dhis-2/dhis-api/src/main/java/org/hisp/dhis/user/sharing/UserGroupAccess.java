@@ -77,14 +77,6 @@ public class UserGroupAccess
 
     public org.hisp.dhis.user.UserGroupAccess toDtoObject()
     {
-        org.hisp.dhis.user.UserGroupAccess userGroupAccess = new org.hisp.dhis.user.UserGroupAccess();
-        userGroupAccess.setUid( this.id );
-        userGroupAccess.setAccess( this.access );
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUid( this.id );
-        userGroupAccess.setUserGroup( userGroup );
-        userGroupAccess.setUid( this.id );
-
-        return userGroupAccess;
+        return new org.hisp.dhis.user.UserGroupAccess( this );
     }
 }

@@ -465,4 +465,10 @@ public interface UserService
      * @return number of users disabled
      */
     int disableUsersInactiveSince( Date inactiveSince );
+
+    /**
+     * Get user display name by concat( firstname,' ', surname ) Return null if
+     * User doesn't exist
+     */
+    String getDisplayName( String userUid );
 }

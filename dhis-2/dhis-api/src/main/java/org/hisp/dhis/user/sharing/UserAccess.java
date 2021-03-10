@@ -77,14 +77,6 @@ public class UserAccess
 
     public org.hisp.dhis.user.UserAccess toDtoObject()
     {
-        org.hisp.dhis.user.UserAccess userAccess = new org.hisp.dhis.user.UserAccess();
-        userAccess.setUid( this.id );
-        userAccess.setAccess( this.access );
-        User user = new User();
-        user.setUid( this.id );
-        userAccess.setUser( user );
-        userAccess.setUid( this.id );
-
-        return userAccess;
+        return new org.hisp.dhis.user.UserAccess( this.id, this.access );
     }
 }

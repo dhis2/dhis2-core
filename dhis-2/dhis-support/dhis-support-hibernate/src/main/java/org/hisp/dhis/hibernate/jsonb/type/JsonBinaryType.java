@@ -34,6 +34,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 
 import org.hibernate.HibernateException;
@@ -49,6 +51,7 @@ import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
@@ -66,6 +69,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class JsonBinaryType implements UserType, ParameterizedType
 {
     public static final ObjectMapper MAPPER = new ObjectMapper();
+
+    public static final TypeReference<Map<String, Object>> MAP_STRING_OBJECT_TYPE_REFERENCE = new TypeReference<Map<String, Object>>()
+    {
+    };
 
     static
     {
@@ -104,9 +111,34 @@ public class JsonBinaryType implements UserType, ParameterizedType
 
     @Override
     public boolean equals( Object x, Object y )
-        throws HibernateException
     {
-        return x == y || !(x == null || y == null) && x.equals( y );
+        return x == y || (x != null && y != null && (x.equals( y ) || safeContentBasedEquals( x, y )));
+    }
+
+    private boolean safeContentBasedEquals( Object x, Object y )
+    {
+        Optional<Map<String, Object>> first = safelyConvertToMap( x );
+        Optional<Map<String, Object>> second = safelyConvertToMap( y );
+
+        if ( first.isPresent() && second.isPresent() )
+        {
+            return first.equals( second );
+        }
+
+        return false;
+    }
+
+    private Optional<Map<String, Object>> safelyConvertToMap( Object o )
+    {
+        try
+        {
+            return Optional.of( resultingMapper.readValue( resultingMapper.writeValueAsString( o ),
+                MAP_STRING_OBJECT_TYPE_REFERENCE ) );
+        }
+        catch ( Exception e )
+        {
+            return Optional.empty();
+        }
     }
 
     @Override
