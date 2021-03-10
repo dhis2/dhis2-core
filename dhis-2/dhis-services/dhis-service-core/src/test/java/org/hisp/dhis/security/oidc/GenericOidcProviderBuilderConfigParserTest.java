@@ -44,7 +44,6 @@ public class GenericOidcProviderBuilderConfigParserTest
     public void parseConfigAllValidParameters()
     {
         Properties p = new Properties();
-
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
         p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
         p.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
@@ -70,7 +69,6 @@ public class GenericOidcProviderBuilderConfigParserTest
     public void parseValidMinimumConfig()
     {
         Properties p = new Properties();
-
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
         p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
         p.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
@@ -88,7 +86,6 @@ public class GenericOidcProviderBuilderConfigParserTest
     public void parseConfigMissingRequiredParameter()
     {
         Properties p = new Properties();
-
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
         p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
         p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
@@ -105,7 +102,6 @@ public class GenericOidcProviderBuilderConfigParserTest
     public void parseConfigMalformedKeyNameParameter()
     {
         Properties p = new Properties();
-
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
         p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
         p.put( "oidc.provider.idporten.INVALID_PROPERTY_NAME", "https://oidc-ver2.difi.no/authorize" );
@@ -123,7 +119,6 @@ public class GenericOidcProviderBuilderConfigParserTest
     public void parseConfigInvalidURIParameter()
     {
         Properties p = new Properties();
-
         p.put( "oidc.provider.idporten.client_id", "testClientId" );
         p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
         p.put( "oidc.provider.idporten.authorization_uri", "INVALID_URI_SCHEME://oidc-ver2.difi.no/authorize" );

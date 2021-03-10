@@ -88,8 +88,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         + "nMH3euqGWr4_G_EBvVqfVPnBF0YA";
     // @formatter:on
 
-    public static final String GOOGLE_CLIENT_ID = ""
-        + "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
+    public static final String GOOGLE_CLIENT_ID = "1019417002544-mqa7flk4mjohrgsbg9bta9bvluoj85o0.apps.googleusercontent.com";
 
     public static final String TEST_PROVIDER_ONE_URI = "testproviderone.com";
 

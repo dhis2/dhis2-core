@@ -66,9 +66,9 @@ public abstract class AbstractOidcProvider
 
     public static final String SCOPES = "scopes";
 
-    public static final String LOGO_IMAGE = "logo_image";
+    public static final String LOGIN_IMAGE = "login_image";
 
-    public static final String LOGO_IMAGE_PADDING = "logo_image_padding";
+    public static final String LOGIN_IMAGE_PADDING = "login_image_padding";
 
     public static final String ENABLE_PKCE = "enable_pkce";
 

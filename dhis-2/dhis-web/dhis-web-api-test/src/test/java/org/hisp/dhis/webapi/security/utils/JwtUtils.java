@@ -37,8 +37,6 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import net.minidev.json.JSONObject;
-
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.util.Assert;
@@ -64,6 +62,8 @@ import com.nimbusds.jose.util.Base64;
 import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+
+import net.minidev.json.JSONObject;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -117,15 +117,13 @@ public class JwtUtils
                 "The \"kid\" (key ID) from the selected JWK cannot be empty" ) );
         }
 
-        // @formatter:off
-        headers = JoseHeader.from(headers)
-            .type(JOSEObjectType.JWT.getType())
-            .keyId(jwk.getKeyID())
+        headers = JoseHeader.from( headers )
+            .type( JOSEObjectType.JWT.getType() )
+            .keyId( jwk.getKeyID() )
             .build();
-        claims = JwtClaimsSet.from(claims)
-            .id(UUID.randomUUID().toString())
+        claims = JwtClaimsSet.from( claims )
+            .id( UUID.randomUUID().toString() )
             .build();
-        // @formatter:on
 
         JWSHeader jwsHeader = JWS_HEADER_CONVERTER.convert( headers );
         JWTClaimsSet jwtClaimsSet = JWT_CLAIMS_SET_CONVERTER.convert( claims );

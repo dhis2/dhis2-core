@@ -35,8 +35,6 @@
             <artifactId>dhis-web-api</artifactId>
         </dependency>
 
-        <!-- Web maintenance modules -->
-
         <dependency>
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-dataentry</artifactId>

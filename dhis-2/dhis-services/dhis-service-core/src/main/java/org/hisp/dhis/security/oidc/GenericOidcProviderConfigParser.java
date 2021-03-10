@@ -38,8 +38,8 @@ import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTERNAL
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.EXTRA_REQUEST_PARAMETERS;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.ISSUER_URI;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.JWK_URI;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE;
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGO_IMAGE_PADDING;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE;
+import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.LOGIN_IMAGE_PADDING;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.MAPPING_CLAIM;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.PROVIDER_ID;
 import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.REDIRECT_URL;
@@ -113,8 +113,8 @@ public final class GenericOidcProviderConfigParser
         builder.put( MAPPING_CLAIM, Boolean.FALSE );
         builder.put( END_SESSION_ENDPOINT, Boolean.FALSE );
         builder.put( SCOPES, Boolean.FALSE );
-        builder.put( LOGO_IMAGE, Boolean.FALSE );
-        builder.put( LOGO_IMAGE_PADDING, Boolean.FALSE );
+        builder.put( LOGIN_IMAGE, Boolean.FALSE );
+        builder.put( LOGIN_IMAGE_PADDING, Boolean.FALSE );
         builder.put( EXTRA_REQUEST_PARAMETERS, Boolean.FALSE );
         builder.put( ISSUER_URI, Boolean.FALSE );
 
