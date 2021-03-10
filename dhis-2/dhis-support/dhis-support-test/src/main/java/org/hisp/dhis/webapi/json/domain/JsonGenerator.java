@@ -192,8 +192,7 @@ public class JsonGenerator
         case "code":
         case "cid":
             return CodeGenerator.generateUid();
-        default: // assume reference
-                 // TODO return id of object of correct type
+        default:
             throw new UnsupportedOperationException( "id type not supported: " + property.getName() );
         }
     }

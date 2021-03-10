@@ -32,6 +32,7 @@ import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -60,7 +61,7 @@ import java.util.Map;
  *
  * @author Jan Bernitt
  */
-public final class JsonDocument
+public final class JsonDocument implements Serializable
 {
     /**
      * Thrown when the JSON content turns out to be invalid JSON.
@@ -85,7 +86,7 @@ public final class JsonDocument
             char[] pointer = new char[index - start + 1];
             Arrays.fill( pointer, ' ' );
             pointer[pointer.length - 1] = '^';
-            return String.format( "Unexpected character at position %d,\n%s\n%s expected `%s`",
+            return String.format( "Unexpected character at position %d,%n%s%n%s expected `%s`",
                 index, section, new String( pointer ), expected );
         }
     }
@@ -121,7 +122,7 @@ public final class JsonDocument
      * Operations are lazily evaluated to make working with the JSON tree
      * efficient.
      */
-    public interface JsonNode
+    public interface JsonNode extends Serializable
     {
         /**
          * @return the type of the node as derived from the node beginning
@@ -176,7 +177,7 @@ public final class JsonDocument
          *
          * @return the nodes values as described in the above table
          */
-        Object value();
+        Serializable value();
 
         /**
          * @return this {@link #value()} as as {@link Map} (only defined when
@@ -218,7 +219,7 @@ public final class JsonDocument
      * The "expensive" operations to access the nodes {@link #value()} or find
      * its {@link #endIndex()} are only computed on demand.
      */
-    private static abstract class LazyJsonNode implements JsonNode
+    private abstract static class LazyJsonNode implements JsonNode
     {
         final String path;
 
@@ -228,7 +229,7 @@ public final class JsonDocument
 
         private Integer end;
 
-        private Object value;
+        private Serializable value;
 
         LazyJsonNode( String path, char[] json, int start )
         {
@@ -251,7 +252,7 @@ public final class JsonDocument
         }
 
         @Override
-        public final Object value()
+        public final Serializable value()
         {
             if ( getType() == JsonNodeType.NULL )
             {
@@ -289,7 +290,7 @@ public final class JsonDocument
         /**
          * @return parses the JSON to a value as described by {@link #value()}
          */
-        abstract Object parseValue();
+        abstract Serializable parseValue();
 
         static JsonNode autoDetect( String path, char[] json, int atIndex, Map<String, JsonNode> nodesByPath )
         {
@@ -348,9 +349,9 @@ public final class JsonDocument
         }
 
         @Override
-        Object parseValue()
+        Serializable parseValue()
         {
-            Map<String, JsonNode> object = new LinkedHashMap<>();
+            LinkedHashMap<String, JsonNode> object = new LinkedHashMap<>();
             int index = expectChar( json, start, '{' );
             index = skipWhitespace( json, index );
             while ( index < json.length && json[index] != '}' )
@@ -402,9 +403,9 @@ public final class JsonDocument
         }
 
         @Override
-        Object parseValue()
+        Serializable parseValue()
         {
-            List<JsonNode> array = new ArrayList<>();
+            ArrayList<JsonNode> array = new ArrayList<>();
             int index = expectChar( json, start, '[' );
             index = skipWhitespace( json, index );
             while ( index < json.length && json[index] != ']' )
@@ -470,7 +471,7 @@ public final class JsonDocument
         }
 
         @Override
-        Object parseValue()
+        String parseValue()
         {
             StringBuilder str = new StringBuilder();
             int index = start;
@@ -542,7 +543,7 @@ public final class JsonDocument
         }
 
         @Override
-        Object parseValue()
+        Boolean parseValue()
         {
             return skipBoolean( json, start ) == start + 4; // the it was true
         }
@@ -564,7 +565,7 @@ public final class JsonDocument
         }
 
         @Override
-        Object parseValue()
+        Serializable parseValue()
         {
             skipBoolean( json, start );
             return null;
