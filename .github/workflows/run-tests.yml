@@ -6,11 +6,11 @@ jobs:
   cleanup-runs:
     runs-on: ubuntu-latest
     steps:
-    - uses: rokroskar/workflow-run-cleanup-action@master
+    - uses: rokroskar/workflow-run-cleanup-action@035a48f84b47e111d72cf492a513179c92cd29ed
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
-      
+
   unit-test:
     runs-on: ubuntu-latest
     steps:
@@ -29,7 +29,7 @@ jobs:
       run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/pom.xml
     - name: Test dhis-web
       run: mvn clean install -DskipTests=false --update-snapshots -q -f ./dhis-2/dhis-web/pom.xml
-  
+
   integration-test:
     runs-on: ubuntu-latest
     steps:
@@ -46,4 +46,3 @@ jobs:
           ${{ runner.os }}-maven-
     - name: Run integration tests
       run: mvn clean install -Pintegration -f ./dhis-2/pom.xml
-    
