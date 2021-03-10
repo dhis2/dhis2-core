@@ -644,8 +644,10 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
             
-            if ( maxTeiLimit > 0 && params.isPaging()
-                && ((params.getPage() - 1) * params.getPageSizeWithDefault()) > maxTeiLimit )
+            if ( maxTeiLimit > 0 && ((isGridSearch && params.isPaging()
+                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit)
+                || ((!isGridSearch
+                    && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit))) )
             {
                 throw new IllegalQueryException(
                     "maxteicountreached" );

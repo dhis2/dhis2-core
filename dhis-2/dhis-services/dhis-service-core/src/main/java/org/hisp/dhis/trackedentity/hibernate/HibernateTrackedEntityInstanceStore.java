@@ -92,6 +92,28 @@ public class HibernateTrackedEntityInstanceStore
     extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
     implements TrackedEntityInstanceStore
 {
+    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
+
+    private static final String OFFSET = "OFFSET";
+
+    private static final String LIMIT = "LIMIT";
+
+    private static final String PSI_EXECUTIONDATE = "PSI.executiondate";
+
+    private static final String PSI_DUEDATE = "PSI.duedate";
+
+    private static final String IS_NULL = "IS NULL";
+
+    private static final String IS_NOT_NULL = "IS NOT NULL";
+
+    private static final String SPACE = " ";
+
+    private static final String SINGLE_QUOTE = "'";
+
+    private static final String EQUALS = " = ";
+
+    private static final String PSI_STATUS = "PSI.status";
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -195,13 +217,13 @@ public class HibernateTrackedEntityInstanceStore
 
             }
 
-            hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + "'";
+            hql += hlp.whereAnd() + " po.program.uid = '" + params.getProgram().getUid() + SINGLE_QUOTE;
 
-            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + "'";
+            hql += hlp.whereAnd() + " pi.program.uid = '" + params.getProgram().getUid() + SINGLE_QUOTE;
 
             if ( params.hasProgramStatus() )
             {
-                hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + "'";
+                hql += hlp.whereAnd() + "pi.status = '" + params.getProgramStatus() + SINGLE_QUOTE;
             }
 
             if ( params.hasFollowUp() )
@@ -212,26 +234,26 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.hasProgramEnrollmentStartDate() )
             {
                 hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString(
-                    params.getProgramEnrollmentStartDate() ) + "'";
+                    params.getProgramEnrollmentStartDate() ) + SINGLE_QUOTE;
             }
 
             if ( params.hasProgramEnrollmentEndDate() )
             {
                 hql += hlp.whereAnd() + "pi.enrollmentDate < '" + getMediumDateString(
-                    params.getProgramEnrollmentEndDate() ) + "'";
+                    params.getProgramEnrollmentEndDate() ) + SINGLE_QUOTE;
             }
 
             if ( params.hasProgramIncidentStartDate() )
             {
                 hql += hlp.whereAnd() + "pi.incidentDate >= '" + getMediumDateString(
-                    params.getProgramIncidentStartDate() ) + "'";
+                    params.getProgramIncidentStartDate() ) + SINGLE_QUOTE;
             }
 
             if ( params.hasProgramIncidentEndDate() )
             {
                 hql +=
                     hlp.whereAnd() + "pi.incidentDate < '" + getMediumDateString( params.getProgramIncidentEndDate() )
-                        + "'";
+                        + SINGLE_QUOTE;
             }
 
             if ( !params.isIncludeDeleted() )
@@ -254,7 +276,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + "'";
+            hql += hlp.whereAnd() + "tei.trackedEntityType.uid='" + params.getTrackedEntityType().getUid() + SINGLE_QUOTE;
         }
 
         if ( params.hasTrackedEntityInstances() )
@@ -266,20 +288,20 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.hasLastUpdatedDuration() )
         {
             hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
-                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
+                getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + SINGLE_QUOTE;
         }
         else
         {
             if ( params.hasLastUpdatedStartDate() )
             {
                 hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
-                    getMediumDateString( params.getLastUpdatedStartDate() ) + "'";
+                    getMediumDateString( params.getLastUpdatedStartDate() ) + SINGLE_QUOTE;
             }
 
             if ( params.hasLastUpdatedEndDate() )
             {
                 hql += hlp.whereAnd() + "tei.lastUpdated < '" +
-                    getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'";
+                    getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + SINGLE_QUOTE;
             }
         }
 
@@ -293,7 +315,7 @@ public class HibernateTrackedEntityInstanceStore
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + SINGLE_QUOTE;
         }
 
         params.handleOrganisationUnits();
@@ -347,7 +369,7 @@ public class HibernateTrackedEntityInstanceStore
                     hql +=
                         hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
 
-                    hql += " and teav.attribute.uid='" + queryItem.getItemId() + "'";
+                    hql += " and teav.attribute.uid='" + queryItem.getItemId() + SINGLE_QUOTE;
 
                     if ( queryItem.isNumeric() )
                     {
@@ -385,14 +407,7 @@ public class HibernateTrackedEntityInstanceStore
         log.debug( "Tracked entity instance query SQL: " + sql );
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
-        {
-            if ( rowSet.getRow() > params.getMaxTeiLimit() )
-            {
-                throw new IllegalQueryException( "maxteicountreached" );
-            }
-            rowSet.beforeFirst();
-        }
+        checkMaxTeiCountReached( params, rowSet );
 
         List<Map<String, String>> list = new ArrayList<>();
 
@@ -418,20 +433,7 @@ public class HibernateTrackedEntityInstanceStore
                 HashMap<String, String> attributeValues = new HashMap<>();
                 String teavString = rowSet.getString( "tea_values" );
 
-                if ( teavString != null )
-                {
-                    String[] pairs = teavString.split( ";" );
-
-                    for ( String pair : pairs )
-                    {
-                        String[] teav = pair.split( ":" );
-
-                        if ( teav.length == 2 )
-                        {
-                            attributeValues.put( teav[0], teav[1] );
-                        }
-                    }
-                }
+                extractFromTeavAggregatedString( attributeValues, teavString );
 
                 for ( QueryItem item : params.getAttributes() )
                 {
@@ -447,6 +449,36 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return list;
+    }
+
+    private void extractFromTeavAggregatedString( HashMap<String, String> attributeValues, String teavString )
+    {
+        if ( teavString != null )
+        {
+            String[] pairs = teavString.split( ";" );
+
+            for ( String pair : pairs )
+            {
+                String[] teav = pair.split( ":" );
+
+                if ( teav.length == 2 )
+                {
+                    attributeValues.put( teav[0], teav[1] );
+                }
+            }
+        }
+    }
+
+    private void checkMaxTeiCountReached( TrackedEntityInstanceQueryParams params, SqlRowSet rowSet )
+    {
+        if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
+        {
+            if ( rowSet.getRow() > params.getMaxTeiLimit() )
+            {
+                throw new IllegalQueryException( "maxteicountreached" );
+            }
+            rowSet.beforeFirst();
+        }
     }
 
     @Override
@@ -577,7 +609,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TEI.inactive AS " + INACTIVE_ID )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
             .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") )
-            .append( " " )
+            .append( SPACE )
             .toString();
     }
 
@@ -663,7 +695,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.trackedentitytypeid = " )
                 .append( params.getTrackedEntityType().getId() )
-                .append( " " );
+                .append( SPACE );
         }
         else
         {
@@ -705,77 +737,88 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( !params.isOrQuery() )
             {
-                for ( QueryItem queryItem : filterItems )
-                {
-                    String col = statementBuilder.columnQuote( queryItem.getItemId() );
-                    String teaId = col + ".trackedentityattributeid";
-                    String teav = "lower(" + col + ".value)";
-                    String teiid = col + ".trackedentityinstanceid";
-
-                    attributes
-                        .append( " INNER JOIN trackedentityattributevalue " )
-                        .append( col )
-                        .append( " ON " )
-                        .append( teaId )
-                        .append( " = " )
-                        .append( queryItem.getItem().getId() )
-                        .append( " AND " )
-                        .append( teiid )
-                        .append( " = TEI.trackedentityinstanceid " );
-
-                    for ( QueryFilter filter : queryItem.getFilters() )
-                    {
-                        attributes
-                            .append( "AND " )
-                            .append( teav )
-                            .append( " " )
-                            .append( filter.getSqlOperator() )
-                            .append( " " )
-                            .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
-                    }
-                }
+                joinAttributeValueWithoutQueryParameter( attributes, filterItems );
             }
             else
             {
-                final String regexp = statementBuilder.getRegexpMatch();
-                final String wordStart = statementBuilder.getRegexpWordStart();
-                final String wordEnd = statementBuilder.getRegexpWordEnd();
-                final String anyChar = "\\.*?";
-                final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
-                final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
-                SqlHelper orHlp = new SqlHelper( true );
-
-                List<Long> itemIds = params.getAttributesAndFilters().stream()
-                    .map( QueryItem::getItem )
-                    .map( DimensionalItemObject::getId )
-                    .collect( Collectors.toList() );
-
-                attributes
-                    .append( "INNER JOIN trackedentityattributevalue Q " )
-                    .append( "ON Q.trackedentityinstanceid IN (" )
-                    .append( getCommaDelimitedString( itemIds ) )
-                    .append( ") AND (" );
-
-                for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
-                {
-                    final String query = statementBuilder.encode( queryToken, false );
-
-                    attributes
-                        .append( orHlp.or() )
-                        .append( "lower(Q.value) " )
-                        .append( regexp )
-                        .append( " '" )
-                        .append( start )
-                        .append( StringUtils.lowerCase( query ) )
-                        .append( end )
-                        .append( "'" );
-                }
-
-                attributes.append( ")" );
+                joinAttributeValueWithQueryParameter( params, attributes );
             }
         }
 
         return attributes.toString();
+    }
+
+    private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
+        StringBuilder attributes )
+    {
+        final String regexp = statementBuilder.getRegexpMatch();
+        final String wordStart = statementBuilder.getRegexpWordStart();
+        final String wordEnd = statementBuilder.getRegexpWordEnd();
+        final String anyChar = "\\.*?";
+        final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
+        final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
+        SqlHelper orHlp = new SqlHelper( true );
+
+        List<Long> itemIds = params.getAttributesAndFilters().stream()
+            .map( QueryItem::getItem )
+            .map( DimensionalItemObject::getId )
+            .collect( Collectors.toList() );
+
+        attributes
+            .append( "INNER JOIN trackedentityattributevalue Q " )
+            .append( "ON Q.trackedentityinstanceid IN (" )
+            .append( getCommaDelimitedString( itemIds ) )
+            .append( ") AND (" );
+
+        for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
+        {
+            final String query = statementBuilder.encode( queryToken, false );
+
+            attributes
+                .append( orHlp.or() )
+                .append( "lower(Q.value) " )
+                .append( regexp )
+                .append( " '" )
+                .append( start )
+                .append( StringUtils.lowerCase( query ) )
+                .append( end )
+                .append( SINGLE_QUOTE );
+        }
+
+        attributes.append( ")" );
+    }
+
+    private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
+    {
+        for ( QueryItem queryItem : filterItems )
+        {
+            String col = statementBuilder.columnQuote( queryItem.getItemId() );
+            String teaId = col + ".trackedentityattributeid";
+            String teav = "lower(" + col + ".value)";
+            String teiid = col + ".trackedentityinstanceid";
+
+            attributes
+                .append( " INNER JOIN trackedentityattributevalue " )
+                .append( col )
+                .append( " ON " )
+                .append( teaId )
+                .append( EQUALS )
+                .append( queryItem.getItem().getId() )
+                .append( " AND " )
+                .append( teiid )
+                .append( " = TEI.trackedentityinstanceid " );
+
+            for ( QueryFilter filter : queryItem.getFilters() )
+            {
+                attributes
+                    .append( "AND " )
+                    .append( teav )
+                    .append( SPACE )
+                    .append( filter.getSqlOperator() )
+                    .append( SPACE )
+                    .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
+            }
+        }
     }
 
     private String getFromSubQueryJoinOrderByAttributes( TrackedEntityInstanceQueryParams params )
@@ -799,7 +842,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
                 .append( ".trackedentityattributeid = " )
                 .append( orderAttribute.getItem().getId() )
-                .append( " " );
+                .append( SPACE );
         }
 
         return joinOrderAttributes.toString();
@@ -884,7 +927,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
             .append( "AND PI.programid = " )
             .append( params.getProgram().getId() )
-            .append( " " );
+            .append( SPACE );
 
         if ( params.hasProgramStatus() )
         {
@@ -899,7 +942,7 @@ public class HibernateTrackedEntityInstanceStore
             program
                 .append( "AND PI.followup IS " )
                 .append( params.getFollowUp() )
-                .append( " " );
+                .append( SPACE );
         }
 
         if ( params.hasProgramEnrollmentStartDate() )
@@ -972,43 +1015,66 @@ public class HibernateTrackedEntityInstanceStore
             String end = getMediumDateString( params.getEventEndDate() );
             events.append( whereHlp.whereAnd() );
 
-            if ( params.isEventStatus( EventStatus.SCHEDULE ) || params.isEventStatus( EventStatus.OVERDUE ) )
-            {
-                events.append( "PSI.status IS NOT NULL " );
-            }
-            else
-            {
-                events
-                    .append( "PSI.status = '" )
-                    .append( params.getEventStatus() )
-                    .append( "' " );
-            }
-
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_EXECUTIONDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.COMPLETED.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
             }
             else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.executiondate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_EXECUTIONDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.ACTIVE.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
             }
             else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
             {
-                events
-                    .append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
-                    .append( "AND PSI.executiondate IS NULL " )
-                    .append( "AND date(now()) <= date(PSI.duedate) " );
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( SPACE )
+                    .append( IS_NOT_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_EXECUTIONDATE )
+                    .append( SPACE )
+                    .append( IS_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) <= date(PSI.duedate) " );
             }
             else if ( params.isEventStatus( EventStatus.OVERDUE ) )
             {
-                events
-                    .append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) )
-                    .append( "AND PSI.executiondate IS NULL " )
-                    .append( "AND date(now()) > date(PSI.duedate) " );
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( SPACE )
+                    .append( IS_NOT_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_EXECUTIONDATE )
+                    .append( SPACE )
+                    .append( IS_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) > date(PSI.duedate) " );
             }
             else if ( params.isEventStatus( EventStatus.SKIPPED ) )
             {
-                events.append( getQueryDateConditionBetween( whereHlp, "PSI.duedate", start, end ) );
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.SKIPPED.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
             }
         }
 
@@ -1018,7 +1084,7 @@ public class HibernateTrackedEntityInstanceStore
                 .append( whereHlp.whereAnd() )
                 .append( "PSI.programstageid = " )
                 .append( params.getProgramStage().getId() )
-                .append( " " );
+                .append( SPACE );
         }
 
         if ( params.isIncludeOnlyUnassignedEvents() )
@@ -1055,7 +1121,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( column )
             .append( " >= '" )
             .append( start )
-            .append( "'" )
+            .append( SINGLE_QUOTE )
             .append( whereHelper.whereAnd() )
             .append( column )
             .append( " <= '" )
@@ -1118,7 +1184,7 @@ public class HibernateTrackedEntityInstanceStore
                 groupBy
                     .append( ", TEI." )
                     .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
-                    .append( " " );
+                    .append( SPACE );
             }
 
         }
@@ -1137,40 +1203,13 @@ public class HibernateTrackedEntityInstanceStore
 
             for ( String order : params.getOrders() )
             {
-                String[] prop = order.split( ":" );
-
-                if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
-                {
-                    if ( cols.contains( prop[0] ) )
-                    {
-                        orderFields.add( prop[0] + " " + prop[1] );
-                    }
-                    else
-                    {
-
-                        for ( QueryItem item : params.getAttributes() )
-                        {
-                            if ( prop[0].equals( item.getItemId() ) )
-                            {
-                                if ( innerOrder )
-                                {
-                                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
-                                }
-                                else
-                                {
-                                    orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + " " + prop[1] );
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
+                extractOrderField( innerOrder, params, cols, orderFields, order );
 
             }
 
             if ( !orderFields.isEmpty() )
             {
-                return "ORDER BY " + StringUtils.join( orderFields, ',' ) + " ";
+                return "ORDER BY " + StringUtils.join( orderFields, ',' ) + SPACE;
             }
         }
 
@@ -1181,6 +1220,44 @@ public class HibernateTrackedEntityInstanceStore
         else
         {
             return "";
+        }
+    }
+
+    private void extractOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params, List<String> cols,
+        ArrayList<String> orderFields, String order )
+    {
+        String[] prop = order.split( ":" );
+
+        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
+        {
+            if ( cols.contains( prop[0] ) )
+            {
+                orderFields.add( prop[0] + SPACE + prop[1] );
+            }
+            else
+            {
+                extractDynamicOrderField( innerOrder, params, orderFields, prop );
+            }
+        }
+    }
+
+    private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
+        ArrayList<String> orderFields, String[] prop )
+    {
+        for ( QueryItem item : params.getAttributes() )
+        {
+            if ( prop[0].equals( item.getItemId() ) )
+            {
+                if ( innerOrder )
+                {
+                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
+                }
+                else
+                {
+                    orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + SPACE + prop[1] );
+                }
+                break;
+            }
         }
     }
 
@@ -1212,29 +1289,36 @@ public class HibernateTrackedEntityInstanceStore
         else if ( limit == 0 && params.isPaging() )
         {
             return limitOffset
-                .append( "LIMIT " )
+                .append( LIMIT )
+                .append( SPACE )
                 .append( params.getPageSizeWithDefault() )
-                .append( " OFFSET " )
+                .append( SPACE )
+                .append( OFFSET )
+                .append( SPACE )
                 .append( params.getOffset() )
-                .append( " " )
+                .append( SPACE )
                 .toString();
         }
         else if ( params.isPaging() )
         {
             return limitOffset
-                .append( "LIMIT " )
+                .append( LIMIT )
+                .append( SPACE )
                 .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
-                .append( " OFFSET " )
+                .append( SPACE )
+                .append( OFFSET )
+                .append( SPACE )
                 .append( params.getOffset() )
-                .append( " " )
+                .append( SPACE )
                 .toString();
         }
         else
         {
             return limitOffset
-                .append( "LIMIT " )
+                .append( LIMIT )
+                .append( SPACE )
                 .append( limit + 1 ) // We add +1, since we use this limit to restrict a user to search to wide.
-                .append( " " )
+                .append( SPACE )
                 .toString();
         }
     }
@@ -1258,13 +1342,13 @@ public class HibernateTrackedEntityInstanceStore
             if ( params.isEventStatus( EventStatus.COMPLETED ) )
             {
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.COMPLETED.name()
+                    + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE + EventStatus.COMPLETED.name()
                     + "' and ";
             }
             else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
             {
                 hql += " psi.executionDate >= '" + start + "' and psi.executionDate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.ACTIVE.name()
+                    + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE + EventStatus.ACTIVE.name()
                     + "' and ";
             }
             else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
@@ -1279,7 +1363,7 @@ public class HibernateTrackedEntityInstanceStore
             }
             else if ( params.isEventStatus( EventStatus.SKIPPED ) )
             {
-                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + "and psi.status = '"
+                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE
                     + EventStatus.SKIPPED.name() + "' and ";
             }
         }

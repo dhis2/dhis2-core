@@ -225,7 +225,7 @@ public class TrackedEntityInstanceQueryParams
     private boolean skipPaging;
     
     /**
-     * Indicates if there is a maximum tei retrieval limit. 0 or null means no limit.
+     * Indicates if there is a maximum tei retrieval limit. 0 no limit.
      */
     private int maxTeiLimit;
 
