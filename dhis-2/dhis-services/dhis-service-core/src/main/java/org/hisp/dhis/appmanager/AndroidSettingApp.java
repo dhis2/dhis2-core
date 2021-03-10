@@ -45,7 +45,7 @@ public class AndroidSettingApp
 {
     public static final String NAMESPACE = "ANDROID_SETTING_APP";
 
-    public static final String AUTHORITY = "ANDROID_SETTING_APP_MANAGER";
+    public static final String AUTHORITY = "M_Android_Setting";
 
     public AndroidSettingApp( KeyJsonValueService service )
     {
