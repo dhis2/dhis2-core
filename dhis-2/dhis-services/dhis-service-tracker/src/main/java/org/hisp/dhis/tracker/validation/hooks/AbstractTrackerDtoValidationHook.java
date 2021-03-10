@@ -201,7 +201,8 @@ public abstract class AbstractTrackerDtoValidationHook
                 addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
                     .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
                     optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                    optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
+                    optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull )
+                        .map( Option::getCode )
                         .collect( Collectors.joining( "," ) ) );
             } );
     }
