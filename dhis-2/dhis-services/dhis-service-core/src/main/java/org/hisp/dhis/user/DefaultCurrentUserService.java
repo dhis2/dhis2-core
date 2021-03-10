@@ -242,7 +242,7 @@ public class DefaultCurrentUserService
 
     private Set<Long> getUserGroupIds( User user )
     {
-        if ( CollectionUtils.isEmpty( user.getGroups() ) )
+        if ( user == null || CollectionUtils.isEmpty( user.getGroups() ) )
         {
             return null;
         }
