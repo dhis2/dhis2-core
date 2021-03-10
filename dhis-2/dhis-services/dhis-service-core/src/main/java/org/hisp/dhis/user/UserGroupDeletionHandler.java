@@ -42,10 +42,6 @@ import org.springframework.stereotype.Component;
 public class UserGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final IdentifiableObjectManager idObjectManager;
 
     private final CurrentUserService currentUserService;
@@ -59,18 +55,14 @@ public class UserGroupDeletionHandler
         this.currentUserService = currentUserService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return UserGroup.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
+        whenDeleting( UserGroup.class, this::deleteUserGroup );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         Set<UserGroup> userGroups = user.getGroups();
 
@@ -81,8 +73,7 @@ public class UserGroupDeletionHandler
         }
     }
 
-    @Override
-    public void deleteUserGroup( UserGroup userGroup )
+    private void deleteUserGroup( UserGroup userGroup )
     {
         Set<UserGroup> userGroups = userGroup.getManagedByGroups();
 

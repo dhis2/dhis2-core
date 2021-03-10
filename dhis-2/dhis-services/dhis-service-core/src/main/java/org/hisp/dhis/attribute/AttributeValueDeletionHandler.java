@@ -28,21 +28,19 @@
 package org.hisp.dhis.attribute;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.singletonList;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import com.google.common.collect.Lists;
 
 @Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
 public class AttributeValueDeletionHandler
     extends DeletionHandler
 {
     private final IdentifiableObjectManager identifiableObjectManager;
-
-    private String supportedClassName;
 
     public AttributeValueDeletionHandler( IdentifiableObjectManager identifiableObjectManager )
     {
@@ -51,29 +49,22 @@ public class AttributeValueDeletionHandler
         this.identifiableObjectManager = identifiableObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return supportedClassName + "." + AttributeValue.class.getSimpleName();
+        whenVetoing( Attribute.class, this::allowDeleteAttribute );
     }
 
-    @Override
-    public String allowDeleteAttribute( Attribute attribute )
+    private DeletionVeto allowDeleteAttribute( Attribute attribute )
     {
         for ( Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
         {
             if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass,
-                Lists.newArrayList( attribute ) ) > 0 )
+                singletonList( attribute ) ) > 0 )
             {
-                supportedClassName = supportedClass.getSimpleName();
-                return ERROR;
+                return new DeletionVeto( supportedClass, Attribute.class );
             }
         }
-
-        return null;
+        return DeletionVeto.ACCEPT;
     }
 }

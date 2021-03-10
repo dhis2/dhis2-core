@@ -32,7 +32,10 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Service;
@@ -57,8 +60,11 @@ public class DefaultUserGroupService
 
     private final HibernateCacheManager cacheManager;
 
+    private Cache<String> userGroupNameCache;
+
     public DefaultUserGroupService( UserGroupStore userGroupStore,
-        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService )
+        AclService aclService, HibernateCacheManager cacheManager, CurrentUserService currentUserService,
+        CacheProvider cacheProvider )
     {
         checkNotNull( userGroupStore );
         checkNotNull( currentUserService );
@@ -69,6 +75,8 @@ public class DefaultUserGroupService
         this.aclService = aclService;
         this.cacheManager = cacheManager;
         this.currentUserService = currentUserService;
+
+        userGroupNameCache = cacheProvider.createUserGroupNameCache();
     }
 
     // -------------------------------------------------------------------------
@@ -254,5 +262,14 @@ public class DefaultUserGroupService
     public List<UserGroup> getUserGroupsBetweenByName( String name, int first, int max )
     {
         return userGroupStore.getAllLikeName( name, first, max, false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public String getDisplayName( String uid )
+    {
+        Optional<String> displayName = userGroupNameCache.get( uid,
+            n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() );
+        return displayName.isPresent() ? displayName.get() : null;
     }
 }

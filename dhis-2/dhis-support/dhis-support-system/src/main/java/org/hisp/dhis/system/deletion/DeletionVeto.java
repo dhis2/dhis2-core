@@ -25,27 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.mapping;
-
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.system.deletion;
 
 /**
- * @author Lars Helge Overland
+ * @author Jan Bernitt
  */
-@Component( "org.hisp.dhis.mapping.MapDeletionHandler" )
-public class MapDeletionHandler
-    extends DeletionHandler
+public final class DeletionVeto
 {
-    // TODO remove this?
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
+    /**
+     * Deletion is not vetoed but accepted
+     */
+    public static final DeletionVeto ACCEPT = new DeletionVeto( "" );
+
+    private final String message;
+
+    public DeletionVeto( Class<?> parent, Class<?> vetoed )
+    {
+        this( parent.getSimpleName() + "." + vetoed.getSimpleName() );
+    }
+
+    public DeletionVeto( Class<?> vetoed, String hint )
+    {
+        this( vetoed.getSimpleName() + " (" + hint + ")" );
+    }
+
+    public DeletionVeto( Class<?> vetoed )
+    {
+        this( vetoed.getSimpleName() );
+    }
+
+    private DeletionVeto( String message )
+    {
+        this.message = message;
+    }
+
+    public boolean isVetoed()
+    {
+        return this != ACCEPT;
+    }
+
+    public String getMessage()
+    {
+        return message;
+    }
 
     @Override
-    protected String getClassName()
+    public String toString()
     {
-        return Map.class.getSimpleName();
+        return "DeletionVeto{" + "message='" + message + '\'' + '}';
     }
 }

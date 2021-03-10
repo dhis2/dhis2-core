@@ -323,7 +323,8 @@ public class DefaultPreheatService implements PreheatService
 
                 if ( user != null )
                 {
-                    ua.setUser( user );
+                    ua.setUid( user.getUid() );
+                    ua.setDisplayName( user.getDisplayName() );
                 }
 
                 // Copy legacy sharing to new jsonb sharing
@@ -335,7 +336,8 @@ public class DefaultPreheatService implements PreheatService
 
                 if ( userGroup != null )
                 {
-                    uga.setUserGroup( userGroup );
+                    uga.setUid( userGroup.getUid() );
+                    uga.setDisplayName( userGroup.getDisplayName() );
                 }
 
                 // Copy legacy sharing to new jsonb sharing

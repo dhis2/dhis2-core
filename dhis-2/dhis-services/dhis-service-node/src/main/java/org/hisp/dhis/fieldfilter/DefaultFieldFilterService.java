@@ -76,7 +76,11 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -118,6 +122,10 @@ public class DefaultFieldFilterService implements FieldFilterService
 
     private final Cache<PropertyTransformer> transformerCache;
 
+    private final UserGroupService userGroupService;
+
+    private final UserService userService;
+
     public DefaultFieldFilterService(
         FieldParser fieldParser,
         SchemaService schemaService,
@@ -125,13 +133,17 @@ public class DefaultFieldFilterService implements FieldFilterService
         CurrentUserService currentUserService,
         AttributeService attributeService,
         CacheProvider cacheProvider,
+        UserGroupService userGroupService,
+        UserService userService,
         @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
         this.aclService = aclService;
         this.currentUserService = currentUserService;
+        this.userService = userService;
         this.attributeService = attributeService;
+        this.userGroupService = userGroupService;
         this.nodeTransformers = nodeTransformers == null ? new HashSet<>() : nodeTransformers;
         this.transformerCache = cacheProvider.createPropertyTransformerCache();
     }
@@ -377,6 +389,19 @@ public class DefaultFieldFilterService implements FieldFilterService
         {
             AttributeValue attributeValue = (AttributeValue) object;
             attributeValue.setAttribute( attributeService.getAttribute( attributeValue.getAttribute().getUid() ) );
+        }
+
+        if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
+        {
+            UserGroupAccess userGroupAccess = (UserGroupAccess) object;
+            userGroupAccess
+                .setDisplayName( userGroupService.getDisplayName( userGroupAccess.getUserGroupUid() ) );
+        }
+
+        if ( UserAccess.class.isAssignableFrom( object.getClass() ) )
+        {
+            UserAccess userAccess = (UserAccess) object;
+            userAccess.setDisplayName( userService.getDisplayName( userAccess.getUserUid() ) );
         }
 
         for ( String fieldKey : fieldMap.keySet() )
