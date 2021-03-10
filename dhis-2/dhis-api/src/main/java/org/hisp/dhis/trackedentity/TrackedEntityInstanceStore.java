@@ -84,4 +84,5 @@ public interface TrackedEntityInstanceStore
     void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+    
 }

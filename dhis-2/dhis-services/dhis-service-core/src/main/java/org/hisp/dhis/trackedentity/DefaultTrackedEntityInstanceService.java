@@ -553,9 +553,11 @@ public class DefaultTrackedEntityInstanceService
             throw new IllegalQueryException( "User need to be associated with at least one organisation unit." );
         }
 
-        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters() && !params.hasOrganisationUnits() )
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() && params.hasAttributesOrFilters()
+            && !params.hasOrganisationUnits() )
         {
-            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
+            List<String> uniqeAttributeIds = attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream()
+                .map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() );
 
             for ( String att : params.getAttributeAndFilterIds() )
             {
@@ -596,7 +598,8 @@ public class DefaultTrackedEntityInstanceService
 
                 if ( !params.hasProgram() && !params.hasTrackedEntityType() )
                 {
-                    searchableAttributeIds.addAll( attributeService.getAllSystemWideUniqueTrackedEntityAttributes().stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() ) );
+                    searchableAttributeIds.addAll( attributeService.getAllSystemWideUniqueTrackedEntityAttributes()
+                        .stream().map( TrackedEntityAttribute::getUid ).collect( Collectors.toList() ) );
                 }
 
                 List<String> violatingAttributes = new ArrayList<>();
@@ -611,7 +614,9 @@ public class DefaultTrackedEntityInstanceService
 
                 if ( !violatingAttributes.isEmpty() )
                 {
-                    throw new IllegalQueryException( "Non-searchable attribute(s) can not be used during global search:  " + violatingAttributes.toString() );
+                    throw new IllegalQueryException(
+                        "Non-searchable attribute(s) can not be used during global search:  "
+                            + violatingAttributes.toString() );
                 }
             }
 
@@ -621,7 +626,9 @@ public class DefaultTrackedEntityInstanceService
 
                 if ( isProgramMinAttributesViolated( params ) )
                 {
-                    throw new IllegalQueryException( "At least " + params.getProgram().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                    throw new IllegalQueryException(
+                        "At least " + params.getProgram().getMinAttributesRequiredToSearch()
+                            + " attributes should be mentioned in the search criteria." );
                 }
             }
 
@@ -631,16 +638,22 @@ public class DefaultTrackedEntityInstanceService
 
                 if ( isTeTypeMinAttributesViolated( params ) )
                 {
-                    throw new IllegalQueryException( "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch() + " attributes should be mentioned in the search criteria." );
+                    throw new IllegalQueryException(
+                        "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
+                            + " attributes should be mentioned in the search criteria." );
                 }
             }
-
-            if ( maxTeiLimit > 0 &&
-                ((isGridSearch && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit) ||
-                    (!isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit)) )
+            
+            if ( maxTeiLimit > 0 && ((isGridSearch && params.isPaging()
+                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit)
+                || ((!isGridSearch
+                    && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit))) )
             {
-                throw new IllegalQueryException( "maxteicountreached" );
+                throw new IllegalQueryException(
+                    "maxteicountreached" );
             }
+
+            params.setMaxTeiLimit( maxTeiLimit );
         }
     }
 

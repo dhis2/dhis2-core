@@ -294,4 +294,5 @@ public interface TrackedEntityInstanceService
     long createTrackedEntityInstance( TrackedEntityInstance entityInstance, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+
 }
