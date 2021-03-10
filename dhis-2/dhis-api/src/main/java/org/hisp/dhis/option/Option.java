@@ -103,7 +103,7 @@ public class Option
     @Property( PropertyType.TEXT )
     public String getCode()
     {
-        return super.getCode();
+        return code;
     }
 
     @JsonProperty
