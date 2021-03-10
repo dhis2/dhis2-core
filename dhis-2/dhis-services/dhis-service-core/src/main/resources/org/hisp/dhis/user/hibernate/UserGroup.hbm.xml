@@ -19,7 +19,7 @@
 
     <property name="translations" type="jblTranslations"/>
 
-    <set name="members" table="usergroupmembers" lazy="extra">
+    <set name="members" table="usergroupmembers">
       <cache usage="read-write" />
       <key column="usergroupid" foreign-key="fk_usergroupmembers_usergroupid" />
       <many-to-many column="userid" class="org.hisp.dhis.user.User" foreign-key="fk_usergroupmembers_userid" />
