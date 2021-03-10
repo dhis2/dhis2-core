@@ -80,6 +80,7 @@ public class EnrollmentTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );
         assertNoImportErrors( trackerImportService.importTracker( enrollmentParams ) );
 
+        manager.flush();
     }
 
     @Test
@@ -89,6 +90,8 @@ public class EnrollmentTest
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_event.json" );
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
+
+        manager.flush();
 
         TrackerImportParams teiParams = fromJson( "tracker/single_tei.json", userA.getUid() );
         TrackerImportParams enrollmentParams = fromJson( "tracker/single_enrollment.json", userA.getUid() );

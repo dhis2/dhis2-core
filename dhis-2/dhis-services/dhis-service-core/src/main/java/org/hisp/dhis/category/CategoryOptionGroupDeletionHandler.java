@@ -39,10 +39,6 @@ import org.springframework.stereotype.Component;
 public class CategoryOptionGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final CategoryService categoryService;
 
     public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
@@ -52,18 +48,13 @@ public class CategoryOptionGroupDeletionHandler
         this.categoryService = categoryService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryOptionGroup.class.getName();
+        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
     }
 
-    @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    private void deleteCategoryOption( CategoryOption categoryOption )
     {
         for ( CategoryOptionGroup group : categoryOption.getGroups() )
         {

@@ -49,18 +49,13 @@ public class IndicatorGroupSetDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return IndicatorGroupSet.class.getSimpleName();
+        whenDeleting( IndicatorGroup.class, this::deleteIndicatorGroup );
     }
 
-    @Override
-    public void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
+    private void deleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         IndicatorGroupSet groupSet = indicatorGroup.getGroupSet();
 

@@ -39,10 +39,6 @@ import org.springframework.stereotype.Component;
 public class UserAuthorityGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserService userService;
 
     public UserAuthorityGroupDeletionHandler( UserService userService )
@@ -52,18 +48,13 @@ public class UserAuthorityGroupDeletionHandler
         this.userService = userService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return UserAuthorityGroup.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         UserCredentials credentials = user.getUserCredentials();
 

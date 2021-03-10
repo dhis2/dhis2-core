@@ -49,18 +49,13 @@ public class PredictorGroupDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return PredictorGroup.class.getSimpleName();
+        whenDeleting( Predictor.class, this::deletePredictor );
     }
 
-    @Override
-    public void deletePredictor( Predictor predictor )
+    private void deletePredictor( Predictor predictor )
     {
         for ( PredictorGroup group : predictor.getGroups() )
         {

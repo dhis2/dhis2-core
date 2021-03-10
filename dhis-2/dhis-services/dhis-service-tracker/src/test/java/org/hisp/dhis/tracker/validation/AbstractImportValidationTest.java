@@ -107,24 +107,28 @@ public abstract class AbstractImportValidationTest
     protected ValidateAndCommitTestUnit validateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
         throws IOException
     {
-        return ValidateAndCommitTestUnit.builder()
+        ValidateAndCommitTestUnit validateAndCommitTestUnit = ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
             .trackerImportParams( createBundleFromJson( jsonFileName ) )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
+        manager.flush();
+        return validateAndCommitTestUnit;
     }
 
     protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params,
         TrackerImportStrategy strategy )
     {
-        return ValidateAndCommitTestUnit.builder()
+        ValidateAndCommitTestUnit validateAndCommitTestUnit = ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
             .trackerImportParams( params )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
+        manager.flush();
+        return validateAndCommitTestUnit;
     }
 }
