@@ -33,9 +33,6 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastAnd;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastComma;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
@@ -55,7 +52,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -71,6 +67,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -85,7 +84,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -107,6 +105,28 @@ public class HibernateTrackedEntityInstanceStore
     implements TrackedEntityInstanceStore
 {
     private final static String TEI_HQL_BY_UIDS = "from TrackedEntityInstance as tei where tei.uid in (:uids)";
+
+    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
+
+    private static final String OFFSET = "OFFSET";
+
+    private static final String LIMIT = "LIMIT";
+
+    private static final String PSI_EXECUTIONDATE = "PSI.executiondate";
+
+    private static final String PSI_DUEDATE = "PSI.duedate";
+
+    private static final String IS_NULL = "IS NULL";
+
+    private static final String IS_NOT_NULL = "IS NOT NULL";
+
+    private static final String SPACE = " ";
+
+    private static final String SINGLE_QUOTE = "'";
+
+    private static final String EQUALS = " = ";
+
+    private static final String PSI_STATUS = "PSI.status";
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -172,29 +192,8 @@ public class HibernateTrackedEntityInstanceStore
     @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
-        SqlHelper hlp = new SqlHelper();
-
-        // Select clause
-        String sql = "select tei.trackedentityinstanceid as teiid,row_number() over (";
-
-        String orderByClause = getOrderClauseSql( params, false );
-        sql += orderByClause + ") as rn ";
-
-        // From and where clause
-        sql += getFromWhereClauseSql( params, hlp );
-
-        // Order clause
-        sql += orderByClause;
-
-        // Subquery to group by and eliminate duplicate teis and preserve order
-        sql = wrapSqlToPreserveOrderAfterGroupBy( sql );
-
-        // Paging clause
-        sql += addConditionally( params.isPaging(),
-            () -> " limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset() );
-
+        String sql = getQuery( params, false );
         log.debug( "Tracked entity instance query SQL: " + sql );
-
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
         List<Long> ids = new ArrayList<>();
@@ -205,15 +204,6 @@ public class HibernateTrackedEntityInstanceStore
         }
 
         return ids;
-    }
-
-    private String wrapSqlToPreserveOrderAfterGroupBy( String sql )
-    {
-        StringBuilder sb = new StringBuilder();
-        sb.append( "select teiid, min(rn) as mrn from (" );
-        sb.append( sql );
-        sb.append( ") as tei_joined_numbered group by teiid order by mrn " );
-        return sb.toString();
     }
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
@@ -368,27 +358,27 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasLastUpdatedDuration() )
         {
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" +
+            hql += hlp.whereAnd() + " tei.lastUpdated >= '" +
                 getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) + "'";
         }
         else
         {
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> "tei.lastUpdated >= '" +
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedStartDate(), () -> " tei.lastUpdated >= '" +
                 getMediumDateString( params.getLastUpdatedStartDate() ) + "'" );
 
-            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> "tei.lastUpdated < '" +
+            hql += addWhereConditionally( hlp, params.hasLastUpdatedEndDate(), () -> " tei.lastUpdated < '" +
                 getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) + "'" );
         }
 
         hql += addWhereConditionally( hlp, params.isSynchronizationQuery(),
-            () -> "tei.lastUpdated > tei.lastSynchronized" );
+            () -> " tei.lastUpdated > tei.lastSynchronized" );
 
         // Comparing milliseconds instead of always creating new Date( 0 )
 
         if ( params.getSkipChangedBefore() != null && params.getSkipChangedBefore().getTime() > 0 )
         {
             String skipChangedBefore = DateUtils.getLongDateString( params.getSkipChangedBefore() );
-            hql += hlp.whereAnd() + "tei.lastUpdated >= '" + skipChangedBefore + "'";
+            hql += hlp.whereAnd() + " tei.lastUpdated >= '" + skipChangedBefore + "'";
         }
 
         params.handleOrganisationUnits();
@@ -419,51 +409,8 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
-        SqlHelper hlp = new SqlHelper();
-
-        // ---------------------------------------------------------------------
-        // Select clause
-        // ---------------------------------------------------------------------
-
-        String sql = "select tei.uid as " + TRACKED_ENTITY_INSTANCE_ID + ", " +
-            "tei.created as " + CREATED_ID + ", " +
-            "tei.lastupdated as " + LAST_UPDATED_ID + ", " +
-            "ou.uid as " + ORG_UNIT_ID + ", " +
-            "ou.name as " + ORG_UNIT_NAME + ", " +
-            "te.uid as " + TRACKED_ENTITY_ID + ", " +
-            (params.hasProgram() ? "en.status as enrollment_status, " : "") +
-            (params.isIncludeDeleted() ? "tei.deleted as " + DELETED + ", " : "") +
-            "tei.inactive as " + INACTIVE_ID + ", ";
-
-        for ( QueryItem item : params.getAttributes() )
-        {
-            String col = statementBuilder.columnQuote( item.getItemId() );
-
-            sql += item.isNumeric() ? "CAST( " + col + ".value AS NUMERIC ) as " : col + ".value as ";
-
-            sql += col + ", ";
-        }
-
-        sql = removeLastComma( sql ) + " ";
-
-        // ---------------------------------------------------------------------
-        // From and where clause
-        // ---------------------------------------------------------------------
-
-        sql += getFromWhereClauseSql( params, hlp );
-
-        // ---------------------------------------------------------------------
-        // Order clause
-        // ---------------------------------------------------------------------
-
-        sql += getOrderClauseSql( params, true );
-
-        // ---------------------------------------------------------------------
-        // Paging clause
-        // ---------------------------------------------------------------------
-
-        sql += addConditionally( params.isPaging(),
-            () -> " limit " + params.getPageSizeWithDefault() + " offset " + params.getOffset() );
+        String sql = getQuery( params, true );
+        log.debug( "Tracked entity instance query SQL: " + sql );
 
         // ---------------------------------------------------------------------
         // Query
@@ -471,7 +418,7 @@ public class HibernateTrackedEntityInstanceStore
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        log.debug( "Tracked entity instance query SQL: " + sql );
+        checkMaxTeiCountReached( params, rowSet );
 
         List<Map<String, String>> list = new ArrayList<>();
 
@@ -492,11 +439,20 @@ public class HibernateTrackedEntityInstanceStore
                 map.put( DELETED, rowSet.getString( DELETED ) );
             }
 
-            for ( QueryItem item : params.getAttributes() )
+            if ( !params.getAttributesAndFilters().isEmpty() )
             {
-                map.put( item.getItemId(),
-                    isOrgUnit( item ) ? getOrgUnitNameByUid( rowSet.getString( item.getItemId() ) )
-                        : rowSet.getString( item.getItemId() ) );
+                HashMap<String, String> attributeValues = new HashMap<>();
+                String teavString = rowSet.getString( "tea_values" );
+
+                extractFromTeavAggregatedString( attributeValues, teavString );
+
+                for ( QueryItem item : params.getAttributes() )
+                {
+                    map.put( item.getItemId(),
+                        isOrgUnit( item ) && attributeValues.containsKey( item.getItemId() )
+                            ? getOrgUnitNameByUid( attributeValues.get( item.getItemId() ) )
+                            : attributeValues.get( item.getItemId() ) );
+                }
             }
 
             list.add( map );
@@ -505,223 +461,703 @@ public class HibernateTrackedEntityInstanceStore
         return list;
     }
 
+    private void extractFromTeavAggregatedString( HashMap<String, String> attributeValues, String teavString )
+    {
+        if ( teavString != null )
+        {
+            String[] pairs = teavString.split( ";" );
+
+            for ( String pair : pairs )
+            {
+                String[] teav = pair.split( ":" );
+
+                if ( teav.length == 2 )
+                {
+                    attributeValues.put( teav[0], teav[1] );
+                }
+            }
+        }
+    }
+
+    private void checkMaxTeiCountReached( TrackedEntityInstanceQueryParams params, SqlRowSet rowSet )
+    {
+        if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
+        {
+            if ( rowSet.getRow() > params.getMaxTeiLimit() )
+            {
+                throw new IllegalQueryException( "maxteicountreached" );
+            }
+            rowSet.beforeFirst();
+        }
+    }
+
     @Override
     public int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params )
     {
-        SqlHelper hlp = new SqlHelper();
-
         // ---------------------------------------------------------------------
         // Select clause
         // ---------------------------------------------------------------------
 
-        String sql = "select count(tei.uid) as " + TRACKED_ENTITY_INSTANCE_ID + " ";
-
-        // ---------------------------------------------------------------------
-        // From and where clause
-        // ---------------------------------------------------------------------
-
-        sql += getFromWhereClauseSql( params, hlp );
+        String sql = getCountQuery( params );
 
         // ---------------------------------------------------------------------
         // Query
         // ---------------------------------------------------------------------
 
-        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
-
         log.debug( "Tracked entity instance count SQL: " + sql );
+
+        Integer count = jdbcTemplate.queryForObject( sql, Integer.class );
 
         return count;
     }
 
-    /**
-     * From, join and where clause. For attribute params, restriction is set in
-     * inner join. For query params, restriction is set in where clause.
-     */
-    private String getFromWhereClauseSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
+    private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
+    {
+        return new StringBuilder()
+            .append( getQuerySelect( params, isGridQuery ) )
+            .append( "FROM " )
+            .append( getFromSubQuery( params, false ) )
+            .append( getQueryRelatedTables( params ) )
+            .append( getQueryGroupBy( params ) )
+            .append( getQueryOrderBy( false, params, isGridQuery ) )
+            .toString();
+    }
+
+    private String getCountQuery( TrackedEntityInstanceQueryParams params )
+    {
+        return new StringBuilder()
+            .append( getQueryCountSelect( params ) )
+            .append( getQuerySelect( params, true ) )
+            .append( "FROM " )
+            .append( getFromSubQuery( params, true ) )
+            .append( getQueryRelatedTables( params ) )
+            .append( getQueryGroupBy( params ) )
+            .append( " ) teicount" )
+            .toString();
+    }
+
+    private String getQuerySelect( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
+    {
+        StringBuilder select = new StringBuilder()
+            .append( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID + ", " )
+            .append( "TEI.created AS " + CREATED_ID + ", " )
+            .append( "TEI.lastupdated AS " + LAST_UPDATED_ID + ", " )
+            .append( "TEI.ou AS " + ORG_UNIT_ID + ", " )
+            .append( "TEI.ouname AS " + ORG_UNIT_NAME + ", " )
+            .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
+            .append( "TEI.inactive AS " + INACTIVE_ID )
+            .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
+            .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
+
+        if ( !isGridQuery )
+        {
+            select.append( ", TEI.trackedentityinstanceid AS teiid" );
+        }
+        select.append( SPACE );
+
+        return select.toString();
+    }
+
+    private String getQueryCountSelect( TrackedEntityInstanceQueryParams params )
+    {
+        return "SELECT count(instance) FROM ( ";
+    }
+
+    private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery )
+    {
+        SqlHelper whereAnd = new SqlHelper( true );
+        StringBuilder fromSubQuery = new StringBuilder()
+            .append( "(" )
+            .append( getFromSubQuerySelect( params ) )
+            .append( " FROM trackedentityinstance TEI " )
+
+            // INNER JOIN on constraints
+            .append( getFromSubQueryJoinAttributeConditions( whereAnd, params ) )
+            .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
+            .append( getFromSubQueryJoinOrgUnitConditions( params ) )
+
+            // LEFT JOIN attributes we need to sort on.
+            .append( getFromSubQueryJoinOrderByAttributes( params ) )
+
+            // WHERE
+            .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
+            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) );
+
+        if ( !isCountQuery )
+        {
+            // SORT
+            fromSubQuery
+                .append( getQueryOrderBy( true, params, true ) )
+
+                // LIMIT, OFFSET
+                .append( getFromSubQueryLimitAndOffset( params ) );
+        }
+
+        return fromSubQuery.append( ") TEI " )
+            .toString();
+    }
+
+    private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
+    {
+        return new StringBuilder()
+            .append( "SELECT " )
+            .append( "TEI.trackedentityinstanceid, " )
+            .append( "TEI.uid, " )
+            .append( "TEI.created, " )
+            .append( "TEI.lastupdated, " )
+            .append( "TEI.inactive, " )
+            .append( "TEI.trackedentitytypeid, " )
+            .append( "TEI.deleted, " )
+            .append( "OU.uid as ou, " )
+            .append( "OU.name as ouname " )
+            .append( getFromSubQueryOrderAttributes( params ) )
+            .toString();
+    }
+
+    private String getFromSubQueryOrderAttributes( TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder orderAttributes = new StringBuilder();
+
+        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+        {
+            orderAttributes
+                .append( ", " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( ".value AS " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) );
+        }
+
+        return orderAttributes.toString();
+    }
+
+    private String getFromSubQueryTrackedEntityConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder trackedEntity = new StringBuilder();
+
+        if ( params.hasTrackedEntityType() )
+        {
+            trackedEntity
+                .append( whereAnd.whereAnd() )
+                .append( "TEI.trackedentitytypeid = " )
+                .append( params.getTrackedEntityType().getId() )
+                .append( SPACE );
+        }
+        else
+        {
+            trackedEntity
+                .append( whereAnd.whereAnd() )
+                .append( "TEI.trackedentitytypeid IN (" )
+                .append( getCommaDelimitedString( getIdentifiers( params.getTrackedEntityTypes() ) ) )
+                .append( ") " );
+        }
+
+        if ( params.hasTrackedEntityInstances() )
+        {
+            trackedEntity
+                .append( whereAnd.whereAnd() )
+                .append( "TEI.uid IN (" )
+                .append( getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) )
+                .append( ") " );
+        }
+
+        if ( params.hasLastUpdatedDuration() )
+        {
+            trackedEntity.append( whereAnd.whereAnd() )
+                .append( " TEI.lastupdated >= '" )
+                .append( getLongGmtDateString( DateUtils.nowMinusDuration( params.getLastUpdatedDuration() ) ) )
+                .append( SINGLE_QUOTE );
+        }
+        else
+        {
+            if ( params.hasLastUpdatedStartDate() )
+            {
+                trackedEntity.append( " TEI.lastupdated >= '" )
+                    .append( getMediumDateString( params.getLastUpdatedStartDate() ) ).append( SINGLE_QUOTE );
+            }
+            if ( params.hasLastUpdatedEndDate() )
+            {
+                trackedEntity.append( " TEI.lastupdated < '" )
+                    .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
+                    .append( SINGLE_QUOTE );
+            }
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            trackedEntity
+                .append( whereAnd.whereAnd() )
+                .append( "TEI.deleted IS FALSE " );
+        }
+
+        return trackedEntity.toString();
+    }
+
+    private String getFromSubQueryJoinAttributeConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder attributes = new StringBuilder();
+
+        List<QueryItem> filterItems = params.getAttributesAndFilters().stream()
+            .filter( QueryItem::hasFilter )
+            .collect( Collectors.toList() );
+
+        if ( !filterItems.isEmpty() || params.isOrQuery() )
+        {
+            if ( !params.isOrQuery() )
+            {
+                joinAttributeValueWithoutQueryParameter( attributes, filterItems );
+            }
+            else
+            {
+                joinAttributeValueWithQueryParameter( params, attributes );
+            }
+        }
+
+        return attributes.toString();
+    }
+
+    private void joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params,
+        StringBuilder attributes )
     {
         final String regexp = statementBuilder.getRegexpMatch();
         final String wordStart = statementBuilder.getRegexpWordStart();
         final String wordEnd = statementBuilder.getRegexpWordEnd();
         final String anyChar = "\\.*?";
+        final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
+        final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
+        SqlHelper orHlp = new SqlHelper( true );
 
-        String sql = "from trackedentityinstance tei "
-            + "inner join trackedentitytype te on tei.trackedentitytypeid = te.trackedentitytypeid ";
+        List<Long> itemIds = params.getAttributesAndFilters().stream()
+            .map( QueryItem::getItem )
+            .map( DimensionalItemObject::getId )
+            .collect( Collectors.toList() );
 
-        String teiOuSource = "tei.organisationunitid";
+        attributes
+            .append( "INNER JOIN trackedentityattributevalue Q " )
+            .append( "ON Q.trackedentityinstanceid IN (" )
+            .append( getCommaDelimitedString( itemIds ) )
+            .append( ") AND (" );
 
-        if ( params.hasProgram() )
+        for ( String queryToken : getTokens( params.getQuery().getFilter() ) )
         {
-            // Using program owner OU instead of registration OU.
-            teiOuSource = "tepo.organisationunitid";
-            sql += withProgramSql( params, hlp );
+            final String query = statementBuilder.encode( queryToken, false );
+
+            attributes
+                .append( orHlp.or() )
+                .append( "lower(Q.value) " )
+                .append( regexp )
+                .append( " '" )
+                .append( start )
+                .append( StringUtils.lowerCase( query ) )
+                .append( end )
+                .append( SINGLE_QUOTE );
         }
 
-        sql += "inner join organisationunit ou on " + teiOuSource + " = ou.organisationunitid ";
+        attributes.append( ")" );
+    }
 
-        sql += addAttributesAndFiltersClauseSql( params );
-
-        sql += addWhereConditionally( hlp, params.hasTrackedEntityInstances(),
-            () -> " tei.uid in (" + getQuotedCommaDelimitedString( params.getTrackedEntityInstanceUids() ) + ")" );
-
-        if ( !params.hasTrackedEntityType() )
+    private void joinAttributeValueWithoutQueryParameter( StringBuilder attributes, List<QueryItem> filterItems )
+    {
+        for ( QueryItem queryItem : filterItems )
         {
-            sql += hlp.whereAnd() + " tei.trackedentitytypeid in (" + params.getTrackedEntityTypes().stream()
-                .filter( Objects::nonNull )
-                .map( TrackedEntityType::getId )
-                .map( String::valueOf )
-                .collect( Collectors.joining( ", " ) ) + ") ";
+            String col = statementBuilder.columnQuote( queryItem.getItemId() );
+            String teaId = col + ".trackedentityattributeid";
+            String teav = "lower(" + col + ".value)";
+            String teiid = col + ".trackedentityinstanceid";
+
+            attributes
+                .append( " INNER JOIN trackedentityattributevalue " )
+                .append( col )
+                .append( " ON " )
+                .append( teaId )
+                .append( EQUALS )
+                .append( queryItem.getItem().getId() )
+                .append( " AND " )
+                .append( teiid )
+                .append( " = TEI.trackedentityinstanceid " );
+
+            for ( QueryFilter filter : queryItem.getFilters() )
+            {
+                attributes
+                    .append( "AND " )
+                    .append( teav )
+                    .append( SPACE )
+                    .append( filter.getSqlOperator() )
+                    .append( SPACE )
+                    .append( StringUtils.lowerCase( filter.getSqlFilter( filter.getFilter() ) ) );
+            }
         }
-        else
+    }
+
+    private String getFromSubQueryJoinOrderByAttributes( TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder joinOrderAttributes = new StringBuilder();
+
+        for ( QueryItem orderAttribute : getOrderAttributes( params ) )
         {
-            sql += hlp.whereAnd() + " tei.trackedentitytypeid = " + params.getTrackedEntityType().getId() + " ";
+            if ( orderAttribute.hasFilter() ) // We already joined this if it is
+                                              // a filter.
+            {
+                continue;
+            }
+
+            joinOrderAttributes
+                .append( " LEFT JOIN trackedentityattributevalue AS " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( " ON " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( ".trackedentityinstanceid = TEI.trackedentityinstanceid " )
+                .append( "AND " )
+                .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                .append( ".trackedentityattributeid = " )
+                .append( orderAttribute.getItem().getId() )
+                .append( SPACE );
         }
+
+        return joinOrderAttributes.toString();
+    }
+
+    private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
+    {
+        if ( !params.hasProgram() )
+        {
+            return "";
+        }
+
+        return new StringBuilder()
+            .append( " INNER JOIN trackedentityprogramowner PO " )
+            .append( "ON PO.programid = " )
+            .append( params.getProgram().getId() )
+            .append( " AND PO.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .toString();
+    }
+
+    private String getFromSubQueryJoinOrgUnitConditions( TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder orgUnits = new StringBuilder();
 
         params.handleOrganisationUnits();
 
-        if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
-        {
-            // No restriction
-        }
-        else if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
-        {
-            String ouClause = " (";
+        orgUnits
+            .append( " INNER JOIN organisationunit OU " )
+            .append( "ON OU.organisationunitid = " )
+            .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
 
+        if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
+        {
             SqlHelper orHlp = new SqlHelper( true );
+
+            orgUnits.append( "AND (" );
 
             for ( OrganisationUnit organisationUnit : params.getOrganisationUnits() )
             {
-                ouClause += orHlp.or() + "ou.path like '" + organisationUnit.getPath() + "%'";
+                orgUnits
+                    .append( orHlp.or() )
+                    .append( "OU.path LIKE '" )
+                    .append( organisationUnit.getPath() )
+                    .append( "%'" );
             }
 
-            ouClause += ")";
-
-            sql += hlp.whereAnd() + ouClause;
+            orgUnits.append( ") " );
         }
-        else // SELECTED (default)
+        else if ( !params.isOrganisationUnitMode( OrganisationUnitSelectionMode.ALL ) )
         {
-            sql += hlp.whereAnd() + " " + teiOuSource + " in ("
-                + getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) + ") ";
+            orgUnits
+                .append( "AND OU.organisationunitid IN (" )
+                .append( getCommaDelimitedString( getIdentifiers( params.getOrganisationUnits() ) ) )
+                .append( ") " );
         }
 
-        sql += addAttributeOrFiltersSql( params, hlp, regexp, wordStart, wordEnd, anyChar );
-
-        sql += addWhereConditionally( hlp, !params.isIncludeDeleted(), () -> " tei.deleted is false " );
-
-        return sql;
+        return orgUnits.toString();
     }
 
-    private String addAttributeOrFiltersSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp,
-        final String regexp, final String wordStart, final String wordEnd, final String anyChar )
+    private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
+        TrackedEntityInstanceQueryParams params )
     {
-        String sql = "";
+        StringBuilder program = new StringBuilder();
 
-        if ( params.isOrQuery() && params.hasAttributesOrFilters() )
+        if ( !params.hasProgram() )
         {
-            final String start = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordStart;
-            final String end = params.getQuery().isOperator( QueryOperator.LIKE ) ? anyChar : wordEnd;
-
-            sql += hlp.whereAnd() + " (";
-
-            List<String> queryTokens = getTokens( params.getQuery().getFilter() );
-
-            for ( String queryToken : queryTokens )
-            {
-                final String query = statementBuilder.encode( queryToken, false );
-
-                sql += "(";
-
-                for ( QueryItem item : params.getAttributesAndFilters() )
-                {
-                    final String col = statementBuilder.columnQuote( item.getItemId() );
-
-                    sql += col + ".value " + regexp + " '" + start + StringUtils.lowerCase( query ) + end + "' or ";
-                }
-
-                sql = removeLastOr( sql ) + ") and ";
-            }
-
-            sql = removeLastAnd( sql ) + ") ";
+            return "";
         }
-        return sql;
-    }
 
-    private String addAttributesAndFiltersClauseSql( TrackedEntityInstanceQueryParams params )
-    {
-        String sql = "";
-        for ( QueryItem item : params.getAttributesAndFilters() )
-        {
-            final String col = statementBuilder.columnQuote( item.getItemId() );
-
-            final String joinClause = item.hasFilter() ? "inner join" : "left join";
-
-            sql += joinClause + " " + "trackedentityattributevalue as " + col + " " + "on " + col
-                + ".trackedentityinstanceid = tei.trackedentityinstanceid " + "and " + col
-                + ".trackedentityattributeid = " + item.getItem().getId() + " ";
-
-            if ( !params.isOrQuery() && item.hasFilter() )
-            {
-                for ( QueryFilter filter : item.getFilters() )
-                {
-                    final String encodedFilter = statementBuilder.encode( filter.getFilter(), false );
-
-                    final String queryCol = item.isNumeric() ? (col + ".value") : "lower(" + col + ".value)";
-
-                    sql += "and " + queryCol + " " + filter.getSqlOperator() + " "
-                        + StringUtils.lowerCase( filter.getSqlFilter( encodedFilter ) ) + " ";
-                }
-            }
-        }
-        return sql;
-    }
-
-    private String withProgramSql( TrackedEntityInstanceQueryParams params, SqlHelper hlp )
-    {
-        String sql = "";
-
-        sql += "inner join (select trackedentityinstanceid, organisationunitid from trackedentityprogramowner where programid = ";
-        sql += params.getProgram().getId()
-            + ") as tepo ON tei.trackedentityinstanceid = tepo.trackedentityinstanceid ";
-        sql += "inner join ("
-            + "select trackedentityinstanceid, min(case when status='ACTIVE' then 0 when status='COMPLETED' then 1 else 2 end) as status "
-            + "from programinstance pi ";
+        program
+            .append( whereAnd.whereAnd() )
+            .append( "EXISTS (" )
+            .append( "SELECT PI.trackedentityinstanceid " )
+            .append( "FROM programinstance PI " );
 
         if ( params.hasFilterForEvents() )
         {
-            sql += " inner join (select programinstanceid from programstageinstance psi ";
-
-            sql += addConditionally( params.hasAssignedUsers(),
-                () -> "left join userinfo au on (psi.assigneduserid=au.userinfoid)" );
-
-            sql += getEventWhereClause( params );
-
-            sql += ") as psi on pi.programinstanceid = psi.programinstanceid ";
+            program.append( getFromSubQueryProgramStageInstance( params ) );
         }
 
-        sql += " where pi.programid= " + params.getProgram().getId() + " ";
+        program
+            .append( "WHERE PI.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+            .append( "AND PI.programid = " )
+            .append( params.getProgram().getId() )
+            .append( SPACE );
 
-        sql += addConditionally( params.hasProgramStatus(),
-            () -> "and status = '" + params.getProgramStatus() + "' " );
+        if ( params.hasProgramStatus() )
+        {
+            program
+                .append( "AND PI.status = '" )
+                .append( params.getProgramStatus() )
+                .append( "' " );
+        }
 
-        sql += addConditionally( params.hasFollowUp(), () -> "and pi.followup = " + params.getFollowUp() );
+        if ( params.hasFollowUp() )
+        {
+            program
+                .append( "AND PI.followup IS " )
+                .append( params.getFollowUp() )
+                .append( SPACE );
+        }
 
-        sql += addConditionally( params.hasProgramEnrollmentStartDate(), () -> "and pi.enrollmentdate >= '"
-            + getMediumDateString( params.getProgramEnrollmentStartDate() ) + "' " );
+        if ( params.hasProgramEnrollmentStartDate() )
+        {
+            program
+                .append( "AND PI.enrollmentdate >= '" )
+                .append( getMediumDateString( params.getProgramEnrollmentStartDate() ) )
+                .append( "' " );
+        }
 
-        sql += addConditionally( params.hasProgramEnrollmentEndDate(), () -> "and pi.enrollmentdate <= '"
-            + getMediumDateString( params.getProgramEnrollmentEndDate() ) + "' " );
+        if ( params.hasProgramEnrollmentEndDate() )
+        {
+            program
+                .append( "AND PI.enrollmentdate <= '" )
+                .append( getMediumDateString( params.getProgramEnrollmentEndDate() ) )
+                .append( "' " );
+        }
 
-        sql += addConditionally( params.hasProgramIncidentStartDate(),
-            () -> "and pi.incidentdate >= '" + getMediumDateString( params.getProgramIncidentStartDate() ) + "' " );
+        if ( params.hasProgramIncidentStartDate() )
+        {
+            program
+                .append( "AND PI.incidentdate >= '" )
+                .append( getMediumDateString( params.getProgramIncidentStartDate() ) )
+                .append( "' " );
+        }
 
-        sql += addConditionally( params.hasProgramIncidentEndDate(),
-            () -> "and pi.incidentdate <= '" + getMediumDateString( params.getProgramIncidentEndDate() ) + "' " );
+        if ( params.hasProgramIncidentEndDate() )
+        {
+            program
+                .append( "AND PI.incidentdate <= '" )
+                .append( getMediumDateString( params.getProgramIncidentEndDate() ) )
+                .append( "' " );
+        }
 
-        sql += addConditionally( !params.isIncludeDeleted(),
-            () -> "and pi.deleted is false" );
+        if ( !params.isIncludeDeleted() )
+        {
+            program.append( "AND PI.deleted is false " );
+        }
 
-        sql += " group by trackedentityinstanceid ) as en on tei.trackedentityinstanceid = en.trackedentityinstanceid ";
+        program.append( ") " );
 
-        return sql;
+        return program.toString();
+    }
+
+    private String getFromSubQueryProgramStageInstance( TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder events = new StringBuilder();
+        SqlHelper whereHlp = new SqlHelper( true );
+
+        events
+            .append( "INNER JOIN (" )
+            .append( "SELECT PSI.programinstanceid " )
+            .append( "FROM programstageinstance PSI " );
+
+        if ( params.hasAssignedUsers() )
+        {
+            events
+                .append( "INNER JOIN (" )
+                .append( "SELECT userinfoid AS userid " )
+                .append( "FROM userinfo " )
+                .append( "WHERE uid IN (" )
+                .append( getQuotedCommaDelimitedString( params.getAssignedUsers() ) )
+                .append( ") " )
+                .append( ") AU ON AU.userid = PSI.assigneduserid" );
+        }
+
+        if ( params.hasEventStatus() )
+        {
+            String start = getMediumDateString( params.getEventStartDate() );
+            String end = getMediumDateString( params.getEventEndDate() );
+            events.append( whereHlp.whereAnd() );
+
+            if ( params.isEventStatus( EventStatus.COMPLETED ) )
+            {
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_EXECUTIONDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.COMPLETED.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
+            }
+            else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
+            {
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_EXECUTIONDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.ACTIVE.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
+            }
+            else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
+            {
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( SPACE )
+                    .append( IS_NOT_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_EXECUTIONDATE )
+                    .append( SPACE )
+                    .append( IS_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) <= date(PSI.duedate) " );
+            }
+            else if ( params.isEventStatus( EventStatus.OVERDUE ) )
+            {
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( SPACE )
+                    .append( IS_NOT_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_EXECUTIONDATE )
+                    .append( SPACE )
+                    .append( IS_NULL )
+                    .append( whereHlp.whereAnd() )
+                    .append( "date(now()) > date(PSI.duedate) " );
+            }
+            else if ( params.isEventStatus( EventStatus.SKIPPED ) )
+            {
+                events.append( getQueryDateConditionBetween( whereHlp, PSI_DUEDATE, start, end ) )
+                    .append( whereHlp.whereAnd() )
+                    .append( PSI_STATUS )
+                    .append( EQUALS )
+                    .append( SINGLE_QUOTE )
+                    .append( EventStatus.SKIPPED.name() )
+                    .append( SINGLE_QUOTE )
+                    .append( SPACE );
+            }
+        }
+
+        if ( params.hasProgramStage() )
+        {
+            events
+                .append( whereHlp.whereAnd() )
+                .append( "PSI.programstageid = " )
+                .append( params.getProgramStage().getId() )
+                .append( SPACE );
+        }
+
+        if ( params.isIncludeOnlyUnassignedEvents() )
+        {
+            events
+                .append( whereHlp.whereAnd() )
+                .append( "PSI.assigneduserid IS NULL " );
+        }
+
+        if ( params.isIncludeOnlyAssignedEvents() )
+        {
+            events
+                .append( whereHlp.whereAnd() )
+                .append( "PSI.assigneduserid IS NOT NULL " );
+        }
+
+        if ( !params.isIncludeDeleted() )
+        {
+            events.append( whereHlp.whereAnd() )
+                .append( "PSI.deleted IS FALSE" );
+        }
+
+        events.append( ") PSI ON PSI.programinstanceid = PI.programinstanceid " );
+
+        return events.toString();
+    }
+
+    private String getQueryDateConditionBetween( SqlHelper whereHelper, String column, String start, String end )
+    {
+        StringBuilder dateBetween = new StringBuilder();
+
+        dateBetween
+            .append( whereHelper.whereAnd() )
+            .append( column )
+            .append( " >= '" )
+            .append( start )
+            .append( SINGLE_QUOTE )
+            .append( whereHelper.whereAnd() )
+            .append( column )
+            .append( " <= '" )
+            .append( end )
+            .append( "' " );
+
+        return dateBetween.toString();
+    }
+
+    private String getQueryRelatedTables( TrackedEntityInstanceQueryParams params )
+    {
+        List<QueryItem> attributes = params.getAttributes();
+        StringBuilder relatedTables = new StringBuilder();
+
+        relatedTables.append( "LEFT JOIN trackedentitytype TET ON TET.trackedentitytypeid = TEI.trackedentitytypeid " );
+
+        if ( !attributes.isEmpty() )
+        {
+            String attributeString = getCommaDelimitedString( attributes.stream()
+                .map( QueryItem::getItem )
+                .map( IdentifiableObject::getId )
+                .collect( Collectors.toList() ) );
+
+            relatedTables.append( "LEFT JOIN trackedentityattributevalue TEAV " )
+                .append( "ON TEAV.trackedentityinstanceid = TEI.trackedentityinstanceid " )
+                .append( "AND TEAV.trackedentityattributeid IN (" )
+                .append( attributeString )
+                .append( ") " );
+
+            relatedTables.append( "LEFT JOIN trackedentityattribute TEA " )
+                .append( "ON TEA.trackedentityattributeid = TEAV.trackedentityattributeid " );
+        }
+
+        return relatedTables.toString();
+    }
+
+    private String getQueryGroupBy( TrackedEntityInstanceQueryParams params )
+    {
+        if ( params.getAttributes().isEmpty() )
+        {
+            return "";
+        }
+
+        StringBuilder groupBy = new StringBuilder()
+            .append( "GROUP BY TEI.trackedentityinstanceid, " )
+            .append( "TEI.uid, " )
+            .append( "TEI.created, " )
+            .append( "TEI.lastupdated, " )
+            .append( "TEI.ou, " )
+            .append( "TEI.ouname, " )
+            .append( "TET.uid, " )
+            .append( "TEI.inactive " )
+            .append( (params.isIncludeDeleted() ? ", TEI.deleted " : "") );
+
+        if ( !getOrderAttributes( params ).isEmpty() )
+        {
+
+            for ( QueryItem orderAttribute : getOrderAttributes( params ) )
+            {
+                groupBy
+                    .append( ", TEI." )
+                    .append( statementBuilder.columnQuote( orderAttribute.getItemId() ) )
+                    .append( SPACE );
+            }
+
+        }
+
+        return groupBy.toString();
     }
 
     private String getOrderClauseHql( TrackedEntityInstanceQueryParams params )
@@ -756,11 +1192,10 @@ public class HibernateTrackedEntityInstanceStore
         return orderQuery;
     }
 
-    private String getOrderClauseSql( TrackedEntityInstanceQueryParams params, boolean gridQuery )
+    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean gridQuery )
     {
-        if ( params.hasOrders() )
+        if ( params.getOrders() != null && params.getAttributes() != null && !params.getAttributes().isEmpty() )
         {
-            String attributeOrderSuffix = gridQuery ? " " : ".value ";
             ArrayList<String> orderFields = new ArrayList<>();
 
             for ( OrderParam order : params.getOrders() )
@@ -773,24 +1208,33 @@ public class HibernateTrackedEntityInstanceStore
                 else if ( isAttributeOrder( params, order.getField() )
                     || isAttributeFilterOrder( params, order.getField() ) )
                 {
-                    orderFields
-                        .add( statementBuilder.columnQuote( order.getField() ) + attributeOrderSuffix
-                            + order.getDirection() );
+                    if ( innerOrder )
+                    {
+                        orderFields
+                            .add( statementBuilder.columnQuote( order.getField() ) + ".value " + order.getDirection() );
+                    }
+                    else
+                    {
+                        orderFields.add(
+                            "TEI." + statementBuilder.columnQuote( order.getField() ) + SPACE + order.getDirection() );
+                    }
                 }
             }
 
             if ( !orderFields.isEmpty() )
             {
-                return "order by " + StringUtils.join( orderFields, ',' );
+                return "ORDER BY " + StringUtils.join( orderFields, ',' ) + SPACE;
             }
         }
 
-        if ( params.hasProgram() )
+        if ( params.getAttributesAndFilters().stream().noneMatch( qi -> qi.hasFilter() && qi.isUnique() ) )
         {
-            return "order by en.status asc, tei.lastupdated desc ";
+            return "ORDER BY TEI.trackedentityinstanceid ASC ";
         }
-
-        return "order by tei.lastupdated desc ";
+        else
+        {
+            return "";
+        }
     }
 
     private boolean isAttributeOrder( TrackedEntityInstanceQueryParams params, String attributeId )
@@ -825,71 +1269,105 @@ public class HibernateTrackedEntityInstanceStore
         return false;
     }
 
-    private String getEventWhereClause( TrackedEntityInstanceQueryParams params )
+    private void extractOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params, List<String> cols,
+        ArrayList<String> orderFields, String order )
     {
-        String sql = " where ";
+        String[] prop = order.split( ":" );
 
-        if ( params.hasEventStatus() )
+        if ( prop.length == 2 && (prop[1].equals( "desc" ) || prop[1].equals( "asc" )) )
         {
-            String start = getMediumDateString( params.getEventStartDate() );
-            String end = getMediumDateString( params.getEventEndDate() );
-
-            if ( params.isEventStatus( EventStatus.COMPLETED ) )
+            if ( cols.contains( prop[0] ) )
             {
-                sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.COMPLETED.name()
-                    + "' and ";
+                orderFields.add( prop[0] + SPACE + prop[1] );
             }
-            else if ( params.isEventStatus( EventStatus.VISITED ) || params.isEventStatus( EventStatus.ACTIVE ) )
+            else
             {
-                sql += " psi.executiondate >= '" + start + "' and psi.executiondate <= '" + end + "' "
-                    + "and psi.status = '" + EventStatus.ACTIVE.name()
-                    + "' and ";
-            }
-            else if ( params.isEventStatus( EventStatus.SCHEDULE ) )
-            {
-                sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                    + "and psi.status is not null and date(now()) <= date(psi.duedate) and ";
-            }
-            else if ( params.isEventStatus( EventStatus.OVERDUE ) )
-            {
-                sql += " psi.executiondate is null and psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' "
-                    + "and psi.status is not null and date(now()) > date(psi.duedate) and ";
-            }
-            else if ( params.isEventStatus( EventStatus.SKIPPED ) )
-            {
-                sql += " psi.duedate >= '" + start + "' and psi.duedate <= '" + end + "' " + "and psi.status = '"
-                    + EventStatus.SKIPPED.name() + "' and ";
+                extractDynamicOrderField( innerOrder, params, orderFields, prop );
             }
         }
+    }
 
-        if ( params.hasProgramStage() )
+    private void extractDynamicOrderField( boolean innerOrder, TrackedEntityInstanceQueryParams params,
+        ArrayList<String> orderFields, String[] prop )
+    {
+        for ( QueryItem item : params.getAttributes() )
         {
-            sql += " psi.programstageid = " + params.getProgramStage().getId() + " and ";
+            if ( prop[0].equals( item.getItemId() ) )
+            {
+                if ( innerOrder )
+                {
+                    orderFields.add( statementBuilder.columnQuote( prop[0] ) + ".value " + prop[1] );
+                }
+                else
+                {
+                    orderFields.add( "TEI." + statementBuilder.columnQuote( prop[0] ) + SPACE + prop[1] );
+                }
+                break;
+            }
+        }
+    }
+
+    private List<QueryItem> getOrderAttributes( TrackedEntityInstanceQueryParams params )
+    {
+        if ( params.getOrders() != null )
+        {
+            List<String> ordersIdentifier = params.getOrders().stream()
+                .map( order -> order.getField() )
+                .collect( Collectors.toList() );
+
+            return params.getAttributesAndFilters().stream()
+                .filter( queryItem -> ordersIdentifier.contains( queryItem.getItemId() ) )
+                .collect( Collectors.toList() );
         }
 
-        if ( params.hasAssignedUsers() )
-        {
-            sql += " (au.uid in (" + getQuotedCommaDelimitedString( params.getAssignedUsers() ) + ")) and ";
-        }
+        return Lists.newArrayList();
+    }
 
-        if ( params.isIncludeOnlyUnassignedEvents() )
-        {
-            sql += " (psi.assigneduserid is null) and ";
-        }
-        if ( params.isIncludeOnlyUnassignedEvents() )
-        {
-            sql += " (psi.assigneduserid is null) and ";
-        }
+    private String getFromSubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
+    {
+        StringBuilder limitOffset = new StringBuilder();
+        int limit = params.getMaxTeiLimit();
 
-        if ( params.isIncludeOnlyAssignedEvents() )
+        if ( limit == 0 && !params.isPaging() )
         {
-            sql += " (psi.assigneduserid is not null) and ";
+            return "";
         }
-
-        sql += " psi.deleted is false ";
-
-        return sql;
+        else if ( limit == 0 && params.isPaging() )
+        {
+            return limitOffset
+                .append( LIMIT )
+                .append( SPACE )
+                .append( params.getPageSizeWithDefault() )
+                .append( SPACE )
+                .append( OFFSET )
+                .append( SPACE )
+                .append( params.getOffset() )
+                .append( SPACE )
+                .toString();
+        }
+        else if ( params.isPaging() )
+        {
+            return limitOffset
+                .append( LIMIT )
+                .append( SPACE )
+                .append( Math.min( limit + 1, params.getPageSizeWithDefault() ) )
+                .append( SPACE )
+                .append( OFFSET )
+                .append( SPACE )
+                .append( params.getOffset() )
+                .append( SPACE )
+                .toString();
+        }
+        else
+        {
+            return limitOffset
+                .append( LIMIT )
+                .append( SPACE )
+                .append( limit + 1 ) // We add +1, since we use this limit to
+                                     // restrict a user to search to wide.
+                .append( SPACE )
+                .toString();
+        }
     }
 
     private String getEventWhereClauseHql( TrackedEntityInstanceQueryParams params )

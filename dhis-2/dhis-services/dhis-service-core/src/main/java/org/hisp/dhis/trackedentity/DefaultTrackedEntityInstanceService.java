@@ -742,13 +742,16 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 &&
-                ((isGridSearch
-                    && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit) ||
-                    (!isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit)) )
+            if ( maxTeiLimit > 0 && ((isGridSearch && params.isPaging()
+                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit)
+                || ((!isGridSearch
+                    && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit))) )
             {
-                throw new IllegalQueryException( "maxteicountreached" );
+                throw new IllegalQueryException(
+                    "maxteicountreached" );
             }
+
+            params.setMaxTeiLimit( maxTeiLimit );
         }
     }
 
