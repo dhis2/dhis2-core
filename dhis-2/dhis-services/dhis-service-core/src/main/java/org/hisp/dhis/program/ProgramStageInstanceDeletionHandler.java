@@ -92,7 +92,7 @@ public class ProgramStageInstanceDeletionHandler
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        String sql = "select count(*) from programstageinstance where json_extract_path_text(eventDataValues, 'dataElement') = '"
+        String sql = "select count(*) from programstageinstance where jsonb_extract_path_text(eventDataValues, 'dataElement') = '"
             + dataElement.getUid() + "'";
 
         return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
