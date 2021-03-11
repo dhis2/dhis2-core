@@ -174,6 +174,7 @@ public enum ErrorCode
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
+    E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
