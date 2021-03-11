@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import static java.util.Arrays.asList;
-
+import java.util.Arrays;
 import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -50,7 +49,7 @@ public interface JsonPath extends JsonString
 {
     default List<String> ids()
     {
-        return parsed( str -> asList( str.split( "/" ) ) );
+        return parsed( str -> Arrays.asList( str.split( "/" ) ) );
     }
 
     default boolean contains( String uid )

@@ -118,102 +118,6 @@ public final class JsonDocument implements Serializable
     }
 
     /**
-     * API of a JSON tree as it actually exist.
-     *
-     * Operations are lazily evaluated to make working with the JSON tree
-     * efficient.
-     */
-    public interface JsonNode extends Serializable
-    {
-        /**
-         * @return the type of the node as derived from the node beginning
-         */
-        JsonNodeType getType();
-
-        /**
-         * @return path within the overall content this node represents
-         */
-        String getPath();
-
-        /**
-         * @return the plain JSON of this node as defined in the overall content
-         */
-        String getDeclaration();
-
-        /**
-         * @return number of elements in an array or number of fields in an
-         *         object, otherwise undefined
-         * @throws UnsupportedOperationException when this node in neither an
-         *         array nor an object
-         */
-        default int size()
-        {
-            throw new UnsupportedOperationException( getType() + " node has no size property." );
-        }
-
-        /**
-         * @return true if an array or object has no elements/fields, otherwise
-         *         undefined
-         * @throws UnsupportedOperationException when this node in neither an
-         *         array nor an object
-         */
-        default boolean isEmpty()
-        {
-            throw new UnsupportedOperationException( getType() + " node has no empty property." );
-        }
-
-        /**
-         * The value depends on the {@link #getType()}:
-         * <ul>
-         * <li>{@link JsonNodeType#NULL} returns {@code null}</li>
-         * <li>{@link JsonNodeType#BOOLEAN} returns {@link Boolean}</li>
-         * <li>{@link JsonNodeType#STRING} returns {@link String}</li>
-         * <li>{@link JsonNodeType#NUMBER} returns either {@link Integer},
-         * {@link Long} or {@link Double}</li>
-         * <li>{@link JsonNodeType#ARRAY} returns an {@link java.util.List} of
-         * {@link JsonNode}</li>
-         * <li>{@link JsonNodeType#ARRAY} returns a {@link Map} or
-         * {@link String} keys and {@link JsonNode} values</li>
-         * </ul>
-         *
-         * @return the nodes values as described in the above table
-         */
-        Serializable value();
-
-        /**
-         * @return this {@link #value()} as as {@link Map} (only defined when
-         *         this node is of type {@link JsonNodeType#OBJECT}).
-         */
-        @SuppressWarnings( "unchecked" )
-        default Map<String, JsonNode> object()
-        {
-            return (Map<String, JsonNode>) value();
-        }
-
-        /**
-         * @return this {@link #value()} as as {@link List} (only defined when
-         *         this node is of type {@link JsonNodeType#ARRAY}).
-         */
-        @SuppressWarnings( "unchecked" )
-        default List<JsonNode> array()
-        {
-            return (List<JsonNode>) value();
-        }
-
-        /**
-         * @return offset or index in the overall content where this node starts
-         *         (inclusive, points to first index that belongs to the node)
-         */
-        int startIndex();
-
-        /**
-         * @return offset or index in the overall content where this node ends
-         *         (exclusive, points to first index after the node)
-         */
-        int endIndex();
-    }
-
-    /**
      * The main idea of lazy nodes is that at creation only the start index and
      * the path the node represents is known.
      *
@@ -293,6 +197,23 @@ public final class JsonDocument implements Serializable
          */
         abstract Serializable parseValue();
 
+        @Override
+        public final JsonNode replaceWith( String json )
+        {
+            int end = endIndex();
+            StringBuilder newJson = new StringBuilder();
+            if ( start > 0 )
+            {
+                newJson.append( this.json, 0, start );
+            }
+            newJson.append( json );
+            if ( end < this.json.length )
+            {
+                newJson.append( this.json, end, this.json.length - end );
+            }
+            return new JsonDocument( newJson.toString() ).get( "$" );
+        }
+
         static JsonNode autoDetect( String path, char[] json, int atIndex, Map<String, JsonNode> nodesByPath )
         {
             JsonNode node = nodesByPath.get( path );
@@ -335,6 +256,13 @@ public final class JsonDocument implements Serializable
             return JsonNodeType.OBJECT;
         }
 
+        @SuppressWarnings( "unchecked" )
+        @Override
+        public Map<String, JsonNode> members()
+        {
+            return (Map<String, JsonNode>) value();
+        }
+
         @Override
         public boolean isEmpty()
         {
@@ -346,7 +274,7 @@ public final class JsonDocument implements Serializable
         public int size()
         {
             // only compute value when needed
-            return isEmpty() ? 0 : object().size();
+            return isEmpty() ? 0 : members().size();
         }
 
         @Override
@@ -389,6 +317,13 @@ public final class JsonDocument implements Serializable
             return JsonNodeType.ARRAY;
         }
 
+        @SuppressWarnings( "unchecked" )
+        @Override
+        public List<JsonNode> elements()
+        {
+            return (List<JsonNode>) value();
+        }
+
         @Override
         public boolean isEmpty()
         {
@@ -400,7 +335,7 @@ public final class JsonDocument implements Serializable
         public int size()
         {
             // only compute value when needed
-            return isEmpty() ? 0 : array().size();
+            return isEmpty() ? 0 : elements().size();
         }
 
         @Override
@@ -569,7 +504,7 @@ public final class JsonDocument implements Serializable
         @Override
         Serializable parseValue()
         {
-            skipBoolean( json, start );
+            skipNull( json, start );
             return null;
         }
     }
@@ -619,19 +554,19 @@ public final class JsonDocument implements Serializable
             if ( pathToGo.startsWith( "[" ) )
             {
                 checkNodeIs( parent, JsonNodeType.ARRAY, path );
-                List<JsonNode> array = parent.array();
+                List<JsonNode> elements = parent.elements();
                 int index = parseInt( pathToGo.substring( 1, pathToGo.indexOf( ']' ) ) );
-                checkIndexExists( parent, array, index, path );
-                parent = array.get( index );
+                checkIndexExists( parent, elements, index, path );
+                parent = elements.get( index );
                 pathToGo = pathToGo.substring( pathToGo.indexOf( ']' ) + 1 );
             }
             else if ( pathToGo.startsWith( "." ) )
             {
                 checkNodeIs( parent, JsonNodeType.OBJECT, path );
-                Map<String, JsonNode> object = parent.object();
+                Map<String, JsonNode> members = parent.members();
                 String property = getHeadProperty( pathToGo );
-                checkFieldExists( parent, object, property, path );
-                parent = object.get( property );
+                checkFieldExists( parent, members, property, path );
+                parent = members.get( property );
                 pathToGo = pathToGo.substring( 1 + property.length() );
             }
             else

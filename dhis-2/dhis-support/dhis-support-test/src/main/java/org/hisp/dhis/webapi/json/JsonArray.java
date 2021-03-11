@@ -115,12 +115,12 @@ public interface JsonArray extends JsonCollection
 
     default <E extends JsonValue> JsonList<E> getList( int index, Class<E> as )
     {
-        return asList( getArray( index ), as );
+        return JsonCollection.asList( getArray( index ), as );
     }
 
     default <E extends JsonValue> JsonMap<E> getMap( int index, Class<E> as )
     {
-        return asMap( getObject( index ), as );
+        return JsonCollection.asMap( getObject( index ), as );
     }
 
 }

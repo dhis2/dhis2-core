@@ -44,7 +44,6 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import org.hisp.dhis.webapi.json.JsonDocument.JsonFormatException;
-import org.hisp.dhis.webapi.json.JsonDocument.JsonNode;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonPathException;
 
@@ -99,7 +98,8 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
             if ( node.getType() != expected )
             {
                 throw new UnsupportedOperationException(
-                    String.format( "Path %s does not contain a %s but %s", path, expected, node ) );
+                    String.format( "Path `%s` does not contain a %s but a(n) %s: %s",
+                        path, expected, node.getType(), node ) );
             }
             return get.apply( node );
         }
@@ -168,6 +168,12 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     }
 
     @Override
+    public JsonNode node()
+    {
+        return value();
+    }
+
+    @Override
     public boolean isEmpty()
     {
         return value().isEmpty();
@@ -176,7 +182,8 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     @Override
     public boolean has( String... names )
     {
-        return value( JsonNodeType.OBJECT, node -> node.object().keySet().containsAll( Arrays.asList( names ) ),
+        return value( JsonNodeType.OBJECT,
+            node -> node.members().keySet().containsAll( Arrays.asList( names ) ),
             ex -> false );
     }
 
@@ -203,7 +210,7 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
     {
         return value( JsonNodeType.ARRAY, node -> {
             List<T> res = new ArrayList<>();
-            for ( JsonNode e : node.array() )
+            for ( JsonNode e : node.elements() )
             {
                 Object value = e.value();
                 if ( !elementType.isInstance( value ) )
@@ -294,7 +301,7 @@ public final class JsonResponse implements JsonObject, JsonArray, JsonString, Js
         }
         catch ( JsonPathException | JsonFormatException ex )
         {
-            return path + " in " + content;
+            return ex.getMessage();
         }
     }
 
