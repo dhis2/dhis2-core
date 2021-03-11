@@ -25,55 +25,60 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
-
-import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_LOGOUT_REDIRECT_URL;
+package org.hisp.dhis.security.jwt;
 
 import java.io.IOException;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.oauth2.client.oidc.web.logout.OidcClientInitiatedLogoutSuccessHandler;
-import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerExceptionResolver;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
-public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
+@Slf4j
+public class DhisBearerJwtTokenAuthenticationEntryPoint implements AuthenticationEntryPoint, ApplicationContextAware
 {
-    private OidcClientInitiatedLogoutSuccessHandler handler;
-
-    @Autowired
-    private DhisOidcProviderRepository dhisOidcProviderRepository;
-
-    @Autowired
-    public DhisConfigurationProvider dhisConfigurationProvider;
-
-    @PostConstruct
-    public void init()
-    {
-        String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
-        this.handler.setPostLogoutRedirectUri( logoutUri );
-    }
+    private ApplicationContext applicationContext;
 
     @Override
-    public void onLogoutSuccess( HttpServletRequest request, HttpServletResponse response,
-        Authentication authentication )
+    public void setApplicationContext( ApplicationContext applicationContext )
+    {
+        this.applicationContext = applicationContext;
+    }
+
+    private BearerTokenAuthenticationEntryPoint entryPoint = new BearerTokenAuthenticationEntryPoint();
+
+    @Override
+    public void commence( HttpServletRequest request, HttpServletResponse response,
+        AuthenticationException authException )
         throws IOException,
         ServletException
     {
-        handler.onLogoutSuccess( request, response, authentication );
+        entryPoint.commence( request, response, authException );
+
+        HandlerExceptionResolver handlerExceptionResolver;
+        try
+        {
+            handlerExceptionResolver = (HandlerExceptionResolver) applicationContext
+                .getBean( "handlerExceptionResolver" );
+            handlerExceptionResolver.resolveException( request, response, null, authException );
+        }
+        catch ( BeansException e )
+        {
+            log.error( "Could not find a HandlerExceptionResolver bean!" );
+        }
     }
 }

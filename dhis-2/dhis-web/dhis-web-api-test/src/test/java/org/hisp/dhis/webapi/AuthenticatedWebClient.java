@@ -25,52 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * The purpose of this interface is to allow mixin style addition of the
+ * convenience web API by implementing this interface's essential method
+ * {@link #authWebRequest(String,MockHttpServletRequestBuilder)}.
+ *
+ * @author Morten Svanæs
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+@FunctionalInterface
+public interface AuthenticatedWebClient
 {
-    private final ClientRegistration clientRegistration;
+    WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request );
 
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    default WebClient.HttpResponse GET( String token, String url, Object... args )
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
+    }
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+    default WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
+    {
+        return authWebRequest( token, request );
     }
 }

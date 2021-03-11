@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.junit.Test;
@@ -44,25 +43,24 @@ public class GenericOidcProviderBuilderConfigParserTest
     @Test
     public void parseConfigAllValidParameters()
     {
-        Properties properties = new Properties();
+        Properties p = new Properties();
+        p.put( "oidc.provider.idporten.client_id", "testClientId" );
+        p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
+        p.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
+        p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
+        p.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
+        p.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
+        p.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
+        p.put( "oidc.provider.idporten.scopes", "pid" );
+        p.put( "oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid" );
+        p.put( "oidc.provider.idporten.display_alias", "IdPorten" );
+        p.put( "oidc.provider.idporten.enable_logout", "true" );
+        p.put( "oidc.provider.idporten.login_image", "../security/idporten-logo.svg" );
+        p.put( "oidc.provider.idporten.login_image_padding", "0px 0px" );
+        p.put( "oidc.provider.idporten.extra_request_parameters", "acr_value 4,test_param five" );
+        p.put( "oidc.provider.idporten.enable_pkce", "false" );
 
-        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-        properties.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
-        properties.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
-        properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
-        properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
-        properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
-        properties.put( "oidc.provider.idporten.scopes", "pid" );
-        properties.put( "oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid" );
-        properties.put( "oidc.provider.idporten.display_alias", "IdPorten" );
-        properties.put( "oidc.provider.idporten.enable_logout", "true" );
-        properties.put( "oidc.provider.idporten.logo_image", "../security/idporten-logo.svg" );
-        properties.put( "oidc.provider.idporten.logo_image_padding", "0px 0px" );
-        properties.put( "oidc.provider.idporten.extra_request_parameters", "acr_value 4,test_param five" );
-        properties.put( "oidc.provider.idporten.enable_pkce", "false" );
-
-        List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
+        List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse( p );
 
         assertThat( parse, hasSize( 1 ) );
     }
@@ -70,17 +68,16 @@ public class GenericOidcProviderBuilderConfigParserTest
     @Test
     public void parseValidMinimumConfig()
     {
-        Properties properties = new Properties();
+        Properties p = new Properties();
+        p.put( "oidc.provider.idporten.client_id", "testClientId" );
+        p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
+        p.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
+        p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
+        p.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
+        p.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
+        p.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
-        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-        properties.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
-        properties.put( "oidc.provider.idporten.authorization_uri", "https://oidc-ver2.difi.no/authorize" );
-        properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
-        properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
-        properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
-
-        List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
+        List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse( p );
 
         assertThat( parse, hasSize( 1 ) );
     }
@@ -88,16 +85,15 @@ public class GenericOidcProviderBuilderConfigParserTest
     @Test
     public void parseConfigMissingRequiredParameter()
     {
-        Properties properties = new Properties();
+        Properties p = new Properties();
+        p.put( "oidc.provider.idporten.client_id", "testClientId" );
+        p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
+        p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
+        p.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
+        p.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
+        p.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
-        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-        properties.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
-        properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
-        properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
-        properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
-
-        List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
+        List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse( p );
 
         assertThat( parse, hasSize( 0 ) );
     }
@@ -105,17 +101,16 @@ public class GenericOidcProviderBuilderConfigParserTest
     @Test
     public void parseConfigMalformedKeyNameParameter()
     {
-        Properties properties = new Properties();
+        Properties p = new Properties();
+        p.put( "oidc.provider.idporten.client_id", "testClientId" );
+        p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
+        p.put( "oidc.provider.idporten.INVALID_PROPERTY_NAME", "https://oidc-ver2.difi.no/authorize" );
+        p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
+        p.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
+        p.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
+        p.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
-        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-        properties.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
-        properties.put( "oidc.provider.idporten.INVALID_PROPERTY_NAME", "https://oidc-ver2.difi.no/authorize" );
-        properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
-        properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
-        properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
-
-        List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
+        List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse( p );
 
         assertThat( parse, hasSize( 0 ) );
     }
@@ -123,18 +118,16 @@ public class GenericOidcProviderBuilderConfigParserTest
     @Test
     public void parseConfigInvalidURIParameter()
     {
-        Properties properties = new Properties();
+        Properties p = new Properties();
+        p.put( "oidc.provider.idporten.client_id", "testClientId" );
+        p.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
+        p.put( "oidc.provider.idporten.authorization_uri", "INVALID_URI_SCHEME://oidc-ver2.difi.no/authorize" );
+        p.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
+        p.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
+        p.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
+        p.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
 
-        properties.put( "oidc.provider.idporten.client_id", "testClientId" );
-        properties.put( "oidc.provider.idporten.client_secret", "testClientSecret!#!?" );
-        properties
-            .put( "oidc.provider.idporten.authorization_uri", "INVALID_URI_SCHEME://oidc-ver2.difi.no/authorize" );
-        properties.put( "oidc.provider.idporten.token_uri", "https://oidc-ver2.difi.no/token" );
-        properties.put( "oidc.provider.idporten.user_info_uri", "https://oidc-ver2.difi.no/userinfo" );
-        properties.put( "oidc.provider.idporten.jwk_uri", "https://oidc-ver2.difi.no/jwk" );
-        properties.put( "oidc.provider.idporten.end_session_endpoint", "https://oidc-ver2.difi.no/endsession" );
-
-        List<Map<String, String>> parse = GenericOidcProviderConfigParser.parse( properties );
+        List<DhisOidcClientRegistration> parse = GenericOidcProviderConfigParser.parse( p );
 
         assertThat( parse, hasSize( 0 ) );
     }

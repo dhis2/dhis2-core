@@ -184,6 +184,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
+import com.google.api.client.util.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -2262,9 +2263,17 @@ public abstract class DhisConvenienceTest
 
     protected User createUser( String username, String... authorities )
     {
-        checkUserServiceWasInjected();
+        return _createUser( username, null, authorities );
+    }
 
-        String password = DEFAULT_ADMIN_PASSWORD;
+    protected User createOpenIDUser( String username, String openIDIdentifier )
+    {
+        return _createUser( username, openIDIdentifier );
+    }
+
+    private User _createUser( String username, String openIDIdentifier, String... authorities )
+    {
+        checkUserServiceWasInjected();
 
         UserAuthorityGroup group = createAuthorityGroup( username, authorities );
 
@@ -2274,9 +2283,9 @@ public abstract class DhisConvenienceTest
 
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, user, group );
+        UserCredentials credentials = createUserCredentials( username, openIDIdentifier, user, group );
 
-        userService.encodeAndSetPassword( credentials, password );
+        userService.encodeAndSetPassword( credentials, DEFAULT_ADMIN_PASSWORD );
         userService.addUserCredentials( credentials );
 
         user.setUserCredentials( credentials );
@@ -2302,7 +2311,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, user, group );
+        UserCredentials credentials = createUserCredentials( username, null, user, group );
         credentials.setUid( "KvMx6c1eoYo" );
         credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
 
@@ -2414,7 +2423,8 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserCredentials createUserCredentials( String username, User user, UserAuthorityGroup group )
+    private static UserCredentials createUserCredentials( String username, String openIDIdentifier, User user,
+        UserAuthorityGroup group )
     {
         UserCredentials credentials = new UserCredentials();
         credentials.setCode( username );
@@ -2422,6 +2432,13 @@ public abstract class DhisConvenienceTest
         credentials.setUserInfo( user );
         credentials.setUsername( username );
         credentials.getUserAuthorityGroups().add( group );
+
+        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
+        {
+            credentials.setOpenId( openIDIdentifier );
+            credentials.setExternalAuth( true );
+        }
+
         return credentials;
     }
 
