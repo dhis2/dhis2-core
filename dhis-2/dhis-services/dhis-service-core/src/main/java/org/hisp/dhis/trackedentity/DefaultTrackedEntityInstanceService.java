@@ -188,6 +188,11 @@ public class DefaultTrackedEntityInstanceService
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore
             .getTrackedEntityInstances( params );
 
+        if ( params.getMaxTeiLimit() > 0 && trackedEntityInstances.size() > params.getMaxTeiLimit() )
+        {
+            throw new IllegalQueryException( "maxteicountreached" );
+        }
+
         trackedEntityInstances = trackedEntityInstances.stream()
             .filter( ( tei ) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
             .collect( Collectors.toList() );
