@@ -211,7 +211,28 @@ public class EventDataQueryRequest
 
         public EventDataQueryRequestBuilder fromCriteria( EnrollmentAnalyticsQueryCriteria criteria )
         {
-            return startDate( criteria.getStartDate() );
+            return startDate( criteria.getStartDate() )
+                .endDate( criteria.getEndDate() )
+                .dimension( criteria.getDimension() )
+                .filter( criteria.getFilter() )
+                .ouMode( criteria.getOuMode() )
+                .asc( criteria.getAsc() )
+                .desc( criteria.getDesc() )
+                .skipMeta( criteria.isSkipMeta() )
+                .skipData( criteria.isSkipData() )
+                .completedOnly( criteria.isCompletedOnly() )
+                .hierarchyMeta( criteria.isHierarchyMeta() )
+                .coordinatesOnly( criteria.isCoordinatesOnly() )
+                .includeMetadataDetails( criteria.isIncludeMetadataDetails() )
+                .dataIdScheme( criteria.getDataIdScheme() )
+                .programStatus( criteria.getProgramStatus() )
+                .page( criteria.getPage() )
+                .pageSize( criteria.getPageSize() )
+                .displayProperty( criteria.getDisplayProperty() )
+                .relativePeriodDate( criteria.getRelativePeriodDate() )
+                .userOrgUnit( criteria.getUserOrgUnit() )
+                .coordinateField( criteria.getCoordinateField() )
+                .sortOrder( criteria.getSortOrder() );
         }
     }
 
