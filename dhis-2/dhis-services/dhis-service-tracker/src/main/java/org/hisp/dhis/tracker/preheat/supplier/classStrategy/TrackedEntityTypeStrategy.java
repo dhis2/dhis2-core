@@ -39,7 +39,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-@StrategyFor( value = TrackedEntityType.class, mapper = TrackedEntityTypeMapper.class, cache = true, ttl = 10, capacity = 5 )
+@StrategyFor( value = TrackedEntityType.class, mapper = TrackedEntityTypeMapper.class, cache = true, ttl = 10 )
 public class TrackedEntityTypeStrategy extends AbstractSchemaStrategy
 {
     public TrackedEntityTypeStrategy( SchemaService schemaService, QueryService queryService,
