@@ -27,11 +27,12 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
+
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Nguyen Hong Duc
