@@ -29,8 +29,11 @@ package org.hisp.dhis.webapi.json;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.function.Predicate;
 
 import javax.validation.constraints.NotNull;
+
+import com.google.common.collect.Iterators;
 
 /**
  * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
@@ -78,5 +81,10 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
                 return e;
             }
         };
+    }
+
+    default Iterable<E> filtered( Predicate<? super E> filter )
+    {
+        return () -> Iterators.filter( iterator(), filter::test );
     }
 }
