@@ -27,35 +27,21 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import java.net.URL;
+
 /**
- * Represents a boolean JSON node.
+ * A {@link JsonURL} is a {@link JsonString} with a URL format.
+ *
+ * The {@link #url()} utility method allows to access the JSON string node as
+ * {@link URL}.
  *
  * @author Jan Bernitt
  */
-public interface JsonBoolean extends JsonPrimitive
+public interface JsonURL extends JsonString
 {
-    /**
-     * @return boolean value of the property or {@code null} when this property
-     *         is undefined or defined as JSON {@code null}.
-     */
-    Boolean bool();
 
-    default boolean booleanValue( boolean orDefault )
+    default URL url()
     {
-        return exists() ? booleanValue() : orDefault;
-    }
-
-    /**
-     * Same as {@link #bool()} except that this throws an
-     * {@link java.util.NoSuchElementException} in case the value is not
-     * defined.
-     *
-     * @return true of false, nothing else
-     * @throws java.util.NoSuchElementException when this value is not defined
-     *         in the JSON content or defined JSON {@code null}.
-     */
-    default boolean booleanValue()
-    {
-        return mapNonNull( bool(), Boolean::booleanValue );
+        return converted( () -> new URL( string() ) );
     }
 }
