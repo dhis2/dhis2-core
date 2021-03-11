@@ -187,27 +187,20 @@ public class HibernateTrackedEntityInstanceStore
     @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
-        String hql = buildTrackedEntityInstanceHql( params, true )
-        .replaceFirst( "inner join fetch tei.programInstances", "inner join tei.programInstances" )
-        .replaceFirst( "inner join fetch pi.programStageInstances", "inner join pi.programStageInstances" )
-        .replaceFirst( "inner join fetch psi.assignedUser", "inner join psi.assignedUser" )
-        .replaceFirst( "inner join fetch tei.programOwners", "inner join tei.programOwners" );
+        String sql = getQuery( params, false );
+        log.debug( "Tracked entity instance query SQL: " + sql );
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
-        //If it is a sync job running a query, I need to adjust an HQL a bit, because I am adding 2 joins and don't want duplicates in results
-        if ( params.isSynchronizationQuery() )
+        checkMaxTeiCountReached( params, rowSet );
+
+        List<Long> ids = new ArrayList<>();
+
+        while ( rowSet.next() )
         {
-            hql = hql.replaceFirst( SELECT_TEI, "select distinct tei from" );
+            ids.add( rowSet.getLong( "teiid" ) );
         }
 
-        Query query = getSession().createQuery( hql );
-
-        if ( params.isPaging() )
-        {
-            query.setFirstResult( params.getOffset() );
-            query.setMaxResults( params.getPageSizeWithDefault() );
-        }
-
-        return query.list();
+        return ids;
     }
 
     private String buildTrackedEntityInstanceCountHql( TrackedEntityInstanceQueryParams params )
@@ -573,10 +566,10 @@ public class HibernateTrackedEntityInstanceStore
      * @param params params defining the query
      * @return SQL string
      */
-    private String getQuery( TrackedEntityInstanceQueryParams params )
+    private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
         return new StringBuilder()
-            .append( getQuerySelect( params ) )
+            .append( getQuerySelect( params, isGridQuery ) )
             .append( "FROM " )
             .append( getFromSubQuery( params, false ) )
             .append( getQueryRelatedTables( params ) )
@@ -594,7 +587,7 @@ public class HibernateTrackedEntityInstanceStore
     {
         return new StringBuilder()
             .append( getQueryCountSelect( params ) )
-            .append( getQuerySelect( params ) )
+            .append( getQuerySelect( params, true ) )
             .append( "FROM " )
             .append( getFromSubQuery( params, true ) )
             .append( getQueryRelatedTables( params ) )
@@ -606,11 +599,12 @@ public class HibernateTrackedEntityInstanceStore
     /**
      * Generates the projection of the main query. Includes two optional columns, deleted and tea_values
      * @param params
+     * @param isGridQuery indicates whether this query is for grid api
      * @return an SQL projection
      */
-    private String getQuerySelect( TrackedEntityInstanceQueryParams params )
+    private String getQuerySelect( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
-        return new StringBuilder()
+        StringBuilder select = new StringBuilder()
             .append( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID + ", " )
             .append( "TEI.created AS " + CREATED_ID + ", " )
             .append( "TEI.lastupdated AS " + LAST_UPDATED_ID + ", " )
@@ -619,9 +613,15 @@ public class HibernateTrackedEntityInstanceStore
             .append( "TET.uid AS " + TRACKED_ENTITY_ID + ", " )
             .append( "TEI.inactive AS " + INACTIVE_ID )
             .append( (params.isIncludeDeleted() ? ", TEI.deleted AS " + DELETED : "") )
-            .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") )
-            .append( SPACE )
-            .toString();
+            .append( (params.hasAttributes() ? ", string_agg(TEA.uid || ':' || TEAV.value, ';') AS tea_values" : "") );
+
+        if ( !isGridQuery )
+        {
+            select.append( ", TEI.trackedentityinstanceid AS teiid" );
+        }
+        select.append( SPACE );
+
+        return select.toString();
     }
 
     /**
@@ -1368,7 +1368,6 @@ public class HibernateTrackedEntityInstanceStore
             for ( String order : params.getOrders() )
             {
                 extractOrderField( innerOrder, params, cols, orderFields, order );
-
             }
 
             if ( !orderFields.isEmpty() )
