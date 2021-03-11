@@ -54,9 +54,12 @@ public interface JsonObject extends JsonCollection
     <T extends JsonValue> T get( String name, Class<T> as );
 
     /**
+     * Test an object for member names.
      *
-     * @param names a set of names that should exist
+     * @param names a set of member names that should exist
      * @return true if this object has (at least) all the given names
+     * @throws UnsupportedOperationException in case this value is not an JSON
+     *         object
      */
     boolean has( String... names );
 
@@ -92,12 +95,12 @@ public interface JsonObject extends JsonCollection
 
     default <E extends JsonValue> JsonList<E> getList( String name, Class<E> as )
     {
-        return asList( getArray( name ), as );
+        return JsonCollection.asList( getArray( name ), as );
     }
 
     default <E extends JsonValue> JsonMap<E> getMap( String name, Class<E> as )
     {
-        return asMap( getObject( name ), as );
+        return JsonCollection.asMap( getObject( name ), as );
     }
 
 }

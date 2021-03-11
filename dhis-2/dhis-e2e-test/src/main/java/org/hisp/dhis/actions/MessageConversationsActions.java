@@ -25,35 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
 
-import java.util.Arrays;
-import java.util.List;
+package org.hisp.dhis.actions;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.webapi.json.JsonString;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
- * A utility for an {@link OrganisationUnit#getPath()} value.
- *
- * Values use the format (starting with the root):
- *
- * <pre>
- * /{uid}/{uid}
- * /{uid}/{uid}/{uid}
- * </pre>
- *
- * @author Jan Bernitt
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public interface JsonPath extends JsonString
+public class MessageConversationsActions
+    extends RestApiActions
 {
-    default List<String> ids()
+    public MessageConversationsActions()
     {
-        return parsed( str -> Arrays.asList( str.split( "/" ) ) );
+        super( "/messageConversations" );
     }
 
-    default boolean contains( String uid )
+    public ApiResponse waitForNotification( int expectedCount )
     {
-        return ids().contains( uid );
+        boolean isReceived = false;
+        int attemptCount = 20;
+        ApiResponse response = null;
+        while ( !isReceived && attemptCount > 0 )
+        {
+            response = this.get( "", new QueryParamsBuilder().add( "fields=subject" ) );
+            isReceived = (response.extractList( "messageConversations" ).size() == expectedCount);
+            attemptCount--;
+        }
+
+        return response;
     }
 }
