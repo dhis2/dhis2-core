@@ -342,4 +342,14 @@ public class JsonDocumentTest
         assertEquals( JsonNodeType.NULL, node.getType() );
         assertNull( node.value() );
     }
+
+    @Test
+    public void testExtractAndReplace()
+    {
+        JsonDocument doc = new JsonDocument( "{\"a\": { \"b\" : [12, false] } }" );
+        JsonNode onlyA = doc.get( "$.a" ).extract();
+        assertEquals( "{ \"b\" : [12, false] }", onlyA.toString() );
+        assertEquals( "{ \"b\" : [42, false] }",
+            onlyA.members().get( "b" ).elements().get( 0 ).replaceWith( "42" ).toString() );
+    }
 }

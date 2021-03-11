@@ -197,6 +197,23 @@ public final class JsonDocument implements Serializable
          */
         abstract Serializable parseValue();
 
+        @Override
+        public final JsonNode replaceWith( String json )
+        {
+            int end = endIndex();
+            StringBuilder newJson = new StringBuilder();
+            if ( start > 0 )
+            {
+                newJson.append( this.json, 0, start );
+            }
+            newJson.append( json );
+            if ( end < this.json.length )
+            {
+                newJson.append( this.json, end, this.json.length - end );
+            }
+            return new JsonDocument( newJson.toString() ).get( "$" );
+        }
+
         static JsonNode autoDetect( String path, char[] json, int atIndex, Map<String, JsonNode> nodesByPath )
         {
             JsonNode node = nodesByPath.get( path );

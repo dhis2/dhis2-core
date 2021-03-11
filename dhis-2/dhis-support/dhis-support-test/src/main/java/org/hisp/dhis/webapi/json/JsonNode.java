@@ -150,4 +150,27 @@ public interface JsonNode extends Serializable
      *         (exclusive, points to first index after the node)
      */
     int endIndex();
+
+    /*
+     * API about using this node to create new documents
+     */
+
+    /**
+     * @return This node as a new independent JSON document where this node is
+     *         the new root of that document.
+     */
+    default JsonNode extract()
+    {
+        return new JsonDocument( getDeclaration() ).get( "$" );
+    }
+
+    /**
+     * Replace this node and return the root of the document where this node got
+     * replaced.
+     *
+     * @param json The JSON used instead of the on this node represents
+     * @return A new document root where this node got replaced with the
+     *         provided JSON
+     */
+    JsonNode replaceWith( String json );
 }
