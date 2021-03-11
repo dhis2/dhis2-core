@@ -27,18 +27,15 @@
  */
 package org.hisp.dhis.user.sharing;
 
-import java.io.Serializable;
+import java.io.*;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.user.*;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
