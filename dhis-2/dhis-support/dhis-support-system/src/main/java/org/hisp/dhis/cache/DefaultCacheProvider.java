@@ -134,7 +134,7 @@ public class DefaultCacheProvider
 
     private long getActualSize( long size )
     {
-        return Math.max( (long) this.cacheFactor * size, 1 );
+        return (long) Math.max( this.cacheFactor * size, 1 );
     }
 
     @Override

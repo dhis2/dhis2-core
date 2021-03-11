@@ -54,7 +54,8 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static DhisOidcClientRegistration build( Map<String, String> config )
+    public static DhisOidcClientRegistration build( Map<String, String> config,
+        Map<String, Map<String, String>> externalClients )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
@@ -72,6 +73,19 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
             throw new IllegalArgumentException( providerId + " client secret is missing!" );
         }
 
+        return DhisOidcClientRegistration.builder()
+            .clientRegistration( buildClientRegistration( config, providerId, clientId, clientSecret ) )
+            .mappingClaimKey( StringUtils.defaultIfEmpty( config.get( MAPPING_CLAIM ), DEFAULT_MAPPING_CLAIM ) )
+            .loginIcon( StringUtils.defaultIfEmpty( config.get( LOGIN_IMAGE ), "" ) )
+            .loginIconPadding( StringUtils.defaultIfEmpty( config.get( LOGIN_IMAGE_PADDING ), "0px 0px" ) )
+            .loginText( StringUtils.defaultIfEmpty( config.get( DISPLAY_ALIAS ), providerId ) )
+            .externalClients( externalClients )
+            .build();
+    }
+
+    private static ClientRegistration buildClientRegistration( Map<String, String> config, String providerId,
+        String clientId, String clientSecret )
+    {
         ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( providerId );
         builder.clientName( providerId );
         builder.clientId( clientId );
@@ -81,6 +95,7 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         builder.authorizationUri( config.get( AUTHORIZATION_URI ) );
         builder.tokenUri( config.get( TOKEN_URI ) );
         builder.jwkSetUri( config.get( JWK_URI ) );
+        builder.issuerUri( config.get( ISSUER_URI ) );
         builder.userInfoUri( config.get( USERINFO_URI ) );
         builder.redirectUri( StringUtils.defaultIfEmpty(
             config.get( REDIRECT_URL ),
@@ -90,35 +105,17 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         builder.scope( ImmutableList.<String> builder()
             .add( DEFAULT_SCOPE )
             .add( StringUtils.defaultIfEmpty( config.get( SCOPES ), "" ).split( " " ) ).build() );
+
         builder.providerConfigurationMetadata( parseMetaData( config ) );
 
-        return DhisOidcClientRegistration.builder()
-            .clientRegistration( builder.build() )
-            .mappingClaimKey( StringUtils.defaultIfEmpty( config.get( MAPPING_CLAIM ), DEFAULT_MAPPING_CLAIM ) )
-            .loginIcon( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE ), "" ) )
-            .loginIconPadding( StringUtils.defaultIfEmpty( config.get( LOGO_IMAGE_PADDING ), "0px 0px" ) )
-            .loginText( StringUtils.defaultIfEmpty( config.get( DISPLAY_ALIAS ), providerId ) )
-            .build();
+        return builder.build();
     }
 
     private static Map<String, Object> parseMetaData( Map<String, String> config )
     {
         final Map<String, Object> metadata = new HashMap<>();
 
-        String extraReqParams = StringUtils.defaultIfEmpty( config.get( EXTRA_REQUEST_PARAMETERS ), "" );
-
-        // Extra req. params has to be in this form: acr_value 4,test_param five
-        // (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2)
-        Map<String, String> extraReqParamMap = Arrays
-            .stream( extraReqParams.split( "," ) )
-            .filter( s -> s.trim().split( " " ).length == 2 ) // must be in
-                                                              // pairs (2)...
-            .map( s -> Pair.of(
-                s.trim().split( " " )[0],
-                s.trim().split( " " )[1] ) )
-            .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
-
-        metadata.put( EXTRA_REQUEST_PARAMETERS, extraReqParamMap );
+        metadata.put( EXTRA_REQUEST_PARAMETERS, getExtraRequestParameters( config ) );
 
         if ( Boolean.parseBoolean( config.get( ENABLE_LOGOUT ) ) )
         {
@@ -132,5 +129,25 @@ public class GenericOidcProviderBuilder extends AbstractOidcProvider
         }
 
         return metadata;
+    }
+
+    /**
+     * Extra req. params has to be in this form: acr_value 4, test_param five
+     * (trailing (PARAM1_NAME VALUE1,PARAM2_NAME VALUE2...)
+     *
+     * @param config
+     * @return
+     */
+    public static Map<String, String> getExtraRequestParameters( Map<String, String> config )
+    {
+        String params = StringUtils.defaultIfEmpty( config.get( EXTRA_REQUEST_PARAMETERS ), "" );
+
+        return Arrays
+            .stream( params.split( "," ) )
+            .filter( s -> s.trim().split( "\\s+" ).length == 2 )
+            .map( s -> Pair.of(
+                s.trim().split( "\\s+" )[0],
+                s.trim().split( "\\s+" )[1] ) )
+            .collect( Collectors.toMap( Pair::getLeft, Pair::getRight ) );
     }
 }
