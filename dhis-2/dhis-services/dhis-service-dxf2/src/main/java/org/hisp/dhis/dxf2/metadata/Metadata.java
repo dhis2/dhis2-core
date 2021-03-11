@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.hisp.dhis.analytics.AnalyticsTableHook;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.category.Category;
@@ -103,9 +102,10 @@ import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -1148,7 +1148,8 @@ public class Metadata
         return this.validationNotificationTemplates;
     }
 
-    public void setValidationNotificationTemplates( List<ValidationNotificationTemplate> validationNotificationTemplates )
+    public void setValidationNotificationTemplates(
+        List<ValidationNotificationTemplate> validationNotificationTemplates )
     {
         this.validationNotificationTemplates = validationNotificationTemplates;
     }

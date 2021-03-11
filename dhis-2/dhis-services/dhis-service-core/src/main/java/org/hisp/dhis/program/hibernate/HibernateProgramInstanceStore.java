@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.program.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -82,13 +81,13 @@ public class HibernateProgramInstanceStore
     extends SoftDeleteHibernateObjectStore<ProgramInstance>
     implements ProgramInstanceStore
 {
+    private final static String PI_HQL_BY_UIDS = "from ProgramInstance as pi where pi.uid in (:uids)";
+
     private final static String STATUS = "status";
 
-    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS =
-        Sets.intersection(
-            NotificationTrigger.getAllApplicableToProgramInstance(),
-            NotificationTrigger.getAllScheduledTriggers()
-        );
+    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS = Sets.intersection(
+        NotificationTrigger.getAllApplicableToProgramInstance(),
+        NotificationTrigger.getAllScheduledTriggers() );
 
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -108,7 +107,8 @@ public class HibernateProgramInstanceStore
 
     private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi", "select count(distinct uid) from ProgramInstance pi" );
+        return buildProgramInstanceHql( params ).replaceFirst( "from ProgramInstance pi",
+            "select count(distinct uid) from ProgramInstance pi" );
     }
 
     @Override
@@ -144,12 +144,13 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasTrackedEntityInstance() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstance().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstanceUid() + "'";
         }
 
         if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '" + params.getTrackedEntityType().getUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '"
+                + params.getTrackedEntityType().getUid() + "'";
         }
 
         if ( params.hasOrganisationUnits() )
@@ -170,7 +171,8 @@ public class HibernateProgramInstanceStore
             }
             else
             {
-                hql += hlp.whereAnd() + "pi.organisationUnit.uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
+                hql += hlp.whereAnd() + "pi.organisationUnit.uid in ("
+                    + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ")";
             }
         }
 
@@ -191,7 +193,8 @@ public class HibernateProgramInstanceStore
 
         if ( params.hasProgramStartDate() )
         {
-            hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramStartDate() ) + "'";
+            hql += hlp.whereAnd() + "pi.enrollmentDate >= '" + getMediumDateString( params.getProgramStartDate() )
+                + "'";
         }
 
         if ( params.hasProgramEndDate() )
@@ -212,7 +215,8 @@ public class HibernateProgramInstanceStore
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+        return getList( builder,
+            newJpaParameters().addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
     }
 
     @Override
@@ -245,8 +249,8 @@ public class HibernateProgramInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programinstance where uid=? and deleted is false)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programinstance where uid=:uid and deleted is false)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -260,8 +264,8 @@ public class HibernateProgramInstanceStore
         }
 
         Query query = getSession().createNativeQuery(
-            "select exists(select 1 from programinstance where uid=?)" );
-        query.setParameter( 1, uid );
+            "select exists(select 1 from programinstance where uid=:uid)" );
+        query.setParameter( "uid", uid );
 
         return ((Boolean) query.getSingleResult()).booleanValue();
     }
@@ -269,7 +273,7 @@ public class HibernateProgramInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        String hql = "select pi.uid from ProgramInstance as pi where pi.uid in (:uids)";
+        String hql = "select pi.uid " + PI_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -277,7 +281,8 @@ public class HibernateProgramInstanceStore
         {
             if ( !uidsPartition.isEmpty() )
             {
-                resultUids.addAll( getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
+                resultUids.addAll(
+                    getSession().createQuery( hql, String.class ).setParameter( "uids", uidsPartition ).list() );
             }
         }
 
@@ -285,9 +290,29 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate )
+    public List<ProgramInstance> getIncludingDeleted( List<String> uids )
     {
-        if ( notificationDate == null || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+        List<ProgramInstance> programInstances = new ArrayList<>();
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
+
+        for ( List<String> uidsPartition : uidsPartitions )
+        {
+            if ( !uidsPartition.isEmpty() )
+            {
+                programInstances.addAll( getSession().createQuery( PI_HQL_BY_UIDS, ProgramInstance.class )
+                    .setParameter( "uids", uidsPartition ).list() );
+            }
+        }
+
+        return programInstances;
+    }
+
+    @Override
+    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+        Date notificationDate )
+    {
+        if ( notificationDate == null
+            || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -301,13 +326,12 @@ public class HibernateProgramInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        String hql =
-            "select distinct pi from ProgramInstance as pi " +
-                "inner join pi.program as p " +
-                "where :notificationTemplate in elements(p.notificationTemplates) " +
-                "and pi." + dateProperty + " is not null " +
-                "and pi.status = :activeEnrollmentStatus " +
-                "and cast(:targetDate as date) = pi." + dateProperty;
+        String hql = "select distinct pi from ProgramInstance as pi " +
+            "inner join pi.program as p " +
+            "where :notificationTemplate in elements(p.notificationTemplates) " +
+            "and pi." + dateProperty + " is not null " +
+            "and pi.status = :activeEnrollmentStatus " +
+            "and cast(:targetDate as date) = pi." + dateProperty;
 
         return getQuery( hql )
             .setParameter( "notificationTemplate", template )
@@ -351,7 +375,8 @@ public class HibernateProgramInstanceStore
         // Constructing list of parameters
         List<Predicate> predicates = new ArrayList<>();
 
-        // TODO we may have potentially thousands of events here, so, it's better to
+        // TODO we may have potentially thousands of events here, so, it's
+        // better to
         // partition the list
         for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
         {
@@ -382,7 +407,8 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    protected void preProcessPredicates( CriteriaBuilder builder, List<Function<Root<ProgramInstance>, Predicate>> predicates )
+    protected void preProcessPredicates( CriteriaBuilder builder,
+        List<Function<Root<ProgramInstance>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+
+import java.util.List;
+
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import java.util.List;
-
-import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -48,6 +48,8 @@ import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_P
 public class ReportingRate
     extends BaseDimensionalItemObject implements EmbeddedObject
 {
+    private static final String SPACED_DASH = " - ";
+
     private DataSet dataSet;
 
     private ReportingRateMetric metric;
@@ -83,7 +85,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getName() + " " + metricName;
+        return dataSet.getName() + SPACED_DASH + metricName;
     }
 
     @Override
@@ -91,7 +93,7 @@ public class ReportingRate
     {
         String metricName = metric != null ? metric.displayName() : ReportingRateMetric.REPORTING_RATE.displayName();
 
-        return dataSet.getShortName() + " " + metricName;
+        return dataSet.getShortName() + SPACED_DASH + metricName;
     }
 
     @Override

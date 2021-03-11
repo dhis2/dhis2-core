@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,20 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
-import com.google.common.collect.Sets;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -54,9 +64,9 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
@@ -68,17 +78,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasProperty;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -211,6 +211,8 @@ public class EnrollmentSecurityImportValidationTest
         manager.save( maleB );
         manager.save( femaleA );
         manager.save( femaleB );
+
+        manager.flush();
     }
 
     @Override
@@ -237,14 +239,14 @@ public class EnrollmentSecurityImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
+        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -257,7 +259,7 @@ public class EnrollmentSecurityImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_te_enrollments-data.json" );
 
         User user = userService.getUser( USER_2 );
@@ -284,13 +286,13 @@ public class EnrollmentSecurityImportValidationTest
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_orgunit-mismatch.json" );
 
-        params.setUser( user );
+        params.setUserId( user.getUid() );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
@@ -310,14 +312,14 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         TrackedEntityType bPJ0FMtcnEh = trackedEntityTypeService.getTrackedEntityType( "bPJ0FMtcnEh" );
         programA.setTrackedEntityType( bPJ0FMtcnEh );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-tei.json" );
 
         params.setUser( user );
@@ -345,14 +347,14 @@ public class EnrollmentSecurityImportValidationTest
         programA.setPublicAccess( AccessStringHelper.DATA_READ );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        userService.addUser( user );
         injectSecurityContext( user );
 
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-program.json" );
 
         params.setUser( user );
@@ -373,17 +375,16 @@ public class EnrollmentSecurityImportValidationTest
     {
         setupMetadata();
 
-        programA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
+        programA.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityType.setPublicAccess( AccessStringHelper.DATA_READ );
         programA.setTrackedEntityType( trackedEntityType );
-        manager.update( programA );
+        manager.updateNoAcl( programA );
 
-        User user = createUser( "user1" )
-            .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-
+        User user = createUser( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        userService.addUser( user );
         injectSecurityContext( user );
 
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_no-access-program.json" );
 
         params.setUser( user );
@@ -406,12 +407,14 @@ public class EnrollmentSecurityImportValidationTest
         programA.setTrackedEntityType( trackedEntityType );
         manager.update( programA );
 
+        manager.flush();
+
         User user = createUser( "user1" )
             .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
 
         injectSecurityContext( user );
 
-        TrackerBundleParams params = createBundleFromJson(
+        TrackerImportParams params = createBundleFromJson(
             "tracker/validations/enrollments_program-teitype-missmatch.json" );
 
         params.setUser( user );
@@ -423,5 +426,11 @@ public class EnrollmentSecurityImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1104 ) ) ) );
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

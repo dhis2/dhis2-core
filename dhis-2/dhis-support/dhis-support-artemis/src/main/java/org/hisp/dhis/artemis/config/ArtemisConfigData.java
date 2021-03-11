@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.artemis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.config;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,10 +43,12 @@ public class ArtemisConfigData
 
     private String host = "127.0.0.1";
 
-    // AMQP port should be 5672/5673 but we don't want to cause issues with existing AMQP installations
+    // AMQP port should be 5672/5673 but we don't want to cause issues with
+    // existing AMQP installations
     // so we keep 25672 as default port (since we default to embedded server).
     //
-    // NOTE we used 15672 before here, but it was changed as it interfers with RabbitMQ default port
+    // NOTE we used 15672 before here, but it was changed as it interfers with
+    // RabbitMQ default port
     private int port = 25672;
 
     private String username = "guest";
@@ -140,5 +142,10 @@ public class ArtemisConfigData
     public void setSendAsync( boolean sendAsync )
     {
         this.sendAsync = sendAsync;
+    }
+
+    public boolean isEmbedded()
+    {
+        return ArtemisMode.EMBEDDED == mode;
     }
 }

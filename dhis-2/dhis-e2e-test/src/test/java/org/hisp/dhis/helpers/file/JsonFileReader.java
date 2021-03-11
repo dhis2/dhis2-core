@@ -1,7 +1,7 @@
 package org.hisp.dhis.helpers.file;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.restassured.path.json.JsonPath;
 import org.hisp.dhis.actions.IdGenerator;
 
 import java.io.File;

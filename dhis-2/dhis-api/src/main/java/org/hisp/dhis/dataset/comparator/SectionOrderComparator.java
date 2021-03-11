@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset.comparator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataset.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset.comparator;
 
 import java.util.Comparator;
 
@@ -36,20 +35,20 @@ public class SectionOrderComparator
     implements Comparator<Section>
 {
     public static final SectionOrderComparator INSTANCE = new SectionOrderComparator();
-    
+
     @Override
     public int compare( Section o1, Section o2 )
     {
         if ( o1.getDataSet() != null && o2.getDataSet() != null )
         {
             int dataSet = o1.getDataSet().getName().compareTo( o2.getDataSet().getName() );
-            
+
             if ( dataSet != 0 )
             {
                 return dataSet;
             }
         }
-        
+
         return o1.getSortOrder() - o2.getSortOrder();
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Set;
 
@@ -35,8 +36,6 @@ import org.hisp.dhis.dataentryform.DataEntryFormService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Chau Thu Tran
  */
@@ -44,10 +43,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ProgramDataEntryFormDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final DataEntryFormService dataEntryFormService;
 
     private final ProgramStageService programStageService;
@@ -61,17 +56,12 @@ public class ProgramDataEntryFormDeletionHandler
         this.programStageService = programStageService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataEntryForm.class.getSimpleName();
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
     }
 
-    @Override
     public void deleteProgramStage( ProgramStage programStage )
     {
         DataEntryForm dataEntryForm = programStage.getDataEntryForm();
@@ -79,11 +69,11 @@ public class ProgramDataEntryFormDeletionHandler
         if ( dataEntryForm != null )
         {
             boolean flag = false;
-            
+
             Set<ProgramStage> programStages = programStage.getProgram().getProgramStages();
-            
+
             programStages.remove( programStage );
-            
+
             for ( ProgramStage stage : programStages )
             {
                 if ( stage.getDataEntryForm() != null )

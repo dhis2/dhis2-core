@@ -1,7 +1,5 @@
-package org.hisp.dhis.monitoring.metrics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.monitoring.metrics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.monitoring.metrics;
 
 import static org.hisp.dhis.external.conf.ConfigurationKey.MONITORING_DBPOOL_ENABLED;
 
@@ -36,6 +35,7 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.monitoring.metrics.jdbc.C3p0MetadataProvider;
 import org.hisp.dhis.monitoring.metrics.jdbc.DataSourcePoolMetadataProvider;
@@ -44,11 +44,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Lists;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
-
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**

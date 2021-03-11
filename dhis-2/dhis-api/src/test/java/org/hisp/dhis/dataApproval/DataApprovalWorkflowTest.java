@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataApproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.dataApproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataApproval;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
 
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.period.*;
 import org.junit.Test;
-
-import java.util.List;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Jim Grace
@@ -56,7 +55,8 @@ public class DataApprovalWorkflowTest
         DataApprovalLevel level3 = new DataApprovalLevel( "level3", 3, null );
         level3.setLevel( 3 );
 
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(), newHashSet(level3, level2, level1 ) );
+        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
+            newHashSet( level3, level2, level1 ) );
 
         List<DataApprovalLevel> levels = workflow.getSortedLevels();
 
@@ -66,11 +66,12 @@ public class DataApprovalWorkflowTest
     }
 
     /**
-     * Note that as part of the following test, we are checking to be sure that the longest
-     * extension to the category option end date is returned from data sets that are
-     * successively added to the workflow. The total extension length (period length
-     * times number of periods) is always increasing as we add data sets to the workflow.
-     * The most recently-added data set always has the longest total extension so far.
+     * Note that as part of the following test, we are checking to be sure that
+     * the longest extension to the category option end date is returned from
+     * data sets that are successively added to the workflow. The total
+     * extension length (period length times number of periods) is always
+     * increasing as we add data sets to the workflow. The most recently-added
+     * data set always has the longest total extension so far.
      */
     @Test
     public void testGetWorkflowSqlCoEnddateExtension()
@@ -97,7 +98,8 @@ public class DataApprovalWorkflowTest
         DataSet financialNovDs = createDataSet( "financialNovDs", new FinancialNovemberPeriodType(), 7 );
         DataSet twoYearlyDs = createDataSet( "twoYearlyDs", new TwoYearlyPeriodType(), 4 );
 
-        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(), newHashSet() );
+        DataApprovalWorkflow workflow = new DataApprovalWorkflow( "test workflow", new DailyPeriodType(),
+            newHashSet() );
 
         assertEquals( "", workflow.getSqlCoEndDateExtension() );
 

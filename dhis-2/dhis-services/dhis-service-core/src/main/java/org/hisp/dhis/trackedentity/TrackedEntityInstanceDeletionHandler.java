@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,16 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -42,10 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class TrackedEntityInstanceDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-    
+    private static final DeletionVeto VETO = new DeletionVeto( TrackedEntityInstance.class );
+
     private final JdbcTemplate jdbcTemplate;
 
     public TrackedEntityInstanceDeletionHandler( JdbcTemplate jdbcTemplate )
@@ -54,28 +53,25 @@ public class TrackedEntityInstanceDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return TrackedEntityInstance.class.getSimpleName();
+        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
+        whenVetoing( TrackedEntityType.class, this::allowDeleteTrackedEntityType );
     }
 
-    @Override
-    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
         String sql = "select count(*) from trackedentityinstance where organisationunitid = " + unit.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;    }
-    
-    @Override
-    public String allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = " + trackedEntityType.getId();
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
+    }
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+    private DeletionVeto allowDeleteTrackedEntityType( TrackedEntityType trackedEntityType )
+    {
+        String sql = "select count(*) from trackedentityinstance where trackedentitytypeid = "
+            + trackedEntityType.getId();
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

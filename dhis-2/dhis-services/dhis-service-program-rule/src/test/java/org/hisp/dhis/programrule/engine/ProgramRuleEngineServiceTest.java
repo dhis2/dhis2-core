@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,9 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
@@ -38,6 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.*;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -91,6 +92,9 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Mock
     private ProgramService programService;
 
+    @Mock
+    private DhisConfigurationProvider config;
+
     @Spy
     private ArrayList<RuleActionImplementer> ruleActionImplementers;
 
@@ -123,6 +127,8 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         // stub for ruleActionSendMessage
         Mockito.lenient().when( ruleActionSendMessage.accept( any() ) ).thenReturn( true );
+
+        Mockito.when( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) ).thenReturn( false );
     }
 
     @Test
@@ -143,7 +149,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
         when( programRuleEngine.evaluate( any(), any() ) ).thenReturn( effects );
@@ -183,18 +189,18 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( ProgramStageInstance.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
-        when( programStageInstanceService.getProgramStageInstance( anyLong() ) ).thenReturn( programStageInstance );
+        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
         when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
 
-        when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
+        when( programRuleEngine.evaluate( any(), any(), anySet() ) ).thenReturn( effects );
 
         setProgramRuleActionType_SendMessage();
 
         ArgumentCaptor<ProgramStageInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramStageInstance.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEventAndRunEffects( programStageInstance.getUid() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -244,6 +250,7 @@ public class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         programStageInstance = new ProgramStageInstance();
         programStageInstance.setProgramStage( programStageA );
         programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setUid( "PSI1" );
 
         programRules.add( programRuleA );
     }

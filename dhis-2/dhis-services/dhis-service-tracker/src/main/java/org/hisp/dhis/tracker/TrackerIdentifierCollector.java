@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,69 +25,113 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
-import com.google.common.base.MoreObjects;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleService;
+import org.hisp.dhis.relationship.RelationshipKey;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
-import org.springframework.util.StringUtils;
+import org.hisp.dhis.tracker.preheat.RelationshipPreheatKeySupport;
+import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
- * This class "collects" identifiers from all input objects.
- * This resulting map of all identifiers will then be used to "preheat/cache"
- * all the objects needed into memory to speed up the validation process.
+ * This class "collects" identifiers from all input objects. This resulting map
+ * of all identifiers will then be used to "preheat/cache" all the objects
+ * needed into memory to speed up the validation process.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see org.hisp.dhis.tracker.preheat.DefaultTrackerPreheatService
  */
+@Component
+@RequiredArgsConstructor
 public class TrackerIdentifierCollector
 {
-    public static Map<Class<?>, Set<String>> collect( TrackerBundleParams params )
+    public final static String ID_WILDCARD = "*";
+
+    private final ProgramRuleService programRuleService;
+
+    public Map<Class<?>, Set<String>> collect( TrackerImportParams params,
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
     {
         Map<Class<?>, Set<String>> map = new HashMap<>();
 
         collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
         collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
         collectEvents( map, params.getIdentifiers(), params.getEvents() );
-        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
+        collectRelationships( map, params.getRelationships() );
+        // Using "*" signals that all the entities of the given type have to be
+        // preloaded in the Preheat
+        map.put( TrackedEntityType.class, ImmutableSet.of( ID_WILDCARD ) );
+        map.put( RelationshipType.class, ImmutableSet.of( ID_WILDCARD ) );
+        collectDefaults( map, params.getIdentifiers(), defaults );
 
+        collectProgramRulesFields( map, params.getIdentifiers() );
         return map;
     }
 
-    public static Map<Class<?>, Set<String>> collect( TrackerPreheatParams params )
+    private void collectProgramRulesFields( Map<Class<?>, Set<String>> map,
+        TrackerIdentifierParams params )
     {
-        Map<Class<?>, Set<String>> map = new HashMap<>();
+        Set<String> programs = map.get( Program.class );
+        if ( programs != null )
+        {
+            List<ProgramRule> programRules = programRuleService.getProgramRuleByProgram( programs );
+            Set<String> dataElements = programRules.stream()
+                .flatMap( pr -> pr.getProgramRuleActions().stream() )
+                .filter( a -> Objects.nonNull( a.getDataElement() ) )
+                .map( a -> a.getDataElement().getUid() )
+                .collect( Collectors.toSet() );
 
-        collectTrackedEntities( map, params.getIdentifiers(), params.getTrackedEntities() );
-        collectEnrollments( map, params.getIdentifiers(), params.getEnrollments() );
-        collectEvents( map, params.getIdentifiers(), params.getEvents() );
-        collectRelationships( map, params.getIdentifiers(), params.getRelationships() );
+            dataElements
+                .forEach(
+                    de -> addIdentifier( map, DataElement.class, params.getDataElementIdScheme().getIdScheme(), de ) );
 
-        return map;
+            Set<String> attributes = programRules.stream()
+                .flatMap( pr -> pr.getProgramRuleActions().stream() )
+                .filter( a -> Objects.nonNull( a.getAttribute() ) )
+                .map( a -> a.getAttribute().getUid() )
+                .collect( Collectors.toSet() );
+
+            attributes.forEach(
+                attribute -> addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute ) );
+        }
     }
 
-    private static void collectTrackedEntities(
+    private void collectDefaults( Map<Class<?>, Set<String>> map,
+        TrackerIdentifierParams params,
+        Map<Class<? extends IdentifiableObject>, IdentifiableObject> defaults )
+    {
+        defaults.forEach( ( defaultClass, defaultMetadata ) -> addIdentifier( map, defaultClass,
+            params.getIdScheme().getIdScheme(), defaultMetadata.getUid() ) );
+    }
+
+    private void collectTrackedEntities(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<TrackedEntity> trackedEntities )
     {
         trackedEntities.forEach( trackedEntity -> {
@@ -100,11 +142,12 @@ public class TrackerIdentifierCollector
 
             collectEnrollments( map, params, trackedEntity.getEnrollments() );
 
-            collectTrackedEntityAttribute( map, trackedEntity.getAttributes() );
+            trackedEntity.getAttributes().forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class,
+                TrackerIdScheme.UID, attribute.getAttribute() ) );
         } );
     }
 
-    private static void collectEnrollments(
+    private void collectEnrollments(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Enrollment> enrollments )
     {
         enrollments.forEach( enrollment -> {
@@ -113,28 +156,26 @@ public class TrackerIdentifierCollector
             addIdentifier( map, Program.class, params.getProgramIdScheme().getIdScheme(), enrollment.getProgram() );
             addIdentifier( map, OrganisationUnit.class, params.getOrgUnitIdScheme().getIdScheme(),
                 enrollment.getOrgUnit() );
-            
-            collectNotes( map, enrollment.getNotes());
+
+            collectNotes( map, enrollment.getNotes() );
             collectEvents( map, params, enrollment.getEvents() );
-            collectTrackedEntityAttribute( map, enrollment.getAttributes() );
+            enrollment.getAttributes().forEach( attribute -> addIdentifier( map, TrackedEntityAttribute.class,
+                TrackerIdScheme.UID, attribute.getAttribute() ) );
         } );
     }
 
-    private static void collectNotes( Map<Class<?>, Set<String>> map, List<Note> notes )
+    private void collectNotes( Map<Class<?>, Set<String>> map, List<Note> notes )
     {
-        if ( !notes.isEmpty() )
-        {
-            notes.forEach(
-                note -> {
-                    if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
-                    {
-                        addIdentifier( map, TrackedEntityComment.class, TrackerIdScheme.UID, note.getNote() );
-                    }
-                } );
-        }
+        notes.forEach(
+            note -> {
+                if ( !StringUtils.isEmpty( note.getNote() ) && !StringUtils.isEmpty( note.getValue() ) )
+                {
+                    addIdentifier( map, TrackedEntityComment.class, TrackerIdScheme.UID, note.getNote() );
+                }
+            } );
     }
 
-    private static void collectEvents(
+    private void collectEvents(
         Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Event> events )
     {
         events.forEach( event -> {
@@ -149,7 +190,8 @@ public class TrackerIdentifierCollector
             Stream
                 .of( MoreObjects.firstNonNull( event.getAttributeCategoryOptions(), "" ).split( TextUtils.SEMICOLON ) )
                 .forEach(
-                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOption().getIdScheme(), s ) );
+                    s -> addIdentifier( map, CategoryOption.class, params.getCategoryOptionIdScheme().getIdScheme(),
+                        s ) );
 
             addIdentifier( map, CategoryOptionCombo.class, params.getCategoryOptionComboIdScheme().getIdScheme(),
                 event.getAttributeOptionCombo() );
@@ -163,11 +205,16 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static void collectRelationships(
-        Map<Class<?>, Set<String>> map, TrackerIdentifierParams params, List<Relationship> relationships )
+    private void collectRelationships(
+        Map<Class<?>, Set<String>> map, List<Relationship> relationships )
     {
         relationships.parallelStream().forEach( relationship -> {
+
+            RelationshipKey relationshipKey = RelationshipPreheatKeySupport.getRelationshipKey( relationship );
+
+            addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationshipKey.asString() );
             addIdentifier( map, Relationship.class, TrackerIdScheme.UID, relationship.getRelationship() );
+
             if ( relationship.getFrom() != null )
             {
                 addIdentifier( map, TrackedEntity.class, TrackerIdScheme.UID,
@@ -184,19 +231,7 @@ public class TrackerIdentifierCollector
         } );
     }
 
-    private static void collectTrackedEntityAttribute(
-        Map<Class<?>, Set<String>> map, List<Attribute> attributes )
-    {
-        if ( attributes.isEmpty() )
-        {
-            return;
-        }
-
-        attributes.forEach( attribute ->
-            addIdentifier( map, TrackedEntityAttribute.class, TrackerIdScheme.UID, attribute.getAttribute() ) );
-    }
-
-    private static <T> void addIdentifier( Map<Class<?>, Set<String>> map,
+    private <T> void addIdentifier( Map<Class<?>, Set<String>> map,
         Class<T> klass, TrackerIdScheme identifier, String str )
     {
         if ( StringUtils.isEmpty( str ) || map == null || klass == null || identifier == null )

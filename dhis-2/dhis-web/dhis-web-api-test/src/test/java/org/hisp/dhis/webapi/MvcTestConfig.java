@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,25 @@ package org.hisp.dhis.webapi;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi;
 
-import com.google.common.collect.ImmutableMap;
+import static org.springframework.http.MediaType.parseMediaType;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.hisp.dhis.common.Compression;
 import org.hisp.dhis.node.DefaultNodeService;
 import org.hisp.dhis.node.NodeService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
 import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
 import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.TranslationInterceptor;
+import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
 import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
@@ -44,6 +52,7 @@ import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
 import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
 import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -63,12 +72,7 @@ import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static org.springframework.http.MediaType.parseMediaType;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -78,11 +82,20 @@ import static org.springframework.http.MediaType.parseMediaType;
 @EnableGlobalMethodSecurity( prePostEnabled = true )
 public class MvcTestConfig implements WebMvcConfigurer
 {
+    @Autowired
+    private CurrentUserService currentUserService;
+
+    @Autowired
+    private UserSettingService userSettingService;
+
+    @Autowired
+    private CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;
+
     @Bean
     public CustomRequestMappingHandlerMapping requestMappingHandlerMapping()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };
@@ -137,7 +150,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     @Override
     public void addInterceptors( InterceptorRegistry registry )
     {
-        registry.addInterceptor( TranslationInterceptor.get() );
+        registry.addInterceptor( new UserContextInterceptor( currentUserService, userSettingService ) );
     }
 
     @Override
@@ -178,6 +191,7 @@ public class MvcTestConfig implements WebMvcConfigurer
     public void addArgumentResolvers( List<HandlerMethodArgumentResolver> resolvers )
     {
         resolvers.add( dhisApiVersionHandlerMethodArgumentResolver() );
+        resolvers.add( currentUserHandlerMethodArgumentResolver );
     }
 
     @Bean

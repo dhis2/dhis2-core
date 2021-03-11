@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,14 +24,19 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+package org.hisp.dhis.tracker.validation;
 
-import org.hisp.dhis.DhisSpringTest;
+import java.io.IOException;
+import java.io.InputStream;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
+import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.TrackerErrorReport;
 import org.hisp.dhis.tracker.report.TrackerValidationReport;
@@ -41,14 +44,12 @@ import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 public abstract class AbstractImportValidationTest
-    extends DhisSpringTest
+    extends TrackerTest
 {
     @Autowired
     protected TrackerBundleService trackerBundleService;
@@ -76,17 +77,23 @@ public abstract class AbstractImportValidationTest
 
     public static final String USER_6 = "VfaA5WwHLdP";
 
-    protected TrackerBundleParams createBundleFromJson( String jsonFile )
+    protected TrackerImportParams createBundleFromJson( String jsonFile )
         throws IOException
     {
         InputStream inputStream = new ClassPathResource( jsonFile ).getInputStream();
 
-        TrackerBundleParams params = renderService.fromJson( inputStream, TrackerBundleParams.class );
+        TrackerImportParams params = renderService.fromJson( inputStream, TrackerImportParams.class );
 
         User user = userService.getUser( ADMIN_USER_UID );
         params.setUser( user );
 
         return params;
+    }
+
+    @Override
+    protected void initTest()
+        throws IOException
+    {
     }
 
     protected void printReport( TrackerValidationReport report )
@@ -100,28 +107,28 @@ public abstract class AbstractImportValidationTest
     protected ValidateAndCommitTestUnit validateAndCommit( String jsonFileName, TrackerImportStrategy strategy )
         throws IOException
     {
-        return ValidateAndCommitTestUnit.builder()
+        ValidateAndCommitTestUnit validateAndCommitTestUnit = ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
-            .trackerBundleParams( createBundleFromJson( jsonFileName ) )
+            .trackerImportParams( createBundleFromJson( jsonFileName ) )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
+        manager.flush();
+        return validateAndCommitTestUnit;
     }
 
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerBundleParams params, TrackerImportStrategy strategy )
+    protected ValidateAndCommitTestUnit validateAndCommit( TrackerImportParams params,
+        TrackerImportStrategy strategy )
     {
-        return ValidateAndCommitTestUnit.builder()
+        ValidateAndCommitTestUnit validateAndCommitTestUnit = ValidateAndCommitTestUnit.builder()
             .trackerBundleService( trackerBundleService )
             .trackerValidationService( trackerValidationService )
-            .trackerBundleParams( params )
+            .trackerImportParams( params )
             .trackerImportStrategy( strategy )
             .build()
             .invoke();
-    }
-
-    protected ValidateAndCommitTestUnit validateAndCommit( TrackerBundleParams params )
-    {
-        return validateAndCommit( params, TrackerImportStrategy.CREATE_AND_UPDATE );
+        manager.flush();
+        return validateAndCommitTestUnit;
     }
 }

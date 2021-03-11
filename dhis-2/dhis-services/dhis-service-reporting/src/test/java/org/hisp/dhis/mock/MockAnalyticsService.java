@@ -1,7 +1,5 @@
-package org.hisp.dhis.mock;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mock;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mock;
 
 import java.util.Date;
 import java.util.List;
@@ -35,12 +34,7 @@ import java.util.Map;
 import org.apache.commons.lang3.NotImplementedException;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.period.Period;
 
@@ -124,11 +118,6 @@ public class MockAnalyticsService
     public Map<String, Object> getAggregatedDataValueMapping( AnalyticalObject object )
     {
         throw new NotImplementedException( "" );
-    }
-
-    @Override
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
     }
 
     // -------------------------------------------------------------------------

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Calculates rule effects calling rule engine on enrollments or events.
@@ -44,9 +43,9 @@ import java.util.Map;
 public interface TrackerProgramRuleService
 {
     /**
-     * It feeds in enrollments given in {@link TrackerBundle} into rule engine and
-     * return a map of provided enrollments and their associated rule effects which
-     * are returned by rule engine.
+     * It feeds in enrollments given in {@link TrackerBundle} into rule engine
+     * and return a map of provided enrollments and their associated rule
+     * effects which are returned by rule engine.
      *
      * @param enrollments Enrollments present in the payload
      * @param bundle The bundle is needed to build the context for rule engine
@@ -55,8 +54,8 @@ public interface TrackerProgramRuleService
     Map<String, List<RuleEffect>> calculateEnrollmentRuleEffects( List<Enrollment> enrollments, TrackerBundle bundle );
 
     /**
-     * It feeds in events given in {@link TrackerBundle} into rule engine and return
-     * a map of events and their associated rule effects.
+     * It feeds in events given in {@link TrackerBundle} into rule engine and
+     * return a map of events and their associated rule effects.
      *
      * @param events Events present in the payload
      * @param bundle The bundle is needed to build the context for rule engine

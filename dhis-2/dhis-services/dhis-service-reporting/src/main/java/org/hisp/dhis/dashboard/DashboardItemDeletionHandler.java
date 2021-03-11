@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -57,13 +56,20 @@ public class DashboardItemDeletionHandler extends DeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return DashboardItem.class.getSimpleName();
+        whenDeleting( Visualization.class, this::deleteVisualization );
+        whenDeleting( ReportTable.class, this::deleteReportTable );
+        whenDeleting( Chart.class, this::deleteChart );
+        whenDeleting( EventChart.class, this::deleteEventChart );
+        whenDeleting( Map.class, this::deleteMap );
+        whenDeleting( EventReport.class, this::deleteEventReport );
+        whenDeleting( User.class, this::deleteUser );
+        whenDeleting( Report.class, this::deleteReport );
+        whenDeleting( Document.class, this::deleteDocument );
     }
 
-    @Override
-    public void deleteVisualization( Visualization visualization )
+    private void deleteVisualization( Visualization visualization )
     {
         for ( DashboardItem item : dashboardService.getVisualizationDashboardItems( visualization ) )
         {
@@ -71,8 +77,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteReportTable( ReportTable reportTable )
+    private void deleteReportTable( ReportTable reportTable )
     {
         for ( DashboardItem item : dashboardService.getReportTableDashboardItems( reportTable ) )
         {
@@ -80,8 +85,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteChart( Chart chart )
+    private void deleteChart( Chart chart )
     {
         for ( DashboardItem item : dashboardService.getChartDashboardItems( chart ) )
         {
@@ -89,8 +93,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteEventChart( EventChart eventChart )
+    private void deleteEventChart( EventChart eventChart )
     {
         for ( DashboardItem item : dashboardService.getEventChartDashboardItems( eventChart ) )
         {
@@ -98,8 +101,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteMap( Map map )
+    private void deleteMap( Map map )
     {
         for ( DashboardItem item : dashboardService.getMapDashboardItems( map ) )
         {
@@ -107,8 +109,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteEventReport( EventReport eventReport )
+    private void deleteEventReport( EventReport eventReport )
     {
         for ( DashboardItem item : dashboardService.getEventReportDashboardItems( eventReport ) )
         {
@@ -116,8 +117,7 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         for ( DashboardItem item : dashboardService.getUserDashboardItems( user ) )
         {
@@ -133,12 +133,12 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteReport( Report report )
+    private void deleteReport( Report report )
     {
         for ( DashboardItem item : dashboardService.getReportDashboardItems( report ) )
         {
-            while ( item.getReports().contains( report ) ) // In case of duplicates
+            while ( item.getReports().contains( report ) ) // In case of
+                                                           // duplicates
             {
                 item.getReports().remove( report );
             }
@@ -150,12 +150,12 @@ public class DashboardItemDeletionHandler extends DeletionHandler
         }
     }
 
-    @Override
-    public void deleteDocument( Document document )
+    private void deleteDocument( Document document )
     {
         for ( DashboardItem item : dashboardService.getDocumentDashboardItems( document ) )
         {
-            while ( item.getResources().contains( document ) ) // In case of duplicates
+            while ( item.getResources().contains( document ) ) // In case of
+                                                               // duplicates
             {
                 item.getResources().remove( document );
             }

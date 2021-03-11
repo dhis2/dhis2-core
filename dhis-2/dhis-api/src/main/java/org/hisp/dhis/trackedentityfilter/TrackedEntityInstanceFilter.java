@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentityfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.trackedentityfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentityfilter;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -51,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
 public class TrackedEntityInstanceFilter
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     /**
@@ -133,6 +133,14 @@ public class TrackedEntityInstanceFilter
     public void setDescription( String description )
     {
         this.description = description;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
+    public String getDisplayDescription()
+    {
+        return getTranslation( "DESCRIPTION", getDescription() );
     }
 
     @JsonProperty

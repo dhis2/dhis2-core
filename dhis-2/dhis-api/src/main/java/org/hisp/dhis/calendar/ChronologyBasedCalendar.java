@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar;
+
+import java.util.Date;
 
 import org.joda.time.Chronology;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 import org.joda.time.chrono.ISOChronology;
-
-import java.util.Date;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,7 +56,8 @@ public abstract class ChronologyBasedCalendar extends AbstractCalendar
         }
 
         DateTime dateTime = dateTimeUnit.toJodaDateTime( chronology );
-        dateTime = dateTime.withChronology( ISOChronology.getInstance( DateTimeZone.forTimeZone( dateTimeUnit.getTimeZone() ) ) );
+        dateTime = dateTime
+            .withChronology( ISOChronology.getInstance( DateTimeZone.forTimeZone( dateTimeUnit.getTimeZone() ) ) );
 
         return new DateTimeUnit( DateTimeUnit.fromJodaDateTime( dateTime ), true );
     }
@@ -76,7 +76,8 @@ public abstract class ChronologyBasedCalendar extends AbstractCalendar
             return dateTimeUnit;
         }
 
-        DateTime dateTime = dateTimeUnit.toJodaDateTime( ISOChronology.getInstance( DateTimeZone.forTimeZone( dateTimeUnit.getTimeZone() ) ) );
+        DateTime dateTime = dateTimeUnit
+            .toJodaDateTime( ISOChronology.getInstance( DateTimeZone.forTimeZone( dateTimeUnit.getTimeZone() ) ) );
         dateTime = dateTime.withChronology( chronology );
 
         return DateTimeUnit.fromJodaDateTime( dateTime );
@@ -87,14 +88,14 @@ public abstract class ChronologyBasedCalendar extends AbstractCalendar
     {
         switch ( type )
         {
-            case ISO8601_YEAR:
-                return toYearIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_MONTH:
-                return toMonthIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_WEEK:
-                return toWeekIsoInterval( dateTimeUnit, offset, length );
-            case ISO8601_DAY:
-                return toDayIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_YEAR:
+            return toYearIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_MONTH:
+            return toMonthIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_WEEK:
+            return toWeekIsoInterval( dateTimeUnit, offset, length );
+        case ISO8601_DAY:
+            return toDayIsoInterval( dateTimeUnit, offset, length );
         }
 
         return null;

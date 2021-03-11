@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.view;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +25,40 @@ package org.hisp.dhis.webapi.view;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.view;
 
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NameableObject;
-import org.hisp.dhis.system.grid.ListGrid;
-import org.hisp.dhis.system.util.PredicateUtils;
-import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.webapi.webdomain.WebMetadata;
-import org.springframework.web.servlet.view.AbstractView;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
+import org.hisp.dhis.system.grid.ListGrid;
+import org.hisp.dhis.system.util.PredicateUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
+import org.hisp.dhis.webapi.webdomain.WebMetadata;
+import org.springframework.web.servlet.view.AbstractView;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public abstract class AbstractGridView extends AbstractView
 {
-    protected abstract void renderGrids( List<Grid> grids, HttpServletResponse response ) throws Exception;
+    protected abstract void renderGrids( List<Grid> grids, HttpServletResponse response )
+        throws Exception;
 
     @Override
-    protected void renderMergedOutputModel( Map<String, Object> model, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    protected void renderMergedOutputModel( Map<String, Object> model, HttpServletRequest request,
+        HttpServletResponse response )
+        throws Exception
     {
         Object object = model.get( "model" );
 
@@ -63,11 +67,13 @@ public abstract class AbstractGridView extends AbstractView
         if ( WebMetadata.class.isAssignableFrom( object.getClass() ) )
         {
             WebMetadata metadata = (WebMetadata) object;
-            Collection<Field> fields = ReflectionUtils.collectFields( WebMetadata.class, PredicateUtils.idObjectCollections );
+            Collection<Field> fields = ReflectionUtils.collectFields( WebMetadata.class,
+                PredicateUtils.idObjectCollections );
 
             for ( Field field : fields )
             {
-                List<IdentifiableObject> identifiableObjects = ReflectionUtils.invokeGetterMethod( field.getName(), metadata );
+                List<IdentifiableObject> identifiableObjects = ReflectionUtils.invokeGetterMethod( field.getName(),
+                    metadata );
 
                 if ( identifiableObjects == null || identifiableObjects.isEmpty() )
                 {
@@ -75,14 +81,15 @@ public abstract class AbstractGridView extends AbstractView
                 }
 
                 Grid grid = new ListGrid();
-                grid.setTitle( identifiableObjects.get( 0 ).getClass().getSimpleName() + "s" );
+                grid.setTitle( HibernateProxyUtils.getRealClass( identifiableObjects.get( 0 ) ).getSimpleName() + "s" );
 
                 boolean nameable = false;
 
                 grid.addHeader( new GridHeader( "UID", false, false ) );
                 grid.addHeader( new GridHeader( "Name", false, false ) );
 
-                if ( NameableObject.class.isAssignableFrom( identifiableObjects.get( 0 ).getClass() ) )
+                if ( NameableObject.class.isAssignableFrom(
+                    HibernateProxyUtils.getRealClass( HibernateProxyUtils.getRealClass( object ) ) ) )
                 {
                     grid.addHeader( new GridHeader( "ShortName", false, false ) );
                     nameable = true;
@@ -112,16 +119,17 @@ public abstract class AbstractGridView extends AbstractView
             IdentifiableObject identifiableObject = (IdentifiableObject) object;
 
             Grid grid = new ListGrid();
-            grid.setTitle( identifiableObject.getClass().getSimpleName() );
+            grid.setTitle( HibernateProxyUtils.getRealClass( identifiableObject ).getSimpleName() );
             grid.addEmptyHeaders( 2 );
 
             grid.addRow().addValue( "UID" ).addValue( identifiableObject.getUid() );
             grid.addRow().addValue( "Name" ).addValue( identifiableObject.getName() );
 
-            if ( NameableObject.class.isAssignableFrom( identifiableObject.getClass() ) )
+            if ( NameableObject.class.isAssignableFrom( HibernateProxyUtils.getRealClass( identifiableObject ) ) )
             {
                 grid.addRow().addValue( "ShortName" ).addValue( ((NameableObject) identifiableObject).getShortName() );
-                grid.addRow().addValue( "Description" ).addValue( ((NameableObject) identifiableObject).getDescription() );
+                grid.addRow().addValue( "Description" )
+                    .addValue( ((NameableObject) identifiableObject).getDescription() );
             }
 
             grid.addRow().addValue( "Code" ).addValue( identifiableObject.getCode() );

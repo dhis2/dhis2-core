@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions.metadata;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -94,6 +94,10 @@ public class OrgUnitActions
         orgUnit.setOpeningDate( "2017-09-11T00:00:00.000" );
 
         return orgUnit;
+    }
+
+    public JsonObject createOrgUnitBody() {
+        return JsonParserUtils.toJsonObject(  generateDummy());
     }
 
     public String createOrgUnit()

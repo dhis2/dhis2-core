@@ -1,7 +1,5 @@
-package org.hisp.dhis.setting.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.setting.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.setting.config;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,29 +38,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
 
 /**
  * @author Luciano Fiandesio
  */
-@Configuration("settingServiceConfig")
+@Configuration( "settingServiceConfig" )
 public class ServiceConfig
 {
     @Autowired
     private SystemSettingStore systemSettingStore;
 
     @Autowired
-    private CacheProvider cacheProvider;
-
-    @Autowired
-    private Environment environment;
-
-    @Autowired
     @Qualifier( "tripleDesStringEncryptor" )
     private PBEStringEncryptor pbeStringEncryptor;
 
     @Bean( "org.hisp.dhis.setting.SystemSettingManager" )
-    public DefaultSystemSettingManager defaultSystemSettingManager()
+    public DefaultSystemSettingManager defaultSystemSettingManager( CacheProvider cacheProvider )
     {
 
         List<String> flags = new ArrayList<>();
@@ -364,7 +356,6 @@ public class ServiceConfig
         flags.add( "zimbabwe" );
         flags.add( "who" );
 
-        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor,
-            cacheProvider, environment, flags );
+        return new DefaultSystemSettingManager( systemSettingStore, pbeStringEncryptor, cacheProvider, flags );
     }
 }

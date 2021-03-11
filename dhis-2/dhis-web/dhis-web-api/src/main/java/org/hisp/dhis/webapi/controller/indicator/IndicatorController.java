@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.indicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.webapi.controller.indicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.indicator;
+
+import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
+
+import java.io.IOException;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
@@ -44,11 +49,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.expression.ParseType.INDICATOR_EXPRESSION;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

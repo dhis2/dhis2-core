@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,9 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import org.hisp.dhis.tracker.report.TrackerImportReport;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -39,8 +35,9 @@ import java.util.Map;
 public interface TrackerImportService
 {
     /**
-     * Import object using provided params. Takes the objects through all phases of the importer
-     * from preheating to validation, and then finished with a commit (unless its validate only)
+     * Import object using provided params. Takes the objects through all phases
+     * of the importer from preheating to validation, and then finished with a
+     * commit (unless its validate only)
      *
      * @param params Parameters for import, including objects
      * @return Report giving status of import (and any errors)
@@ -48,18 +45,9 @@ public interface TrackerImportService
     TrackerImportReport importTracker( TrackerImportParams params );
 
     /**
-     * Parses, and creates a TrackerImportParams instance based on given map of parameters.
-     *
-     * @param parameters Key-Value map of wanted parameters
-     * @return MetadataImportParams instance created based on input parameters
-     */
-    TrackerImportParams getParamsFromMap( Map<String, List<String>> parameters );
-
-    /**
      * Build the report based on the mode selected by the client.
      *
      * @param importReport report with all the data collected during import
-     * @param reportMode type of report to be created
      * @return TrackerImportReport report with filtered data based on reportMode
      */
     TrackerImportReport buildImportReport( TrackerImportReport importReport, TrackerBundleReportMode reportMode );

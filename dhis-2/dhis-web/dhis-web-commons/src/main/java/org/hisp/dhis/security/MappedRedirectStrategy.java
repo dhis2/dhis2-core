@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,22 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
+import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
 
-
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.mobile.device.Device;
-import org.springframework.mobile.device.DeviceResolver;
-import org.springframework.security.web.DefaultRedirectStrategy;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.webapi.filter.CustomAuthenticationFilter.PARAM_AUTH_ONLY;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.mobile.device.Device;
+import org.springframework.mobile.device.DeviceResolver;
+import org.springframework.security.web.DefaultRedirectStrategy;
 
 /**
  * @author mortenoh
@@ -98,7 +97,7 @@ public class MappedRedirectStrategy
 
         for ( String key : redirectMap.keySet() )
         {
-            if ( url.contains(key) )
+            if ( url.contains( key ) )
             {
                 url = url.replaceFirst( key, redirectMap.get( key ) );
             }

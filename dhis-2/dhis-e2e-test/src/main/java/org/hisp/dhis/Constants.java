@@ -1,7 +1,7 @@
 package org.hisp.dhis;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,6 +42,11 @@ public class Constants
     public static String USER_ROLE_ID = "yrB6vc5Ip7r";
 
     public static String EVENT_PROGRAM_ID = "Zd2rkv8FsWq";
+
+    public static String EVENT_PROGRAM_STAGE_ID = "jKLB23QZS4I";
+
+    public static String TRACKER_PROGRAM_ID = "f1AyMswryyQ";
+
     public static String[] ORG_UNIT_IDS = {
         "DiszpKrYNg8",
         "g8upMTyEZGZ",

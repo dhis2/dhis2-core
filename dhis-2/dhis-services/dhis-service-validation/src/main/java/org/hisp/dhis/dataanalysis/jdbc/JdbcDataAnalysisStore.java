@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataanalysis.jdbc;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,17 @@ package org.hisp.dhis.dataanalysis.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataanalysis.jdbc;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -62,10 +65,6 @@ import org.springframework.stereotype.Repository;
 @Repository( "org.hisp.dhis.dataanalysis.DataAnalysisStore" )
 public class JdbcDataAnalysisStore implements DataAnalysisStore
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final StatementBuilder statementBuilder;
 
     /**
@@ -82,10 +81,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         this.statementBuilder = statementBuilder;
         this.jdbcTemplate = jdbcTemplate;
     }
-
-    // -------------------------------------------------------------------------
-    // OutlierAnalysisStore implementation
-    // -------------------------------------------------------------------------
 
     @Override
     public List<DataAnalysisMeasures> getDataAnalysisMeasures( DataElement dataElement,
@@ -107,14 +102,18 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         }
         matchPaths = TextUtils.removeLastOr( matchPaths ) + ") ";
 
-        String sql = "select dv.sourceid, dv.categoryoptioncomboid, " + "avg( cast( dv.value as "
-            + statementBuilder.getDoubleColumnType() + " ) ) as average, " + "stddev_pop( cast( dv.value as "
-            + statementBuilder.getDoubleColumnType() + " ) ) as standarddeviation " + "from datavalue dv "
-            + "join organisationunit ou on ou.organisationunitid = dv.sourceid "
-            + "join period pe on dv.periodid = pe.periodid " + "where dv.dataelementid = " + dataElement.getId() + " "
-            + "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " + "and pe.startdate >= '"
-            + DateUtils.getMediumDateString( from ) + "' " + "and " + matchPaths + "and dv.deleted is false "
-            + "group by dv.sourceid, dv.categoryoptioncomboid";
+        String sql = "select dv.sourceid, dv.categoryoptioncomboid, " +
+            "avg(cast(dv.value as " + statementBuilder.getDoubleColumnType() + ")) as average, " +
+            "stddev_pop(cast(dv.value as " + statementBuilder.getDoubleColumnType() + ")) as standarddeviation " +
+            "from datavalue dv " +
+            "inner join organisationunit ou on ou.organisationunitid = dv.sourceid " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "where dv.dataelementid = " + dataElement.getId() + " " +
+            "and dv.categoryoptioncomboid in (" + catOptionComboIds + ") " +
+            "and pe.startdate >= '" + DateUtils.getMediumDateString( from ) + "' " +
+            "and " + matchPaths +
+            "and dv.deleted is false " +
+            "group by dv.sourceid, dv.categoryoptioncomboid";
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
 
@@ -123,12 +122,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             int orgUnitId = rowSet.getInt( 1 );
             int categoryOptionComboId = rowSet.getInt( 2 );
             double average = rowSet.getDouble( 3 );
-            double standardDeviation = rowSet.getDouble( 4 );
+            double stdDev = rowSet.getDouble( 4 );
 
-            if ( standardDeviation != 0.0 )
+            if ( stdDev != 0.0 )
             {
-                measures
-                    .add( new DataAnalysisMeasures( orgUnitId, categoryOptionComboId, average, standardDeviation ) );
+                measures.add( new DataAnalysisMeasures(
+                    orgUnitId, categoryOptionComboId, average, stdDev ) );
             }
         }
 
@@ -150,19 +149,22 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, "
-            + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
-            + "from datavalue dv "
-            + "join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
-            + "join dataelement de on dv.dataelementid = de.dataelementid "
-            + "join period pe on dv.periodid = pe.periodid "
-            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
-            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
-            + "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in ("
-            + categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and ( "
-            + "cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < mm.minimumvalue "
-            + "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > mm.maximumvalue ) " + "and (";
+            +
+            "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
+            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            +
+            "from datavalue dv " +
+            "left join minmaxdataelement mm on dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid "
+            +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in (" +
+            categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and (" +
+            "cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") < mm.minimumvalue " +
+            "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > mm.maximumvalue) " + "and (";
 
         for ( OrganisationUnit parent : parents )
         {
@@ -187,8 +189,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
             return new ArrayList<>();
         }
 
-        // TODO parallel processes?
-
         List<List<Long>> organisationUnitPages = new PaginatedList<>( lowerBoundMap.keySet() ).setPageSize( 1000 )
             .getPages();
 
@@ -212,23 +212,28 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String periodIds = TextUtils.getCommaDelimitedString( getIdentifiers( periods ) );
 
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, "
-            + "? as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, "
-            + "? as categoryoptioncomboname " + "from datavalue dv " + "join period pe on dv.periodid = pe.periodid "
-            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "join organisationunit ou on dv.sourceid = ou.organisationunitid " + "where dv.dataelementid = "
-            + dataElement.getId() + " " + "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " "
-            + "and dv.periodid in (" + periodIds + ") and ( ";
+            +
+            "dv.created, dv.comment, dv.followup, ou.name as sourcename, " +
+            "? as dataelementname, pt.name as periodtypename, pe.startdate, pe.enddate, " +
+            "? as categoryoptioncomboname " +
+            "from datavalue dv " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            "where dv.dataelementid = " + dataElement.getId() + " " +
+            "and dv.categoryoptioncomboid = " + categoryOptionCombo.getId() + " " +
+            "and dv.periodid in (" + periodIds + ") and (";
 
         for ( Long orgUnitUid : organisationUnits )
         {
-            sql += "( dv.sourceid = " + orgUnitUid + " " + "and ( cast( dv.value as "
-                + statementBuilder.getDoubleColumnType() + " ) < " + lowerBoundMap.get( orgUnitUid ) + " "
-                + "or cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) > "
-                + upperBoundMap.get( orgUnitUid ) + " ) ) or ";
+            sql += "(dv.sourceid = " + orgUnitUid + " " +
+                "and (cast( dv.value as " + statementBuilder.getDoubleColumnType() + " ) < "
+                + lowerBoundMap.get( orgUnitUid ) + " " +
+                "or cast(dv.value as " + statementBuilder.getDoubleColumnType() + ") > "
+                + upperBoundMap.get( orgUnitUid ) + ")) or ";
         }
 
-        sql = TextUtils.removeLastOr( sql ) + " ) ";
+        sql = TextUtils.removeLastOr( sql ) + ") ";
         sql += "and dv.deleted is false ";
 
         PreparedStatementSetter pss = ( ps ) -> {
@@ -244,7 +249,6 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         Collection<CategoryOptionCombo> categoryOptionCombos, Collection<Period> periods,
         Collection<OrganisationUnit> parents, int limit )
     {
-
         if ( dataElements.isEmpty() || categoryOptionCombos.isEmpty() || periods.isEmpty() || parents.isEmpty() )
         {
             return new ArrayList<>();
@@ -255,17 +259,21 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         String categoryOptionComboIds = getCommaDelimitedString( getIdentifiers( categoryOptionCombos ) );
 
         String sql = "select dv.dataelementid, dv.periodid, dv.sourceid, dv.categoryoptioncomboid, dv.attributeoptioncomboid, dv.value, dv.storedby, dv.lastupdated, "
-            + "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, "
-            + "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
-            + "from datavalue dv "
-            + "left join minmaxdataelement mm on ( dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid ) "
-            + "join dataelement de on dv.dataelementid = de.dataelementid "
-            + "join period pe on dv.periodid = pe.periodid "
-            + "join periodtype pt on pe.periodtypeid = pt.periodtypeid "
-            + "join organisationunit ou on dv.sourceid = ou.organisationunitid "
-            + "join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid "
-            + "where dv.dataelementid in (" + dataElementIds + ") " + "and dv.categoryoptioncomboid in ("
-            + categoryOptionComboIds + ") " + "and dv.periodid in (" + periodIds + ") " + "and (";
+            +
+            "dv.created, dv.comment, dv.followup, ou.name as sourcename, de.name as dataelementname, " +
+            "pt.name as periodtypename, pe.startdate, pe.enddate, coc.name as categoryoptioncomboname, mm.minimumvalue, mm.maximumvalue "
+            +
+            "from datavalue dv " +
+            "left join minmaxdataelement mm on (dv.dataelementid = mm.dataelementid and dv.categoryoptioncomboid = mm.categoryoptioncomboid and dv.sourceid = mm.sourceid) "
+            +
+            "inner join dataelement de on dv.dataelementid = de.dataelementid " +
+            "inner join period pe on dv.periodid = pe.periodid " +
+            "inner join periodtype pt on pe.periodtypeid = pt.periodtypeid " +
+            "inner join organisationunit ou on dv.sourceid = ou.organisationunitid " +
+            "inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid " +
+            "where dv.dataelementid in (" + dataElementIds + ") " +
+            "and dv.categoryoptioncomboid in (" + categoryOptionComboIds + ") " +
+            "and dv.periodid in (" + periodIds + ") " + "and (";
 
         for ( OrganisationUnit parent : parents )
         {

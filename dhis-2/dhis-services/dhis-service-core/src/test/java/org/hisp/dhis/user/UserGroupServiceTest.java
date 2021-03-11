@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,22 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Dang Duy Hieu
@@ -50,10 +53,12 @@ public class UserGroupServiceTest
     private UserGroupService userGroupService;
 
     @Autowired
-    private  UserService userService;
-    
+    private UserService userService;
+
     private User user1;
+
     private User user2;
+
     private User user3;
 
     @Override
@@ -223,5 +228,15 @@ public class UserGroupServiceTest
 
         assertEq( 'B', userGroup );
         assertNotNull( userGroup.getMembers() );
+    }
+
+    @Test
+    public void testGetDisplayName()
+    {
+        UserGroup userGroup = createUserGroup( 'A', Collections.EMPTY_SET );
+
+        userGroupService.addUserGroup( userGroup );
+
+        assertEquals( "UserGroupA", userGroupService.getDisplayName( userGroup.getUid() ) );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapping;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,79 +25,81 @@ package org.hisp.dhis.mapping;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapping;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
  */
 @Component( "org.hisp.dhis.mapping.MapViewDeletionHandler" )
 public class MapViewDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<MapView>
+    extends GenericAnalyticalObjectDeletionHandler<MapView, MappingService>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private final MappingService mappingService;
-
     public MapViewDeletionHandler( MappingService mappingService )
     {
+        super( new DeletionVeto( MapView.class ), mappingService );
         checkNotNull( mappingService );
-        this.mappingService = mappingService;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected AnalyticalObjectService<MapView> getAnalyticalObjectService()
-    {
-        return mappingService;
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return MapView.class.getSimpleName();
+        // generic
+        whenDeleting( Indicator.class, this::deleteIndicator );
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( DataSet.class, this::deleteDataSet );
+        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        // special
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSetSpecial );
+        whenVetoing( MapView.class, this::allowDeleteMapView );
     }
 
-    @Override
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
-        List<MapView> mapViews = mappingService.getAnalyticalObjects( legendSet );
-        
+        List<MapView> mapViews = service.getAnalyticalObjects( legendSet );
+
         for ( MapView mapView : mapViews )
         {
             mapView.setLegendSet( null );
-            mappingService.update( mapView );
-        }
-    }
-    
-    @Override
-    public void deleteOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
-    {
-        List<MapView> mapViews = mappingService.getMapViewsByOrganisationUnitGroupSet( groupSet );
-        
-        for ( MapView mapView : mapViews )
-        {
-            mapView.setOrganisationUnitGroupSet( null );
-            mappingService.updateMapView( mapView );
+            service.update( mapView );
         }
     }
 
-    @Override
-    public String allowDeleteMapView( MapView mapView )
+    public void deleteOrganisationUnitGroupSetSpecial( OrganisationUnitGroupSet groupSet )
     {
-        return mappingService.countMapViewMaps( mapView ) == 0 ? null : ERROR;
+        List<MapView> mapViews = service.getMapViewsByOrganisationUnitGroupSet( groupSet );
+
+        for ( MapView mapView : mapViews )
+        {
+            mapView.setOrganisationUnitGroupSet( null );
+            service.updateMapView( mapView );
+        }
+    }
+
+    private DeletionVeto allowDeleteMapView( MapView mapView )
+    {
+        return service.countMapViewMaps( mapView ) == 0 ? ACCEPT : veto;
     }
 }

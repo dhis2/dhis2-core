@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtils.addObjectReports;
 
@@ -102,7 +101,7 @@ public class SecurityCheck
                         identifier.getIdentifiersWithName( bundle.getUser() ),
                         identifier.getIdentifiersWithName( object ) );
 
-                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                    ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                     ctx.markForRemoval( object );
                     continue;
                 }
@@ -119,7 +118,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
                         ctx.markForRemoval( object );
                         continue;
                     }
@@ -132,7 +131,7 @@ public class SecurityCheck
                             identifier.getIdentifiersWithName( bundle.getUser() ),
                             identifier.getIdentifiersWithName( object ) );
 
-                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle);
+                        ValidationUtils.addObjectReport( errorReport, typeReport, object, bundle );
 
                         ctx.markForRemoval( object );
                         continue;
@@ -145,7 +144,8 @@ public class SecurityCheck
                 User user = (User) object;
                 List<ErrorReport> errorReports = ctx.getUserService().validateUser( user, bundle.getUser() );
 
-                if ( !errorReports.isEmpty() ) {
+                if ( !errorReports.isEmpty() )
+                {
 
                     addObjectReports( errorReports, typeReport, object, bundle );
                     ctx.markForRemoval( object );
@@ -163,6 +163,5 @@ public class SecurityCheck
 
         return typeReport;
     }
-
 
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -35,10 +34,10 @@ import java.util.List;
 /**
  * An interval is a collection of map objects that have been distributed into
  * this interval.
- * 
+ *
  * It contains all the map objects that have values that lie in the range of
  * values this interval covers.
- * 
+ *
  * @author Olai Solheim <olais@ifi.uio.no>
  */
 public class Interval
@@ -88,7 +87,7 @@ public class Interval
 
     /**
      * Adds a map object to this interval category.
-     * 
+     *
      * @param member the member to add
      */
     public void addMember( InternalMapObject member )
@@ -108,7 +107,7 @@ public class Interval
 
     /**
      * Gets the low value of this interval.
-     * 
+     *
      * @return the low value
      */
     public double getValueLow()
@@ -118,7 +117,7 @@ public class Interval
 
     /**
      * Sets the low value of this interval.
-     * 
+     *
      * @param valueLow the low value
      */
     public void setValueLow( double valueLow )
@@ -128,7 +127,7 @@ public class Interval
 
     /**
      * Gets the high value of this interval.
-     * 
+     *
      * @return the high value
      */
     public double getValueHigh()
@@ -138,7 +137,7 @@ public class Interval
 
     /**
      * Sets the high value of this interval.
-     * 
+     *
      * @param valueHigh the high value
      */
     public void setValueHigh( double valueHigh )
@@ -148,7 +147,7 @@ public class Interval
 
     /**
      * Gets the color this interval has on the map.
-     * 
+     *
      * @return the color
      */
     public Color getColor()
@@ -158,7 +157,7 @@ public class Interval
 
     /**
      * Sets the color this interval has on the map.
-     * 
+     *
      * @param color the color
      */
     public void setColor( Color color )
@@ -169,7 +168,7 @@ public class Interval
     /**
      * Returns a list of the members that have fallen into this interval
      * category, or null if none.
-     * 
+     *
      * @return the list of members
      */
     public List<InternalMapObject> getMembers()

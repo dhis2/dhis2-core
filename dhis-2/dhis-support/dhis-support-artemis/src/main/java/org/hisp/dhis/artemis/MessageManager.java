@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,10 @@ package org.hisp.dhis.artemis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis;
 
-import org.apache.qpid.jms.JmsQueue;
-import org.apache.qpid.jms.JmsTopic;
+import org.apache.activemq.artemis.jms.client.ActiveMQQueue;
+import org.apache.activemq.artemis.jms.client.ActiveMQTopic;
 import org.hisp.dhis.render.RenderService;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Component;
@@ -41,7 +40,9 @@ import org.springframework.stereotype.Component;
 public class MessageManager
 {
     private final JmsTemplate jmsTopicTemplate;
+
     private final JmsTemplate jmsQueueTemplate;
+
     private final RenderService renderService;
 
     public MessageManager( JmsTemplate jmsTopicTemplate, JmsTemplate jmsQueueTemplate, RenderService renderService )
@@ -53,16 +54,19 @@ public class MessageManager
 
     public void send( String destinationName, Message message )
     {
-        jmsTopicTemplate.send( destinationName, session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        jmsTopicTemplate.send( destinationName,
+            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 
     public void sendTopic( String destinationName, Message message )
     {
-        jmsTopicTemplate.send( new JmsTopic( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        jmsTopicTemplate.send( new ActiveMQTopic( destinationName ),
+            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 
     public void sendQueue( String destinationName, Message message )
     {
-        jmsQueueTemplate.send( new JmsQueue( destinationName ), session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
+        jmsQueueTemplate.send( new ActiveMQQueue( destinationName ),
+            session -> session.createTextMessage( renderService.toJsonAsString( message ) ) );
     }
 }

@@ -1,6 +1,5 @@
-package org.hisp.dhis.validation.comparator;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +25,16 @@ package org.hisp.dhis.validation.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation.comparator;
 
-import com.google.common.base.MoreObjects;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Stian Sandvold
@@ -47,7 +51,31 @@ public class ValidationResultQuery
 
     private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
-    private int total;
+    private long total;
+
+    /**
+     * Optional list of validation rule uids to filter. If empty the list is not
+     * restricting the query.
+     */
+    private List<String> vr;
+
+    /**
+     * Optional list of organisation unit uids to filter. If empty the list is
+     * not restricting the query.
+     */
+    private List<String> ou;
+
+    /**
+     * Optional list of ISO-Date expressions to filter. If empty the list is not
+     * restricting the query.
+     */
+    private List<String> pe;
+
+    /**
+     * Optional filter to select only results that have been created on or after
+     * the given date.
+     */
+    private Date createdDate;
 
     public ValidationResultQuery()
     {
@@ -93,12 +121,12 @@ public class ValidationResultQuery
         this.pageSize = pageSize;
     }
 
-    public int getTotal()
+    public long getTotal()
     {
         return total;
     }
 
-    public void setTotal( int total )
+    public void setTotal( long total )
     {
         this.total = total;
     }
@@ -108,6 +136,46 @@ public class ValidationResultQuery
         return PagerUtils.isSkipPaging( skipPaging, paging ) ? null : new Pager( page, total, pageSize );
     }
 
+    public List<String> getVr()
+    {
+        return vr;
+    }
+
+    public void setVr( List<String> vr )
+    {
+        this.vr = vr;
+    }
+
+    public List<String> getOu()
+    {
+        return ou;
+    }
+
+    public void setOu( List<String> ou )
+    {
+        this.ou = ou;
+    }
+
+    public List<String> getPe()
+    {
+        return pe;
+    }
+
+    public void setPe( List<String> pe )
+    {
+        this.pe = pe;
+    }
+
+    public Date getCreatedDate()
+    {
+        return createdDate;
+    }
+
+    public void setCreatedDate( Date createdDate )
+    {
+        this.createdDate = createdDate;
+    }
+
     @Override
     public String toString()
     {
@@ -115,6 +183,9 @@ public class ValidationResultQuery
             .add( "page", page )
             .add( "pageSize", pageSize )
             .add( "total", total )
+            .add( "ou", ou )
+            .add( "vr", vr )
+            .add( "pe", pe )
             .toString();
     }
 }

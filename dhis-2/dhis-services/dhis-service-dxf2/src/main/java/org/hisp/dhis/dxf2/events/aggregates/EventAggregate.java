@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.aggregates;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.aggregates;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.aggregates;
 
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
@@ -41,6 +40,7 @@ import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.Note;
@@ -67,8 +67,8 @@ public class EventAggregate
      *
      * @param ids a List of {@see Enrollment} Primary Keys
      * @param ctx the {@see AggregateContext}
-     * @return a Map where the key is a Program Instance Primary Key, and the value
-     *         is a List of {@see Event}
+     * @return a Map where the key is a Program Instance Primary Key, and the
+     *         value is a List of {@see Event}
      */
     Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx )
     {
@@ -84,7 +84,8 @@ public class EventAggregate
         List<Long> eventIds = events.values().stream().map( Event::getId ).collect( Collectors.toList() );
 
         /*
-         * Async fetch Relationships for the given Event ids (only if isIncludeRelationships = true)
+         * Async fetch Relationships for the given Event ids (only if
+         * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> eventStore.getRelationships( eventIds ), getPool() );

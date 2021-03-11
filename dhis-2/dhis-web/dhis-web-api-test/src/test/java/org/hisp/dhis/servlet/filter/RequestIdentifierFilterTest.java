@@ -1,7 +1,5 @@
-package org.hisp.dhis.servlet.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.servlet.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.servlet.filter;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hisp.dhis.external.conf.ConfigurationKey.*;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
@@ -126,8 +125,8 @@ public class RequestIdentifierFilterTest
 
     @Test
     public void testisDisabled()
-            throws ServletException,
-            IOException
+        throws ServletException,
+        IOException
     {
         init( -1, "SHA-256", false );
         doFilter();

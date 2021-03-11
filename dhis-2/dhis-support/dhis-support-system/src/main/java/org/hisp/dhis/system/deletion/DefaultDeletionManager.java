@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.deletion;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,32 @@ package org.hisp.dhis.system.deletion;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.deletion;
 
-import javassist.util.proxy.ProxyObject;
-
+import java.util.LinkedList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentMap;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.DeleteNotAllowedException;
+import org.hisp.dhis.common.EmbeddedObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.springframework.context.event.EventListener;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Component;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
- * TODO: Add support for failed allow tests on "transitive" deletion handlers which
- * are called as part of delete methods.
+ * TODO: Add support for failed allow tests on "transitive" deletion handlers
+ * which are called as part of delete methods.
  *
  * @author Lars Helge Overland
  */
@@ -55,47 +59,63 @@ import java.util.List;
 public class DefaultDeletionManager
     implements DeletionManager
 {
-    private static final String DELETE_METHOD_PREFIX = "delete";
-    private static final String ALLOW_METHOD_PREFIX = "allowDelete";
 
-    /**
-     * Deletion handlers registered in context are subscribed to deletion
-     * notifications through auto-wiring.
-     */
-    @Autowired(required = false)
-    private List<DeletionHandler> deletionHandlers;
+    @SuppressWarnings( "rawtypes" )
+    private static final Queue EMPTY = new LinkedList();
 
-    // -------------------------------------------------------------------------
-    // DeletionManager implementation
-    // -------------------------------------------------------------------------
+    private final ConcurrentMap<Class<?>, Queue<Function<?, DeletionVeto>>> vetoHandlersByType = new ConcurrentHashMap<>();
 
+    private final ConcurrentMap<Class<?>, Queue<Consumer<?>>> deletionHandlersByType = new ConcurrentHashMap<>();
+
+    @Override
+    public <T extends IdentifiableObject> void whenVetoing( Class<T> type, Function<T, DeletionVeto> vetoFunction )
+    {
+        vetoHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( vetoFunction );
+    }
+
+    @Override
+    public <T extends IdentifiableObject> void whenDeleting( Class<T> type, Consumer<T> action )
+    {
+        deletionHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( action );
+    }
+
+    @Override
+    public <T extends EmbeddedObject> void whenDeletingEmbedded( Class<T> type, Consumer<T> action )
+    {
+        deletionHandlersByType.computeIfAbsent( type, key -> new ConcurrentLinkedQueue<>() ).add( action );
+    }
+
+    @Override
     @Transactional
     @EventListener( condition = "#event.shouldRollBack" )
-    public void objectDeletionListener( ObjectDeletionRequestedEvent event )
+    public void onDeletion( ObjectDeletionRequestedEvent event )
     {
-       deleteObjects( event );
+        deleteObjects( event.getSource() );
     }
 
-    @Transactional ( noRollbackFor = DeleteNotAllowedException.class )
+    @Override
+    @Transactional( noRollbackFor = DeleteNotAllowedException.class )
     @EventListener( condition = "!#event.shouldRollBack" )
-    public void objectDeletionListenerNoRollBack( ObjectDeletionRequestedEvent event )
+    public void onDeletionWithoutRollBack( ObjectDeletionRequestedEvent event )
     {
-        deleteObjects( event );
+        deleteObjects( event.getSource() );
     }
 
-    private void deleteObjects( ObjectDeletionRequestedEvent event )
+    private <T> void deleteObjects( T object )
     {
-        if ( deletionHandlers == null || deletionHandlers.isEmpty() )
+        Class<T> clazz = getClazz( object );
+        @SuppressWarnings( { "rawtypes", "unchecked" } )
+        Queue<Function<T, DeletionVeto>> vetoHandlers = (Queue) vetoHandlersByType.getOrDefault( clazz, EMPTY );
+        @SuppressWarnings( { "rawtypes", "unchecked" } )
+        Queue<Consumer<T>> deletionHandlers = (Queue) deletionHandlersByType.getOrDefault( clazz, EMPTY );
+        if ( vetoHandlers.isEmpty() && deletionHandlers.isEmpty() )
         {
             log.info( "No deletion handlers registered, aborting deletion handling" );
             return;
         }
 
+        log.debug( "Veto handlers detected: " + vetoHandlers.size() );
         log.debug( "Deletion handlers detected: " + deletionHandlers.size() );
-
-        Object object = event.getSource();
-
-        Class<?> clazz = getClazz( object );
 
         String className = clazz.getSimpleName();
 
@@ -103,49 +123,33 @@ public class DefaultDeletionManager
         // Verify that object is allowed to be deleted
         // ---------------------------------------------------------------------
 
-        String allowMethodName = ALLOW_METHOD_PREFIX + className;
-
-        String currentHandler = null;
-
+        String handlerName = "";
         try
         {
-            Method allowMethod = DeletionHandler.class.getMethod( allowMethodName, clazz );
-
-            for ( DeletionHandler handler : deletionHandlers )
+            for ( Function<T, DeletionVeto> handler : vetoHandlers )
             {
-                currentHandler = handler.getClass().getSimpleName();
+                handlerName = handler.toString();
+                log.debug( "Check if allowed using " + handlerName + " for class " + className );
 
-                log.debug( "Check if allowed using " + currentHandler + " for class " + className );
+                DeletionVeto veto = handler.apply( object );
 
-                Object allow = allowMethod.invoke( handler, object );
-
-                if ( allow != null )
+                if ( veto.isVetoed() )
                 {
-                    String hint = String.valueOf( allow );
-                    hint = hint.isEmpty() ? hint : ( " (" + hint + ")" );
-                    String argument = handler.getClassName() + hint;
+                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, veto.getMessage() );
 
-                    ErrorMessage errorMessage = new ErrorMessage( ErrorCode.E4030, argument );
-
-                    log.info( "Delete was not allowed by " + currentHandler + ": " + errorMessage.toString() );
+                    log.info( "Delete was not allowed by " + handlerName + ": " + errorMessage.toString() );
 
                     throw new DeleteNotAllowedException( errorMessage );
                 }
             }
         }
-        catch ( NoSuchMethodException e )
+        catch ( DeleteNotAllowedException ex )
         {
-            log.error( "Method '" + allowMethodName + "' does not exist on class '" + clazz + "'", e );
-            return;
+            throw ex;
         }
-        catch ( IllegalAccessException ex )
+        catch ( Exception ex )
         {
-            log.error( "Method '" + allowMethodName + "' can not be invoked on DeletionHandler '" + currentHandler + "'", ex );
-            return;
-        }
-        catch ( InvocationTargetException ex )
-        {
-            log.error( "Method '" + allowMethodName + "' threw exception on DeletionHandler '" + currentHandler + "'", ex );
+            log.error( "Deletion failed, veto handler '" + handlerName + "' threw an exception: ", ex );
             return;
         }
 
@@ -153,39 +157,30 @@ public class DefaultDeletionManager
         // Delete associated objects
         // ---------------------------------------------------------------------
 
-        String deleteMethodName = DELETE_METHOD_PREFIX + className;
-
+        handlerName = "";
         try
         {
-            Method deleteMethod = DeletionHandler.class.getMethod( deleteMethodName, clazz );
-
-            for ( DeletionHandler handler : deletionHandlers )
+            for ( Consumer<T> handler : deletionHandlers )
             {
-                currentHandler = handler.getClass().getSimpleName();
+                handlerName = handler.toString();
 
-                log.debug( "Deleting object using " + currentHandler + " for class " + className );
+                log.debug( "Deleting object using " + handlerName + " for class " + className );
 
-                deleteMethod.invoke( handler, object );
+                handler.accept( object );
             }
         }
         catch ( Exception ex )
         {
-            log.error( "Failed to invoke method " + deleteMethodName + " on DeletionHandler '" + currentHandler + "'", ex );
+            log.error( "Deletion failed, deletion handler '" + handlerName + "' threw an exception: ", ex );
             return;
         }
 
         log.info( "Deleted objects associated with object of type " + className );
     }
 
-    private Class<?> getClazz( Object object )
+    @SuppressWarnings( "unchecked" )
+    private <T> Class<T> getClazz( T object )
     {
-        Class<?> clazz = object.getClass();
-
-        while ( ProxyObject.class.isAssignableFrom( clazz ) )
-        {
-            clazz = clazz.getSuperclass();
-        }
-
-        return clazz;
+        return HibernateProxyUtils.getRealClass( object );
     }
 }

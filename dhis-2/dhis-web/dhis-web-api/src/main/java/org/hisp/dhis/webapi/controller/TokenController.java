@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
@@ -34,22 +33,17 @@ import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DhisApiVersion;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.external.conf.GoogleAccessToken;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -67,32 +61,25 @@ public class TokenController
 
     private static final String TOKEN_CACHE_KEY = "keyGoogleAccessToken";
 
-    @Autowired
-    private CacheProvider cacheProvider;
+    private final Cache<GoogleAccessToken> tokenCache;
 
-    @Autowired
-    private Environment environment;
+    private final DhisConfigurationProvider config;
 
-    private Cache<GoogleAccessToken> TOKEN_CACHE;
-
-    @PostConstruct
-    public void init()
+    public TokenController( DhisConfigurationProvider config, CacheProvider cacheProvider )
     {
-        TOKEN_CACHE = cacheProvider.newCacheBuilder( GoogleAccessToken.class ).forRegion( "googleAccessToken" )
-            .expireAfterAccess( 10, TimeUnit.MINUTES )
-            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 1 ).build();
+        this.config = config;
+        this.tokenCache = cacheProvider.createGoogleAccessTokenCache();
     }
-
-    @Autowired
-    private DhisConfigurationProvider config;
 
     @RequestMapping( value = "/google", method = RequestMethod.GET, produces = "application/json" )
     public @ResponseBody GoogleAccessToken getEarthEngineToken( HttpServletResponse response )
-        throws WebMessageException, ExecutionException
+        throws WebMessageException,
+        ExecutionException
     {
         setNoStore( response );
 
-        Optional<GoogleAccessToken> tokenOptional = TOKEN_CACHE.get( TOKEN_CACHE_KEY, c -> config.getGoogleAccessToken().get() );
+        Optional<GoogleAccessToken> tokenOptional = tokenCache.get( TOKEN_CACHE_KEY,
+            c -> config.getGoogleAccessToken().get() );
 
         if ( !tokenOptional.isPresent() )
         {

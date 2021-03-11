@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
 
 import java.util.List;
 
@@ -36,19 +35,20 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  * @author Chau Thu Tran
  */
 public interface ValidationRuleStore
-    extends IdentifiableObjectStore<ValidationRule>
+    extends IdentifiableObjectStore<ValidationRule>, ValidationRuleDataIntegrityProvider
 {
     String ID = ValidationRuleStore.class.getName();
 
     /**
      * Returns all ValidationRules that should be used for form validation.
-     * 
+     *
      * @return a List of ValidationRules.
      */
     List<ValidationRule> getAllFormValidationRules();
 
     /**
-     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     * Returns all ValidationRules which have associated
+     * ValidationNotificationTemplates.
      *
      * @return a List of ValidationRules.
      */

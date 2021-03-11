@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.stream.Collectors;
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -56,58 +56,50 @@ public class OrganisationUnitDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return OrganisationUnit.class.getSimpleName();
+        whenDeleting( DataSet.class, this::deleteDataSet );
+        whenDeleting( User.class, this::deleteUser );
+        whenDeleting( Program.class, this::deleteProgram );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
-        for ( OrganisationUnit unit : dataSet.getSources() )
-        {
+        dataSet.getSources().iterator().forEachRemaining( unit -> {
             unit.getDataSets().remove( dataSet );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
-        for ( OrganisationUnit unit : user.getOrganisationUnits() )
-        {
-            unit.removeUser( user );
+        user.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getUsers().remove( user );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
-        for ( OrganisationUnit unit : program.getOrganisationUnits() )
-        {
-            unit.removeProgram( program );
+        program.getOrganisationUnits().iterator().forEachRemaining( unit -> {
+            unit.getPrograms().remove( program );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
-    @Override
-    public void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
+    private void deleteOrganisationUnitGroup( OrganisationUnitGroup group )
     {
-        for ( OrganisationUnit unit : group.getMembers() )
-        {
+        group.getMembers().iterator().forEachRemaining( unit -> {
             unit.getGroups().remove( group );
             idObjectManager.updateNoAcl( unit );
-        }
+        } );
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         if ( unit.getParent() != null )
         {
@@ -116,10 +108,12 @@ public class OrganisationUnitDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteOrganisationUnit( OrganisationUnit unit )
+    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit unit )
     {
-        return unit.getChildren().isEmpty() ? null
-            : unit.getChildren().stream().map( BaseIdentifiableObject::getName ).collect( Collectors.joining( "," ) );
+        return unit.getChildren().isEmpty()
+            ? ACCEPT
+            : new DeletionVeto( OrganisationUnit.class, unit.getChildren().stream()
+                .map( BaseIdentifiableObject::getName )
+                .collect( joining( "," ) ) );
     }
 }

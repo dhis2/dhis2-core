@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -37,7 +36,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.IntegrationTest;
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -62,14 +60,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
-import org.junit.experimental.categories.Category;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Category( IntegrationTest.class )
 public class ObjectBundleServiceAttributesTest
     extends IntegrationTestBase
 {
@@ -99,7 +95,8 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testCreateSimpleMetadataAttributeValuesUID() throws IOException
+    public void testCreateSimpleMetadataAttributeValuesUID()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "dxf2/simple_metadata_with_av.json" ).getInputStream(), RenderFormat.JSON );
@@ -113,7 +110,11 @@ public class ObjectBundleServiceAttributesTest
         ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
         assertTrue( validationReport.getErrorReports().isEmpty() );
 
-        objectBundleService.commit( bundle );
+        transactionTemplate.execute( status -> {
+            objectBundleService.commit( bundle );
+
+            return null;
+        } );
 
         List<OrganisationUnit> organisationUnits = manager.getAll( OrganisationUnit.class );
         List<DataElement> dataElements = manager.getAll( DataElement.class );
@@ -177,12 +178,14 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesMandatory() throws IOException
+    public void testValidateMetadataAttributeValuesMandatory()
+        throws IOException
     {
         defaultSetupWithAttributes();
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
@@ -198,10 +201,12 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesMandatoryFromPayload() throws IOException
+    public void testValidateMetadataAttributeValuesMandatoryFromPayload()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes_from_payload_only.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_mandatory_attributes_from_payload_only.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
@@ -217,7 +222,8 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesUnique() throws IOException
+    public void testValidateMetadataAttributeValuesUnique()
+        throws IOException
     {
         defaultSetupWithAttributes();
 
@@ -237,10 +243,12 @@ public class ObjectBundleServiceAttributesTest
     }
 
     @Test
-    public void testValidateMetadataAttributeValuesUniqueFromPayload() throws IOException
+    public void testValidateMetadataAttributeValuesUniqueFromPayload()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/metadata_with_unique_attributes_from_payload.json" ).getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/metadata_with_unique_attributes_from_payload.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.VALIDATE );
@@ -272,21 +280,18 @@ public class ObjectBundleServiceAttributesTest
         DataElement de2 = createDataElement( 'B' );
         DataElement de3 = createDataElement( 'C' );
 
-        attributeService.addAttributeValue( de1, attributeValue1 );
-        attributeService.addAttributeValue( de2, attributeValue2 );
-        attributeService.addAttributeValue( de3, attributeValue3 );
-
-        manager.save( de1 );
-        manager.save( de2 );
-        manager.save( de3 );
+        transactionTemplate.execute( status -> {
+            manager.save( de1 );
+            manager.save( de2 );
+            manager.save( de3 );
+            attributeService.addAttributeValue( de1, attributeValue1 );
+            attributeService.addAttributeValue( de2, attributeValue2 );
+            attributeService.addAttributeValue( de3, attributeValue3 );
+            manager.clear();
+            return null;
+        } );
 
         User user = createUser( 'A' );
         manager.save( user );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
@@ -79,7 +78,8 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         {
             Program program = programMap.get( event.getProgram() );
 
-            // Can't proceed with null Program, this will fail during the validation stage
+            // Can't proceed with null Program, this will fail during the
+            // validation stage
             if ( program == null )
             {
                 return emptyMap();

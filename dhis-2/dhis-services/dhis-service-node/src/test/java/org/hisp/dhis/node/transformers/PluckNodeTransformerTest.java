@@ -1,7 +1,5 @@
-package org.hisp.dhis.node.transformers;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.node.transformers;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.node.transformers;
+
+import java.util.Collections;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.Category;
@@ -35,10 +36,10 @@ import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
+import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.Jackson2PropertyIntrospectorService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -46,9 +47,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Collections;
-import java.util.Map;
 
 /**
  * Unit tests for {@link PluckNodeTransformer}.
@@ -72,30 +70,29 @@ public class PluckNodeTransformerTest
     @Before
     public void setUp()
     {
-        schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
-        {
-            @Override
-            protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
-            {
-                return Collections.emptyMap();
-            }
-        }, sessionFactory );
+        schemaService = new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
 
         collectionNode = new CollectionNode( "organisationUnits", 2 );
         collectionNode.setNamespace( "testUrn" );
-        collectionNode.setProperty( schemaService.getDynamicSchema( CategoryOption.class ).getProperty( "organisationUnits" ) );
+        collectionNode
+            .setProperty( schemaService.getDynamicSchema( CategoryOption.class ).getProperty( "organisationUnits" ) );
 
         ComplexNode complexNode = new ComplexNode( "organisationUnit" );
-        SimpleNode simpleNode = new SimpleNode( "id", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "abc1" );
+        SimpleNode simpleNode = new SimpleNode( "id",
+            schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "abc1" );
         complexNode.addChild( simpleNode );
-        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "OU 1" );
+        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
+            "OU 1" );
         complexNode.addChild( simpleNode );
         collectionNode.addChild( complexNode );
 
         complexNode = new ComplexNode( "organisationUnit" );
-        simpleNode = new SimpleNode( "id", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "abc2" );
+        simpleNode = new SimpleNode( "id", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
+            "abc2" );
         complexNode.addChild( simpleNode );
-        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ), "OU 2" );
+        simpleNode = new SimpleNode( "name", schemaService.getDynamicSchema( Category.class ).getProperty( "id" ),
+            "OU 2" );
         complexNode.addChild( simpleNode );
         collectionNode.addChild( complexNode );
     }
@@ -119,11 +116,11 @@ public class PluckNodeTransformerTest
 
         Assert.assertEquals( "id", collection.getUnorderedChildren().get( 0 ).getName() );
         Assert.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assert.assertEquals( "abc1", ( (SimpleNode) collection.getUnorderedChildren().get( 0 ) ).getValue() );
+        Assert.assertEquals( "abc1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
 
         Assert.assertEquals( "id", collection.getUnorderedChildren().get( 1 ).getName() );
         Assert.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assert.assertEquals( "abc2", ( (SimpleNode) collection.getUnorderedChildren().get( 1 ) ).getValue() );
+        Assert.assertEquals( "abc2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
     }
 
     @Test
@@ -139,10 +136,10 @@ public class PluckNodeTransformerTest
 
         Assert.assertEquals( "name", collection.getUnorderedChildren().get( 0 ).getName() );
         Assert.assertTrue( collection.getUnorderedChildren().get( 0 ) instanceof SimpleNode );
-        Assert.assertEquals( "OU 1", ( (SimpleNode) collection.getUnorderedChildren().get( 0 ) ).getValue() );
+        Assert.assertEquals( "OU 1", ((SimpleNode) collection.getUnorderedChildren().get( 0 )).getValue() );
 
         Assert.assertEquals( "name", collection.getUnorderedChildren().get( 1 ).getName() );
         Assert.assertTrue( collection.getUnorderedChildren().get( 1 ) instanceof SimpleNode );
-        Assert.assertEquals( "OU 2", ( (SimpleNode) collection.getUnorderedChildren().get( 1 ) ).getValue() );
+        Assert.assertEquals( "OU 2", ((SimpleNode) collection.getUnorderedChildren().get( 1 )).getValue() );
     }
 }

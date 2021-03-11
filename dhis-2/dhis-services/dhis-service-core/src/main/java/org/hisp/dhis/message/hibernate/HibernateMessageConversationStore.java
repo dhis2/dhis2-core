@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.message.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -35,7 +34,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.jdbc.StatementBuilder;
@@ -69,7 +67,8 @@ public class HibernateMessageConversationStore
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
         StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService, false );
+        super( sessionFactory, jdbcTemplate, publisher, MessageConversation.class, currentUserService, aclService,
+            false );
 
         checkNotNull( statementBuilder );
 
@@ -92,7 +91,7 @@ public class HibernateMessageConversationStore
 
         String hql = "from MessageConversation mc " +
             "inner join mc.userMessages as um " +
-            "left join mc.user as ui " +
+            "left join mc.createdBy as ui " +
             "left join mc.lastSender as ls ";
 
         if ( status != null )
@@ -132,12 +131,9 @@ public class HibernateMessageConversationStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<MessageConversation> getMessageConversations( Collection<String> uids )
     {
-        return getSharingCriteria()
-            .add( Restrictions.in( "uid", uids ) )
-            .list();
+        return getList( getCriteriaBuilder(), newJpaParameters().addPredicate( root -> root.get( "uid" ).in( uids ) ) );
     }
 
     @Override

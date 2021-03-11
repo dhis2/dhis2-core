@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.period.hibernate;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import javax.annotation.PostConstruct;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -47,7 +45,6 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodStore;
@@ -56,7 +53,6 @@ import org.hisp.dhis.period.RelativePeriods;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -72,39 +68,22 @@ public class HibernatePeriodStore
     extends HibernateIdentifiableObjectStore<Period>
     implements PeriodStore
 {
-    private Environment env;
 
-    private static Cache<Long> PERIOD_ID_CACHE;
-
-    private CacheProvider cacheProvider;
+    private final Cache<Long> periodIdCache;
 
     public HibernatePeriodStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        Environment env, CacheProvider cacheProvider )
+        CacheProvider cacheProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, Period.class, currentUserService, aclService, true );
 
         transientIdentifiableProperties = true;
-
-        this.env = env;
-        this.cacheProvider = cacheProvider;
+        this.periodIdCache = cacheProvider.createPeriodIdCache();
     }
 
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        PERIOD_ID_CACHE = cacheProvider.newCacheBuilder( Long.class )
-            .forRegion( "periodIdCache" )
-            .expireAfterWrite( 24, TimeUnit.HOURS )
-            .withInitialCapacity( 200 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
-            .build();
-    }
 
     @Override
     public void addPeriod( Period period )
@@ -211,7 +190,9 @@ public class HibernatePeriodStore
             return period; // Already in session, no reload needed
         }
 
-        Long id = PERIOD_ID_CACHE.get( period.getCacheKey(), key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
+        Long id = periodIdCache
+            .get( period.getCacheKey(),
+                key -> getPeriodId( period.getStartDate(), period.getEndDate(), period.getPeriodType() ) )
             .orElse( null );
 
         Period storedPeriod = id != null ? getSession().get( Period.class, id ) : null;
@@ -305,8 +286,9 @@ public class HibernatePeriodStore
 
         if ( reloadedPeriodType == null )
         {
-            throw new InvalidIdentifierReferenceException( "The PeriodType referenced by the Period is not in database: "
-                + periodType.getName() );
+            throw new InvalidIdentifierReferenceException(
+                "The PeriodType referenced by the Period is not in database: "
+                    + periodType.getName() );
         }
 
         return reloadedPeriodType;
@@ -316,15 +298,12 @@ public class HibernatePeriodStore
     public Period insertIsoPeriodInStatelessSession( Period period )
     {
         StatelessSession session = sessionFactory.openStatelessSession();
-        session.beginTransaction();
         try
         {
             Serializable id = session.insert( period );
-            Period storedPeriod = (Period) session.get( Period.class, id );
+            periodIdCache.put( period.getCacheKey(), (Long) id );
 
-            PERIOD_ID_CACHE.put( period.getCacheKey(), storedPeriod.getId() );
-
-            return storedPeriod;
+            return period;
         }
         catch ( Exception exception )
         {

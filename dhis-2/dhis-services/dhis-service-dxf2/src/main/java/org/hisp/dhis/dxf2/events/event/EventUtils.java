@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -37,23 +36,23 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
 import org.postgresql.util.PGobject;
-import org.springframework.util.StringUtils;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.MapType;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-
-import lombok.SneakyThrows;
 
 /**
  * @author Luciano Fiandesio
@@ -81,10 +80,11 @@ public class EventUtils
     }
 
     /**
-     * Converts a Set of {@see EventDataValue} into a JSON string using the provided
-     * Jackson {@see ObjectMapper} This method, before serializing to JSON, if first
-     * transforms the Set into a Map, where the Map key is the EventDataValue
-     * DataElement UID and the Map value is the actual {@see EventDataValue}.
+     * Converts a Set of {@see EventDataValue} into a JSON string using the
+     * provided Jackson {@see ObjectMapper} This method, before serializing to
+     * JSON, if first transforms the Set into a Map, where the Map key is the
+     * EventDataValue DataElement UID and the Map value is the actual
+     * {@see EventDataValue}.
      *
      * @param dataValues a Set of {@see EventDataValue}
      * @param mapper a configured Jackson {@see ObjectMapper}
@@ -127,8 +127,8 @@ public class EventUtils
      * Note that the EventDataValue payload is stored as a map: {dataelementid:{
      * ...}, {dataelementid:{ ...} }
      *
-     * Therefore, the conversion is a bit convoluted, since the payload has to be
-     * converted into a Map and then into a Set
+     * Therefore, the conversion is a bit convoluted, since the payload has to
+     * be converted into a Map and then into a Set
      */
     public static Set<EventDataValue> jsonToEventDataValues( ObjectMapper jsonMapper, Object eventsDataValues )
         throws JsonProcessingException
@@ -191,7 +191,7 @@ public class EventUtils
     }
 
     @SneakyThrows
-    public static PGobject userInfoToJson( ProgramStageInstanceUserInfo userInfo, ObjectMapper mapper )
+    public static PGobject userInfoToJson( UserInfoSnapshot userInfo, ObjectMapper mapper )
     {
         PGobject jsonbObj = new PGobject();
         jsonbObj.setType( "json" );
@@ -199,19 +199,19 @@ public class EventUtils
         return jsonbObj;
     }
 
-    public static ProgramStageInstanceUserInfo jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
+    public static UserInfoSnapshot jsonToUserInfo( String userInfoAsString, ObjectMapper mapper )
     {
         try
         {
             if ( org.apache.commons.lang3.StringUtils.isNotEmpty( userInfoAsString ) )
             {
-                return mapper.readValue( userInfoAsString, ProgramStageInstanceUserInfo.class );
+                return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
             }
             return null;
         }
         catch ( IOException e )
         {
-            log.error( "Parsing ProgramStageInstanceUserInfo json string failed. String value: " + userInfoAsString );
+            log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
             throw new IllegalArgumentException( e );
         }
     }

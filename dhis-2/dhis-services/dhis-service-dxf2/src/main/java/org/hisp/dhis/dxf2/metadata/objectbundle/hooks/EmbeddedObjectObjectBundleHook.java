@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.hibernate.Session;
 import org.hisp.dhis.common.BaseAnalyticalObject;
@@ -35,6 +38,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.DefaultAnalyticalObjectImportHandler;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
@@ -43,10 +47,6 @@ import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -109,7 +109,7 @@ public class EmbeddedObjectObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preCreate( T object, ObjectBundle bundle )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
@@ -124,7 +124,7 @@ public class EmbeddedObjectObjectBundleHook
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
 
         if ( schema == null || schema.getEmbeddedObjectProperties().isEmpty() )
         {
@@ -137,7 +137,8 @@ public class EmbeddedObjectObjectBundleHook
         handleEmbeddedObjects( object, bundle, properties );
     }
 
-    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
+    private <T extends IdentifiableObject> void clearEmbeddedObjects( T object, ObjectBundle bundle,
+        Collection<Property> properties )
     {
         for ( Property property : properties )
         {
@@ -148,7 +149,7 @@ public class EmbeddedObjectObjectBundleHook
                     continue;
                 }
 
-                ( ( Collection<?> ) ReflectionUtils.invokeMethod( object, property.getGetterMethod() ) ).clear();
+                ((Collection<?>) ReflectionUtils.invokeMethod( object, property.getGetterMethod() )).clear();
             }
             else
             {
@@ -157,17 +158,17 @@ public class EmbeddedObjectObjectBundleHook
         }
     }
 
-    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle, Collection<Property> properties )
+    private <T extends IdentifiableObject> void handleEmbeddedObjects( T object, ObjectBundle bundle,
+        Collection<Property> properties )
     {
         for ( Property property : properties )
         {
-            Object propertyObject =  ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            Object propertyObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
 
             if ( property.isCollection() )
             {
                 Collection<?> objects = (Collection<?>) propertyObject;
-                objects.forEach( itemPropertyObject ->
-                {
+                objects.forEach( itemPropertyObject -> {
                     handleProperty( itemPropertyObject, bundle, property );
                     handleEmbeddedAnalyticalProperty( itemPropertyObject, bundle, property );
                 } );
@@ -192,7 +193,8 @@ public class EmbeddedObjectObjectBundleHook
             ((BaseIdentifiableObject) object).setAutoFields();
         }
 
-        Schema embeddedSchema = schemaService.getDynamicSchema( object.getClass() );
+        Schema embeddedSchema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
         for ( Property embeddedProperty : embeddedSchema.getPropertyMap().values() )
         {
             if ( PeriodType.class.isAssignableFrom( embeddedProperty.getKlass() ) )
@@ -221,6 +223,7 @@ public class EmbeddedObjectObjectBundleHook
 
         Schema propertySchema = schemaService.getDynamicSchema( property.getItemKlass() );
 
-        analyticalObjectImportHandler.handleAnalyticalObject( session, propertySchema, ( BaseAnalyticalObject ) identifiableObject, bundle );
+        analyticalObjectImportHandler.handleAnalyticalObject( session, propertySchema,
+            (BaseAnalyticalObject) identifiableObject, bundle );
     }
 }

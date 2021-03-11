@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -40,10 +39,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class UserAuthorityGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserService userService;
 
     public UserAuthorityGroupDeletionHandler( UserService userService )
@@ -53,21 +48,16 @@ public class UserAuthorityGroupDeletionHandler
         this.userService = userService;
     }
 
-// -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return UserAuthorityGroup.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         UserCredentials credentials = user.getUserCredentials();
-        
+
         for ( UserAuthorityGroup group : credentials.getUserAuthorityGroups() )
         {
             group.getMembers().remove( credentials );

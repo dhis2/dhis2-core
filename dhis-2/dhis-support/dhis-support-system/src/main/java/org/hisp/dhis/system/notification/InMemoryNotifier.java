@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,17 @@ package org.hisp.dhis.system.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.notification;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -47,6 +44,8 @@ import java.util.Map;
 public class InMemoryNotifier implements Notifier
 {
     private NotificationMap notificationMap = new NotificationMap();
+
+    private NotificationLoggerUtil notificationLogger;
 
     // -------------------------------------------------------------------------
     // Notifier implementation
@@ -78,7 +77,7 @@ public class InMemoryNotifier implements Notifier
 
             notificationMap.add( id, notification );
 
-            log.info( notification.toString() );
+            NotificationLoggerUtil.log( log, level, message );
         }
 
         return this;
@@ -114,28 +113,7 @@ public class InMemoryNotifier implements Notifier
     }
 
     @Override
-    public List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId )
-    {
-        List<Notification> list = new ArrayList<>();
-
-        for ( Notification notification : notificationMap.getLastNotificationsByJobType( jobType ) )
-        {
-            if ( lastId != null && lastId.equals( notification.getUid() ) )
-            {
-                if ( list.isEmpty() )
-                {
-                    list.add( notification );
-                }
-                break;
-            }
-            list.add( notification );
-        }
-
-        return list;
-    }
-
-    @Override
-    public Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications()
+    public Map<JobType, Map<String, List<Notification>>> getNotifications()
     {
         return notificationMap.getNotifications();
     }
@@ -147,7 +125,7 @@ public class InMemoryNotifier implements Notifier
     }
 
     @Override
-    public Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType )
+    public Map<String, List<Notification>> getNotificationsByJobType( JobType jobType )
     {
         return notificationMap.getNotificationsWithType( jobType );
     }
@@ -182,15 +160,9 @@ public class InMemoryNotifier implements Notifier
     }
 
     @Override
-    public Object getJobSummariesForJobType( JobType jobType )
+    public Map<String, Object> getJobSummariesForJobType( JobType jobType )
     {
         return notificationMap.getJobSummariesForJobType( jobType );
-    }
-
-    @Override
-    public Object getJobSummary( JobType jobType )
-    {
-        return notificationMap.getSummary( jobType );
     }
 
     @Override

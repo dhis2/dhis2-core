@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 import java.util.List;
@@ -37,8 +38,6 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Lars Helge Overland
  * @version $Id$
@@ -47,10 +46,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SectionDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final SectionService sectionService;
 
     public SectionDeletionHandler( SectionService sectionService )
@@ -59,18 +54,14 @@ public class SectionDeletionHandler
         this.sectionService = sectionService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Section.class.getSimpleName();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( DataSet.class, this::deleteDataSet );
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
         for ( Section section : sectionService.getAllSections() )
         {
@@ -92,8 +83,7 @@ public class SectionDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
         Iterator<Section> iterator = dataSet.getSections().iterator();
 

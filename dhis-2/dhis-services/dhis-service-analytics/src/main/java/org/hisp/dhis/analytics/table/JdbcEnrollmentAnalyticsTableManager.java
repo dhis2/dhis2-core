@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.table;
 
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_50;
@@ -62,6 +61,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 /**
@@ -83,15 +83,17 @@ public class JdbcEnrollmentAnalyticsTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    private static final List<AnalyticsTableColumn> FIXED_COLS = Lists.newArrayList(
+    private static final List<AnalyticsTableColumn> FIXED_COLS = ImmutableList.of(
         new AnalyticsTableColumn( quote( "pi" ), CHARACTER_11, NOT_NULL, "pi.uid" ),
         new AnalyticsTableColumn( quote( "enrollmentdate" ), TIMESTAMP, "pi.enrollmentdate" ),
         new AnalyticsTableColumn( quote( "incidentdate" ), TIMESTAMP, "pi.incidentdate" ),
         new AnalyticsTableColumn( quote( "completeddate" ), TIMESTAMP,
             "case pi.status when 'COMPLETED' then pi.enddate end" ),
         new AnalyticsTableColumn( quote( "enrollmentstatus" ), CHARACTER_50, "pi.status" ),
-        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
-        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE, "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END" ),
+        new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
+            "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_X(pi.geometry) ELSE null END" ),
+        new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
+            "CASE WHEN 'POINT' = GeometryType(pi.geometry) THEN ST_Y(pi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "ou" ), CHARACTER_11, NOT_NULL, "ou.uid" ),
         new AnalyticsTableColumn( quote( "ouname" ), TEXT, NOT_NULL, "ou.name" ),
         new AnalyticsTableColumn( quote( "oucode" ), TEXT, "ou.code" ),
@@ -124,7 +126,8 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         for ( Program program : programs )
         {
-            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ), Lists.newArrayList(), program );
+            AnalyticsTable table = new AnalyticsTable( getAnalyticsTableType(), getDimensionColumns( program ),
+                Lists.newArrayList(), program );
 
             tables.add( table );
         }
@@ -145,11 +148,12 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         String fromClause = "from programinstance pi " +
             "inner join program pr on pi.programid=pr.programid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false " +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "and tei.deleted is false " +
             "inner join organisationunit ou on pi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on pi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on pi.organisationunitid=ougs.organisationunitid " +
-                "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
+            "and (cast(date_trunc('month', pi.enrollmentdate) as date)=ougs.startdate or ougs.startdate is null) " +
             "left join _dateperiodstructure dps on cast(pi.enrollmentdate as date)=dps.dateperiod " +
             "where pr.programid=" + program.getId() + " " +
             "and pi.organisationunitid is not null " +
@@ -166,7 +170,7 @@ public class JdbcEnrollmentAnalyticsTableManager
 
         columns.addAll( addOrganisationUnitLevels() );
         columns.addAll( addOrganisationUnitGroupSets() );
-        columns.addAll( addPeriodColumns( "dps" ) );
+        columns.addAll( addPeriodTypeColumns( "dps" ) );
         columns.addAll( addTrackedEntityAttributes( program ) );
         columns.addAll( getFixedColumns() );
 

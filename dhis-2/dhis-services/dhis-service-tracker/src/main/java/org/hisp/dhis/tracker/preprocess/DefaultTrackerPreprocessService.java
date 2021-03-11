@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preprocess;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,40 +25,36 @@ package org.hisp.dhis.tracker.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preprocess;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.programrule.RuleActionApplier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Enrico Colasante
  */
-@Slf4j
 @Service
 public class DefaultTrackerPreprocessService
     implements TrackerPreprocessService
 {
-    private List<RuleActionApplier> appliers = new ArrayList<>();
+    private List<BundlePreProcessor> preProcessors = new ArrayList<>();
 
     @Autowired( required = false )
-    public void setAppliers( List<RuleActionApplier> appliers )
+    public void setPreProcessors( List<BundlePreProcessor> preProcessors )
     {
-        this.appliers = appliers;
+        this.preProcessors = preProcessors;
     }
 
     @Override
     public TrackerBundle preprocess( TrackerBundle bundle )
     {
-
-        for ( RuleActionApplier applier : appliers )
+        for ( BundlePreProcessor preProcessor : preProcessors )
         {
-            bundle = applier.executeActions( bundle );
+            preProcessor.process( bundle );
         }
 
         return bundle;

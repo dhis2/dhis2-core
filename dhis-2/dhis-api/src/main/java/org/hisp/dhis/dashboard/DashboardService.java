@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
+
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.document.Document;
@@ -37,9 +39,6 @@ import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
-
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -83,7 +82,7 @@ public interface DashboardService
     // -------------------------------------------------------------------------
 
     void updateDashboardItem( DashboardItem item );
-    
+
     DashboardItem getDashboardItem( String uid );
 
     Dashboard getDashboardFromDashboardItem( DashboardItem dashboardItem );

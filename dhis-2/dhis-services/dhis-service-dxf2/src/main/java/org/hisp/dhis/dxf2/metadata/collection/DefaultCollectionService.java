@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.collection;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.dxf2.metadata.collection;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.collection;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -34,45 +40,41 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Service ( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
-@Transactional
+@Service( "org.hisp.dhis.dxf2.metadata.collection.CollectionService" )
 public class DefaultCollectionService
     implements CollectionService
 {
-    private IdentifiableObjectManager manager;
+    private final IdentifiableObjectManager manager;
 
-    private DbmsManager dbmsManager;
+    private final DbmsManager dbmsManager;
 
-    private HibernateCacheManager cacheManager;
+    private final HibernateCacheManager cacheManager;
 
-    private AclService aclService;
+    private final AclService aclService;
 
-    private SchemaService schemaService;
+    private final SchemaService schemaService;
 
-    private CurrentUserService currentUserService;
+    private final CurrentUserService currentUserService;
+
+    private final SchemaValidator schemaValidator;
 
     public DefaultCollectionService( IdentifiableObjectManager manager, DbmsManager dbmsManager,
         HibernateCacheManager cacheManager, AclService aclService, SchemaService schemaService,
-        CurrentUserService currentUserService )
+        CurrentUserService currentUserService, SchemaValidator schemaValidator )
     {
         checkNotNull( manager );
         checkNotNull( dbmsManager );
@@ -80,6 +82,7 @@ public class DefaultCollectionService
         checkNotNull( aclService );
         checkNotNull( schemaService );
         checkNotNull( currentUserService );
+        checkNotNull( schemaValidator );
 
         this.manager = manager;
         this.dbmsManager = dbmsManager;
@@ -87,191 +90,205 @@ public class DefaultCollectionService
         this.aclService = aclService;
         this.schemaService = schemaService;
         this.currentUserService = currentUserService;
+        this.schemaValidator = schemaValidator;
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
-    public void addCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
+    @Transactional
+    public void addCollectionItems( IdentifiableObject object, String propertyName,
+        Collection<? extends IdentifiableObject> objects )
+        throws Exception
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Property property = validateUpdate( object, propertyName,
+            "Only identifiable object collections can be added to." );
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !schema.haveProperty( propertyName ) )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
-        }
-
-        Property property = schema.getProperty( propertyName );
-
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be added to." ) );
-        }
-
-        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
+        Collection<String> itemCodes = getItemCodes( objects );
 
         if ( itemCodes.isEmpty() )
         {
             return;
         }
 
-        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
-
         manager.refresh( object );
 
         if ( property.isOwner() )
         {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-
-            for ( IdentifiableObject item : items )
-            {
-                if ( !collection.contains( item ) ) collection.add( item );
-            }
-
-            manager.update( object );
+            addOwnedCollectionItems( object, property, itemCodes );
         }
         else
         {
-            Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-            Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
-
-            for ( IdentifiableObject item : items )
-            {
-                try
-                {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
-
-                    if ( !collection.contains( object ) )
-                    {
-                        collection.add( object );
-                        manager.update( item );
-                    }
-                }
-                catch ( Exception ex )
-                {
-                }
-            }
+            addNonOwnedCollectionItems( object, property, itemCodes );
         }
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public void delCollectionItems( IdentifiableObject object, String propertyName, List<IdentifiableObject> objects ) throws Exception
+    private void addOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
+        throws Exception
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Collection<IdentifiableObject> collection = getCollection( object, property );
 
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
+        for ( IdentifiableObject item : getItems( property, itemCodes ) )
         {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+            if ( !collection.contains( item ) )
+                collection.add( item );
         }
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
+        manager.update( object );
+    }
 
-        if ( !schema.haveProperty( propertyName ) )
+    private void addNonOwnedCollectionItems( IdentifiableObject object, Property property,
+        Collection<String> itemCodes )
+    {
+        Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
+        Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
+
+        for ( IdentifiableObject item : getItems( property, itemCodes ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
+            try
+            {
+                Collection<IdentifiableObject> collection = getCollection( item, owningProperty );
+
+                if ( !collection.contains( object ) )
+                {
+                    collection.add( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, object ) );
+                    manager.update( item );
+                }
+            }
+            catch ( Exception ex )
+            {
+                /* Ignore */
+            }
         }
+    }
 
-        Property property = schema.getProperty( propertyName );
+    @Override
+    @Transactional
+    public void delCollectionItems( IdentifiableObject object, String propertyName,
+        Collection<? extends IdentifiableObject> objects )
+        throws Exception
+    {
+        Property property = validateUpdate( object, propertyName,
+            "Only identifiable object collections can be removed from." );
 
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
-        {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable object collections can be removed from." ) );
-        }
-
-        Collection<String> itemCodes = objects.stream().map( IdentifiableObject::getUid ).collect( Collectors.toList() );
+        Collection<String> itemCodes = getItemCodes( objects );
 
         if ( itemCodes.isEmpty() )
         {
             return;
         }
 
-        List<? extends IdentifiableObject> items = manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
-
         manager.refresh( object );
 
         if ( property.isOwner() )
         {
-            Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-
-            for ( IdentifiableObject item : items )
-            {
-                if ( collection.contains( item ) ) collection.remove( item );
-            }
+            delOwnedCollectionItems( object, property, itemCodes );
         }
         else
         {
-            Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-            Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
-
-            for ( IdentifiableObject item : items )
-            {
-                try
-                {
-                    Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) owningProperty.getGetterMethod().invoke( item );
-
-                    if ( collection.contains( object ) )
-                    {
-                        collection.remove( object );
-                        manager.update( item );
-                    }
-                }
-                catch ( Exception ex )
-                {
-                }
-            }
+            delNonOwnedCollectionItems( object, property, itemCodes );
         }
 
+        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
         manager.update( object );
 
         dbmsManager.clearSession();
         cacheManager.clearCache();
     }
 
-    @Override
-    @SuppressWarnings( "unchecked" )
-    public void clearCollectionItems( IdentifiableObject object, String pvProperty ) throws WebMessageException, InvocationTargetException, IllegalAccessException
+    private void delOwnedCollectionItems( IdentifiableObject object, Property property, Collection<String> itemCodes )
+        throws Exception
     {
-        Schema schema = schemaService.getDynamicSchema( object.getClass() );
+        Collection<IdentifiableObject> collection = getCollection( object, property );
 
-        if ( !schema.haveProperty( pvProperty ) )
+        for ( IdentifiableObject item : getItems( property, itemCodes ) )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + object.getClass().getName() ) );
+            collection.remove( item );
         }
+    }
 
-        Property property = schema.getProperty( pvProperty );
+    private void delNonOwnedCollectionItems( IdentifiableObject object, Property property,
+        Collection<String> itemCodes )
+    {
+        Schema owningSchema = schemaService.getDynamicSchema( property.getItemKlass() );
+        Property owningProperty = owningSchema.propertyByRole( property.getOwningRole() );
 
-        if ( !property.isCollection() || !property.isIdentifiableObject() )
+        for ( IdentifiableObject item : getItems( property, itemCodes ) )
         {
-            throw new WebMessageException( WebMessageUtils.conflict( "Only identifiable collections are allowed to be cleared." ) );
-        }
-
-        Collection<IdentifiableObject> collection = (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
-
-        manager.refresh( object );
-
-        if ( property.isOwner() )
-        {
-            collection.clear();
-            manager.update( object );
-        }
-        else
-        {
-            for ( IdentifiableObject itemObject : collection )
+            try
             {
-                Schema itemSchema = schemaService.getDynamicSchema( property.getItemKlass() );
-                Property itemProperty = itemSchema.propertyByRole( property.getOwningRole() );
-                Collection<IdentifiableObject> itemCollection = (Collection<IdentifiableObject>) itemProperty.getGetterMethod().invoke( itemObject );
-                itemCollection.remove( object );
+                Collection<IdentifiableObject> collection = getCollection( item, owningProperty );
 
-                manager.update( itemObject );
-                manager.refresh( itemObject );
+                if ( collection.contains( object ) )
+                {
+                    collection.remove( object );
+                    validateAndThrowErrors( () -> schemaValidator.validateProperty( owningProperty, item ) );
+                    manager.update( item );
+                }
+            }
+            catch ( Exception ex )
+            {
+                /* Ignore */
             }
         }
     }
+
+    @Override
+    @Transactional
+    public void replaceCollectionItems( IdentifiableObject object, String propertyName,
+        Collection<? extends IdentifiableObject> objects )
+        throws Exception
+    {
+        Property property = validateUpdate( object, propertyName,
+            "Only identifiable object collections can be replaced." );
+
+        delCollectionItems( object, propertyName, getCollection( object, property ) );
+        addCollectionItems( object, propertyName, objects );
+    }
+
+    private Property validateUpdate( IdentifiableObject object, String propertyName, String message )
+        throws WebMessageException
+    {
+        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
+        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), object ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
+        }
+
+        if ( !schema.haveProperty( propertyName ) )
+        {
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "Property " + propertyName + " does not exist on " + object.getClass().getName() ) );
+        }
+
+        Property property = schema.getProperty( propertyName );
+
+        if ( !property.isCollection() || !property.isIdentifiableObject() )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( message ) );
+        }
+        return property;
+    }
+
+    private Collection<String> getItemCodes( Collection<? extends IdentifiableObject> objects )
+    {
+        return objects.stream().map( IdentifiableObject::getUid ).collect( toList() );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private List<? extends IdentifiableObject> getItems( Property property, Collection<String> itemCodes )
+    {
+        return manager.get( ((Class<? extends IdentifiableObject>) property.getItemKlass()), itemCodes );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private Collection<IdentifiableObject> getCollection( IdentifiableObject object, Property property )
+        throws Exception
+    {
+        return (Collection<IdentifiableObject>) property.getGetterMethod().invoke( object );
+    }
+
 }

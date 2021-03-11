@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
@@ -37,7 +36,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -116,53 +115,62 @@ public class EnrollmentTrackerConverterService
     private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
     {
         OrganisationUnit organisationUnit = preheat
-            .get( TrackerIdScheme.UID, OrganisationUnit.class, enrollment.getOrgUnit() );
+            .get( OrganisationUnit.class, enrollment.getOrgUnit() );
 
         checkNotNull( organisationUnit, TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL );
 
-        Program program = preheat.get( TrackerIdScheme.UID, Program.class, enrollment.getProgram() );
+        Program program = preheat.get( Program.class, enrollment.getProgram() );
 
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
         TrackedEntityInstance trackedEntityInstance = preheat
             .getTrackedEntity( TrackerIdScheme.UID, enrollment.getTrackedEntity() );
 
-        if ( programInstance == null )
+        Date now = new Date();
+
+        if ( isNewEntity( programInstance ) )
         {
-            Date now = new Date();
-
             programInstance = new ProgramInstance();
-            programInstance.setUid( enrollment.getEnrollment() );
+            programInstance.setUid(
+                !StringUtils.isEmpty( enrollment.getEnrollment() ) ? enrollment.getEnrollment() : enrollment.getUid() );
             programInstance.setCreated( now );
-            programInstance.setCreatedAtClient( now );
-            programInstance.setLastUpdated( now );
-            programInstance.setLastUpdatedAtClient( now );
+            programInstance.setStoredBy( enrollment.getStoredBy() );
+        }
 
-            if ( !CodeGenerator.isValidUid( programInstance.getUid() ) )
-            {
-                programInstance.setUid( CodeGenerator.generateUid() );
-            }
+        programInstance.setLastUpdated( now );
+        programInstance.setCreatedAtClient( DateUtils.fromInstant( enrollment.getCreatedAtClient() ) );
+        programInstance.setLastUpdatedAtClient( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ) );
 
-            programInstance.setEnrollmentDate( DateUtils.parseDate( enrollment.getEnrolledAt() ) );
-            programInstance.setIncidentDate( DateUtils.parseDate( enrollment.getOccurredAt() ) );
-            programInstance.setOrganisationUnit( organisationUnit );
-            programInstance.setProgram( program );
-            programInstance.setEntityInstance( trackedEntityInstance );
-            programInstance.setFollowup( enrollment.isFollowUp() );
-            programInstance.setGeometry( enrollment.getGeometry() );
+        Date enrollmentDate = DateUtils.fromInstant( enrollment.getEnrolledAt() );
+        Date incidentDate = DateUtils.fromInstant( enrollment.getOccurredAt() );
 
-            if ( enrollment.getStatus() == null )
-            {
-                enrollment.setStatus( EnrollmentStatus.ACTIVE );
-            }
+        programInstance.setEnrollmentDate( enrollmentDate );
+        programInstance.setIncidentDate( incidentDate != null ? incidentDate : enrollmentDate );
+        programInstance.setOrganisationUnit( organisationUnit );
+        programInstance.setProgram( program );
+        programInstance.setEntityInstance( trackedEntityInstance );
+        programInstance.setFollowup( enrollment.isFollowUp() );
+        programInstance.setGeometry( enrollment.getGeometry() );
 
-            programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+        if ( enrollment.getStatus() == null )
+        {
+            enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        }
 
-            if ( isNotEmpty( enrollment.getNotes() ) )
-            {
-                programInstance.getComments()
-                    .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
-            }
+        programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+
+        if ( programInstance.isCompleted() )
+        {
+            programInstance
+                .setEndDate( enrollment.getCompletedAt() != null ? DateUtils.fromInstant( enrollment.getCompletedAt() )
+                    : new Date() );
+            programInstance.setCompletedBy( enrollment.getCompletedBy() );
+        }
+
+        if ( isNotEmpty( enrollment.getNotes() ) )
+        {
+            programInstance.getComments()
+                .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
         }
         return programInstance;
     }

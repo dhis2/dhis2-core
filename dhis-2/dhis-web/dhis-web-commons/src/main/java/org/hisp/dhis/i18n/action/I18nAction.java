@@ -1,7 +1,5 @@
-package org.hisp.dhis.i18n.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,28 @@ package org.hisp.dhis.i18n.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.i18n.action;
 
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.i18n.I18nLocaleService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.util.TranslationUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import static org.hisp.dhis.common.IdentifiableObjectUtils.CLASS_ALIAS;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.i18n.I18nLocaleService;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.util.TranslationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Oyvind Brucker
@@ -63,13 +66,13 @@ public class I18nAction
     private String message;
 
     private Locale currentLocale;
-    
+
     private List<Locale> availableLocales = new ArrayList<>();
-    
+
     private Map<String, String> translations = new Hashtable<>();
 
     private Map<String, String> referenceTranslations = new Hashtable<>();
-    
+
     private List<String> propertyNames = new ArrayList<>();
 
     // -------------------------------------------------------------------------
@@ -92,6 +95,9 @@ public class I18nAction
 
     @Autowired
     private I18nLocaleService i18nLocaleService;
+
+    @Autowired
+    private SchemaService schemaService;
 
     // -------------------------------------------------------------------------
     // Input
@@ -174,19 +180,23 @@ public class I18nAction
     public String execute()
         throws Exception
     {
-        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className ) : className;
-        
+        className = className != null && CLASS_ALIAS.containsKey( className ) ? CLASS_ALIAS.get( className )
+            : className;
+
         currentLocale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
-        
+
         availableLocales = i18nLocaleService.getAllLocales();
 
         IdentifiableObject object = identifiableObjectManager.getObject( uid, className );
 
         translations = TranslationUtils.convertTranslations( object.getTranslations(), currentLocale );
 
-        referenceTranslations = TranslationUtils.getObjectPropertyValues( object );
+        Schema schema = schemaService.getSchema( object.getClass() );
 
-        propertyNames = TranslationUtils.getObjectPropertyNames( object );
+        referenceTranslations = TranslationUtils.getObjectPropertyValues( schema, object );
+
+        propertyNames = schema.getTranslatableProperties().stream().map( p -> p.getName() )
+            .collect( Collectors.toList() );
 
         return SUCCESS;
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,14 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 /**
@@ -58,32 +59,26 @@ public class CategoryComboDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryCombo.class.getSimpleName();
+        whenVetoing( Category.class, this::allowDeleteCategory );
+        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
     }
 
-    @Override
-    public String allowDeleteCategory( Category category )
+    private DeletionVeto allowDeleteCategory( Category category )
     {
         for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
         {
             if ( categoryCombo.getCategories().contains( category ) )
             {
-                return categoryCombo.getName();
+                return new DeletionVeto( CategoryCombo.class, categoryCombo.getName() );
             }
         }
-
-        return null;
+        return ACCEPT;
     }
 
-    @Override
-    public void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
+    private void deleteCategoryOptionCombo( CategoryOptionCombo categoryOptionCombo )
     {
         for ( CategoryCombo categoryCombo : categoryService.getAllCategoryCombos() )
         {

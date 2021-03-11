@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,8 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -40,14 +37,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class EnrollmentNoteValidationHook extends AbstractTrackerDtoValidationHook
 {
-    public EnrollmentNoteValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        enrollment.setNotes( NoteValidationUtils.validate( reporter, enrollment.getNotes() ) );
+        enrollment.setNotes( ValidationUtils.validateNotes( reporter, enrollment.getNotes() ) );
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.webmessage.utils;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.dxf2.webmessage.utils;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
-import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+package org.hisp.dhis.dxf2.webmessage.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
+
+import org.apache.commons.io.IOUtils;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Created by vanyas on 5/4/17.
@@ -45,7 +45,8 @@ public class WebMessageParseUtils
 {
     private final static ObjectMapper JSON_MAPPER = JacksonObjectMapperConfig.staticJsonMapper();
 
-    public static <T> T fromWebMessageResponse( InputStream input, Class<T> klass ) throws WebMessageParseException
+    public static <T> T fromWebMessageResponse( InputStream input, Class<T> klass )
+        throws WebMessageParseException
     {
         StringWriter writer = new StringWriter();
         try
@@ -59,12 +60,14 @@ public class WebMessageParseUtils
         return parseJson( writer.toString(), klass );
     }
 
-    public static <T> T fromWebMessageResponse( String input, Class<T> klass ) throws WebMessageParseException
+    public static <T> T fromWebMessageResponse( String input, Class<T> klass )
+        throws WebMessageParseException
     {
         return parseJson( input, klass );
     }
 
-    private static <T> T parseJson( String input, Class<T> klass ) throws WebMessageParseException
+    private static <T> T parseJson( String input, Class<T> klass )
+        throws WebMessageParseException
     {
         JsonNode objectNode = null;
         try

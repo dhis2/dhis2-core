@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,30 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_COLLAPSED_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.common.DimensionalObject.STATIC_DIMS;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_LEVEL;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_ORGUNIT_GROUP;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_CHILDREN;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.KEY_USER_ORGUNIT_GRANDCHILDREN;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -58,6 +74,7 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.DefaultValue;
 
@@ -394,11 +411,11 @@ public abstract class BaseAnalyticalObject
 
     /**
      * Assembles a DimensionalObject based on the persisted properties of this
-     * AnalyticalObject. Collapses indicators, data elements, data element operands
-     * and data sets into the dx dimension.
+     * AnalyticalObject. Collapses indicators, data elements, data element
+     * operands and data sets into the dx dimension.
      * <p>
-     * Collapses fixed and relative periods into the pe dimension. Collapses fixed
-     * and user organisation units into the ou dimension.
+     * Collapses fixed and relative periods into the pe dimension. Collapses
+     * fixed and user organisation units into the ou dimension.
      *
      * @param dimension the dimension identifier.
      * @param date the date used for generating relative periods.
@@ -457,13 +474,15 @@ public abstract class BaseAnalyticalObject
             if ( organisationUnitLevels != null && !organisationUnitLevels.isEmpty()
                 && organisationUnitsAtLevel != null )
             {
-                items.addAll( organisationUnitsAtLevel ); // Must be set externally
+                items.addAll( organisationUnitsAtLevel ); // Must be set
+                                                          // externally
             }
 
             if ( itemOrganisationUnitGroups != null && !itemOrganisationUnitGroups.isEmpty()
                 && organisationUnitsInGroups != null )
             {
-                items.addAll( organisationUnitsInGroups ); // Must be set externally
+                items.addAll( organisationUnitsInGroups ); // Must be set
+                                                           // externally
             }
 
             type = DimensionType.ORGANISATION_UNIT;
@@ -558,13 +577,14 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Assembles a list of DimensionalObjects based on the concrete objects in this
-     * BaseAnalyticalObject.
+     * Assembles a list of DimensionalObjects based on the concrete objects in
+     * this BaseAnalyticalObject.
      * <p>
      * Merges fixed and relative periods into the pe dimension, where the
      * RelativePeriods object is represented by enums (e.g. LAST_MONTH). Merges
      * fixed and user organisation units into the ou dimension, where user
-     * organisation units properties are represented by enums (e.g. USER_ORG_UNIT).
+     * organisation units properties are represented by enums (e.g.
+     * USER_ORG_UNIT).
      * <p>
      * This method is useful when serializing the AnalyticalObject.
      *
@@ -722,8 +742,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Searches for a {@link DimensionalObject} with the given dimension identifier
-     * in the given list of {@link DimensionalEmbeddedObject} items.
+     * Searches for a {@link DimensionalObject} with the given dimension
+     * identifier in the given list of {@link DimensionalEmbeddedObject} items.
      *
      * @param dimension the dimension identifier.
      * @param dimensionType the dimension type.
@@ -756,8 +776,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Returns meta-data mapping for this analytical object. Includes a identifier
-     * to name mapping for dynamic dimensions.
+     * Returns meta-data mapping for this analytical object. Includes a
+     * identifier to name mapping for dynamic dimensions.
      */
     public Map<String, String> getMetaData()
     {
@@ -775,8 +795,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Clear or set to false all persistent dimensional (not property) properties
-     * for this object.
+     * Clear or set to false all persistent dimensional (not property)
+     * properties for this object.
      */
     public void clear()
     {
@@ -1133,6 +1153,14 @@ public abstract class BaseAnalyticalObject
         return title;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "title" )
+    public String getDisplayTitle()
+    {
+        return getTranslation( "title", getTitle() );
+    }
+
     public void setTitle( String title )
     {
         this.title = title;
@@ -1143,6 +1171,14 @@ public abstract class BaseAnalyticalObject
     public String getSubtitle()
     {
         return subtitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "subtitle" )
+    public String getDisplaySubtitle()
+    {
+        return getTranslation( "subtitle", getSubtitle() );
     }
 
     public void setSubtitle( String subtitle )

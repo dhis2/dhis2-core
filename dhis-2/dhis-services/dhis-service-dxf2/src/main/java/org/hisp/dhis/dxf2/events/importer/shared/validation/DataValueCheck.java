@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.shared.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.dxf2.events.importer.shared.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifierBasedOnIdScheme;
 import static org.hisp.dhis.dxf2.events.event.EventUtils.eventDataValuesToJson;
 
 import java.sql.SQLException;
+import java.util.Collections;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -115,7 +116,7 @@ public class DataValueCheck implements Checker
 
         ProgramStage programStage = ctx.getProgramStage( programStageIdScheme, event.getProgramStage() );
 
-        final Set<ProgramStageDataElement> mandatoryDataElements = programStage.getProgramStageDataElements();
+        final Set<ProgramStageDataElement> mandatoryDataElements = getMandatoryProgramStageDataElements( programStage );
 
         // Data Element IDs associated to the current event
         Set<String> dataValues = eventDataValueMap.get( event.getUid() ).stream()
@@ -141,6 +142,16 @@ public class DataValueCheck implements Checker
                     .add( new ImportConflict( resolvedDataElementId, "value_required_but_not_provided" ) );
             }
         }
+    }
+
+    private Set<ProgramStageDataElement> getMandatoryProgramStageDataElements( ProgramStage programStage )
+    {
+        return Optional.ofNullable( programStage )
+            .map( ProgramStage::getProgramStageDataElements )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .filter( ProgramStageDataElement::isCompulsory )
+            .collect( Collectors.toSet() );
     }
 
     /**
@@ -193,7 +204,7 @@ public class DataValueCheck implements Checker
         final ValidationStrategy validationStrategy = getValidationStrategy( ctx, event );
 
         return validationStrategy == null || validationStrategy == ValidationStrategy.ON_UPDATE_AND_INSERT
-            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED );
+            || (validationStrategy == ValidationStrategy.ON_COMPLETE && event.getStatus() == EventStatus.COMPLETED);
 
     }
 

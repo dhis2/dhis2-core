@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -36,7 +35,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * Object representing a geometry of type rectangle.
- * 
+ *
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "rectangle", namespace = DxfNamespaces.DXF_2_0 )
@@ -46,7 +45,7 @@ public class Rectangle
      * The extent of the rectangle (bounding box).
      */
     private String extent;
-    
+
     /**
      * The count of events inside the rectangle.
      */

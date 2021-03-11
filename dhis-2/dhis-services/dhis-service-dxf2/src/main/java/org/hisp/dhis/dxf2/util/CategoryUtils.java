@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.dxf2.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.util;
 
 import java.util.List;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -41,8 +42,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
@@ -59,15 +58,16 @@ public class CategoryUtils
 
     @Autowired
     private CategoryService categoryService;
-  
+
     public ImportSummaries addAndPruneOptionCombos( CategoryCombo categoryCombo )
     {
         ImportSummaries importSummaries = new ImportSummaries();
-        
+
         if ( categoryCombo == null || !categoryCombo.isValid() )
         {
-            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );            
-            importSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR, "Category combo is null or invalid, could not update option combos: " + categoryCombo ) ) ;            
+            log.warn( "Category combo is null or invalid, could not update option combos: " + categoryCombo );
+            importSummaries.addImportSummary( new ImportSummary( ImportStatus.ERROR,
+                "Category combo is null or invalid, could not update option combos: " + categoryCombo ) );
             return importSummaries;
         }
 
@@ -83,14 +83,16 @@ public class CategoryUtils
                 categoryCombo.getOptionCombos().add( optionCombo );
                 categoryService.addCategoryOptionCombo( optionCombo );
 
-                log.info( "Added missing category option combo: " + optionCombo + " for category combo: " + categoryCombo.getName() );
-                
-                ImportSummary importSummary = new ImportSummary();                
-                importSummary.setDescription( "Added missing category option combo: (" + optionCombo.getName() + ") for category combo: " + categoryCombo.getName() );
+                log.info( "Added missing category option combo: " + optionCombo + " for category combo: "
+                    + categoryCombo.getName() );
+
+                ImportSummary importSummary = new ImportSummary();
+                importSummary.setDescription( "Added missing category option combo: (" + optionCombo.getName()
+                    + ") for category combo: " + categoryCombo.getName() );
                 importSummary.incrementImported();
-                
+
                 importSummaries.addImportSummary( importSummary );
-                
+
                 modified = true;
             }
         }
@@ -99,11 +101,13 @@ public class CategoryUtils
         {
             if ( !generatedOptionCombos.contains( optionCombo ) )
             {
-                try {
+                try
+                {
                     categoryService.deleteCategoryOptionCombo( optionCombo );
                     categoryCombo.getOptionCombos().remove( optionCombo );
 
-                    log.info("Deleted obsolete category option combo: " + optionCombo.getName() + " for category combo: " + categoryCombo.getName());
+                    log.info( "Deleted obsolete category option combo: " + optionCombo.getName()
+                        + " for category combo: " + categoryCombo.getName() );
 
                     ImportSummary importSummary = new ImportSummary();
                     importSummary.setDescription( "Deleted obsolete category option combo: (" + optionCombo.getName()
@@ -113,7 +117,9 @@ public class CategoryUtils
                     importSummaries.addImportSummary( importSummary );
 
                     modified = true;
-                } catch (Exception ex) {
+                }
+                catch ( Exception ex )
+                {
                     log.warn( "Could not delete category option combo: " + optionCombo );
 
                     ImportSummary importSummary = new ImportSummary();

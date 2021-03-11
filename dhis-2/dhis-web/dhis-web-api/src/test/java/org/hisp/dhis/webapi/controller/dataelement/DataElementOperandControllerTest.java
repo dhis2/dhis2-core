@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataelement;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -60,11 +59,10 @@ import org.hisp.dhis.node.serializers.Jackson2JsonNodeSerializer;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.query.CriteriaQueryEngine;
-import org.hisp.dhis.query.DefaultQueryParser;
+import org.hisp.dhis.query.DefaultJpaQueryParser;
 import org.hisp.dhis.query.DefaultQueryService;
 import org.hisp.dhis.query.InMemoryQueryEngine;
+import org.hisp.dhis.query.JpaCriteriaQueryEngine;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.planner.DefaultQueryPlanner;
@@ -135,10 +133,11 @@ public class DataElementOperandControllerTest
         ContextService contextService = new DefaultContextService();
 
         QueryService _queryService = new DefaultQueryService(
-            new DefaultQueryParser( schemaService, currentUserService, mock( OrganisationUnitService.class ) ),
-            new DefaultQueryPlanner( schemaService ), mock( CriteriaQueryEngine.class ),
+            new DefaultJpaQueryParser( schemaService ),
+            new DefaultQueryPlanner( schemaService ), mock( JpaCriteriaQueryEngine.class ),
             new InMemoryQueryEngine<>( schemaService, mock( AclService.class ), currentUserService ) );
-        // Use "spy" on queryService, because we want a partial mock: we only want to
+        // Use "spy" on queryService, because we want a partial mock: we only
+        // want to
         // mock the method "count"
         queryService = spy( _queryService );
 
@@ -170,16 +169,17 @@ public class DataElementOperandControllerTest
         throws Exception
     {
         int pageSize = 15;
-        int totalSize = 150;
+        long totalSize = 150;
 
         // Given
         final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class, totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
+            (int) totalSize );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, totalSize ) );
+            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
 
         final List<DataElementOperand> first50elements = dataElementOperands.subList( 0, pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor
@@ -199,15 +199,16 @@ public class DataElementOperandControllerTest
             .andExpect( content().contentType( "application/json" ) )
             .andExpect( jsonPath( "$.pager.pageSize" ).value( Integer.toString( pageSize ) ) )
             .andExpect( jsonPath( "$.pager.page" ).value( "1" ) )
-            .andExpect( jsonPath( "$.pager.total" ).value( Integer.toString( totalSize ) ) )
-            .andExpect( jsonPath( "$.pager.pageCount" ).value( Integer.toString( totalSize / pageSize ) ) )
+            .andExpect( jsonPath( "$.pager.total" ).value( Long.toString( totalSize ) ) )
+            .andExpect( jsonPath( "$.pager.pageCount" ).value( Long.toString( totalSize / pageSize ) ) )
             .andExpect( jsonPath( "$.dataElementOperands", hasSize( pageSize ) ) );
 
         final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
         assertThat( fieldFilterParams.getObjects(), hasSize( pageSize ) );
         assertThat( fieldFilterParams.getFields(), Matchers.is( Lists.newArrayList( "*" ) ) );
 
-        // Make sure that the first and last element in the page matches with the
+        // Make sure that the first and last element in the page matches with
+        // the
         // original list
         List<Map<String, Object>> jsonDataElementOperands = convertResponse( resultActions );
 
@@ -222,16 +223,17 @@ public class DataElementOperandControllerTest
         throws Exception
     {
         int pageSize = 25;
-        int totalSize = 100;
+        long totalSize = 100;
 
         // Given
         final List<DataElement> dataElements = rnd.randomObjects( DataElement.class, 1 );
 
         when( manager.getAllSorted( DataElement.class ) ).thenReturn( dataElements );
 
-        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class, totalSize );
+        final List<DataElementOperand> dataElementOperands = rnd.randomObjects( DataElementOperand.class,
+            (int) totalSize );
         when( dataElementCategoryService.getOperands( dataElements, true ) )
-            .thenReturn( rnd.randomObjects( DataElementOperand.class, totalSize ) );
+            .thenReturn( rnd.randomObjects( DataElementOperand.class, (int) totalSize ) );
 
         final List<DataElementOperand> thirdPageElements = dataElementOperands.subList( 50, 50 + pageSize );
         ArgumentCaptor<FieldFilterParams> filterParamsArgumentCaptor = ArgumentCaptor
@@ -252,22 +254,23 @@ public class DataElementOperandControllerTest
             .andExpect( content().contentType( "application/json" ) )
             .andExpect( jsonPath( "$.pager.pageSize" ).value( Integer.toString( pageSize ) ) )
             .andExpect( jsonPath( "$.pager.page" ).value( "3" ) )
-            .andExpect( jsonPath( "$.pager.total" ).value( Integer.toString( totalSize ) ) )
-            .andExpect( jsonPath( "$.pager.pageCount" ).value( Integer.toString( totalSize / pageSize ) ) )
+            .andExpect( jsonPath( "$.pager.total" ).value( Long.toString( totalSize ) ) )
+            .andExpect( jsonPath( "$.pager.pageCount" ).value( Long.toString( totalSize / pageSize ) ) )
             .andExpect( jsonPath( "$.dataElementOperands", hasSize( pageSize ) ) );
 
         final FieldFilterParams fieldFilterParams = filterParamsArgumentCaptor.getValue();
         assertThat( fieldFilterParams.getObjects(), hasSize( pageSize ) );
         assertThat( fieldFilterParams.getFields(), Matchers.is( Lists.newArrayList( "*" ) ) );
 
-        // Make sure that the first and last element in the page matches with the
+        // Make sure that the first and last element in the page matches with
+        // the
         // original list
         List<Map<String, Object>> jsonDataElementOperands = convertResponse( resultActions );
 
         assertThat( jsonDataElementOperands.get( 0 ).get( "id" ),
             Matchers.is( dataElementOperands.get( 50 ).getDimensionItem() ) );
         assertThat( jsonDataElementOperands.get( pageSize - 1 ).get( "id" ),
-            Matchers.is( dataElementOperands.get( 74  ).getDimensionItem() ) );
+            Matchers.is( dataElementOperands.get( 74 ).getDimensionItem() ) );
     }
 
     @SuppressWarnings( "unchecked" )

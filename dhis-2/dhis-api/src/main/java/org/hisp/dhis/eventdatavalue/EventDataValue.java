@@ -1,6 +1,5 @@
-package org.hisp.dhis.eventdatavalue;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,17 +25,18 @@ package org.hisp.dhis.eventdatavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.eventdatavalue;
 
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.program.ProgramStageInstanceUserInfo;
 
 /**
  * @author David Katuscak
@@ -53,11 +53,11 @@ public class EventDataValue implements Serializable
 
     private Date created = new Date();
 
-    private ProgramStageInstanceUserInfo createdByUserInfo;
+    private UserInfoSnapshot createdByUserInfo;
 
     private Date lastUpdated = new Date();
 
-    private ProgramStageInstanceUserInfo lastUpdatedByUserInfo;
+    private UserInfoSnapshot lastUpdatedByUserInfo;
 
     private String value;
 
@@ -90,7 +90,7 @@ public class EventDataValue implements Serializable
         setValue( value );
     }
 
-    public EventDataValue( String dataElement, String value, ProgramStageInstanceUserInfo userInfo )
+    public EventDataValue( String dataElement, String value, UserInfoSnapshot userInfo )
     {
         this.dataElement = dataElement;
         this.storedBy = userInfo.getUsername();
@@ -133,7 +133,7 @@ public class EventDataValue implements Serializable
             return false;
         }
 
-        return dataElement.equals( ( (EventDataValue) object ).dataElement );
+        return dataElement.equals( ((EventDataValue) object).dataElement );
     }
 
     // -------------------------------------------------------------------------
@@ -173,12 +173,12 @@ public class EventDataValue implements Serializable
     }
 
     @JsonProperty
-    public ProgramStageInstanceUserInfo getCreatedByUserInfo()
+    public UserInfoSnapshot getCreatedByUserInfo()
     {
         return createdByUserInfo;
     }
 
-    public void setCreatedByUserInfo( ProgramStageInstanceUserInfo createdByUserInfo )
+    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
     {
         this.createdByUserInfo = createdByUserInfo;
     }
@@ -190,12 +190,12 @@ public class EventDataValue implements Serializable
     }
 
     @JsonProperty
-    public ProgramStageInstanceUserInfo getLastUpdatedByUserInfo()
+    public UserInfoSnapshot getLastUpdatedByUserInfo()
     {
         return lastUpdatedByUserInfo;
     }
 
-    public void setLastUpdatedByUserInfo( ProgramStageInstanceUserInfo lastUpdatedByUserInfo )
+    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
     {
         this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }

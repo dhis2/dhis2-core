@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,16 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -51,18 +52,16 @@ public class UserDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return User.class.getSimpleName();
+        whenDeleting( UserAuthorityGroup.class, this::deleteUserAuthorityGroup );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( UserGroup.class, this::deleteUserGroup );
+        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
     }
 
-    @Override
-    public void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private void deleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
         for ( UserCredentials credentials : authorityGroup.getMembers() )
         {
@@ -71,8 +70,7 @@ public class UserDeletionHandler
         }
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         for ( User user : unit.getUsers() )
         {
@@ -81,8 +79,7 @@ public class UserDeletionHandler
         }
     }
 
-    @Override
-    public void deleteUserGroup( UserGroup group )
+    private void deleteUserGroup( UserGroup group )
     {
         for ( User user : group.getMembers() )
         {
@@ -91,8 +88,7 @@ public class UserDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
+    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup authorityGroup )
     {
         for ( UserCredentials credentials : authorityGroup.getMembers() )
         {
@@ -100,11 +96,10 @@ public class UserDeletionHandler
             {
                 if ( role.equals( authorityGroup ) )
                 {
-                    return credentials.getName();
+                    return new DeletionVeto( User.class, credentials.getName() );
                 }
             }
         }
-
-        return null;
+        return ACCEPT;
     }
 }

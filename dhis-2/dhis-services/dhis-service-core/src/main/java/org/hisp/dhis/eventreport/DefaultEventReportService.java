@@ -1,7 +1,5 @@
-package org.hisp.dhis.eventreport;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.eventreport;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.eventreport;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.common.AnalyticalObjectStore;
 import org.hisp.dhis.common.GenericAnalyticalObjectService;
@@ -35,13 +38,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 @Service( "org.hisp.dhis.eventreport.EventReportService" )
 public class DefaultEventReportService
     extends GenericAnalyticalObjectService<EventReport>
@@ -62,12 +61,12 @@ public class DefaultEventReportService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     protected AnalyticalObjectStore<EventReport> getAnalyticalObjectStore()
     {
         return eventReportStore;
     }
-    
+
     @Override
     @Transactional
     public long saveEventReport( EventReport report )
@@ -75,37 +74,37 @@ public class DefaultEventReportService
         eventReportStore.save( report );
         return report.getId();
     }
-    
+
     @Override
     @Transactional
     public void updateEventReport( EventReport report )
     {
         eventReportStore.update( report );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public EventReport getEventReport( long id )
     {
         return eventReportStore.get( id );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public EventReport getEventReport( String uid )
     {
         return eventReportStore.getByUid( uid );
     }
-    
+
     @Override
     @Transactional
     public void deleteEventReport( EventReport report )
     {
         eventReportStore.delete( report );
     }
-    
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<EventReport> getAllEventReports()
     {
         return eventReportStore.getAll();

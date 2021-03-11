@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,42 +24,51 @@ package org.hisp.dhis.tracker.validation;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
-
-import com.google.common.base.Preconditions;
-import lombok.Data;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
-import org.springframework.util.StringUtils;
+package org.hisp.dhis.tracker.validation;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import lombok.Data;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerIdentifierParams;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Enrollment;
+import org.hisp.dhis.tracker.domain.Event;
+import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
+import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+
+import com.google.common.base.Preconditions;
+
+// TODO is this class really needed? what is the purpose of this class and why aren't the two caches moved to preheat?
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Data
 public class TrackerImportValidationContext
 {
-
     private final Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedStrategyMap = new HashMap<>();
 
     private Map<String, CategoryOptionCombo> eventCocCacheMap = new HashMap<>();
@@ -70,8 +77,14 @@ public class TrackerImportValidationContext
 
     private TrackerBundle bundle;
 
+    /**
+     * Holds the accumulated errors generated during the validation process
+     */
+    private ValidationErrorReporter rootReporter;
+
     public TrackerImportValidationContext( TrackerBundle bundle )
     {
+        // Create a copy of the bundle
         this.bundle = bundle;
 
         Map<Class<? extends TrackerDto>, Map<String, TrackerImportStrategy>> resolvedMap = this
@@ -80,6 +93,7 @@ public class TrackerImportValidationContext
         resolvedMap.put( Event.class, new HashMap<>() );
         resolvedMap.put( Enrollment.class, new HashMap<>() );
         resolvedMap.put( TrackedEntity.class, new HashMap<>() );
+        this.rootReporter = ValidationErrorReporter.emptyReporter();
     }
 
     public TrackerImportStrategy getStrategy( Enrollment enrollment )
@@ -147,7 +161,7 @@ public class TrackerImportValidationContext
 
     public OrganisationUnit getOrganisationUnit( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), OrganisationUnit.class, id );
+        return bundle.getPreheat().get( OrganisationUnit.class, id );
     }
 
     public TrackedEntityInstance getTrackedEntityInstance( String id )
@@ -157,22 +171,42 @@ public class TrackerImportValidationContext
 
     public TrackedEntityAttribute getTrackedEntityAttribute( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityAttribute.class, id );
+        return bundle.getPreheat().get( TrackedEntityAttribute.class, id );
+    }
+
+    public DataElement getDataElement( String id )
+    {
+        return bundle.getPreheat().get( DataElement.class, id );
     }
 
     public TrackedEntityType getTrackedEntityType( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), TrackedEntityType.class, id );
+        return bundle.getPreheat().get( TrackedEntityType.class, id );
+    }
+
+    public RelationshipType getRelationShipType( String id )
+    {
+        return bundle.getPreheat().get( RelationshipType.class, id );
     }
 
     public Program getProgram( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), Program.class, id );
+        return bundle.getPreheat().get( Program.class, id );
     }
 
     public ProgramInstance getProgramInstance( String id )
     {
         return bundle.getPreheat().getEnrollment( bundle.getIdentifier(), id );
+    }
+
+    public boolean programInstanceHasEvents( String programInstanceUid )
+    {
+        return bundle.getPreheat().getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+    }
+
+    public boolean programStageHasEvents( String programStageUid, String enrollmentUid )
+    {
+        return bundle.getPreheat().getProgramStageWithEvents().contains( Pair.of( programStageUid, enrollmentUid ) );
     }
 
     public Optional<TrackedEntityComment> getNote( String uid )
@@ -182,7 +216,7 @@ public class TrackerImportValidationContext
 
     public ProgramStage getProgramStage( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), ProgramStage.class, id );
+        return bundle.getPreheat().get( ProgramStage.class, id );
     }
 
     public ProgramStageInstance getProgramStageInstance( String event )
@@ -192,16 +226,41 @@ public class TrackerImportValidationContext
 
     public CategoryOptionCombo getCategoryOptionCombo( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOptionCombo.class, id );
+        return bundle.getPreheat().get( CategoryOptionCombo.class, id );
     }
 
     public CategoryOption getCategoryOption( String id )
     {
-        return bundle.getPreheat().get( bundle.getIdentifier(), CategoryOption.class, id );
+        return bundle.getPreheat().get( CategoryOption.class, id );
     }
 
     public Map<String, List<ProgramInstance>> getEventToProgramInstancesMap()
     {
         return bundle.getPreheat().getProgramInstances();
+    }
+
+    public boolean usernameExists( String username )
+    {
+        return bundle.getPreheat().getUsernames().contains( username );
+    }
+
+    public FileResource getFileResource( String id )
+    {
+        return bundle.getPreheat().get( FileResource.class, id );
+    }
+
+    public Optional<ReferenceTrackerEntity> getReference( String uid )
+    {
+        return bundle.getPreheat().getReference( uid );
+    }
+
+    public TrackerIdentifierParams getIdentifiers()
+    {
+        return bundle.getPreheat().getIdentifiers();
+    }
+
+    public Map<Long, List<Long>> getProgramWithOrgUnitsMap()
+    {
+        return bundle.getPreheat().getProgramWithOrgUnitsMap();
     }
 }

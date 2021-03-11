@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -63,9 +63,9 @@ public class CompleteDataSetRegistrations
 
     protected static final String FIELD_COMPLETE_DATA_SET_REGISTRATIONS = "completeDataSetRegistrations";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Options
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected String idScheme;
 
@@ -79,23 +79,23 @@ public class CompleteDataSetRegistrations
 
     protected String strategy;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Properties
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected List<CompleteDataSetRegistration> completeDataSetRegistrations = new ArrayList<>();
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public CompleteDataSetRegistrations()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private Iterator<CompleteDataSetRegistration> itemIterator;
 
@@ -161,7 +161,8 @@ public class CompleteDataSetRegistrations
         return IdScheme.from( StringUtils.defaultIfBlank( getAttributeOptionComboIdScheme(), getIdScheme() ) );
     }
 
-    @Override public String toString()
+    @Override
+    public String toString()
     {
         return MoreObjects.toStringHelper( this )
             .add( "completeDataSetRegistrations", completeDataSetRegistrations )
@@ -174,9 +175,9 @@ public class CompleteDataSetRegistrations
             .toString();
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )

@@ -38,8 +38,8 @@ print() {
 
 print "Building dhis2-core..."
 
-mvn clean install -T1C -DskipTests=true -f $DIR/pom.xml
-mvn clean install -T1C -DskipTests=true -f $DIR/dhis-web/pom.xml
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/pom.xml
+mvn clean install -T1C -Pdev -Pjdk11 -f $DIR/dhis-web/pom.xml
 
 rm -rf "$ARTIFACTS/*"
 mkdir -p "$ARTIFACTS"

@@ -1,7 +1,5 @@
-package org.hisp.dhis.attribute;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,22 @@ package org.hisp.dhis.attribute;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.attribute;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.singletonList;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Component( "org.hisp.dhis.attribute.AttributeValueDeletionHandler" )
 public class AttributeValueDeletionHandler
     extends DeletionHandler
 {
     private final IdentifiableObjectManager identifiableObjectManager;
-
-    private String supportedClassName;
 
     public AttributeValueDeletionHandler( IdentifiableObjectManager identifiableObjectManager )
     {
@@ -51,28 +49,22 @@ public class AttributeValueDeletionHandler
         this.identifiableObjectManager = identifiableObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return supportedClassName  + "." +  AttributeValue.class.getSimpleName();
+        whenVetoing( Attribute.class, this::allowDeleteAttribute );
     }
 
-    @Override
-    public String allowDeleteAttribute( Attribute attribute )
+    private DeletionVeto allowDeleteAttribute( Attribute attribute )
     {
-        for (  Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
+        for ( Class<? extends IdentifiableObject> supportedClass : attribute.getSupportedClasses() )
         {
-            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass, Lists.newArrayList( attribute ) ) > 0 )
+            if ( identifiableObjectManager.countAllValuesByAttributes( supportedClass,
+                singletonList( attribute ) ) > 0 )
             {
-                supportedClassName = supportedClass.getSimpleName();
-                return ERROR;
+                return new DeletionVeto( supportedClass, Attribute.class );
             }
         }
-
-        return null;
+        return DeletionVeto.ACCEPT;
     }
 }

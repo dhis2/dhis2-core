@@ -41,6 +41,15 @@
           "valueType": "DATE",
           "attribute": "sTGqP5JNy6E",
           "value": "2020-02-10T10:56:07.591"
+        },
+        {
+          "lastUpdated": "2020-02-10T10:56:07.591",
+          "storedBy": "admin",
+          "displayName": "mandatory_program_attribute",
+          "created": "2020-02-10T10:56:07.588",
+          "valueType": "TEXT",
+          "attribute": "TGqP5JNy6Es",
+          "value": "ADDRESS STREET 1"
         }
       ]
     }

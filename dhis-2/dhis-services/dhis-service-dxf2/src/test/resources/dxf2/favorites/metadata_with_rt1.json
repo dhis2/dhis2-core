@@ -182,8 +182,9 @@
         "id": "M5zQapPyTZI"
       },
       "lastUpdated": "2016-03-17T01:53:56.098+0000",
-      "userGroupAccesses": [ ],
-      "name": "Gender"
+      "userGroupAccesses": [],
+      "name": "Gender",
+      "shortName": "Gender"
     }
   ],
   "dataElements": [

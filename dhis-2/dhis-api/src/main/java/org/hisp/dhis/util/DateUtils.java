@@ -1,7 +1,5 @@
-package org.hisp.dhis.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.util;
 
 import java.sql.Timestamp;
 import java.time.Duration;
@@ -41,15 +40,19 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
+import org.joda.time.IllegalInstantException;
 import org.joda.time.LocalDate;
 import org.joda.time.Months;
 import org.joda.time.format.DateTimeFormat;
@@ -58,8 +61,6 @@ import org.joda.time.format.DateTimeFormatterBuilder;
 import org.joda.time.format.DateTimeParser;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
-import org.springframework.util.StringUtils;
-import org.joda.time.IllegalInstantException;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -69,13 +70,20 @@ import com.google.common.collect.Lists;
  */
 public class DateUtils
 {
-    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" );
-    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" );
+    public static final String ISO8601_NO_TZ_PATTERN = "yyyy-MM-dd'T'HH:mm:ss.SSS";
+
+    private static DateTimeFormatter ISO8601_NO_TZ = DateTimeFormat.forPattern( ISO8601_NO_TZ_PATTERN );
+
+    public static final String ISO8601_PATTERN = ISO8601_NO_TZ_PATTERN + "Z";
+
+    private static DateTimeFormatter ISO8601 = DateTimeFormat.forPattern( ISO8601_PATTERN );
 
     private static final String DEFAULT_DATE_REGEX = "\\b(?<year>\\d{4})-(?<month>0[1-9]|1[0-2])-(?<day>0[1-9]|[1-2][0-9]|3[0-2])(?<time>.*)\\b";
+
     private static final Pattern DEFAULT_DATE_REGEX_PATTERN = Pattern.compile( DEFAULT_DATE_REGEX );
 
     private static final DateTimeParser[] SUPPORTED_DATE_FORMAT_PARSERS = {
+        DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ssZ" ).getParser(),
@@ -101,7 +109,7 @@ public class DateUtils
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm" ).getParser()
     };
 
-    private static final DateTimeFormatter DATE_TIME_FORMAT = ( new DateTimeFormatterBuilder() )
+    private static final DateTimeFormatter DATE_TIME_FORMAT = (new DateTimeFormatterBuilder())
         .append( null, SUPPORTED_DATE_TIME_FORMAT_PARSERS ).toFormatter();
 
     public static final PeriodFormatter DAY_SECOND_FORMAT = new PeriodFormatterBuilder()
@@ -111,13 +119,19 @@ public class DateUtils
         .appendSeconds().appendSuffix( " s" ).appendSeparator( ", " ).toFormatter();
 
     private static final DateTimeFormatter MEDIUM_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd" );
+
     private static final DateTimeFormatter LONG_DATE_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss" );
-    private static final DateTimeFormatter HTTP_DATE_FORMAT = DateTimeFormat.forPattern( "EEE, dd MMM yyyy HH:mm:ss 'GMT'" ).withLocale( Locale.ENGLISH );
-    private static final DateTimeFormatter TIMESTAMP_UTC_TZ_FORMAT = DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).withZoneUTC();
+
+    private static final DateTimeFormatter HTTP_DATE_FORMAT = DateTimeFormat
+        .forPattern( "EEE, dd MMM yyyy HH:mm:ss 'GMT'" ).withLocale( Locale.ENGLISH );
+
+    private static final DateTimeFormatter TIMESTAMP_UTC_TZ_FORMAT = DateTimeFormat
+        .forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).withZoneUTC();
 
     public static final double DAYS_IN_YEAR = 365.0;
 
     private static final long MS_PER_DAY = 86400000;
+
     private static final long MS_PER_S = 1000;
 
     private static final Pattern DURATION_PATTERN = Pattern.compile( "^(\\d+)(d|h|m|s)$" );
@@ -142,7 +156,8 @@ public class DateUtils
     }
 
     /**
-     * Converts a Date to the GMT timezone and formats it to the format yyyy-MM-dd HH:mm:ssZ.
+     * Converts a Date to the GMT timezone and formats it to the format
+     * yyyy-MM-dd HH:mm:ssZ.
      *
      * @param date the Date to parse.
      * @return A formatted date string.
@@ -292,11 +307,11 @@ public class DateUtils
      * Tests if the given base date is between the given start date and end
      * date, including the dates themselves.
      *
-     * @param baseDate  the date used as base for the test.
+     * @param baseDate the date used as base for the test.
      * @param startDate the start date.
-     * @param endDate   the end date.
-     * @return <code>true</code> if the base date is between the start date
-     * and end date, <code>false</code> otherwise.
+     * @param endDate the end date.
+     * @return <code>true</code> if the base date is between the start date and
+     *         end date, <code>false</code> otherwise.
      */
     public static boolean between( Date baseDate, Date startDate, Date endDate )
     {
@@ -318,11 +333,11 @@ public class DateUtils
      * Tests if the given base date is strictly between the given start date and
      * end date.
      *
-     * @param baseDate  the date used as base for the test.
+     * @param baseDate the date used as base for the test.
      * @param startDate the start date.
-     * @param endDate   the end date.
-     * @return <code>true</code> if the base date is between the start date
-     * and end date, <code>false</code> otherwise.
+     * @param endDate the end date.
+     * @return <code>true</code> if the base date is between the start date and
+     *         end date, <code>false</code> otherwise.
      */
     public static boolean strictlyBetween( Date baseDate, Date startDate, Date endDate )
     {
@@ -357,7 +372,7 @@ public class DateUtils
      * not take daylight saving time into account.
      *
      * @param startDate the start-date.
-     * @param endDate   the end-date.
+     * @param endDate the end-date.
      * @return the number of days between the start and end-date.
      */
     public static long getDays( Date startDate, Date endDate )
@@ -371,7 +386,7 @@ public class DateUtils
      * not take daylight saving time into account.
      *
      * @param startDate the start-date.
-     * @param endDate   the end-date.
+     * @param endDate the end-date.
      * @return the number of days between the start and end-date.
      */
     public static long getDaysInclusive( Date startDate, Date endDate )
@@ -385,7 +400,7 @@ public class DateUtils
      * overhead.
      *
      * @param startDate the start date.
-     * @param endDate   the end date.
+     * @param endDate the end date.
      * @return the number of days between the start and end date.
      */
     public static int daysBetween( Date startDate, Date endDate )
@@ -399,7 +414,8 @@ public class DateUtils
      * Checks if the date provided in argument is today's date.
      *
      * @param date to check
-     * @return <code>true</code> if date is representing today's date <code>false</code> otherwise
+     * @return <code>true</code> if date is representing today's date
+     *         <code>false</code> otherwise
      */
     public static boolean isToday( Date date )
     {
@@ -414,7 +430,7 @@ public class DateUtils
      * overhead.
      *
      * @param startDate the start date.
-     * @param endDate   the end date.
+     * @param endDate the end date.
      * @return the number of months between the start and end date.
      */
     public static int monthsBetween( Date startDate, Date endDate )
@@ -441,13 +457,13 @@ public class DateUtils
     }
 
     /**
-     * Returns the nearest date forward in time with the given hour of day,
-     * with the minute, second and millisecond to zero. If the hour equals
-     * the current hour of day, the next following day is used.
+     * Returns the nearest date forward in time with the given hour of day, with
+     * the minute, second and millisecond to zero. If the hour equals the
+     * current hour of day, the next following day is used.
      *
      * @param hourOfDay the hour of the day.
      * @param now the date representing the current time, if null, the current
-     *         time is used.
+     *        time is used.
      * @return the nearest date forward in time with the given hour of day.
      */
     public static Date getNextDate( int hourOfDay, Date now )
@@ -511,7 +527,8 @@ public class DateUtils
      * the format "yyyy-MM-dd".
      *
      * @param dateString the string to be checked.
-     * @return true/false depending on whether the string is a date according to the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a date according to
+     *         the format "yyyy-MM-dd".
      */
     public static boolean dateIsValid( String dateString )
     {
@@ -522,9 +539,10 @@ public class DateUtils
      * This method checks whether the String inDate is a valid date following
      * the format "yyyy-MM-dd".
      *
-     * @param calendar   Calendar to be used
+     * @param calendar Calendar to be used
      * @param dateString the string to be checked.
-     * @return true/false depending on whether the string is a date according to the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a date according to
+     *         the format "yyyy-MM-dd".
      */
     public static boolean dateIsValid( org.hisp.dhis.calendar.Calendar calendar, String dateString )
     {
@@ -536,20 +554,20 @@ public class DateUtils
         }
 
         DateTimeUnit dateTime = new DateTimeUnit(
-            Integer.valueOf( matcher.group( "year" ) ),
-            Integer.valueOf( matcher.group( "month" ) ),
-            Integer.valueOf( matcher.group( "day" ) )
-        );
+            Integer.parseInt( matcher.group( "year" ) ),
+            Integer.parseInt( matcher.group( "month" ) ),
+            Integer.parseInt( matcher.group( "day" ) ) );
 
         return calendar.isValid( dateTime );
     }
 
     /**
-     * This method checks whether the String dateTimeString is a valid datetime following
-     * the format "yyyy-MM-dd".
+     * This method checks whether the String dateTimeString is a valid datetime
+     * following the format "yyyy-MM-dd".
      *
      * @param dateTimeString the string to be checked.
-     * @return true/false depending on whether the string is a valid datetime according to the format "yyyy-MM-dd".
+     * @return true/false depending on whether the string is a valid datetime
+     *         according to the format "yyyy-MM-dd".
      */
     public static boolean dateTimeIsValid( final String dateTimeString )
     {
@@ -607,15 +625,19 @@ public class DateUtils
     }
 
     /**
-     * Method responsible for adding a positive or negative number based in a chronological unit.
+     * Method responsible for adding a positive or negative number based in a
+     * chronological unit.
      *
-     * @param date the date to be modified. It's the input date for the calculation.
+     * @param date the date to be modified. It's the input date for the
+     *        calculation.
      * @param addend a positive or negative integer to be added to the date.
-     * @param chronoUnit the unit of time to be used in the calculation. It's fully based in the Calendar API.
-     *                   Valid values could be: Calendar.DATE, Calendar.MILLISECOND, etc..
+     * @param chronoUnit the unit of time to be used in the calculation. It's
+     *        fully based in the Calendar API. Valid values could be:
+     *        Calendar.DATE, Calendar.MILLISECOND, etc..
      * @return the resultant date after the addition.
      */
-    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit ) {
+    public static Date calculateDateFrom( final Date date, final int addend, final int chronoUnit )
+    {
         Calendar cal = Calendar.getInstance();
 
         cal.setLenient( false );
@@ -642,11 +664,11 @@ public class DateUtils
     }
 
     /**
-     * Returns a pretty string representing the interval between the given
-     * start and end dates using a day, month, second format.
+     * Returns a pretty string representing the interval between the given start
+     * and end dates using a day, month, second format.
      *
      * @param start the start date.
-     * @param end   the end date.
+     * @param end the end date.
      * @return a string, or null if the given start or end date is null.
      */
     public static String getPrettyInterval( Date start, Date end )
@@ -662,18 +684,6 @@ public class DateUtils
     }
 
     /**
-     * Returns a pretty string representing the interval between the given
-     * start and end dates using a day, month, second format.
-     *
-     * @param ms the number of milliseconds in the interval.
-     * @return a string, or null if the given start or end date is null.
-     */
-    public static String getPrettyInterval( long ms )
-    {
-        return DAY_SECOND_FORMAT.print( new org.joda.time.Period( ms ) );
-    }
-
-    /**
      * Parses the given string into a Date using the supported date formats.
      * Returns null if the string cannot be parsed.
      *
@@ -686,8 +696,53 @@ public class DateUtils
     }
 
     /**
-     * Creates a {@link java.util.Date} from the given {@link java.time.LocalDateTime}
-     * based on the UTC time zone.
+     * Null safe instant to date conversion
+     *
+     * @param instant the instant
+     * @return a date.
+     */
+    public static Date fromInstant( final Instant instant )
+    {
+        return convertOrNull( instant, Date::from );
+    }
+
+    /**
+     * Null safe date to instant conversion
+     *
+     * @param date the date
+     * @return an instant.
+     */
+    public static Instant instantFromDate( final Date date )
+    {
+        return convertOrNull( date, Date::toInstant );
+    }
+
+    /**
+     * Null safe epoch to instant conversion
+     *
+     * @param epochMillis the date expressed as milliseconds from epoch
+     * @return an instant.
+     */
+    public static Instant instantFromEpoch( final Long epochMillis )
+    {
+        return convertOrNull( new Date( epochMillis ), Date::toInstant );
+    }
+
+    public static Instant instantFromDateAsString( String dateAsString )
+    {
+        return convertOrNull( DateUtils.parseDate( dateAsString ), Date::toInstant );
+    }
+
+    private static <T, R> R convertOrNull( T from, Function<T, R> converter )
+    {
+        return Optional.ofNullable( from )
+            .map( converter )
+            .orElse( null );
+    }
+
+    /**
+     * Creates a {@link java.util.Date} from the given
+     * {@link java.time.LocalDateTime} based on the UTC time zone.
      *
      * @param time the LocalDateTime.
      * @return a Date.
@@ -725,7 +780,8 @@ public class DateUtils
      * <li>"s": Seconds</li>
      * </ul>
      *
-     * @param duration the duration string, an example describing 12 days is "12d".
+     * @param duration the duration string, an example describing 12 days is
+     *        "12d".
      * @return a Duration object, or null if the duration string is invalid.
      */
     public static Duration getDuration( String duration )
@@ -773,8 +829,8 @@ public class DateUtils
     }
 
     /**
-     * Returns the latest, non-null date of the given dates. If all dates
-     * are null, then null is returned.
+     * Returns the latest, non-null date of the given dates. If all dates are
+     * null, then null is returned.
      *
      * @param dates the dates.
      * @return the latest, non-null date.
@@ -794,14 +850,14 @@ public class DateUtils
      */
     public static Date removeTimeStamp( Date date )
     {
-        return date == null ? null : getMediumDate( getMediumDateString( date ) ) ;
+        return date == null ? null : getMediumDate( getMediumDateString( date ) );
     }
 
     /**
-     * Parses the given string into a Date object. In case the date parsed falls in a
-     * daylight savings transition, the date is parsed via a local date and converted to the
-     * first valid time after the DST gap. When the fallback is used, any timezone offset in the given
-     * format would be ignored.
+     * Parses the given string into a Date object. In case the date parsed falls
+     * in a daylight savings transition, the date is parsed via a local date and
+     * converted to the first valid time after the DST gap. When the fallback is
+     * used, any timezone offset in the given format would be ignored.
      *
      * @param dateString The string to parse
      * @param formatter The formatter to use for parsing
@@ -818,7 +874,7 @@ public class DateUtils
         {
             return formatter.parseDateTime( dateString ).toDate();
         }
-        catch( IllegalInstantException e )
+        catch ( IllegalInstantException e )
         {
             return formatter.parseLocalDateTime( dateString ).toDate();
         }

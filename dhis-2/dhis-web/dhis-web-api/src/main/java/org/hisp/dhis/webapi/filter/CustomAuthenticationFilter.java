@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,9 @@ package org.hisp.dhis.webapi.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.filter;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.stereotype.Component;
+import java.io.IOException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -38,12 +35,13 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import java.io.IOException;
+
+import org.springframework.beans.factory.InitializingBean;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Slf4j
 @Component
 public class CustomAuthenticationFilter implements InitializingBean, Filter
 {
@@ -73,7 +71,8 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
 
     @Override
     public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         String mobileVersion = request.getParameter( PARAM_MOBILE_VERSION );
         String authOnly = request.getParameter( PARAM_AUTH_ONLY );
@@ -96,4 +95,3 @@ public class CustomAuthenticationFilter implements InitializingBean, Filter
     {
     }
 }
-

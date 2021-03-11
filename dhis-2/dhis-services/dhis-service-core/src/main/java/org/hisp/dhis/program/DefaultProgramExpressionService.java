@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.GenericStore;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.program.ProgramExpression.DUE_DATE;
@@ -47,6 +34,18 @@ import static org.hisp.dhis.program.ProgramExpression.OBJECT_PROGRAM_STAGE_DATAE
 import static org.hisp.dhis.program.ProgramExpression.REPORT_DATE;
 import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_ID;
 import static org.hisp.dhis.program.ProgramExpression.SEPARATOR_OBJECT;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.hisp.dhis.common.GenericStore;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Chau Thu Tran
@@ -109,14 +108,14 @@ public class DefaultProgramExpressionService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramExpression getProgramExpression( long id )
     {
         return programExpressionStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String getExpressionDescription( String programExpression )
     {
         StringBuffer description = new StringBuffer();
@@ -124,13 +123,13 @@ public class DefaultProgramExpressionService
         Pattern pattern = Pattern.compile( REGEXP );
         Matcher matcher = pattern.matcher( programExpression );
         int countFormula = 0;
-        
+
         while ( matcher.find() )
         {
             countFormula++;
-            
+
             String match = matcher.group();
-            String key = matcher.group(1);
+            String key = matcher.group( 1 );
             match = match.replaceAll( "[\\[\\]]", "" );
 
             String[] info = match.split( SEPARATOR_OBJECT );
@@ -138,15 +137,15 @@ public class DefaultProgramExpressionService
 
             ProgramStage programStage = programStageService.getProgramStage( ids[0] );
             String name = ids[1];
-            
+
             if ( programStage == null )
             {
                 return INVALID_CONDITION;
             }
-            else if ( !name.equals( DUE_DATE ) && !name.equals( REPORT_DATE )  )
+            else if ( !name.equals( DUE_DATE ) && !name.equals( REPORT_DATE ) )
             {
                 DataElement dataElement = dataElementService.getDataElement( name );
-                
+
                 if ( dataElement == null )
                 {
                     return INVALID_CONDITION;
@@ -158,29 +157,30 @@ public class DefaultProgramExpressionService
             }
 
             matcher.appendReplacement( description,
-                "[" + key + ProgramExpression.SEPARATOR_OBJECT + programStage.getDisplayName() + SEPARATOR_ID + name + "]" );
+                "[" + key + ProgramExpression.SEPARATOR_OBJECT + programStage.getDisplayName() + SEPARATOR_ID + name
+                    + "]" );
         }
 
         StringBuffer tail = new StringBuffer();
         matcher.appendTail( tail );
-        
-        if ( countFormula > 1 || !tail.toString().isEmpty() || ( countFormula == 0 && !tail.toString().isEmpty() ) )
+
+        if ( countFormula > 1 || !tail.toString().isEmpty() || (countFormula == 0 && !tail.toString().isEmpty()) )
         {
             return INVALID_CONDITION;
-        }        
+        }
 
         return description.toString();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Collection<DataElement> getDataElements( String programExpression )
     {
         Collection<DataElement> dataElements = new HashSet<>();
 
         Pattern pattern = Pattern.compile( REGEXP );
         Matcher matcher = pattern.matcher( programExpression );
-        
+
         while ( matcher.find() )
         {
             String match = matcher.group();
@@ -188,7 +188,7 @@ public class DefaultProgramExpressionService
 
             String[] info = match.split( SEPARATOR_OBJECT );
             String[] ids = info[1].split( SEPARATOR_ID );
-            
+
             DataElement dataElement = dataElementService.getDataElement( ids[1] );
             dataElements.add( dataElement );
         }

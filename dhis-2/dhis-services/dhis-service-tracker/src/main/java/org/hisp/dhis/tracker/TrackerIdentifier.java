@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,18 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.util.ObjectUtils;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Stian Sandvold
@@ -43,18 +45,22 @@ import org.hisp.dhis.util.ObjectUtils;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor( staticName = "of" )
 public class TrackerIdentifier
 {
     public final static TrackerIdentifier UID = builder().idScheme( TrackerIdScheme.UID ).build();
 
     public final static TrackerIdentifier CODE = builder().idScheme( TrackerIdScheme.CODE ).build();
 
+    public final static TrackerIdentifier NAME = builder().idScheme( TrackerIdScheme.NAME ).build();
+
     public final static TrackerIdentifier AUTO = builder().idScheme( TrackerIdScheme.AUTO ).build();
 
+    @JsonProperty
     @Builder.Default
     private TrackerIdScheme idScheme = TrackerIdScheme.UID;
 
+    @JsonProperty
     @Builder.Default
     private String value = null;
 
@@ -66,6 +72,8 @@ public class TrackerIdentifier
             return object.getUid();
         case CODE:
             return object.getCode();
+        case NAME:
+            return object.getName();
         case ATTRIBUTE:
             return object.getAttributeValues()
                 .stream()

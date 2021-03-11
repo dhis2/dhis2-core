@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,12 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.sqlview.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Map;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.Grid;
@@ -53,8 +54,6 @@ import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Dang Duy Hieu
  */
@@ -64,11 +63,11 @@ public class HibernateSqlViewStore
     extends HibernateIdentifiableObjectStore<SqlView>
     implements SqlViewStore
 {
-    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP =
-        ImmutableMap.of( SqlViewType.VIEW, "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
+    private static final Map<SqlViewType, String> TYPE_CREATE_PREFIX_MAP = ImmutableMap.of( SqlViewType.VIEW,
+        "CREATE VIEW ", SqlViewType.MATERIALIZED_VIEW, "CREATE MATERIALIZED VIEW " );
 
-    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP =
-        ImmutableMap.of( SqlViewType.VIEW, "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
+    private static final Map<SqlViewType, String> TYPE_DROP_PREFIX_MAP = ImmutableMap.of( SqlViewType.VIEW,
+        "DROP VIEW ", SqlViewType.MATERIALIZED_VIEW, "DROP MATERIALIZED VIEW " );
 
     private final StatementBuilder statementBuilder;
 
@@ -79,7 +78,8 @@ public class HibernateSqlViewStore
     public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate, SystemSettingManager systemSettingManager )
+        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate,
+        SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, aclService, false );
 
@@ -101,7 +101,8 @@ public class HibernateSqlViewStore
     {
         try
         {
-            jdbcTemplate.queryForRowSet( "select * from " + statementBuilder.columnQuote( viewTableName ) + " limit 1" );
+            jdbcTemplate
+                .queryForRowSet( "select * from " + statementBuilder.columnQuote( viewTableName ) + " limit 1" );
 
             return true;
         }
@@ -116,7 +117,8 @@ public class HibernateSqlViewStore
     {
         dropViewTable( sqlView );
 
-        final String sql = TYPE_CREATE_PREFIX_MAP.get( sqlView.getType() ) + statementBuilder.columnQuote( sqlView.getViewName() ) + " AS " + sqlView.getSqlQuery();
+        final String sql = TYPE_CREATE_PREFIX_MAP.get( sqlView.getType() )
+            + statementBuilder.columnQuote( sqlView.getViewName() ) + " AS " + sqlView.getSqlQuery();
 
         log.debug( "Create view SQL: " + sql );
 
@@ -175,7 +177,8 @@ public class HibernateSqlViewStore
 
         try
         {
-            final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS " + statementBuilder.columnQuote( viewName );
+            final String sql = TYPE_DROP_PREFIX_MAP.get( sqlView.getType() ) + " IF EXISTS "
+                + statementBuilder.columnQuote( viewName );
 
             log.debug( "Drop view SQL: " + sql );
 

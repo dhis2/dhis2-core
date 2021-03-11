@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getList;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -38,7 +39,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsAggregationType;
+import org.hisp.dhis.analytics.AnalyticsManager;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.ListMap;
 import org.hisp.dhis.period.Period;
@@ -49,19 +55,19 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
  * @author Lars Helge Overland
  */
-@RunWith(Enclosed.class)
+@RunWith( Enclosed.class )
 public class AnalyticsManagerTest
     extends DhisConvenienceTest
 {
-    @RunWith(Parameterized.class)
+    @RunWith( Parameterized.class )
     public static class Parametrized
     {
         private AnalyticsManager analyticsManager;
@@ -78,14 +84,15 @@ public class AnalyticsManagerTest
         @Parameterized.Parameter
         public String financialYear;
 
-        @Parameterized.Parameter(1)
+        @Parameterized.Parameter( 1 )
         public Double weightedAverage;
 
         @Parameterized.Parameters
         public static Collection<Object[]> data()
         {
-            return Arrays.asList( new Object[][] { { "2017April", 115.75D }, { "2017July", 77.5D }, { "2017Oct", 39.25 },
-                { "2017Nov", 26.5D } } );
+            return Arrays
+                .asList( new Object[][] { { "2017April", 115.75D }, { "2017July", 77.5D }, { "2017Oct", 39.25 },
+                    { "2017Nov", 26.5D } } );
         }
 
         @Before
@@ -118,8 +125,8 @@ public class AnalyticsManagerTest
                 .withDataPeriodType( new YearlyPeriodType() )
                 .withAggregationType( aggregationType ).build();
 
-
-            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params, dataPeriodAggregationPeriodMap );
+            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
+                dataPeriodAggregationPeriodMap );
 
             assertEquals( 1, dataValueMap.size() );
 
@@ -164,7 +171,8 @@ public class AnalyticsManagerTest
             dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q3" ) );
             dataPeriodAggregationPeriodMap.putValue( y2012, createPeriod( "2012Q4" ) );
 
-            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params, dataPeriodAggregationPeriodMap );
+            analyticsManager.replaceDataPeriodsWithAggregationPeriods( dataValueMap, params,
+                dataPeriodAggregationPeriodMap );
 
             assertEquals( 8, dataValueMap.size() );
 

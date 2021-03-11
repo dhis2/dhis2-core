@@ -1,6 +1,5 @@
-package org.hisp.dhis.dxf2.events;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,12 +25,13 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasItem;
 import static org.junit.Assert.assertEquals;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Arrays;
 import java.util.Calendar;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
@@ -70,15 +70,15 @@ import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author David Katuscak
  */
-public class ProgramStageValidationStrategyTest extends DhisSpringTest
+public class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -118,10 +118,18 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     private ProgramStage programStageA;
 
+    private int testYear;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
+
     @Override
     protected void setUpTest()
     {
-        final int testYear = Calendar.getInstance().get(Calendar.YEAR) - 1;
+        final int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         userService = _userService;
 
         createUserAndInjectSecurityContext( false, "F_TRACKED_ENTITY_DATAVALUE_ADD",
@@ -141,46 +149,46 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.addUser( currentUser );
-        organisationUnitA.getUserAccesses().add( userAccess1 );
+        organisationUnitA.getSharing().addUserAccess( userAccess1 );
         currentUser.getTeiSearchOrganisationUnits().add( organisationUnitA );
         manager.save( organisationUnitA, false );
         userService.updateUser( currentUser );
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
-        trackedEntityType.getUserAccesses().add( userAccess1 );
+        trackedEntityType.getSharing().addUserAccess( userAccess1 );
         manager.save( trackedEntityType, false );
 
         org.hisp.dhis.trackedentity.TrackedEntityInstance maleA = createTrackedEntityInstance( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
-        maleA.getUserAccesses().add( userAccess1 );
-        maleA.setUser( currentUser );
+        maleA.getSharing().addUserAccess( userAccess1 );
+        maleA.setCreatedBy( currentUser );
         manager.save( maleA, false );
 
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );
 
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.INTEGER );
-        dataElementA.getUserAccesses().add( userAccess1 );
+        dataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( dataElementA, false );
 
         DataElement dataElementB = createDataElement( 'B' );
         dataElementB.setValueType( ValueType.TEXT );
-        dataElementB.getUserAccesses().add( userAccess2 );
+        dataElementB.getSharing().addUserAccess( userAccess2 );
         manager.save( dataElementB, false );
 
         DataElement dataElementC = createDataElement( 'C' );
         dataElementC.setValueType( ValueType.INTEGER );
-        dataElementC.getUserAccesses().add( userAccess3 );
+        dataElementC.getSharing().addUserAccess( userAccess3 );
         manager.save( dataElementC, false );
 
         programStageA = createProgramStage( 'A', 0 );
         programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        programStageA.getUserAccesses().add( userAccess1 );
+        programStageA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageA, false );
 
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
-        programA.getUserAccesses().add( userAccess1 );
+        programA.getSharing().addUserAccess( userAccess1 );
         manager.save( programA, false );
 
         // Create a compulsory PSDE
@@ -188,7 +196,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementA.setDataElement( dataElementA );
         programStageDataElementA.setProgramStage( programStageA );
         programStageDataElementA.setCompulsory( true );
-        programStageDataElementA.getUserAccesses().add( userAccess1 );
+        programStageDataElementA.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementA, false );
 
         // Create a compulsory PSDE
@@ -196,7 +204,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementB.setDataElement( dataElementB );
         programStageDataElementB.setProgramStage( programStageA );
         programStageDataElementB.setCompulsory( true );
-        programStageDataElementB.getUserAccesses().add( userAccess1 );
+        programStageDataElementB.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementB, false );
 
         // Create a NON-compulsory PSDE
@@ -204,10 +212,11 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programStageDataElementC.setDataElement( dataElementC );
         programStageDataElementC.setProgramStage( programStageA );
         programStageDataElementC.setCompulsory( false );
-        programStageDataElementC.getUserAccesses().add( userAccess1 );
+        programStageDataElementC.getSharing().addUserAccess( userAccess1 );
         manager.save( programStageDataElementC, false );
 
-        // Assign all 3 created PSDEs to created ProgramStage programStageA and to
+        // Assign all 3 created PSDEs to created ProgramStage programStageA and
+        // to
         // created Program programA
         programStageA.getProgramStageDataElements().add( programStageDataElementA );
         programStageA.getProgramStageDataElements().add( programStageDataElementB );
@@ -223,21 +232,21 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setEnrollmentDate( new Date() );
         programInstance.setEntityInstance( maleA );
-        programInstance.getUserAccesses().add( userAccess1 );
+        programInstance.getSharing().addUserAccess( userAccess1 );
         maleA.getProgramInstances().add( programInstance );
 
         manager.save( programInstance, false );
         manager.update( maleA );
 
         Period periodA = createPeriod( testYear + "03" );
-        periodA.getUserAccesses().add( userAccess1 );
+        periodA.getSharing().addUserAccess( userAccess1 );
         manager.save( periodA, false );
 
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
-        categoryComboA.getUserAccesses().add( userAccess1 );
-        categoryOptionComboA.getUserAccesses().add( userAccess1 );
+        categoryComboA.getSharing().addUserAccess( userAccess1 );
+        categoryOptionComboA.getSharing().addUserAccess( userAccess1 );
         manager.save( categoryComboA, false );
         manager.save( categoryOptionComboA, false );
 
@@ -251,19 +260,19 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     /*
-     * #############################################################################
-     * #################################
-     * #############################################################################
-     * #################################
-     * #############################################################################
-     * ################################# Following tests test creation/update of
-     * complete Event (Basically what /events endpoint does)
-     * #############################################################################
-     * #################################
-     * #############################################################################
-     * #################################
-     * #############################################################################
-     * #################################
+     * #########################################################################
+     * #### #################################
+     * #########################################################################
+     * #### #################################
+     * #########################################################################
+     * #### ################################# Following tests test
+     * creation/update of complete Event (Basically what /events endpoint does)
+     * #########################################################################
+     * #### #################################
+     * #########################################################################
+     * #### #################################
+     * #########################################################################
+     * #### #################################
      */
 
     /*
@@ -373,20 +382,20 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     }
 
     /*
-     * #############################################################################
-     * ##########################################
-     * #############################################################################
-     * ##########################################
-     * #############################################################################
-     * ########################################## Following tests test update of 1
-     * specific data element (Basically what /events/{uid}/{dataElementUid} endpoint
-     * does)
-     * #############################################################################
-     * ##########################################
-     * #############################################################################
-     * ##########################################
-     * #############################################################################
-     * ##########################################
+     * #########################################################################
+     * #### ##########################################
+     * #########################################################################
+     * #### ##########################################
+     * #########################################################################
+     * #### ########################################## Following tests test
+     * update of 1 specific data element (Basically what
+     * /events/{uid}/{dataElementUid} endpoint does)
+     * #########################################################################
+     * #### ##########################################
+     * #########################################################################
+     * #### ##########################################
+     * #########################################################################
+     * #### ##########################################
      */
 
     /*
@@ -403,16 +412,24 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         // Create event having 3 Data Values
         Event event = addDefaultEvent();
 
-        // Single value update -> should pass -> because data values are fetched from DB
+        // Single value update -> should pass -> because data values are fetched
+        // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
 
-        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) ); // FIXME this should fail because
-                                                                                    // 'dataValueB' is mandatory
+        assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) ); // FIXME
+                                                                                    // this
+                                                                                    // should
+                                                                                    // fail
+                                                                                    // because
+                                                                                    // 'dataValueB'
+                                                                                    // is
+                                                                                    // mandatory
         // assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA),
         // checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
 
-        // NOT a single value update -> should fail -> because data values are NOT
+        // NOT a single value update -> should fail -> because data values are
+        // NOT
         // fetched from DB and so NOT merged
         updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
 
@@ -474,7 +491,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         Event event = addDefaultEvent();
 
-        // Single value update -> should pass -> because data values are fetched from DB
+        // Single value update -> should pass -> because data values are fetched
+        // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
@@ -482,7 +500,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
 
-        // NOT a single value update -> should fail -> because data values are NOT
+        // NOT a single value update -> should fail -> because data values are
+        // NOT
         // fetched from DB and so NOT merged
         assertInvalidImport( updateEvent( updatedEvent ) );
     }
@@ -571,7 +590,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
         Event event = addDefaultEvent();
 
-        // Single value update -> should pass -> because data values are fetched from DB
+        // Single value update -> should pass -> because data values are fetched
+        // from DB
         // and merged
         Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
@@ -579,7 +599,8 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
 
-        // NOT a single value update -> should fail -> because data values are NOT
+        // NOT a single value update -> should fail -> because data values are
+        // NOT
         // fetched from DB and so NOT merged
         assertInvalidImport( updateEvent( updatedEvent ) );
     }
@@ -642,6 +663,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
 
     @Autowired
     private SessionFactory sessionFactory;
+
     private ProgramStageInstance getPsi( String event )
     {
         sessionFactory.getCurrentSession().clear();
@@ -651,7 +673,7 @@ public class ProgramStageValidationStrategyTest extends DhisSpringTest
     private void assertDataValuesOnPsi( String event, DataValueAsserter... dataValues )
     {
         final ProgramStageInstance psi = getPsi( event );
-        assertEquals( print(psi, dataValues) , dataValues.length, psi.getEventDataValues().size() );
+        assertEquals( print( psi, dataValues ), dataValues.length, psi.getEventDataValues().size() );
 
         for ( DataValueAsserter dataValue : dataValues )
         {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.jdbc;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.jdbc;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.jdbc;
 
 import java.util.Collection;
 import java.util.Date;
@@ -43,16 +42,16 @@ import org.hisp.dhis.program.ProgramIndicator;
 public interface StatementBuilder
 {
     String QUOTE = "'";
-    
+
     String ANALYTICS_TBL_ALIAS = "ax";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // General
-    //--------------------------------------------------------------------------
-    
+    // --------------------------------------------------------------------------
+
     /**
      * Encodes the provided SQL value. Value will be wrapped in quotes.
-     * 
+     *
      * @param value the value.
      * @return the SQL encoded value.
      */
@@ -60,71 +59,72 @@ public interface StatementBuilder
 
     /**
      * Encodes the provided SQL value.
-     * 
+     *
      * @param value the value.
      * @param quote whether to wrap the resulting value in quotes.
      * @return the SQL encoded value.
      */
     String encode( String value, boolean quote );
-    
+
     /**
      * Returns the character used to quote database table and column names.
-     * 
+     *
      * @return a quote character.
      */
     String getColumnQuote();
-    
+
     /**
      * Wraps the given column or table in quotes.
-     * 
+     *
      * @param column the column or table name.
      * @return the column or table name wrapped in quotes.
      */
     String columnQuote( String column );
-    
+
     /**
      * Returns a limit and offset clause.
-     * 
+     *
      * @param offset the offset / start position for the records to return.
      * @param limit the limit on max number of records to return.
      * @return a limit and offset clause.
      */
     String limitRecord( int offset, int limit );
-    
+
     /**
      * Returns the value to use in insert statements for auto-increment columns.
+     *
      * @return value to use in insert statements for auto-increment columns.
      */
     String getAutoIncrementValue();
-    
+
     /**
-     * Returns statement for vacuum operation for a table. Returns null if 
-     * such statement is not relevant.
-     * 
+     * Returns statement for vacuum operation for a table. Returns null if such
+     * statement is not relevant.
+     *
      * @param table the table to vacuum.
      * @return vacuum and analyze operations for a table.
      */
     String getVacuum( String table );
-    
+
     /**
-     * Returns statement for analytics operation for a table. Returns null if 
+     * Returns statement for analytics operation for a table. Returns null if
      * such statement is not relevant.
-     * 
+     *
      * @param table the table to analyze.
      * @return statement for analytics operation for a table.
      */
     String getAnalyze( String table );
-    
+
     /**
-     * Returns an SQL statement to include in create table statements with applies
-     * options to the table. Returns an empty string if all options are set to the
-     * default value.
-     * 
+     * Returns an SQL statement to include in create table statements with
+     * applies options to the table. Returns an empty string if all options are
+     * set to the default value.
+     *
      * @param autoVacuum whether to enable automatic vacuum, default is true.
      * @return statement part with applies options to the table.
      */
     String getTableOptions( boolean autoVacuum );
-    
+
     /**
      * Returns the name of a double column type.
      */
@@ -136,8 +136,8 @@ public interface StatementBuilder
     String getLongVarBinaryType();
 
     /**
-     * Returns the value used to match a column to a regular expression. Matching
-     * is case insensitive.
+     * Returns the value used to match a column to a regular expression.
+     * Matching is case insensitive.
      */
     String getRegexpMatch();
 
@@ -145,7 +145,7 @@ public interface StatementBuilder
      * Returns the regular expression marker for end of a word.
      */
     String getRegexpWordStart();
-    
+
     /**
      * Returns the regular expression marker for start of a word.
      */
@@ -187,42 +187,44 @@ public interface StatementBuilder
 
     /**
      * Generates a random 11-character UID where the first character is an
-     * upper/lower case letter and the remaining 10 characters are a digit
-     * or an upper/lower case letter.
+     * upper/lower case letter and the remaining 10 characters are a digit or an
+     * upper/lower case letter.
      *
      * @return randomly-generated UID.
      */
     String getUid();
 
     /**
-     * Returns the number of columns part of the primary key for the given table.
+     * Returns the number of columns part of the primary key for the given
+     * table.
      */
     String getNumberOfColumnsInPrimaryKey( String table );
-    
+
     /**
      * Returns a cast to timestamp statement for the given column.
-     * 
+     *
      * @param column the column name.
      * @return a cast to timestamp statement for the given column.
      */
     String getCastToDate( String column );
-    
+
     /**
      * Returns a statement which calculates the number of days between the two
      * given dates or columns of type date.
-     * 
+     *
      * @param fromColumn the from date column.
      * @param toColumn the to date column.
-     * @return statement which calculates the number of days between the given dates.
+     * @return statement which calculates the number of days between the given
+     *         dates.
      */
     String getDaysBetweenDates( String fromColumn, String toColumn );
-    
+
     String getAddDate( String dateField, int days );
-    
+
     String getDropPrimaryKey( String table );
-    
+
     String getAddPrimaryKeyToExistingTable( String table, String column );
-    
+
     String getDropNotNullConstraint( String table, String column, String type );
 
     /**
@@ -236,8 +238,8 @@ public interface StatementBuilder
     String literalStringTable( Collection<String> values, String table, String column );
 
     /**
-     * Generates a derived table containing literals in two columns: integer
-     * and string.
+     * Generates a derived table containing literals in two columns: integer and
+     * string.
      *
      * @param longValue (non-empty) Integer values for the derived table
      * @param strValues (same size) String values for the derived table
@@ -250,8 +252,8 @@ public interface StatementBuilder
         List<String> strValues, String table, String longColumn, String strColumn );
 
     /**
-     * Generates a derived table containing literals in two columns: integer
-     * and integer.
+     * Generates a derived table containing literals in two columns: integer and
+     * integer.
      *
      * @param long1Values (non-empty) 1st integer column values for the table
      * @param long2Values (same size) 2nd integer column values for the table
@@ -264,37 +266,47 @@ public interface StatementBuilder
         List<Long> long2Values, String table, String long1Column, String long2Column );
 
     /**
-     * Indicates whether the DBMS supports partial indexes (index statements with
-     * {@code where} clauses).
-     * 
+     * Indicates whether the DBMS supports partial indexes (index statements
+     * with {@code where} clauses).
+     *
      * @return true if partial indexes aer supported.
      */
     boolean supportsPartialIndexes();
-   
+
     /**
-     * Get SQL where-condition for all analyticsPeriodBoundaries in a program indicator.
+     * Get SQL where-condition for all analyticsPeriodBoundaries in a program
+     * indicator.
+     *
      * @param programIndicator the program indicator context
      * @param reportingStartDate the date of the start of the reporting period
      * @param reportingEndDate the date of the end of the reporting period
-     * @param sqlHelper a SQL helper that makes sure the where/and is correctly assigned in the where clause
+     * @param sqlHelper a SQL helper that makes sure the where/and is correctly
+     *        assigned in the where clause
      * @return SQL to use in where clause.
      */
-    String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate, 
+    String getBoundaryCondition( ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate,
         SqlHelper sqlHelper );
-    
+
     /**
-     * Get SQL where-condition for a single analyticsPeriodBoundary in a program indicator.
+     * Get SQL where-condition for a single analyticsPeriodBoundary in a program
+     * indicator.
+     *
      * @param boundary the boundary to get where-condition for
      * @param programIndicator the program indicator context
      * @param reportingStartDate the date of the start of the reporting period
      * @param reportingEndDate the date of the end of the reporting period
      * @return SQL to use in where clause.
      */
-    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator, Date reportingStartDate, Date reportingEndDate );
-    
+    String getBoundaryCondition( AnalyticsPeriodBoundary boundary, ProgramIndicator programIndicator,
+        Date reportingStartDate, Date reportingEndDate );
+
     /**
-     * Get a SQL for selecting a single data value in a program indicator expression, abiding to boundaries.
-     * Internally adds quotes to the param dataElementUid and calls the {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)} function.
+     * Get a SQL for selecting a single data value in a program indicator
+     * expression, abiding to boundaries. Internally adds quotes to the param
+     * dataElementUid and calls the
+     * {@link StatementBuilder#getProgramIndicatorEventColumnSql(String, String, Date, Date, ProgramIndicator)}
+     * function.
+     *
      * @param programStageUid the program stage to get data for
      * @param dataElementUid the data element to get data for
      * @param reportingStartDate the reporting start date
@@ -302,11 +314,14 @@ public interface StatementBuilder
      * @param programIndicator the program indicator context
      * @return
      */
-    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid, Date reportingStartDate,
+    String getProgramIndicatorDataValueSelectSql( String programStageUid, String dataElementUid,
+        Date reportingStartDate,
         Date reportingEndDate, ProgramIndicator programIndicator );
 
     /**
-     * Get a SQL for selecting a single column from events in a program indicators, abiding to boundaries.
+     * Get a SQL for selecting a single column from events in a program
+     * indicators, abiding to boundaries.
+     *
      * @param programStageUid the program stage to get data for
      * @param columnName the column to get data for
      * @param reportingStartDate the reporting start date

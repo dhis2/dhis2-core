@@ -1,7 +1,5 @@
-package org.hisp.dhis.setting;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,36 +25,39 @@ package org.hisp.dhis.setting;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.setting;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.system.util.SerializableOptional;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.jasypt.exceptions.EncryptionOperationNotPossibleException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.env.Environment;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve performance.
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Stian Strandli
  * @author Lars Helge Overland
@@ -65,56 +66,38 @@ import lombok.extern.slf4j.Slf4j;
 public class DefaultSystemSettingManager
     implements SystemSettingManager
 {
-    private static final Map<String, SettingKey> NAME_KEY_MAP = Lists.newArrayList(
-        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) );
+    private static final ImmutableMap<String, SettingKey> NAME_KEY_MAP = ImmutableMap.copyOf( Lists.newArrayList(
+        SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, e -> e ) ) );
 
     /**
-     * Cache for system settings. Does not accept nulls. Disabled during test phase.
+     * Cache for system settings. Does not accept nulls. Disabled during test
+     * phase.
      */
-    private Cache<SerializableOptional> settingCache;
+    private final Cache<SerializableOptional> settingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private SystemSettingStore systemSettingStore;
+    private final SystemSettingStore systemSettingStore;
 
-    private PBEStringEncryptor pbeStringEncryptor;
+    private final PBEStringEncryptor pbeStringEncryptor;
 
-    private CacheProvider cacheProvider;
-
-    private Environment environment;
-
-    private List<String> flags;
+    private final List<String> flags;
 
     public DefaultSystemSettingManager( SystemSettingStore systemSettingStore,
-        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor, CacheProvider cacheProvider,
-        Environment environment, List<String> flags )
+        @Qualifier( "tripleDesStringEncryptor" ) PBEStringEncryptor pbeStringEncryptor,
+        CacheProvider cacheProvider, List<String> flags )
     {
         checkNotNull( systemSettingStore );
         checkNotNull( pbeStringEncryptor );
         checkNotNull( cacheProvider );
-        checkNotNull( environment );
         checkNotNull( flags );
 
         this.systemSettingStore = systemSettingStore;
         this.pbeStringEncryptor = pbeStringEncryptor;
-        this.cacheProvider = cacheProvider;
-        this.environment = environment;
         this.flags = flags;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        settingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
-            .forRegion( "systemSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( environment.getActiveProfiles() ) ? 0 : 400 ).build();
+        this.settingCache = cacheProvider.createSystemSettingCache();
     }
 
     // -------------------------------------------------------------------------
@@ -192,23 +175,24 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getSystemSetting( SettingKey key )
     {
-        SerializableOptional value = settingCache.get( key.getName(),
-            k -> getSystemSettingOptional( k, key.getDefaultValue() ) ).get();
-
-        return value.get();
+        return getSystemSetting( key, key.getDefaultValue() );
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getSystemSetting( SettingKey key, Serializable defaultValue )
     {
         SerializableOptional value = settingCache.get( key.getName(),
@@ -218,8 +202,9 @@ public class DefaultSystemSettingManager
     }
 
     /**
-     * Get system setting {@link SerializableOptional}. The return object is never
-     * null in order to cache requests for system settings which have no value or default value.
+     * Get system setting {@link SerializableOptional}. The return object is
+     * never null in order to cache requests for system settings which have no
+     * value or default value.
      *
      * @param name the system setting name.
      * @param defaultValue the default value for the system setting.
@@ -227,7 +212,7 @@ public class DefaultSystemSettingManager
      */
     private SerializableOptional getSystemSettingOptional( String name, Serializable defaultValue )
     {
-        SystemSetting setting = systemSettingStore.getByNameTx( name );
+        SystemSetting setting = systemSettingStore.getByName( name );
 
         if ( setting != null && setting.hasValue() )
         {
@@ -237,7 +222,7 @@ public class DefaultSystemSettingManager
                 {
                     return SerializableOptional.of( pbeStringEncryptor.decrypt( (String) setting.getDisplayValue() ) );
                 }
-                catch ( EncryptionOperationNotPossibleException e ) // Most likely this means the value is not encrypted or not existing
+                catch ( EncryptionOperationNotPossibleException e )
                 {
                     log.warn( "Could not decrypt system setting '" + name + "'" );
                     return SerializableOptional.empty();
@@ -255,7 +240,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Optional<String> getSystemSettingTranslation( SettingKey key, String locale )
     {
         SystemSetting setting = systemSettingStore.getByName( key.getName() );
@@ -269,15 +254,15 @@ public class DefaultSystemSettingManager
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<SystemSetting> getAllSystemSettings()
     {
-        return systemSettingStore.getAll().stream().
-            filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).
-            collect( Collectors.toList() );
+        return systemSettingStore.getAll().stream()
+            .filter( systemSetting -> !isConfidential( systemSetting.getName() ) ).collect( Collectors.toList() );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getSystemSettingsAsMap()
     {
         final Map<String, Serializable> settingsMap = new HashMap<>();
@@ -313,6 +298,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getSystemSettings( Collection<SettingKey> keys )
     {
         Map<String, Serializable> map = new HashMap<>();
@@ -348,6 +334,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getFlagImage()
     {
         String flag = (String) getSystemSetting( SettingKey.FLAG );
@@ -356,48 +343,56 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailHostName()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_HOST_NAME ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public int getEmailPort()
     {
         return (Integer) getSystemSetting( SettingKey.EMAIL_PORT );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailUsername()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_USERNAME ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean getEmailTls()
     {
         return (Boolean) getSystemSetting( SettingKey.EMAIL_TLS );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getEmailSender()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.EMAIL_SENDER ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean accountRecoveryEnabled()
     {
         return (Boolean) getSystemSetting( SettingKey.ACCOUNT_RECOVERY );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean selfRegistrationNoRecaptcha()
     {
         return (Boolean) getSystemSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean emailConfigured()
     {
         return StringUtils.isNotBlank( getEmailHostName() )
@@ -405,6 +400,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean systemNotificationEmailValid()
     {
         String address = (String) getSystemSetting( SettingKey.SYSTEM_NOTIFICATIONS_EMAIL );
@@ -413,6 +409,7 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean hideUnapprovedDataInAnalytics()
     {
         // -1 means approval is disabled
@@ -420,12 +417,14 @@ public class DefaultSystemSettingManager
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String googleAnalyticsUA()
     {
         return StringUtils.trimToNull( (String) getSystemSetting( SettingKey.GOOGLE_ANALYTICS_UA ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Integer credentialsExpires()
     {
         return (Integer) getSystemSetting( SettingKey.CREDENTIALS_EXPIRES );

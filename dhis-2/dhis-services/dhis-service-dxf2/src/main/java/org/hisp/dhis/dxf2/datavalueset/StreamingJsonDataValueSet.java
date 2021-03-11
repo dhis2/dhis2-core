@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+import org.hisp.dhis.dxf2.datavalue.StreamingJsonDataValue;
 
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hisp.dhis.dxf2.datavalue.DataValue;
-import org.hisp.dhis.dxf2.datavalue.StreamingJsonDataValue;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -51,7 +51,8 @@ public class StreamingJsonDataValueSet extends DataValueSet
         try
         {
             JsonFactory factory = new ObjectMapper().getFactory();
-            // Disables flushing every time that an object property is written to the stream
+            // Disables flushing every time that an object property is written
+            // to the stream
             factory.disable( JsonGenerator.Feature.FLUSH_PASSED_TO_STREAM );
             // Do not attempt to balance unclosed tags
             factory.disable( JsonGenerator.Feature.AUTO_CLOSE_JSON_CONTENT );

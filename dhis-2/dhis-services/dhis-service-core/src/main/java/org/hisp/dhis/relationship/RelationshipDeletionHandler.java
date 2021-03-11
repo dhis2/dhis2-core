@@ -1,7 +1,5 @@
-package org.hisp.dhis.relationship;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,16 @@ package org.hisp.dhis.relationship;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
+
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.Collection;
 
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +45,7 @@ import org.springframework.stereotype.Component;
 public class RelationshipDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( Relationship.class );
 
     private final RelationshipService relationshipService;
 
@@ -52,18 +54,16 @@ public class RelationshipDeletionHandler
         this.relationshipService = relationshipService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Relationship.class.getSimpleName();
+        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
-    @Override
-    public void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    private void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
     {
         Collection<Relationship> relationships = relationshipService
             .getRelationshipsByTrackedEntityInstance( entityInstance, false );
@@ -77,11 +77,39 @@ public class RelationshipDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteRelationshipType( RelationshipType relationshipType )
+    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        Collection<Relationship> relationships = relationshipService.getRelationshipsByRelationshipType( relationshipType );
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByProgramStageInstance( programStageInstance, false );
 
-        return relationships.isEmpty() ? null : ERROR;
+        if ( relationships != null )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                relationshipService.deleteRelationship( relationship );
+            }
+        }
+    }
+
+    private void deleteProgramInstance( ProgramInstance programInstance )
+    {
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByProgramInstance( programInstance, false );
+
+        if ( relationships != null )
+        {
+            for ( Relationship relationship : relationships )
+            {
+                relationshipService.deleteRelationship( relationship );
+            }
+        }
+    }
+
+    private DeletionVeto allowDeleteRelationshipType( RelationshipType relationshipType )
+    {
+        Collection<Relationship> relationships = relationshipService
+            .getRelationshipsByRelationshipType( relationshipType );
+
+        return relationships.isEmpty() ? ACCEPT : VETO;
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
@@ -35,7 +34,10 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
+import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1029;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -45,6 +47,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -61,10 +65,10 @@ import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.TrackerStatus;
@@ -76,7 +80,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -95,6 +98,12 @@ public class EventImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()
@@ -120,14 +129,14 @@ public class EventImportValidationTest
         List<ErrorReport> objectReport = commit.getErrorReports();
         assertTrue( objectReport.isEmpty() );
 
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/enrollments_te_te-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerImportParams.setUser( user );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
-        assertEquals( 4, trackerBundle.getTrackedEntities().size() );
+        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
+        assertEquals( 5, trackerBundle.getTrackedEntities().size() );
 
         TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
         assertEquals( 0, report.getErrorReports().size() );
@@ -135,14 +144,14 @@ public class EventImportValidationTest
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
 
-        trackerBundleParams = renderService
+        trackerImportParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/enrollments_te_enrollments-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerImportParams.class );
 
-        trackerBundleParams.setUser( user );
+        trackerImportParams.setUser( user );
 
-        trackerBundle = trackerBundleService.create( trackerBundleParams );
+        trackerBundle = trackerBundleService.create( trackerImportParams );
         assertEquals( 4, trackerBundle.getEnrollments().size() );
 
         report = trackerValidationService.validate( trackerBundle );
@@ -153,10 +162,39 @@ public class EventImportValidationTest
     }
 
     @Test
+    public void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/events-with_invalid_option_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
+    }
+
+    @Test
+    public void successWhenTrackedEntityAttributeHasValidOptionValue()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/events-with_valid_option_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 0, report.getErrorReports().size() );
+    }
+
+    @Test
     public void testEventValidationOkAll()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
@@ -173,7 +211,7 @@ public class EventImportValidationTest
     public void testEventInvalidUidFormat()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events-invalid-uid-format.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -191,13 +229,13 @@ public class EventImportValidationTest
     public void testCantWriteAccessCatCombo()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerImportParams = createBundleFromJson(
             "tracker/validations/events-cat-write-access.json" );
 
         User user = userService.getUser( USER_6 );
-        trackerBundleParams.setUser( user );
+        trackerImportParams.setUser( user );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerImportParams,
             TrackerImportStrategy.CREATE );
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
@@ -221,7 +259,7 @@ public class EventImportValidationTest
     public void testEventMissingOrgUnit()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-orgunit-missing.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -239,7 +277,7 @@ public class EventImportValidationTest
     public void testEventMissingProgramAndProgramStage()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-program-pstage-missing.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -247,20 +285,17 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1088 ) ) ) );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
     }
 
     @Test
     public void testEventMissingProgramStageProgramIsRegistration()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-missing-isreg.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -268,20 +303,35 @@ public class EventImportValidationTest
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1086 ) ) ) );
+    }
+
+    @Test
+    public void testEventMissingProgramStageProgramIsWithoutRegistration()
+        throws IOException
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-pstage-missing-withoutreg.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1035 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1123 ) ) ) );
     }
 
     @Test
     public void testProgramStageProgramDifferentPrograms()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-pstage-program-different.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -299,7 +349,7 @@ public class EventImportValidationTest
     public void testNoWriteAccessToOrg()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
@@ -319,10 +369,10 @@ public class EventImportValidationTest
     public void testEventCreateAlreadyExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
@@ -353,10 +403,10 @@ public class EventImportValidationTest
     public void testUpdateNotExists()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         trackerBundleParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
@@ -378,12 +428,12 @@ public class EventImportValidationTest
     public void testMissingDate()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-date.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -397,7 +447,7 @@ public class EventImportValidationTest
     public void testMissingTei()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-missing-tei.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -415,13 +465,11 @@ public class EventImportValidationTest
     public void testNonRepeatableProgramStage()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_non-repeatable-programstage_part1.json" );
+        TrackerImportParams trackerImportParams = fromJson(
+            "tracker/validations/events_non-repeatable-programstage_part1.json",
+            userService.getUser( ADMIN_USER_UID ) );
 
-        User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerImportParams,
             TrackerImportStrategy.CREATE );
         assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
 
@@ -430,10 +478,11 @@ public class EventImportValidationTest
 
         assertEquals( 0, validationReport.getErrorReports().size() );
 
-        trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_non-repeatable-programstage_part2.json" );
+        trackerImportParams = fromJson(
+            "tracker/validations/events_non-repeatable-programstage_part2.json",
+            userService.getUser( ADMIN_USER_UID ) );
 
-        createAndUpdate = validateAndCommit( trackerBundleParams, TrackerImportStrategy.CREATE );
+        createAndUpdate = validateAndCommit( trackerImportParams, TrackerImportStrategy.CREATE );
         assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
 
         validationReport = createAndUpdate.getValidationReport();
@@ -445,13 +494,14 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1039 ) ) ) );
     }
 
-    // TODO: Need help setting up this test. Need a user with all access, but lacking the F_EDIT_EXPIRED auth.
+    // TODO: Need help setting up this test. Need a user with all access, but
+    // lacking the F_EDIT_EXPIRED auth.
     @Test
     @Ignore( "Need to setup metadata with user without F_EDIT_EXPIRED" )
     public void testMissingCompletedDate()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-no-completed-date.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -467,41 +517,59 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testWrongScheduledDateString()
+    public void testMissingAndAssignScheduleDate()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-no-wrong-date.json" );
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-schedule-date_part1.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
-        assertEquals( 2, report.getErrorReports().size() );
+        assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1051 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1050 ) ) ) );
 
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1052 ) ) ) );
+        trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events_error-missing-schedule-date_part2.json" );
 
-        // TODO: Need help setting this up.
-//        assertThat( report.getErrorReports(),
-//            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1043 ) ) ) );
+        createAndUpdate = validateAndCommit( trackerBundleParams,
+            TrackerImportStrategy.CREATE );
+
+        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
+        report = createAndUpdate.getValidationReport();
+
+        printReport( report );
+
+        assertEquals( 0, report.getErrorReports().size() );
+
+        ProgramStageInstance psi = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+
+        assertEquals( psi.getExecutionDate(), psi.getDueDate() );
+    }
+
+    @Test( expected = IOException.class )
+    public void testWrongScheduledDateString()
+        throws IOException
+    {
+        createBundleFromJson( "tracker/validations/events_error-no-wrong-date.json" );
     }
 
     @Test
     public void testNonDefaultCategoryCombo()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_non-default-combo.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -515,7 +583,7 @@ public class EventImportValidationTest
     public void testNoCategoryOptionCombo()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_cant-find-cat-opt-combo.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -533,7 +601,7 @@ public class EventImportValidationTest
     public void testNoCategoryOption()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_cant-find-cat-option.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -551,7 +619,7 @@ public class EventImportValidationTest
     public void testNoCategoryOptionComboSet()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_cant-find-cat-option-combo-set.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -569,12 +637,12 @@ public class EventImportValidationTest
     public void testWrongDatesInCatCombo()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_combo-date-wrong.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
             TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
+
         TrackerValidationReport report = createAndUpdate.getValidationReport();
         printReport( report );
 
@@ -588,10 +656,10 @@ public class EventImportValidationTest
     }
 
     @Test
-    public void testTeiNotEnrolled()
+    public void testEventHasNoEnrollment()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_tei-not-enrolled.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -602,14 +670,14 @@ public class EventImportValidationTest
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1037 ) ) ) );
+            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1033 ) ) ) );
     }
 
     @Test
     public void testInvalidDataElementForDataValue()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/event_with_wrong_de_for_data_value.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -628,7 +696,7 @@ public class EventImportValidationTest
     public void testTeiMultipleActiveEnrollments()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_tei-multiple-enrollments.json" );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
@@ -643,17 +711,17 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1038 ) ) ) );
     }
 
-    //TODO: Can't get this to work, the preheater? inserts a program instance.
+    // TODO: Can't get this to work, the preheater? inserts a program instance.
     @Test
     @Ignore( "Can't get this to work, the preheater? inserts a program instance." )
     public void testTeiMultipleActiveEnrollmentsInNonRegProgram()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_tei-multiple-enrollments-in-non-reg-program.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
@@ -667,16 +735,16 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1040 ) ) ) );
     }
 
-    //TODO: Delete not working yet
+    // TODO: Delete not working yet
     @Test
     @Ignore( "Delete not yet working" )
     public void testEventAlreadyDeleted()
         throws IOException
     {
-        TrackerBundleParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+        TrackerImportParams params = createBundleFromJson( "tracker/validations/events-data.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        params.setUser( user );
+        params.setUserId( user.getUid() );
 
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params,
             CREATE_AND_UPDATE );
@@ -703,11 +771,11 @@ public class EventImportValidationTest
     public void testPeriodTypes()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = createBundleFromJson(
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
             "tracker/validations/events_error-periodtype.json" );
 
         User user = userService.getUser( ADMIN_USER_UID );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
@@ -721,20 +789,21 @@ public class EventImportValidationTest
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1042 ) ) ) );
     }
 
-    //TODO: Needs clarification, can't test this error: E1082.
-    // See comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
+    // TODO: Needs clarification, can't test this error: E1082.
+    // See comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:165
     @Test
     @Ignore( "Needs clarification, can't test this error: E1082. Maybe because delete not yet working" )
     public void testProgramStageDeleted()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerImportParams trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/events-data.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerImportParams.class );
 
         User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
@@ -764,20 +833,21 @@ public class EventImportValidationTest
         assertEquals( 0, trackerBundle.getEnrollments().size() );
     }
 
-    //TODO: Can't provoke this state
-    // see comments in: org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
+    // TODO: Can't provoke this state
+    // see comments in:
+    // org/hisp/dhis/tracker/validation/hooks/PreCheckDataRelationsValidationHook.java:212
     @Test
     @Ignore( "Can't provoke this state" )
     public void testIsRegButNoTei()
         throws IOException
     {
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerImportParams trackerBundleParams = renderService
             .fromJson(
                 new ClassPathResource( "tracker/validations/events_error-not-enrolled.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerImportParams.class );
 
         User user = userService.getUser( "M5zQapPyTZI" );
-        trackerBundleParams.setUser( user );
+        trackerBundleParams.setUserId( user.getUid() );
 
         TrackerBundle trackerBundle = trackerBundleService.create( trackerBundleParams );
         assertEquals( 1, trackerBundle.getEvents().size() );
@@ -798,13 +868,13 @@ public class EventImportValidationTest
         throws IOException
     {
         Date now = new Date();
-        
+
         // When
-        
-        ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-data.json");
-        
+
+        ValidateAndCommitTestUnit createAndUpdate = createEvent( "tracker/validations/events-with-notes-data.json" );
+
         // Then
-        
+
         // Fetch the UID of the newly created event
         final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
@@ -817,21 +887,23 @@ public class EventImportValidationTest
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertEquals( ADMIN_USER_UID, comment.getLastUpdatedBy().getUid() );
         } );
     }
 
     @Test
-    public void testValidateAndAddNotesToUpdatedEvent() throws IOException {
-
+    public void testValidateAndAddNotesToUpdatedEvent()
+        throws IOException
+    {
         Date now = new Date();
-        
+
         // Given -> Creates an event with 3 notes
-        createEvent("tracker/validations/events-with-notes-data.json");
-        
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
         // When -> Update the event and adds 3 more notes
-        final ValidateAndCommitTestUnit createAndUpdate = createEvent("tracker/validations/events-with-notes-update-data.json");
-        
+        final ValidateAndCommitTestUnit createAndUpdate = createEvent(
+            "tracker/validations/events-with-notes-update-data.json" );
+
         // Then
         final ProgramStageInstance programStageInstance = getEventFromReport( createAndUpdate );
 
@@ -841,20 +913,71 @@ public class EventImportValidationTest
         Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
 
             TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
-            assertTrue( CodeGenerator.isValidUid( comment. getUid() ) );
+            assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
             assertNull( comment.getCreator() );
-            assertNull( comment.getLastUpdatedBy() );
+            assertEquals( ADMIN_USER_UID, comment.getLastUpdatedBy().getUid() );
         } );
+    }
 
+    @Test
+    public void testUpdateDeleteEventFails()
+    {
+        testDeletedEventFails( UPDATE );
+    }
+
+    @Test
+    public void testInserDeleteEventFails()
+    {
+        testDeletedEventFails( CREATE_AND_UPDATE );
+    }
+
+    @SneakyThrows
+    private void testDeletedEventFails( TrackerImportStrategy importStrategy )
+    {
+        // Given -> Creates an event
+        createEvent( "tracker/validations/events-with-notes-data.json" );
+
+        ProgramStageInstance event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
+        assertNotNull( event );
+
+        // When -> Soft-delete the event
+        programStageServiceInstance.deleteProgramStageInstance( event );
+
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-notes-data.json" );
+
+        // Then
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
+
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1082 ) ) ) );
+    }
+
+    @Test
+    @SneakyThrows
+    public void testImportFailsOnOuNotMatchingProgramOu()
+    {
+        TrackerImportParams trackerBundleParams = createBundleFromJson(
+            "tracker/validations/events-with-ou-not-in-program.json" );
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
+        assertEquals( 0, createAndUpdate.getTrackerBundle().getEvents().size() );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+        assertThat( report.getErrorReports(), everyItem( hasProperty( "errorCode", equalTo( E1029 ) ) ) );
     }
 
     private ValidateAndCommitTestUnit createEvent( String jsonPayload )
         throws IOException
     {
         // Given
-        TrackerBundleParams trackerBundleParams = createBundleFromJson( jsonPayload );
+        TrackerImportParams trackerBundleParams = createBundleFromJson( jsonPayload );
 
         // When
         ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
@@ -882,12 +1005,11 @@ public class EventImportValidationTest
         fail( "Can't find a comment starting or ending with " + commentText );
         return null;
     }
-    
+
     private ProgramStageInstance getEventFromReport( ValidateAndCommitTestUnit createAndUpdate )
     {
         final Map<TrackerType, TrackerTypeReport> typeReportMap = createAndUpdate.getCommitReport().getTypeReportMap();
         String newEvent = typeReportMap.get( TrackerType.EVENT ).getObjectReportMap().get( 0 ).getUid();
-        return programStageServiceInstance
-            .getProgramStageInstance( newEvent );
+        return programStageServiceInstance.getProgramStageInstance( newEvent );
     }
 }

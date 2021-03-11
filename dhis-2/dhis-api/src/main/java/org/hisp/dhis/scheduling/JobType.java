@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,32 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
 
 import java.util.Map;
 
-import org.hisp.dhis.scheduling.parameters.*;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
+import org.hisp.dhis.scheduling.parameters.MockJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 
 import com.google.common.collect.ImmutableMap;
 
 /**
- * Enum describing the different jobs in the system. Each job has a key, class, configurable
- * status and possibly a map containing relative endpoints for possible parameters.
+ * Enum describing the different jobs in the system. Each job has a key, class,
+ * configurable status and possibly a map containing relative endpoints for
+ * possible parameters.
  * <p>
- * The key must match the jobs bean name so that the {@link SchedulingManager} can fetch
- * the correct job
+ * The key must match the jobs bean name so that the {@link SchedulingManager}
+ * can fetch the correct job
  *
  * @author Henning Håkonsen
  */
@@ -50,11 +61,14 @@ public enum JobType
     RESOURCE_TABLE( "resourceTableJob", true ),
     ANALYTICS_TABLE( "analyticsTableJob", true, SchedulingType.CRON, AnalyticsJobParameters.class, ImmutableMap.of(
         "skipTableTypes", "/api/analytics/tableTypes" ) ),
-    CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY, ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
-        "skipTableTypes", "/api/analytics/tableTypes" ) ),
+    CONTINUOUS_ANALYTICS_TABLE( "continuousAnalyticsTableJob", true, SchedulingType.FIXED_DELAY,
+        ContinuousAnalyticsJobParameters.class, ImmutableMap.of(
+            "skipTableTypes", "/api/analytics/tableTypes" ) ),
     DATA_SYNC( "dataSyncJob", true, SchedulingType.CRON, DataSynchronizationJobParameters.class, null ),
-    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON, TrackerProgramsDataSynchronizationJobParameters.class, null ),
-    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON, EventProgramsDataSynchronizationJobParameters.class, null ),
+    TRACKER_PROGRAMS_DATA_SYNC( "trackerProgramsDataSyncJob", true, SchedulingType.CRON,
+        TrackerProgramsDataSynchronizationJobParameters.class, null ),
+    EVENT_PROGRAMS_DATA_SYNC( "eventProgramsDataSyncJob", true, SchedulingType.CRON,
+        EventProgramsDataSynchronizationJobParameters.class, null ),
     FILE_RESOURCE_CLEANUP( "fileResourceCleanUpJob", false ),
     IMAGE_PROCESSING( "imageProcessingJob", false ),
     META_DATA_SYNC( "metadataSyncJob", true, SchedulingType.CRON, MetadataSyncJobParameters.class, null ),
@@ -64,7 +78,8 @@ public enum JobType
     VALIDATION_RESULTS_NOTIFICATION( "validationResultNotificationJob", false ),
     CREDENTIALS_EXPIRY_ALERT( "credentialsExpiryAlertJob", false ),
     MONITORING( "monitoringJob", true, SchedulingType.CRON, MonitoringJobParameters.class, ImmutableMap.of(
-        "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups", "/api/validationRuleGroups" ) ),
+        "relativePeriods", "/api/periodTypes/relativePeriodTypes", "validationRuleGroups",
+        "/api/validationRuleGroups" ) ),
     PUSH_ANALYSIS( "pushAnalysisJob", true, SchedulingType.CRON, PushAnalysisJobParameters.class, ImmutableMap.of(
         "pushAnalysis", "/api/pushAnalysis" ) ),
     PREDICTOR( "predictorJob", true, SchedulingType.CRON, PredictorJobParameters.class, ImmutableMap.of(
@@ -85,14 +100,20 @@ public enum JobType
     EVENT_IMPORT( null, false ),
     ENROLLMENT_IMPORT( null, false ),
     TEI_IMPORT( null, false ),
+    DISABLE_INACTIVE_USERS( "disableInactiveUsersJob", true, SchedulingType.CRON,
+        DisableInactiveUsersJobParameters.class, null ),
 
     // Testing purposes
     MOCK( "mockJob", false, SchedulingType.CRON, MockJobParameters.class, null ),
 
-    // Deprecated, present to satisfy code using the old enumeration TaskCategory
-    @Deprecated GML_IMPORT( null, false ),
-    @Deprecated ANALYTICSTABLE_UPDATE( null, false ),
-    @Deprecated PROGRAM_DATA_SYNC( null, false );
+    // Deprecated, present to satisfy code using the old enumeration
+    // TaskCategory
+    @Deprecated
+    GML_IMPORT( null, false ),
+    @Deprecated
+    ANALYTICSTABLE_UPDATE( null, false ),
+    @Deprecated
+    PROGRAM_DATA_SYNC( null, false );
 
     private final String key;
 
@@ -109,7 +130,8 @@ public enum JobType
         this( key, configurable, SchedulingType.CRON, null, null );
     }
 
-    JobType( String key, boolean configurable, SchedulingType schedulingType, Class<? extends JobParameters> jobParameters,
+    JobType( String key, boolean configurable, SchedulingType schedulingType,
+        Class<? extends JobParameters> jobParameters,
         Map<String, String> relativeApiElements )
     {
         this.key = key;

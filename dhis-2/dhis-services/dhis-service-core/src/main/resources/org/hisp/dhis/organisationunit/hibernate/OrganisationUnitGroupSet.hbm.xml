@@ -8,22 +8,26 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.organisationunit.OrganisationUnitGroupSet" table="orgunitgroupset">
 
-    <cache usage="read-write" />
+    <cache usage="read-write"/>
 
     <id name="id" column="orgunitgroupsetid">
-      <generator class="native" />
+      <generator class="native"/>
     </id>
     &identifiableProperties;
 
-    <property name="name" column="name" not-null="true" unique="true" length="230" />
+    <property name="name" column="name" not-null="true" unique="true"
+              length="230"/>
 
-    <property name="description" type="text" />
+    <property name="shortName" column="shortname" not-null="true" unique="true"
+              length="50"/>
 
-    <property name="compulsory" not-null="true" />
+    <property name="description" type="text"/>
 
-    <property name="includeSubhierarchyInAnalytics" not-null="false" />
+    <property name="compulsory" not-null="true"/>
 
-    <property name="dataDimension" column="datadimension" not-null="true" />
+    <property name="includeSubhierarchyInAnalytics" not-null="false"/>
+
+    <property name="dataDimension" column="datadimension" not-null="true"/>
 
     <property name="translations" type="jblTranslations"/>
 
@@ -38,22 +42,10 @@
 
     <property name="attributeValues" type="jsbAttributeValues"/>
 
-    <!-- Access properties -->
-    <many-to-one name="user" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroupset_userid" />
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_orgunitgroupset_userid" />
 
-    <property name="publicAccess" length="8" />
-
-    <set name="userGroupAccesses" table="orgunitgroupsetusergroupaccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="orgunitgroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserGroupAccess" column="usergroupaccessid" unique="true" />
-    </set>
-
-    <set name="userAccesses" table="orgunitgroupsetuseraccesses" cascade="all-delete-orphan">
-      <cache usage="read-write" />
-      <key column="orgunitgroupsetid" />
-      <many-to-many class="org.hisp.dhis.user.UserAccess" column="useraccessid" unique="true" />
-    </set>
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
 
   </class>
 

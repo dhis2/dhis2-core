@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,19 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.ProgramStage;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Luciano Fiandesio
@@ -45,11 +44,12 @@ import org.springframework.util.StringUtils;
 public class ProgramStageCheck implements Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         // Get the program stage id from the event.
-        // If the event has no program stage set, use a dummy value which will not
+        // If the event has no program stage set, use a dummy value which will
+        // not
         // return any Program Stage
         // from the WorkContext
         final String programStageId = StringUtils.isEmpty( event.getProgramStage() ) ? "-" : event.getProgramStage();

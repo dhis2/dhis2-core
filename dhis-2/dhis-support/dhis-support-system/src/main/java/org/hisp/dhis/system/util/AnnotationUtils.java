@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hisp.dhis.audit.AuditAttribute;
+package org.hisp.dhis.system.util;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -38,6 +34,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.apache.commons.lang3.reflect.MethodUtils;
+import org.hisp.dhis.translation.Translatable;
 
 /**
  * @author Lars Helge Overland
@@ -48,7 +49,7 @@ public class AnnotationUtils
      * Returns methods on the given target object which are annotated with the
      * annotation of the given class.
      *
-     * @param target         the target object.
+     * @param target the target object.
      * @param annotationType the annotation class type.
      * @return a list of methods annotated with the given annotation.
      */
@@ -63,7 +64,8 @@ public class AnnotationUtils
 
         for ( Method method : target.getClass().getMethods() )
         {
-            Annotation annotation = org.springframework.core.annotation.AnnotationUtils.findAnnotation( method, annotationType );
+            Annotation annotation = org.springframework.core.annotation.AnnotationUtils.findAnnotation( method,
+                annotationType );
 
             if ( annotation != null )
             {
@@ -75,9 +77,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Returns Map of fields and their getter methods on the given class and its parents (if any)
-     * which are annotated with the annotation of the given annotationType.
-     * The annotation can be applied to either field or getter method.
+     * Returns Map of fields and their getter methods on the given class and its
+     * parents (if any) which are annotated with the annotation of the given
+     * annotationType. The annotation can be applied to either field or getter
+     * method.
      *
      * @param klass
      * @param annotationType
@@ -101,7 +104,7 @@ public class AnnotationUtils
                 return;
             }
 
-            if ( field.isAnnotationPresent( AuditAttribute.class )  || getter.isAnnotationPresent( AuditAttribute.class ) )
+            if ( field.isAnnotationPresent( annotationType ) || getter.isAnnotationPresent( annotationType ) )
             {
                 mapFields.put( field, getter );
             }
@@ -111,9 +114,41 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Class, take into account class hierarchy.
+     * Scan through all fields and getters of given class and return those with
+     * {@link Translatable} marked. Return Map<String,String> with key is
+     * fieldName and value is translation key. This translation key is used for
+     * storing translation values in JsonB format.
+     */
+    public static Map<String, String> getTranslatableAnnotatedFields( Class<?> klass )
+    {
+        final Map<String, String> mapFields = new HashMap<>();
+
+        if ( klass == null )
+        {
+            return mapFields;
+        }
+
+        List<Method> methods = MethodUtils.getMethodsListWithAnnotation( klass, Translatable.class, true, false );
+
+        methods.forEach( method -> {
+            Translatable translatableAnnotation = method.getAnnotation( Translatable.class );
+
+            if ( translatableAnnotation != null )
+            {
+                mapFields.put( translatableAnnotation.propertyName(),
+                    !StringUtils.isEmpty( translatableAnnotation.key() ) ? translatableAnnotation.key()
+                        : translatableAnnotation.propertyName() );
+            }
+        } );
+
+        return mapFields;
+    }
+
+    /**
+     * Check to see if annotation is present on a given Class, take into account
+     * class hierarchy.
      *
-     * @param klass          Class
+     * @param klass Class
      * @param annotationType Annotation
      * @return true/false depending on if annotation is present
      */
@@ -123,9 +158,10 @@ public class AnnotationUtils
     }
 
     /**
-     * Check to see if annotation is present on a given Method, take into account class hierarchy.
+     * Check to see if annotation is present on a given Method, take into
+     * account class hierarchy.
      *
-     * @param method         Method
+     * @param method Method
      * @param annotationType Annotation
      * @return true/false depending on if annotation is present
      */
@@ -137,7 +173,7 @@ public class AnnotationUtils
     /**
      * Gets annotation on a given Class, takes into account class hierarchy.
      *
-     * @param klass          Class
+     * @param klass Class
      * @param annotationType Annotation
      * @return Annotation instance on Class
      */
@@ -149,7 +185,7 @@ public class AnnotationUtils
     /**
      * Gets annotation on a given Method, takes into account class hierarchy.
      *
-     * @param method         Method
+     * @param method Method
      * @param annotationType Annotation
      * @return Annotation instance on Method
      */

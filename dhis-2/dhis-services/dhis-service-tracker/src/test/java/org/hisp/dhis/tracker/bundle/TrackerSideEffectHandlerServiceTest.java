@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,20 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
 
-import org.hisp.dhis.IntegrationTestBase;
+import static org.awaitility.Awaitility.await;
+import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -39,7 +49,6 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
-
 import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.tracker.TrackerImportParams;
@@ -50,22 +59,10 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
-import static org.awaitility.Awaitility.await;
-import static org.hisp.dhis.tracker.validation.AbstractImportValidationTest.ADMIN_USER_UID;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Zubair Asghar
  */
-public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
+public class TrackerSideEffectHandlerServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ObjectBundleService objectBundleService;
@@ -83,9 +80,6 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private TrackerBundleService trackerBundleService;
-
-    @Autowired
     private IdentifiableObjectManager manager;
 
     @Override
@@ -96,7 +90,8 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
         userService = _userService;
 
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource("tracker/tracker_metadata_with_program_rules.json").getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "tracker/tracker_metadata_with_program_rules.json" ).getInputStream(),
+            RenderFormat.JSON );
 
         ObjectBundleParams params = new ObjectBundleParams();
         params.setObjectBundleMode( ObjectBundleMode.COMMIT );
@@ -117,7 +112,7 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
     {
         TrackerImportParams trackerImportParams = renderService
             .fromJson( new ClassPathResource( "tracker/enrollment_data_with_program_rule_side_effects.json" )
-            .getInputStream(), TrackerImportParams.class );
+                .getInputStream(), TrackerImportParams.class );
 
         assertEquals( 0, trackerImportParams.getEvents().size() );
         assertEquals( 1, trackerImportParams.getTrackedEntities().size() );
@@ -132,18 +127,13 @@ public class TrackerSideEffectHandlerServiceTest extends IntegrationTestBase
 
         trackerImportService.importTracker( params );
 
-        await().atMost( 2, TimeUnit.SECONDS ).until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
+        await().atMost( 2, TimeUnit.SECONDS )
+            .until( () -> manager.getAll( ProgramNotificationInstance.class ).size() > 0 );
 
         List<ProgramNotificationInstance> instances = manager.getAll( ProgramNotificationInstance.class );
 
         assertFalse( instances.isEmpty() );
         ProgramNotificationInstance instance = instances.get( 0 );
         assertEquals( "FdIeUL4gyoB", instance.getProgramNotificationTemplateSnapshot().getUid() );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

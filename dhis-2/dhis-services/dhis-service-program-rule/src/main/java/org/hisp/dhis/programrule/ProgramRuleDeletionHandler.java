@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -34,12 +38,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
@@ -61,18 +61,15 @@ public class ProgramRuleDeletionHandler
         this.programRuleService = programRuleService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ProgramRule.class.getSimpleName();
+        whenDeleting( Program.class, this::deleteProgram );
+        whenVetoing( ProgramStageSection.class, this::allowDeleteProgramStageSection );
+        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         for ( ProgramRule programRule : programRuleService.getProgramRule( program ) )
         {
@@ -80,8 +77,7 @@ public class ProgramRuleDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteProgramStageSection( ProgramStageSection programStageSection )
+    private DeletionVeto allowDeleteProgramStageSection( ProgramStageSection programStageSection )
     {
         String programRules = programRuleService
             .getProgramRule( programStageSection.getProgramStage().getProgram() )
@@ -90,11 +86,12 @@ public class ProgramRuleDeletionHandler
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
-        return StringUtils.isBlank( programRules ) ? null : programRules;
+        return StringUtils.isBlank( programRules )
+            ? DeletionVeto.ACCEPT
+            : new DeletionVeto( ProgramRule.class, programRules );
     }
 
-    @Override
-    public String allowDeleteProgramStage( ProgramStage programStage )
+    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         String programRules = programRuleService
             .getProgramRule( programStage.getProgram() )
@@ -103,7 +100,9 @@ public class ProgramRuleDeletionHandler
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
-        return StringUtils.isBlank( programRules ) ? null : programRules;
+        return StringUtils.isBlank( programRules )
+            ? DeletionVeto.ACCEPT
+            : new DeletionVeto( ProgramRule.class, programRules );
     }
 
     private boolean isLinkedToProgramStage( ProgramStage programStage, ProgramRule programRule )

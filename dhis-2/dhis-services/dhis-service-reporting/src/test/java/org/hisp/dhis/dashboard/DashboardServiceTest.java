@@ -1,7 +1,5 @@
-package org.hisp.dhis.dashboard;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.dashboard;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dashboard;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.List;
 import java.util.stream.IntStream;
@@ -51,6 +50,7 @@ import org.hisp.dhis.visualization.VisualizationService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 public class DashboardServiceTest
@@ -72,14 +72,19 @@ public class DashboardServiceTest
     private IdentifiableObjectManager objectManager;
 
     private Dashboard dbA;
+
     private Dashboard dbB;
 
     private DashboardItem diA;
+
     private DashboardItem diB;
+
     private DashboardItem diC;
+
     private DashboardItem diD;
 
     private Visualization vzA;
+
     private Visualization vzB;
 
     private Document dcA;
@@ -102,6 +107,9 @@ public class DashboardServiceTest
         documentService.saveDocument( dcB );
         documentService.saveDocument( dcC );
         documentService.saveDocument( dcD );
+
+        List<String> allowedFilters = Lists
+            .newArrayList( "kJuHtg2gkh3", "yH7Yh2jGfFs" );
 
         diA = new DashboardItem();
         diA.setAutoFields();
@@ -129,6 +137,8 @@ public class DashboardServiceTest
 
         dbB = new Dashboard( "B" );
         dbB.setAutoFields();
+        dbB.setRestrictFilters( true );
+        dbB.setAllowedFilters( allowedFilters );
         dbB.getItems().add( diD );
     }
 
@@ -140,6 +150,7 @@ public class DashboardServiceTest
 
         assertEquals( dbA, dashboardService.getDashboard( dAId ) );
         assertEquals( dbB, dashboardService.getDashboard( dBId ) );
+        assertEquals( 2, dbB.getAllowedFilters().size() );
 
         assertEquals( 3, dashboardService.getDashboard( dAId ).getItems().size() );
         assertEquals( 1, dashboardService.getDashboard( dBId ).getItems().size() );
@@ -215,7 +226,8 @@ public class DashboardServiceTest
         dashboardService.saveDashboard( dbA );
         dashboardService.saveDashboard( dbB );
 
-        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION, vzA.getUid() );
+        DashboardItem itemA = dashboardService.addItemContent( dbA.getUid(), DashboardItemType.VISUALIZATION,
+            vzA.getUid() );
 
         assertNotNull( itemA );
         assertNotNull( itemA.getUid() );

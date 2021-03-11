@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Data;
+
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.Data;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -53,7 +53,7 @@ public class TrackerTypeReport
     @JsonProperty
     private TrackerStats stats = new TrackerStats();
 
-    @JsonProperty
+    @JsonIgnore
     private List<TrackerSideEffectDataBundle> sideEffectDataBundles = new ArrayList<>();
 
     private Map<Integer, TrackerObjectReport> objectReportMap = new HashMap<>();
@@ -62,9 +62,10 @@ public class TrackerTypeReport
     {
         this.trackerType = trackerType;
     }
-    
+
     @JsonCreator
-    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType, @JsonProperty( "stats" ) TrackerStats stats,
+    public TrackerTypeReport( @JsonProperty( "trackerType" ) TrackerType trackerType,
+        @JsonProperty( "stats" ) TrackerStats stats,
         @JsonProperty( "sideEffectDataBundles" ) List<TrackerSideEffectDataBundle> sideEffectDataBundles,
         @JsonProperty( "objectReports" ) List<TrackerObjectReport> objectReports )
     {
@@ -87,9 +88,9 @@ public class TrackerTypeReport
         return new ArrayList<>( objectReportMap.values() );
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     /**
      * Are there any errors present?

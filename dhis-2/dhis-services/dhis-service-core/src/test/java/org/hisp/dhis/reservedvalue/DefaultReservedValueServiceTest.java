@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.reservedvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.reservedvalue;
 
 import static java.util.Calendar.DATE;
 import static org.junit.Assert.assertEquals;
@@ -42,22 +41,21 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.IntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.Objects;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.junit.After;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.Commit;
 
 import com.google.common.collect.Lists;
 
-public class DefaultReservedValueServiceTest
-    extends IntegrationTestBase
+@Commit
+public class DefaultReservedValueServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
     private ReservedValueService reservedValueService;
@@ -97,26 +95,6 @@ public class DefaultReservedValueServiceTest
 
         // Set up reserved values
         simpleReservedValue = createReservedValue( tea, "FOOBAR" );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
-
-    @Override
-    @Before
-    public void setUpTest()
-        throws Exception
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
-    }
-
-    @After
-    public void tearDown()
-    {
-        reservedValueStore.getAll().forEach( reservedValueStore::delete );
     }
 
     @Test
@@ -186,9 +164,11 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveASequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 1, new HashMap<>(),
+            future );
 
-        assertEquals( 1, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 1, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 1, reservedValueStore.getCount() );
 
     }
@@ -197,9 +177,11 @@ public class DefaultReservedValueServiceTest
     public void testReserveReserveMultipleSequentialValueWhenNotUsed()
         throws Exception
     {
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 50, new HashMap<>(),
+            future );
 
-        assertEquals( 50, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 50, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
     }
@@ -213,13 +195,16 @@ public class DefaultReservedValueServiceTest
 
         // Make sure they where added successfully
         assertEquals( 50,
-            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+            reserved.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 )
+                .count() );
         assertEquals( 50, reservedValueStore.getCount() );
 
-        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(), future );
+        List<ReservedValue> res = reservedValueService.reserve( simpleSequentialTextPattern, 25, new HashMap<>(),
+            future );
 
         assertTrue( ListUtils.intersection( reserved, res ).isEmpty() );
-        assertEquals( 25, res.stream().filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
+        assertEquals( 25, res.stream()
+            .filter( ( rv ) -> rv.getValue().indexOf( "TEST-" ) == 0 && rv.getValue().length() == 7 ).count() );
         assertEquals( 75, reservedValueStore.getCount() );
 
     }

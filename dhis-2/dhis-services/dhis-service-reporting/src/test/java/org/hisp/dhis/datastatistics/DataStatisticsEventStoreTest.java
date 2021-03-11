@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,23 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-import java.util.Map;
-
+import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.dashboard.Dashboard;
+import org.hisp.dhis.dashboard.DashboardService;
+import org.hisp.dhis.setting.SystemSettingManager;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -48,16 +53,33 @@ public class DataStatisticsEventStoreTest
     @Autowired
     private DataStatisticsEventStore dataStatisticsEventStore;
 
+    @Autowired
+    private DashboardService dashboardService;
+
+    @Autowired
+    private SystemSettingManager systemSettingManager;
+
     private DataStatisticsEvent dse1;
+
     private DataStatisticsEvent dse2;
+
     private DataStatisticsEvent dse3;
+
     private DataStatisticsEvent dse4;
 
+    private DataStatisticsEvent dse5;
+
+    private Dashboard dashboard1;
+
     private int dse1Id;
+
     private int dse2Id;
 
     private Date start;
+
     private Date end;
+
+    private static final String DASHBOARD_UID = "dashboardid";
 
     @Override
     public void setUpTest()
@@ -70,7 +92,12 @@ public class DataStatisticsEventStoreTest
         dse1 = new DataStatisticsEvent( DataStatisticsEventType.REPORT_TABLE_VIEW, endDate, "Testuser" );
         dse2 = new DataStatisticsEvent( DataStatisticsEventType.EVENT_CHART_VIEW, endDate, "TestUser" );
         dse3 = new DataStatisticsEvent( DataStatisticsEventType.CHART_VIEW, testDate, "Testuser" );
-        dse4 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, endDate, "TestUser" );
+        dse4 = new DataStatisticsEvent( DataStatisticsEventType.DASHBOARD_VIEW, endDate, "TestUser", DASHBOARD_UID );
+        dse5 = new DataStatisticsEvent( DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, endDate, "TestUser",
+            DASHBOARD_UID );
+
+        dashboard1 = new Dashboard( "Dashboard1" );
+        dashboard1.setUid( DASHBOARD_UID );
     }
 
     @Test
@@ -91,9 +118,10 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
 
-        //Test for 3 objects because TOTAL_VIEWS is always present
+        // Test for 3 objects because TOTAL_VIEWS is always present
         assertTrue( dsList.size() == 3 );
     }
 
@@ -103,7 +131,8 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse1 );
         dataStatisticsEventStore.save( dse4 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
         double expected = 1.0;
         double firstActual = dsList.get( DataStatisticsEventType.REPORT_TABLE_VIEW );
         double secondActual = dsList.get( DataStatisticsEventType.DASHBOARD_VIEW );
@@ -119,8 +148,9 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse2 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
-        //Test for 4 objects, because TOTAL_VIEW is always present
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
+        // Test for 4 objects, because TOTAL_VIEW is always present
         assertTrue( dsList.size() == 4 );
     }
 
@@ -131,8 +161,45 @@ public class DataStatisticsEventStoreTest
         dataStatisticsEventStore.save( dse4 );
         dataStatisticsEventStore.save( dse3 );
 
-        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start, end );
-        //Test for 3 objects because TOTAL_VIEW is always present
+        Map<DataStatisticsEventType, Double> dsList = dataStatisticsEventStore.getDataStatisticsEventCount( start,
+            end );
+        // Test for 3 objects because TOTAL_VIEW is always present
         assertTrue( dsList.size() == 3 );
+    }
+
+    @Test
+    public void getFavoritesDataTest()
+    {
+        dataStatisticsEventStore.save( dse4 );
+        dataStatisticsEventStore.save( dse5 );
+
+        dashboardService.saveDashboard( dashboard1 );
+
+        List<FavoriteStatistics> stats1 = dataStatisticsEventStore.getFavoritesData(
+            DataStatisticsEventType.DASHBOARD_VIEW, 100, SortOrder.ASC, null );
+
+        assertTrue( stats1.size() == 1 );
+
+        List<FavoriteStatistics> stats2 = dataStatisticsEventStore.getFavoritesData(
+            DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW, 100, SortOrder.ASC, null );
+
+        assertTrue( stats2.size() == 1 );
+    }
+
+    @Test
+    public void getFavoriteStatisticsTest()
+    {
+        dataStatisticsEventStore.save( dse4 );
+        dataStatisticsEventStore.save( dse5 );
+
+        FavoriteStatistics fs1 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
+
+        assertTrue( fs1.getViews() == 1 );
+
+        systemSettingManager.saveSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS, true );
+
+        FavoriteStatistics fs2 = dataStatisticsEventStore.getFavoriteStatistics( DASHBOARD_UID );
+
+        assertTrue( fs2.getViews() == 2 );
     }
 }

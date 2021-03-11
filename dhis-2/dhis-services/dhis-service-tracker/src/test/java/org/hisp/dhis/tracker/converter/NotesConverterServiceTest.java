@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.junit.Assert.assertEquals;
+
+import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -35,13 +42,6 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.List;
-
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
 
 /**
  * @author Luciano Fiandesio
@@ -116,7 +116,8 @@ public class NotesConverterServiceTest
         assertThat( comment, is( notNullValue() ) );
         assertThat( comment.getUid(), is( note.getNote() ) );
         assertThat( comment.getCommentText(), is( note.getValue() ) );
-        // assertThat( comment.getCreator(), is( note.getStoredBy() ) ); // TODO check
+        // assertThat( comment.getCreator(), is( note.getStoredBy() ) ); // TODO
+        // check
         // if this is needed
     }
 
@@ -126,6 +127,6 @@ public class NotesConverterServiceTest
         assertThat( note.getNote(), is( comment.getUid() ) );
         assertThat( note.getValue(), is( comment.getCommentText() ) );
         assertThat( note.getStoredBy(), is( comment.getCreator() ) );
-        assertThat( note.getStoredAt(), is( DateUtils.getIso8601NoTz( comment.getCreated() ) ) );
+        assertEquals( note.getStoredAt(), DateUtils.instantFromDate( comment.getCreated() ) );
     }
 }

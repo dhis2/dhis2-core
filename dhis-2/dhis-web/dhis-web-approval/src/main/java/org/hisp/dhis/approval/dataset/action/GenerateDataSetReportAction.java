@@ -1,7 +1,5 @@
-package org.hisp.dhis.approval.dataset.action;
-
 /*
- * Copyright (c) 2004-2018, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,19 @@ package org.hisp.dhis.approval.dataset.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.approval.dataset.action;
 
-import com.opensymphony.xwork2.Action;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -48,10 +52,7 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Chau Thu Tran
@@ -224,7 +225,8 @@ public class GenerateDataSetReportAction
 
         HttpServletResponse response = ServletActionContext.getResponse();
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING, null, false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            null, false );
 
         // ---------------------------------------------------------------------
         // Assemble report
@@ -244,15 +246,18 @@ public class GenerateDataSetReportAction
 
         CategoryOptionCombo attributeOptionCombo = categoryService.getDefaultCategoryOptionCombo();
 
-        registration = registrationService.getCompleteDataSetRegistration( selectedDataSet, selectedPeriod, selectedOrgunit, attributeOptionCombo );
+        registration = registrationService.getCompleteDataSetRegistration( selectedDataSet, selectedPeriod,
+            selectedOrgunit, attributeOptionCombo );
 
         if ( formType.isCustom() && type == null )
         {
-            customDataEntryFormCode = dataSetReportService.getCustomDataSetReport( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly );
+            customDataEntryFormCode = dataSetReportService.getCustomDataSetReport( selectedDataSet, selectedPeriod,
+                selectedOrgunit, dimension, selectedUnitOnly );
         }
         else
         {
-            grids = dataSetReportService.getDataSetReportAsGrid( selectedDataSet, selectedPeriod, selectedOrgunit, dimension, selectedUnitOnly );
+            grids = dataSetReportService.getDataSetReportAsGrid( selectedDataSet, selectedPeriod, selectedOrgunit,
+                dimension, selectedUnitOnly );
         }
 
         return type != null ? type : formType.toString();

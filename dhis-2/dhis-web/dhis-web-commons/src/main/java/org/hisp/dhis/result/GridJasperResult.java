@@ -1,7 +1,5 @@
-package org.hisp.dhis.result;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.result;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.result;
 
 import java.util.Map;
 
@@ -60,12 +59,12 @@ public class GridJasperResult
     // -------------------------------------------------------------------------
 
     private Grid grid;
-    
+
     public void setGrid( Grid grid )
     {
         this.grid = grid;
     }
-    
+
     private Map<String, Object> params;
 
     public void setParams( Map<String, Object> params )
@@ -78,7 +77,7 @@ public class GridJasperResult
     // -------------------------------------------------------------------------
 
     @Override
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     public void execute( ActionInvocation invocation )
         throws Exception
     {
@@ -87,23 +86,24 @@ public class GridJasperResult
         // ---------------------------------------------------------------------
 
         Grid _grid = (Grid) invocation.getStack().findValue( "grid" );
-        
+
         grid = _grid != null ? _grid : grid;
-        
+
         Map<String, Object> _params = (Map<String, Object>) invocation.getStack().findValue( "params" );
 
         params = _params != null ? _params : params;
-        
+
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
 
         HttpServletResponse response = ServletActionContext.getResponse();
 
-        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) ) + ".pdf";
-        
+        String filename = CodecUtils.filenameEncode( StringUtils.defaultIfEmpty( grid.getTitle(), DEFAULT_FILENAME ) )
+            + ".pdf";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, true, filename, false );
-        
+
         // ---------------------------------------------------------------------
         // Write jrxml based on Velocity template
         // ---------------------------------------------------------------------

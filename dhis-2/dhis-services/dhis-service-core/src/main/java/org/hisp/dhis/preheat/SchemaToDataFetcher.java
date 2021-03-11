@@ -1,7 +1,5 @@
-package org.hisp.dhis.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -47,7 +46,8 @@ import org.hisp.dhis.schema.Schema;
 import org.springframework.stereotype.Component;
 
 /**
- * This component is responsible for fetching all the unique attributes for a {@link IdentifiableObject} subclass.
+ * This component is responsible for fetching all the unique attributes for a
+ * {@link IdentifiableObject} subclass.
  *
  * @author Luciano Fiandesio
  */
@@ -66,11 +66,12 @@ public class SchemaToDataFetcher
     }
 
     /**
-     * Executes a read-only query for the given Schema class and fetches only the fields
-     * marked as "unique".
+     * Executes a read-only query for the given Schema class and fetches only
+     * the fields marked as "unique".
      *
      * @param schema a {@link Schema}
-     * @return a List of objects corresponding to the "klass" of the given Schema
+     * @return a List of objects corresponding to the "klass" of the given
+     *         Schema
      */
     public List<? extends IdentifiableObject> fetch( Schema schema )
     {
@@ -79,10 +80,10 @@ public class SchemaToDataFetcher
             return Collections.emptyList();
         }
 
-        return mapUniqueFields(schema);
+        return mapUniqueFields( schema );
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private List<? extends IdentifiableObject> mapUniqueFields( Schema schema )
     {
         List<Property> uniqueProperties = schema.getUniqueProperties();
@@ -99,7 +100,8 @@ public class SchemaToDataFetcher
                 .getResultList();
         }
 
-        // Hibernate returns a List containing an array of Objects if multiple columns are used in the query
+        // Hibernate returns a List containing an array of Objects if multiple
+        // columns are used in the query
         // or a "simple" List if only one columns is used in the query
         return uniqueProperties.size() == 1 ? handleSingleColumn( objects, uniqueProperties, schema )
             : handleMultipleColumn( objects, uniqueProperties, schema );
@@ -160,4 +162,3 @@ public class SchemaToDataFetcher
         return uniqueProperties.stream().map( Property::getFieldName ).collect( Collectors.joining( "," ) );
     }
 }
-

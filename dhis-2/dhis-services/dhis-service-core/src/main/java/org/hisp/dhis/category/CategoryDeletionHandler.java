@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,13 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Dang Duy Hieu
@@ -52,34 +48,25 @@ public class CategoryDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Category.class.getSimpleName();
+        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
+        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
     }
 
-    @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    private void deleteCategoryOption( CategoryOption categoryOption )
     {
-        Set<Category> categories = categoryOption.getCategories();
-
-        for ( Category category : categories )
+        for ( Category category : categoryOption.getCategories() )
         {
             category.getCategoryOptions().remove( categoryOption );
             idObjectManager.updateNoAcl( category );
         }
     }
 
-    @Override
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
-        List<Category> categories = categoryCombo.getCategories();
-
-        for ( Category category : categories )
+        for ( Category category : categoryCombo.getCategories() )
         {
             category.getCategoryCombos().remove( categoryCombo );
             idObjectManager.updateNoAcl( category );

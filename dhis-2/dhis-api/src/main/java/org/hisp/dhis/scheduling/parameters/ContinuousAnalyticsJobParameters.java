@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling.parameters;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.scheduling.parameters;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling.parameters;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -60,7 +59,8 @@ public class ContinuousAnalyticsJobParameters
     private Integer fullUpdateHourOfDay = 0;
 
     /**
-     * The number of last years of data to include in the full analytics table update.
+     * The number of last years of data to include in the full analytics table
+     * update.
      */
     private Integer lastYears;
 
@@ -73,7 +73,8 @@ public class ContinuousAnalyticsJobParameters
     {
     }
 
-    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears, Set<AnalyticsTableType> skipTableTypes )
+    public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears,
+        Set<AnalyticsTableType> skipTableTypes )
     {
         this.fullUpdateHourOfDay = fullUpdateHourOfDay;
         this.lastYears = lastYears;
@@ -91,7 +92,6 @@ public class ContinuousAnalyticsJobParameters
     {
         this.fullUpdateHourOfDay = fullUpdateHourOfDay;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

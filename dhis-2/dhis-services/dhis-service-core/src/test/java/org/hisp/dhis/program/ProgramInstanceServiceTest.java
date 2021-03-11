@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -40,16 +49,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import com.google.common.collect.Sets;
 
 /**
  * @author Chau Thu Tran
@@ -282,17 +282,20 @@ public class ProgramInstanceServiceTest
     {
         programInstanceService.addProgramInstance( programInstanceA );
 
-        ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
+        ProgramInstance programInstance1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+            programA, enrollmentDate,
             incidenDate, organisationUnitA );
         programInstance1.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance1 );
 
-        ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programA, enrollmentDate,
+        ProgramInstance programInstance2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+            programA, enrollmentDate,
             incidenDate, organisationUnitA );
         programInstance2.setStatus( ProgramStatus.COMPLETED );
         programInstanceService.updateProgramInstance( programInstance2 );
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA, ProgramStatus.COMPLETED );
+        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( entityInstanceA, programA,
+            ProgramStatus.COMPLETED );
         assertEquals( 2, programInstances.size() );
         assertTrue( programInstances.contains( programInstance1 ) );
         assertTrue( programInstances.contains( programInstance2 ) );
@@ -310,7 +313,8 @@ public class ProgramInstanceServiceTest
         programInstanceService.addProgramInstance( programInstanceC );
         programInstanceService.addProgramInstance( programInstanceD );
 
-        List<ProgramInstance> programInstances = programInstanceService.getProgramInstances( new ProgramInstanceQueryParams()
+        List<ProgramInstance> programInstances = programInstanceService
+            .getProgramInstances( new ProgramInstanceQueryParams()
                 .setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
@@ -321,7 +325,8 @@ public class ProgramInstanceServiceTest
     @Test
     public void testEnrollTrackedEntityInstance()
     {
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB, enrollmentDate,
+        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
+            enrollmentDate,
             incidenDate, organisationUnitA );
 
         assertNotNull( programInstanceService.getProgramInstance( programInstance.getId() ) );

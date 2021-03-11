@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.program.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramExpressionItem;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.system.util.ValidationUtils;
+package org.hisp.dhis.program.dataitem;
 
 import static org.hisp.dhis.parser.expression.ParserUtils.assumeStageElementSyntax;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.program.ProgramExpressionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.util.ValidationUtils;
 
 /**
  * Program indicator expression data item ProgramItemStageElement
@@ -68,7 +67,8 @@ public class ProgramItemStageElement
             throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found" );
         }
 
-        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID + dataElement.getDisplayName();
+        String description = programStage.getDisplayName() + ProgramIndicator.SEPARATOR_ID
+            + dataElement.getDisplayName();
 
         visitor.getItemDescriptions().put( ctx.getText(), description );
 
@@ -84,7 +84,8 @@ public class ProgramItemStageElement
         String dataElementId = ctx.uid1.getText();
 
         String column = visitor.getStatementBuilder().getProgramIndicatorDataValueSelectSql(
-            programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(), visitor.getProgramIndicator() );
+            programStageId, dataElementId, visitor.getReportingStartDate(), visitor.getReportingEndDate(),
+            visitor.getProgramIndicator() );
 
         if ( visitor.getReplaceNulls() )
         {
@@ -92,7 +93,8 @@ public class ProgramItemStageElement
 
             if ( dataElement == null )
             {
-                throw new ParserExceptionWithoutContext( "Data element " + dataElementId + " not found during SQL generation." );
+                throw new ParserExceptionWithoutContext(
+                    "Data element " + dataElementId + " not found during SQL generation." );
             }
 
             column = replaceNullSqlValues( column, dataElement.getValueType() );

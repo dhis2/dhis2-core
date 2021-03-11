@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,28 +25,24 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -57,36 +51,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultAggregateAccessManager
     implements AggregateAccessManager
 {
-    private static Cache<List<String>> CAN_DATA_WRITE_COC_CACHE;
-    
+    private final Cache<List<String>> canDataWriteCocCache;
+
     private final AclService aclService;
 
-    private final Environment env;
-
-    public DefaultAggregateAccessManager( AclService aclService, Environment env )
+    public DefaultAggregateAccessManager( AclService aclService, CacheProvider cacheProvider )
     {
         checkNotNull( aclService );
-        checkNotNull( env );
+        checkNotNull( cacheProvider );
 
         this.aclService = aclService;
-        this.env = env;
+        this.canDataWriteCocCache = cacheProvider.createCanDataWriteCocCache();
     }
 
     // ---------------------------------------------------------------------
     // AggregateAccessManager implementation
     // ---------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        CAN_DATA_WRITE_COC_CACHE = new SimpleCacheBuilder<List<String>>()
-            .forRegion( "canDataWriteCocCache" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 )
-            .build();
-    }
 
     @Override
     public List<String> canRead( User user, DataValue dataValue )
@@ -188,7 +168,7 @@ public class DefaultAggregateAccessManager
     {
         String cacheKey = user.getUid() + "-" + optionCombo.getUid();
 
-        return CAN_DATA_WRITE_COC_CACHE.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
+        return canDataWriteCocCache.get( cacheKey, key -> canWrite( user, optionCombo ) ).orElse( null );
     }
 
     @Override

@@ -1,7 +1,5 @@
-package org.hisp.dhis.servlet.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,9 @@ package org.hisp.dhis.servlet.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.servlet.filter;
 
-import org.hisp.dhis.webapi.utils.ContextUtils;
-import org.springframework.http.HttpMethod;
+import java.io.IOException;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -37,27 +35,28 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.annotation.WebInitParam;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import org.hisp.dhis.webapi.utils.ContextUtils;
+import org.springframework.http.HttpMethod;
 
 /**
- * Filter which enforces no cache for HTML pages like
- * index pages to prevent stale versions being rendered
- * in clients.
+ * Filter which enforces no cache for HTML pages like index pages to prevent
+ * stale versions being rendered in clients.
  *
  * @author Lars Helge Overland
  */
 @WebFilter( urlPatterns = {
     "/*"
-},
-    initParams = {
-        @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
-    } )
+}, initParams = {
+    @WebInitParam( name = "urlPattern", value = "index\\.html|/$" )
+} )
 public class HttpNoCacheFilter
     extends HttpUrlPatternFilter
 {
     @Override
     public final void doHttpFilter( HttpServletRequest request, HttpServletResponse response, FilterChain chain )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
         if ( HttpMethod.GET == HttpMethod.resolve( request.getMethod() ) )
         {

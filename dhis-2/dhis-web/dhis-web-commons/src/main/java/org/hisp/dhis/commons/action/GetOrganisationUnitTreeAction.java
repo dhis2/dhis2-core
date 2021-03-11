@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.action;
 
 import java.util.*;
 
@@ -179,7 +178,8 @@ public class GetOrganisationUnitTreeAction
 
         username = currentUserService.getCurrentUsername();
 
-        sortBy = SortProperty.fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
+        sortBy = SortProperty
+            .fromValue( userSettingService.getUserSetting( UserSettingKey.ANALYSIS_DISPLAY_PROPERTY ).toString() );
 
         User user = currentUserService.getCurrentUser();
 
@@ -301,8 +301,8 @@ public class GetOrganisationUnitTreeAction
             return null;
         }
 
-        Integer level =
-            offlineLevel != null ? offlineLevel : organisationUnitService.getOfflineOrganisationUnitLevels();
+        Integer level = offlineLevel != null ? offlineLevel
+            : organisationUnitService.getOfflineOrganisationUnitLevels();
 
         return level == 1 ? 2 : level;
     }

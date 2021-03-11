@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,19 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import com.google.common.collect.Lists;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.hibernate.HibernateUtils;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -42,12 +47,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -57,11 +57,14 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     implements QueryEngine<T>
 {
     private final SchemaService schemaService;
+
     private final AclService aclService;
+
     private final CurrentUserService currentUserService;
 
     @Autowired
-    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService, CurrentUserService currentUserService )
+    public InMemoryQueryEngine( SchemaService schemaService, AclService aclService,
+        CurrentUserService currentUserService )
     {
         checkNotNull( schemaService );
         checkNotNull( aclService );
@@ -79,11 +82,12 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
         List<T> list = runQuery( query );
         list = runSorter( query, list );
 
-        return PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
+        return query.isSkipPaging() ? list
+            : PagerUtils.pageCollection( list, query.getFirstResult(), query.getMaxResults() );
     }
 
     @Override
-    public int count( Query query )
+    public long count( Query query )
     {
         validateQuery( query );
         List<T> list = runQuery( query );
@@ -122,12 +126,12 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     {
         List<T> sorted = new ArrayList<>( objects );
 
-        sorted.sort( ( o1, o2 ) ->
-        {
+        sorted.sort( ( o1, o2 ) -> {
             for ( Order order : query.getOrders() )
             {
                 int result = order.compare( o1, o2 );
-                if ( result != 0 ) return result;
+                if ( result != 0 )
+                    return result;
             }
 
             return 0;
@@ -306,9 +310,9 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
     @SuppressWarnings( { "unchecked", "rawtypes" } )
     private Object collect( Object object, Property property )
     {
-        object = HibernateUtils.unwrap( object );
+        object = HibernateProxyUtils.unproxy( object );
 
-        if ( Collection.class.isInstance( object ) )
+        if ( object instanceof Collection )
         {
             Collection<?> collection = (Collection<?>) object;
             List<Object> items = new ArrayList<>();
@@ -317,7 +321,7 @@ public class InMemoryQueryEngine<T extends IdentifiableObject>
             {
                 Object collect = collect( item, property );
 
-                if ( Collection.class.isInstance( collect ) )
+                if ( collect instanceof Collection )
                 {
                     items.addAll( ((Collection) collect) );
                 }

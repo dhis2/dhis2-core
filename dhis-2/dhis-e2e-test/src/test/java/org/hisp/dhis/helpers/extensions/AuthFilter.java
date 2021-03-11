@@ -1,7 +1,7 @@
 package org.hisp.dhis.helpers.extensions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,8 @@ public class AuthFilter
     implements io.restassured.spi.AuthFilter
 {
     private String lastLoggedInUser = "";
-    private String lastLoggedInUserPsw= "";
+
+    private String lastLoggedInUserPsw = "";
 
     @Override
     public Response filter( FilterableRequestSpecification requestSpec, FilterableResponseSpecification responseSpec,
@@ -61,7 +62,7 @@ public class AuthFilter
 
         if ( requestSpec.getAuthenticationScheme() instanceof PreemptiveBasicAuthScheme && (
             ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getUserName() != lastLoggedInUser ||
-            ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword() != lastLoggedInUserPsw ) )
+                ((PreemptiveBasicAuthScheme) requestSpec.getAuthenticationScheme()).getPassword() != lastLoggedInUserPsw) )
         {
             if ( hasSessionCookie( requestSpec ) )
             {

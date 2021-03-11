@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -53,15 +57,13 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.function.ThrowingRunnable;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.google.common.collect.Lists;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 /**
  * @author Lars Helge Overland
@@ -71,20 +73,30 @@ public class EventQueryValidatorTest
 {
     private Program prA;
 
+    private Program prB;
+
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
+
     private DataElement deD;
+
     private DataElement deE;
 
     private TrackedEntityAttribute atA;
+
     private TrackedEntityAttribute atB;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private LegendSet lsA;
+
     private OptionSet osA;
 
     @Autowired
@@ -110,14 +122,17 @@ public class EventQueryValidatorTest
         queryValidator = new DefaultEventQueryValidator( aggregateQueryValidator, systemSettingManager );
 
         prA = createProgram( 'A' );
-        prA.setUid( "programuida" );
+        prB = createProgram( 'B' );
 
         idObjectManager.save( prA );
+        idObjectManager.save( prB );
 
         deA = createDataElement( 'A', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
         deB = createDataElement( 'B', ValueType.INTEGER, AggregationType.SUM, DataElementDomain.TRACKER );
-        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
-        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT, DataElementDomain.TRACKER );
+        deC = createDataElement( 'C', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
+        deD = createDataElement( 'D', ValueType.INTEGER, AggregationType.AVERAGE_SUM_ORG_UNIT,
+            DataElementDomain.TRACKER );
         deE = createDataElement( 'E', ValueType.COORDINATE, AggregationType.NONE, DataElementDomain.TRACKER );
 
         idObjectManager.save( deA );
@@ -174,14 +189,46 @@ public class EventQueryValidatorTest
         queryValidator.validate( params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
+    public void validateSingleDataElementMultipleProgramsQueryItemSuccess()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .addItem( new QueryItem( deA, prB, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .build();
+
+        queryValidator.validate( params );
+    }
+
+    @Test
+    public void validateDuplicateQueryItems()
+    {
+        EventQueryParams params = new EventQueryParams.Builder()
+            .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
+            .withOrganisationUnits( Lists.newArrayList( ouA ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .addItem( new QueryItem( deA, prA, null, ValueType.TEXT, AggregationType.NONE, null ) )
+            .build();
+
+        ErrorMessage error = queryValidator.validateForErrorMessage( params );
+
+        assertEquals( ErrorCode.E7202, error.getErrorCode() );
+    }
+
+    @Test
     public void validateFailureNoStartEndDatePeriods()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
             .withOrganisationUnits( Lists.newArrayList( ouB ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7205, params );
     }
 
     @Test
@@ -196,8 +243,8 @@ public class EventQueryValidatorTest
         assertEquals( ErrorCode.E7205, error.getErrorCode() );
     }
 
-    @Test( expected = IllegalQueryException.class )
-    public void validateInvalidQueryItem()
+    @Test
+    public void validateInvalidQueryItemBothLegendSetAndOptionSet()
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
@@ -206,10 +253,10 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .addItem( new QueryItem( deA, lsA, ValueType.TEXT, AggregationType.NONE, osA ) ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7215, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateInvalidTimeField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
@@ -219,10 +266,10 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withTimeField( "notAUidOrTimeField" ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7210, params );
     }
 
-    @Test( expected = IllegalQueryException.class )
+    @Test
     public void validateInvalidOrgUnitField()
     {
         EventQueryParams params = new EventQueryParams.Builder()
@@ -232,7 +279,7 @@ public class EventQueryValidatorTest
             .withOrganisationUnits( Lists.newArrayList( ouA ) )
             .withOrgUnitField( "notAUid" ).build();
 
-        queryValidator.validate( params );
+        assertValidatonError( ErrorCode.E7211, params );
     }
 
     @Test
@@ -240,6 +287,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPage( -2 ).build();
 
@@ -253,6 +302,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withPageSize( -1 ).build();
 
@@ -269,6 +320,8 @@ public class EventQueryValidatorTest
 
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withLimit( 200 ).build();
 
@@ -282,6 +335,8 @@ public class EventQueryValidatorTest
     {
         EventQueryParams params = new EventQueryParams.Builder()
             .withProgram( prA )
+            .withStartDate( new DateTime( 2010, 6, 1, 0, 0 ).toDate() )
+            .withEndDate( new DateTime( 2012, 3, 20, 0, 0 ).toDate() )
             .withOrganisationUnits( Lists.newArrayList( ouB ) )
             .withCoordinateField( deE.getUid() )
             .withClusterSize( -3L ).build();
@@ -289,5 +344,19 @@ public class EventQueryValidatorTest
         ErrorMessage error = queryValidator.validateForErrorMessage( params );
 
         assertEquals( ErrorCode.E7212, error.getErrorCode() );
+    }
+
+    /**
+     * Asserts whether the given error code is thrown by the query validator for
+     * the given query.
+     *
+     * @param errorCode the {@link ErrorCode}.
+     * @param params the {@link DataQueryParams}.
+     */
+    private void assertValidatonError( final ErrorCode errorCode, final EventQueryParams params )
+    {
+        ThrowingRunnable runnable = () -> queryValidator.validate( params );
+        IllegalQueryException ex = assertThrows( "Error code mismatch", IllegalQueryException.class, runnable );
+        assertEquals( errorCode, ex.getErrorCode() );
     }
 }

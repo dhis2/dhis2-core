@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -75,7 +74,7 @@ public class ProgramStageObjectBundleHook
             return new ArrayList<>();
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         List<ErrorReport> errors = new ArrayList<>();
 
@@ -105,7 +104,7 @@ public class ProgramStageObjectBundleHook
             return;
         }
 
-        ProgramStage programStage = ( ProgramStage ) object;
+        ProgramStage programStage = (ProgramStage) object;
 
         Session session = sessionFactory.getCurrentSession();
 
@@ -171,7 +170,8 @@ public class ProgramStageObjectBundleHook
 
             if ( dataElement == null || !aclService.canRead( bundle.getUser(), de ) )
             {
-                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012, identifier.getIdentifiersWithName( bundle.getUser() ),
+                errors.add( new ErrorReport( DataElement.class, ErrorCode.E3012,
+                    identifier.getIdentifiersWithName( bundle.getUser() ),
                     identifier.getIdentifiersWithName( de ) ) );
             }
         } );

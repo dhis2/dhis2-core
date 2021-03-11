@@ -1,7 +1,5 @@
-package org.hisp.dhis.textpattern;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.textpattern;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,8 +41,9 @@ import java.util.stream.IntStream;
 public class TextPatternMethodUtils
 {
     /**
-     * Returns a random String based on the format. The format (As specified in TextPatternMethod) can contain '#' digits,
-     * 'X' capital letters and 'x' lower case letters.
+     * Returns a random String based on the format. The format (As specified in
+     * TextPatternMethod) can contain '#' digits, 'X' capital letters and 'x'
+     * lower case letters.
      *
      * @param random a Random object to generate random numbers
      * @param format the format (as specified in TextPatternMethod)
@@ -87,13 +87,15 @@ public class TextPatternMethodUtils
     }
 
     /**
-     * Takes a format (as specified in TextPatternMethod) and attempts to apply it to the text.
-     * If there is no match, the method returns null. This can happen if the text don't fit the format:
-     * There are more '.' characters than there are characters in the text
-     * Both '^' (start) and '$' end characters is present, but there is not an equal amount of '.' as characters in the text
+     * Takes a format (as specified in TextPatternMethod) and attempts to apply
+     * it to the text. If there is no match, the method returns null. This can
+     * happen if the text don't fit the format: There are more '.' characters
+     * than there are characters in the text Both '^' (start) and '$' end
+     * characters is present, but there is not an equal amount of '.' as
+     * characters in the text
      *
      * @param format the format defined (As specified in TextPatternMethod)
-     * @param text   the text to perform the format on.
+     * @param text the text to perform the format on.
      * @return the formatted text, or null if no match was found.
      */
     public static String formatText( String format, String text )

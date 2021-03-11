@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import static org.junit.Assert.assertEquals;
 
@@ -49,5 +48,13 @@ public class SqlUtilsTest
     {
         assertEquals( "ougs.\"Short name\"", SqlUtils.quote( "ougs", "Short name" ) );
         assertEquals( "ous.\"uid\"", SqlUtils.quote( "ous", "uid" ) );
+    }
+
+    @Test
+    public void testSingleQuote()
+    {
+        assertEquals( "'jkhYg65ThbF'", SqlUtils.singleQuote( "jkhYg65ThbF" ) );
+        assertEquals( "'Some ''special'' value'", SqlUtils.singleQuote( "Some 'special' value" ) );
+        assertEquals( "'Another \"strange\" value'", SqlUtils.singleQuote( "Another \"strange\" value" ) );
     }
 }

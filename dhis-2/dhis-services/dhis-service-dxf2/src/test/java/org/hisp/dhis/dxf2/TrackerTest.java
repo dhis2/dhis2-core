@@ -1,8 +1,35 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.dxf2;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.fail;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,6 +82,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -95,7 +123,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     protected TrackedEntityType trackedEntityTypeA;
 
     protected OrganisationUnit organisationUnitA;
-    
+
     protected OrganisationUnit organisationUnitB;
 
     protected Program programA;
@@ -106,7 +134,10 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     protected RelationshipType relationshipType;
 
-    protected final static String DEF_COC_UID = CodeGenerator.generateUid();
+    /**
+     * Default COC created in DefaultCategoryService
+     */
+    protected final static String DEF_COC_UID = "HllvX50cXC0";
 
     @Override
     protected void setUpTest()
@@ -120,7 +151,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitA.setUid( CodeGenerator.generateUid() );
         organisationUnitA.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
-        
+
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitB.setUid( CodeGenerator.generateUid() );
         organisationUnitB.setCode( RandomStringUtils.randomAlphanumeric( 10 ) );
@@ -158,28 +189,20 @@ public abstract class TrackerTest extends IntegrationTestBase
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeA );
 
             manager.save( organisationUnitA );
-            
+
             manager.save( organisationUnitB );
 
             manager.save( categoryComboA );
 
-            manager.save( defaultCategoryOptionCombo );
-
             manager.save( programA );
 
             manager.save( relationshipType );
-            
+
         } );
 
         super.userService = this.userService;
 
         mockCurrentUserService();
-    }
-
-    @Override
-    public void tearDownTest()
-    {
-        dbmsManager.emptyDatabase();
     }
 
     public TrackedEntityInstance persistTrackedEntityInstance()
@@ -310,6 +333,8 @@ public abstract class TrackerTest extends IntegrationTestBase
         {
             List<Event> eventList = new ArrayList<>();
 
+            String now = DateUtils.getIso8601NoTz( new Date() );
+
             for ( int i = 0; i < events; i++ )
             {
                 Event event1 = new Event();
@@ -322,11 +347,11 @@ public abstract class TrackerTest extends IntegrationTestBase
                 event1.setTrackedEntityInstance( trackedEntityInstance.getUid() );
                 event1.setOrgUnit( organisationUnitA.getUid() );
                 event1.setAttributeOptionCombo( DEF_COC_UID );
-                event1.setCreatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
-                event1.setLastUpdatedAtClient( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
-                event1.setCompletedDate( DateTimeFormatter.ISO_DATE_TIME.format( LocalDateTime.now() ) );
+                event1.setCreatedAtClient( now );
+                event1.setLastUpdatedAtClient( now );
+                event1.setCompletedDate( now );
                 event1.setCompletedBy( "[Unknown]" );
-                
+
                 eventList.add( event1 );
             }
 
@@ -369,12 +394,12 @@ public abstract class TrackerTest extends IntegrationTestBase
         ProgramStage programStage = createProgramStage( '1', program );
         programStage.setUid( CodeGenerator.generateUid() );
         programStage.setRepeatable( true );
-        
+
         if ( publicAccess )
         {
             programStage.setPublicAccess( AccessStringHelper.FULL );
         }
-        
+
         doInTransaction( () -> manager.save( programStage ) );
 
         return programStage;
@@ -401,7 +426,7 @@ public abstract class TrackerTest extends IntegrationTestBase
         UserAuthorityGroup userAuthorityGroup1Super = new UserAuthorityGroup();
         userAuthorityGroup1Super.setUid( "uid4" );
         userAuthorityGroup1Super
-                .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
+            .setAuthorities( new HashSet<>( Arrays.asList( "z1", UserAuthorityGroup.AUTHORITY_ALL ) ) );
         userCredentials.setUserAuthorityGroups( Sets.newHashSet( userAuthorityGroup1Super ) );
         user.setUserCredentials( userCredentials );
     }

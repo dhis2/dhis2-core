@@ -1,7 +1,5 @@
-package org.hisp.dhis.reservedvalue.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.reservedvalue.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
-import org.springframework.stereotype.Repository;
+package org.hisp.dhis.reservedvalue.hibernate;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.reservedvalue.SequentialNumberCounterStore;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Stian Sandvold
@@ -54,10 +53,10 @@ public class HibernateSequentialNumberCounterStore
     public List<Integer> getNextValues( String uid, String key, int length )
     {
         int count = (int) sessionFactory.getCurrentSession()
-            .createNativeQuery( "SELECT * FROM incrementSequentialCounter(?0, ?1, ?2)" )
-            .setParameter( 0, uid )
-            .setParameter( 1, key )
-            .setParameter( 2, length )
+            .createNativeQuery( "SELECT * FROM incrementSequentialCounter(:uid, :key, :length)" )
+            .setParameter( "uid", uid )
+            .setParameter( "key", key )
+            .setParameter( "length", length )
             .uniqueResult();
 
         return IntStream.range( count - length, length + (count - length) ).boxed().collect( Collectors.toList() );

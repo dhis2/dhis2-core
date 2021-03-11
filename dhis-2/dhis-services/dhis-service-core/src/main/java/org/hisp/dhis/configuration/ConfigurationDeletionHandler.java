@@ -1,7 +1,5 @@
-package org.hisp.dhis.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
-import org.apache.commons.lang3.StringUtils;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.indicator.IndicatorGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserGroup;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -48,9 +47,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ConfigurationDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( Configuration.class );
 
     private final ConfigurationService configService;
 
@@ -61,61 +58,61 @@ public class ConfigurationDeletionHandler
         this.configService = configService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return Configuration.class.getSimpleName();
+        whenVetoing( UserGroup.class, this::allowDeleteUserGroup );
+        whenVetoing( DataElementGroup.class, this::allowDeleteDataElementGroup );
+        whenVetoing( IndicatorGroup.class, this::allowDeleteIndicatorGroup );
+        whenVetoing( OrganisationUnitLevel.class, this::allowDeleteOrganisationUnitLevel );
+        whenVetoing( OrganisationUnit.class, this::allowDeleteOrganisationUnit );
+        whenVetoing( UserAuthorityGroup.class, this::allowDeleteUserAuthorityGroup );
     }
 
-    @Override
-    public String allowDeleteUserGroup( UserGroup userGroup )
+    private DeletionVeto allowDeleteUserGroup( UserGroup userGroup )
     {
         UserGroup feedbackRecipients = configService.getConfiguration().getFeedbackRecipients();
 
-        return ( feedbackRecipients != null && feedbackRecipients.equals( userGroup ) ) ? StringUtils.EMPTY : null;
+        return (feedbackRecipients != null && feedbackRecipients.equals( userGroup )) ? VETO : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
+    private DeletionVeto allowDeleteDataElementGroup( DataElementGroup dataElementGroup )
     {
-        DataElementGroup infrastructuralDataElements = configService.getConfiguration().getInfrastructuralDataElements();
+        DataElementGroup infrastructuralDataElements = configService.getConfiguration()
+            .getInfrastructuralDataElements();
 
-        return ( infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ) ) ? StringUtils.EMPTY : null;
+        return (infrastructuralDataElements != null && infrastructuralDataElements.equals( dataElementGroup ))
+            ? VETO
+            : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
+    private DeletionVeto allowDeleteIndicatorGroup( IndicatorGroup indicatorGroup )
     {
         IndicatorGroup infrastructuralIndicators = configService.getConfiguration().getInfrastructuralIndicators();
 
-        return ( infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ) ) ? StringUtils.EMPTY : null;
+        return (infrastructuralIndicators != null && infrastructuralIndicators.equals( indicatorGroup ))
+            ? VETO
+            : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
+    private DeletionVeto allowDeleteOrganisationUnitLevel( OrganisationUnitLevel level )
     {
         OrganisationUnitLevel offlineLevel = configService.getConfiguration().getOfflineOrganisationUnitLevel();
 
-        return ( offlineLevel != null && offlineLevel.equals( level ) ) ? StringUtils.EMPTY : null;
+        return (offlineLevel != null && offlineLevel.equals( level )) ? VETO : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
+    private DeletionVeto allowDeleteOrganisationUnit( OrganisationUnit organisationUnit )
     {
         OrganisationUnit selfRegOrgUnit = configService.getConfiguration().getSelfRegistrationOrgUnit();
 
-        return ( selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit ) ) ? StringUtils.EMPTY : null;
+        return (selfRegOrgUnit != null && selfRegOrgUnit.equals( organisationUnit )) ? VETO : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
+    private DeletionVeto allowDeleteUserAuthorityGroup( UserAuthorityGroup userAuthorityGroup )
     {
         UserAuthorityGroup selfRegRole = configService.getConfiguration().getSelfRegistrationRole();
 
-        return ( selfRegRole != null && selfRegRole.equals( userAuthorityGroup ) ) ? StringUtils.EMPTY : null;
+        return (selfRegRole != null && selfRegRole.equals( userAuthorityGroup )) ? VETO : ACCEPT;
     }
 }

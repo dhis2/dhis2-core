@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import java.util.Iterator;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -36,13 +41,9 @@ import org.hisp.dhis.dataset.DataSetElement;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import java.util.Iterator;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 
 /**
  * @author Lars Helge Overland
@@ -51,6 +52,8 @@ import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 public class DataElementDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( DataElement.class );
+
     private final IdentifiableObjectManager idObjectManager;
 
     private final CategoryService categoryService;
@@ -69,18 +72,17 @@ public class DataElementDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataElement.class.getSimpleName();
+        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
+        whenDeleting( DataSet.class, this::deleteDataSet );
+        whenDeleting( DataElementGroup.class, this::deleteDataElementGroup );
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
+        whenVetoing( OptionSet.class, this::allowDeleteOptionSet );
     }
 
-    @Override
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
         CategoryCombo defaultCategoryCombo = categoryService
             .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
@@ -96,8 +98,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteDataSet( DataSet dataSet )
     {
         Iterator<DataSetElement> elements = dataSet.getDataSetElements().iterator();
 
@@ -111,8 +112,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataElementGroup( DataElementGroup group )
+    private void deleteDataElementGroup( DataElementGroup group )
     {
         for ( DataElement element : group.getMembers() )
         {
@@ -121,8 +121,7 @@ public class DataElementDeletionHandler
         }
     }
 
-    @Override
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
         for ( DataElement element : idObjectManager.getAllNoAcl( DataElement.class ) )
         {
@@ -137,11 +136,10 @@ public class DataElementDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteOptionSet( OptionSet optionSet )
+    private DeletionVeto allowDeleteOptionSet( OptionSet optionSet )
     {
         String sql = "SELECT COUNT(*) FROM dataelement WHERE optionsetid = " + optionSet.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

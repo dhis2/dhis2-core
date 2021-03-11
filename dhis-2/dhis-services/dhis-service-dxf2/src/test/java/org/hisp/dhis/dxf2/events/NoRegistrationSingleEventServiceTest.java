@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
 
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
+import java.util.Date;
+import java.util.HashSet;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,16 +57,11 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.*;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class NoRegistrationSingleEventServiceTest
-    extends DhisSpringTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private EventService eventService;
@@ -87,6 +88,12 @@ public class NoRegistrationSingleEventServiceTest
     private Program programA;
 
     private ProgramStage programStageA;
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
+    }
 
     @Override
     protected void setUpTest()

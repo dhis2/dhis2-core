@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,185 +25,537 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.programrule;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
+import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
+import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.junit.Assert.*;
+import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import java.util.*;
+
+import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.preheat.PreheatIdentifier;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionService;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
-import org.hisp.dhis.render.RenderFormat;
-import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.rules.models.*;
+import org.hisp.dhis.setting.SettingKey;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
-import org.hisp.dhis.tracker.bundle.TrackerBundleService;
-import org.hisp.dhis.tracker.domain.Attribute;
-import org.hisp.dhis.tracker.domain.DataValue;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.validation.AbstractImportValidationTest;
-import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.tracker.domain.*;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.programrule.implementers.AssignValueImplementer;
+import org.junit.Before;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import static org.junit.Assert.*;
-
+@RunWith( MockitoJUnitRunner.class )
 public class AssignValueImplementerTest
-    extends AbstractImportValidationTest
+    extends DhisConvenienceTest
 {
-    @Autowired
-    private ObjectBundleService objectBundleService;
+    private final static String TRACKED_ENTITY_ID = "TrackedEntityUid";
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+    private final static String FIRST_ENROLLMENT_ID = "ActiveEnrollmentUid";
 
-    @Autowired
-    private RenderService _renderService;
+    private final static String SECOND_ENROLLMENT_ID = "CompletedEnrollmentUid";
 
-    @Autowired
-    private UserService _userService;
+    private final static String FIRST_EVENT_ID = "EventUid";
 
-    @Autowired
-    private TrackerBundleService trackerBundleService;
+    private final static String SECOND_EVENT_ID = "CompletedEventUid";
 
-    @Autowired
-    private ProgramRuleService programRuleService;
+    private final static String DATA_ELEMENT_ID = "DataElementId";
 
-    @Autowired
-    private ProgramRuleActionService programRuleActionService;
+    private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
-    @Autowired
-    private ProgramRuleVariableService programRuleVariableService;
+    private final static String ATTRIBUTE_ID = "AttributeId";
 
-    @Autowired
-    private AssignValueImplementer implementerToTest;
+    private final static String DATA_ELEMENT_OLD_VALUE = "1";
+
+    private final static String DATA_ELEMENT_NEW_VALUE_PAYLOAD = "23";
 
     private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
 
+    private final static String TEI_ATTRIBUTE_OLD_VALUE = "10.0";
+
     private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
 
-    @Override
-    protected void setUpTest()
-        throws IOException
+    private static ProgramStage firstProgramStage;
+
+    private static ProgramStage secondProgramStage;
+
+    private static DataElement dataElementA;
+
+    private static DataElement dataElementB;
+
+    private static TrackedEntityAttribute attributeA;
+
+    private TrackerBundle bundle;
+
+    @Mock
+    private TrackerPreheat preheat;
+
+    @Mock
+    private SystemSettingManager systemSettingManager;
+
+    @InjectMocks
+    private AssignValueImplementer implementerToTest;
+
+    @Before
+    public void setUpTest()
     {
-        renderService = _renderService;
-        userService = _userService;
+        firstProgramStage = createProgramStage( 'A', 0 );
+        firstProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
+        attributeA = createTrackedEntityAttribute( 'A' );
+        attributeA.setUid( ATTRIBUTE_ID );
+        attributeA.setValueType( ValueType.NUMBER );
 
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
+        dataElementA = createDataElement( 'A' );
+        dataElementA.setUid( DATA_ELEMENT_ID );
+        ProgramStageDataElement programStageDataElementA = createProgramStageDataElement( firstProgramStage,
+            dataElementA, 0 );
+        firstProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementA ) );
 
-        ObjectBundle bundle = objectBundleService.create( params );
-        ObjectBundleValidationReport validationReport = objectBundleValidationService.validate( bundle );
-        assertTrue( validationReport.getErrorReports().isEmpty() );
+        secondProgramStage = createProgramStage( 'B', 0 );
+        secondProgramStage.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
 
-        objectBundleService.commit( bundle );
+        dataElementB = createDataElement( 'B' );
+        dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
+        ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
+            dataElementB, 0 );
+        secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
 
-        Program program = bundle.getPreheat().get( PreheatIdentifier.UID, Program.class, "BFcipDERJne" );
-        DataElement dataElement = bundle.getPreheat()
-            .get( PreheatIdentifier.UID, DataElement.class, "DSKTW8qFP0z" );
-        TrackedEntityAttribute attribute = bundle.getPreheat()
-            .get( PreheatIdentifier.UID, TrackedEntityAttribute.class, "sYn3tkL3XKa" );
-        ProgramRuleVariable programRuleVariable = createProgramRuleVariable( 'A', program );
-        programRuleVariable.setDataElement( dataElement );
-        programRuleVariable.setSourceType( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT );
-        programRuleVariableService.addProgramRuleVariable( programRuleVariable );
+        when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
+        when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
+        when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
 
-        ProgramRule programRule = createProgramRule( 'A',
-            program );
-        programRuleService.addProgramRule( programRule );
+        bundle = new TrackerBundle();
+        bundle.setPreheat( preheat );
 
-        ProgramRuleAction programRuleActionAssignDataElement = createProgramRuleAction( 'A', programRule );
-        programRuleActionAssignDataElement.setProgramRuleActionType( ProgramRuleActionType.ASSIGN );
-        programRuleActionAssignDataElement.setDataElement( dataElement );
-        programRuleActionAssignDataElement.setData( DATA_ELEMENT_NEW_VALUE );
-        programRuleActionService.addProgramRuleAction( programRuleActionAssignDataElement );
-
-        ProgramRuleAction programRuleActionAssignAttribute = createProgramRuleAction( 'C', programRule );
-        programRuleActionAssignAttribute.setProgramRuleActionType( ProgramRuleActionType.ASSIGN );
-        programRuleActionAssignAttribute.setAttribute( attribute );
-        programRuleActionAssignAttribute.setData( TEI_ATTRIBUTE_NEW_VALUE );
-        programRuleActionService.addProgramRuleAction( programRuleActionAssignAttribute );
-
-        ProgramRule programRule2 = createProgramRule( 'B',
-            program );
-        programRule2.setCondition( "d2:hasValue(#{ProgramRuleVariableA})" );
-        programRuleService.addProgramRule( programRule2 );
-        ProgramRuleAction programRuleAction2 = createProgramRuleAction( 'B', programRule2 );
-        programRuleAction2.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
-        programRuleAction2.setContent( "SHOW ERROR DATA" );
-        programRuleActionService.addProgramRuleAction( programRuleAction2 );
-
-        programRule.setProgramRuleActions(
-            Sets.newHashSet( programRuleActionAssignDataElement, programRuleActionAssignAttribute ) );
-        programRuleService.updateProgramRule( programRule );
-        programRule2.setProgramRuleActions( Sets.newHashSet( programRuleAction2 ) );
-        programRuleService.updateProgramRule( programRule2 );
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.FALSE );
     }
 
     @Test
-    public void testAssignDataElementValueForEvents()
-        throws IOException
+    public void testAssignDataElementValueForEventsWhenDataElementIsEmpty()
     {
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/event_events_and_enrollment.json" );
+        List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSet() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
-
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
-
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
-
-        Event event = updatedBundle.getEvents().stream().filter( e -> e.getEvent().equals( "D9PbzJY8bJO" ) )
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) )
             .findAny().get();
-        DataValue dataElement = event.getDataValues().stream()
-            .filter( dv -> dv.getDataElement().equals( "DSKTW8qFP0z" ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
 
-        assertEquals( DATA_ELEMENT_NEW_VALUE, dataElement.getValue() );
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( SECOND_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( SECOND_EVENT_ID ).get( 0 ).getIssueType() );
     }
 
     @Test
-    public void testAssignAttributeValueForEnrollment()
-        throws IOException
+    public void testAssignDataElementValueForEventsWhenDataElementIsEmptyAndFromDifferentProgramStage()
     {
-        TrackerBundleParams bundleParams = createBundleFromJson( "tracker/enrollment.json" );
+        List<Event> events = Lists.newArrayList( getEventWithDataValueNOTSetInDifferentProgramStage() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( bundleParams );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
 
-        trackerBundle = trackerBundleService.runRuleEngine( trackerBundle );
+        assertTrue( !newDataValue.isPresent() );
+        assertTrue( eventIssues.isEmpty() );
+    }
 
-        TrackerBundle updatedBundle = implementerToTest.executeActions( trackerBundle );
+    @Test
+    public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresent()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
 
-        Enrollment enrollment = updatedBundle.getEnrollments().get( 0 );
-        assertNotNull( enrollment );
-        Attribute attribute = trackerBundle.getTrackedEntities().get( 0 ).getAttributes().stream()
-            .filter( a -> a.getAttribute().equals( "sYn3tkL3XKa" ) ).findAny().get();
-        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.getValue() );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_OLD_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndHasSameValue()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSetSameValue() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignDataElementValueForEventsWhenDataElementIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
+    {
+        List<Event> events = Lists.newArrayList( getEventWithDataValueSet() );
+        bundle.setEvents( events );
+        bundle.setEventRuleEffects( getRuleEventEffects( events ) );
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) )
+            .findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
+
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsEmpty()
+    {
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeNOTSet() );
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        bundle.setTrackedEntities( trackedEntities );
+        bundle.setEnrollments( enrollments );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            SECOND_ENROLLMENT_ID ) ).findAny().get();
+        Optional<Attribute> attribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertTrue( attribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresent()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            FIRST_ENROLLMENT_ID ) ).findAny().get();
+        Optional<Attribute> attribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertTrue( attribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, attribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
+        assertEquals( ERROR, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTei()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setTrackedEntities( trackedEntities );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            SECOND_ENROLLMENT_ID ) ).findAny().get();
+        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream().filter( e -> e.getTrackedEntity().equals(
+            TRACKED_ENTITY_ID ) ).findAny().get();
+        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertFalse( enrollmentAttribute.isPresent() );
+        assertTrue( teiAttribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_OLD_VALUE, teiAttribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
+        assertEquals( ERROR, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentInTeiAndCanBeOverwritten()
+    {
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeNOTSet() );
+        List<TrackedEntity> trackedEntities = Lists.newArrayList( getTrackedEntitiesWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setTrackedEntities( trackedEntities );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            SECOND_ENROLLMENT_ID ) ).findAny().get();
+        TrackedEntity trackedEntity = bundle.getTrackedEntities().stream().filter( e -> e.getTrackedEntity().equals(
+            TRACKED_ENTITY_ID ) ).findAny().get();
+        Optional<Attribute> enrollmentAttribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+        Optional<Attribute> teiAttribute = trackedEntity.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertFalse( enrollmentAttribute.isPresent() );
+        assertTrue( teiAttribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, teiAttribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( SECOND_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndHasTheSameValue()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSetSameValue() );
+        bundle.setEnrollments( enrollments );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            FIRST_ENROLLMENT_ID ) ).findAny().get();
+        Optional<Attribute> attribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertTrue( attribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    public void testAssignAttributeValueForEnrollmentsWhenAttributeIsAlreadyPresentAndSystemSettingToOverwriteIsTrue()
+    {
+        List<Enrollment> enrollments = Lists.newArrayList( getEnrollmentWithAttributeSet() );
+        bundle.setEnrollments( enrollments );
+        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects( enrollments ) );
+        when( systemSettingManager.getSystemSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        Map<String, List<ProgramRuleIssue>> enrollmentIssues = implementerToTest.validateEnrollments( bundle );
+
+        Enrollment enrollment = bundle.getEnrollments().stream().filter( e -> e.getEnrollment().equals(
+            FIRST_ENROLLMENT_ID ) ).findAny().get();
+        Optional<Attribute> attribute = enrollment.getAttributes().stream()
+            .filter( at -> at.getAttribute().equals( ATTRIBUTE_ID ) ).findAny();
+
+        assertTrue( attribute.isPresent() );
+        assertEquals( TEI_ATTRIBUTE_NEW_VALUE, attribute.get().getValue() );
+        assertEquals( 1, enrollmentIssues.size() );
+        assertEquals( 1, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).size() );
+        assertEquals( WARNING, enrollmentIssues.get( FIRST_ENROLLMENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    private Event getEventWithDataValueSet()
+    {
+        Event event = new Event();
+        event.setUid( FIRST_EVENT_ID );
+        event.setEvent( FIRST_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+        event.setDataValues( getEventDataValues() );
+
+        return event;
+    }
+
+    private Event getEventWithDataValueSetSameValue()
+    {
+        Event event = new Event();
+        event.setUid( FIRST_EVENT_ID );
+        event.setEvent( FIRST_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+        event.setDataValues( getEventDataValuesSameValue() );
+
+        return event;
+    }
+
+    private Event getEventWithDataValueNOTSet()
+    {
+        Event event = new Event();
+        event.setUid( SECOND_EVENT_ID );
+        event.setEvent( SECOND_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( firstProgramStage.getUid() );
+
+        return event;
+    }
+
+    private Event getEventWithDataValueNOTSetInDifferentProgramStage()
+    {
+        Event event = new Event();
+        event.setUid( SECOND_EVENT_ID );
+        event.setEvent( SECOND_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( secondProgramStage.getUid() );
+
+        return event;
+    }
+
+    private Set<DataValue> getEventDataValues()
+    {
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( DATA_ELEMENT_OLD_VALUE );
+        dataValue.setDataElement( DATA_ELEMENT_ID );
+        return Sets.newHashSet( dataValue );
+    }
+
+    private Set<DataValue> getEventDataValuesSameValue()
+    {
+        DataValue dataValue = new DataValue();
+        dataValue.setValue( DATA_ELEMENT_NEW_VALUE_PAYLOAD );
+        dataValue.setDataElement( DATA_ELEMENT_ID );
+        return Sets.newHashSet( dataValue );
+    }
+
+    private Enrollment getEnrollmentWithAttributeSet()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( FIRST_ENROLLMENT_ID );
+        enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
+        enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        enrollment.setAttributes( getAttributes() );
+
+        return enrollment;
+    }
+
+    private Enrollment getEnrollmentWithAttributeSetSameValue()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( FIRST_ENROLLMENT_ID );
+        enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
+        enrollment.setStatus( EnrollmentStatus.ACTIVE );
+        enrollment.setAttributes( getAttributesSameValue() );
+
+        return enrollment;
+    }
+
+    private TrackedEntity getTrackedEntitiesWithAttributeSet()
+    {
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_ID );
+        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
+        trackedEntity.setAttributes( getAttributes() );
+
+        return trackedEntity;
+    }
+
+    private TrackedEntity getTrackedEntitiesWithAttributeNOTSet()
+    {
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_ID );
+        trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
+
+        return trackedEntity;
+    }
+
+    private Enrollment getEnrollmentWithAttributeNOTSet()
+    {
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( SECOND_ENROLLMENT_ID );
+        enrollment.setEnrollment( SECOND_ENROLLMENT_ID );
+        enrollment.setStatus( EnrollmentStatus.COMPLETED );
+        enrollment.setTrackedEntity( TRACKED_ENTITY_ID );
+
+        return enrollment;
+    }
+
+    private List<Attribute> getAttributes()
+    {
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( ATTRIBUTE_ID );
+        attribute.setValue( TEI_ATTRIBUTE_OLD_VALUE );
+        return Lists.newArrayList( attribute );
+    }
+
+    private List<Attribute> getAttributesSameValue()
+    {
+        Attribute attribute = new Attribute();
+        attribute.setAttribute( ATTRIBUTE_ID );
+        attribute.setValue( TEI_ATTRIBUTE_NEW_VALUE );
+        return Lists.newArrayList( attribute );
+    }
+
+    private Map<String, List<RuleEffect>> getRuleEventEffects( List<Event> events )
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
+
+        for ( Event event : events )
+        {
+            ruleEffectsByEvent.put( event.getEvent(), getRuleEventEffects() );
+
+        }
+        return ruleEffectsByEvent;
+    }
+
+    private Map<String, List<RuleEffect>> getRuleEnrollmentEffects( List<Enrollment> enrollments )
+    {
+        Map<String, List<RuleEffect>> ruleEffectsByEnrollment = Maps.newHashMap();
+
+        for ( Enrollment enrollment : enrollments )
+        {
+            ruleEffectsByEnrollment.put( enrollment.getEnrollment(), getRuleEnrollmentEffects() );
+
+        }
+        return ruleEffectsByEnrollment;
+    }
+
+    private List<RuleEffect> getRuleEventEffects()
+    {
+        RuleAction actionAssign = RuleActionAssign
+            .create( null, DATA_ELEMENT_NEW_VALUE, dataElementA.getUid(), DATA_ELEMENT );
+
+        return Lists.newArrayList( RuleEffect.create( "", actionAssign, DATA_ELEMENT_NEW_VALUE ) );
+    }
+
+    private List<RuleEffect> getRuleEnrollmentEffects()
+    {
+        RuleAction actionAssign = RuleActionAssign
+            .create( null, TEI_ATTRIBUTE_NEW_VALUE, ATTRIBUTE_ID, TRACKED_ENTITY_ATTRIBUTE );
+
+        return Lists.newArrayList( RuleEffect.create( "", actionAssign, TEI_ATTRIBUTE_NEW_VALUE ) );
     }
 }

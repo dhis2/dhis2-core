@@ -1,6 +1,5 @@
-package org.hisp.dhis.appmanager;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.jclouds.blobstore.options.ListContainerOptions.Builder.prefix;
@@ -271,13 +271,71 @@ public class JCloudsAppStorageService
         return reservedNamespaces;
     }
 
+    private boolean validateApp( App app, Cache<App> appCache )
+    {
+        // -----------------------------------------------------------------
+        // Check if app with same key is currently being deleted
+        // (deletion_in_progress)
+        // -----------------------------------------------------------------
+        Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
+        if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
+        {
+            log.error( "Failed to install app: App with same name is currently being deleted" );
+
+            app.setAppState( AppStatus.DELETION_IN_PROGRESS );
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // Check for namespace and if it's already taken by another app
+        // -----------------------------------------------------------------
+
+        String namespace = app.getActivities().getDhis().getNamespace();
+
+        if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
+        {
+            log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
+                app.getName(), namespace ) );
+
+            app.setAppState( AppStatus.NAMESPACE_TAKEN );
+            return false;
+        }
+
+        // -----------------------------------------------------------------
+        // Check that, iff this is a bundled app, it is configured as a core app
+        // -----------------------------------------------------------------
+
+        if ( app.isBundled() != app.isCoreApp() )
+        {
+            if ( app.isBundled() )
+            {
+                log.error(
+                    String.format(
+                        "Failed to install app '%s': bundled app overrides muse be declared with core_app=true",
+                        app.getShortName() ) );
+                app.setAppState( AppStatus.INVALID_BUNDLED_APP_OVERRIDE );
+            }
+            else
+            {
+                log.error(
+                    String.format(
+                        "Failed to install app '%s': apps declared with core_app=true must override a bundled app",
+                        app.getShortName() ) );
+                app.setAppState( AppStatus.INVALID_CORE_APP );
+            }
+
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public App installApp( File file, String filename, Cache<App> appCache )
     {
         App app = new App();
         log.info( "Installing new app: " + filename );
 
-        try (ZipFile zip = new ZipFile( file ))
+        try ( ZipFile zip = new ZipFile( file ) )
         {
             // -----------------------------------------------------------------
             // Parse ZIP file and it's manifest.webapp file.
@@ -301,34 +359,13 @@ public class JCloudsAppStorageService
             app.setFolderName( APPS_DIR + File.separator + filename.substring( 0, filename.lastIndexOf( '.' ) ) );
             app.setAppStorageSource( AppStorageSource.JCLOUDS );
 
-            // -----------------------------------------------------------------
-            // Check if app with same key is currently being deleted (deletion_in_progress)
-            // -----------------------------------------------------------------
-            Optional<App> existingApp = appCache.getIfPresent( app.getKey() );
-            if ( existingApp.isPresent() && existingApp.get().getAppState() == AppStatus.DELETION_IN_PROGRESS )
+            if ( !this.validateApp( app, appCache ) )
             {
-                log.error( "Failed to install app: App with same name is currently being deleted" );
-
                 zip.close();
-                app.setAppState( AppStatus.DELETION_IN_PROGRESS );
                 return app;
             }
-
-            // -----------------------------------------------------------------
-            // Check for namespace and if it's already taken by another app
-            // -----------------------------------------------------------------
 
             String namespace = app.getActivities().getDhis().getNamespace();
-
-            if ( namespace != null && !namespace.isEmpty() && app.equals( reservedNamespaces.get( namespace ) ) )
-            {
-                log.error( String.format( "Failed to install app '%s': Namespace '%s' already taken.",
-                    app.getName(), namespace ) );
-
-                zip.close();
-                app.setAppState( AppStatus.NAMESPACE_TAKEN );
-                return app;
-            }
 
             // -----------------------------------------------------------------
             // Unzip the app
@@ -361,9 +398,9 @@ public class JCloudsAppStorageService
             } );
 
             log.info( String.format( ""
-                    + "New app '%s' installed"
-                    + "\n\tInstall path: %s"
-                    + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
+                + "New app '%s' installed"
+                + "\n\tInstall path: %s"
+                + (namespace != null && !namespace.isEmpty() ? "\n\tNamespace reserved: %s" : ""),
                 app.getName(), dest, namespace ) );
 
             // -----------------------------------------------------------------
@@ -523,8 +560,8 @@ public class JCloudsAppStorageService
                 if ( container != null )
                 {
                     log.warn( String.format( "Container name '%s' is illegal. " +
-                            "Standard domain name naming conventions apply (no underscores allowed). " +
-                            "Using default container name ' %s'", container,
+                        "Standard domain name naming conventions apply (no underscores allowed). " +
+                        "Using default container name ' %s'", container,
                         ConfigurationKey.FILESTORE_CONTAINER.getDefaultValue() ) );
                 }
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
@@ -41,19 +40,18 @@ import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.ValidationMode;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Note;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
@@ -65,9 +63,6 @@ public class EventNoteValidationHookTest
     // Class under test
     private EventNoteValidationHook hook;
 
-    @Mock
-    private TrackedEntityAttributeService teAttrService;
-
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -78,24 +73,25 @@ public class EventNoteValidationHookTest
     @Before
     public void setUp()
     {
-        this.hook = new EventNoteValidationHook( teAttrService );
+        this.hook = new EventNoteValidationHook();
         rnd = new BeanRandomizer();
         event = rnd.randomObject( Event.class );
     }
 
     @Test
-    public void testNoteWithExistingUidFails()
+    public void testNoteWithExistingUidWarnings()
     {
         // Given
         final Note note = rnd.randomObject( Note.class );
 
         TrackerBundle trackerBundle = mock( TrackerBundle.class );
         TrackerImportValidationContext ctx = mock( TrackerImportValidationContext.class );
-
+        TrackerPreheat preheat = mock( TrackerPreheat.class );
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
+        when( trackerBundle.getPreheat() ).thenReturn( preheat );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -103,8 +99,8 @@ public class EventNoteValidationHookTest
         this.hook.validateEvent( reporter, event );
 
         // Then
-        assertTrue( reporter.hasErrors() );
-        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E1119 ) );
+        assertTrue( reporter.hasWarnings() );
+        assertThat( reporter.getWarningsReportList().get( 0 ).getWarningCode(), is( TrackerErrorCode.E1119 ) );
         assertThat( event.getNotes(), hasSize( 0 ) );
     }
 
@@ -120,7 +116,7 @@ public class EventNoteValidationHookTest
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
         when( ctx.getNote( note.getNote() ) ).thenReturn( Optional.of( new TrackedEntityComment() ) );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( Collections.singletonList( note ) );
 
@@ -142,7 +138,7 @@ public class EventNoteValidationHookTest
 
         when( ctx.getBundle() ).thenReturn( trackerBundle );
         when( trackerBundle.getValidationMode() ).thenReturn( ValidationMode.FULL );
-        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, Note.class );
+        ValidationErrorReporter reporter = new ValidationErrorReporter( ctx, event );
 
         event.setNotes( notes );
 
@@ -153,6 +149,5 @@ public class EventNoteValidationHookTest
         assertFalse( reporter.hasErrors() );
         assertThat( event.getNotes(), hasSize( 5 ) );
     }
-
 
 }

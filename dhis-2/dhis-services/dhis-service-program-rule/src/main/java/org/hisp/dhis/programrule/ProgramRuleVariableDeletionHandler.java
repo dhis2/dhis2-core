@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,21 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
-import java.util.stream.Collectors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author markusbekken
@@ -47,10 +48,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ProgramRuleVariableDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final ProgramRuleVariableService programRuleVariableService;
 
     public ProgramRuleVariableDeletionHandler( ProgramRuleVariableService programRuleVariableService )
@@ -59,17 +56,14 @@ public class ProgramRuleVariableDeletionHandler
         this.programRuleVariableService = programRuleVariableService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return ProgramRuleVariable.class.getSimpleName();
+        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
+        whenDeleting( Program.class, this::deleteProgram );
     }
 
-    @Override
-    public String allowDeleteProgramStage( ProgramStage programStage )
+    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         String programRuleVariables = programRuleVariableService
             .getProgramRuleVariable( programStage.getProgram() )
@@ -78,11 +72,12 @@ public class ProgramRuleVariableDeletionHandler
             .map( BaseIdentifiableObject::getName )
             .collect( Collectors.joining( ", " ) );
 
-        return StringUtils.isBlank( programRuleVariables ) ? null : programRuleVariables;
+        return StringUtils.isBlank( programRuleVariables )
+            ? ACCEPT
+            : new DeletionVeto( ProgramRuleVariable.class, programRuleVariables );
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
         for ( ProgramRuleVariable programRuleVariable : programRuleVariableService.getProgramRuleVariable( program ) )
         {

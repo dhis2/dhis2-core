@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.handler;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.webapi.handler;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.handler;
+
+import java.io.IOException;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.hisp.dhis.i18n.I18n;
@@ -34,11 +39,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.ExceptionMappingAuthenticationFailureHandler;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -58,7 +58,8 @@ public class CustomExceptionMappingAuthenticationFailureHandler
         HttpServletRequest request,
         HttpServletResponse response,
         AuthenticationException exception )
-        throws IOException, ServletException
+        throws IOException,
+        ServletException
     {
 
         final String username = request.getParameter( "j_username" );

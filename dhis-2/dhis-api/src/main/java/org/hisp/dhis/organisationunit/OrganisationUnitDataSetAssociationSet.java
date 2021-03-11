@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -46,7 +45,8 @@ public class OrganisationUnitDataSetAssociationSet
     private List<Set<String>> dataSetAssociationSets = new ArrayList<>();
 
     /**
-     * Mapping between organisation unit identifier and index of association set in list.
+     * Mapping between organisation unit identifier and index of association set
+     * in list.
      */
     private Map<String, Integer> organisationUnitAssociationSetMap = new HashMap<>();
 

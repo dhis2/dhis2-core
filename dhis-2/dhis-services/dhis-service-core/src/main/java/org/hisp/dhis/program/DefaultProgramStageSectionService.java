@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
@@ -58,6 +57,7 @@ public class DefaultProgramStageSectionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional
     public long saveProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.save( programStageSection );
@@ -65,19 +65,21 @@ public class DefaultProgramStageSectionService
     }
 
     @Override
+    @Transactional
     public void deleteProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.delete( programStageSection );
     }
 
     @Override
+    @Transactional
     public void updateProgramStageSection( ProgramStageSection programStageSection )
     {
         programStageSectionStore.update( programStageSection );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ProgramStageSection getProgramStageSection( long id )
     {
         return programStageSectionStore.get( id );

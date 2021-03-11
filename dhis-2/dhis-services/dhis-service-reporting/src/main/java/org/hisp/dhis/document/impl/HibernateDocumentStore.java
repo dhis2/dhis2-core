@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.document.impl;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -33,6 +32,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.document.DocumentStore;
@@ -63,7 +63,7 @@ public class HibernateDocumentStore
         CriteriaQuery<Long> query = builder.createQuery( Long.class );
         Root<Document> root = query.from( Document.class );
         query.select( builder.count( root ) );
-        query.where( builder.equal( root.get( "user" ), user ) );
+        query.where( builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) );
 
         return getSession().createQuery( query ).getSingleResult();
     }

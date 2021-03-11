@@ -1,0 +1,11 @@
+name: "DHIS2 CodeQL config"
+
+disable-default-queries: false
+
+languages: java
+
+queries:
+  - name: Extended Security
+    uses: security-extended
+  - name: Security and Quality
+    uses: security-and-quality

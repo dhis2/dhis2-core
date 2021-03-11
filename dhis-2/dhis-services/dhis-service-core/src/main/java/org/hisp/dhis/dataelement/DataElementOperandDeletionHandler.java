@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,16 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Jim Grace
@@ -42,6 +43,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DataElementOperandDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( DataElementOperand.class );
+
     private final JdbcTemplate jdbcTemplate;
 
     public DataElementOperandDeletionHandler( JdbcTemplate jdbcTemplate )
@@ -51,23 +54,19 @@ public class DataElementOperandDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataElementOperand.class.getSimpleName();
+        whenVetoing( CategoryOptionCombo.class, this::allowDeleteCategoryOptionCombo );
     }
 
-    //TODO masking real problem, we should control operands better and check associated objects regarding deletion
-    
-    @Override
-    public String allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    // TODO masking real problem, we should control operands better and check
+    // associated objects regarding deletion
+
+    private DeletionVeto allowDeleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         String sql = "select count(*) from dataelementoperand where categoryoptioncomboid=" + optionCombo.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

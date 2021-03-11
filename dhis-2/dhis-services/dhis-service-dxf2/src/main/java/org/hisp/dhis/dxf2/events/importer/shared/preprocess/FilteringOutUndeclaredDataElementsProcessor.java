@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.shared.preprocess;
 
 import java.util.Collections;
 import java.util.Optional;
@@ -36,14 +35,16 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.ProgramStage;
 
 /**
- * Remove data elements from event which are not present in the program stage
- * that is linked to it.
+ * Remove data elements from event and context map which are not present in the
+ * program stage that is linked to it.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
@@ -54,25 +55,41 @@ public class FilteringOutUndeclaredDataElementsProcessor implements Processor
     {
         if ( StringUtils.isNotBlank( event.getProgramStage() ) )
         {
-            Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
-                ctx );
-            event.setDataValues(
-                event.getDataValues().stream()
-                    .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
-                    .collect( Collectors.toSet() ) );
+            updateDataValuesInEventAndContext( event, ctx );
         }
     }
 
-    private Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
+    private void updateDataValuesInEventAndContext( Event event, WorkContext ctx )
+    {
+
+        Set<String> programStageDataElementUids = getDataElementUidsFromProgramStage( event.getProgramStage(),
+            ctx );
+
+        Set<EventDataValue> ctxEventDataValues = ctx.getEventDataValueMap().get( event.getUid() );
+
+        ctx.getEventDataValueMap().put( event.getUid(), ctxEventDataValues.stream()
+            .filter( eventDataValue -> programStageDataElementUids.contains( eventDataValue.getDataElement() ) )
+            .collect( Collectors.toSet() ) );
+    }
+
+    public static Set<DataValue> getFilteredDataValues( Set<DataValue> dataValues,
+        Set<String> programStageDataElementUids )
+    {
+        return Optional.ofNullable( dataValues ).orElse( Collections.emptySet() ).stream()
+            .filter( dataValue -> programStageDataElementUids.contains( dataValue.getDataElement() ) )
+            .collect( Collectors.toSet() );
+    }
+
+    public static Set<String> getDataElementUidsFromProgramStage( String programStageUid, WorkContext ctx )
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, programStageUid );
         return Optional.ofNullable( programStage )
-                .map( ProgramStage::getDataElements )
-                .orElse( Collections.emptySet() )
-                .stream()
-                .map( BaseIdentifiableObject::getUid )
-                .collect( Collectors.toSet() );
+            .map( ProgramStage::getDataElements )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toSet() );
     }
 
 }

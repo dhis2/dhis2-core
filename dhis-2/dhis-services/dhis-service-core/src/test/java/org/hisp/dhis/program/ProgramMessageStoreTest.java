@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
@@ -43,13 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -99,6 +98,8 @@ public class ProgramMessageStoreTest
     private String text = "Hi";
 
     private String msisdn = "4740332255";
+
+    private String notificationTemplate = CodeGenerator.generateUid();
 
     private String subject = "subjectText";
 
@@ -217,26 +218,17 @@ public class ProgramMessageStoreTest
 
         channels.add( DeliveryChannel.SMS );
 
-        pmsgA = new ProgramMessage();
-        pmsgA.setText( text );
-        pmsgA.setSubject( subject );
-        pmsgA.setRecipients( recipientsA );
-        pmsgA.setMessageStatus( messageStatus );
-        pmsgA.setDeliveryChannels( channels );
+        pmsgA = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsA )
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
-        pmsgB = new ProgramMessage();
-        pmsgB.setText( text );
-        pmsgB.setSubject( subject );
-        pmsgB.setRecipients( recipientsB );
-        pmsgB.setMessageStatus( messageStatus );
-        pmsgB.setDeliveryChannels( channels );
+        pmsgB = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsB )
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
-        pmsgC = new ProgramMessage();
-        pmsgC.setText( text );
-        pmsgC.setSubject( subject );
-        pmsgC.setRecipients( recipientsC );
-        pmsgC.setMessageStatus( messageStatus );
-        pmsgC.setDeliveryChannels( channels );
+        pmsgC = ProgramMessage.builder().subject( text ).text( text ).recipients( recipientsC )
+            .messageStatus( messageStatus ).deliveryChannels( channels ).notificationTemplate( notificationTemplate )
+            .build();
 
         uidA = CodeGenerator.generateCode( 10 );
         uidB = CodeGenerator.generateCode( 10 );

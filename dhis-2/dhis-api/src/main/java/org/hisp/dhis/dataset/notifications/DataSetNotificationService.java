@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset.notifications;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.dataset.notifications;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dataset.CompleteDataSetRegistration;
+package org.hisp.dhis.dataset.notifications;
 
 import java.util.Date;
+
+import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 
 /**
  * Created by zubair on 04.07.17.
@@ -38,18 +37,19 @@ import java.util.Date;
 public interface DataSetNotificationService
 {
     /**
-     * Send all scheduled dataset notifications for the given day.
-     * These notifications could be reminders for upcoming datasets submissions
-     * or it could be reminders for datasets where submissions are overdue.
-     * @param day the Date representing the day relative to the
-     *             scheduled notifications for which to send messages.
+     * Send all scheduled dataset notifications for the given day. These
+     * notifications could be reminders for upcoming datasets submissions or it
+     * could be reminders for datasets where submissions are overdue.
+     *
+     * @param day the Date representing the day relative to the scheduled
+     *        notifications for which to send messages.
      */
     void sendScheduledDataSetNotificationsForDay( Date day );
 
     /**
-     * Send completion notifications when a DataSet is completed.
-     * If the DataSet is not configured with suitable
-     * {@link DataSetNotificationTemplate templates}, nothing will happen.
+     * Send completion notifications when a DataSet is completed. If the DataSet
+     * is not configured with suitable {@link DataSetNotificationTemplate
+     * templates}, nothing will happen.
      *
      * @param completeDataSetRegistration the CompleteDataSetRegistration.
      */

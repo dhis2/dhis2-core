@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,20 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeleteNotAllowedException;
@@ -193,8 +201,8 @@ public class OrganisationUnitServiceTest
         long userId = userService.addUser( user );
         long dataSetId = dataSetService.addDataSet( dataSet );
 
-        program.addOrganisationUnit( organisationUnit1 );
-        organisationUnit1.setPrograms( Sets.newHashSet( program ) );
+        program.getOrganisationUnits().add( organisationUnit1 );
+        organisationUnit1.getPrograms().add( program );
 
         user.addOrganisationUnit( organisationUnit1 );
         organisationUnit1.addUser( user );
@@ -754,6 +762,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet1 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet1.setName( "ougs1" );
+        organisationUnitGroupSet1.setShortName( "ougs1" );
         organisationUnitGroupSet1.setCompulsory( true );
 
         long id1 = organisationUnitGroupService.addOrganisationUnitGroup( organisationUnitGroup1 );
@@ -854,61 +863,6 @@ public class OrganisationUnitServiceTest
     }
 
     // -------------------------------------------------------------------------
-    // OrganisationUnitHierarchy
-    // -------------------------------------------------------------------------
-
-    @Test
-    public void testAddGetOrganisationUnitHierarchy()
-    {
-        // creates a tree
-        OrganisationUnit unit1 = new OrganisationUnit( "orgUnitName1", "shortName1", "organisationUnitCode1",
-            new Date(), new Date(), "comment" );
-        OrganisationUnit unit2 = new OrganisationUnit( "orgUnitName2", unit1, "shortName2", "organisationUnitCode2",
-            new Date(), new Date(), "comment" );
-        OrganisationUnit unit3 = new OrganisationUnit( "orgUnitName3", unit1, "shortName3", "organisationUnitCode3",
-            new Date(), new Date(), "comment" );
-        OrganisationUnit unit4 = new OrganisationUnit( "orgUnitName4", unit2, "shortName4", "organisationUnitCode4",
-            new Date(), new Date(), "comment" );
-        OrganisationUnit unit5 = new OrganisationUnit( "orgUnitName5", unit2, "shortName5", "organisationUnitCode5",
-            new Date(), new Date(), "comment" );
-        OrganisationUnit unit6 = new OrganisationUnit( "orgUnitName6", unit5, "shortName6", "organisationUnitCode6",
-            new Date(), new Date(), "comment" );
-
-        organisationUnitService.addOrganisationUnit( unit1 );
-        long id2 = organisationUnitService.addOrganisationUnit( unit2 );
-        organisationUnitService.addOrganisationUnit( unit3 );
-        long id4 = organisationUnitService.addOrganisationUnit( unit4 );
-        long id5 = organisationUnitService.addOrganisationUnit( unit5 );
-        long id6 = organisationUnitService.addOrganisationUnit( unit6 );
-
-        OrganisationUnitHierarchy hierarchy = organisationUnitService.getOrganisationUnitHierarchy();
-
-        // retrieves children from hierarchyVersion ver_id and parentId id2
-        Collection<Long> children1 = hierarchy.getChildren( unit2.getId() );
-
-        // assert 4, 5, 6 are children of 2
-        assertEquals( 4, children1.size() );
-        assertTrue( children1.contains( id2 ) );
-        assertTrue( children1.contains( id4 ) );
-        assertTrue( children1.contains( id5 ) );
-        assertTrue( children1.contains( id6 ) );
-
-        // retrieves children from hierarchyVersion ver_id and parentId id1
-        Collection<Long> children2 = hierarchy.getChildren( unit1.getId() );
-
-        // assert the number of children
-        assertTrue( children2.size() == 6 );
-
-        // retrieves children from hierarchyVersion ver_id and parentId id5
-        Collection<Long> children3 = hierarchy.getChildren( unit5.getId() );
-
-        // assert 6 is children of 5
-        assertEquals( 2, children3.size() );
-        assertTrue( children3.contains( id5 ) );
-        assertTrue( children3.contains( id6 ) );
-    }
-
-    // -------------------------------------------------------------------------
     // OrganisationUnitGroupSets
     // -------------------------------------------------------------------------
 
@@ -931,6 +885,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet1 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet1.setName( "ougs1" );
+        organisationUnitGroupSet1.setShortName( "ougs1" );
         organisationUnitGroupSet1.setCompulsory( true );
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup1 );
         organisationUnitGroupSet1.getOrganisationUnitGroups().add( organisationUnitGroup2 );
@@ -956,6 +911,7 @@ public class OrganisationUnitServiceTest
 
         OrganisationUnitGroupSet organisationUnitGroupSet2 = new OrganisationUnitGroupSet();
         organisationUnitGroupSet2.setName( "ougs2" );
+        organisationUnitGroupSet2.setShortName( "ougs2" );
         organisationUnitGroupSet2.setCompulsory( true );
         organisationUnitGroupSet2.getOrganisationUnitGroups().add( organisationUnitGroup4 );
 

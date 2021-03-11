@@ -1,7 +1,5 @@
-package org.hisp.dhis.external.conf;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.external.conf;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.external.conf;
+
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -38,11 +39,12 @@ public enum ConfigurationKey
 {
     SYSTEM_READ_ONLY_MODE( "system.read_only_mode", Constants.OFF, false ),
     SYSTEM_SESSION_TIMEOUT( "system.session.timeout", "3600", false ),
-    SYSTEM_INTERNAL_SERVICE_API( "system.internal_service_api", Constants.OFF, false ),
     SYSTEM_MONITORING_URL( "system.monitoring.url" ),
     SYSTEM_MONITORING_USERNAME( "system.monitoring.username" ),
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
+    SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
+    SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -60,6 +62,9 @@ public enum ConfigurationKey
     CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "connection.pool.idle.con.test.period", "0", false ),
     CONNECTION_POOL_TEST_ON_CHECKOUT( "connection.pool.test.on.checkout", Constants.FALSE, false ),
     CONNECTION_POOL_TEST_ON_CHECKIN( "connection.pool.test.on.checkin", Constants.TRUE, false ),
+    CONNECTION_POOL_TIMEOUT( "connection.pool.timeout", String.valueOf( SECONDS.toMillis( 30 ) ), false ),
+    CONNECTION_POOL_VALIDATION_TIMEOUT( "connection.pool.validation_timeout", String.valueOf( SECONDS.toMillis( 5 ) ),
+        false ),
     LDAP_URL( "ldap.url", "ldaps://0:1", false ),
     LDAP_MANAGER_DN( "ldap.manager.dn", "", false ),
     LDAP_MANAGER_PASSWORD( "ldap.manager.password", "", true ),
@@ -83,6 +88,7 @@ public enum ConfigurationKey
     REDIS_ENABLED( "redis.enabled", Constants.FALSE, false ),
     REDIS_USE_SSL( "redis.use.ssl", Constants.FALSE, false ),
     FLYWAY_OUT_OF_ORDER_MIGRATION( "flyway.migrate_out_of_order", Constants.FALSE, false ),
+    FLYWAY_REPAIR_BEFORE_MIGRATION( "flyway.repair_before_migration", Constants.FALSE, false ),
     PROGRAM_TEMPORARY_OWNERSHIP_TIMEOUT( "tracker.temporary.ownership.timeout", "3", false ),
     LEADER_TIME_TO_LIVE( "leader.time.to.live.minutes", "2", false ),
     ANALYTICS_CACHE_EXPIRATION( "analytics.cache.expiration", "0" ),
@@ -93,6 +99,7 @@ public enum ConfigurationKey
     ARTEMIS_PASSWORD( "artemis.password", "guest", true ),
     ARTEMIS_EMBEDDED_SECURITY( "artemis.embedded.security", Constants.FALSE ),
     ARTEMIS_EMBEDDED_PERSISTENCE( "artemis.embedded.persistence", Constants.FALSE ),
+    ARTEMIS_EMBEDDED_THREADS( "artemis.embedded.threads", "5" ),
     LOGGING_FILE_MAX_SIZE( "logging.file.max_size", "100MB" ),
     LOGGING_FILE_MAX_ARCHIVES( "logging.file.max_archives", "1" ),
     SERVER_BASE_URL( "server.base.url", "", false ),
@@ -112,22 +119,34 @@ public enum ConfigurationKey
     CHANGELOG_AGGREGATE( "changelog.aggregate", Constants.ON ),
     CHANGELOG_TRACKER( "changelog.tracker", Constants.ON ),
     AUDIT_USE_INMEMORY_QUEUE_ENABLED( "audit.inmemory-queue.enabled", Constants.OFF ),
+    AUDIT_USE_IN_MEMORY_QUEUE_ENABLED( "audit.in_memory_queue.enabled", Constants.OFF ),
     AUDIT_LOGGER( "audit.logger", Constants.OFF, false ),
     AUDIT_DATABASE( "audit.database", Constants.ON, false ),
     AUDIT_METADATA_MATRIX( "audit.metadata", "", false ),
     AUDIT_TRACKER_MATRIX( "audit.tracker", "", false ),
     AUDIT_AGGREGATE_MATRIX( "audit.aggregate", "", false ),
     OIDC_OAUTH2_LOGIN_ENABLED( "oidc.oauth2.login.enabled", Constants.OFF, false ),
-    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "http://localhost:8080", false ),
+    OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
     OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
+    OIDC_PROVIDER_GOOGLE_REDIRECT_URI( "oidc.provider.google.redirect_url", "", true ),
     OIDC_PROVIDER_WSO2_CLIENT_ID( "oidc.provider.wso2.client_id", "", false ),
     OIDC_PROVIDER_WSO2_CLIENT_SECRET( "oidc.provider.wso2.client_secret", "", false ),
     OIDC_PROVIDER_WSO2_MAPPING_CLAIM( "oidc.provider.wso2.mapping_claim", "email", false ),
     OIDC_PROVIDER_WSO2_SERVER_URL( "oidc.provider.wso2.server_url", "", false ),
+    OIDC_PROVIDER_WSO2_REDIRECT_URI( "oidc.provider.wso2.redirect_url", "", false ),
     OIDC_PROVIDER_WSO2_DISPLAY_ALIAS( "oidc.provider.wso2.display_alias", "", false ),
-    OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false );
+    OIDC_PROVIDER_WSO2_ENABLE_LOGOUT( "oidc.provider.wso2.enable_logout", Constants.TRUE, false ),
+    SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS( "slow.query.logging.threshold.time", String.valueOf( SECONDS.toMillis( 1 ) ),
+        false ),
+    ENABLE_QUERY_LOGGING( "enable.query.logging", Constants.FALSE, false ),
+    METHOD_QUERY_LOGGING_ENABLED( "method.query.logging.enabled", Constants.FALSE, false ),
+    ELAPSED_TIME_QUERY_LOGGING_ENABLED( "elapsed.time.query.logging.enabled", Constants.FALSE, false ),
+    DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
+    ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
+    AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
+    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false );
 
     private final String key;
 

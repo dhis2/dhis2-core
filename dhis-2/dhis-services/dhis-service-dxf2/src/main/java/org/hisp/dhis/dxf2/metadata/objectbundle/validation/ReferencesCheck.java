@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,6 +38,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.TypeReport;
+import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
@@ -78,8 +78,10 @@ public class ReferencesCheck
                 bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
 
             if ( errorReports.isEmpty() )
+            {
                 continue;
-            
+            }
+
             if ( object != null )
             {
                 ObjectReport objectReport = new ObjectReport( object, bundle );
@@ -106,9 +108,9 @@ public class ReferencesCheck
             return preheatErrorReports;
         }
 
-        Schema schema = ctx.getSchemaService().getDynamicSchema( object.getClass() );
+        Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
-            && ( PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType() ) )
+            && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
                 if ( skipCheck( p.getKlass() ) || skipCheck( p.getItemKlass() ) )
                 {
@@ -122,8 +124,12 @@ public class ReferencesCheck
 
                     if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
                     {
-                        if ( !("user".equals( p.getName() ) && User.class.isAssignableFrom( p.getKlass() )
-                            && skipSharing) )
+                        // HACK this needs to be redone when the move to using
+                        // uuid as user identifiers is ready
+                        boolean isUserReference = User.class.isAssignableFrom( p.getKlass() ) &&
+                            ("user".equals( p.getName() ) || "lastUpdatedBy".equals( p.getName() ));
+
+                        if ( !(isUserReference && skipSharing) )
                         {
                             preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
                                 ErrorCode.E5002, identifier.getIdentifiersWithName( refObject ),
@@ -171,27 +177,37 @@ public class ReferencesCheck
                         identifier.getIdentifiersWithName( object ), "attributeValues" ) ) );
         }
 
-        if ( schema.havePersistedProperty( "userGroupAccesses" ) )
+        if ( schema.havePersistedProperty( "sharing" ) && !skipSharing )
         {
-            object.getUserGroupAccesses().stream()
-                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUserGroup() != null
-                    && preheat.get( identifier, userGroupAccess.getUserGroup() ) == null )
-                .forEach(
-                    userGroupAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier, object.getClass(),
-                        ErrorCode.E5002, identifier.getIdentifiersWithName( userGroupAccesses.getUserGroup() ),
-                        identifier.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
-        }
+            if ( object.getSharing() != null )
+            {
+                if ( object.getSharing().hasUserGroupAccesses() )
+                {
+                    object.getSharing().getUserGroups().values().stream()
+                        .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID,
+                            userGroupAccess.toDtoObject().getUserGroup() ) == null )
+                        .forEach(
+                            userGroupAccess -> preheatErrorReports
+                                .add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
+                                    ErrorCode.E5002,
+                                    PreheatIdentifier.UID
+                                        .getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
+                                    PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
+                }
 
-        if ( schema.havePersistedProperty( "userAccesses" ) )
-        {
-            object.getUserAccesses().stream()
-                .filter( userGroupAccess -> !skipSharing && userGroupAccess.getUser() != null
-                    && preheat.get( identifier, userGroupAccess.getUser() ) == null )
-                .forEach( userAccesses -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                    object.getClass(), ErrorCode.E5002, identifier.getIdentifiersWithName( userAccesses.getUser() ),
-                    identifier.getIdentifiersWithName( object ), "userAccesses" ) ) );
+                if ( object.getSharing().hasUserAccesses() )
+                {
+                    object.getSharing().getUsers().values().stream()
+                        .filter( userAccess -> preheat.get( PreheatIdentifier.UID,
+                            userAccess.toDtoObject().getUser() ) == null )
+                        .forEach(
+                            userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
+                                object.getClass(), ErrorCode.E5002,
+                                PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
+                                PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
+                }
+            }
         }
-
 
         return preheatErrorReports;
     }

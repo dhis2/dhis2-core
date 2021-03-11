@@ -1,7 +1,5 @@
-package org.hisp.dhis.scheduling;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.scheduling;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling;
 
 import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
@@ -39,7 +38,17 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SecondaryMetadataObject;
-import org.hisp.dhis.scheduling.parameters.*;
+import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
+import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
+import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
+import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.scheduling.parameters.PushAnalysisJobParameters;
+import org.hisp.dhis.scheduling.parameters.SmsJobParameters;
+import org.hisp.dhis.scheduling.parameters.TrackerProgramsDataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.JobConfigurationSanitizer;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
@@ -55,15 +64,18 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
- * This class defines configuration for a job in the system. The job is defined with general identifiers, as well as job
- * specific, such as jobType {@link JobType}.
+ * This class defines configuration for a job in the system. The job is defined
+ * with general identifiers, as well as job specific, such as jobType
+ * {@link JobType}.
  * <p>
- * All system jobs should be included in JobType enum and can be scheduled/executed with {@link SchedulingManager}.
+ * All system jobs should be included in JobType enum and can be
+ * scheduled/executed with {@link SchedulingManager}.
  * <p>
- * The class uses a custom deserializer to handle several potential {@link JobParameters}.
+ * The class uses a custom deserializer to handle several potential
+ * {@link JobParameters}.
  *
- * Note that this class uses {@link JobConfigurationSanitizer} for serialization which needs to be update when new
- * properties are added.
+ * Note that this class uses {@link JobConfigurationSanitizer} for serialization
+ * which needs to be update when new properties are added.
  *
  * @author Henning Håkonsen
  */
@@ -89,12 +101,14 @@ public class JobConfiguration
 
     /**
      * The delay in seconds between the completion of one job execution and the
-     * start of the next. Relevant for scheduling type {@link SchedulingType#FIXED_DELAY}.
+     * start of the next. Relevant for scheduling type
+     * {@link SchedulingType#FIXED_DELAY}.
      */
     private Integer delay;
 
     /**
-     * Parameters of the job. Jobs can use their own implementation of the {@link JobParameters} class.
+     * Parameters of the job. Jobs can use their own implementation of the
+     * {@link JobParameters} class.
      */
     private JobParameters jobParameters;
 
@@ -193,12 +207,13 @@ public class JobConfiguration
     }
 
     /**
-     * Checks if this job has changes compared to the specified job configuration that are only
-     * allowed for configurable jobs.
+     * Checks if this job has changes compared to the specified job
+     * configuration that are only allowed for configurable jobs.
      *
      * @param other the job configuration that should be checked.
-     * @return <code>true</code> if this job configuration has changes in fields that are only
-     *          allowed for configurable jobs, <code>false</code> otherwise.
+     * @return <code>true</code> if this job configuration has changes in fields
+     *         that are only allowed for configurable jobs, <code>false</code>
+     *         otherwise.
      */
     public boolean hasNonConfigurableJobChanges( @Nonnull JobConfiguration other )
     {
@@ -299,7 +314,8 @@ public class JobConfiguration
     }
 
     /**
-     * The sub type names refer to the {@link JobType} enumeration. Defaults to null for unmapped job types.
+     * The sub type names refer to the {@link JobType} enumeration. Defaults to
+     * null for unmapped job types.
      */
     @JacksonXmlProperty
     @JsonProperty
@@ -315,7 +331,8 @@ public class JobConfiguration
         @JsonSubTypes.Type( value = MetadataSyncJobParameters.class, name = "META_DATA_SYNC" ),
         @JsonSubTypes.Type( value = EventProgramsDataSynchronizationJobParameters.class, name = "EVENT_PROGRAMS_DATA_SYNC" ),
         @JsonSubTypes.Type( value = TrackerProgramsDataSynchronizationJobParameters.class, name = "TRACKER_PROGRAMS_DATA_SYNC" ),
-        @JsonSubTypes.Type( value = DataSynchronizationJobParameters.class, name = "DATA_SYNC" )
+        @JsonSubTypes.Type( value = DataSynchronizationJobParameters.class, name = "DATA_SYNC" ),
+        @JsonSubTypes.Type( value = DisableInactiveUsersJobParameters.class, name = "DISABLE_INACTIVE_USERS" )
     } )
     public JobParameters getJobParameters()
     {

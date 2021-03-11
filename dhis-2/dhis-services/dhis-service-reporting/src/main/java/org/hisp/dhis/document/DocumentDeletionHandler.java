@@ -1,7 +1,5 @@
-package org.hisp.dhis.document;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.document;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.document;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceStorageStatus;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -43,9 +44,11 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Component( "org.hisp.dhis.document.DocumentDeletionHandler" )
 public class DocumentDeletionHandler extends DeletionHandler
 {
-    private DocumentService documentService;
+    private static final DeletionVeto VETO = new DeletionVeto( Document.class );
 
-    private JdbcTemplate jdbcTemplate;
+    private final DocumentService documentService;
+
+    private final JdbcTemplate jdbcTemplate;
 
     public DocumentDeletionHandler( DocumentService documentService, JdbcTemplate jdbcTemplate )
     {
@@ -56,33 +59,29 @@ public class DocumentDeletionHandler extends DeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return Document.class.getSimpleName();
+        whenVetoing( User.class, this::allowDeleteUser );
+        whenVetoing( FileResource.class, this::allowDeleteFileResource );
+        whenDeleting( FileResource.class, this::deleteFileResource );
     }
 
-    public String allowDeleteUser( User user )
+    private DeletionVeto allowDeleteUser( User user )
     {
-        return documentService.getCountDocumentByUser( user ) > 0 ? ERROR : null;
+        return documentService.getCountDocumentByUser( user ) > 0 ? VETO : ACCEPT;
     }
 
-    @Override
-    public String allowDeleteFileResource( FileResource fileResource )
+    private DeletionVeto allowDeleteFileResource( FileResource fileResource )
     {
         String sql = "SELECT COUNT(*) FROM document WHERE fileresource=" + fileResource.getId();
 
         int result = jdbcTemplate.queryForObject( sql, Integer.class );
 
-        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? null : ERROR;
+        return result == 0 || fileResource.getStorageStatus() != FileResourceStorageStatus.STORED ? ACCEPT : VETO;
     }
 
-    @Override
-    public void deleteFileResource( FileResource fileResource )
+    private void deleteFileResource( FileResource fileResource )
     {
         String sql = "DELETE FROM document WHERE fileresource=" + fileResource.getId();
 

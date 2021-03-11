@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Immutable;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
@@ -47,19 +47,20 @@ import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.translation.Translation;
-import org.hisp.dhis.translation.TranslationProperty;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
@@ -107,7 +108,8 @@ public class BaseIdentifiableObject
     protected Set<AttributeValue> attributeValues = new HashSet<>();
 
     /**
-     * Cache of attribute values which allows for lookup by attribute identifier.
+     * Cache of attribute values which allows for lookup by attribute
+     * identifier.
      */
     protected Map<String, AttributeValue> cacheAttributeValues = new HashMap<>();
 
@@ -125,27 +127,29 @@ public class BaseIdentifiableObject
     /**
      * This object is available as external read-only.
      */
-    protected boolean externalAccess;
+    protected transient boolean externalAccess;
 
     /**
      * Access string for public access.
      */
-    protected String publicAccess;
+    protected transient String publicAccess;
 
     /**
-     * Owner of this object.
+     * User who created this object This field is immutable and must not be
+     * updated.
      */
-    protected User user;
+    @Immutable
+    protected User createdBy;
 
     /**
      * Access for user groups.
      */
-    protected Set<UserGroupAccess> userGroupAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
 
     /**
      * Access for users.
      */
-    protected Set<UserAccess> userAccesses = new HashSet<>();
+    protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
@@ -161,6 +165,11 @@ public class BaseIdentifiableObject
      * Last user updated this object.
      */
     protected User lastUpdatedBy;
+
+    /**
+     * Jsonb Sharing
+     */
+    protected Sharing sharing = new Sharing();
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -209,8 +218,8 @@ public class BaseIdentifiableObject
             return object.getDisplayName() == null ? 0 : 1;
         }
 
-        return object.getDisplayName() == null ? -1 :
-            this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
+        return object.getDisplayName() == null ? -1
+            : this.getDisplayName().compareToIgnoreCase( object.getDisplayName() );
     }
 
     // -------------------------------------------------------------------------
@@ -278,9 +287,10 @@ public class BaseIdentifiableObject
     @Override
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "name", key = "NAME" )
     public String getDisplayName()
     {
-        return getTranslation( TranslationProperty.NAME, getName() );
+        return getTranslation( "NAME", getName() );
     }
 
     @Override
@@ -363,7 +373,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "translation", namespace = DxfNamespaces.DXF_2_0 )
     public Set<Translation> getTranslations()
     {
-        return translations != null ? translations : new HashSet<>();
+        if ( translations == null )
+        {
+            translations = new HashSet<>();
+        }
+
+        return translations;
     }
 
     /**
@@ -379,24 +394,24 @@ public class BaseIdentifiableObject
      * Returns a translated value for this object for the given property. The
      * current locale is read from the user context.
      *
-     * @param property     the translation property.
+     * @param translationKey the translation key.
      * @param defaultValue the value to use if there are no translations.
      * @return a translated value.
      */
-    protected String getTranslation( TranslationProperty property, String defaultValue )
+    protected String getTranslation( String translationKey, String defaultValue )
     {
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
 
         defaultValue = defaultValue != null ? defaultValue.trim() : null;
 
-        if ( locale == null || property == null )
+        if ( locale == null || translationKey == null )
         {
             return defaultValue;
         }
 
         loadTranslationsCacheIfEmpty();
 
-        String cacheKey = Translation.getCacheKey( locale.toString(), property );
+        String cacheKey = Translation.getCacheKey( locale.toString(), translationKey );
 
         return translationCache.getOrDefault( cacheKey, defaultValue );
     }
@@ -410,9 +425,11 @@ public class BaseIdentifiableObject
         {
             for ( Translation translation : translations )
             {
-                if ( translation.getLocale() != null && translation.getProperty() != null && !StringUtils.isEmpty( translation.getValue() ) )
+                if ( translation.getLocale() != null && translation.getProperty() != null
+                    && !StringUtils.isEmpty( translation.getValue() ) )
                 {
-                    String key = Translation.getCacheKey( translation.getLocale(), translation.getProperty() );
+                    String key = Translation.getCacheKey( translation.getLocale(),
+                        translation.getProperty() );
                     translationCache.put( key, translation.getValue() );
                 }
             }
@@ -433,14 +450,40 @@ public class BaseIdentifiableObject
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
     @PropertyTransformer( UserPropertyTransformer.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public User getUser()
+    public User getCreatedBy()
     {
-        return user;
+        return createdBy;
     }
 
+    @Override
+    @JsonProperty
+    @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
+    @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
+    @PropertyTransformer( UserPropertyTransformer.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public User getUser()
+    {
+        return createdBy;
+    }
+
+    @Override
+    public void setCreatedBy( User createdBy )
+    {
+        this.createdBy = createdBy;
+    }
+
+    @Override
     public void setUser( User user )
     {
-        this.user = user;
+        // TODO remove this after implementing functions for using Owner
+        // property
+        setCreatedBy( createdBy == null ? user : createdBy );
+        setOwner( user != null ? user.getUid() : null );
+    }
+
+    public void setOwner( String userId )
+    {
+        getSharing().setOwner( userId );
     }
 
     @Override
@@ -449,12 +492,12 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        return publicAccess;
+        return getSharing().getPublicAccess();
     }
 
     public void setPublicAccess( String publicAccess )
     {
-        this.publicAccess = publicAccess;
+        getSharing().setPublicAccess( publicAccess );
     }
 
     @Override
@@ -462,25 +505,30 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
-        return externalAccess;
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+        return sharing.isExternal();
     }
 
-    public void setExternalAccess( Boolean externalAccess )
+    public void setExternalAccess( boolean externalAccess )
     {
-        this.externalAccess = externalAccess == null ? false : externalAccess;
+        getSharing().setExternal( externalAccess );
     }
 
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserGroupAccess> getUserGroupAccesses()
+    public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return userGroupAccesses;
+        return SharingUtils.getDtoUserGroupAccesses( getSharing() );
     }
 
-    public void setUserGroupAccesses( Set<UserGroupAccess> userGroupAccesses )
+    public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
     {
+        getSharing().setDtoUserGroupAccesses( userGroupAccesses );
         this.userGroupAccesses = userGroupAccesses;
     }
 
@@ -488,13 +536,14 @@ public class BaseIdentifiableObject
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<UserAccess> getUserAccesses()
+    public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        return userAccesses;
+        return SharingUtils.getDtoUserAccess( sharing );
     }
 
-    public void setUserAccesses( Set<UserAccess> userAccesses )
+    public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
     {
+        getSharing().setDtoUserAccesses( userAccesses );
         this.userAccesses = userAccesses;
     }
 
@@ -536,6 +585,24 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Sharing getSharing()
+    {
+        if ( sharing == null )
+        {
+            sharing = SharingUtils.generateSharingFromIdentifiableObject( this );
+        }
+
+        return sharing;
+    }
+
+    public void setSharing( Sharing sharing )
+    {
+        this.sharing = sharing;
+    }
+
+    @Override
     public boolean setAsFavorite( User user )
     {
         if ( this.favorites == null )
@@ -572,7 +639,8 @@ public class BaseIdentifiableObject
     }
 
     /**
-     * Class check uses isAssignableFrom and get-methods to handle proxied objects.
+     * Class check uses isAssignableFrom and get-methods to handle proxied
+     * objects.
      */
     @Override
     public boolean equals( Object o )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.tracker.converter;
 
 import static junit.framework.TestCase.assertNotNull;
@@ -38,9 +37,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.converter.EventTrackerConverterService;
-import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.junit.Before;
@@ -70,6 +66,8 @@ public class EventTrackerConverterServiceTest
     @Mock
     public TrackerPreheat preheat;
 
+    private Program program = createProgram( 'A' );
+
     @Before
     public void setUpTest()
     {
@@ -79,16 +77,13 @@ public class EventTrackerConverterServiceTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
 
-        Program program = createProgram( 'A' );
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
 
         programStage.setProgram( program );
 
-        when( preheat.get( TrackerIdScheme.UID, ProgramStage.class, programStage.getUid() ) )
-            .thenReturn( programStage );
-        when( preheat.get( TrackerIdScheme.UID, OrganisationUnit.class, organisationUnit.getUid() ) )
-            .thenReturn( organisationUnit );
+        when( preheat.get( ProgramStage.class, programStage.getUid() ) ).thenReturn( programStage );
+        when( preheat.get( OrganisationUnit.class, organisationUnit.getUid() ) ).thenReturn( organisationUnit );
     }
 
     @Test
@@ -98,6 +93,8 @@ public class EventTrackerConverterServiceTest
         event.setProgram( PROGRAM_UID );
         event.setProgramStage( PROGRAM_STAGE_UID );
         event.setOrgUnit( ORGANISATION_UNIT_UID );
+
+        when( preheat.get( Program.class, program.getUid() ) ).thenReturn( program );
 
         ProgramStageInstance programStageInstance = trackerConverterService.from( preheat, event );
 

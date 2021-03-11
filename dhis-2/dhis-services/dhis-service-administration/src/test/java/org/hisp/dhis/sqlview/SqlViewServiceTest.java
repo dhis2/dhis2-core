@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sqlview;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -43,10 +42,10 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.user.UserService;
 import org.junit.Rule;
 import org.junit.Test;
-import org.mockito.*;
+import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,6 +62,9 @@ public class SqlViewServiceTest
     @Autowired
     private SqlViewService sqlViewService;
 
+    @Autowired
+    private UserService internalUserService;
+
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
@@ -78,7 +80,13 @@ public class SqlViewServiceTest
         + "FROM dataelement AS de, datavalue AS dv, period AS p " + "WHERE de.dataelementid=dv.dataelementid "
         + "AND dv.periodid=p.periodid LIMIT 10";
 
-    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; " ;
+    private String sqlE = "WITH foo as (SELECT * FROM organisationunit) SELECT * FROM foo LIMIT 2; ";
+
+    @Override
+    public void setUpTest()
+    {
+        super.userService = internalUserService;
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods
@@ -193,7 +201,7 @@ public class SqlViewServiceTest
     public void testValidateIllegalKeywordsCTE()
     {
         SqlView sqlView = getSqlView( "WITH foo as (delete FROM dataelement returning *) SELECT * FROM foo;" );
-        
+
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class, () -> sqlViewService.validateSqlView( sqlView, null, null ) ),
             ErrorCode.E4311 );
@@ -286,14 +294,32 @@ public class SqlViewServiceTest
     @Test
     public void testGetGridValidationFailure()
     {
-        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
+        // this is the easiest way to be allowed to read SQL view data
+        createAndInjectAdminUser();
 
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
         sqlViewService.saveSqlView( sqlView );
 
         assertIllegalQueryEx(
             assertThrows( IllegalQueryException.class,
                 () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
             ErrorCode.E4311 );
+    }
+
+    @Test
+    public void testGetGridRequiresDataReadSharing()
+    {
+        createAndInjectAdminUser( "F_SQLVIEW_PUBLIC_ADD" );
+
+        // we have the right to create the view
+        SqlView sqlView = getSqlView( "select * from dataelement; delete from dataelement" );
+        sqlViewService.saveSqlView( sqlView );
+
+        // but we lack sharing to view the result grid
+        assertIllegalQueryEx(
+            assertThrows( IllegalQueryException.class,
+                () -> sqlViewService.getSqlViewGrid( sqlView, null, null, null, null ) ),
+            ErrorCode.E4312 );
     }
 
     @Test
@@ -356,30 +382,24 @@ public class SqlViewServiceTest
     @Test
     public void testGetSqlViewGrid()
     {
-        UserCredentials currentUserCredentials = new UserCredentials();
-        currentUserCredentials.setUsername( "Mary" );
-
-        User currentUser = new User();
-        currentUser.setUserCredentials( currentUserCredentials );
-        currentUser.setId( 47 );
-
-        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
-
-        sqlViewService.setCurrentUserService( currentUserService );
+        User admin = createAndInjectAdminUser(); // makes admin current user
 
         Map<String, String> variables = new HashMap<>();
         variables.put( "ten", "10" );
 
-        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}", SqlViewType.QUERY );
+        SqlView sqlView = new SqlView( "Name", "select '${_current_username}', ${_current_user_id}, ${ten}",
+            SqlViewType.QUERY );
 
         Grid grid = sqlViewService.getSqlViewGrid( sqlView, null, variables, null, null );
 
+        String username = admin.getUsername();
+        long id = admin.getId();
         assertEquals( grid.toString(), "[\n" +
-            "['Mary', 47, 10]\n" +
-            "[Mary, 47, 10]\n" +
+            "['" + username + "', " + id + ", 10]\n" +
+            "[" + username + ", " + id + ", 10]\n" +
             "]" );
     }
-    
+
     private SqlView getSqlView( String sqlViewString )
     {
         return new SqlView( "Name", sqlViewString, SqlViewType.QUERY );

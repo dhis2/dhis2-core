@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.webmessage.responses;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.dxf2.webmessage.responses;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.webmessage.responses;
+
+import java.util.List;
+
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
+import org.hisp.dhis.feedback.Stats;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.feedback.TypeReport;
+import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
-import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
-import org.hisp.dhis.feedback.Stats;
-import org.hisp.dhis.feedback.TypeReport;
-import org.springframework.util.Assert;
-
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

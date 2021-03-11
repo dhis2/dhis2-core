@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sqlview;
 
-import com.google.common.base.MoreObjects;
+import java.util.Set;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
 
-import java.util.Set;
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Kristian Wærstad
@@ -55,7 +55,6 @@ public class SqlViewQuery
     private int pageSize = Pager.DEFAULT_PAGE_SIZE;
 
     private int total;
-
 
     public Set<String> getCriteria()
     {

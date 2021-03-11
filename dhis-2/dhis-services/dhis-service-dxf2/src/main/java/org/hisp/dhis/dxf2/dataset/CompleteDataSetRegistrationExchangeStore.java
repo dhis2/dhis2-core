@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdSchemes;
+package org.hisp.dhis.dxf2.dataset;
 
 import java.io.OutputStream;
 import java.util.Date;
+
+import org.hisp.dhis.common.IdSchemes;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -39,7 +38,8 @@ import java.util.Date;
 public interface CompleteDataSetRegistrationExchangeStore
 {
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as XML.
+     * Query for {@link CompleteDataSetRegistration
+     * CompleteDataSetRegistrations} and write result as XML.
      *
      * @param params the export query parameters.
      * @param outputStream the stream to write the XML result to.
@@ -47,7 +47,8 @@ public interface CompleteDataSetRegistrationExchangeStore
     void writeCompleteDataSetRegistrationsXml( ExportParams params, OutputStream outputStream );
 
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     * Query for {@link CompleteDataSetRegistration
+     * CompleteDataSetRegistrations} and write result as JSON.
      *
      * @param params the export query parameters.
      * @param outputStream the stream to write the JSON result to.
@@ -55,9 +56,11 @@ public interface CompleteDataSetRegistrationExchangeStore
     void writeCompleteDataSetRegistrationsJson( ExportParams params, OutputStream outputStream );
 
     /**
-     * Query for {@link CompleteDataSetRegistration CompleteDataSetRegistrations} and write result as JSON.
+     * Query for {@link CompleteDataSetRegistration
+     * CompleteDataSetRegistrations} and write result as JSON.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @param outputStream the stream to write to.
      * @param idSchemes idSchemes
      */

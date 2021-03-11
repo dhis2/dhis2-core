@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,20 @@ package org.hisp.dhis.webapi;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi;
+
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
+import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
+import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.utils.TestUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.runner.RunWith;
@@ -42,11 +47,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.restdocs.JUnitRestDocumentation;
 import org.springframework.restdocs.mockmvc.RestDocumentationResultHandler;
 import org.springframework.restdocs.snippet.Snippet;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -58,16 +59,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.document;
-import static org.springframework.restdocs.mockmvc.MockMvcRestDocumentation.documentationConfiguration;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessRequest;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.preprocessResponse;
-import static org.springframework.restdocs.operation.preprocess.Preprocessors.prettyPrint;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -76,8 +67,7 @@ import static org.springframework.restdocs.operation.preprocess.Preprocessors.pr
 @ContextConfiguration( classes = { MvcTestConfig.class, WebTestConfiguration.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisWebSpringTest
-    extends DhisConvenienceTest
+public abstract class DhisWebSpringTest extends DhisConvenienceTest
 {
     @Autowired
     protected WebApplicationContext webApplicationContext;
@@ -111,7 +101,7 @@ public abstract class DhisWebSpringTest
             .apply( documentationConfiguration( this.restDocumentation ) )
             .build();
 
-        executeStartupRoutines();
+        TestUtils.executeStartupRoutines( webApplicationContext );
 
         setUpTest();
     }
@@ -127,45 +117,12 @@ public abstract class DhisWebSpringTest
 
     public MockHttpSession getSession( String... authorities )
     {
-        SecurityContextHolder.getContext().setAuthentication( getPrincipal( authorities ) );
+        createAndInjectAdminUser( authorities );
+
         MockHttpSession session = new MockHttpSession();
-
-        session.setAttribute(
-            HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
             SecurityContextHolder.getContext() );
-
         return session;
-    }
-
-    protected UsernamePasswordAuthenticationToken getPrincipal( String... authorities )
-    {
-        User user = createAdminUser( authorities );
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        return new UsernamePasswordAuthenticationToken(
-            userDetails,
-            userDetails.getPassword(),
-            userDetails.getAuthorities()
-        );
-    }
-
-    private void executeStartupRoutines()
-        throws Exception
-    {
-        String id = "org.hisp.dhis.system.startup.StartupRoutineExecutor";
-
-        if ( webApplicationContext.containsBean( id ) )
-        {
-            Object object = webApplicationContext.getBean( id );
-
-            Method method = object.getClass().getMethod( "executeForTesting", new Class[0] );
-
-            method.invoke( object, new Object[0] );
-        }
     }
 
     public RestDocumentationResultHandler documentPrettyPrint( String useCase, Snippet... snippets )

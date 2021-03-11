@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command.code;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.sms.command.code;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command.code;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -40,6 +41,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class SMSCodesDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( SMSCode.class );
+
     private final JdbcTemplate jdbcTemplate;
 
     public SMSCodesDeletionHandler( JdbcTemplate jdbcTemplate )
@@ -49,16 +52,15 @@ public class SMSCodesDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return SMSCode.class.getSimpleName();
+        whenVetoing( DataElement.class, this::allowDeleteDataElement );
     }
 
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "SELECT COUNT(*) FROM smscodes where dataelementid=" + dataElement.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

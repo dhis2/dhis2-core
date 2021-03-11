@@ -1,7 +1,5 @@
-package org.hisp.dhis.relationship;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,18 @@ package org.hisp.dhis.relationship;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.relationship;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.translation.TranslationProperty;
+import org.hisp.dhis.translation.Translatable;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
@@ -131,9 +131,10 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "fromToName", key = "RELATIONSHIP_FROM_TO_NAME" )
     public String getDisplayFromToName()
     {
-        return getTranslation( TranslationProperty.RELATIONSHIP_FROM_TO_NAME, getFromToName() );
+        return getTranslation( "RELATIONSHIP_FROM_TO_NAME", getFromToName() );
     }
 
     public void setFromToName( String fromToName )
@@ -150,9 +151,10 @@ public class RelationshipType
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "toFromName", key = "RELATIONSHIP_TO_FROM_NAME" )
     public String getDisplayToFromName()
     {
-        return getTranslation( TranslationProperty.RELATIONSHIP_TO_FROM_NAME, getToFromName() );
+        return getTranslation( "RELATIONSHIP_TO_FROM_NAME", getToFromName() );
     }
 
     public void setToFromName( String toFromName )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mock;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.mock;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mock;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -35,12 +42,6 @@ import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserQueryParams;
 import org.hisp.dhis.user.UserService;
-
-import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
 
 /**
  * @author Adrian Quintana
@@ -175,6 +176,34 @@ public class MockUserService
     }
 
     @Override
+    public List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames )
+    {
+        List<UserCredentials> userCredentials = new ArrayList<>();
+
+        for ( User user : users )
+        {
+            if ( usernames.contains( user.getUsername() ) )
+            {
+                userCredentials.add( user.getUserCredentials() );
+            }
+        }
+
+        return userCredentials;
+    }
+
+    public UserCredentials getUserCredentialsByIdToken( String idToken )
+    {
+        for ( User user : users )
+        {
+            if ( user.getUserCredentials().getIdToken().equals( idToken ) )
+            {
+                return user.getUserCredentials();
+            }
+        }
+        return null;
+    }
+
+    @Override
     public UserCredentials getUserCredentialsByUsername( String username )
     {
         for ( User user : users )
@@ -249,6 +278,12 @@ public class MockUserService
 
     @Override
     public boolean credentialsNonExpired( UserCredentials credentials )
+    {
+        return false;
+    }
+
+    @Override
+    public boolean isAccountExpired( UserCredentials credentials )
     {
         return false;
     }
@@ -352,6 +387,18 @@ public class MockUserService
 
     @Override
     public User getUserByIdentifier( String id )
+    {
+        return null;
+    }
+
+    @Override
+    public int disableUsersInactiveSince( Date inactiveSince )
+    {
+        throw new UnsupportedOperationException( "Not supported by this mock!" );
+    }
+
+    @Override
+    public String getDisplayName( String userUid )
     {
         return null;
     }

@@ -51,7 +51,11 @@
                                                 #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Pivot Table app" )
                                             </div>
                                         #else
-                                            #img( $itemHtml.get( $dashboardItem.getUid() ) )
+                                            #if( $dashboardItem.getType() == "VISUALIZATION" && $dashboardItem.getVisualization().getType() == "PIVOT_TABLE" )
+                                                $itemHtml.get( $dashboardItem.getUid() )
+                                            #else
+                                                #img( $itemHtml.get( $dashboardItem.getUid() ) )
+                                            #end
                                             <div style="padding-top: 10px">
                                                 #if( $dashboardItem.getType() == "MAP" )
                                                     #link ( $itemLink.get( $dashboardItem.getUid() ), "View in Maps app" )

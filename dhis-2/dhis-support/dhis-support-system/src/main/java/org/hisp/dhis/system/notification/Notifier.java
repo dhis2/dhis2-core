@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,13 @@ package org.hisp.dhis.system.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.notification;
+
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Lars Helge Overland
@@ -55,13 +52,11 @@ public interface Notifier
 
     Notifier update( JobConfiguration id, NotificationLevel level, String message, boolean completed );
 
-    Map<JobType, LinkedHashMap<String, LinkedList<Notification>>> getNotifications();
-
-    List<Notification> getLastNotificationsByJobType( JobType jobType, String lastId );
+    Map<JobType, Map<String, List<Notification>>> getNotifications();
 
     List<Notification> getNotificationsByJobId( JobType jobType, String jobId );
 
-    Map<String, LinkedList<Notification>> getNotificationsByJobType( JobType jobType );
+    Map<String, List<Notification>> getNotificationsByJobType( JobType jobType );
 
     Notifier clear( JobConfiguration id );
 
@@ -69,9 +64,7 @@ public interface Notifier
 
     Notifier addJobSummary( JobConfiguration id, NotificationLevel level, Object jobSummary, Class<?> jobSummaryType );
 
-    Object getJobSummariesForJobType( JobType jobType );
-
-    Object getJobSummary( JobType jobType );
+    Map<String, Object> getJobSummariesForJobType( JobType jobType );
 
     Object getJobSummaryByJobId( JobType jobType, String jobId );
 }

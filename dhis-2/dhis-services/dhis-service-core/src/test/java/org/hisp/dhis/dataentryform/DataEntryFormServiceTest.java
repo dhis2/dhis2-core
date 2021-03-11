@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataentryform;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.dataentryform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataentryform;
+
+import static org.junit.Assert.*;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -41,10 +44,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.List;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Bharath
@@ -75,7 +74,6 @@ public class DataEntryFormServiceTest
     private String dataElementUid;
 
     private String categoryOptionComboUid;
-
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -216,10 +214,14 @@ public class DataEntryFormServiceTest
     @Test
     public void testPrepareForEdit()
     {
-        String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
-        String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - " + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
+        String html = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
+            + "-val\" style=\"width:4em;text-align:center\" title=\"\" value=\"\" /></td></tr></table>";
+        String title = "" + dataElementUid + " - " + dataElement.getName() + " - " + categoryOptionComboUid + " - "
+            + categoryOptionCombo.getName() + " - " + dataElement.getValueType();
         String value = "[ " + dataElement.getName() + " " + categoryOptionCombo.getName() + " ]";
-        String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value + "\" /></td></tr></table>";
+        String expected = "<table><tr><td><input id=\"" + dataElementUid + "-" + categoryOptionComboUid
+            + "-val\" style=\"width:4em;text-align:center\" title=\"" + title + "\" value=\"" + value
+            + "\" /></td></tr></table>";
 
         DataSet dsA = createDataSet( 'A', null );
         DataEntryForm dfA = createDataEntryForm( 'A', html );

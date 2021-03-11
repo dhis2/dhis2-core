@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.option.hibernate;
 
 import java.util.List;
@@ -61,8 +60,7 @@ public class HibernateOptionStore
     @Override
     public List<Option> getOptions( long optionSetId, String key, Integer max )
     {
-        String hql =
-            "select option from OptionSet as optionset " +
+        String hql = "select option from OptionSet as optionset " +
             "join optionset.options as option where optionset.id = :optionSetId ";
 
         if ( key != null )

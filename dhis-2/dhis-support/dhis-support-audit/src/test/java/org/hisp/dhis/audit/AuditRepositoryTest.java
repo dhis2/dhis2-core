@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,17 @@ package org.hisp.dhis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.audit;
 
-import com.google.common.collect.Sets;
-import org.hisp.dhis.IntegrationTestBase;
+import static org.junit.Assert.*;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.stream.IntStream;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -38,19 +44,13 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class AuditRepositoryTest
-    extends IntegrationTestBase
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private AuditRepository auditRepository;
@@ -539,8 +539,7 @@ public class AuditRepositoryTest
         audits = auditRepository.count( AuditQuery.builder()
             .range( AuditQuery.range(
                 LocalDateTime.of( 2050, 1, 1, 0, 0, 0 ),
-                LocalDateTime.of( 2080, 1, 1, 0, 0, 0 )
-            ) )
+                LocalDateTime.of( 2080, 1, 1, 0, 0, 0 ) ) )
             .build() );
 
         assertEquals( 30, audits );
@@ -702,11 +701,5 @@ public class AuditRepositoryTest
         assertEquals( 2, audits.get( 0 ).getAttributes().size() );
         assertEquals( categoryComboUid, audits.get( 0 ).getAttributes().get( "categoryCombo" ) );
         assertEquals( "TEXT", audits.get( 0 ).getAttributes().get( "valueType" ) );
-    }
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
     }
 }

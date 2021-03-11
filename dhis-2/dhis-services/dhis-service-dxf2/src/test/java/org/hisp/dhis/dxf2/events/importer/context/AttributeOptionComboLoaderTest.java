@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer.context;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,24 @@ package org.hisp.dhis.dxf2.events.importer.context;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer.context;
 
 import static java.util.Collections.singletonList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hisp.dhis.DhisConvenienceTest.*;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
+import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO;
 import static org.hisp.dhis.dxf2.events.importer.context.AttributeOptionComboLoader.SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -133,7 +137,7 @@ public class AttributeOptionComboLoaderTest
         categoryOption.setId( 100L );
 
         when( jdbcTemplate.queryForObject(
-            eq( "select categoryoptionid, uid, code, name from dataelementcategoryoption where uid = 'abcdef'" ),
+            eq( "select categoryoptionid, uid, code, name, sharing from dataelementcategoryoption where uid = 'abcdef'" ),
             any( RowMapper.class ) ) ).thenReturn( categoryOption );
 
         when( jdbcTemplate.query( anyString(), any( RowMapper.class ) ) )

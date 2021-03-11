@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,15 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import static org.hamcrest.core.IsNot.not;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.hamcrest.core.IsNot.not;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,6 +43,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -150,7 +149,7 @@ public class QueryServiceTest
 
     @Test
     public void getAllQueryUrlWithPaginationReturnsNoDataWhenPageNumberHigherThanMaxNumberOfPages()
-            throws QueryParserException
+        throws QueryParserException
     {
         List<? extends IdentifiableObject> resultPage = getResultWithPagination( 10, 3 );
 
@@ -161,7 +160,7 @@ public class QueryServiceTest
     {
         Pagination pagination = new Pagination( page, pageSize );
         Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList(), Lists.newArrayList(),
-                pagination);
+            pagination );
         return queryService.query( query );
     }
 
@@ -193,9 +192,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getEqQueryUrl() throws QueryParserException
+    public void getEqQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:eq:deabcdefghA" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -220,9 +221,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getNeQueryUrl() throws QueryParserException
+    public void getNeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "id:ne:deabcdefghA" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 5, objects.size() );
@@ -247,9 +250,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLikeQueryUrl() throws QueryParserException
+    public void getLikeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "name:like:F" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 1, objects.size() );
@@ -271,9 +276,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getGtQueryUrl() throws QueryParserException
+    public void getGtQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:gt:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -297,9 +304,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLtQueryUrl() throws QueryParserException
+    public void getLtQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:lt:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 2, objects.size() );
@@ -324,9 +333,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getGeQueryUrl() throws QueryParserException
+    public void getGeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:ge:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 4, objects.size() );
@@ -352,9 +363,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void getLeQueryUrl() throws QueryParserException
+    public void getLeQueryUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "created:le:2003" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -368,7 +381,8 @@ public class QueryServiceTest
     public void getBetweenQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(), Year.parseYear( "2005" ).getStart() ) );
+        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(),
+            Year.parseYear( "2005" ).getStart() ) );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 3, objects.size() );
@@ -568,9 +582,11 @@ public class QueryServiceTest
     }
 
     @Test
-    public void testIsNotNullUrl() throws QueryParserException
+    public void testIsNotNullUrl()
+        throws QueryParserException
     {
-        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ), Lists.newArrayList(), new Pagination() );
+        Query query = queryService.getQueryFromUrl( DataElement.class, Lists.newArrayList( "categoryCombo:!null" ),
+            Lists.newArrayList(), new Pagination() );
         List<? extends IdentifiableObject> objects = queryService.query( query );
 
         assertEquals( 6, objects.size() );
@@ -664,6 +680,46 @@ public class QueryServiceTest
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 1, objects.size() );
+    }
+
+    @Test
+    public void testDefaultSortOrder()
+    {
+        Date date = new Date();
+
+        OrganisationUnit organisationUnitC = createOrganisationUnit( "C" );
+        organisationUnitC.setUid( "ccccccccccc" );
+        organisationUnitC.setName( "orgunit" );
+        organisationUnitC.setCreated( date );
+        organisationUnitC.setLastUpdated( date );
+
+        OrganisationUnit organisationUnitB = createOrganisationUnit( "B" );
+        organisationUnitB.setUid( "bbbbbbbbbbb" );
+        organisationUnitB.setName( "orgunit" );
+        organisationUnitB.setCreated( date );
+        organisationUnitB.setLastUpdated( date );
+
+        OrganisationUnit organisationUnitA = createOrganisationUnit( "A" );
+        organisationUnitA.setUid( "aaaaaaaaaaa" );
+        organisationUnitA.setName( "orgunit" );
+        organisationUnitA.setCreated( date );
+        organisationUnitA.setLastUpdated( date );
+
+        identifiableObjectManager.save( organisationUnitC );
+        identifiableObjectManager.save( organisationUnitB );
+        identifiableObjectManager.save( organisationUnitA );
+
+        Schema schema = schemaService.getDynamicSchema( OrganisationUnit.class );
+
+        Query query = Query.from( schema );
+        query.setDefaultOrder();
+
+        List<? extends IdentifiableObject> objects = queryService.query( query );
+        assertEquals( 3, objects.size() );
+
+        assertEquals( "aaaaaaaaaaa", objects.get( 0 ).getUid() );
+        assertEquals( "bbbbbbbbbbb", objects.get( 1 ).getUid() );
+        assertEquals( "ccccccccccc", objects.get( 2 ).getUid() );
     }
 
     @Test

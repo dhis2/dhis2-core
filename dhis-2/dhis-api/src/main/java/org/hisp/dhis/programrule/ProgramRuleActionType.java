@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,18 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
+import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
 
 import java.util.Set;
 
-import static org.hisp.dhis.programrule.ProgramRuleActionEvaluationTime.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.notification.NotificationTemplate;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * @author Markus Bekken
@@ -44,7 +47,7 @@ public enum ProgramRuleActionType
     DISPLAYKEYVALUEPAIR( "displaykeyvaluepair" ),
     HIDEFIELD( "hidefield" ),
     HIDESECTION( "hidesection" ),
-    HIDEPROGRAMSTAGE( "hideprogramstage"),
+    HIDEPROGRAMSTAGE( "hideprogramstage" ),
     ASSIGN( "assign", ON_DATA_ENTRY, ON_COMPLETE ),
     SHOWWARNING( "showwarning" ),
     WARNINGONCOMPLETE( "warningoncomplete" ),
@@ -62,14 +65,31 @@ public enum ProgramRuleActionType
 
     final Set<ProgramRuleActionEvaluationTime> whenToRun;
 
-    private static final Set<ProgramRuleActionType> IMPLEMENTED_ACTIONS =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN ).build(); // Actions having back end implementation
+    /**
+     * Actions which require server-side execution.
+     */
+    public static final ImmutableSet<ProgramRuleActionType> IMPLEMENTED_ACTIONS = ImmutableSet.of(
+        SENDMESSAGE, SCHEDULEMESSAGE, ASSIGN );
 
-    private static final Set<ProgramRuleActionType> DATA_LINKED_TYPES = new ImmutableSet.Builder<ProgramRuleActionType>().add( HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION,
-        HIDEOPTIONGROUP, SHOWOPTIONGROUP ).build(); // Actions associated with DataElement Or TrackedEntityAttribute
+    /**
+     * Actions associated with {@link DataElement} or
+     * {@link TrackedEntityAttribute}.
+     */
+    public static final ImmutableSet<ProgramRuleActionType> DATA_LINKED_TYPES = ImmutableSet.of(
+        HIDEFIELD, SETMANDATORYFIELD, HIDEOPTION, HIDEOPTIONGROUP, SHOWOPTIONGROUP );
 
-    private static final Set<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES =
-        new ImmutableSet.Builder<ProgramRuleActionType>().add( SENDMESSAGE, SCHEDULEMESSAGE ).build(); // Actions associated with NotificationTemplate
+    /**
+     * Actions associated with {@link NotificationTemplate}.
+     */
+    public static final ImmutableSet<ProgramRuleActionType> NOTIFICATION_LINKED_TYPES = ImmutableSet.of(
+        SENDMESSAGE, SCHEDULEMESSAGE );
+
+    /**
+     * Complete set of actions which require server-side execution.
+     */
+    public static final ImmutableSet<ProgramRuleActionType> SERVER_SUPPORTED_TYPES = ImmutableSet
+        .of( SENDMESSAGE, SCHEDULEMESSAGE, SHOWERROR, SHOWWARNING, ERRORONCOMPLETE, WARNINGONCOMPLETE, ASSIGN,
+            SETMANDATORYFIELD );
 
     ProgramRuleActionType( String value )
     {
@@ -81,38 +101,5 @@ public enum ProgramRuleActionType
     {
         this.value = value;
         this.whenToRun = Sets.newHashSet( whenToRun );
-    }
-
-    public static ProgramRuleActionType fromValue( String value )
-    {
-        for ( ProgramRuleActionType type : ProgramRuleActionType.values() )
-        {
-            if ( type.value.equalsIgnoreCase( value ) )
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean isImplementable()
-    {
-        return IMPLEMENTED_ACTIONS.contains( this );
-    }
-
-    public static Set<ProgramRuleActionType> getImplementedActions()
-    {
-        return IMPLEMENTED_ACTIONS;
-    }
-
-    public static Set<ProgramRuleActionType> getDataLinkedTypes()
-    {
-        return DATA_LINKED_TYPES;
-    }
-
-    public static Set<ProgramRuleActionType> getNotificationLinkedTypes()
-    {
-        return NOTIFICATION_LINKED_TYPES;
     }
 }

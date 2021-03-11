@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -40,10 +39,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class CategoryOptionGroupDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final CategoryService categoryService;
 
     public CategoryOptionGroupDeletionHandler( CategoryService categoryService )
@@ -53,18 +48,13 @@ public class CategoryOptionGroupDeletionHandler
         this.categoryService = categoryService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryOptionGroup.class.getName();
+        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
     }
 
-    @Override
-    public void deleteCategoryOption( CategoryOption categoryOption )
+    private void deleteCategoryOption( CategoryOption categoryOption )
     {
         for ( CategoryOptionGroup group : categoryOption.getGroups() )
         {

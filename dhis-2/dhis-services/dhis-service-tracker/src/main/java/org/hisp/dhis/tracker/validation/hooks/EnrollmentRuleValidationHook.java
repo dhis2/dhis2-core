@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,22 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningReport;
+import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.addIssuesToReporter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.programrule.RuleActionValidator;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
+import org.hisp.dhis.tracker.programrule.ProgramRuleIssue;
+import org.hisp.dhis.tracker.programrule.RuleActionImplementer;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Enrico Colasante
@@ -51,15 +49,10 @@ import org.springframework.stereotype.Component;
 public class EnrollmentRuleValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    private List<RuleActionValidator> validators;
-
-    public EnrollmentRuleValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Enrollment.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
+    private List<RuleActionImplementer> validators;
 
     @Autowired( required = false )
-    public void setValidators( List<RuleActionValidator> validators )
+    public void setValidators( List<RuleActionImplementer> validators )
     {
         this.validators = validators;
     }
@@ -69,22 +62,12 @@ public class EnrollmentRuleValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        validators
+        List<ProgramRuleIssue> programRuleIssues = validators
             .stream()
-            .filter( v -> !v.isWarning() )
-            .flatMap( v -> {
-                List<String> errors = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
-                return errors != null ? errors.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addError( newReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+            .flatMap( v -> v.validateEnrollments( context.getBundle() )
+                .getOrDefault( enrollment.getEnrollment(), Lists.newArrayList() ).stream() )
+            .collect( Collectors.toList() );
 
-        validators
-            .stream()
-            .filter( v -> v.isWarning() )
-            .flatMap( v -> {
-                List<String> warnings = v.validateEnrollments( context.getBundle() ).get( enrollment.getEnrollment() );
-                return warnings != null ? warnings.stream() : Lists.newArrayList().stream();
-            } )
-            .forEach( e -> reporter.addWarning( newWarningReport( TrackerErrorCode.E1200 ).addArg( e ) ) );
+        addIssuesToReporter( reporter, programRuleIssues );
     }
 }

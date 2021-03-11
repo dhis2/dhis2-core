@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -58,7 +57,9 @@ import com.google.common.collect.Sets;
 public class ProgramRuleServiceTest extends IntegrationTestBase
 {
     private Program programA;
+
     private Program programB;
+
     private Program programC;
 
     private ProgramStage programStageA;
@@ -66,10 +67,15 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     private ProgramStage programStageB;
 
     private ProgramStageSection programStageSectionA;
+
     private ProgramRule programRuleA;
+
     private ProgramRuleAction programRuleActionA;
+
     private ProgramRuleAction programRuleActionB;
+
     private ProgramRuleVariable programRuleVariableA;
+
     private ProgramRuleVariable programRuleVariableB;
 
     @Autowired
@@ -92,12 +98,6 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
 
     @Autowired
     private DeletedObjectStore deletedObjectStore;
-
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
 
     @Override
     public void setUpTest()
@@ -130,7 +130,7 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
         programStageSectionA.setProgramStage( programStageB );
         programStageSectionService.updateProgramStageSection( programStageSectionA );
 
-        //Add a tree of variables, rules and actions to programA:
+        // Add a tree of variables, rules and actions to programA:
         programRuleA = createProgramRule( 'A', programA );
         programRuleService.addProgramRule( programRuleA );
 
@@ -152,8 +152,9 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     public void testAddGet()
     {
         ProgramRule ruleA = new ProgramRule( "RuleA", "descriptionA", programA, programStageA, null, "true", null );
-        ProgramRule ruleB = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "$a < 1", 1 );
-        ProgramRule ruleC = new ProgramRule( "RuleA", "descriptionA", programA, null, null, "($a < 1 && $a > -10) && !$b", 0 );
+        ProgramRule ruleB = new ProgramRule( "RuleB", "descriptionA", programA, null, null, "$a < 1", 1 );
+        ProgramRule ruleC = new ProgramRule( "RuleC", "descriptionA", programA, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
 
         long idA = programRuleService.addProgramRule( ruleA );
         long idB = programRuleService.addProgramRule( ruleB );
@@ -362,8 +363,9 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null, "($a < 1 && $a > -10) && !$b", 0 );
-        //Add a rule that is not part of programB....
+        ProgramRule ruleF = new ProgramRule( "RuleF", "descriptionF", programB, null, null,
+            "($a < 1 && $a > -10) && !$b", 0 );
+        // Add a rule that is not part of programB....
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -371,27 +373,27 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
         programRuleService.addProgramRule( ruleF );
         programRuleService.addProgramRule( ruleG );
 
-        //Get all the 3 rules for programB
+        // Get all the 3 rules for programB
         List<ProgramRule> rules = programRuleService.getProgramRule( programB );
         assertEquals( 3, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertTrue( rules.contains( ruleE ) );
         assertTrue( rules.contains( ruleF ) );
-        //Make sure that the rule connected to program A is not returned as part of list of rules in program B.
+        // Make sure that the rule connected to program A is not returned as
+        // part of list of rules in program B.
         assertFalse( rules.contains( ruleG ) );
-
 
         assertEquals( ruleD.getId(), programRuleService.getProgramRuleByName( "RuleD", programB ).getId() );
 
-        assertEquals( 3, programRuleService.getProgramRules( programB ,"rule" ).size() );
+        assertEquals( 3, programRuleService.getProgramRules( programB, "rule" ).size() );
     }
 
     @Test
-    public void testGetImplementableProgramRules()
+    public void testGetProgramRulesByActionTypes()
     {
         ProgramRule ruleD = new ProgramRule( "RuleD", "descriptionD", programB, null, null, "true", null );
         ProgramRule ruleE = new ProgramRule( "RuleE", "descriptionE", programB, null, null, "$a < 1", 1 );
-        //Add a rule that is not part of programB....
+        // Add a rule that is not part of programB
         ProgramRule ruleG = new ProgramRule( "RuleG", "descriptionG", programA, null, null, "!false", 0 );
 
         programRuleService.addProgramRule( ruleD );
@@ -406,9 +408,9 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
         ruleD.setProgramRuleActions( Sets.newHashSet( actionD ) );
         programRuleService.updateProgramRule( ruleD );
 
-
-        //Get all the 3 rules for programB
-        List<ProgramRule> rules = programRuleService.getImplementableProgramRules( programB, ProgramRuleActionType.getImplementedActions() );
+        // Get all the 3 rules for programB
+        List<ProgramRule> rules = programRuleService.getProgramRulesByActionTypes( programB,
+            ProgramRuleActionType.IMPLEMENTED_ACTIONS );
         assertEquals( 1, rules.size() );
         assertTrue( rules.contains( ruleD ) );
         assertFalse( rules.contains( ruleG ) );
@@ -458,13 +460,13 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
     @Test
     public void testDeleteDeletedObjectWithCascade()
     {
-        ProgramRule programRule = createProgramRule( 'A', programA );
+        ProgramRule programRule = createProgramRule( 'C', programA );
 
         ProgramRuleAction programRuleAction = createProgramRuleAction( 'D' );
         programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SENDMESSAGE );
         programRuleAction.setProgramRule( programRule );
 
-        programRule.setProgramRuleActions( Sets.newHashSet(programRuleAction) );
+        programRule.setProgramRuleActions( Sets.newHashSet( programRuleAction ) );
 
         programRuleService.addProgramRule( programRule );
 
@@ -473,7 +475,7 @@ public class ProgramRuleServiceTest extends IntegrationTestBase
 
         programRuleService.deleteProgramRule( programRule );
 
-        ProgramRule programRule1 = createProgramRule( 'A', programA );
+        ProgramRule programRule1 = createProgramRule( 'X', programA );
         programRule1.setUid( programRuleUID );
 
         ProgramRuleAction programRuleAction1 = createProgramRuleAction( 'D' );

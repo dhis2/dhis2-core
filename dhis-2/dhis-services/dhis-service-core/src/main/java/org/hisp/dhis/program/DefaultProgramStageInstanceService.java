@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,19 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
-import java.util.*;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
@@ -52,7 +57,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.google.common.collect.Sets;
 
@@ -408,12 +412,14 @@ public class DefaultProgramStageInstanceService
         ProgramStageInstance programStageInstance )
     {
 
-        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ),
+        newDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
             programStageInstance, AuditType.CREATE ) );
-        updatedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ),
-            programStageInstance, AuditType.UPDATE ) );
-        removedDataValues.forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ),
-            programStageInstance, AuditType.DELETE ) );
+        updatedDataValues
+            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
+                programStageInstance, AuditType.UPDATE ) );
+        removedDataValues
+            .forEach( dv -> createAndAddAudit( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ),
+                programStageInstance, AuditType.DELETE ) );
     }
 
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
@@ -438,10 +444,13 @@ public class DefaultProgramStageInstanceService
         Set<EventDataValue> removedDataValues, Map<String, DataElement> dataElementsCache )
     {
         removedDataValues
-            .forEach( dv -> handleFileDataValueDelete( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ) ) );
+            .forEach(
+                dv -> handleFileDataValueDelete( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
         updatedDataValues
-            .forEach( dv -> handleFileDataValueUpdate( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ) ) );
-        newDataValues.forEach( dv -> handleFileDataValueSave( dv, dataElementsCache.getOrDefault( dv.getDataElement() , null ) ) );
+            .forEach(
+                dv -> handleFileDataValueUpdate( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
+        newDataValues.forEach(
+            dv -> handleFileDataValueSave( dv, dataElementsCache.getOrDefault( dv.getDataElement(), null ) ) );
     }
 
     private void handleFileDataValueUpdate( EventDataValue dataValue, DataElement dataElement )
@@ -492,7 +501,8 @@ public class DefaultProgramStageInstanceService
     /**
      * Delete associated FileResource if it exists.
      */
-    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement ) {
+    private void handleFileDataValueDelete( EventDataValue dataValue, DataElement dataElement )
+    {
         if ( dataElement == null )
         {
             return;

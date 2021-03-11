@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
@@ -46,11 +45,12 @@ public class EventDateCheck
     Checker
 {
     @Override
-    public ImportSummary check(ImmutableEvent event, WorkContext ctx )
+    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() ).incrementIgnored();
+            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() )
+                .incrementIgnored();
         }
 
         try
@@ -61,7 +61,8 @@ public class EventDateCheck
         }
         catch ( Exception e )
         {
-            return new ImportSummary( ImportStatus.ERROR, "Event date or Execution date format is not correct. " ).setReference( event.getEvent() )
+            return new ImportSummary( ImportStatus.ERROR, "Event date or Execution date format is not correct. " )
+                .setReference( event.getEvent() )
                 .incrementIgnored();
         }
 

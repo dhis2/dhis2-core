@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,9 +28,15 @@ package org.hisp.dhis.actions;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.gson.JsonObject;
+import static org.hamcrest.Matchers.equalTo;
+
+import java.util.List;
+
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -49,25 +55,21 @@ public class UserActions
     {
         String id = idGenerator.generateUniqueId();
 
-        JsonObject user = new JsonObject();
-
-        user.addProperty( "id", id );
-        user.addProperty( "firstName", firstName );
-        user.addProperty( "surname", surname );
-
-        JsonObject credentials = new JsonObject();
-        credentials.addProperty( "username", username );
-        credentials.addProperty( "password", password );
-
-        JsonObject userInfo = new JsonObject();
-        userInfo.addProperty( "id", id );
-
-        credentials.add( "userInfo", userInfo );
-        user.add( "userCredentials", credentials );
+        JsonObject user = new JsonObjectBuilder()
+            .addProperty( "id", id)
+            .addProperty( "firstName", firstName )
+            .addProperty( "surname", surname )
+            .addObject( "userCredentials", new JsonObjectBuilder()
+                .addProperty( "username", username )
+                .addProperty( "password", password ))
+                .addObject( "userInfo", new JsonObjectBuilder().addProperty( "id", id ) )
+            .addObject( "userInfo", new JsonObjectBuilder()
+                .addProperty( "id", id ))
+            .build();
 
         ApiResponse response = this.post( user );
 
-        response.validate().statusCode( 200 );
+        response.validate().statusCode( 201 );
 
         TestRunStorage.addCreatedEntity( endpoint, id );
 
@@ -95,7 +97,8 @@ public class UserActions
     public void addUserToUserGroup( String userId, String userGroupId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.extractList( "userGroups.id" ).contains( userGroupId ) )
+        List<String> userGroups = response.extractList( "userGroups.id" );
+        if ( userGroups != null && userGroups.contains( userGroupId ) )
         {
             return;
         }
@@ -121,7 +124,8 @@ public class UserActions
         object.get( "teiSearchOrganisationUnits" ).getAsJsonArray().add( orgUnit );
 
         ApiResponse response = this.update( userId, object );
-        response.validate().statusCode( 200 );
+        response.validate().statusCode( 200 )
+            .body( "status", equalTo("OK" ));
     }
 
     public void grantCurrentUserAccessToOrgUnit( String orgUnitId )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
+
+import static java.text.MessageFormat.*;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -47,6 +48,11 @@ import org.hisp.dhis.util.ObjectUtils;
  */
 public class TrackerReportUtils
 {
+    public static String formatMessage( TrackerErrorCode errorCode, String... arguments )
+    {
+        return format( errorCode.getMessage(), arguments );
+    }
+
     protected static List<String> buildArgumentList( TrackerBundle bundle, List<Object> arguments )
     {
         final TrackerIdentifier identifier = TrackerIdentifier.builder().idScheme( bundle.getIdentifier() ).build();

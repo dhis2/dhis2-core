@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
@@ -37,6 +36,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1076;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1077;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1084;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1085;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1090;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1112;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ATTRIBUTE_CANT_BE_NULL;
@@ -46,44 +46,44 @@ import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.textpattern.TextPatternValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
+import org.hisp.dhis.tracker.util.Constant;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
+import org.hisp.dhis.tracker.validation.service.attribute.TrackedAttributeValidationService;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class TrackedEntityAttributeValidationHook
-    extends AbstractTrackerDtoValidationHook
+public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
-    private static final int MAX_ATTR_VALUE_LENGTH = 1200;
-
     private final ReservedValueService reservedValueService;
-    
+
     private final DhisConfigurationProvider dhisConfigurationProvider;
-    
-    public TrackedEntityAttributeValidationHook( TrackedEntityAttributeService teAttrService,
+
+    public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
         ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
     {
-        super( TrackedEntity.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
+        super( teAttrService );
         checkNotNull( reservedValueService );
         checkNotNull( dhisConfigurationProvider );
         this.reservedValueService = reservedValueService;
@@ -98,7 +98,32 @@ public class TrackedEntityAttributeValidationHook
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
+        validateMandatoryAttributes( reporter, trackedEntity );
         validateAttributes( reporter, trackedEntity, tei, organisationUnit );
+    }
+
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    {
+        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
+        if ( trackedEntityType != null )
+        {
+            Set<String> trackedEntityAttributes = trackedEntity.getAttributes()
+                .stream()
+                .map( Attribute::getAttribute )
+                .collect( Collectors.toSet() );
+
+            trackedEntityType.getTrackedEntityTypeAttributes()
+                .stream()
+                .filter( trackedEntityTypeAttribute -> Boolean.TRUE.equals( trackedEntityTypeAttribute.isMandatory() ) )
+                .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
+                .map( BaseIdentifiableObject::getUid )
+                .filter( mandatoryAttributeUid -> !trackedEntityAttributes.contains( mandatoryAttributeUid ) )
+                .forEach(
+                    attribute -> addError( reporter, E1090, attribute, trackedEntityType.getUid(),
+                        trackedEntity.getTrackedEntity() ) );
+        }
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
@@ -125,12 +150,13 @@ public class TrackedEntityAttributeValidationHook
                 continue;
             }
 
-//            if ( StringUtils.isEmpty( attribute.getValue() ) )
+            // if ( StringUtils.isEmpty( attribute.getValue() ) )
             if ( attribute.getValue() == null )
             {
-                //continue; ??? Just continue on empty and null?
-                // TODO: Is this really correct? This check was not here originally
-                //  Enrollment attr check fails on null so why not here too?
+                // continue; ??? Just continue on empty and null?
+                // TODO: Is this really correct? This check was not here
+                // originally
+                // Enrollment attr check fails on null so why not here too?
                 addError( reporter, E1076, attribute );
 
                 continue;
@@ -139,6 +165,7 @@ public class TrackedEntityAttributeValidationHook
             validateAttributeValue( reporter, tea, attribute.getValue() );
             validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
             validateAttrValueType( reporter, attribute, tea );
+            validateOptionSet( reporter, tea, attribute.getValue() );
 
             validateAttributeUniqueness( reporter, attribute.getValue(), tea, tei, orgUnit );
 
@@ -152,14 +179,17 @@ public class TrackedEntityAttributeValidationHook
         checkNotNull( value, TRACKED_ENTITY_ATTRIBUTE_VALUE_CANT_BE_NULL );
 
         // Validate value (string) don't exceed the max length
-        addErrorIf( () -> value.length() > MAX_ATTR_VALUE_LENGTH, reporter, E1077, value, MAX_ATTR_VALUE_LENGTH );
-        
-        // Validate if that encryption is configured properly if someone sets value to (confidential)
+        addErrorIf( () -> value.length() > Constant.MAX_ATTR_VALUE_LENGTH, reporter, E1077, value,
+            Constant.MAX_ATTR_VALUE_LENGTH );
+
+        // Validate if that encryption is configured properly if someone sets
+        // value to (confidential)
         boolean isConfidential = tea.isConfidentialBool();
         boolean encryptionStatusOk = dhisConfigurationProvider.getEncryptionStatus().isOk();
         addErrorIf( () -> isConfidential && !encryptionStatusOk, reporter, E1112, value );
 
-        // Uses ValidationUtils to check that the data value corresponds to the data value type set on the attribute
+        // Uses ValidationUtils to check that the data value corresponds to the
+        // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
         addErrorIf( () -> result != null, reporter, E1085, tea, result );
     }
@@ -177,9 +207,11 @@ public class TrackedEntityAttributeValidationHook
         }
 
         // TODO: Should we check the text pattern even if its not generated?
-        // TextPatternValidationUtils.validateTextPatternValue( attribute.getTextPattern(), value )
+        // TextPatternValidationUtils.validateTextPatternValue(
+        // attribute.getTextPattern(), value )
 
-        //TODO: Can't provoke this error since metadata importer won't allow null, empty or invalid patterns.
+        // TODO: Can't provoke this error since metadata importer won't allow
+        // null, empty or invalid patterns.
         if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
         {
             reporter.addError( newReport( TrackerErrorCode.E1111 )
@@ -190,7 +222,8 @@ public class TrackedEntityAttributeValidationHook
         {
             String oldValue = existingValue != null ? existingValue.getValue() : null;
 
-            // We basically ignore the pattern validation if the value is reserved or already
+            // We basically ignore the pattern validation if the value is
+            // reserved or already
             // assigned i.e. input eq. already persisted value.
             boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
                 reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );
@@ -223,9 +256,8 @@ public class TrackedEntityAttributeValidationHook
             return;
         }
 
-        FileResource fileResource = reporter.getValidationContext().getBundle().getPreheat()
-            .get( TrackerIdScheme.UID, FileResource.class, attr.getValue() );
-        
+        FileResource fileResource = reporter.getValidationContext().getFileResource( attr.getValue() );
+
         addErrorIfNull( fileResource, reporter, E1084, attr.getValue() );
         addErrorIf( () -> fileResource != null && fileResource.isAssigned(), reporter, E1009, attr.getValue() );
     }

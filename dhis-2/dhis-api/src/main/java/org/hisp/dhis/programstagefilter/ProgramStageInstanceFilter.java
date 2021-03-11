@@ -1,7 +1,5 @@
-package org.hisp.dhis.programstagefilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programstagefilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programstagefilter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -34,6 +33,7 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
+import org.hisp.dhis.translation.Translatable;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -43,7 +43,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageInstanceFilter extends BaseIdentifiableObject implements MetadataObject
+public class ProgramStageInstanceFilter extends BaseIdentifiableObject
+    implements MetadataObject
 {
 
     private static final long serialVersionUID = 1L;
@@ -117,6 +118,14 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
         return description;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    @Translatable( propertyName = "description", key = "DESCRIPTION" )
+    public String getDisplayDescription()
+    {
+        return getTranslation( "DESCRIPTION", getDescription() );
+    }
+
     public void setDescription( String description )
     {
         this.description = description;
@@ -142,22 +151,12 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject implement
             this.program = psiFilter.getProgram();
             this.programStage = psiFilter.getProgramStage();
 
-            this.userAccesses.clear();
-            if ( psiFilter.getUserAccesses() != null )
-            {
-                this.userAccesses.addAll( psiFilter.getUserAccesses() );
-            }
-
-            this.userGroupAccesses.clear();
-            if ( psiFilter.getUserGroupAccesses() != null )
-            {
-                this.userGroupAccesses.addAll( psiFilter.getUserGroupAccesses() );
-            }
+            this.sharing = psiFilter.getSharing().copy();
 
             this.code = psiFilter.getCode();
             this.name = psiFilter.getName();
             this.description = psiFilter.getDescription();
-            this.publicAccess = psiFilter.getPublicAccess();
+            this.setPublicAccess( psiFilter.getSharing().getPublicAccess() );
         }
     }
 

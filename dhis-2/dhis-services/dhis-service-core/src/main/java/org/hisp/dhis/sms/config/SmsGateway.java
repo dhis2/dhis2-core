@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,25 @@ package org.hisp.dhis.sms.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.config;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.sms.outbound.GatewayResponse;
+import org.jasypt.encryption.pbe.PBEStringEncryptor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -46,8 +52,6 @@ import org.springframework.web.client.RestTemplate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
@@ -55,9 +59,13 @@ import lombok.extern.slf4j.Slf4j;
 public abstract class SmsGateway
 {
     protected static final String PROTOCOL_VERSION = "X-Version";
+
     protected static final String MAX_MESSAGE_PART = "?maxMessageParts=4";
+
     protected static final String BASIC = " Basic ";
+
     public static final String KEY_TEXT = "text";
+
     public static final String KEY_RECIPIENT = "recipients";
 
     public static final Set<HttpStatus> OK_CODES = ImmutableSet.of( HttpStatus.OK,
@@ -81,11 +89,17 @@ public abstract class SmsGateway
     @Autowired
     private RestTemplate restTemplate;
 
-    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SmsGatewayConfig gatewayConfig );
+    @Autowired
+    @Qualifier( "tripleDesStringEncryptor" )
+    private PBEStringEncryptor pbeStringEncryptor;
+
+    protected abstract List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch,
+        SmsGatewayConfig gatewayConfig );
 
     protected abstract boolean accept( SmsGatewayConfig gatewayConfig );
 
-    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients, SmsGatewayConfig gatewayConfig );
+    protected abstract OutboundMessageResponse send( String subject, String text, Set<String> recipients,
+        SmsGatewayConfig gatewayConfig );
 
     public HttpStatus send( String urlTemplate, HttpEntity<?> request, HttpMethod httpMethod, Class<?> klass )
     {
@@ -153,5 +167,19 @@ public abstract class SmsGateway
         status.setDescription( gatewayResponse.getResponseMessage() );
 
         return status;
+    }
+
+    protected HttpHeaders getAuthenticationHeaderParameters( SmsGatewayConfig config )
+    {
+        String credentials = config.getUsername().trim() + ":" +
+            pbeStringEncryptor.decrypt( config.getPassword().trim() );
+        String encodedCredentials = Base64.getEncoder().encodeToString( credentials.getBytes() );
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set( HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE );
+        headers.set( HttpHeaders.AUTHORIZATION, BASIC + encodedCredentials );
+
+        return headers;
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,11 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
@@ -45,11 +42,6 @@ import org.springframework.stereotype.Component;
 public class EventGeoValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventGeoValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
@@ -65,7 +57,8 @@ public class EventGeoValidationHook
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
         programStage = (programStage == null && program.isWithoutRegistration())
-            ? program.getProgramStageByStage( 1 ) : programStage;
+            ? program.getProgramStageByStage( 1 )
+            : programStage;
         if ( programStage == null )
         {
             return;
@@ -81,7 +74,7 @@ public class EventGeoValidationHook
 
         if ( event.getGeometry() != null )
         {
-            validateGeometry( reporter,
+            ValidationUtils.validateGeometry( reporter,
                 event.getGeometry(),
                 programStage.getFeatureType() );
         }

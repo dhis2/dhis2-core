@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,16 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.QueryPlanner;
 import org.hisp.dhis.analytics.QueryValidator;
@@ -39,20 +42,16 @@ import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryPlanner;
 import org.hisp.dhis.analytics.partition.PartitionManager;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.ProgramIndicator;
+import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -116,7 +115,7 @@ public class DefaultEventQueryPlanner
     public EventQueryParams planEnrollmentQuery( EventQueryParams params )
     {
         return new EventQueryParams.Builder( params )
-            .withTableName( PartitionUtils.getTableName( 
+            .withTableName( PartitionUtils.getTableName(
                 AnalyticsTableType.ENROLLMENT.getTableName(), params.getProgram() ) )
             .build();
     }
@@ -139,13 +138,12 @@ public class DefaultEventQueryPlanner
      */
     private EventQueryParams withTableNameAndPartitions( EventQueryParams params )
     {
-        Partitions partitions = params.hasStartEndDate() ?
-            PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() ) :
-            PartitionUtils.getPartitions( params.getAllPeriods() );
+        Partitions partitions = params.hasStartEndDate()
+            ? PartitionUtils.getPartitions( params.getStartDate(), params.getEndDate() )
+            : PartitionUtils.getPartitions( params.getAllPeriods() );
 
-        String baseName = params.hasEnrollmentProgramIndicatorDimension() ?
-            AnalyticsTableType.ENROLLMENT.getTableName() :
-            AnalyticsTableType.EVENT.getTableName();
+        String baseName = params.hasEnrollmentProgramIndicatorDimension() ? AnalyticsTableType.ENROLLMENT.getTableName()
+            : AnalyticsTableType.EVENT.getTableName();
 
         String tableName = PartitionUtils.getTableName( baseName, params.getProgram() );
 
@@ -260,12 +258,13 @@ public class DefaultEventQueryPlanner
     }
 
     /**
-     * Groups the given query in sub queries for each dimension period. This applies
-     * if the aggregation type is {@link AggregationType#LAST} or
-     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the query includes
-     * a {@link ProgramIndicator} that does not use default analytics period boundaries:
-     * {@link EventQueryParams#hasNonDefaultBoundaries()}.
-     * In this case, each period must be aggregated individually.
+     * Groups the given query in sub queries for each dimension period. This
+     * applies if the aggregation type is {@link AggregationType#LAST} or
+     * {@link AggregationType#LAST_AVERAGE_ORG_UNIT}. It also applies if the
+     * query includes a {@link ProgramIndicator} that does not use default
+     * analytics period boundaries:
+     * {@link EventQueryParams#hasNonDefaultBoundaries()}. In this case, each
+     * period must be aggregated individually.
      *
      * @param params the data query parameters.
      * @return a list of {@link EventQueryParams}.
@@ -274,8 +273,7 @@ public class DefaultEventQueryPlanner
     {
         List<EventQueryParams> queries = new ArrayList<>();
 
-
-        if ( ( params.isFirstOrLastPeriodAggregationType() || params.useIndividualQuery() )  &&
+        if ( (params.isFirstOrLastPeriodAggregationType() || params.useIndividualQuery()) &&
             !params.getPeriods().isEmpty() )
         {
             for ( DimensionalItemObject period : params.getPeriods() )

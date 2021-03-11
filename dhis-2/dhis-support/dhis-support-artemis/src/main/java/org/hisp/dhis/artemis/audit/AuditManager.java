@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,28 @@ package org.hisp.dhis.artemis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.audit;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.artemis.AuditProducerConfiguration;
 import org.hisp.dhis.artemis.audit.configuration.AuditMatrix;
 import org.hisp.dhis.artemis.audit.legacy.AuditObjectFactory;
 import org.hisp.dhis.artemis.config.UsernameSupplier;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.audit.AuditAttributes;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.system.util.AnnotationUtils;
+import org.hisp.dhis.system.util.ReflectionUtils;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -46,12 +56,23 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class AuditManager
 {
     private final AuditProducerSupplier auditProducerSupplier;
+
     private final AuditProducerConfiguration config;
+
     private final AuditScheduler auditScheduler;
+
     private final AuditMatrix auditMatrix;
+
     private final UsernameSupplier usernameSupplier;
 
     private final AuditObjectFactory objectFactory;
+
+    /**
+     * Cache for Fields of {@link org.hisp.dhis.audit.Auditable} classes Key is
+     * class name. Value is Map of {@link AuditAttribute} Fields and its getter
+     * Method
+     */
+    private static final Map<String, Map<Field, Method>> cachedAuditAttributeFields = new ConcurrentHashMap<>();
 
     public AuditManager(
         AuditProducerSupplier auditProducerSupplier,
@@ -93,11 +114,9 @@ public class AuditManager
             audit.setData( this.objectFactory.create(
                 audit.getAuditScope(),
                 audit.getAuditType(),
-                audit.getAuditableEntity().getSerializableObject(),
+                audit.getAuditableEntity().getEntity(),
                 audit.getCreatedBy() ) );
         }
-
-        audit.setAttributes( this.objectFactory.collectAuditAttributes( audit.getAuditableEntity() ) );
 
         if ( config.isUseQueue() )
         {
@@ -107,5 +126,45 @@ public class AuditManager
         {
             auditProducerSupplier.publish( audit );
         }
+    }
+
+    public Map<Field, Method> getAuditAttributeFields( Class<?> auditClass )
+    {
+        Map<Field, Method> map = cachedAuditAttributeFields.get( auditClass.getName() );
+
+        if ( map == null )
+        {
+            map = AnnotationUtils.getAnnotatedFields( auditClass, AuditAttribute.class );
+            cachedAuditAttributeFields.put( auditClass.getName(), map );
+        }
+
+        return map;
+    }
+
+    public AuditAttributes collectAuditAttributes( Object entity, Class entityClass )
+    {
+        AuditAttributes auditAttributes = new AuditAttributes();
+
+        getAuditAttributeFields( entityClass ).forEach( ( field, getterMethod ) -> auditAttributes.put( field.getName(),
+            getAttributeValue( entity, field.getName(), getterMethod ) ) );
+
+        return auditAttributes;
+    }
+
+    private Object getAttributeValue( Object auditObject, String attributeName, Method getter )
+    {
+        if ( auditObject instanceof Map )
+        {
+            return ((Map) auditObject).get( attributeName );
+        }
+
+        Object value = ReflectionUtils.invokeMethod( auditObject, getter );
+
+        if ( value instanceof IdentifiableObject )
+        {
+            return ((IdentifiableObject) value).getUid();
+        }
+
+        return value;
     }
 }

@@ -671,8 +671,7 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 1 );
-    var nextYearStartDate = dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -681,7 +680,7 @@ $.extend( dhis2.period.WeeklyGenerator.prototype, {
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
-      var isNextYearWeek = startDate.formatDate(this.format) <= nextYearStartDate && nextYearStartDate <= endDate.formatDate(this.format);
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
 
       if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
         break;
@@ -759,8 +758,7 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 3 );
-    var nextYearStartDate = dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -769,7 +767,7 @@ $.extend( dhis2.period.WeeklyWednesdayGenerator.prototype, {
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
-      var isNextYearWeek = startDate.formatDate(this.format) <= nextYearStartDate && nextYearStartDate <= endDate.formatDate(this.format);
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
 
       if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
         break;
@@ -817,8 +815,7 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 4 );
-    var nextYearStartDate = dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -827,7 +824,7 @@ $.extend( dhis2.period.WeeklyThursdayGenerator.prototype, {
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
-      var isNextYearWeek = startDate.formatDate(this.format) <= nextYearStartDate && nextYearStartDate <= endDate.formatDate(this.format);
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
 
       if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
         break;
@@ -877,8 +874,7 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 6 );
-    var nextYearStartDate = dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -887,7 +883,7 @@ $.extend( dhis2.period.WeeklySaturdayGenerator.prototype, {
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
-      var isNextYearWeek = startDate.formatDate(this.format) <= nextYearStartDate && nextYearStartDate <= endDate.formatDate(this.format);
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
 
       if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
         break;
@@ -937,8 +933,7 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
     var periods = [];
 
     var startDate = dhis2.period.getStartDateOfYear( this.calendar, year, 7 );
-    var nextYearStartDate = dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 );
-    nextYearStartDate = nextYearStartDate.formatDate( this.format );
+    var nextYearStartDate = Date.parse( dhis2.period.getStartDateOfYear( this.calendar, year + 1, 1 ) );
 
     // no reliable way to figure out number of weeks in a year (can differ in different calendars)
     // goes up to 200, but break when week is back to 1
@@ -947,7 +942,7 @@ $.extend( dhis2.period.WeeklySundayGenerator.prototype, {
       // not very elegant, but seems to be best way to get week end, adds a week, then minus 1 day
       var endDate = this.calendar.newDate( startDate ).add( 1, 'w' ).add( -1, 'd' );
 
-      var isNextYearWeek = startDate.formatDate(this.format) <= nextYearStartDate && nextYearStartDate <= endDate.formatDate(this.format);
+      var isNextYearWeek = Date.parse( startDate ) <= nextYearStartDate && nextYearStartDate <= Date.parse( endDate );
 
       if ( startDate.weekOfYear() === 1 && week > 50 || isNextYearWeek ) {
         break;
@@ -1307,7 +1302,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
     var periods = [];
 
     var startDate = this.calendar.newDate( year, 11, 1 );
-    var endDate = this.calendar.newDate( startDate ).set( year + 1, 'y').set( 4, 'm' );    
+    var endDate = this.calendar.newDate( startDate ).set( year + 1, 'y').set( 4, 'm' );
     endDate.set( endDate.daysInMonth( 4 ), 'd' );
 
     var period = {};
@@ -1315,7 +1310,7 @@ $.extend( dhis2.period.SixMonthlyNovemberGenerator.prototype, {
     period['endDate'] = endDate.formatDate( this.format );
     period['name'] = getMonthTranslation( startDate.formatDate( "MM yyyy" ) ) + ' - ' + getMonthTranslation( endDate.formatDate( "MM yyyy" ) );// + ' ' + year;
     period['id'] = 'SixMonthlyNov_' + period['startDate'];
-    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovS1';   
+    period['iso'] = endDate.formatDate( "yyyy" ) + 'NovS1';
 
     period['_startDate'] = this.calendar.newDate( startDate );
     period['_endDate'] = this.calendar.newDate( endDate );
@@ -1430,7 +1425,7 @@ $.extend( dhis2.period.FinancialBaseGenerator.prototype, {
       period['endDate'] = endDate.formatDate( this.format );
       period['name'] = getMonthTranslation( startDate.formatDate( "MM" ) ) + ' ' + startDate.year() + ' - ' + getMonthTranslation( endDate.formatDate( "MM" ) ) + ' ' + endDate.year();
       period['id'] = 'Financial' + this.monthShortName + '_' + period['startDate'];
-      
+
       var isoDate = this.name === 'FinancialNov' ? endDate.formatDate( "yyyy" ) : startDate.formatDate( "yyyy" );
 
       period['iso'] = isoDate + this.monthShortName;

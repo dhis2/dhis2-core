@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.grid;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.grid;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.grid;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -55,10 +54,13 @@ import com.google.common.collect.Lists;
 public class GridTest
 {
     private Grid gridA;
+
     private Grid gridB;
 
     private GridHeader headerA;
+
     private GridHeader headerB;
+
     private GridHeader headerC;
 
     @Before
@@ -67,9 +69,9 @@ public class GridTest
         gridA = new ListGrid();
         gridB = new ListGrid();
 
-        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, String.class.getName(), false, true );
-        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, String.class.getName(), false, true );
-        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, String.class.getName(), true, false );
+        headerA = new GridHeader( "ColA", "colA", ValueType.TEXT, false, true );
+        headerB = new GridHeader( "ColB", "colB", ValueType.TEXT, false, true );
+        headerC = new GridHeader( "ColC", "colC", ValueType.TEXT, true, false );
 
         gridA.addHeader( headerA );
         gridA.addHeader( headerB );
@@ -843,7 +845,8 @@ public class GridTest
     }
 
     @Test
-    public void testJRDataSource() throws Exception
+    public void testJRDataSource()
+        throws Exception
     {
         assertTrue( gridA.next() );
         assertEquals( 11, gridA.getFieldValue( new MockJRField( "colA" ) ) );

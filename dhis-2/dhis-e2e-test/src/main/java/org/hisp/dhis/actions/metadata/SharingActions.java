@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,8 +30,8 @@ package org.hisp.dhis.actions.metadata;
 
 import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.utils.JsonObjectBuilder;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -47,7 +47,7 @@ public class SharingActions extends RestApiActions
 
         JsonObject jsonObject = new JsonObject();
 
-        jsonObject.add( "object",JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
+        jsonObject.add( "object", JsonObjectBuilder.jsonObject().addUserGroupAccess().build());
 
         this.post( jsonObject, new QueryParamsBuilder().add( "type=" + type  ).add( "id=" + id ) ).validate().statusCode( 200 );
     }

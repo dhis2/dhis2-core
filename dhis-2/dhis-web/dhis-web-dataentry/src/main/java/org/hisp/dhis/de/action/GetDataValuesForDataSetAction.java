@@ -1,7 +1,5 @@
-package org.hisp.dhis.de.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,21 @@ package org.hisp.dhis.de.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.de.action;
 
-import com.opensymphony.xwork2.Action;
-
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.dataset.DataSet;
@@ -53,14 +59,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
@@ -224,7 +223,10 @@ public class GetDataValuesForDataSetAction
 
     private String lastUpdatedBy;
 
-    public String getLastUpdatedBy() { return lastUpdatedBy; }
+    public String getLastUpdatedBy()
+    {
+        return lastUpdatedBy;
+    }
 
     private Map<String, FileResource> dataValueFileResourceMap = new HashMap<>();
 
@@ -255,7 +257,8 @@ public class GetDataValuesForDataSetAction
 
         if ( organisationUnit == null || period == null || dataSet == null )
         {
-            log.warn( "Illegal input, org unit: " + organisationUnit + ", period: " + period + ", data set: " + dataSet );
+            log.warn(
+                "Illegal input, org unit: " + organisationUnit + ", period: " + period + ", data set: " + dataSet );
             return SUCCESS;
         }
 
@@ -271,11 +274,13 @@ public class GetDataValuesForDataSetAction
         // Data values & Min-max data elements
         // ---------------------------------------------------------------------
 
-        minMaxDataElements.addAll( minMaxDataElementService.getMinMaxDataElements( organisationUnit, dataSet.getDataElements() ) );
+        minMaxDataElements
+            .addAll( minMaxDataElementService.getMinMaxDataElements( organisationUnit, dataSet.getDataElements() ) );
 
         if ( !multiOrganisationUnit )
         {
-            dataValues.addAll( dataValueService.getDataValues( organisationUnit, period, dataSet.getDataElements(), attributeOptionCombo ) );
+            dataValues.addAll( dataValueService.getDataValues( organisationUnit, period, dataSet.getDataElements(),
+                attributeOptionCombo ) );
         }
         else
         {
@@ -283,7 +288,8 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    dataValues.addAll( dataValueService.getDataValues( ou, period, dataSet.getDataElements(), attributeOptionCombo ) );
+                    dataValues.addAll(
+                        dataValueService.getDataValues( ou, period, dataSet.getDataElements(), attributeOptionCombo ) );
                     minMaxDataElements.addAll( minMaxDataElementService.getMinMaxDataElements( ou, dataSet
                         .getDataElements() ) );
                 }
@@ -319,7 +325,8 @@ public class GetDataValuesForDataSetAction
                 lastUpdatedBy = registration.getLastUpdatedBy();
             }
 
-            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
+            locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo,
+                null );
         }
         else
         {
@@ -331,17 +338,18 @@ public class GetDataValuesForDataSetAction
             {
                 if ( ou.getDataSets().contains( dataSet ) )
                 {
-                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit, attributeOptionCombo, null );
+                    locked = dataSetService.isLocked( currentUser, dataSet, period, organisationUnit,
+                        attributeOptionCombo, null );
 
                     if ( locked )
                     {
                         break;
                     }
 
-                    CompleteDataSetRegistration registration =
-                            registrationService.getCompleteDataSetRegistration( dataSet, period, ou, attributeOptionCombo );
+                    CompleteDataSetRegistration registration = registrationService
+                        .getCompleteDataSetRegistration( dataSet, period, ou, attributeOptionCombo );
 
-                    if( registration != null )
+                    if ( registration != null )
                     {
                         complete = registration.getCompleted();
                         lastUpdatedBy = registration.getLastUpdatedBy();

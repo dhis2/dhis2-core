@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +25,10 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fieldfilter;
 
-import org.apache.commons.beanutils.PropertyUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.node.Node;
-import org.hisp.dhis.node.types.CollectionNode;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.beans.PropertyDescriptor;
 import java.util.Collection;
@@ -55,6 +38,29 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.beanutils.PropertyUtils;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
+import org.hisp.dhis.node.Node;
+import org.hisp.dhis.node.types.CollectionNode;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -75,19 +81,30 @@ public class DefaultFieldFilterServiceTest
     @Mock
     private AttributeService attributeService;
 
+    @Mock
+    private UserGroupService userGroupService;
+
+    @Mock
+    private UserService userService;
+
     private DefaultFieldFilterService service;
 
     @Rule
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Before
-    public void setUp() throws Exception
+    public void setUp()
+        throws Exception
     {
-        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService, attributeService, new HashSet<>() );
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
+        service = new DefaultFieldFilterService( fieldParser, schemaService, aclService, currentUserService,
+            attributeService, cacheProvider, userGroupService, userService, new HashSet<>() );
     }
 
     @Test
-    public void toCollectionNodeSkipSharingNoFields() throws Exception
+    public void toCollectionNodeSkipSharingNoFields()
+        throws Exception
     {
         final Attribute attribute = new Attribute();
         final Map<String, Property> propertyMap = new HashMap<>();
@@ -105,7 +122,8 @@ public class DefaultFieldFilterServiceTest
         final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ), Collections.emptyList(), Defaults.INCLUDE, true );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
+            Collections.emptyList(), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
         Assert.assertEquals( 1, node.getChildren().size() );
@@ -119,7 +137,8 @@ public class DefaultFieldFilterServiceTest
     }
 
     @Test
-    public void toCollectionNodeSkipSharingOwner() throws Exception
+    public void toCollectionNodeSkipSharingOwner()
+        throws Exception
     {
         final Attribute attribute = new Attribute();
         final Map<String, Property> propertyMap = new HashMap<>();
@@ -140,7 +159,8 @@ public class DefaultFieldFilterServiceTest
         final Schema booleanSchema = new Schema( boolean.class, "boolean", "booleans" );
         Mockito.when( schemaService.getDynamicSchema( Mockito.eq( boolean.class ) ) ).thenReturn( booleanSchema );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ), Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( attribute ),
+            Collections.singletonList( ":owner" ), Defaults.INCLUDE, true );
 
         CollectionNode node = service.toCollectionNode( Attribute.class, params );
         Assert.assertEquals( 1, node.getChildren().size() );
@@ -159,7 +179,8 @@ public class DefaultFieldFilterServiceTest
         return nodes.stream().map( Node::getName ).collect( Collectors.toSet() );
     }
 
-    private static Property addProperty( Map<String, Property> propertyMap, Object bean, String property ) throws Exception
+    private static Property addProperty( Map<String, Property> propertyMap, Object bean, String property )
+        throws Exception
     {
         PropertyDescriptor pd = PropertyUtils.getPropertyDescriptor( bean, property );
         Property p = new Property( pd.getPropertyType(), pd.getReadMethod(), pd.getWriteMethod() );

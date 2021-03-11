@@ -1,0 +1,13 @@
+{
+  "programRules": [{
+    "name": "test_event_program_rule_assign_value",
+    "condition": "!d2:hasValue(#{TAComment})",
+    "program": {
+      "id": "uHi4GZJOD3n"
+    },
+    "translations": [],
+    "programRuleActions": [{
+      "id": "mbCnp26WeKe"
+    }]
+  }]
+}

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -38,9 +40,6 @@ import org.hisp.dhis.preheat.PreheatService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -79,12 +78,14 @@ public class AbstractObjectBundleHook implements ObjectBundleHook
     }
 
     @Override
-    public <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void preTypeImport( Class<? extends IdentifiableObject> klass,
+        List<T> objects, ObjectBundle bundle )
     {
     }
 
     @Override
-    public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass, List<T> objects, ObjectBundle bundle )
+    public <T extends IdentifiableObject> void postTypeImport( Class<? extends IdentifiableObject> klass,
+        List<T> objects, ObjectBundle bundle )
     {
     }
 

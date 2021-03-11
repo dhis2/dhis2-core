@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.base.MoreObjects;
-
-import java.util.Objects;
+package org.hisp.dhis.common;
 
 import static org.apache.commons.lang3.EnumUtils.isValidEnum;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
+
+import java.util.Objects;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * Holds the DimensionItemType of a DimensionalItemObject, and the identifier
@@ -123,24 +122,24 @@ public class DimensionalItemId
     {
         switch ( dimensionItemType )
         {
-            case DATA_ELEMENT:
-            case INDICATOR:
-            case PROGRAM_INDICATOR:
-                return id0 != null && id1 == null && id2 == null;
+        case DATA_ELEMENT:
+        case INDICATOR:
+        case PROGRAM_INDICATOR:
+            return id0 != null && id1 == null && id2 == null;
 
-            case DATA_ELEMENT_OPERAND:
-                return id0 != null && ( id1 != null || id2 != null );
+        case DATA_ELEMENT_OPERAND:
+            return id0 != null && (id1 != null || id2 != null);
 
-            case REPORTING_RATE:
-                return id0 != null && id1 != null && id2 == null
-                    && isValidEnum( ReportingRateMetric.class, id1 );
+        case REPORTING_RATE:
+            return id0 != null && id1 != null && id2 == null
+                && isValidEnum( ReportingRateMetric.class, id1 );
 
-            case PROGRAM_DATA_ELEMENT:
-            case PROGRAM_ATTRIBUTE:
-                return id0 != null && id1 != null && id2 == null;
+        case PROGRAM_DATA_ELEMENT:
+        case PROGRAM_ATTRIBUTE:
+            return id0 != null && id1 != null && id2 == null;
 
-            default:
-                return false;
+        default:
+            return false;
         }
     }
 

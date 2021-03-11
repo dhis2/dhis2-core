@@ -1,7 +1,5 @@
-package org.hisp.dhis.audit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.audit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.audit;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,10 +33,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Indicate an attribute of a entity should be saved for auditing.
- * If the marked attribute is an {@link org.hisp.dhis.common.IdentifiableObject} then its UID will be extracted for saving,
- * otherwise the value object of the attribute will be saved.
- * All attributes's values will be put into {@link Audit}.attributes and saved to database as JSONB column.
+ * Indicate an attribute of a entity should be saved for auditing. If the marked
+ * attribute is an {@link org.hisp.dhis.common.IdentifiableObject} then its UID
+ * will be extracted for saving, otherwise the value object of the attribute
+ * will be saved. All attributes's values will be put into
+ * {@link Audit}.attributes and saved to database as JSONB column.
  */
 @Retention( RetentionPolicy.RUNTIME )
 @Target( { ElementType.FIELD, ElementType.METHOD } )

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.context;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -47,12 +46,15 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -63,12 +65,11 @@ public class AttributeOptionComboLoader
 {
     private final JdbcTemplate jdbcTemplate;
 
-    private final static String KEY_SEPARATOR = "-";
-
     public final static String SQL_GET_CATEGORYOPTIONCOMBO = "select coc.categoryoptioncomboid, "
         + "coc.uid, coc.code, coc.ignoreapproval, coc.name, c.uid as cc_uid, c.name as cc_name, "
-        + "string_agg(dec.categoryid::text, ',') as cat_ids from categoryoptioncombo coc "
+        + "string_agg(coco.categoryoptionid::text, ',') as cat_ids from categoryoptioncombo coc "
         + "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid "
+        + "join categoryoptioncombos_categoryoptions coco on coc.categoryoptioncomboid = coco.categoryoptioncomboid "
         + "join categorycombo c on co.categorycomboid = c.categorycomboid "
         + "join categorycombos_categories cc on c.categorycomboid = cc.categorycomboid "
         + "join dataelementcategory dec on cc.categoryid = dec.categoryid where coc."
@@ -83,7 +84,7 @@ public class AttributeOptionComboLoader
         "coc.name, " +
         "c.uid as cc_uid, " +
         "c.name as cc_name," +
-        "string_agg( coco.categoryoptionid::text, ',') as cat_ids " +
+        "array_to_string(array_agg(distinct coco.categoryoptionid::TEXT), ',') as cat_ids " +
         "from categoryoptioncombo coc " +
         "join categorycombos_optioncombos co on coc.categoryoptioncomboid = co.categoryoptioncomboid " +
         "join categorycombo c on co.categorycomboid = c.categorycomboid " +
@@ -124,7 +125,7 @@ public class AttributeOptionComboLoader
      * @return a {@see CategoryOptionCombo}
      */
     public CategoryOptionCombo getAttributeOptionCombo( CategoryCombo categoryCombo, String categoryOptions,
-                                                        String attributeOptionCombo, IdScheme idScheme )
+        String attributeOptionCombo, IdScheme idScheme )
     {
         final Set<String> opts = TextUtils.splitToArray( categoryOptions, TextUtils.SEMICOLON );
 
@@ -133,11 +134,12 @@ public class AttributeOptionComboLoader
 
     /**
      * Fetches the default {@see CategoryOptionCombo}
+     *
      * @return a {@see CategoryOptionCombo} or null
      */
     public CategoryOptionCombo getDefault()
     {
-        return  loadCategoryOptionCombo( IdScheme.NAME, "default" );
+        return loadCategoryOptionCombo( IdScheme.NAME, "default" );
     }
 
     /**
@@ -238,7 +240,9 @@ public class AttributeOptionComboLoader
         return id;
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId, Set<CategoryOption> categoryOptions ) {
+    private CategoryOptionCombo getAttributeOptionCombo( IdScheme idScheme, String categoryComboId,
+        Set<CategoryOption> categoryOptions )
+    {
 
         final String key = "categorycomboid";
         final String categoryComboKey = resolveId( idScheme, key, categoryComboId );
@@ -252,10 +256,11 @@ public class AttributeOptionComboLoader
             .put( "resolvedScheme", Objects.requireNonNull( categoryComboKey ) )
             .put( "option_ids", optionsId )
             .build() );
-        
+
         // TODO use cache
         List<CategoryOptionCombo> categoryOptionCombos = jdbcTemplate
-            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ), ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
+            .query( sub.replace( SQL_GET_CATEGORYOPTIONCOMBO_BY_CATEGORYIDS ),
+                ( rs, i ) -> bind( "categoryoptioncomboid", rs ) );
 
         if ( categoryOptionCombos.size() == 1 )
         {
@@ -269,10 +274,11 @@ public class AttributeOptionComboLoader
     }
 
     /**
-     * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided IdScheme)
+     * Fetches a {@see CategoryOptionCombo} by "id" (based on the provided
+     * IdScheme)
      *
-     * The {@see CategoryOptionCombo} contains tha associated {@see CategoryCombo}
-     * and all the associated {@see CategoryOption}
+     * The {@see CategoryOptionCombo} contains tha associated
+     * {@see CategoryCombo} and all the associated {@see CategoryOption}
      *
      * @param idScheme a {@see IdScheme}
      * @param id the {@see CategoryOptionCombo} id to use
@@ -282,7 +288,7 @@ public class AttributeOptionComboLoader
     {
         String key = "categoryoptioncomboid";
 
-        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String>builder()
+        StrSubstitutor sub = new StrSubstitutor( ImmutableMap.<String, String> builder()
             .put( "key", key )
             .put( "resolvedScheme", Objects.requireNonNull( resolveId( idScheme, key, id ) ) )
             .build() );
@@ -311,11 +317,8 @@ public class AttributeOptionComboLoader
         String cat_ids = rs.getString( "cat_ids" );
         if ( Strings.isNotEmpty( cat_ids ) )
         {
-            categoryOptionCombo.setCategoryOptions( Arrays.stream( cat_ids.split( "," ) ).map( coid -> {
-                CategoryOption co = new CategoryOption();
-                co.setId( Long.parseLong( coid ) );
-                return co;
-            } ).collect( Collectors.toSet() )
+            categoryOptionCombo.setCategoryOptions( Arrays.stream( cat_ids.split( "," ) )
+                .map( coid -> getCategoryOption( IdScheme.ID, coid ) ).collect( Collectors.toSet() )
 
             );
         }
@@ -330,7 +333,7 @@ public class AttributeOptionComboLoader
     private CategoryOption loadCategoryOption( IdScheme idScheme, String id )
     {
         String key = "categoryoptionid";
-        final String sql = "select " + key + ", uid, code, name from dataelementcategoryoption "
+        final String sql = "select " + key + ", uid, code, name, sharing from dataelementcategoryoption "
             + "where " + resolveId( idScheme, key, id );
 
         try
@@ -341,7 +344,7 @@ public class AttributeOptionComboLoader
                 categoryOption.setUid( rs.getString( "uid" ) );
                 categoryOption.setCode( rs.getString( "code" ) );
                 categoryOption.setName( rs.getString( "name" ) );
-
+                categoryOption.setSharing( getSharing( rs.getString( "sharing" ) ) );
                 return categoryOption;
             } );
         }
@@ -371,5 +374,19 @@ public class AttributeOptionComboLoader
         }
 
         return null;
+    }
+
+    private Sharing getSharing( String jsonString )
+    {
+        try
+        {
+            return JacksonObjectMapperConfig.jsonMapper.readValue( jsonString, Sharing.class );
+        }
+        catch ( JsonProcessingException e )
+        {
+            // ignore
+            return null;
+        }
+
     }
 }

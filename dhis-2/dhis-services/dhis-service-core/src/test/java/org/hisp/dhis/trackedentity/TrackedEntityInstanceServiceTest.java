@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,9 +106,13 @@ public class TrackedEntityInstanceServiceTest
     private OrganisationUnit organisationUnit;
 
     private TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
+
     private TrackedEntityAttribute attrD = createTrackedEntityAttribute( 'D' );
+
     private TrackedEntityAttribute attrE = createTrackedEntityAttribute( 'E' );
+
     private TrackedEntityAttribute filtF = createTrackedEntityAttribute( 'F' );
+
     private TrackedEntityAttribute filtG = createTrackedEntityAttribute( 'G' );
 
     @Override
@@ -148,7 +152,7 @@ public class TrackedEntityInstanceServiceTest
         incidentDate.withTimeAtStartOfDay();
 
         programInstanceA = new ProgramInstance( enrollmentDate.toDate(), incidentDate.toDate(), entityInstanceA1,
-                programA);
+            programA );
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnit );
 

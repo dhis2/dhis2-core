@@ -1,7 +1,7 @@
 package org.hisp.dhis.helpers.extensions;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.extension.ExtensionContext.Namespace.GLOBAL;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class MetadataSetupExtension
-        implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
+    implements BeforeAllCallback, ExtensionContext.Store.CloseableResource
 {
     private static boolean started = false;
 
@@ -77,9 +77,7 @@ public class MetadataSetupExtension
             String[] files = {
                 "src/test/resources/setup/userGroups.json",
                 "src/test/resources/setup/metadata.json",
-                "src/test/resources/setup/metadata.json",
                 "src/test/resources/setup/userRoles.json",
-                "src/test/resources/setup/users.json",
                 "src/test/resources/setup/users.json"
             };
 
@@ -101,7 +99,7 @@ public class MetadataSetupExtension
     {
         logger.info( "Adding users to the TA user group" );
         UserActions userActions = new UserActions();
-        String[] users =  {
+        String[] users = {
             TestConfiguration.get().superUserUsername(),
             TestConfiguration.get().defaultUserUsername(),
             TestConfiguration.get().adminUserUsername()
@@ -109,13 +107,16 @@ public class MetadataSetupExtension
 
         String userGroupId = Constants.USER_GROUP_ID;
 
-
         for ( String user : users )
         {
             String userId = userActions.get( String.format(
-                "?filter=userCredentials.username:eq:%s", user ))
+                "?filter=userCredentials.username:eq:%s", user ) )
                 .extractString( "users.id[0]" );
 
+            if ( userId == null )
+            {
+                return;
+            }
             userActions.addUserToUserGroup( userId, userGroupId );
             TestRunStorage.removeEntity( "users", userId );
         }
@@ -135,13 +136,14 @@ public class MetadataSetupExtension
 
     @Override
     public void close()
-            throws Throwable
     {
-        TestCleanUp testCleanUp = new TestCleanUp();
+        if ( TestConfiguration.get().shouldCleanUp() ) {
+            TestCleanUp testCleanUp = new TestCleanUp();
 
-        iterateCreatedData( id -> {
-            testCleanUp.deleteEntity( createdData.get( id ), id );
-        } );
+            iterateCreatedData( id -> {
+                testCleanUp.deleteEntity( createdData.get( id ), id );
+            } );
+        }
 
     }
 }

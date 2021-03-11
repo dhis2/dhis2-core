@@ -1,7 +1,5 @@
-package org.hisp.dhis.db.migration.v36;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.db.migration.v36;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.db.migration.v36;
 
 import static org.hisp.dhis.db.migration.v36.V2_36_1__normalize_program_rule_variable_names_for_duplicates.ProgramRuleMigrationUtils.findAvailableName;
 
@@ -45,12 +44,12 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.flywaydb.core.api.migration.BaseJavaMigration;
 import org.flywaydb.core.api.migration.Context;
-
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -83,6 +82,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Returns a list of rule variable to be renamed, as pairs of (uid, name)
+     *
      * @param connection
      * @return
      * @throws SQLException
@@ -98,8 +98,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
         List<Pair<Long, String>> candidates = new ArrayList<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( candidateDetectionSql ) )
         {
             while ( rs.next() )
             {
@@ -114,6 +114,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Given a rule variable name, renames it
+     *
      * @param candidate
      * @param connection
      * @return variable names that have actually been renamed
@@ -130,8 +131,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
         Map<String, String> uidWithNewNames = new HashMap<>();
 
-        try (final Statement stmt = connection.createStatement();
-            final ResultSet rs = stmt.executeQuery( programRulesVariableToRenameSql ))
+        try ( final Statement stmt = connection.createStatement();
+            final ResultSet rs = stmt.executeQuery( programRulesVariableToRenameSql ) )
         {
             while ( rs.next() )
             {
@@ -147,6 +148,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
 
     /**
      * Detects which Program Rules have been affected by variable renaming
+     *
      * @param renamedVariableNames
      * @param connection
      * @return
@@ -160,8 +162,8 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
                 .map( variableName -> "rulecondition LIKE '%{" + variableName + "}%'" )
                 .collect( Collectors.joining( " OR " ) );
 
-            try (final Statement stmt = connection.createStatement();
-                ResultSet resultSet = stmt.executeQuery( affectedRulesSql ))
+            try ( final Statement stmt = connection.createStatement();
+                ResultSet resultSet = stmt.executeQuery( affectedRulesSql ) )
             {
                 Collection<String> rules = new HashSet<>();
 
@@ -184,14 +186,15 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
     }
 
     /**
-     * Utility class which shares commons method with Program Name flyway migration
-     * (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
+     * Utility class which shares commons method with Program Name flyway
+     * migration (i.e. V2_36_2__normalize_program_rule_names_for_duplicates)
      */
     static class ProgramRuleMigrationUtils
     {
 
         /**
          * Try to append a numeric suffix to variable name
+         *
          * @param originalName
          * @param existingNames
          * @return
@@ -216,7 +219,7 @@ public class V2_36_1__normalize_program_rule_variable_names_for_duplicates
         @SneakyThrows
         static void executeUpdate( String updateQuery, Connection connection )
         {
-            try (final Statement stmt = connection.createStatement())
+            try ( final Statement stmt = connection.createStatement() )
             {
                 stmt.executeUpdate( updateQuery );
             }

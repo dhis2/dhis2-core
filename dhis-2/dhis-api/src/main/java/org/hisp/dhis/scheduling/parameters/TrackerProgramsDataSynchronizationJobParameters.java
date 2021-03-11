@@ -1,6 +1,5 @@
-package org.hisp.dhis.scheduling.parameters;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,18 +25,20 @@ package org.hisp.dhis.scheduling.parameters;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.scheduling.parameters;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Optional;
+
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.parameters.jackson.TrackerProgramsDataSynchronizationJobParametersDeserializer;
 
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
@@ -50,6 +51,7 @@ public class TrackerProgramsDataSynchronizationJobParameters
     private static final long serialVersionUID = 368325562301563469L;
 
     static final int PAGE_SIZE_MIN = 5;
+
     static final int PAGE_SIZE_MAX = 100;
 
     private int pageSize = 20;
@@ -78,8 +80,7 @@ public class TrackerProgramsDataSynchronizationJobParameters
                     "pageSize",
                     PAGE_SIZE_MIN,
                     PAGE_SIZE_MAX,
-                    pageSize  )
-            );
+                    pageSize ) );
         }
 
         return Optional.empty();

@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
@@ -36,6 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -59,8 +60,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -122,7 +121,8 @@ public class DefaultAnalyticsSecurityManager
     private void decideAccessDataViewOrganisationUnits( DataQueryParams params, User user )
         throws IllegalQueryException
     {
-        List<DimensionalItemObject> queryOrgUnits = params.getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
+        List<DimensionalItemObject> queryOrgUnits = params
+            .getDimensionOrFilterItems( DimensionalObject.ORGUNIT_DIM_ID );
 
         if ( queryOrgUnits.isEmpty() || user == null || !user.hasDataViewOrganisationUnit() )
         {
@@ -188,7 +188,8 @@ public class DefaultAnalyticsSecurityManager
     }
 
     /**
-     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS} authority.
+     * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
+     * authority.
      *
      * @param params the {@link {@link DataQueryParams}.
      */
@@ -209,8 +210,8 @@ public class DefaultAnalyticsSecurityManager
     @Override
     public User getCurrentUser( DataQueryParams params )
     {
-        return params != null && params.hasCurrentUser() ?
-            params.getCurrentUser() : currentUserService.getCurrentUser();
+        return params != null && params.hasCurrentUser() ? params.getCurrentUser()
+            : currentUserService.getCurrentUser();
     }
 
     @Override
@@ -222,7 +223,9 @@ public class DefaultAnalyticsSecurityManager
 
         boolean hideUnapprovedData = systemSettingManager.hideUnapprovedDataInAnalytics();
 
-        boolean canViewUnapprovedData = user != null ? user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA ) : true;
+        boolean canViewUnapprovedData = user != null
+            ? user.getUserCredentials().isAuthorized( DataApproval.AUTH_VIEW_UNAPPROVED_DATA )
+            : true;
 
         if ( hideUnapprovedData && user != null )
         {
@@ -232,7 +235,8 @@ public class DefaultAnalyticsSecurityManager
             {
                 // Set approval level from query
 
-                DataApprovalLevel approvalLevel = approvalLevelService.getDataApprovalLevel( params.getApprovalLevel() );
+                DataApprovalLevel approvalLevel = approvalLevelService
+                    .getDataApprovalLevel( params.getApprovalLevel() );
 
                 if ( approvalLevel == null )
                 {
@@ -252,7 +256,8 @@ public class DefaultAnalyticsSecurityManager
             {
                 paramsBuilder.withDataApprovalLevels( approvalLevels );
 
-                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(), approvalLevels.values() ) );
+                log.debug( String.format( "User: '%s' constrained by data approval levels: '%s'", user.getUsername(),
+                    approvalLevels.values() ) );
             }
         }
 
@@ -317,7 +322,8 @@ public class DefaultAnalyticsSecurityManager
 
         List<OrganisationUnit> orgUnits = new ArrayList<>( user.getDataViewOrganisationUnits() );
 
-        DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID, DimensionType.ORGANISATION_UNIT, orgUnits );
+        DimensionalObject constraint = new BaseDimensionalObject( DimensionalObject.ORGUNIT_DIM_ID,
+            DimensionType.ORGANISATION_UNIT, orgUnits );
 
         builder.addFilter( constraint );
 
@@ -338,7 +344,8 @@ public class DefaultAnalyticsSecurityManager
         // Check if current user has dimension constraints
         // ---------------------------------------------------------------------
 
-        if ( params == null || user == null || user.getUserCredentials() == null || !user.getUserCredentials().hasDimensionConstraints() )
+        if ( params == null || user == null || user.getUserCredentials() == null
+            || !user.getUserCredentials().hasDimensionConstraints() )
         {
             return;
         }
@@ -356,7 +363,8 @@ public class DefaultAnalyticsSecurityManager
                 continue;
             }
 
-            List<DimensionalItemObject> canReadItems = dimensionService.getCanReadDimensionItems( dimension.getDimension() );
+            List<DimensionalItemObject> canReadItems = dimensionService
+                .getCanReadDimensionItems( dimension.getDimension() );
 
             // -----------------------------------------------------------------
             // Check if current user has access to any items from constraint
@@ -378,7 +386,8 @@ public class DefaultAnalyticsSecurityManager
 
             builder.addFilter( constraint );
 
-            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(), constraint.getDimension() ) );
+            log.debug( String.format( "User: '%s' constrained by dimension: '%s'", user.getUsername(),
+                constraint.getDimension() ) );
         }
     }
 }

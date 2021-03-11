@@ -1,7 +1,5 @@
-package org.hisp.dhis.interpretation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,19 @@ package org.hisp.dhis.interpretation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interpretation;
 
-import org.hisp.dhis.mapping.Map;
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.visualization.Visualization;
-import org.springframework.stereotype.Component;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import org.hisp.dhis.mapping.Map;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.visualization.Visualization;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
@@ -45,6 +46,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class InterpretationDeletionHandler
     extends DeletionHandler
 {
+    private static final DeletionVeto VETO = new DeletionVeto( Interpretation.class );
+
     private final InterpretationService interpretationService;
 
     public InterpretationDeletionHandler( InterpretationService interpretationService )
@@ -55,35 +58,34 @@ public class InterpretationDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return Interpretation.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
+        whenVetoing( Map.class, this::allowDeleteMap );
+        whenVetoing( Visualization.class, this::allowDeleteVisualization );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         List<Interpretation> interpretations = interpretationService.getInterpretations();
 
         for ( Interpretation interpretation : interpretations )
         {
-            if ( interpretation.getUser() != null && interpretation.getUser().equals( user ) )
+            if ( interpretation.getCreatedBy() != null && interpretation.getCreatedBy().equals( user ) )
             {
-                interpretation.setUser( null );
+                interpretation.setCreatedBy( null );
                 interpretationService.updateInterpretation( interpretation );
             }
         }
     }
 
-    @Override
-    public String allowDeleteMap( Map map )
+    private DeletionVeto allowDeleteMap( Map map )
     {
-        return interpretationService.countMapInterpretations( map ) == 0 ? null : ERROR;
+        return interpretationService.countMapInterpretations( map ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteVisualization( Visualization visualization )
+    private DeletionVeto allowDeleteVisualization( Visualization visualization )
     {
-        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? null : ERROR;
+        return interpretationService.countVisualizationInterpretations( visualization ) == 0 ? ACCEPT : VETO;
     }
 }

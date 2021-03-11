@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,34 +25,35 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Serializable;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.SerializableOptional;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * Declare transactions on individual methods. The get-methods do not have
  * transactions declared, instead a programmatic transaction is initiated on
- * cache miss in order to reduce the number of transactions to improve performance.
+ * cache miss in order to reduce the number of transactions to improve
+ * performance.
  *
  * @author Torgeir Lorange Ostby
  */
@@ -62,21 +61,18 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DefaultUserSettingService
     implements UserSettingService
 {
-    /**
-     * Cache for user settings. Does not accept nulls. Disabled during test phase.
-     */
-    private Cache<SerializableOptional> userSettingCache;
-
     private static final Map<String, SettingKey> NAME_SETTING_KEY_MAP = Sets.newHashSet(
         SettingKey.values() ).stream().collect( Collectors.toMap( SettingKey::getName, s -> s ) );
+
+    /**
+     * Cache for user settings. Does not accept nulls. Disabled during test
+     * phase.
+     */
+    private final Cache<SerializableOptional> userSettingCache;
 
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-
-    private final Environment env;
-
-    private final CacheProvider cacheProvider;
 
     private final CurrentUserService currentUserService;
 
@@ -86,35 +82,21 @@ public class DefaultUserSettingService
 
     private final SystemSettingManager systemSettingManager;
 
-    public DefaultUserSettingService( Environment env, CacheProvider cacheProvider, CurrentUserService currentUserService,
+    public DefaultUserSettingService( CacheProvider cacheProvider,
+        CurrentUserService currentUserService,
         UserSettingStore userSettingStore, UserService userService, SystemSettingManager systemSettingManager )
     {
-        checkNotNull( env );
         checkNotNull( cacheProvider );
         checkNotNull( currentUserService );
         checkNotNull( userSettingStore );
         checkNotNull( userService );
         checkNotNull( systemSettingManager );
 
-        this.env = env;
-        this.cacheProvider = cacheProvider;
         this.currentUserService = currentUserService;
         this.userSettingStore = userSettingStore;
         this.userService = userService;
         this.systemSettingManager = systemSettingManager;
-    }
-
-    // -------------------------------------------------------------------------
-    // Initialization
-    // -------------------------------------------------------------------------
-
-    @PostConstruct
-    public void init()
-    {
-        userSettingCache = cacheProvider.newCacheBuilder( SerializableOptional.class )
-            .forRegion( "userSetting" )
-            .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 10000 ).build();
+        this.userSettingCache = cacheProvider.createUserSettingCache();
     }
 
     // -------------------------------------------------------------------------
@@ -208,27 +190,31 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key )
     {
         return getUserSetting( key, Optional.empty() ).get();
     }
 
     /**
-     * Note: No transaction for this method, transaction is instead initiated at the
-     * store level behind the cache to avoid the transaction overhead for cache hits.
+     * Note: No transaction for this method, transaction is instead initiated at
+     * the store level behind the cache to avoid the transaction overhead for
+     * cache hits.
      */
     @Override
+    @Transactional( readOnly = true )
     public Serializable getUserSetting( UserSettingKey key, User user )
     {
         return getUserSetting( key, Optional.ofNullable( user ) ).get();
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<UserSetting> getAllUserSettings()
     {
         User currentUser = currentUserService.getCurrentUser();
@@ -237,11 +223,14 @@ public class DefaultUserSettingService
     }
 
     @Override
-    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user, Set<UserSettingKey> userSettingKeys,
+    @Transactional( readOnly = true )
+    public Map<String, Serializable> getUserSettingsWithFallbackByUserAsMap( User user,
+        Set<UserSettingKey> userSettingKeys,
         boolean useFallback )
     {
         Map<String, Serializable> result = Sets.newHashSet( getUserSettings( user ) ).stream()
-            .filter( userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
+            .filter(
+                userSetting -> userSetting != null && userSetting.getName() != null && userSetting.getValue() != null )
             .collect( Collectors.toMap( UserSetting::getName, UserSetting::getValue ) );
 
         userSettingKeys.forEach( userSettingKey -> {
@@ -251,7 +240,8 @@ public class DefaultUserSettingService
 
                 if ( useFallback && systemSettingKey.isPresent() )
                 {
-                    result.put( userSettingKey.getName(), systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
+                    result.put( userSettingKey.getName(),
+                        systemSettingManager.getSystemSetting( systemSettingKey.get() ) );
                 }
                 else
                 {
@@ -264,7 +254,7 @@ public class DefaultUserSettingService
     }
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public List<UserSetting> getUserSettings( User user )
     {
         if ( user == null )
@@ -275,7 +265,8 @@ public class DefaultUserSettingService
         List<UserSetting> userSettings = userSettingStore.getAllUserSettings( user );
         Set<UserSetting> defaultUserSettings = UserSettingKey.getDefaultUserSettings( user );
 
-        userSettings.addAll( defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
+        userSettings.addAll(
+            defaultUserSettings.stream().filter( x -> !userSettings.contains( x ) ).collect( Collectors.toList() ) );
 
         return userSettings;
     }
@@ -287,6 +278,7 @@ public class DefaultUserSettingService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Serializable> getUserSettingsAsMap()
     {
         Set<UserSettingKey> userSettingKeys = Stream.of( UserSettingKey.values() ).collect( Collectors.toSet() );
@@ -299,8 +291,8 @@ public class DefaultUserSettingService
     // -------------------------------------------------------------------------
 
     /**
-     * Returns a user setting optional. If the user settings does not have
-     * a value or default value, a corresponding system setting will be looked up.
+     * Returns a user setting optional. If the user settings does not have a
+     * value or default value, a corresponding system setting will be looked up.
      *
      * @param key the user setting key.
      * @param user an optional {@link User}.
@@ -332,10 +324,11 @@ public class DefaultUserSettingService
     }
 
     /**
-     * Get user setting optional. If the user setting exists and has a value, the
-     * value is returned. If not, the default value for the key is returned, if not
-     * present, an empty optional is returned. The return object is never null in
-     * order to cache requests for system settings which have no value or default value.
+     * Get user setting optional. If the user setting exists and has a value,
+     * the value is returned. If not, the default value for the key is returned,
+     * if not present, an empty optional is returned. The return object is never
+     * null in order to cache requests for system settings which have no value
+     * or default value.
      *
      * @param key the user setting key.
      * @param username the username of the user.

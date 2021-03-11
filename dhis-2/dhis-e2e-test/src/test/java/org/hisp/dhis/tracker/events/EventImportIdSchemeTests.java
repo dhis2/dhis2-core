@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -47,7 +47,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import javax.xml.crypto.Data;
 import java.io.File;
 import java.util.stream.Stream;
 
@@ -58,8 +57,19 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class EventImportIdSchemeTests extends ApiTest
+public class EventImportIdSchemeTests
+    extends ApiTest
 {
+    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
+
+    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
+
+    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString();
+
+    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
+
+    private static String ATTRIBUTE_ID;
+
     private OrgUnitActions orgUnitActions;
 
     private ProgramActions programActions;
@@ -68,27 +78,7 @@ public class EventImportIdSchemeTests extends ApiTest
 
     private AttributeActions attributeActions;
 
-    private static String OU_NAME = "TA EventsImportIdSchemeTests ou name " + DataGenerator.randomString();
-    private static String OU_CODE = "TA EventsImportIdSchemeTests ou code " + DataGenerator.randomString();
-    private static String ATTRIBUTE_VALUE = "TA EventsImportIdSchemeTests attribute " + DataGenerator.randomString() ;
-    private static String PROGRAM_ID = Constants.EVENT_PROGRAM_ID;
-
     private String orgUnitId;
-    private static String ATTRIBUTE_ID;
-
-
-
-    @BeforeAll
-    public void beforeAll() {
-        orgUnitActions = new OrgUnitActions();
-        eventActions = new EventActions();
-        programActions = new ProgramActions();
-        attributeActions = new AttributeActions();
-
-        new LoginActions().loginAsSuperUser();
-
-        setupData();
-    }
 
     private static Stream<Arguments> provideIdSchemeArguments()
     {
@@ -100,18 +90,30 @@ public class EventImportIdSchemeTests extends ApiTest
         );
     }
 
+    @BeforeAll
+    public void beforeAll()
+    {
+        orgUnitActions = new OrgUnitActions();
+        eventActions = new EventActions();
+        programActions = new ProgramActions();
+        attributeActions = new AttributeActions();
+
+        new LoginActions().loginAsSuperUser();
+
+        setupData();
+    }
 
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithOrgUnitScheme(String ouScheme, String ouProperty)
+    public void eventsShouldBeImportedWithOrgUnitScheme( String ouScheme, String ouProperty )
         throws Exception
     {
         String ouPropertyValue = orgUnitActions.get( orgUnitId ).extractString( ouProperty );
 
-        assertNotNull(ouPropertyValue, String.format(  "Org unit property %s was not present.", ouProperty));
+        assertNotNull( ouPropertyValue, String.format( "Org unit property %s was not present.", ouProperty ) );
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
-            .replacePropertyValuesWith( "orgUnit", ouPropertyValue)
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
+            .replacePropertyValuesWith( "orgUnit", ouPropertyValue )
             .replacePropertyValuesWithIds( "event" )
             .get( JsonObject.class );
 
@@ -123,9 +125,9 @@ public class EventImportIdSchemeTests extends ApiTest
 
         response.validate().statusCode( 200 )
             .rootPath( "response" )
-            .body( "status",  equalTo("SUCCESS") )
+            .body( "status", equalTo( "SUCCESS" ) )
             .body( "ignored", equalTo( 0 ) )
-            .body( "imported", greaterThan(1) )
+            .body( "imported", greaterThan( 1 ) )
             .body( "importSummaries.reference", everyItem( notNullValue() ) );
 
         String eventId = response.extractString( "response.importSummaries.reference[0]" );
@@ -138,28 +140,28 @@ public class EventImportIdSchemeTests extends ApiTest
 
     @ParameterizedTest
     @MethodSource( "provideIdSchemeArguments" )
-    public void eventsShouldBeImportedWithProgramScheme(String scheme, String property)
+    public void eventsShouldBeImportedWithProgramScheme( String scheme, String property )
         throws Exception
     {
-        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property);
+        String programPropertyValue = programActions.get( PROGRAM_ID ).extractString( property );
 
-        assertNotNull(programPropertyValue, String.format(  "Program property %s was not present.", property));
+        assertNotNull( programPropertyValue, String.format( "Program property %s was not present.", property ) );
 
-        JsonObject object = new FileReaderUtils().read(  new File( "src/test/resources/tracker/events/events.json" ) )
+        JsonObject object = new FileReaderUtils().read( new File( "src/test/resources/tracker/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" )
             .replacePropertyValuesWith( "orgUnit", orgUnitId )
-            .replacePropertyValuesWith( "program", programPropertyValue)
+            .replacePropertyValuesWith( "program", programPropertyValue )
             .get( JsonObject.class );
 
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "skipCache=true" )
-            .add( "programIdScheme=" + scheme);
+            .add( "programIdScheme=" + scheme );
 
         ApiResponse response = eventActions.post( object, queryParamsBuilder );
 
         response.validate().statusCode( 200 )
             .rootPath( "response" )
-            .body( "status",  equalTo("SUCCESS") )
+            .body( "status", equalTo( "SUCCESS" ) )
             .body( "ignored", equalTo( 0 ) )
             .body( "importSummaries.reference", everyItem( notNullValue() ) );
 
@@ -171,11 +173,10 @@ public class EventImportIdSchemeTests extends ApiTest
             .body( "program", equalTo( PROGRAM_ID ) );
     }
 
+    private void setupData()
+    {
 
-
-    private void setupData() {
-
-        ATTRIBUTE_ID = attributeActions.createUniqueAttribute(  "TEXT", "organisationUnit", "program" );
+        ATTRIBUTE_ID = attributeActions.createUniqueAttribute( "TEXT", "organisationUnit", "program" );
         //programAttributeId = attributeActions.createUniqueAttribute( "program", "TEXT" );
 
         assertNotNull( ATTRIBUTE_ID, "Failed to setup attribute" );
@@ -198,15 +199,16 @@ public class EventImportIdSchemeTests extends ApiTest
             .validate().statusCode( 200 );
     }
 
-    public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue) {
+    public JsonObject addAttributeValuePayload( JsonObject json, String attributeId, String attributeValue )
+    {
         JsonObject attributeObj = new JsonObject();
         attributeObj.addProperty( "id", attributeId );
 
         JsonObject attributeValueObj = new JsonObject();
         attributeValueObj.addProperty( "value", attributeValue );
-        attributeValueObj.add("attribute", attributeObj );
+        attributeValueObj.add( "attribute", attributeObj );
 
-        JsonArray attributeValues = new JsonArray(  );
+        JsonArray attributeValues = new JsonArray();
         attributeValues.add( attributeValueObj );
 
         json.add( "attributeValues", attributeValues );

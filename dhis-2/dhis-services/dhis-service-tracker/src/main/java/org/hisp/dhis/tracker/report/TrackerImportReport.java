@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.report;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,99 +25,71 @@ package org.hisp.dhis.tracker.report;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.report;
 
-
-import org.apache.commons.lang3.StringUtils;
+import lombok.*;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * This immutable object collects all the relevant information created during a
+ * Tracker Import process.
+ *
+ * The TrackerImportReport is created at the beginning of a Tracker Import
+ * session and returned to the caller.
+ *
+ * @author Luciano Fiandesio
  */
-@Data
-@NoArgsConstructor
+@Getter
+@Builder( access = AccessLevel.PROTECTED )
+@AllArgsConstructor( access = AccessLevel.PROTECTED )
+@NoArgsConstructor( access = AccessLevel.PROTECTED )
 public class TrackerImportReport
 {
 
-    private TrackerStatus status = TrackerStatus.OK;
-
-    private TrackerTimingsStats timings = new TrackerTimingsStats();
-
-    private TrackerBundleReport bundleReport = new TrackerBundleReport();
-
-    private TrackerValidationReport trackerValidationReport = new TrackerValidationReport();
-    
-    private String message;
-
+    /**
+     * The global status of the Import operation.
+     *
+     * - OK - no errors ( including validation errors )
+     *
+     * - WARNING - at least one Warning was collected during the Import
+     *
+     * - ERROR - at least on Error was collected during the Import
+     */
     @JsonProperty
-    public TrackerStats getStats()
-    {
-        TrackerStats stats = bundleReport.getStats();
-        stats.setIgnored( calculateIgnored() );
-        return stats;
-    }
-    
-    @JsonProperty
-    public TrackerStatus getStatus()
-    {
-        return status;
-    }
-    
-    @JsonProperty
-    public TrackerBundleReport getBundleReport()
-    {
-        return bundleReport;
-    }
-
-    @JsonProperty
-    public TrackerTimingsStats getTimings()
-    {
-        return timings;
-    }
-
-    @JsonProperty
-    public TrackerValidationReport getTrackerValidationReport()
-    {
-        return trackerValidationReport;
-    }
-    
-    @JsonProperty
-    public String message()
-    {
-        if ( StringUtils.isEmpty( message ) )
-        {
-            return getStatus().name();
-        }
-        
-        return message;
-    }
-    
-    //-----------------------------------------------------------------------------------
-    // Utility Methods
-    //-----------------------------------------------------------------------------------
+    TrackerStatus status;
 
     /**
-     * Are there any errors present?
-     *
-     * @return true or false depending on any errors found in bundle report
+     * A list of all validation errors occurred during the validation process
      */
-    public boolean isEmpty()
-    {
-        return bundleReport.isEmpty();
-    }
-    
-    private int calculateIgnored()
-    {
-        if ( getTrackerValidationReport() == null || getTrackerValidationReport().getErrorReports() == null )
-        {
-            return 0;
-        }
-        
-        return (int) getTrackerValidationReport().getErrorReports().stream()
-        .map( TrackerErrorReport::getUid )
-        .distinct().count();
-    }
+    @JsonProperty
+    TrackerValidationReport validationReport;
+
+    /**
+     * A final summary broken down by operation (Insert, Update, Delete,
+     * Ignored) showing how many entities where processed
+     */
+    @JsonProperty
+    TrackerStats stats;
+
+    /**
+     * A report object containing the elapsed time for each Import stage
+     */
+    @JsonProperty
+    TrackerTimingsStats timingsStats;
+
+    /**
+     * A report containing the outcome of the commit stage (e.g. how many
+     * entities were persisted)
+     */
+    @JsonProperty
+    TrackerBundleReport bundleReport;
+
+    /**
+     * A message to attach to the report. This message is designed to be used
+     * only if a catastrophic error occurs and the Import Process has to stop
+     * abruptly.
+     */
+    @JsonProperty
+    String message;
 }

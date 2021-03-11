@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,24 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang.time.DateUtils;
-import org.hisp.dhis.IntegrationTest;
-import org.hisp.dhis.TransactionalIntegrationTestBase;
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -75,31 +85,17 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
-@org.junit.experimental.categories.Category( IntegrationTest.class )
-@Ignore
-public class DataValueSetServiceTest
-    extends TransactionalIntegrationTestBase
+public class DataValueSetServiceTest extends TransactionalIntegrationTest
 {
     private String ATTRIBUTE_UID = "uh6H2ff562G";
 
@@ -122,6 +118,9 @@ public class DataValueSetServiceTest
     private DataValueSetService dataValueSetService;
 
     @Autowired
+    private DataValueSetService dataValueSetServiceNoMocks;
+
+    @Autowired
     private CompleteDataSetRegistrationService registrationService;
 
     @Autowired
@@ -136,29 +135,51 @@ public class DataValueSetServiceTest
     private Attribute attribute;
 
     private CategoryOptionCombo ocDef;
+
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private Category categoryA;
+
     private CategoryCombo categoryComboDef;
+
     private CategoryCombo categoryComboA;
+
     private CategoryOptionCombo ocA;
+
     private CategoryOptionCombo ocB;
 
     private OptionSet osA;
+
     private DataElement deA;
+
     private DataElement deB;
+
     private DataElement deC;
+
     private DataElement deD;
+
     private DataElement deE;
+
     private DataElement deF;
+
     private DataElement deG;
+
     private DataSet dsA;
+
     private DataSet dsB;
+
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
+
     private Period peA;
+
     private Period peB;
+
     private Period peC;
 
     private User user;
@@ -166,14 +187,10 @@ public class DataValueSetServiceTest
     private InputStream in;
 
     private MockBatchHandler<DataValue> mockDataValueBatchHandler = null;
-    private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
-    private MockBatchHandlerFactory mockBatchHandlerFactory = null;
 
-    @Override
-    public boolean emptyDatabaseAfterTest()
-    {
-        return true;
-    }
+    private MockBatchHandler<DataValueAudit> mockDataValueAuditBatchHandler = null;
+
+    private MockBatchHandlerFactory mockBatchHandlerFactory = null;
 
     @Override
     public void setUpTest()
@@ -185,7 +202,8 @@ public class DataValueSetServiceTest
         mockDataValueAuditBatchHandler = new MockBatchHandler<>();
         mockBatchHandlerFactory = new MockBatchHandlerFactory();
         mockBatchHandlerFactory.registerBatchHandler( DataValueBatchHandler.class, mockDataValueBatchHandler );
-        mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class, mockDataValueAuditBatchHandler );
+        mockBatchHandlerFactory.registerBatchHandler( DataValueAuditBatchHandler.class,
+            mockDataValueAuditBatchHandler );
         setDependency( dataValueSetService, "batchHandlerFactory", mockBatchHandlerFactory );
 
         attribute = new Attribute( "CUSTOM_ID", ValueType.TEXT );
@@ -236,9 +254,12 @@ public class DataValueSetServiceTest
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B' );
         ouC = createOrganisationUnit( 'C' );
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ), getDate( 2012, 1, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ), getDate( 2012, 2, 29 ) );
-        peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 3, 1 ), getDate( 2012, 3, 31 ) );
+        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 1, 1 ),
+            getDate( 2012, 1, 31 ) );
+        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 2, 1 ),
+            getDate( 2012, 2, 29 ) );
+        peC = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2012, 3, 1 ),
+            getDate( 2012, 3, 31 ) );
 
         ocA.setUid( "kjuiHgy67hg" );
         ocB.setUid( "Gad33qy67g5" );
@@ -271,17 +292,17 @@ public class DataValueSetServiceTest
 
         AttributeValue av1 = createAttributeValue( attribute, "DE1" );
 
-        attributeService.addAttributeValue( deA, av1 );
-
         dataElementService.addDataElement( deA );
-        attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
         dataElementService.addDataElement( deB );
-        attributeService.addAttributeValue( deC, createAttributeValue( attribute, "DE3" ) );
         dataElementService.addDataElement( deC );
-        attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
         dataElementService.addDataElement( deD );
         dataElementService.addDataElement( deF );
         dataElementService.addDataElement( deG );
+
+        attributeService.addAttributeValue( deA, av1 );
+        attributeService.addAttributeValue( deB, createAttributeValue( attribute, "DE2" ) );
+        attributeService.addAttributeValue( deC, createAttributeValue( attribute, "DE3" ) );
+        attributeService.addAttributeValue( deD, createAttributeValue( attribute, "DE4" ) );
 
         idObjectManager.save( osA );
 
@@ -290,12 +311,13 @@ public class DataValueSetServiceTest
         dsA.addDataSetElement( deC );
         dsA.addDataSetElement( deD );
 
-        attributeService.addAttributeValue( ouA, createAttributeValue( attribute, "OU1" ) );
         organisationUnitService.addOrganisationUnit( ouA );
-        attributeService.addAttributeValue( ouB, createAttributeValue( attribute, "OU2" ) );
         organisationUnitService.addOrganisationUnit( ouB );
-        attributeService.addAttributeValue( ouC, createAttributeValue( attribute, "OU3" ) );
         organisationUnitService.addOrganisationUnit( ouC );
+
+        attributeService.addAttributeValue( ouA, createAttributeValue( attribute, "OU1" ) );
+        attributeService.addAttributeValue( ouB, createAttributeValue( attribute, "OU2" ) );
+        attributeService.addAttributeValue( ouC, createAttributeValue( attribute, "OU3" ) );
 
         dsA.addOrganisationUnit( ouA );
         dsA.addOrganisationUnit( ouC );
@@ -319,8 +341,9 @@ public class DataValueSetServiceTest
         enableDataSharing( user, categoryOptionB, AccessStringHelper.DATA_READ_WRITE );
         _userService.addUser( user );
 
-        CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA, categoryOptionCombo,
-            getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true);
+        CompleteDataSetRegistration completeDataSetRegistration = new CompleteDataSetRegistration( dsA, peA, ouA,
+            categoryOptionCombo,
+            getDate( 2012, 1, 9 ), "userA", new Date(), "userA", true );
         registrationService.saveCompleteDataSetRegistration( completeDataSetRegistration );
     }
 
@@ -347,14 +370,16 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
-        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
+        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
+        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
 
         assertEquals( 0, auditValues.size() );
 
-        // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR: cannot execute UPDATE in a read-only transaction"
-        //  Need to investigate
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
+        // TODO This throw an error : "org.postgresql.util.PSQLException: ERROR:
+        // cannot execute UPDATE in a read-only transaction"
+        // Need to investigate
+        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
+            ocDef );
 
         assertNotNull( registration );
         assertEquals( dsA, registration.getDataSet() );
@@ -384,10 +409,11 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
-        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
+        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
+        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
 
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
+        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
+            ocDef );
 
         assertNotNull( registration );
         assertEquals( dsA, registration.getDataSet() );
@@ -420,7 +446,8 @@ public class DataValueSetServiceTest
         assertTrue( dataValues.contains( new DataValue( deB, peA, ouA, ocDef, ocDef ) ) );
         assertTrue( dataValues.contains( new DataValue( deC, peA, ouA, ocDef, ocDef ) ) );
 
-        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA, ocDef );
+        CompleteDataSetRegistration registration = registrationService.getCompleteDataSetRegistration( dsA, peA, ouA,
+            ocDef );
 
         assertNotNull( registration );
         assertEquals( dsA, registration.getDataSet() );
@@ -587,7 +614,8 @@ public class DataValueSetServiceTest
     {
         in = new ClassPathResource( "datavalueset/dataValueSetBNoHeader.csv" ).getInputStream();
 
-        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, new ImportOptions().setFirstRowIsHeader( false ), null );
+        ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in,
+            new ImportOptions().setFirstRowIsHeader( false ), null );
 
         assertEquals( 12, summary.getImportCount().getImported() );
         assertEquals( 0, summary.getImportCount().getUpdated() );
@@ -604,7 +632,8 @@ public class DataValueSetServiceTest
         in = new ClassPathResource( "datavalueset/dataValueSetBooleanTest.csv" ).getInputStream();
 
         ImportSummary summary = dataValueSetService.saveDataValueSetCsv( in, null, null );
-        assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False rows
+        assertEquals( summary.getConflicts().toString(), 4, summary.getConflicts().size() ); // False
+                                                                                             // rows
 
         List<String> expectedBools = Lists.newArrayList( "true", "false" );
         List<DataValue> resultBools = mockDataValueBatchHandler.getInserts();
@@ -670,7 +699,8 @@ public class DataValueSetServiceTest
     public void testImportDataValuesWithNewPeriod()
         throws Exception
     {
-        ImportSummary summary = dataValueSetService.saveDataValueSet( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
+        ImportSummary summary = dataValueSetService
+            .saveDataValueSet( new ClassPathResource( "datavalueset/dataValueSetC.xml" ).getInputStream() );
 
         assertEquals( summary.getConflicts().toString(), 0, summary.getConflicts().size() );
         assertEquals( 3, summary.getImportCount().getImported() );
@@ -980,8 +1010,8 @@ public class DataValueSetServiceTest
         assertNotNull( dataValues );
         assertEquals( 3, dataValues.size() );
         assertTrue( dataValues.contains( new DataValue( deA, peA, ouA, ocDef, ocDef ) ) );
-        assertEquals( "10002", ( ( List<DataValue> ) dataValues ).get( 1 ).getValue() );
-        assertEquals( "10003", ( ( List<DataValue> ) dataValues ).get( 2 ).getValue() );
+        assertEquals( "10002", ((List<DataValue>) dataValues).get( 1 ).getValue() );
+        assertEquals( "10003", ((List<DataValue>) dataValues).get( 2 ).getValue() );
 
         assertEquals( 3, auditValues.size() );
     }
@@ -1046,15 +1076,15 @@ public class DataValueSetServiceTest
         Period okBefore = createMonthlyPeriod( DateUtils.addMonths( thisMonth, 1 ) );
         Period okAfter = createMonthlyPeriod( DateUtils.addMonths( thisMonth, -1 ) );
         Period tooLate = createMonthlyPeriod( DateUtils.addMonths( thisMonth, -4 ) );
-        Period outOfRange =  createMonthlyPeriod( DateUtils.addMonths( thisMonth, 6 ) );
+        Period outOfRange = createMonthlyPeriod( DateUtils.addMonths( thisMonth, 6 ) );
 
         periodService.addPeriod( tooEarly );
         periodService.addPeriod( okBefore );
         periodService.addPeriod( okAfter );
         periodService.addPeriod( tooLate );
 
-        String importData =
-            "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n" +
+        String importData = "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n"
+            +
             "  <dataValue dataElement=\"DE_A\" period=\"" + tooEarly.getIsoDate() + "\" value=\"10001\" />\n" +
             "  <dataValue dataElement=\"DE_B\" period=\"" + okBefore.getIsoDate() + "\" value=\"10002\" />\n" +
             "  <dataValue dataElement=\"DE_C\" period=\"" + okAfter.getIsoDate() + "\" value=\"10003\" />\n" +
@@ -1082,12 +1112,14 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User does not have data write access for DataSet
-     * Expect fail on data sharing check
+     * User does not have data write access for DataSet Expect fail on data
+     * sharing check
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueDataSetWriteFail() throws IOException
+    public void testImportValueDataSetWriteFail()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.READ );
 
@@ -1103,13 +1135,14 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User has data write access for DataSet
-     * DataValue use default category combo
-     * Expect success
+     * User has data write access for DataSet DataValue use default category
+     * combo Expect success
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueDefaultCatComboOk() throws IOException
+    public void testImportValueDefaultCatComboOk()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
         dataSetService.updateDataSet( dsA );
@@ -1124,13 +1157,14 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User has data write access for DataSet
-     * and data read access for categoryOptions
-     * Expect fail
+     * User has data write access for DataSet and data read access for
+     * categoryOptions Expect fail
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueCatComboFail() throws IOException
+    public void testImportValueCatComboFail()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
 
@@ -1147,13 +1181,14 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User has data write access for DataSet
-     * and also categoryOptions
-     * Expect success
+     * User has data write access for DataSet and also categoryOptions Expect
+     * success
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueCatComboOk() throws IOException
+    public void testImportValueCatComboOk()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
 
@@ -1170,12 +1205,13 @@ public class DataValueSetServiceTest
     }
 
     /**
-     * User does not have data write access for DataSet
-     * Expect fail
+     * User does not have data write access for DataSet Expect fail
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueCatComboFailDS() throws IOException
+    public void testImportValueCatComboFailDS()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ );
 
@@ -1193,10 +1229,12 @@ public class DataValueSetServiceTest
 
     /**
      * User has data write access for DataSet and CategoryOption
+     *
      * @throws IOException
      */
     @Test
-    public void testImportValueCategoryOptionWriteOk() throws IOException
+    public void testImportValueCategoryOptionWriteOk()
+        throws IOException
     {
         enableDataSharing( user, dsA, AccessStringHelper.DATA_READ_WRITE );
 
@@ -1212,6 +1250,32 @@ public class DataValueSetServiceTest
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
     }
 
+    @Test
+    public void testImportDataValueWithNewPeriods()
+    {
+        Period period200006 = periodService.getPeriod( "200006" );
+        Period period200007 = periodService.getPeriod( "200007" );
+        Period period200008 = periodService.getPeriod( "200008" );
+        assertNull( period200006 );
+        assertNull( period200007 );
+        assertNull( period200008 );
+
+        String importData = "<dataValueSet xmlns=\"http://dhis2.org/schema/dxf/2.0\" idScheme=\"code\" dataSet=\"DS_A\" orgUnit=\"OU_A\">\n"
+            +
+            "  <dataValue dataElement=\"DE_A\" period=\"200006\" value=\"10001\" />\n" +
+            "  <dataValue dataElement=\"DE_B\" period=\"200006\" value=\"10002\" />\n" +
+            "  <dataValue dataElement=\"DE_C\" period=\"200007\" value=\"10003\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"200007\" value=\"10004\" />\n" +
+            "  <dataValue dataElement=\"DE_D\" period=\"200008\" value=\"10005\" />\n" +
+            "</dataValueSet>\n";
+
+        in = new ByteArrayInputStream( importData.getBytes( StandardCharsets.UTF_8 ) );
+
+        ImportSummary summary = dataValueSetServiceNoMocks.saveDataValueSet( in );
+
+        assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
+        assertEquals( 5, summary.getImportCount().getImported() );
+    }
 
     // -------------------------------------------------------------------------
     // Supportive methods

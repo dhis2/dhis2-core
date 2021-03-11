@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.userkeyjsonvalue.hibernate;
 
 import java.util.List;
@@ -34,6 +33,7 @@ import java.util.stream.Collectors;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -64,7 +64,7 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getSingleResult( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
             .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
             .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
     }
@@ -75,8 +75,8 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) ) )
-            .stream().map( UserKeyJsonValue::getNamespace  ).distinct().collect( Collectors.toList() );
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) ) )
+                .stream().map( UserKeyJsonValue::getNamespace ).distinct().collect( Collectors.toList() );
     }
 
     @Override
@@ -92,7 +92,7 @@ public class HibernateUserKeyJsonValueStore
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "user" ), user ) )
+            .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) )
             .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) ) );
     }
 }

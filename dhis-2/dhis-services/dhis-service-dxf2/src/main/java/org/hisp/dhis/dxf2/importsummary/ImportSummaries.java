@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.importsummary;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.importsummary;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.importsummary;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -125,7 +124,7 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
         return false;
     }
-    
+
     public Optional<ImportSummary> getByReference( String reference )
     {
         for ( ImportSummary importSummary : importSummaries )
@@ -137,12 +136,11 @@ public class ImportSummaries extends AbstractWebMessageResponse
         }
         return Optional.empty();
     }
-    
+
     /**
-     * Returns the {@link ImportStatus} with the highest order from the list
-     * of import summaries, where {@link ImportStatus#ERROR} is the highest.
-     * If no import summaries are present, {@link ImportStatus#SUCCESS} is
-     * returned.
+     * Returns the {@link ImportStatus} with the highest order from the list of
+     * import summaries, where {@link ImportStatus#ERROR} is the highest. If no
+     * import summaries are present, {@link ImportStatus#SUCCESS} is returned.
      *
      * @return import status with highest order.
      */

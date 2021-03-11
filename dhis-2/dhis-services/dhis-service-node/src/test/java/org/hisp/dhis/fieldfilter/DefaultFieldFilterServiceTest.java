@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,27 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fieldfilter;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import org.hamcrest.Matchers;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.NoOpCache;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.node.Node;
@@ -40,12 +55,14 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.schema.DefaultPropertyIntrospectorService;
 import org.hisp.dhis.schema.DefaultSchemaService;
-import org.hisp.dhis.schema.Jackson2PropertyIntrospectorService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserGroupService;
+import org.hisp.dhis.user.UserService;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
@@ -53,18 +70,6 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Unit tests for {@link DefaultFieldFilterService}.
@@ -85,6 +90,12 @@ public class DefaultFieldFilterServiceTest
     @Mock
     private AttributeService attributeService;
 
+    @Mock
+    private UserGroupService userGroupService;
+
+    @Mock
+    private UserService userService;
+
     private DefaultFieldFilterService service;
 
     @Rule
@@ -96,15 +107,13 @@ public class DefaultFieldFilterServiceTest
         final Set<NodeTransformer> nodeTransformers = new HashSet<>();
         nodeTransformers.add( new PluckNodeTransformer() );
 
-        final SchemaService schemaService = new DefaultSchemaService( new Jackson2PropertyIntrospectorService()
-        {
-            @Override
-            protected Map<String, Property> getPropertiesFromHibernate( Class<?> klass )
-            {
-                return Collections.emptyMap();
-            }
-        }, sessionFactory );
-        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService, currentUserService, attributeService, nodeTransformers );
+        final SchemaService schemaService = new DefaultSchemaService(
+            new DefaultPropertyIntrospectorService( new JacksonPropertyIntrospector() ), sessionFactory );
+
+        CacheProvider cacheProvider = mock( CacheProvider.class );
+        when( cacheProvider.createPropertyTransformerCache() ).thenReturn( new NoOpCache<>() );
+        service = new DefaultFieldFilterService( new DefaultFieldParser(), schemaService, aclService,
+            currentUserService, attributeService, cacheProvider, userGroupService, userService, nodeTransformers );
         service.init();
     }
 
@@ -122,15 +131,17 @@ public class DefaultFieldFilterServiceTest
         option.getOrganisationUnits().add( ou1 );
         option.getOrganisationUnits().add( ou2 );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ), Arrays.asList( "id", "organisationUnits" ) );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ),
+            Arrays.asList( "id", "organisationUnits" ) );
         final ComplexNode node = service.toComplexNode( params );
 
         Assert.assertEquals( "categoryOption", node.getName() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ( (SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" ) ).getValue() );
+        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
-        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(), "organisationUnits" );
+        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
+            "organisationUnits" );
         Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
 
@@ -171,15 +182,17 @@ public class DefaultFieldFilterServiceTest
         option.getOrganisationUnits().add( ou1 );
         option.getOrganisationUnits().add( ou2 );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ), Arrays.asList( "id", "organisationUnits~pluck(name)[id,name]" ) );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ),
+            Arrays.asList( "id", "organisationUnits~pluck(name)[id,name]" ) );
         final ComplexNode node = service.toComplexNode( params );
 
         Assert.assertEquals( "categoryOption", node.getName() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ( (SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" ) ).getValue() );
+        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
-        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(), "organisationUnits" );
+        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
+            "organisationUnits" );
         Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
 
@@ -215,17 +228,19 @@ public class DefaultFieldFilterServiceTest
         category.getCategoryOptions().add( co2 );
         category.getCategoryOptions().add( co3 );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( category ), Arrays.asList( "id", "categoryOptions" ) );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( category ),
+            Arrays.asList( "id", "categoryOptions" ) );
         params.setDefaults( Defaults.EXCLUDE );
 
         final ComplexNode node = service.toComplexNode( params );
 
         Assert.assertEquals( "category", node.getName() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ( (SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" ) ).getValue() );
+        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "categoryOptions" ) instanceof CollectionNode );
 
-        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(), "categoryOptions" );
+        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
+            "categoryOptions" );
         Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> coIds = new ArrayList<>();
 
@@ -266,15 +281,17 @@ public class DefaultFieldFilterServiceTest
         option.getOrganisationUnits().add( ou1 );
         option.getOrganisationUnits().add( ou2 );
 
-        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ), Arrays.asList( "id", "organisationUnits[id,name]" ) );
+        final FieldFilterParams params = new FieldFilterParams( Collections.singletonList( option ),
+            Arrays.asList( "id", "organisationUnits[id,name]" ) );
         final ComplexNode node = service.toComplexNode( params );
 
         Assert.assertEquals( "categoryOption", node.getName() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "id" ) instanceof SimpleNode );
-        Assert.assertEquals( "def1", ( (SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" ) ).getValue() );
+        Assert.assertEquals( "def1", ((SimpleNode) getNamedNode( node.getUnorderedChildren(), "id" )).getValue() );
         Assert.assertTrue( getNamedNode( node.getUnorderedChildren(), "organisationUnits" ) instanceof CollectionNode );
 
-        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(), "organisationUnits" );
+        final CollectionNode collectionNode = (CollectionNode) getNamedNode( node.getUnorderedChildren(),
+            "organisationUnits" );
         Assert.assertEquals( 2, collectionNode.getUnorderedChildren().size() );
         final List<String> ouIds = new ArrayList<>();
         final List<String> ouNames = new ArrayList<>();

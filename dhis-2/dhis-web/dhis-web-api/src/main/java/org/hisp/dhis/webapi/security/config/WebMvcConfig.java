@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.security.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.security.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.security.config;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
@@ -61,6 +60,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -82,8 +82,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 
 import com.google.common.collect.ImmutableMap;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -91,7 +89,6 @@ import lombok.extern.slf4j.Slf4j;
 @Order( 1000 )
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
 @EnableGlobalMethodSecurity( prePostEnabled = true )
-@Slf4j
 public class WebMvcConfig extends DelegatingWebMvcConfiguration
 {
     @Autowired
@@ -171,13 +168,19 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( renderServiceMessageConverter() );
     }
 
+    @Override
+    protected void addFormatters( FormatterRegistry registry )
+    {
+        registry.addConverter( new StringToOrderCriteriaListConverter() );
+    }
+
     @Primary
     @Bean
     @Override
     public ContentNegotiationManager mvcContentNegotiationManager()
     {
-        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy =
-            new CustomPathExtensionContentNegotiationStrategy( mediaTypeMap );
+        CustomPathExtensionContentNegotiationStrategy pathExtensionNegotiationStrategy = new CustomPathExtensionContentNegotiationStrategy(
+            mediaTypeMap );
         pathExtensionNegotiationStrategy.setUseJaf( false );
 
         String[] mediaTypes = new String[] { "json", "jsonp", "xml", "png", "xls", "pdf", "csv" };

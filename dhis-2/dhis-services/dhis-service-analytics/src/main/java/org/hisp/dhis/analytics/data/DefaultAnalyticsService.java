@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.newBuilder;
@@ -46,19 +45,17 @@ import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.QueryValidator;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.analytics.data.handling.DataAggregator;
+import org.hisp.dhis.analytics.data.handler.DataAggregator;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AnalyticalObject;
 import org.hisp.dhis.common.CombinationGenerator;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.dxf2.datavalueset.DataValueSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 /**
@@ -120,9 +117,8 @@ public class DefaultAnalyticsService
     @Override
     public Grid getAggregatedDataValues( DataQueryParams params, List<String> columns, List<String> rows )
     {
-        return isTableLayout( columns, rows ) ?
-            getAggregatedDataValuesTableLayout( params, columns, rows ) :
-            getAggregatedDataValues( params );
+        return isTableLayout( columns, rows ) ? getAggregatedDataValuesTableLayout( params, columns, rows )
+            : getAggregatedDataValues( params );
     }
 
     @Override
@@ -173,13 +169,6 @@ public class DefaultAnalyticsService
         DataQueryParams params = dataQueryService.getFromAnalyticalObject( object );
 
         return getAggregatedDataValueMapping( params );
-    }
-
-    @Override
-    @EventListener
-    public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
-    {
-        analyticsCache.invalidateAll();
     }
 
     // -------------------------------------------------------------------------

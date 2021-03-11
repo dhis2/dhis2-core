@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,50 +25,61 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
 
 @Component
 public class VisualizationDeletionHandler
     extends
-    GenericAnalyticalObjectDeletionHandler<Visualization>
+    GenericAnalyticalObjectDeletionHandler<Visualization, VisualizationService>
 {
-    private final VisualizationService visualizationService;
-
     public VisualizationDeletionHandler( final VisualizationService visualizationService )
     {
+        super( new DeletionVeto( Visualization.class ), visualizationService );
         checkNotNull( visualizationService );
-        this.visualizationService = visualizationService;
     }
 
     @Override
-    protected AnalyticalObjectService<Visualization> getAnalyticalObjectService()
+    protected void register()
     {
-        return visualizationService;
+        // generic
+        whenDeleting( Indicator.class, this::deleteIndicator );
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( DataSet.class, this::deleteDataSet );
+        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        // special
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
     }
 
-    @Override
-    public String getClassName()
+    private void deleteLegendSet( final LegendSet legendSet )
     {
-        return Visualization.class.getSimpleName();
-    }
-
-    @Override
-    public void deleteLegendSet( final LegendSet legendSet )
-    {
-        final List<Visualization> visualizations = visualizationService.getAnalyticalObjects( legendSet );
+        final List<Visualization> visualizations = service.getAnalyticalObjects( legendSet );
 
         for ( final Visualization visualization : visualizations )
         {
             visualization.setLegendSet( null );
-            visualizationService.update( visualization );
+            service.update( visualization );
         }
     }
 }

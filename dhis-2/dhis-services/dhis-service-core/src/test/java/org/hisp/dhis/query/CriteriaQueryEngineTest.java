@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,16 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
@@ -38,22 +43,21 @@ import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.query.operators.MatchMode;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.jfree.data.time.Year;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class CriteriaQueryEngineTest
-    extends DhisSpringTest
+public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
 {
     @Autowired
     private SchemaService schemaService;
@@ -62,14 +66,18 @@ public class CriteriaQueryEngineTest
     private QueryService queryService;
 
     @Autowired
-    private CriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
+    private JpaCriteriaQueryEngine<? extends IdentifiableObject> queryEngine;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
 
+    @Autowired
+    private UserService _userService;
+
     @Before
     public void createDataElements()
     {
+        userService = _userService;
         DataElement dataElementA = createDataElement( 'A' );
         dataElementA.setValueType( ValueType.NUMBER );
         dataElementA.setName( "dataElementA" );
@@ -257,7 +265,8 @@ public class CriteriaQueryEngineTest
     public void getBetweenQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(), Year.parseYear( "2005" ).getStart() ) );
+        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(),
+            Year.parseYear( "2005" ).getStart() ) );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         assertEquals( 3, objects.size() );
@@ -610,5 +619,55 @@ public class CriteriaQueryEngineTest
 
         List<? extends IdentifiableObject> objects = queryService.query( query );
         assertEquals( 6, objects.size() );
+    }
+
+    @Test
+    public void testQueryWithNoAccessPermission()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+        User userB = createUser( 'B' );
+        userService.addUser( userB );
+        DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        de.setCreatedBy( userB );
+        identifiableObjectManager.save( de, false );
+
+        de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        assertEquals( AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess() );
+        assertEquals( userB.getUid(), de.getSharing().getOwner() );
+
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.eq( "id", de.getUid() ) );
+        query.setUser( userA );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        assertEquals( 0, objects.size() );
+    }
+
+    @Test
+    public void testCountAndPaging()
+    {
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        assertEquals( 6, queryEngine.count( query ) );
+        assertEquals( 6, queryEngine.query( query ).size() );
+        query.setMaxResults( 2 );
+        query.setFirstResult( 1 );
+        assertEquals( 2, queryEngine.query( query ).size() );
+
+        query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.add( Restrictions.eq( "id", "deabcdefghA" ) );
+        assertEquals( 1, queryEngine.count( query ) );
+        assertEquals( 1, queryEngine.query( query ).size() );
+
+        query.add( Restrictions.eq( "name", "not exist" ) );
+        assertEquals( 0, queryEngine.count( query ) );
+        assertEquals( 0, queryEngine.query( query ).size() );
+
+    }
+
+    @Override
+    public boolean emptyDatabaseAfterTest()
+    {
+        return true;
     }
 }

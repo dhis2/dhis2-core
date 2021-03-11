@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.category;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
+
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
@@ -41,7 +42,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class CategoryDimensionDeletionHandler
     extends DeletionHandler
 {
-    private JdbcTemplate jdbcTemplate;
+    private static final DeletionVeto VETO = new DeletionVeto( CategoryDimension.class );
+
+    private final JdbcTemplate jdbcTemplate;
 
     public CategoryDimensionDeletionHandler( JdbcTemplate jdbcTemplate )
     {
@@ -50,29 +53,24 @@ public class CategoryDimensionDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return CategoryDimension.class.getSimpleName();
+        whenVetoing( CategoryOption.class, this::allowDeleteCategoryOption );
+        whenVetoing( Category.class, this::allowDeleteCategory );
     }
-    
-    @Override
-    public String allowDeleteCategoryOption( CategoryOption categoryOption )
+
+    private DeletionVeto allowDeleteCategoryOption( CategoryOption categoryOption )
     {
         String sql = "select count(*) from categorydimension_items where categoryoptionid = " + categoryOption.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
-    
-    @Override
-    public String allowDeleteCategory( Category category )
+
+    private DeletionVeto allowDeleteCategory( Category category )
     {
         String sql = "select count(*) from categorydimension where categoryid = " + category.getId();
-        
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.sideeffect;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.sideeffect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.sideeffect;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -34,14 +33,16 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 /**
  * Interface represents DHIS2 objects equivalent to rule engine objects.
+ *
  * @author Zubair Asghar
  */
 
 @JsonInclude( JsonInclude.Include.NON_NULL )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "type" )
-@JsonSubTypes( { @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
-        @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
-        @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
+@JsonSubTypes( {
+    @JsonSubTypes.Type( value = TrackerSendMessageSideEffect.class, name = "TrackerSendMessageSideEffect" ),
+    @JsonSubTypes.Type( value = TrackerScheduleMessageSideEffect.class, name = "TrackerScheduleMessageSideEffect" ),
+    @JsonSubTypes.Type( value = TrackerAssignValueSideEffect.class, name = "TrackerAssignValueSideEffect" ) } )
 public interface TrackerRuleEngineSideEffect
 {
     String getData();

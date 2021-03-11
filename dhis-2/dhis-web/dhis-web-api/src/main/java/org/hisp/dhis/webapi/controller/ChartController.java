@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,21 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
+import static org.springframework.beans.BeanUtils.copyProperties;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -65,24 +78,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensions;
-import static org.springframework.beans.BeanUtils.copyProperties;
-
 /**
  * This controller is being deprecated. Please use the Visualization controller
  * instead. Only compatibility changes should be done at this stage.
  * <p>
- * TODO when this class gets removed, also update {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
+ * TODO when this class gets removed, also update
+ * {@link org.hisp.dhis.security.vote.ExternalAccessVoter}
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -119,12 +120,13 @@ public class ChartController
     @Autowired
     private ContextUtils contextUtils;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // CRUD
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    protected Chart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response ) throws IOException
+    protected Chart deserializeJsonEntity( HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         Chart chart = super.deserializeJsonEntity( request, response );
         mergeChart( chart );
@@ -132,9 +134,9 @@ public class ChartController
         return chart;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get data
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = { "/{uid}/data", "/{uid}/data.png" }, method = RequestMethod.GET )
     public void getChart(
@@ -144,7 +146,9 @@ public class ChartController
         @RequestParam( value = "width", defaultValue = "800", required = false ) int width,
         @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
         @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response ) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         final Visualization visualization = visualizationService.getVisualizationNoAcl( uid );
         final Chart chart = convertToChart( visualization );
@@ -160,7 +164,8 @@ public class ChartController
 
         String filename = CodecUtils.filenameEncode( chart.getName() ) + ".png";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, filename, attachment );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            filename, attachment );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), jFreeChart, width, height );
     }
@@ -174,7 +179,8 @@ public class ChartController
         @RequestParam( value = "height", defaultValue = "500", required = false ) int height,
         @RequestParam( value = "skipTitle", required = false ) boolean skipTitle,
         @RequestParam( value = "attachment", required = false ) boolean attachment,
-        HttpServletResponse response ) throws IOException
+        HttpServletResponse response )
+        throws IOException
     {
         Indicator indicator = indicatorService.getIndicator( indicatorUid );
         OrganisationUnit unit = organisationUnitService.getOrganisationUnit( organisationUnitUid );
@@ -187,10 +193,12 @@ public class ChartController
         }
         else
         {
-            chart = chartService.getJFreeOrganisationUnitChart( indicator, unit, !skipTitle, i18nManager.getI18nFormat() );
+            chart = chartService.getJFreeOrganisationUnitChart( indicator, unit, !skipTitle,
+                i18nManager.getI18nFormat() );
         }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "chart.png", attachment );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            "chart.png", attachment );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
@@ -204,7 +212,9 @@ public class ChartController
         @RequestParam String ou,
         @RequestParam( defaultValue = "525", required = false ) int width,
         @RequestParam( defaultValue = "300", required = false ) int height,
-        HttpServletResponse response ) throws IOException, WebMessageException
+        HttpServletResponse response )
+        throws IOException,
+        WebMessageException
     {
         DataElement dataElement = dataElementService.getDataElement( de );
 
@@ -241,49 +251,73 @@ public class ChartController
             throw new WebMessageException( WebMessageUtils.conflict( "Organisation unit does not exist: " + ou ) );
         }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING, "chart.png", false );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PNG, CacheStrategy.RESPECT_SYSTEM_SETTING,
+            "chart.png", false );
 
-        JFreeChart chart = chartService.getJFreeChartHistory( dataElement, categoryOptionCombo, attributeOptionCombo, period, organisationUnit, 13, i18nManager.getI18nFormat() );
+        JFreeChart chart = chartService.getJFreeChartHistory( dataElement, categoryOptionCombo, attributeOptionCombo,
+            period, organisationUnit, 13, i18nManager.getI18nFormat() );
 
         ChartUtils.writeChartAsPNG( response.getOutputStream(), chart, width, height );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Hooks
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
-    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters ) throws Exception
+    public void postProcessResponseEntity( Chart chart, WebOptions options, Map<String, String> parameters )
+        throws Exception
     {
-        chart.populateAnalyticalProperties();
+        postProcess( chart );
+    }
 
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( currentUser != null )
+    @Override
+    public void postProcessResponseEntities( final List<Chart> charts, final WebOptions options,
+        final Map<String, String> parameters )
+    {
+        if ( isNotEmpty( charts ) )
         {
-            Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
-
-            for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+            for ( final Chart chart : charts )
             {
-                chart.getParentGraphMap().put( organisationUnit.getUid(), organisationUnit.getParentGraph( roots ) );
-            }
-        }
-
-
-        if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
-        {
-            I18nFormat format = i18nManager.getI18nFormat();
-
-            for ( Period period : chart.getPeriods() )
-            {
-                period.setName( format.formatPeriod( period ) );
+                postProcess( chart );
             }
         }
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Supportive methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
+
+    private void postProcess( final Chart chart )
+    {
+        if ( chart != null )
+        {
+            chart.populateAnalyticalProperties();
+
+            User currentUser = currentUserService.getCurrentUser();
+
+            if ( currentUser != null )
+            {
+                Set<OrganisationUnit> roots = currentUser.getDataViewOrganisationUnitsWithFallback();
+
+                for ( OrganisationUnit organisationUnit : chart.getOrganisationUnits() )
+                {
+                    chart.getParentGraphMap().put( organisationUnit.getUid(),
+                        organisationUnit.getParentGraph( roots ) );
+                }
+            }
+
+            if ( chart.getPeriods() != null && !chart.getPeriods().isEmpty() )
+            {
+                I18nFormat format = i18nManager.getI18nFormat();
+
+                for ( Period period : chart.getPeriods() )
+                {
+                    period.setName( format.formatPeriod( period ) );
+                }
+            }
+        }
+    }
 
     private void mergeChart( Chart chart )
     {
@@ -304,10 +338,10 @@ public class ChartController
     }
 
     /**
-     * This method converts a Visualization into a Chart. It's required only during
-     * the merging process of Visualization. Even though this method could be broken
-     * down into smaller ones is preferable to leave it self-contained as this is
-     * just a temporary mapping.
+     * This method converts a Visualization into a Chart. It's required only
+     * during the merging process of Visualization. Even though this method
+     * could be broken down into smaller ones is preferable to leave it
+     * self-contained as this is just a temporary mapping.
      *
      * @param visualization
      * @return a Chart object from the given Visualization

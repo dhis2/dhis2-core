@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,15 +25,58 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.programrule.engine;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
+import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleService;
 
-public interface ImplementableRuleService
+abstract class ImplementableRuleService
 {
-    List<ProgramRule> getImplementableRules( Program program );
+    private final ProgramRuleService programRuleService;
+
+    public ImplementableRuleService( ProgramRuleService programRuleService )
+    {
+        this.programRuleService = programRuleService;
+    }
+
+    abstract List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid );
+
+    abstract Cache<Boolean> getProgramRulesCache();
+
+    protected List<ProgramRule> getProgramRulesByActionTypes( Program program,
+        Set<ProgramRuleActionType> types, String programStageUid )
+    {
+        if ( programStageUid == null )
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types );
+        }
+        else
+        {
+            return programRuleService.getProgramRulesByActionTypes( program, types, programStageUid );
+        }
+
+    }
+
+    public List<ProgramRule> getProgramRules( Program program, String programStageUid )
+    {
+        Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
+        if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
+
+        getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+        return programRulesByActionTypes;
+    }
+
 }

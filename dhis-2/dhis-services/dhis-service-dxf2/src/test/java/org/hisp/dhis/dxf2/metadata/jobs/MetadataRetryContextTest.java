@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.jobs;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.metadata.jobs;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.jobs;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
@@ -63,7 +62,9 @@ public class MetadataRetryContextTest
     MetadataRetryContext metadataRetryContext;
 
     private MetadataVersion mockVersion;
+
     private String testKey = "testKey";
+
     private String testMessage = "testMessage";
 
     @Before

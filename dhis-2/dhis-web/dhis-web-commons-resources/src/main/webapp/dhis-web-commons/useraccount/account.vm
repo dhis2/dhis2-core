@@ -69,7 +69,12 @@
     </tr>
     <tr>
         <td><label id="label_email" for="email">$i18n.getString( "email" )</label></td>
-        <td><input type="text" id="email" name="email" #if( $accountAction == "invited" )value="$email" #end onfocusout="checkPasswordForEmail()"></td>
+        #if( $accountAction == "invited" )
+        <td><input type="hidden" id="email" name="email" value="$email">
+            <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
+        #else
+        <td><input type="text" id="email" name="email" value="$email" onfocusout="checkPasswordForEmail()"></td>
+        #end
     </tr>
     <tr>
         <td><label id="label_phoneNumber" for="phoneNumber">$i18n.getString( "mobile_phone" )</label></td>

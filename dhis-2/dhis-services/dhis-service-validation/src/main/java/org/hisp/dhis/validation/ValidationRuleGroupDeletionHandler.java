@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.validation;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -41,7 +40,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class ValidationRuleGroupDeletionHandler
     extends DeletionHandler
 {
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
     public ValidationRuleGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
     {
@@ -50,18 +49,13 @@ public class ValidationRuleGroupDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ValidationRuleGroup.class.getSimpleName();
+        whenDeleting( ValidationRule.class, this::deleteValidationRule );
     }
 
-    @Override
-    public void deleteValidationRule( ValidationRule validationRule )
+    private void deleteValidationRule( ValidationRule validationRule )
     {
         for ( ValidationRuleGroup group : validationRule.getGroups() )
         {

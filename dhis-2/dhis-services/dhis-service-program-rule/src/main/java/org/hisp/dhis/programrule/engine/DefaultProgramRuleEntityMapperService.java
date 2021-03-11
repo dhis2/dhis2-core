@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.rules.models.AttributeType.DATA_ELEMENT;
+import static org.hisp.dhis.rules.models.AttributeType.TRACKED_ENTITY_ATTRIBUTE;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,43 +47,10 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
+import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
-import org.hisp.dhis.rules.models.Rule;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionCreateEvent;
-import org.hisp.dhis.rules.models.RuleActionDisplayKeyValuePair;
-import org.hisp.dhis.rules.models.RuleActionDisplayText;
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.rules.models.RuleActionHideField;
-import org.hisp.dhis.rules.models.RuleActionHideProgramStage;
-import org.hisp.dhis.rules.models.RuleActionHideSection;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
-import org.hisp.dhis.rules.models.RuleAttributeValue;
-import org.hisp.dhis.rules.models.RuleDataValue;
-import org.hisp.dhis.rules.models.RuleEnrollment;
-import org.hisp.dhis.rules.models.RuleEvent;
-import org.hisp.dhis.rules.models.RuleValueType;
-import org.hisp.dhis.rules.models.RuleVariable;
-import org.hisp.dhis.rules.models.RuleVariableAttribute;
-import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
-import org.hisp.dhis.rules.models.RuleVariableCurrentEvent;
-import org.hisp.dhis.rules.models.RuleVariableNewestEvent;
-import org.hisp.dhis.rules.models.RuleVariableNewestStageEvent;
-import org.hisp.dhis.rules.models.RuleVariablePreviousEvent;
+import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -93,12 +59,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * Created by zubair@dhis2.org on 19.10.17.
+ * @author Zubair Asghar
  */
 @Slf4j
 @Transactional( readOnly = true )
@@ -112,28 +75,32 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     private final ImmutableMap<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>> ACTION_MAPPER = new ImmutableMap.Builder<ProgramRuleActionType, Function<ProgramRuleAction, RuleAction>>()
         .put( ProgramRuleActionType.ASSIGN,
             pra -> RuleActionAssign.create( pra.getContent(), pra.getData(),
-                getAssignedParameterForAssignAction( pra ) ) )
+                getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.CREATEEVENT,
             pra -> RuleActionCreateEvent.create( pra.getContent(), pra.getData(), pra.getLocation() ) )
         .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, this::getLocationBasedDisplayRuleAction )
         .put( ProgramRuleActionType.DISPLAYTEXT, this::getLocationBasedDisplayRuleAction )
         .put( ProgramRuleActionType.HIDEFIELD,
-            pra -> RuleActionHideField.create( pra.getContent(), getAssignedParameter( pra ) ) )
+            pra -> RuleActionHideField
+                .create( pra.getContent(), getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.HIDEPROGRAMSTAGE,
             pra -> RuleActionHideProgramStage.create( pra.getProgramStage().getUid() ) )
         .put( ProgramRuleActionType.HIDESECTION,
             pra -> RuleActionHideSection.create( pra.getProgramStageSection().getUid() ) )
         .put( ProgramRuleActionType.SHOWERROR,
-            pra -> RuleActionShowError.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+            pra -> RuleActionShowError
+                .create( pra.getContent(), pra.getData(), getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.SHOWWARNING,
-            pra -> RuleActionShowWarning.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+            pra -> RuleActionShowWarning
+                .create( pra.getContent(), pra.getData(), getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.SETMANDATORYFIELD,
-            pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ) ) )
+            pra -> RuleActionSetMandatoryField.create( getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.WARNINGONCOMPLETE,
             pra -> RuleActionWarningOnCompletion.create( pra.getContent(), pra.getData(),
-                getAssignedParameter( pra ) ) )
+                getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.ERRORONCOMPLETE,
-            pra -> RuleActionErrorOnCompletion.create( pra.getContent(), pra.getData(), getAssignedParameter( pra ) ) )
+            pra -> RuleActionErrorOnCompletion
+                .create( pra.getContent(), pra.getData(), getAssignedParameter( pra ), getAttributeType( pra ) ) )
         .put( ProgramRuleActionType.SENDMESSAGE,
             pra -> RuleActionSendMessage.create( pra.getTemplateUid(), pra.getData() ) )
         .put( ProgramRuleActionType.SCHEDULEMESSAGE,
@@ -284,7 +251,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment )
+    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         if ( enrollment == null )
         {
@@ -300,10 +268,20 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             orgUnitCode = enrollment.getOrganisationUnit().getCode();
         }
 
-        List<RuleAttributeValue> ruleAttributeValues = Lists.newArrayList();
+        List<RuleAttributeValue> ruleAttributeValues;
+
         if ( enrollment.getEntityInstance() != null )
         {
             ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+                .stream()
+                .filter( Objects::nonNull )
+                .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
+                    getTrackedEntityAttributeValue( attr ) ) )
+                .collect( Collectors.toList() );
+        }
+        else
+        {
+            ruleAttributeValues = trackedEntityAttributeValues
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),
@@ -393,7 +371,8 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
             rule = Rule.create(
                 programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
-                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName() );
+                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName(),
+                programRule.getUid() );
         }
         catch ( Exception e )
         {
@@ -455,27 +434,19 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return RuleValueType.TEXT;
     }
 
-    private String getAssignedParameterForAssignAction( ProgramRuleAction programRuleAction )
+    private AttributeType getAttributeType( ProgramRuleAction programRuleAction )
     {
         if ( programRuleAction.hasDataElement() )
         {
-            return programRuleAction.getDataElement().getUid();
+            return DATA_ELEMENT;
         }
 
         if ( programRuleAction.hasTrackedEntityAttribute() )
         {
-            return programRuleAction.getAttribute().getUid();
+            return TRACKED_ENTITY_ATTRIBUTE;
         }
 
-        if ( programRuleAction.hasContent() )
-        {
-            return StringUtils.EMPTY;
-        }
-
-        log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",
-            programRuleAction.getProgramRuleActionType(), programRuleAction.getProgramRule().getUid() ) );
-
-        return StringUtils.EMPTY;
+        return AttributeType.UNKNOWN;
     }
 
     private String getAssignedParameter( ProgramRuleAction programRuleAction )
@@ -492,7 +463,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         if ( programRuleAction.hasContent() )
         {
-            return programRuleAction.getContent();
+            return StringUtils.EMPTY;
         }
 
         log.warn( String.format( "No location found for ProgramRuleAction: %s in ProgramRule: %s",

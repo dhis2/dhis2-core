@@ -1,7 +1,5 @@
-package org.hisp.dhis;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,38 @@ package org.hisp.dhis;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.vividsolutions.jts.geom.Geometry;
-import org.apache.commons.codec.digest.DigestUtils;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.lang.reflect.Method;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
+
+import javax.annotation.PostConstruct;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.UserOrgUnitType;
 import org.hisp.dhis.attribute.Attribute;
@@ -130,19 +155,19 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.utils.Dxf2NamespaceResolver;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleGroup;
 import org.hisp.dhis.validation.notification.ValidationNotificationTemplate;
 import org.hisp.dhis.visualization.Visualization;
 import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.locationtech.jts.geom.Geometry;
 import org.springframework.aop.framework.Advised;
 import org.springframework.aop.support.AopUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,40 +184,18 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.xml.XMLConstants;
-import javax.xml.namespace.NamespaceContext;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 
 /**
  * @author Lars Helge Overland
  */
+@Slf4j
 @ActiveProfiles( profiles = { "test" } )
 public abstract class DhisConvenienceTest
 {
-    protected static final Logger log = LoggerFactory.getLogger( DhisConvenienceTest.class );
-
     protected static final String BASE_UID = "abcdefghij";
 
     protected static final String BASE_IN_UID = "inabcdefgh";
@@ -208,11 +211,18 @@ public abstract class DhisConvenienceTest
     protected static final String BASE_USER_UID = "userabcdef";
 
     protected static final String BASE_USER_GROUP_UID = "ugabcdefgh";
+
     protected static final String BASE_PG_UID = "pgabcdefgh";
+
     protected static final String BASE_PR_UID = "prabcdefgh";
+
     protected static final String BASE_TEI_UID = "teibcdefgh";
 
     private static final String EXT_TEST_DIR = System.getProperty( "user.home" ) + File.separator + "dhis2_test_dir";
+
+    public static final String DEFAULT_ADMIN_PASSWORD = "district";
+
+    public static final String DEFAULT_USERNAME = "admin";
 
     private static Date date;
 
@@ -230,6 +240,8 @@ public abstract class DhisConvenienceTest
     protected CategoryService internalCategoryService;
 
     protected static CategoryService categoryService;
+
+    private char nextUserName = 'a';
 
     @PostConstruct
     protected void initServices()
@@ -250,9 +262,9 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a date.
      *
-     * @param year  the year.
+     * @param year the year.
      * @param month the month.
-     * @param day   the day of month.
+     * @param day the day of month.
      * @return a date.
      */
     public static Date getDate( int year, int month, int day )
@@ -294,7 +306,7 @@ public abstract class DhisConvenienceTest
      * method. This is useful for black-box testing where one will not know the
      * implementation type of the returned collection for a method.
      *
-     * @param actual    the actual collection to check.
+     * @param actual the actual collection to check.
      * @param reference the reference objects to check against.
      * @return true if the collections are equal, false otherwise.
      */
@@ -369,16 +381,17 @@ public abstract class DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     /**
-     * Sets a dependency on the target service. This method can be used to set mock
-     * implementations of dependencies on services for testing purposes. The
-     * advantage of using this method over setting the services directly is that the
-     * test can still be executed against the interface type of the service; making
-     * the test unaware of the implementation and thus re-usable. A weakness is that
-     * the field name of the dependency must be assumed.
+     * Sets a dependency on the target service. This method can be used to set
+     * mock implementations of dependencies on services for testing purposes.
+     * The advantage of using this method over setting the services directly is
+     * that the test can still be executed against the interface type of the
+     * service; making the test unaware of the implementation and thus
+     * re-usable. A weakness is that the field name of the dependency must be
+     * assumed.
      *
      * @param targetService the target service.
-     * @param fieldName     the name of the dependency field in the target service.
-     * @param dependency    the dependency.
+     * @param fieldName the name of the dependency field in the target service.
+     * @param dependency the dependency.
      */
     protected void setDependency( Object targetService, String fieldName, Object dependency )
     {
@@ -388,17 +401,18 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * Sets a dependency on the target service. This method can be used to set mock
-     * implementations of dependencies on services for testing purposes. The
-     * advantage of using this method over setting the services directly is that the
-     * test can still be executed against the interface type of the service; making
-     * the test unaware of the implementation and thus re-usable. A weakness is that
-     * the field name of the dependency must be assumed.
+     * Sets a dependency on the target service. This method can be used to set
+     * mock implementations of dependencies on services for testing purposes.
+     * The advantage of using this method over setting the services directly is
+     * that the test can still be executed against the interface type of the
+     * service; making the test unaware of the implementation and thus
+     * re-usable. A weakness is that the field name of the dependency must be
+     * assumed.
      *
      * @param targetService the target service.
-     * @param fieldName     the name of the dependency field in the target service.
-     * @param dependency    the dependency.
-     * @param clazz         the interface type of the dependency.
+     * @param fieldName the name of the dependency field in the target service.
+     * @param dependency the dependency.
+     * @param clazz the interface type of the dependency.
      */
     protected void setDependency( Object targetService, String fieldName, Object dependency, Class<?> clazz )
     {
@@ -409,7 +423,7 @@ public abstract class DhisConvenienceTest
             String setMethodName = "set" + fieldName.substring( 0, 1 ).toUpperCase()
                 + fieldName.substring( 1 );
 
-            Class<?>[] argumentClass = new Class<?>[]{ clazz };
+            Class<?>[] argumentClass = new Class<?>[] { clazz };
 
             Method method = targetService.getClass().getMethod( setMethodName, argumentClass );
 
@@ -423,8 +437,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * If the given class is advised by Spring AOP it will return the target class,
-     * i.e. the advised class. If not the given class is returned unchanged.
+     * If the given class is advised by Spring AOP it will return the target
+     * class, i.e. the advised class. If not the given class is returned
+     * unchanged.
      *
      * @param object the object.
      */
@@ -454,7 +469,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param categoryCombo   The category combo.
+     * @param categoryCombo The category combo.
      */
     public static DataElement createDataElement( char uniqueCharacter, CategoryCombo categoryCombo )
     {
@@ -485,7 +500,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param valueType       The value type.
+     * @param valueType The value type.
      * @param aggregationType The aggregation type.
      */
     public static DataElement createDataElement( char uniqueCharacter, ValueType valueType,
@@ -500,9 +515,9 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param valueType       The value type.
+     * @param valueType The value type.
      * @param aggregationType The aggregation type.
-     * @param domainType      The domain type.
+     * @param domainType The domain type.
      */
     public static DataElement createDataElement( char uniqueCharacter, ValueType valueType,
         AggregationType aggregationType, DataElementDomain domainType )
@@ -517,8 +532,8 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param categoryComboUniqueIdentifier A unique character to identify the
-     *                                      category option combo.
-     * @param categories                    the categories category options.
+     *        category option combo.
+     * @param categories the categories category options.
      * @return CategoryOptionCombo
      */
     public static CategoryCombo createCategoryCombo( char categoryComboUniqueIdentifier, Category... categories )
@@ -536,10 +551,10 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryComboUniqueIdentifier   A unique character to identify the
-     *                                        category combo.
+     * @param categoryComboUniqueIdentifier A unique character to identify the
+     *        category combo.
      * @param categoryOptionUniqueIdentifiers Unique characters to identify the
-     *                                        category options.
+     *        category options.
      * @return CategoryOptionCombo
      */
     public static CategoryOptionCombo createCategoryOptionCombo( char categoryComboUniqueIdentifier,
@@ -561,7 +576,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryCombo   the category combo.
+     * @param categoryCombo the category combo.
      * @param categoryOptions the category options.
      * @return CategoryOptionCombo
      */
@@ -595,8 +610,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryUniqueIdentifier A unique character to identify the category.
-     * @param categoryOptions          the category options.
+     * @param categoryUniqueIdentifier A unique character to identify the
+     *        category.
+     * @param categoryOptions the category options.
      * @return Category
      */
     public static Category createCategory( char categoryUniqueIdentifier,
@@ -604,6 +620,7 @@ public abstract class DhisConvenienceTest
     {
         Category category = new Category( "Category" + categoryUniqueIdentifier, DataDimensionType.DISAGGREGATION );
         category.setAutoFields();
+        category.setShortName( category.getName() );
 
         for ( CategoryOption categoryOption : categoryOptions )
         {
@@ -622,9 +639,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueIdentifier A unique character to identify the category option
-     *                         group.
-     * @param categoryOptions  the category options.
+     * @param uniqueIdentifier A unique character to identify the category
+     *        option group.
+     * @param categoryOptions the category options.
      * @return CategoryOptionGroup
      */
     public static CategoryOptionGroup createCategoryOptionGroup( char uniqueIdentifier,
@@ -645,9 +662,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param categoryGroupSetUniqueIdentifier A unique character to identify the
-     *                                         category option group set.
-     * @param categoryOptionGroups             the category option groups.
+     * @param categoryGroupSetUniqueIdentifier A unique character to identify
+     *        the category option group set.
+     * @param categoryOptionGroups the category option groups.
      * @return CategoryOptionGroupSet
      */
     public static CategoryOptionGroupSet createCategoryOptionGroupSet( char categoryGroupSetUniqueIdentifier,
@@ -707,6 +724,7 @@ public abstract class DhisConvenienceTest
 
         groupSet.setUid( BASE_UID + uniqueCharacter );
         groupSet.setName( "DataElementGroupSet" + uniqueCharacter );
+        groupSet.setShortName( groupSet.getName() );
 
         return groupSet;
     }
@@ -727,7 +745,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param type            The type.
+     * @param type The type.
      */
     public static Indicator createIndicator( char uniqueCharacter, IndicatorType type )
     {
@@ -790,7 +808,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param periodType      The period type.
+     * @param periodType The period type.
      */
     public static DataSet createDataSet( char uniqueCharacter, PeriodType periodType )
     {
@@ -799,8 +817,8 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param periodType      The period type.
-     * @param categoryCombo   The category combo.
+     * @param periodType The period type.
+     * @param categoryCombo The category combo.
      */
     public static DataSet createDataSet( char uniqueCharacter, PeriodType periodType, CategoryCombo categoryCombo )
     {
@@ -835,7 +853,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param html            the form HTML content.
+     * @param html the form HTML content.
      */
     public static DataEntryForm createDataEntryForm( char uniqueCharacter, String html )
     {
@@ -871,7 +889,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param parent          The parent.
+     * @param parent The parent.
      */
     public static OrganisationUnit createOrganisationUnit( char uniqueCharacter, OrganisationUnit parent )
     {
@@ -902,7 +920,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param name   The name, short name and code of the organisation unit.
+     * @param name The name, short name and code of the organisation unit.
      * @param parent The parent.
      */
     public static OrganisationUnit createOrganisationUnit( String name, OrganisationUnit parent )
@@ -940,6 +958,7 @@ public abstract class DhisConvenienceTest
         groupSet.setAutoFields();
 
         groupSet.setName( "OrganisationUnitGroupSet" + uniqueCharacter );
+        groupSet.setShortName( "OrganisationUnitGroupSet" + uniqueCharacter );
         groupSet.setCode( "OrganisationUnitGroupSetCode" + uniqueCharacter );
         groupSet.setDescription( "Description" + uniqueCharacter );
         groupSet.setCompulsory( true );
@@ -948,7 +967,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param type      The PeriodType.
+     * @param type The PeriodType.
      * @param startDate The start date.
      */
     public static Period createPeriod( PeriodType type, Date startDate )
@@ -963,9 +982,9 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param type      The PeriodType.
+     * @param type The PeriodType.
      * @param startDate The start date.
-     * @param endDate   The end date.
+     * @param endDate The end date.
      */
     public static Period createPeriod( PeriodType type, Date startDate, Date endDate )
     {
@@ -989,7 +1008,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param startDate The start date.
-     * @param endDate   The end date.
+     * @param endDate The end date.
      */
     public static Period createPeriod( Date startDate, Date endDate )
     {
@@ -1006,10 +1025,10 @@ public abstract class DhisConvenienceTest
     /**
      * Uses the given category option combo also as attribute option combo.
      *
-     * @param dataElement         The data element.
-     * @param period              The period.
-     * @param source              The source.
-     * @param value               The value.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
      * @param categoryOptionCombo The category (and attribute) option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
@@ -1030,11 +1049,11 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param value                The value.
-     * @param categoryOptionCombo  The category option combo.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
+     * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
@@ -1044,13 +1063,13 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param dataElement          The data element.
-     * @param period               The period.
-     * @param source               The source.
-     * @param value                The value.
-     * @param categoryOptionCombo  The category option combo.
+     * @param dataElement The data element.
+     * @param period The period.
+     * @param source The source.
+     * @param value The value.
+     * @param categoryOptionCombo The category option combo.
      * @param attributeOptionCombo The attribute option combo.
-     * @param deleted              Whether the data valeu is deleted.
+     * @param deleted Whether the data valeu is deleted.
      */
     public static DataValue createDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value,
@@ -1075,10 +1094,10 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param operator        The operator.
-     * @param leftSide        The left side expression.
-     * @param rightSide       The right side expression.
-     * @param periodType      The period-type.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      */
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
@@ -1087,11 +1106,11 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter    A unique character to identify the object.
-     * @param operator           The operator.
-     * @param leftSide           The left side expression.
-     * @param rightSide          The right side expression.
-     * @param periodType         The period-type.
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      * @param skipFormValidation Skip when validating forms.
      */
     public static ValidationRule createValidationRule( String uniqueCharacter, Operator operator, Expression leftSide,
@@ -1116,10 +1135,10 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param operator        The operator.
-     * @param leftSide        The left side expression.
-     * @param rightSide       The right side expression.
-     * @param periodType      The period-type.
+     * @param operator The operator.
+     * @param leftSide The left side expression.
+     * @param rightSide The right side expression.
+     * @param periodType The period-type.
      */
     public static ValidationRule createValidationRule( char uniqueCharacter, Operator operator, Expression leftSide,
         Expression rightSide, PeriodType periodType )
@@ -1143,7 +1162,7 @@ public abstract class DhisConvenienceTest
     }
 
     /**
-     * @param uniqueCharacter  A unique character to identify the object.
+     * @param uniqueCharacter A unique character to identify the object.
      * @param expressionString The expression string.
      */
     public static Expression createExpression2( char uniqueCharacter, String expressionString )
@@ -1159,18 +1178,18 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param output                the data element where the predictor stores its predictions
-     * @param combo                 the category option combo (or null) under which the predictors
-     *                              are stored
-     * @param uniqueCharacter       A unique character to identify the object.
-     * @param generator             The right side expression.
-     * @param skipTest              The skiptest expression
-     * @param periodType            The period-type.
-     * @param organisationUnitLevel The organisation unit level to be evaluated by
-     *                              this rule.
+     * @param output the data element where the predictor stores its predictions
+     * @param combo the category option combo (or null) under which the
+     *        predictors are stored
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param generator The right side expression.
+     * @param skipTest The skiptest expression
+     * @param periodType The period-type.
+     * @param organisationUnitLevel The organisation unit level to be evaluated
+     *        by this rule.
      * @param sequentialSampleCount How many sequential past periods to sample.
-     * @param annualSampleCount     How many years of past periods to sample.
-     * @param sequentialSkipCount   How many periods in the current year to skip
+     * @param annualSampleCount How many years of past periods to sample.
+     * @param sequentialSkipCount How many periods in the current year to skip
      */
     public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
         String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
@@ -1185,18 +1204,18 @@ public abstract class DhisConvenienceTest
     /**
      * Creates a Predictor
      *
-     * @param output                 The data element where the predictor stores its predictions
-     * @param combo                  The category option combo (or null) under which the predictors
-     *                               are stored
-     * @param uniqueCharacter        A unique character to identify the object.
-     * @param generator              The right side expression.
-     * @param skipTest               The skiptest expression
-     * @param periodType             The period-type.
-     * @param organisationUnitLevels The organisation unit levels to be evaluated by
-     *                               this rule.
-     * @param sequentialSampleCount  How many sequential past periods to sample.
-     * @param annualSampleCount      How many years of past periods to sample.
-     * @param sequentialSkipCount    How many periods in the current year to skip
+     * @param output The data element where the predictor stores its predictions
+     * @param combo The category option combo (or null) under which the
+     *        predictors are stored
+     * @param uniqueCharacter A unique character to identify the object.
+     * @param generator The right side expression.
+     * @param skipTest The skiptest expression
+     * @param periodType The period-type.
+     * @param organisationUnitLevels The organisation unit levels to be
+     *        evaluated by this rule.
+     * @param sequentialSampleCount How many sequential past periods to sample.
+     * @param annualSampleCount How many years of past periods to sample.
+     * @param sequentialSkipCount How many periods in the current year to skip
      */
     public static Predictor createPredictor( DataElement output, CategoryOptionCombo combo,
         String uniqueCharacter, Expression generator, Expression skipTest, PeriodType periodType,
@@ -1321,7 +1340,7 @@ public abstract class DhisConvenienceTest
         user.setUid( BASE_USER_UID + uniqueCharacter );
 
         credentials.setUserInfo( user );
-        credentials.setUser( user );
+        credentials.setCreatedBy( user );
         user.setUserCredentials( credentials );
 
         credentials.setUsername( "username" + uniqueCharacter );
@@ -1369,6 +1388,7 @@ public abstract class DhisConvenienceTest
         credentials.setPassword( "Password" + uniqueCharacter );
         credentials.setUserInfo( user );
         user.setUserCredentials( credentials );
+        credentials.setUser( user );
 
         return credentials;
     }
@@ -1388,7 +1408,7 @@ public abstract class DhisConvenienceTest
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter )
     {
-        return createUserAuthorityGroup( uniqueCharacter, new String[]{} );
+        return createUserAuthorityGroup( uniqueCharacter, new String[] {} );
     }
 
     public static UserAuthorityGroup createUserAuthorityGroup( char uniqueCharacter, String... auths )
@@ -1601,12 +1621,9 @@ public abstract class DhisConvenienceTest
     public static ProgramMessage createProgramMessage( String text, String subject,
         ProgramMessageRecipients recipients, ProgramMessageStatus status, Set<DeliveryChannel> channels )
     {
-        ProgramMessage message = new ProgramMessage();
-        message.setText( text );
-        message.setSubject( subject );
-        message.setRecipients( recipients );
-        message.setMessageStatus( status );
-        message.setDeliveryChannels( channels );
+        ProgramMessage message = ProgramMessage.builder().text( text )
+            .subject( subject ).recipients( recipients )
+            .messageStatus( status ).deliveryChannels( channels ).build();
 
         return message;
     }
@@ -1700,6 +1717,44 @@ public abstract class DhisConvenienceTest
         teiConstraintB.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
         relationshipType.setName( "Person_to_person_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createTeiToEnrollmentRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_enrollment_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createTeiToEventRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_event_" + uniqueCharacter );
         relationshipType.setBidirectional( isBidirectional );
         relationshipType.setFromConstraint( teiConstraintA );
         relationshipType.setToConstraint( teiConstraintB );
@@ -1856,17 +1911,17 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content    The content of the file
+     * @param content The content of the file
      * @return a fileResource object
      */
     public static FileResource createFileResource( char uniqueChar, byte[] content )
     {
         String filename = "filename" + uniqueChar;
-        String contentMd5 = DigestUtils.md5( content ).toString();
+        HashCode contentMd5 = Hashing.md5().hashBytes( content );
         String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
-        FileResource fileResource = new FileResource( filename, contentType, content.length, contentMd5,
-            FileResourceDomain.DATA_VALUE );
+        FileResource fileResource = new FileResource( filename, contentType, content.length,
+            contentMd5.toString(), FileResourceDomain.DATA_VALUE );
         fileResource.setAssigned( false );
         fileResource.setCreated( new Date() );
         fileResource.setAutoFields();
@@ -1876,7 +1931,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueChar A unique character to identify the object.
-     * @param content    The content of the file
+     * @param content The content of the file
      * @return an externalFileResource object
      */
     public static ExternalFileResource createExternalFileResource( char uniqueChar, byte[] content )
@@ -1892,7 +1947,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param sql             A query statement to retreive record/data from database.
+     * @param sql A query statement to retreive record/data from database.
      * @return a sqlView instance
      */
     public static SqlView createSqlView( char uniqueCharacter, String sql )
@@ -1911,7 +1966,7 @@ public abstract class DhisConvenienceTest
 
     /**
      * @param uniqueCharacter A unique character to identify the object.
-     * @param value           The value for constant
+     * @param value The value for constant
      * @return a constant instance
      */
     public static Constant createConstant( char uniqueCharacter, double value )
@@ -2052,11 +2107,11 @@ public abstract class DhisConvenienceTest
 
     /**
      * Injects the externalDir property of LocationManager to
-     * user.home/dhis2_test_dir. LocationManager dependency must be retrieved from
-     * the context up front.
+     * user.home/dhis2_test_dir. LocationManager dependency must be retrieved
+     * from the context up front.
      *
-     * @param locationManager The LocationManager to be injected with the external
-     *                        directory.
+     * @param locationManager The LocationManager to be injected with the
+     *        external directory.
      */
     public void setExternalTestDir( LocationManager locationManager )
     {
@@ -2109,49 +2164,13 @@ public abstract class DhisConvenienceTest
         return xpath.evaluate( xpathString, source );
     }
 
-    protected class Dxf2NamespaceResolver
-        implements NamespaceContext
-    {
-        @Override
-        public String getNamespaceURI( String prefix )
-        {
-            if ( prefix == null )
-            {
-                throw new IllegalArgumentException( "No prefix provided!" );
-            }
-            else
-            {
-                if ( prefix.equals( "d" ) )
-                {
-                    return "http://dhis2.org/schema/dxf/2.0";
-                }
-                else
-                {
-                    return XMLConstants.NULL_NS_URI;
-                }
-            }
-        }
-
-        @Override
-        public String getPrefix( String namespaceURI )
-        {
-            return null;
-        }
-
-        @Override
-        public Iterator<String> getPrefixes( String namespaceURI )
-        {
-            return null;
-        }
-    }
-
     /**
      * Creates a user and injects into the security context with username
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
      * @param allAuth whether to grant ALL authority to user.
-     * @param auths   authorities to grant to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( boolean allAuth, String... auths )
@@ -2165,8 +2184,8 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      *
      * @param organisationUnits the organisation units of the user.
-     * @param allAuth           whether to grant the ALL authority to user.
-     * @param auths             authorities to grant to user.
+     * @param allAuth whether to grant the ALL authority to user.
+     * @param auths authorities to grant to user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits, boolean allAuth,
@@ -2180,10 +2199,11 @@ public abstract class DhisConvenienceTest
      * "username". Requires <code>identifiableObjectManager</code> and
      * <code>userService</code> to be injected into the test.
      *
-     * @param organisationUnits         the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
@@ -2198,26 +2218,27 @@ public abstract class DhisConvenienceTest
      * <code>userService</code> to be injected into the test.
      * <p>
      *
-     * @param organisationUnits         the organisation units of the user.
-     * @param dataViewOrganisationUnits the data view organisation units of the user.
-     * @param catDimensionConstraints   the category dimension constraints of the user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
-     *                                  =======
-     * @param organisationUnits         the organisation units of the user.
+     * @param organisationUnits the organisation units of the user.
      * @param dataViewOrganisationUnits the data view organisation units of the
-     *                                  user.
-     * @param catDimensionConstraints   the category dimension constraints of the
-     *                                  user.
-     * @param allAuth                   whether to grant the ALL authority to the user.
-     * @param auths                     authorities to grant to the user.
+     *        user.
+     * @param catDimensionConstraints the category dimension constraints of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user. =======
+     * @param organisationUnits the organisation units of the user.
+     * @param dataViewOrganisationUnits the data view organisation units of the
+     *        user.
+     * @param catDimensionConstraints the category dimension constraints of the
+     *        user.
+     * @param allAuth whether to grant the ALL authority to the user.
+     * @param auths authorities to grant to the user.
      * @return the user.
      */
     protected User createUserAndInjectSecurityContext( Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, Set<Category> catDimensionConstraints, boolean allAuth,
         String... auths )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
         Set<String> authorities = new HashSet<>();
 
@@ -2231,13 +2252,13 @@ public abstract class DhisConvenienceTest
             authorities.addAll( Lists.newArrayList( auths ) );
         }
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.getAuthorities().addAll( authorities );
+        UserAuthorityGroup group = new UserAuthorityGroup();
+        group.setName( "Superuser" );
+        group.getAuthorities().addAll( authorities );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
-        User user = createUser( 'A' );
+        User user = createUser( nextUserName++ );
 
         if ( organisationUnits != null )
         {
@@ -2254,21 +2275,19 @@ public abstract class DhisConvenienceTest
             user.getUserCredentials().setCatDimensionConstraints( catDimensionConstraints );
         }
 
-        user.getUserCredentials().getUserAuthorityGroups().add( userAuthorityGroup );
+        user.getUserCredentials().getUserAuthorityGroups().add( group );
         userService.addUser( user );
         user.getUserCredentials().setUserInfo( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        Set<GrantedAuthority> grantedAuths = authorities.stream().map( a -> new SimpleGrantedAuthority( a ) )
-            .collect( Collectors.toSet() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuths );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuths );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
 
         return user;
+    }
+
+    private void checkUserServiceWasInjected()
+    {
+        Assert.notNull( userService, "UserService must be injected in test" );
     }
 
     protected void saveAndInjectUserSecurityContext( User user )
@@ -2276,48 +2295,29 @@ public abstract class DhisConvenienceTest
         userService.addUser( user );
         userService.addUserCredentials( user.getUserCredentials() );
 
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-        SecurityContextHolder.getContext().setAuthentication( authentication );
+        injectSecurityContext( user );
     }
 
     protected User createUser( String username, String... authorities )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
-        String password = "district";
+        String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setCode( username );
-        userAuthorityGroup.setName( username );
-        userAuthorityGroup.setDescription( username );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+        UserAuthorityGroup group = createAuthorityGroup( username, authorities );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
-        User user = new User();
-        user.setCode( username );
-        user.setFirstName( username );
-        user.setSurname( username );
+        User user = createUser( username );
 
         userService.addUser( user );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setCode( username );
-        userCredentials.setUser( user );
-        userCredentials.setUserInfo( user );
-        userCredentials.setUsername( username );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        UserCredentials credentials = createUserCredentials( username, user, group );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( credentials, password );
+        userService.addUserCredentials( credentials );
 
-        user.setUserCredentials( userCredentials );
+        user.setUserCredentials( credentials );
         userService.updateUser( user );
 
         return user;
@@ -2325,83 +2325,54 @@ public abstract class DhisConvenienceTest
 
     protected User createAdminUser( String... authorities )
     {
-        Assert.notNull( userService, "UserService must be injected in test" );
+        checkUserServiceWasInjected();
 
-        String username = "admin";
-        String password = "district";
+        String username = DEFAULT_USERNAME;
+        String password = DEFAULT_ADMIN_PASSWORD;
 
-        UserAuthorityGroup userAuthorityGroup = new UserAuthorityGroup();
-        userAuthorityGroup.setUid( "yrB6vc5Ip3r" );
-        userAuthorityGroup.setCode( "Superuser" );
-        userAuthorityGroup.setName( "Superuser" );
-        userAuthorityGroup.setDescription( "Superuser" );
-        userAuthorityGroup.setAuthorities( Sets.newHashSet( authorities ) );
+        UserAuthorityGroup group = createAuthorityGroup( "Superuser", authorities );
+        group.setUid( "yrB6vc5Ip3r" );
 
-        userService.addUserAuthorityGroup( userAuthorityGroup );
+        userService.addUserAuthorityGroup( group );
 
-        User user = new User();
+        User user = createUser( username );
         user.setUid( "M5zQapPyTZI" );
-        user.setCode( username );
-        user.setFirstName( username );
-        user.setSurname( username );
 
         userService.addUser( user );
 
-        UserCredentials userCredentials = new UserCredentials();
-        userCredentials.setUid( "KvMx6c1eoYo" );
-        userCredentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
-        userCredentials.setCode( username );
-        userCredentials.setUser( user );
-        userCredentials.setUserInfo( user );
-        userCredentials.setUsername( username );
-        userCredentials.getUserAuthorityGroups().add( userAuthorityGroup );
+        UserCredentials credentials = createUserCredentials( username, user, group );
+        credentials.setUid( "KvMx6c1eoYo" );
+        credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
 
-        userService.encodeAndSetPassword( userCredentials, password );
-        userService.addUserCredentials( userCredentials );
+        userService.encodeAndSetPassword( credentials, password );
+        userService.addUserCredentials( credentials );
 
-        user.setUserCredentials( userCredentials );
+        user.setUserCredentials( credentials );
         userService.updateUser( user );
 
         return user;
     }
 
-    protected User createAndInjectAdminUser()
+    protected final User createAndInjectAdminUser()
     {
         return createAndInjectAdminUser( "ALL" );
     }
 
-    protected User createAndInjectAdminUser( String... authorities )
+    protected final User createAndInjectAdminUser( String... authorities )
     {
         User user = createAdminUser( authorities );
-
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
-
+        injectSecurityContext( user );
         return user;
     }
 
     protected void injectSecurityContext( User user )
     {
-        List<GrantedAuthority> grantedAuthorities = user.getUserCredentials().getAllAuthorities()
-            .stream().map( SimpleGrantedAuthority::new ).collect( Collectors.toList() );
-
-        UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-            user.getUserCredentials().getUsername(), user.getUserCredentials().getPassword(), grantedAuthorities );
-
-        Authentication authentication = new UsernamePasswordAuthenticationToken( userDetails, "", grantedAuthorities );
-
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( authentication );
-        SecurityContextHolder.setContext( context );
+        UserCredentials credentials = user.getUserCredentials();
+        switchCurrentUserTo(
+            credentials.getUsername(),
+            credentials.getPassword(),
+            credentials.getAllAuthorities()
+                .stream().map( SimpleGrantedAuthority::new ).collect( toList() ) );
     }
 
     protected void clearSecurityContext()
@@ -2428,15 +2399,11 @@ public abstract class DhisConvenienceTest
     protected ProgramDataElementDimensionItem createProgramDataElement( char name )
     {
         Program pr = new Program();
-
         pr.setUid( "P123456789" + name );
-
         pr.setCode( "PCode" + name );
 
         DataElement de = new DataElement( "Name" + name );
-
         de.setUid( "D123456789" + name );
-
         de.setCode( "DCode" + name );
 
         return new ProgramDataElementDimensionItem( pr, de );
@@ -2444,12 +2411,101 @@ public abstract class DhisConvenienceTest
 
     protected void enableDataSharing( User user, IdentifiableObject object, String access )
     {
-        object.getUserAccesses().clear();
+        object.getSharing().resetUserAccesses();
 
         UserAccess userAccess = new UserAccess();
         userAccess.setUser( user );
         userAccess.setAccess( access );
 
-        object.getUserAccesses().add( userAccess );
+        object.getSharing().addUserAccess( userAccess );
     }
+
+    protected void preCreateInjectAdminUserWithoutPersistence()
+    {
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
+    }
+
+    protected User preCreateInjectAdminUser()
+    {
+        switchCurrentUserTo( DEFAULT_USERNAME, DEFAULT_ADMIN_PASSWORD,
+            singletonList( new SimpleGrantedAuthority( "ALL" ) ) );
+
+        return createAndInjectAdminUser( "ALL" );
+    }
+
+    protected void switchCurrentUserTo( String username, String password, List<GrantedAuthority> authorities )
+    {
+        UserDetails user = new org.springframework.security.core.userdetails.User( username, password, authorities );
+        Authentication authentication = new UsernamePasswordAuthenticationToken( user, "", authorities );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication( authentication );
+        SecurityContextHolder.setContext( context );
+    }
+
+    private static User createUser( String username )
+    {
+        User user = new User();
+        user.setCode( username );
+        user.setFirstName( username );
+        user.setSurname( username );
+        return user;
+    }
+
+    private static UserCredentials createUserCredentials( String username, User user, UserAuthorityGroup group )
+    {
+        UserCredentials credentials = new UserCredentials();
+        credentials.setCode( username );
+        credentials.setCreatedBy( user );
+        credentials.setUserInfo( user );
+        credentials.setUsername( username );
+        credentials.getUserAuthorityGroups().add( group );
+        return credentials;
+    }
+
+    private static UserAuthorityGroup createAuthorityGroup( String username, String... authorities )
+    {
+        UserAuthorityGroup group = new UserAuthorityGroup();
+        group.setCode( username );
+        group.setName( username );
+        group.setDescription( username );
+        group.setAuthorities( Sets.newHashSet( authorities ) );
+        return group;
+    }
+
+    protected final User addUser( char uniqueCharacter )
+    {
+        return addUser( uniqueCharacter, (Consumer<UserCredentials>) null );
+    }
+
+    protected final <T> User addUser( char uniqueCharacter, BiConsumer<UserCredentials, T> setter, T value )
+    {
+        return addUser( uniqueCharacter, credentials -> setter.accept( credentials, value ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, OrganisationUnit... units )
+    {
+        return addUser( uniqueCharacter,
+            credentials -> credentials.getUser().getOrganisationUnits().addAll( asList( units ) ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, UserAuthorityGroup... roles )
+    {
+        return addUser( uniqueCharacter,
+            credentials -> credentials.getUserAuthorityGroups().addAll( asList( roles ) ) );
+    }
+
+    protected final User addUser( char uniqueCharacter, Consumer<UserCredentials> init )
+    {
+        User user = createUser( uniqueCharacter );
+        UserCredentials credentials = createUserCredentials( uniqueCharacter, user );
+        if ( init != null )
+        {
+            init.accept( credentials );
+        }
+        userService.addUser( user );
+        userService.addUserCredentials( credentials );
+        return user;
+    }
+
 }

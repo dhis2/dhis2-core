@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.collect.Lists.newArrayList;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,10 +41,11 @@ import org.hisp.dhis.analytics.QueryPlannerParams;
 import org.hisp.dhis.analytics.RawAnalyticsManager;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
 import org.hisp.dhis.analytics.cache.AnalyticsCacheSettings;
-import org.hisp.dhis.analytics.data.handling.DataAggregator;
-import org.hisp.dhis.analytics.data.handling.DataHandler;
-import org.hisp.dhis.analytics.data.handling.HeaderHandler;
-import org.hisp.dhis.analytics.data.handling.MetadataHandler;
+import org.hisp.dhis.analytics.data.handler.DataAggregator;
+import org.hisp.dhis.analytics.data.handler.DataHandler;
+import org.hisp.dhis.analytics.data.handler.HeaderHandler;
+import org.hisp.dhis.analytics.data.handler.MetadataHandler;
+import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventAnalyticsService;
 import org.hisp.dhis.analytics.resolver.ExpressionResolver;
 import org.hisp.dhis.constant.ConstantService;
@@ -98,6 +98,9 @@ public abstract class AnalyticsServiceBaseTest
     private DataQueryService dataQueryService;
 
     @Mock
+    private SchemaIdResponseMapper schemaIdResponseMapper;
+
+    @Mock
     private DhisConfigurationProvider dhisConfig;
 
     @Mock
@@ -117,11 +120,10 @@ public abstract class AnalyticsServiceBaseTest
     @Before
     public void baseSetUp()
     {
-        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager,
-            nestedIndicatorCyclicDependencyInspector );
+        DefaultQueryValidator queryValidator = new DefaultQueryValidator( systemSettingManager );
 
         HeaderHandler headerHandler = new HeaderHandler();
-        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService );
+        MetadataHandler metadataHandler = new MetadataHandler( dataQueryService, schemaIdResponseMapper );
         DataHandler dataHandler = new DataHandler( eventAnalyticsService, rawAnalyticsManager, constantService,
             resolver, expressionService, queryPlanner, queryValidator, systemSettingManager, analyticsManager,
             organisationUnitService );

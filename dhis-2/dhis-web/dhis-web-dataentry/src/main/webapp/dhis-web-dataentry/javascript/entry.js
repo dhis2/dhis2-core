@@ -207,7 +207,14 @@ function saveVal( dataElementId, optionComboId, fieldId, feedbackId )
             }
             if ( type == 'NUMBER' && !dhis2.validation.isNumber( value ) )
             {
-                return dhis2.de.alertField( fieldId, i18n_value_must_number + '\n\n' + dataElementName );
+                if ( dhis2.validation.isNumber( '0' + value ) )
+                {
+                    value = '0' + value; // Prepend '0' to a leading decimal point
+                }
+                else
+                {
+                    return dhis2.de.alertField(fieldId, i18n_value_must_number + '\n\n' + dataElementName);
+                }
             }
             if ( type == 'INTEGER' && !dhis2.validation.isInt( value ) )
             {
@@ -330,18 +337,6 @@ function saveTrueOnly( dataElementId, optionComboId, fieldId )
     valueSaver.save();
 }
 
-function saveFileResource( dataElementId, optionComboId, fieldId, fileResource, onSuccessCallback )
-{
-    fieldId = '#' + fieldId;
-
-    var periodId = $( '#selectedPeriodId' ).val();
-
-    var dataSetId = $( '#selectedDataSetId' ).val();
-
-    var valueSaver = new FileResourceValueSaver( dataElementId, periodId, optionComboId, dataSetId, fileResource, fieldId, dhis2.de.cst.colorGreen, onSuccessCallback );
-    valueSaver.save();
-}
-
 /**
  * Supportive method.
  */
@@ -452,13 +447,4 @@ function ValueSaver( de, pe, co, ds, value, fieldId, resultColor )
     {
         $( fieldId ).css( 'background-color', color );
     }
-}
-
-function FileResourceValueSaver( de, pe, co, ds, fileResource, fieldId, resultColor, onSuccessCallback )
-{
-    var valueSaver = new ValueSaver( de, pe, co, ds, fileResource.id, fieldId, resultColor );
-
-    valueSaver.setAfterHandleSuccess( onSuccessCallback );
-
-    return valueSaver;
 }

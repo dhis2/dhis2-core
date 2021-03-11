@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.importer;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,11 @@ package org.hisp.dhis.dxf2.events.importer;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.importer;
 
 import static org.apache.commons.logging.LogFactory.getLog;
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
+import static org.hisp.dhis.dxf2.importsummary.ImportStatus.WARNING;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,11 +65,14 @@ public interface EventChecking
 
         /**
          * Validates the events using the supplied list of validators.
-         * 
-         * Only returns the ImportSummary for Events that *did* not pass validation
-         * 
-         * @param validators List of classes implementing the {@see Checker} interface
-         * @return returns the ImportSummary for Events that did not pass validation
+         *
+         * Only returns the ImportSummary for Events that *did* not pass
+         * validation
+         *
+         * @param validators List of classes implementing the {@see Checker}
+         *        interface
+         * @return returns the ImportSummary for Events that did not pass
+         *         validation
          */
         public List<ImportSummary> run( final List<Class<? extends Checker>> validators )
         {
@@ -85,10 +88,13 @@ public interface EventChecking
                         final ImportSummary importSummary = validationCheck.check( new ImmutableEvent( event ),
                             workContext );
 
-                        if ( importSummary.isStatus( ERROR ) )
+                        if ( importSummary.isStatus( ERROR ) || importSummary.isStatus( WARNING ) )
                         {
                             importSummaries.add( importSummary );
-                            break;
+                            if ( importSummary.isStatus( ERROR ) )
+                            {
+                                break;
+                            }
                         }
                     }
                     catch ( InstantiationException | IllegalAccessException e )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -43,10 +44,8 @@ import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * @author Zubair Asghar.
+ * @author Zubair Asghar
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
@@ -62,7 +61,8 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap, ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
+    public RuleActionAssignValueImplementer( RuleVariableInMemoryMap variableMap,
+        ProgramInstanceService programInstanceService, ProgramStageInstanceService programStageInstanceService )
     {
         checkNotNull( variableMap );
         checkNotNull( programInstanceService );
@@ -108,7 +108,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
     }
 
-    private void assignValue(RuleEffect ruleEffect, ProgramInstance programInstance )
+    private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( programInstance == null )
         {

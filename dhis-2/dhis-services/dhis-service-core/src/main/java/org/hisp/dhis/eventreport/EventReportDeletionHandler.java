@@ -1,7 +1,5 @@
-package org.hisp.dhis.eventreport;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,114 +25,85 @@ package org.hisp.dhis.eventreport;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.eventreport;
 
 import java.util.Collection;
 import java.util.List;
 
-import org.hisp.dhis.common.AnalyticalObjectService;
 import org.hisp.dhis.common.GenericAnalyticalObjectDeletionHandler;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.stereotype.Component;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Chau Thu Tran
  */
 @Component( "org.hisp.dhis.eventreport.EventReportDeletionHandler" )
 public class EventReportDeletionHandler
-    extends GenericAnalyticalObjectDeletionHandler<EventReport>
+    extends GenericAnalyticalObjectDeletionHandler<EventReport, EventReportService>
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private final EventReportService eventReportService;
-
     public EventReportDeletionHandler( EventReportService eventReportService )
     {
-        checkNotNull( eventReportService );
-        this.eventReportService = eventReportService;
-    }
-
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    protected String getClassName()
-    {
-        return EventReport.class.getSimpleName();
+        super( new DeletionVeto( EventReport.class ), eventReportService );
     }
 
     @Override
-    protected AnalyticalObjectService<EventReport> getAnalyticalObjectService()
+    protected void register()
     {
-        return eventReportService;
+        // generic
+        whenDeleting( Period.class, this::deletePeriod );
+        whenVetoing( Period.class, this::allowDeletePeriod );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( OrganisationUnitGroup.class, this::deleteOrganisationUnitGroup );
+        whenDeleting( OrganisationUnitGroupSet.class, this::deleteOrganisationUnitGroupSet );
+        // special
+        whenDeleting( DataElement.class, this::deleteDataElementSpecial );
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
+        whenDeleting( Program.class, this::deleteProgram );
     }
 
-    @Override
-    public void deleteIndicator( Indicator indicator )
+    private void deleteDataElementSpecial( DataElement dataElement )
     {
-        // Ignore default implementation
-    }
-    
-    @Override
-    public void deleteDataElement( DataElement dataElement )
-    {
-        List<EventReport> eventReports = getAnalyticalObjectService().getAnalyticalObjectsByDataDimension( dataElement );
-        
+        List<EventReport> eventReports = service.getAnalyticalObjectsByDataDimension( dataElement );
+
         for ( EventReport report : eventReports )
         {
             report.getDataElementDimensions()
                 .removeIf( trackedEntityDataElementDimension -> trackedEntityDataElementDimension.getDataElement()
                     .equals( dataElement ) );
 
-            eventReportService.update( report );
+            service.update( report );
         }
     }
 
-    @Override
-    public void deleteDataSet( DataSet dataSet )
+    private void deleteProgramStage( ProgramStage programStage )
     {
-        // Ignore default implementation
-    }
+        Collection<EventReport> charts = service.getAllEventReports();
 
-    @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
-    {
-     // Ignore default implementation
-    }
-    
-    @Override
-    public void deleteProgramStage( ProgramStage programStage )
-    {
-        Collection<EventReport> charts = eventReportService.getAllEventReports();
-        
         for ( EventReport chart : charts )
         {
-            if ( chart.getProgramStage().equals( programStage ))
+            if ( chart.getProgramStage().equals( programStage ) )
             {
-               eventReportService.deleteEventReport( chart );
+                service.deleteEventReport( chart );
             }
         }
     }
 
-    @Override
-    public void deleteProgram( Program program )
+    private void deleteProgram( Program program )
     {
-        Collection<EventReport> charts = eventReportService.getAllEventReports();
-        
+        Collection<EventReport> charts = service.getAllEventReports();
+
         for ( EventReport chart : charts )
         {
-            if( chart.getProgram().equals( program ))
+            if ( chart.getProgram().equals( program ) )
             {
-               eventReportService.deleteEventReport( chart );
+                service.deleteEventReport( chart );
             }
         }
     }

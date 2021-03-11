@@ -4,7 +4,7 @@
       "lastUpdated": "2019-04-09T13:29:20.325",
       "id": "l8oDIfJJhtg",
       "created": "2019-04-09T13:29:20.285",
-      "name": "Program with user assignment",
+      "name": "TA Program with user assignment",
       "allowGenerateNextVisit": false,
       "preGenerateUID": false,
       "publicAccess": "rw------",
@@ -23,7 +23,44 @@
         "id": "BJ42SUrAvHo"
       },
       "notificationTemplates": [],
-      "programStageDataElements": [],
+      "programStageDataElements": [
+        {
+          "id": "ASc37t1TzTj",
+          "dataElement": {
+            "id": "BuZ5LGNfGEU"
+          }
+        },
+        {
+          "id": "B6AIyOWCnxW",
+          "dataElement": {
+            "id": "ZrqtjjveTFc"
+          }
+        },
+        {
+          "id": "CMP1n58QvwT",
+          "dataElement": {
+            "id": "mB2QHw1tU96"
+          }
+        },
+        {
+          "id": "DSc37t1TzTj",
+          "dataElement": {
+            "id": "ILRgzHhzFkg"
+          }
+        },
+        {
+          "id": "E6AIyOWCnxW",
+          "dataElement":  {
+            "id": "z3Z4TD3oBCP"
+          }
+        },
+        {
+          "id": "FMP1n58QvwT",
+          "dataElement": {
+            "id": "inc5BJvr4W5"
+          }
+        }
+      ],
       "translations": [],
       "userGroupAccesses": [
         {
@@ -67,16 +104,16 @@
       "translations": [],
       "organisationUnits": [
         {
-          "id": "O6uvpzGd5pu"
-        },
-        {
           "id": "g8upMTyEZGZ"
         },
         {
-          "id": "YuQRtpLP10I"
+          "id": "O6uvpzGd5pu"
         },
         {
-          "id": "ImspTQPwCqd"
+          "id": "DiszpKrYNg8"
+        },
+        {
+          "id": "YuQRtpLP10I"
         }
       ],
       "userGroupAccesses": [

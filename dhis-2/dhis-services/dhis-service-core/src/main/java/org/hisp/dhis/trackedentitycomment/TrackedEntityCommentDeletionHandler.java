@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentitycomment;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,49 +25,42 @@ package org.hisp.dhis.trackedentitycomment;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentitycomment;
+
+import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@AllArgsConstructor
 public class TrackedEntityCommentDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    @Autowired
-    TrackedEntityCommentService commentService;
-
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
+    private final TrackedEntityCommentService commentService;
 
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramInstance.class.getSimpleName();
+        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
     }
 
-    @Override
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( ProgramInstance programInstance )
     {
-        for( TrackedEntityComment comment : programInstance.getComments())
+        for ( TrackedEntityComment comment : programInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }
     }
 
-    @Override
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
     {
-        for( TrackedEntityComment comment : programStageInstance.getComments())
+        for ( TrackedEntityComment comment : programStageInstance.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.oidc;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,11 +24,18 @@ package org.hisp.dhis.security.oidc;
  * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
  */
+package org.hisp.dhis.security.oidc;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.provider.AzureAdProvider;
+import org.hisp.dhis.security.oidc.provider.GenericOidcProviderBuilder;
 import org.hisp.dhis.security.oidc.provider.GoogleProvider;
 import org.hisp.dhis.security.oidc.provider.Wso2Provider;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,16 +43,11 @@ import org.springframework.security.oauth2.client.registration.ClientRegistratio
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 
-@Component( "dhisClientRegistrationRepository" )
+@Component
 public class DhisClientRegistrationRepository
     implements ClientRegistrationRepository
 {
@@ -59,6 +59,10 @@ public class DhisClientRegistrationRepository
     @PostConstruct
     public void init()
     {
+        // Parses the DHIS.conf file for OIDC provider configurations
+        GenericOidcProviderConfigParser.parse( config.getProperties() ).forEach(
+            genericOidcProviderConfig -> addRegistration(
+                GenericOidcProviderBuilder.build( genericOidcProviderConfig ) ) );
         addRegistration( GoogleProvider.build( config ) );
         AzureAdProvider.buildList( config ).forEach( this::addRegistration );
         addRegistration( Wso2Provider.build( config ) );
@@ -77,7 +81,14 @@ public class DhisClientRegistrationRepository
     @Override
     public ClientRegistration findByRegistrationId( String registrationId )
     {
-        return registrationHashMap.get( registrationId ).getClientRegistration();
+        final DhisOidcClientRegistration dhisOidcClientRegistration = registrationHashMap.get( registrationId );
+
+        if ( dhisOidcClientRegistration == null )
+        {
+            return null;
+        }
+
+        return dhisOidcClientRegistration.getClientRegistration();
     }
 
     public DhisOidcClientRegistration getDhisOidcClientRegistration( String registrationId )

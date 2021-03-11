@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.apache.commons.math3.util.Precision;
-import org.apache.commons.validator.routines.DoubleValidator;
-import org.apache.commons.validator.routines.IntegerValidator;
+package org.hisp.dhis.system.util;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.regex.Pattern;
+
+import org.apache.commons.math3.util.Precision;
+import org.apache.commons.validator.routines.DoubleValidator;
+import org.apache.commons.validator.routines.IntegerValidator;
 
 /**
  * @author Lars Helge Overland
@@ -47,20 +46,29 @@ public class MathUtils
     private static final Locale LOCALE = new Locale( "en" );
 
     private static DoubleValidator DOUBLE_VALIDATOR = new DoubleValidator();
+
     private static IntegerValidator INT_VALIDATOR = new IntegerValidator();
 
     private static final double TOLERANCE = 0.01;
+
     private static final int NUMBER_MAX_LENGTH = 250;
 
     public static final String NUMERIC_REGEXP = "^(-?0|-?[1-9]\\d*)(\\.\\d+)?$";
+
     public static final String NUMERIC_LENIENT_REGEXP = "^(-?[0-9]+)(\\.[0-9]+)?$";
 
     private static final Pattern NUMERIC_PATTERN = Pattern.compile( NUMERIC_REGEXP );
+
     private static final Pattern NUMERIC_LENIENT_PATTERN = Pattern.compile( NUMERIC_LENIENT_REGEXP );
+
     private static final Pattern INT_PATTERN = Pattern.compile( "^(0|-?[1-9]\\d*)$" );
+
     private static final Pattern POSITIVE_INT_PATTERN = Pattern.compile( "^[1-9]\\d*$" );
+
     private static final Pattern POSITIVE_OR_ZERO_INT_PATTERN = Pattern.compile( "(^0$)|(^[1-9]\\d*$)" );
+
     private static final Pattern NEGATIVE_INT_PATTERN = Pattern.compile( "^-[1-9]\\d*$" );
+
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
     /**
@@ -90,7 +98,8 @@ public class MathUtils
      * Returns a rounded off number.
      * <p>
      * <ul>
-     * <li>If value is exclusively between 1 and -1 it will have 2 decimals.</li>
+     * <li>If value is exclusively between 1 and -1 it will have 2
+     * decimals.</li>
      * <li>If value if greater or equal to 1 the value will have 1 decimal.</li>
      * </ul>
      *
@@ -99,8 +108,8 @@ public class MathUtils
      */
     public static double getRounded( double value )
     {
-        int scale = ( value < 1d && value > -1d ) ? 2 : 1;
-        
+        int scale = (value < 1d && value > -1d) ? 2 : 1;
+
         return Precision.round( value, scale );
     }
 
@@ -120,7 +129,8 @@ public class MathUtils
      * <p>
      * <ul>
      * <li>If value is >= 10 or <= -10 it will have 1 decimal.</li>
-     * <li>If value is between -10 and 10 it will have three significant digits.</li>
+     * <li>If value is between -10 and 10 it will have three significant
+     * digits.</li>
      * </ul>
      *
      * @param value the value to round off.
@@ -139,13 +149,13 @@ public class MathUtils
     }
 
     /**
-     * Rounds a number to a given number of significant decimal digits.
-     * Note that the number will be left with *only* this number of
-     * significant digits regardless of magnitude, e.g. 12345 to 3 digits
-     * will be 12300, whereas 0.12345 will be 0.123.
+     * Rounds a number to a given number of significant decimal digits. Note
+     * that the number will be left with *only* this number of significant
+     * digits regardless of magnitude, e.g. 12345 to 3 digits will be 12300,
+     * whereas 0.12345 will be 0.123.
      *
      * @param value the value to round off.
-     * @param n     the number of significant decimal digits desired.
+     * @param n the number of significant decimal digits desired.
      * @return a rounded off number.
      */
     public static double roundToSignificantDigits( double value, int n )
@@ -165,12 +175,12 @@ public class MathUtils
 
     /**
      * Rounds the fractional part of a number to a given number of significant
-     * decimal digits. Digits to the left of the decimal point will not
-     * be rounded. For example, rounding 12345 to 3 digits will be 12345,
-     * whereas 12.345 will be 12.3, and 0.12345 will be 0.123.
+     * decimal digits. Digits to the left of the decimal point will not be
+     * rounded. For example, rounding 12345 to 3 digits will be 12345, whereas
+     * 12.345 will be 12.3, and 0.12345 will be 0.123.
      *
      * @param value the value to round off.
-     * @param n     the number of significant fraction decimal digits desired.
+     * @param n the number of significant fraction decimal digits desired.
      * @return a rounded off number.
      */
     public static double roundFraction( double value, int n )
@@ -187,15 +197,17 @@ public class MathUtils
             return (double) Math.round( value );
         }
 
-        return roundToSignificantDigits( value ,n );
+        return roundToSignificantDigits( value, n );
     }
 
     /**
-     * Returns the given number if larger or equal to minimun, otherwise minimum.
+     * Returns the given number if larger or equal to minimun, otherwise
+     * minimum.
      *
      * @param number the number.
-     * @param min    the minimum.
-     * @return the given number if larger or equal to minimun, otherwise minimum.
+     * @param min the minimum.
+     * @return the given number if larger or equal to minimun, otherwise
+     *         minimum.
      */
     public static int getMin( int number, int min )
     {
@@ -203,11 +215,13 @@ public class MathUtils
     }
 
     /**
-     * Returns the given number if smaller or equal to maximum, otherwise maximum.
+     * Returns the given number if smaller or equal to maximum, otherwise
+     * maximum.
      *
      * @param number the number.
-     * @param max    the maximum.
-     * @return the the given number if smaller or equal to maximum, otherwise maximum.
+     * @param max the maximum.
+     * @return the the given number if smaller or equal to maximum, otherwise
+     *         maximum.
      */
     public static int getMax( int number, int max )
     {
@@ -219,8 +233,8 @@ public class MathUtils
      * minimum, returns minimum, if higher than maximum, returns maximum.
      *
      * @param value the value.
-     * @param min   the minimum value.
-     * @param max   the maximum value.
+     * @param min the minimum value.
+     * @param max the maximum value.
      * @return an integer value.
      */
     public static int getWithin( int value, int min, int max )
@@ -251,7 +265,8 @@ public class MathUtils
      */
     public static boolean isNumericLenient( String value )
     {
-        return value != null && DOUBLE_VALIDATOR.isValid( value, LOCALE ) && NUMERIC_LENIENT_PATTERN.matcher( value ).matches();
+        return value != null && DOUBLE_VALIDATOR.isValid( value, LOCALE )
+            && NUMERIC_LENIENT_PATTERN.matcher( value ).matches();
     }
 
     /**
@@ -260,7 +275,8 @@ public class MathUtils
      * and 1.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a unit interval.
+     * @return true if the provided string argument is to be considered a unit
+     *         interval.
      */
     public static boolean isUnitInterval( String value )
     {
@@ -275,7 +291,7 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is an integer in the inclusive
+     * Returns true if the provided string argument is a number in the inclusive
      * range of 0 to 100.
      *
      * @param value the value.
@@ -283,21 +299,23 @@ public class MathUtils
      */
     public static boolean isPercentage( String value )
     {
-        if ( !isInteger( value ) )
+        if ( !isNumeric( value ) )
         {
             return false;
         }
 
-        Integer integer = Integer.valueOf( value );
+        Double doubleValue = Double.valueOf( value );
 
-        return integer >= 0 && integer <= 100;
+        return doubleValue >= 0 && doubleValue <= 100;
     }
 
     /**
-     * Returns true if the provided string argument is to be considered an integer.
+     * Returns true if the provided string argument is to be considered an
+     * integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered an integer.
+     * @return true if the provided string argument is to be considered an
+     *         integer.
      */
     public static boolean isInteger( String value )
     {
@@ -305,12 +323,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a positive
-     * integer.
+     * Returns true if the provided string argument is to be considered a
+     * positive integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a positive
-     * integer.
+     * @return true if the provided string argument is to be considered a
+     *         positive integer.
      */
     public static boolean isPositiveInteger( String value )
     {
@@ -318,16 +336,17 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a positive
-     * or zero integer.
+     * Returns true if the provided string argument is to be considered a
+     * positive or zero integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a positive
-     * integer.
+     * @return true if the provided string argument is to be considered a
+     *         positive integer.
      */
     public static boolean isZeroOrPositiveInteger( String value )
     {
-        return value != null && INT_VALIDATOR.isValid( value ) && POSITIVE_OR_ZERO_INT_PATTERN.matcher( value ).matches();
+        return value != null && INT_VALIDATOR.isValid( value )
+            && POSITIVE_OR_ZERO_INT_PATTERN.matcher( value ).matches();
     }
 
     /**
@@ -336,21 +355,21 @@ public class MathUtils
      *
      * @param value the value.
      * @return true if the provided string argument is to be considered a
-     * coordinate.
+     *         coordinate.
      */
     public static boolean isCoordinate( String value )
-    {        
-        if( value == null )
+    {
+        if ( value == null )
         {
             return false;
         }
-        
+
         value = value.replaceAll( "\\s+", "" );
         if ( value.length() < 5 || value.indexOf( "[" ) != 0 || value.indexOf( "]" ) != value.length() - 1 )
         {
             return false;
         }
-        
+
         try
         {
             String[] lnglat = value.substring( 1, value.length() - 1 ).split( "," );
@@ -365,12 +384,12 @@ public class MathUtils
     }
 
     /**
-     * Returns true if the provided string argument is to be considered a negative
-     * integer.
+     * Returns true if the provided string argument is to be considered a
+     * negative integer.
      *
      * @param value the value.
-     * @return true if the provided string argument is to be considered a negative
-     * integer.
+     * @return true if the provided string argument is to be considered a
+     *         negative integer.
      */
     public static boolean isNegativeInteger( String value )
     {
@@ -389,8 +408,8 @@ public class MathUtils
     }
 
     /**
-     * Indicates if the provided string argument is to be considered as a boolean,
-     * more specifically if it equals "true" or "false".
+     * Indicates if the provided string argument is to be considered as a
+     * boolean, more specifically if it equals "true" or "false".
      *
      * @param value the value.
      * @return if the provided string argument is to be considered as a boolean.
@@ -406,7 +425,8 @@ public class MathUtils
      *
      * @param d1 the first value.
      * @param d2 the second value.
-     * @return true if the two decimal numbers are equal with a tolerance of 0.01.
+     * @return true if the two decimal numbers are equal with a tolerance of
+     *         0.01.
      */
     public static boolean isEqual( Double d1, Double d2 )
     {
@@ -423,7 +443,8 @@ public class MathUtils
      *
      * @param d1 the first value.
      * @param d2 the second value.
-     * @return true if the two decimal numbers are equal with a tolerance of 0.01.
+     * @return true if the two decimal numbers are equal with a tolerance of
+     *         0.01.
      */
     public static boolean isEqual( double d1, double d2 )
     {
@@ -571,8 +592,9 @@ public class MathUtils
     }
 
     /**
-     * Parses an integer silently. Returns the Integer value of the given string.
-     * Returns null if the input string is null, empty or if it cannot be parsed.
+     * Parses an integer silently. Returns the Integer value of the given
+     * string. Returns null if the input string is null, empty or if it cannot
+     * be parsed.
      *
      * @param string the string.
      * @return an Integer.
@@ -595,12 +617,12 @@ public class MathUtils
     }
 
     /**
-     * Returns the lower bound for the given standard deviation, number of standard
-     * deviations and average.
+     * Returns the lower bound for the given standard deviation, number of
+     * standard deviations and average.
      *
-     * @param stdDev   the standard deviation.
+     * @param stdDev the standard deviation.
      * @param stdDevNo the number of standard deviations.
-     * @param average  the average.
+     * @param average the average.
      * @return a double.
      */
     public static double getLowBound( double stdDev, double stdDevNo, double average )
@@ -610,12 +632,12 @@ public class MathUtils
     }
 
     /**
-     * Returns the high bound for the given standard deviation, number of standard
-     * deviations and average.
+     * Returns the high bound for the given standard deviation, number of
+     * standard deviations and average.
      *
-     * @param stdDev       the standard deviation.
+     * @param stdDev the standard deviation.
      * @param stdDevFactor the number of standard deviations.
-     * @param average      the average.
+     * @param average the average.
      * @return a double.
      */
     public static double getHighBound( double stdDev, double stdDevFactor, double average )
@@ -627,7 +649,7 @@ public class MathUtils
     /**
      * Performs a division and rounds upwards to the next integer.
      *
-     * @param numerator   the numerator.
+     * @param numerator the numerator.
      * @param denominator the denominator.
      * @return an integer value.
      */
@@ -641,7 +663,7 @@ public class MathUtils
     /**
      * Performs a division and rounds downwards to the next integer.
      *
-     * @param numerator   the numerator.
+     * @param numerator the numerator.
      * @param denominator the denominator.
      * @return an integer value.
      */
@@ -651,6 +673,5 @@ public class MathUtils
 
         return result.intValue();
     }
-
 
 }

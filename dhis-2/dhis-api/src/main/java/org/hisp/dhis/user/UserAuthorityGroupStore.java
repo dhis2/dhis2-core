@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.dataset.DataSet;
@@ -40,7 +39,7 @@ public interface UserAuthorityGroupStore
     /**
      * Returns the number of UserAuthorityGroups which are associated with the
      * given DataSet.
-     *  
+     *
      * @param dataSet the DataSet.
      * @return number of UserAuthorityGroups.
      */

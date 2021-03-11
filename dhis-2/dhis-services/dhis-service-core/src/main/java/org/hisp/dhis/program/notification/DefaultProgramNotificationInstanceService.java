@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Zubair Asghar
@@ -62,7 +61,8 @@ public class DefaultProgramNotificationInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ProgramNotificationInstance> getProgramNotificationInstances( ProgramStageInstance programStageInstance )
+    public List<ProgramNotificationInstance> getProgramNotificationInstances(
+        ProgramStageInstance programStageInstance )
     {
         return notificationInstanceStore.getProgramNotificationInstances( programStageInstance );
     }

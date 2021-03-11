@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.mvc.interceptor;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.mvc.interceptor;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.mvc.interceptor;
 
 import static org.hisp.dhis.common.UserContext.reset;
 import static org.hisp.dhis.common.UserContext.setUser;
@@ -39,6 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -79,14 +79,20 @@ public class UserContextInterceptor extends HandlerInterceptorAdapter implements
     }
 
     @Override
-    public boolean preHandle( final HttpServletRequest request, final HttpServletResponse response,
-        final Object handler )
+    public boolean preHandle( final HttpServletRequest request,
+        final HttpServletResponse response, final Object handler )
+        throws Exception
     {
-        final boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
-        final String locale = request.getParameter( PARAM_LOCALE );
-        final User user = currentUserService.getCurrentUser();
+        boolean translate = !"false".equals( request.getParameter( PARAM_TRANSLATE ) );
 
-        configureUserContext( user, new TranslateParams( translate, locale ) );
+        String locale = request.getParameter( PARAM_LOCALE );
+
+        User user = currentUserService.getCurrentUserInTransaction();
+
+        if ( user != null )
+        {
+            configureUserContext( user, new TranslateParams( translate, locale ) );
+        }
 
         return true;
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,12 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
 import org.hisp.dhis.condition.RedisEnabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.session.data.redis.config.ConfigureRedisAction;
 import org.springframework.session.data.redis.config.annotation.web.http.EnableRedisHttpSession;
 
@@ -44,7 +42,6 @@ import org.springframework.session.data.redis.config.annotation.web.http.EnableR
  * @author Ameen Mohamed
  */
 @Configuration
-@DependsOn( "dhisConfigurationProvider" )
 @Conditional( RedisEnabledCondition.class )
 @EnableRedisHttpSession
 public class RedisSpringSessionConfiguration

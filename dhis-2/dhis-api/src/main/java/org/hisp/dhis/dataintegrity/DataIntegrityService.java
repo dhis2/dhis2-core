@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataintegrity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,23 @@ package org.hisp.dhis.dataintegrity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataintegrity;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedMap;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.dataset.DataSetDataIntegrityProvider;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
+import org.hisp.dhis.organisationunit.OrganisationUnitDataIntegrityProvider;
+import org.hisp.dhis.organisationunit.OrganisationUnitGroupDataIntegrityProvider;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -43,13 +49,14 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.validation.ValidationRule;
-
-import java.util.*;
+import org.hisp.dhis.validation.ValidationRuleDataIntegrityProvider;
 
 /**
  * @author Fredrik Fjeld
  */
 public interface DataIntegrityService
+    extends OrganisationUnitDataIntegrityProvider, OrganisationUnitGroupDataIntegrityProvider,
+    ValidationRuleDataIntegrityProvider, DataSetDataIntegrityProvider
 {
     String ID = DataIntegrityService.class.getName();
 
@@ -70,11 +77,11 @@ public interface DataIntegrityService
      * Gets all data elements which are not members of any groups.
      */
     List<DataElement> getDataElementsWithoutGroups();
-    
+
     /**
      * Gets all data elements units which are members of more than one group
      * which enter into an exclusive group set.
-     */    
+     */
     SortedMap<DataElement, Collection<DataElementGroup>> getDataElementsViolatingExclusiveGroupSets();
 
     /**
@@ -88,21 +95,12 @@ public interface DataIntegrityService
      * either the custom form or sections of the data set.
      */
     SortedMap<DataSet, Collection<DataElement>> getDataElementsInDataSetNotInForm();
-    
+
     /**
      * Returns all invalid category combinations.
      */
     List<CategoryCombo> getInvalidCategoryCombos();
 
-    // -------------------------------------------------------------------------
-    // DataSet
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all data sets which are not assigned to any organisation units.
-     */
-    List<DataSet> getDataSetsNotAssignedToOrganisationUnits();
-    
     // -------------------------------------------------------------------------
     // Indicator
     // -------------------------------------------------------------------------
@@ -126,70 +124,32 @@ public interface DataIntegrityService
      * Gets all indicators with invalid indicator denominators.
      */
     SortedMap<Indicator, String> getInvalidIndicatorDenominators();
-    
+
     /**
-     * Gets all indicators units which are members of more than one group
-     * which enter into an exclusive group set.
-     */    
+     * Gets all indicators units which are members of more than one group which
+     * enter into an exclusive group set.
+     */
     SortedMap<Indicator, Collection<IndicatorGroup>> getIndicatorsViolatingExclusiveGroupSets();
-    
-    // -------------------------------------------------------------------------
-    // OrganisationUnit
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation units which are related to each other in a cyclic reference.
-     */
-    Set<OrganisationUnit> getOrganisationUnitsWithCyclicReferences();
-
-    /**
-     * Gets all organisation units with no parents or children.
-     */
-    List<OrganisationUnit> getOrphanedOrganisationUnits();
-
-    /**
-     * Gets all organisation units which are not assigned to any groups.
-     */
-    List<OrganisationUnit> getOrganisationUnitsWithoutGroups();
-
-    /**
-     * Gets all organisation units which are members of more than one group
-     * which enter into an exclusive group set.
-     */
-    SortedMap<OrganisationUnit, Collection<OrganisationUnitGroup>> getOrganisationUnitsViolatingExclusiveGroupSets();
 
     // -------------------------------------------------------------------------
     // Period
     // -------------------------------------------------------------------------
 
     /**
-     * Lists all Periods which are duplicates, based on the period type and start date.
+     * Lists all Periods which are duplicates, based on the period type and
+     * start date.
      */
     List<Period> getDuplicatePeriods();
-    
-    // -------------------------------------------------------------------------
-    // OrganisationUnitGroup
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets all organisation unit groups which are not assigned to any group set.
-     */
-    List<OrganisationUnitGroup> getOrganisationUnitGroupsWithoutGroupSets();
 
     // -------------------------------------------------------------------------
     // ValidationRule
     // -------------------------------------------------------------------------
 
     /**
-     * Gets all ValidationRules which are not members fo one or more groups.
-     */
-    List<ValidationRule> getValidationRulesWithoutGroups();
-    
-    /**
      * Gets all ValidationRules with invalid left side expressions.
      */
     SortedMap<ValidationRule, String> getInvalidValidationRuleLeftSideExpressions();
-    
+
     /**
      * Gets all ValidationRules with invalid right side expressions.
      */
@@ -238,45 +198,50 @@ public interface DataIntegrityService
 
     /**
      *
-     * Get all ProgramRules with no condition expression and grouped them by {@link Program}
+     * Get all ProgramRules with no condition expression and grouped them by
+     * {@link Program}
      */
     Map<Program, Collection<ProgramRule>> getProgramRulesWithNoCondition();
 
     /**
      *
-     * @return all {@link ProgramRuleVariable} which are not linked to any DataElement
-     *  and grouped them by {@link Program}
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         DataElement and grouped them by {@link Program}
      */
     Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoDataElement();
 
     /**
      *
-     * @return all {@link ProgramRuleVariable} which are not linked to any TrackedEntityAttribute
-     *  and grouped them by {@link Program}
+     * @return all {@link ProgramRuleVariable} which are not linked to any
+     *         TrackedEntityAttribute and grouped them by {@link Program}
      */
     Map<Program, Collection<ProgramRuleVariable>> getProgramRuleVariablesWithNoAttribute();
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any DataElement/TrackedEntityAttribute
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         DataElement/TrackedEntityAttribute
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoDataObject();
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.notification.NotificationTemplate}
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.notification.NotificationTemplate}
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoNotificationTemplate();
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStageSection}
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.program.ProgramStageSection}
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoSectionId();
 
     /**
      *
-     * @return all {@link ProgramRuleAction} which are not linked to any {@link org.hisp.dhis.program.ProgramStage}
+     * @return all {@link ProgramRuleAction} which are not linked to any
+     *         {@link org.hisp.dhis.program.ProgramStage}
      */
     Map<ProgramRule, Collection<ProgramRuleAction>> getProgramRuleActionsWithNoProgramStageId();
 }

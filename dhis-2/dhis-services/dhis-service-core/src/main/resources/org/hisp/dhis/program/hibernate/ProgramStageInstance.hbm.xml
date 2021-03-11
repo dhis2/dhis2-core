@@ -18,11 +18,11 @@
 
     <property name="created" type="timestamp" not-null="true" />
 
-    <property name="createdByUserInfo" type="jbProgramStageInstanceUserInfo" column="createdbyuserinfo" />
+    <property name="createdByUserInfo" type="jbUserInfoSnapshot" column="createdbyuserinfo" />
 
     <property name="lastUpdated" type="timestamp" not-null="true" />
 
-    <property name="lastUpdatedByUserInfo" type="jbProgramStageInstanceUserInfo" column="lastupdatedbyuserinfo" />
+    <property name="lastUpdatedByUserInfo" type="jbUserInfoSnapshot" column="lastupdatedbyuserinfo" />
 
     <property name="createdAtClient" type="timestamp" />
 

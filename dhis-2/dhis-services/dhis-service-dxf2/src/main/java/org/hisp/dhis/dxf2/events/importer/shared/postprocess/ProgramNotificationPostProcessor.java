@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.dxf2.events.importer.shared.postprocess;
 
 import static org.hisp.dhis.event.EventStatus.SCHEDULE;
@@ -52,7 +51,8 @@ public class ProgramNotificationPostProcessor implements Processor
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
-            // When this processor is invoked from insert event, then programStageInstance
+            // When this processor is invoked from insert event, then
+            // programStageInstance
             // might be null and need to be built from Event.
             final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
 
@@ -64,13 +64,13 @@ public class ProgramNotificationPostProcessor implements Processor
                 applicationEventPublisher
                     .publishEvent( new ProgramStageCompletionNotificationEvent( this, programStageInstance.getId() ) );
                 applicationEventPublisher
-                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getId() ) );
+                    .publishEvent( new StageCompletionEvaluationEvent( this, programStageInstance.getUid() ) );
             }
 
             if ( SCHEDULE.equals( programStageInstance.getStatus() ) )
             {
                 applicationEventPublisher
-                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getId() ) );
+                    .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getUid() ) );
             }
         }
     }

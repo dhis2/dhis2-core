@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.job;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.tracker.job;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.job;
+
+import java.io.IOException;
+
+import javax.jms.JMSException;
+import javax.jms.TextMessage;
 
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
@@ -37,10 +41,6 @@ import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
-
-import javax.jms.JMSException;
-import javax.jms.TextMessage;
-import java.io.IOException;
 
 /**
  * Producer and consumer for handling tracker notifications.
@@ -70,7 +70,8 @@ public class TrackerNotificationMessageManager extends BaseMessageManager
 
     @JmsListener( destination = Topics.TRACKER_IMPORT_NOTIFICATION_TOPIC_NAME, containerFactory = "jmsQueueListenerContainerFactory" )
     public void consume( TextMessage message )
-        throws JMSException, IOException
+        throws JMSException,
+        IOException
     {
         TrackerSideEffectDataBundle bundle = toBundle( message );
 

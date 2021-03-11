@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 public enum VisualizationType
 {
@@ -43,5 +42,7 @@ public enum VisualizationType
     YEAR_OVER_YEAR_LINE,
     YEAR_OVER_YEAR_COLUMN,
     SINGLE_VALUE,
-    PIVOT_TABLE
+    PIVOT_TABLE,
+    SCATTER,
+    BUBBLE
 }

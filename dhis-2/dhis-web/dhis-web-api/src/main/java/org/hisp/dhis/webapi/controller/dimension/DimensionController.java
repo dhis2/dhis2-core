@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.webapi.controller.dimension;
 
 import static com.google.common.collect.Lists.newArrayList;
@@ -125,7 +124,6 @@ public class DimensionController
     @Override
     protected List<DimensionalObject> getEntity( String uid, WebOptions options )
     {
-        // This check prevents a NPE. Otherwise it will result in HTTP 500 to the client.
         if ( isNotBlank( uid ) && isValidUid( uid ) )
         {
             return newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
@@ -150,19 +148,26 @@ public class DimensionController
             fields.addAll( Preset.defaultPreset().getFields() );
         }
 
-        // Retrieving all items available for the given uid.
-        List<DimensionalItemObject> totalItems = dimensionService.getCanReadDimensionItems( uid );
+        // This is the base list used in this flow. It contains only items
+        // allowed to the current user.
+        List<DimensionalItemObject> readableItems = dimensionService.getCanReadDimensionItems( uid );
 
-        // Creating a query based on the previous items found and pagination data/rules.
+        // This is needed for two reasons:
+        // 1) We are doing in-memory paging;
+        // 2) We have to count all items respecting the filtering.
+        Query queryForCount = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders );
+        queryForCount.setObjects( readableItems );
+
+        List<DimensionalItemObject> forCountItems = (List<DimensionalItemObject>) queryService
+            .query( queryForCount );
+
         Query query = queryService.getQueryFromUrl( DimensionalItemObject.class, filters, orders,
             getPaginationData( options ) );
-        query.setObjects( totalItems );
+        query.setObjects( readableItems );
         query.setDefaultOrder();
 
-        // Querying the items based on the query rules built.
         List<DimensionalItemObject> paginatedItems = (List<DimensionalItemObject>) queryService.query( query );
 
-        // Creating the response root node.
         RootNode rootNode = NodeUtils.createMetadata();
 
         CollectionNode collectionNode = rootNode
@@ -176,7 +181,7 @@ public class DimensionController
         }
 
         // Adding pagination elements to the root node.
-        final int totalOfItems = isNotEmpty( totalItems ) ? totalItems.size() : 0;
+        final int totalOfItems = isNotEmpty( forCountItems ) ? forCountItems.size() : 0;
         dimensionItemPageHandler.addPaginationToNodeIfEnabled( rootNode, options, uid, totalOfItems );
 
         return rootNode;

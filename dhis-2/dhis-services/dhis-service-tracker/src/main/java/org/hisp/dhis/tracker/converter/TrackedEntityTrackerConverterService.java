@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
 
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -101,29 +100,24 @@ public class TrackedEntityTrackerConverterService
 
     private TrackedEntityInstance from( TrackerPreheat preheat, TrackedEntity te, TrackedEntityInstance tei )
     {
-        OrganisationUnit organisationUnit = preheat.get( TrackerIdScheme.UID, OrganisationUnit.class,
+        OrganisationUnit organisationUnit = preheat.get( OrganisationUnit.class,
             te.getOrgUnit() );
-        TrackedEntityType trackedEntityType = preheat.get( TrackerIdScheme.UID, TrackedEntityType.class,
+        TrackedEntityType trackedEntityType = preheat.get( TrackedEntityType.class,
             te.getTrackedEntityType() );
 
-        if ( tei == null )
-        {
-            Date now = new Date();
+        Date now = new Date();
 
+        if ( isNewEntity( tei ) )
+        {
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
-            tei.setCreatedAtClient( now );
-            tei.setLastUpdated( now );
-            tei.setLastUpdatedAtClient( now );
             tei.setStoredBy( te.getStoredBy() );
         }
 
-        if ( !CodeGenerator.isValidUid( tei.getUid() ) )
-        {
-            tei.setUid( CodeGenerator.generateUid() );
-        }
-
+        tei.setLastUpdated( now );
+        tei.setCreatedAtClient( DateUtils.fromInstant( te.getCreatedAtClient() ) );
+        tei.setLastUpdatedAtClient( DateUtils.fromInstant( te.getUpdatedAtClient() ) );
         tei.setOrganisationUnit( organisationUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.setInactive( te.isInactive() );

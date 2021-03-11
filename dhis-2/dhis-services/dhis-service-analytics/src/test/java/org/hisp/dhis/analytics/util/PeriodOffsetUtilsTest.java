@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,20 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.util;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.analytics.util.PeriodOffsetUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
@@ -135,14 +133,25 @@ public class PeriodOffsetUtilsTest
 
         Period p3 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), 2 );
         assertThat( p3.getIsoDate(), is( "2020W20" ) );
+
+        Period p4 = PeriodOffsetUtils.shiftPeriod( createMonthlyPeriod( 2020, 1 ), -12 );
+        assertThat( p4.getIsoDate(), is( "201901" ) );
+
+        Period p5 = PeriodOffsetUtils.shiftPeriod( createQuarterPeriod( 2020, 1 ), -12 );
+        assertThat( p5.getIsoDate(), is( "2017Q1" ) );
+
+        Period p6 = PeriodOffsetUtils.shiftPeriod( createWeeklyType( 2020, 5, 1 ), -2 );
+        assertThat( p6.getIsoDate(), is( "2020W16" ) );
     }
 
     @Test
     public void verifyRemoveOffsetPeriodsIfNotNeeded()
     {
         // Given
-        Period month1 = createMonthlyPeriod( 2020, 1 ); // this period will be preserved
-        Period month2 = createMonthlyPeriod( 2020, 2 ); // this period will be preserved
+        Period month1 = createMonthlyPeriod( 2020, 1 ); // this period will be
+                                                        // preserved
+        Period month2 = createMonthlyPeriod( 2020, 2 ); // this period will be
+                                                        // preserved
         Period month3 = createMonthlyPeriod( 2020, 3 );
         month3.setShifted( true );
         Period month4 = createMonthlyPeriod( 2020, 4 );

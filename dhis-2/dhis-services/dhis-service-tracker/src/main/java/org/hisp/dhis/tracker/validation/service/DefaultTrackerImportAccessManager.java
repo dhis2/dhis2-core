@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,27 @@ package org.hisp.dhis.tracker.validation.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.service;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
@@ -47,41 +55,22 @@ import org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.PROGRAM_STAGE_INSTANCE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.USER_CANT_BE_NULL;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
+@RequiredArgsConstructor
 public class DefaultTrackerImportAccessManager
     implements TrackerImportAccessManager
 {
+    @NonNull
     private final AclService aclService;
 
+    @NonNull
     private final TrackerOwnershipManager ownershipAccessManager;
 
+    @NonNull
     private final OrganisationUnitService organisationUnitService;
-
-    public DefaultTrackerImportAccessManager( AclService aclService, TrackerOwnershipManager ownershipAccessManager,
-        OrganisationUnitService organisationUnitService )
-    {
-        checkNotNull( aclService );
-        checkNotNull( ownershipAccessManager );
-        checkNotNull( organisationUnitService );
-
-        this.aclService = aclService;
-        this.ownershipAccessManager = ownershipAccessManager;
-        this.organisationUnitService = organisationUnitService;
-    }
 
     public void checkOrgUnitInSearchScope( ValidationErrorReporter reporter, OrganisationUnit orgUnit )
     {
@@ -93,7 +82,8 @@ public class DefaultTrackerImportAccessManager
 
         if ( !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit ) )
         {
-            //TODO: This state I can't reach, can't enroll in programs without registration...
+            // TODO: This state I can't reach, can't enroll in programs without
+            // registration...
             // maybe remove in the new importer?
             reporter.addError( newReport( TrackerErrorCode.E1093 )
                 .addArg( user )
@@ -134,32 +124,33 @@ public class DefaultTrackerImportAccessManager
     }
 
     @Override
-    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, ProgramInstance programInstance )
+    public void checkReadEnrollmentAccess( ValidationErrorReporter reporter, Program program,
+        OrganisationUnit organisationUnit, String trackedEntity )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
-        checkNotNull( programInstance.getProgram(), PROGRAM_CANT_BE_NULL );
+        checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
-        checkProgramReadAccess( reporter, user, programInstance.getProgram() );
+        checkProgramReadAccess( reporter, user, program );
 
-        if ( programInstance.getProgram().isRegistration() )
+        if ( program.isRegistration() )
         {
-            checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(),
-                programInstance.getProgram() );
+            checkTeiTypeAndTeiProgramAccess( reporter, user, trackedEntity, organisationUnit, program );
         }
         else
         {
-            //TODO: This state I can't reach, can't enroll in programs without registration...
+            // TODO: This state I can't reach, can't enroll in programs without
+            // registration...
             // maybe remove in the new importer?
-            checkOrgUnitInSearchScope( reporter, programInstance.getOrganisationUnit() );
+            checkOrgUnitInSearchScope( reporter, organisationUnit );
         }
     }
 
     protected void checkTeiTypeAndTeiProgramAccess( ValidationErrorReporter reporter, User user,
-        TrackedEntityInstance trackedEntityInstance,
+        String trackedEntityInstance,
+        OrganisationUnit organisationUnit,
         Program program )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
@@ -175,7 +166,8 @@ public class DefaultTrackerImportAccessManager
                 .addArg( program.getTrackedEntityType() ) );
         }
 
-        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        if ( !ownershipAccessManager.hasAccess( user, trackedEntityInstance, organisationUnit,
+            program ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1102 )
                 .addArg( user )
@@ -186,13 +178,12 @@ public class DefaultTrackerImportAccessManager
 
     @Override
     public void checkWriteEnrollmentAccess( ValidationErrorReporter reporter, Program program,
-        ProgramInstance programInstance )
+        String trackedEntity, OrganisationUnit organisationUnit )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
 
         checkProgramWriteAccess( reporter, user, program );
@@ -200,26 +191,25 @@ public class DefaultTrackerImportAccessManager
         if ( program.isRegistration() )
         {
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-            checkTeiTypeAndTeiProgramAccess( reporter, user, programInstance.getEntityInstance(), program );
+            checkTeiTypeAndTeiProgramAccess( reporter, user, trackedEntity, organisationUnit, program );
         }
     }
 
     @Override
-    public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStageInstance programStageInstance )
+    public void checkEventWriteAccess( ValidationErrorReporter reporter, ProgramStage programStage,
+        OrganisationUnit orgUnit,
+        CategoryOptionCombo categoryOptionCombo,
+        String trackedEntity, boolean isCreatableInSearchScope )
     {
         TrackerBundle bundle = reporter.getValidationContext().getBundle();
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStageInstance, PROGRAM_STAGE_INSTANCE_CANT_BE_NULL );
-        checkNotNull( programStageInstance.getProgramStage(), PROGRAM_STAGE_CANT_BE_NULL );
-        checkNotNull( programStageInstance.getProgramStage().getProgram(), PROGRAM_CANT_BE_NULL );
-        checkNotNull( programStageInstance.getOrganisationUnit(), ORGANISATION_UNIT_CANT_BE_NULL );
+        checkNotNull( programStage, PROGRAM_STAGE_CANT_BE_NULL );
+        checkNotNull( programStage.getProgram(), PROGRAM_CANT_BE_NULL );
+        checkNotNull( orgUnit, ORGANISATION_UNIT_CANT_BE_NULL );
 
-        OrganisationUnit orgUnit = programStageInstance.getOrganisationUnit();
-
-        if ( programStageInstance.isCreatableInSearchScope() ?
-            !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
+        if ( isCreatableInSearchScope ? !organisationUnitService.isInUserSearchHierarchyCached( user, orgUnit )
             : !organisationUnitService.isInUserHierarchyCached( user, orgUnit ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1000 )
@@ -227,25 +217,32 @@ public class DefaultTrackerImportAccessManager
                 .addArg( orgUnit ) );
         }
 
-        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        if ( programStage.getProgram().isWithoutRegistration() )
         {
-            checkProgramWriteAccess( reporter, user, programStageInstance.getProgramStage().getProgram() );
+            checkProgramWriteAccess( reporter, user, programStage.getProgram() );
         }
         else
         {
-            checkNotNull( programStageInstance.getProgramInstance(), PROGRAM_INSTANCE_CANT_BE_NULL );
+            checkProgramStageWriteAccess( reporter, user, programStage );
+            // at this point the link between program and program stage should
+            // be validated
+            // so it is safe to fetch the Program from the program stage
+            final String programUid = programStage.getProgram().getUid();
+            final Program program = reporter.getPreheat().getAll( Program.class )
+                .stream().filter( p -> p.getUid().equals( programUid ) ).findAny()
+                .orElseThrow( () -> new NullPointerException( PROGRAM_CANT_BE_NULL ) );
 
-            checkProgramStageWriteAccess( reporter, user, programStageInstance.getProgramStage() );
-            checkProgramReadAccess( reporter, user, programStageInstance.getProgramStage().getProgram() );
+            checkProgramReadAccess( reporter, user, program );
 
             checkTeiTypeAndTeiProgramAccess( reporter, user,
-                programStageInstance.getProgramInstance().getEntityInstance(),
-                programStageInstance.getProgramStage().getProgram() );
+                trackedEntity,
+                orgUnit,
+                programStage.getProgram() );
         }
 
-        if ( programStageInstance.getAttributeOptionCombo() != null )
+        if ( categoryOptionCombo != null )
         {
-            checkWriteCategoryOptionComboAccess( reporter, programStageInstance.getAttributeOptionCombo() );
+            checkWriteCategoryOptionComboAccess( reporter, categoryOptionCombo );
         }
     }
 

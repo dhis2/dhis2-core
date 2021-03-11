@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.validation.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,32 +25,32 @@ package org.hisp.dhis.tracker.validation.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.validation.hooks;
+
+import static com.google.api.client.util.Preconditions.checkNotNull;
+import static java.time.Duration.ofDays;
+import static java.time.Instant.now;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1031;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1050;
+
+import java.time.Instant;
+import java.util.Date;
+import java.util.Optional;
 
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.security.Authorities;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
-
-import java.util.Date;
-
-import static com.google.api.client.util.Preconditions.checkNotNull;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1042;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1043;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1046;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1047;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1051;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1052;
-import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -61,26 +59,25 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 public class EventDateValidationHook
     extends AbstractTrackerDtoValidationHook
 {
-    public EventDateValidationHook( TrackedEntityAttributeService teAttrService )
-    {
-        super( Event.class, TrackerImportStrategy.CREATE_AND_UPDATE, teAttrService );
-    }
-
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
-        if ( event.getOccurredAt() == null )
+        Program program = context.getProgram( event.getProgram() );
+
+        if ( event.getOccurredAt() == null && occuredAtDateIsMandatory( event, program ) )
         {
-            reporter.addError( newReport( TrackerErrorCode.E1031 )
-                .addArg( event ) );
+            addError( reporter, E1031, event );
             return;
         }
 
-        Program program = context.getProgram( event.getProgram() );
+        if ( event.getScheduledAt() == null && EventStatus.SCHEDULE == event.getStatus() )
+        {
+            addError( reporter, E1050, event );
+            return;
+        }
 
-        validateDateFormat( reporter, event );
         validateExpiryDays( reporter, event, program );
         validatePeriodType( reporter, event, program );
     }
@@ -101,19 +98,16 @@ public class EventDateValidationHook
                 return;
             }
 
-            Date completedDate = null;
-
-            if ( event.getCompletedAt() != null )
+            if ( event.getCompletedAt() == null )
             {
-                completedDate = DateUtils.parseDate( event.getCompletedAt() );
+                addErrorIfNull( event.getCompletedAt(), reporter, E1042, event );
             }
-
-            addErrorIfNull( completedDate, reporter, E1042, event );
-
-            if ( completedDate != null && (new Date())
-                .after( DateUtils.getDateAfterAddition( completedDate, program.getCompleteEventsExpiryDays() ) ) )
+            else
             {
-                addError( reporter, E1043, event );
+                if ( now().isAfter( event.getCompletedAt().plus( ofDays( program.getCompleteEventsExpiryDays() ) ) ) )
+                {
+                    addError( reporter, E1043, event );
+                }
             }
         }
     }
@@ -131,30 +125,29 @@ public class EventDateValidationHook
             return;
         }
 
-        String referenceDate = event.getOccurredAt() != null ? event.getOccurredAt() : event.getScheduledAt();
-        
+        Instant referenceDate = Optional.of( event )
+            .map( Event::getOccurredAt )
+            .orElseGet( event::getScheduledAt );
+
         addErrorIfNull( referenceDate, reporter, E1046, event );
 
         Period period = periodType.createPeriod( new Date() );
 
-        if ( DateUtils.parseDate( referenceDate ).before( period.getStartDate() ) )
+        if ( referenceDate.isBefore( period.getStartDate().toInstant() ) )
         {
             addError( reporter, E1047, event );
         }
     }
 
-    private void validateDateFormat( ValidationErrorReporter reporter, Event event )
+    private boolean occuredAtDateIsMandatory( Event event, Program program )
     {
-        checkNotNull( event, TrackerImporterAssertErrors.EVENT_CANT_BE_NULL );
-
-        if ( event.getScheduledAt() != null && isNotValidDateString( event.getScheduledAt() ) )
+        if ( program.isWithoutRegistration() )
         {
-            addError( reporter, E1051, event.getScheduledAt() );
+            return true;
         }
 
-        if ( event.getOccurredAt() != null && isNotValidDateString( event.getOccurredAt() ) )
-        {
-            addError( reporter, E1052, event.getScheduledAt() );
-        }
+        EventStatus eventStatus = event.getStatus();
+
+        return eventStatus == EventStatus.ACTIVE || eventStatus == EventStatus.COMPLETED;
     }
 }

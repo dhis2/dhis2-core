@@ -1,7 +1,5 @@
-package org.hisp.dhis.appmanager;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,20 @@ package org.hisp.dhis.appmanager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.appmanager;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -72,7 +78,7 @@ public class DefaultAppManager
 
     private final KeyJsonValueService keyJsonValueService;
 
-    private final CacheProvider cacheProvider;
+    private final Cache<App> appCache;
 
     public DefaultAppManager( DhisConfigurationProvider dhisConfigurationProvider,
         CurrentUserService currentUserService,
@@ -91,10 +97,8 @@ public class DefaultAppManager
         this.localAppStorageService = localAppStorageService;
         this.jCloudsAppStorageService = jCloudsAppStorageService;
         this.keyJsonValueService = keyJsonValueService;
-        this.cacheProvider = cacheProvider;
+        this.appCache = cacheProvider.createAppCache();
     }
-
-    private Cache<App> appCache;
 
     // -------------------------------------------------------------------------
     // AppManagerService implementation
@@ -103,7 +107,6 @@ public class DefaultAppManager
     @PostConstruct
     public void initCache()
     {
-        appCache = cacheProvider.newCacheBuilder( App.class ).forRegion( "appCache" ).build();
         reloadApps();
     }
 
@@ -183,7 +186,7 @@ public class DefaultAppManager
     {
         return apps
             .stream()
-            .filter( app -> app.getIsBundledApp() == isBundled )
+            .filter( app -> app.isBundled() == isBundled )
             .collect( Collectors.toList() );
     }
 
@@ -202,7 +205,7 @@ public class DefaultAppManager
         {
             apps.retainAll( getAppsByShortName( value, apps, operator ) );
         }
-        else if ( "isBundledApp".equalsIgnoreCase( key ) )
+        else if ( "bundled".equalsIgnoreCase( key ) )
         {
             boolean isBundled = "true".equalsIgnoreCase( value );
             apps.retainAll( getAppsByIsBundled( isBundled, apps ) );
@@ -230,7 +233,7 @@ public class DefaultAppManager
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );
             }
 
-            if ( "isBundledApp".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
+            if ( "bundled".equalsIgnoreCase( split[0] ) && !"true".equalsIgnoreCase( split[2] )
                 && !"false".equalsIgnoreCase( split[2] ) )
             {
                 throw new QueryParserException( INVALID_FILTER_MSG + filter );

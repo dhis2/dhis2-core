@@ -1,7 +1,5 @@
-package org.hisp.dhis.query.operators;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,29 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
 
 /**
  * @author Henning Håkonsen
  */
-public class NotTokenOperator
-    extends Operator
+public class NotTokenOperator<T extends Comparable<? super T>>
+    extends Operator<T>
 {
     private final boolean caseSensitive;
 
     private final org.hibernate.criterion.MatchMode matchMode;
 
-    public NotTokenOperator( Object arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
+    public NotTokenOperator( T arg, boolean caseSensitive, org.hisp.dhis.query.operators.MatchMode matchMode )
     {
         super( "!token", Typed.from( String.class ), arg );
         this.caseSensitive = caseSensitive;
@@ -55,13 +59,25 @@ public class NotTokenOperator
     {
         String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
 
-        return Restrictions.sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex( value ) + "' " );
+        return Restrictions
+            .sqlRestriction( "c_." + queryPath.getPath() + " !~* '" + TokenUtils.createRegex( value ) + "' " );
     }
 
     @Override
+    public <Y> Predicate getPredicate( CriteriaBuilder builder, Root<Y> root, QueryPath queryPath )
+    {
+        String value = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
+
+        return builder
+            .equal( builder.function( JsonbFunctions.REGEXP_SEARCH, Boolean.class, root.get( queryPath.getPath() ),
+                builder.literal( TokenUtils.createRegex( value ).toString() ) ), false );
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
     public boolean test( Object value )
     {
         String targetValue = caseSensitive ? getValue( String.class ) : getValue( String.class ).toLowerCase();
-        return !TokenUtils.test( args, value, targetValue, caseSensitive, matchMode );
+        return !TokenUtils.test( args, (T) value, targetValue, caseSensitive, matchMode );
     }
 }

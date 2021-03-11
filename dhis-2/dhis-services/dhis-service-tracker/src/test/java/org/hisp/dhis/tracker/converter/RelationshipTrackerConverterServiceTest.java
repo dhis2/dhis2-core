@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.converter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,20 @@ package org.hisp.dhis.tracker.converter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.converter;
+
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+import java.io.IOException;
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.render.RenderService;
@@ -41,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.user.User;
@@ -51,12 +58,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Enrico Colasante
  */
@@ -64,13 +65,15 @@ public class RelationshipTrackerConverterServiceTest
     extends DhisSpringTest
 {
 
-    private final static String MOTHER_TO_CHILD_RELATIONSHIP_TYPE = "dDrh5UyCyvQ";
+    private final static String TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE = "xLmPUYJX8Ks";
 
-    private final static String CHILD_TO_MOTHER_RELATIONSHIP_TYPE = "tBeOL0DL026";
+    private final static String TEI_TO_EVENT_RELATIONSHIP_TYPE = "TV9oB9LT3sh";
 
-    private final static String MOTHER = "Ea0rRdBPAIp";
+    private final static String TEI = "IOR1AXXl24H";
 
-    private final static String CHILD = "G1afLIEKt8A";
+    private final static String ENROLLMENT = "TvctPPhpD8u";
+
+    private final static String EVENT = "D9PbzJY8bJO";
 
     @Autowired
     @Qualifier( "relationshipTrackerConverterService" )
@@ -95,7 +98,19 @@ public class RelationshipTrackerConverterServiceTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
+    private ProgramInstanceService programInstanceService;
+
+    @Autowired
+    private ProgramStageInstanceService programStageInstanceService;
+
+    @Autowired
+    private ProgramStageService programStageService;
+
+    @Autowired
     private OrganisationUnitService organisationUnitService;
+
+    @Autowired
+    private ProgramService programService;
 
     private TrackerBundle trackerBundle;
 
@@ -111,43 +126,49 @@ public class RelationshipTrackerConverterServiceTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
+        Program program = createProgram( 'A' );
+        programService.addProgram( program );
+
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStageService.saveProgramStage( programStage );
+
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit,
+        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( 'A', organisationUnit,
             trackedEntityAttribute );
-        trackedEntityInstanceA.setUid( MOTHER );
-        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit,
-            trackedEntityAttribute );
-        trackedEntityInstanceB.setUid( CHILD );
+        trackedEntityInstance.setUid( TEI );
+        ProgramInstance programInstance = new ProgramInstance();
+        programInstance.setEnrollmentDate( new Date() );
+        programInstance.setProgram( program );
+        programInstance.setUid( ENROLLMENT );
+        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        programStageInstance.setUid( EVENT );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setProgramStage( programStage );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
+        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
+        programInstanceService.addProgramInstance( programInstance );
+        programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A', null, trackedEntityType,
+        RelationshipType relationshipTypeA = createTeiToEnrollmentRelationshipType( 'A', program, trackedEntityType,
             false );
-        relationshipTypeA.setUid( MOTHER_TO_CHILD_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType,
+        relationshipTypeA.setUid( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE );
+        RelationshipType relationshipTypeB = createTeiToEventRelationshipType( 'B', program, trackedEntityType,
             false );
-        relationshipTypeB.setUid( CHILD_TO_MOTHER_RELATIONSHIP_TYPE );
+        relationshipTypeB.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
 
-        TrackerBundleParams trackerBundleParams = renderService
+        TrackerImportParams trackerImportParams = renderService
             .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
-                TrackerBundleParams.class );
+                TrackerImportParams.class );
 
         User adminUser = createAndInjectAdminUser();
+        trackerImportParams.setUser( adminUser );
 
-        TrackerImportParams trackerImportParams =
-            TrackerImportParams
-                .builder()
-                .relationships( trackerBundleParams.getRelationships() )
-                .user( adminUser )
-                .build();
-
-        trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() );
+        trackerBundle = trackerBundleService.create( trackerImportParams );
     }
 
     @Test
@@ -159,21 +180,25 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( from );
         assertEquals( 2, from.size() );
 
-        org.hisp.dhis.relationship.Relationship relationship1 = from.get( 0 );
-        assertNotNull( relationship1 );
-        assertNotNull( relationship1.getFrom() );
-        assertNotNull( relationship1.getTo() );
-        assertEquals( MOTHER_TO_CHILD_RELATIONSHIP_TYPE, relationship1.getRelationshipType().getUid() );
-        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( CHILD, relationship1.getTo().getTrackedEntityInstance().getUid() );
+        from.forEach( relationship -> {
+            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
+            }
+            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( EVENT, relationship.getTo().getProgramStageInstance().getUid() );
+            }
+            else
+            {
+                fail( "Unexpected relationshipType found." );
+            }
 
-        org.hisp.dhis.relationship.Relationship relationship2 = from.get( 1 );
-        assertNotNull( relationship2 );
-        assertNotNull( relationship2.getFrom() );
-        assertNotNull( relationship2.getTo() );
-        assertEquals( CHILD_TO_MOTHER_RELATIONSHIP_TYPE, relationship2.getRelationshipType().getUid() );
-        assertEquals( CHILD, relationship2.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( MOTHER, relationship2.getTo().getTrackedEntityInstance().getUid() );
+            assertNotNull( relationship.getFrom() );
+            assertNotNull( relationship.getTo() );
+        } );
     }
 
     @Test
@@ -187,20 +212,24 @@ public class RelationshipTrackerConverterServiceTest
         assertNotNull( to );
         assertEquals( 2, to.size() );
 
-        Relationship relationship1 = to.get( 0 );
-        assertNotNull( relationship1 );
-        assertNotNull( relationship1.getFrom() );
-        assertNotNull( relationship1.getTo() );
-        assertEquals( MOTHER_TO_CHILD_RELATIONSHIP_TYPE, relationship1.getRelationshipType() );
-        assertEquals( MOTHER, relationship1.getFrom().getTrackedEntity() );
-        assertEquals( CHILD, relationship1.getTo().getTrackedEntity() );
+        from.forEach( relationship -> {
+            if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
+            }
+            else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
+            {
+                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( EVENT, relationship.getTo().getProgramStageInstance().getUid() );
+            }
+            else
+            {
+                fail( "Unexpected relationshipType found." );
+            }
 
-        Relationship relationship2 = to.get( 1 );
-        assertNotNull( relationship2 );
-        assertNotNull( relationship2.getFrom() );
-        assertNotNull( relationship2.getTo() );
-        assertEquals( CHILD_TO_MOTHER_RELATIONSHIP_TYPE, relationship2.getRelationshipType() );
-        assertEquals( CHILD, relationship2.getFrom().getTrackedEntity() );
-        assertEquals( MOTHER, relationship2.getTo().getTrackedEntity() );
+            assertNotNull( relationship.getFrom() );
+            assertNotNull( relationship.getTo() );
+        } );
     }
 }

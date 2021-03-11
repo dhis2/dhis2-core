@@ -1,7 +1,5 @@
-package org.hisp.dhis.expression;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,23 +25,22 @@ package org.hisp.dhis.expression;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.expression;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -58,9 +55,6 @@ public class ExpressionStoreTest
 
     @Autowired
     private DataElementService dataElementService;
-
-    @Autowired
-    private CategoryService categoryService;
 
     private long dataElementIdA;
 
@@ -77,10 +71,6 @@ public class ExpressionStoreTest
     private String descriptionA;
 
     private String descriptionB;
-
-    private Set<DataElement> dataElements = new HashSet<>();
-
-    private Set<CategoryOptionCombo> optionCombos;
 
     // -------------------------------------------------------------------------
     // Fixture
@@ -100,23 +90,11 @@ public class ExpressionStoreTest
         dataElementIdC = dataElementService.addDataElement( dataElementC );
         dataElementIdD = dataElementService.addDataElement( dataElementD );
 
-        CategoryCombo categoryCombo = categoryService
-            .getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
-        CategoryOptionCombo categoryOptionCombo = categoryCombo.getOptionCombos().iterator().next();
-
-        optionCombos = new HashSet<>();
-        optionCombos.add( categoryOptionCombo );
-
         expressionA = "[" + dataElementIdA + "] + [" + dataElementIdB + "]";
         expressionB = "[" + dataElementIdC + "] - [" + dataElementIdD + "]";
 
         descriptionA = "Expression A";
         descriptionB = "Expression B";
-
-        dataElements.add( dataElementA );
-        dataElements.add( dataElementB );
-        dataElements.add( dataElementC );
-        dataElements.add( dataElementD );
     }
 
     // -------------------------------------------------------------------------

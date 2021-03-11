@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -160,22 +159,6 @@ public class ProgramServiceTest
     }
 
     @Test
-    public void testGetProgramsByType()
-    {
-        programService.addProgram( programA );
-        programService.addProgram( programB );
-
-        programC.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        programService.addProgram( programC );
-
-        List<Program> programs = programService.getPrograms( ProgramType.WITH_REGISTRATION );
-        assertTrue( equals( programs, programA, programB ) );
-
-        programs = programService.getPrograms( ProgramType.WITHOUT_REGISTRATION );
-        assertTrue( equals( programs, programC ) );
-    }
-
-    @Test
     public void testGetProgramByUid()
     {
         programService.addProgram( programA );
@@ -183,5 +166,16 @@ public class ProgramServiceTest
 
         assertEquals( programA, programService.getProgram( "UID-A" ) );
         assertEquals( programB, programService.getProgram( "UID-B" ) );
+    }
+
+    @Test
+    public void testProgramHasOrgUnit()
+    {
+        programService.addProgram( programA );
+
+        Program p = programService.getProgram( programA.getUid() );
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( organisationUnitA.getUid() );
+
+        assertTrue( programService.hasOrgUnit( p, ou ) );
     }
 }

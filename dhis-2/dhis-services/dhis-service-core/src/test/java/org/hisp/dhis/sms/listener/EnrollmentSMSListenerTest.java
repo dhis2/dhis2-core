@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.listener;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,21 @@ package org.hisp.dhis.sms.listener;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.listener;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -74,21 +87,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-
 import com.google.common.collect.Sets;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class EnrollmentSMSListenerTest
     extends
@@ -186,8 +185,6 @@ public class EnrollmentSMSListenerTest
 
     private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
-    private ProgramTrackedEntityAttribute programTrackedEntityAttribute;
-
     private TrackedEntityType trackedEntityType;
 
     private TrackedEntityInstance trackedEntityInstance;
@@ -216,14 +213,10 @@ public class EnrollmentSMSListenerTest
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
-        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
-        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
-        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
-            .thenReturn( trackedEntityAttribute );
         when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( programInstance );
+        when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
@@ -234,6 +227,9 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentNoEvents()
     {
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentNoEvents );
 
         assertNotNull( updatedIncomingSms );
@@ -246,6 +242,12 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentWithEvents()
     {
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentWithEvents );
 
         assertNotNull( updatedIncomingSms );
@@ -258,6 +260,12 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentWithEventsRepeat()
     {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentWithEvents );
         subject.receive( incomingSmsEnrollmentWithEvents );
 
@@ -271,6 +279,9 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentWithNulls()
     {
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentWithNulls );
 
         assertNotNull( updatedIncomingSms );
@@ -295,6 +306,12 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentEventWithNulls()
     {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentEventWithNulls );
 
         assertNotNull( updatedIncomingSms );
@@ -309,6 +326,11 @@ public class EnrollmentSMSListenerTest
     @Test
     public void testEnrollmentEventNoValues()
     {
+        when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
+        when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( anyString() ) )
+            .thenReturn( trackedEntityAttribute );
+
         subject.receive( incomingSmsEnrollmentEventNoValues );
 
         assertNotNull( updatedIncomingSms );
@@ -331,7 +353,8 @@ public class EnrollmentSMSListenerTest
         user.setOrganisationUnits( Sets.newHashSet( organisationUnit ) );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        programTrackedEntityAttribute = createProgramTrackedEntityAttribute( program, trackedEntityAttribute );
+        final ProgramTrackedEntityAttribute programTrackedEntityAttribute = createProgramTrackedEntityAttribute(
+            program, trackedEntityAttribute );
         program.getProgramAttributes().add( programTrackedEntityAttribute );
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );

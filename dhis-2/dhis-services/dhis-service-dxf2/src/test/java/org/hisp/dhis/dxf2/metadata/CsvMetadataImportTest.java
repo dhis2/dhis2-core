@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -37,6 +45,7 @@ import org.hisp.dhis.dxf2.csv.CsvImportClass;
 import org.hisp.dhis.dxf2.csv.CsvImportOptions;
 import org.hisp.dhis.dxf2.csv.CsvImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
 import org.hisp.dhis.option.OptionGroupSet;
 import org.hisp.dhis.option.OptionService;
@@ -46,15 +55,6 @@ import org.hisp.dhis.schema.SchemaService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -139,7 +139,8 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    public void testOptionSetMerge() throws IOException
+    public void testOptionSetMerge()
+        throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
@@ -177,14 +178,15 @@ public class CsvMetadataImportTest
     }
 
     @Test
-    public void testOptionSetMergeDuplicate() throws IOException
+    public void testOptionSetMergeDuplicate()
+        throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();
 
         Metadata metadata = csvImportService.fromCsv( input, new CsvImportOptions()
             .setImportClass( CsvImportClass.OPTION_SET )
-            .setFirstRowIsHeader( true )  );
+            .setFirstRowIsHeader( true ) );
 
         MetadataImportParams params = new MetadataImportParams();
         params.addMetadata( schemaService.getMetadataSchemas(), metadata );
@@ -213,11 +215,13 @@ public class CsvMetadataImportTest
         OptionSet optionSet = optionService.getOptionSetByCode( "COLOR" );
 
         // Total 5 Options added
-        assertEquals( 5, optionSet.getOptions().size() );
+        List<Option> options = optionSet.getOptions();
+        assertEquals( 5, options.size() );
     }
 
     @Test
-    public void testOptionSetReplace() throws IOException
+    public void testOptionSetReplace()
+        throws IOException
     {
         // Import 1 OptionSet with 3 Options
         input = new ClassPathResource( "metadata/optionSet_add.csv" ).getInputStream();

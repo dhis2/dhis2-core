@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.analytics.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.util;
+
+import static org.hisp.dhis.common.DimensionalObjectUtils.getKey;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getName;
+import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
 
 import java.util.List;
 import java.util.Map;
@@ -39,13 +42,9 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.system.grid.ListGrid;
 
-import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getKey;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getName;
-
 /**
-* @author Lars Helge Overland
-*/
+ * @author Lars Helge Overland
+ */
 public class GridRenderUtils
 {
     /**
@@ -56,14 +55,16 @@ public class GridRenderUtils
      * @param valueMap the values as a mapping between metadata key and value.
      * @return a grid.
      */
-    public static Grid asGrid( List<? extends DimensionalObject> columns, List<? extends DimensionalObject> rows, Map<String, Object> valueMap )
+    public static Grid asGrid( List<? extends DimensionalObject> columns, List<? extends DimensionalObject> rows,
+        Map<String, Object> valueMap )
     {
         List<List<DimensionalItemObject>> columnItems = columns.stream()
             .map( DimensionalObject::getItems ).collect( Collectors.toList() );
         List<List<DimensionalItemObject>> rowItems = rows.stream()
             .map( DimensionalObject::getItems ).collect( Collectors.toList() );
 
-        List<List<DimensionalItemObject>> gridColumns = CombinationGenerator.newInstance( columnItems ).getCombinations();
+        List<List<DimensionalItemObject>> gridColumns = CombinationGenerator.newInstance( columnItems )
+            .getCombinations();
         List<List<DimensionalItemObject>> gridRows = CombinationGenerator.newInstance( rowItems ).getCombinations();
 
         Map<String, Object> internalValueMap = getSortedKeysMap( valueMap );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.translation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.translation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.translation;
+
+import java.util.Objects;
+
+import org.hisp.dhis.common.DxfNamespaces;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.DxfNamespaces;
-
-import java.util.Objects;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -88,23 +88,23 @@ public class ObjectTranslation
             && Objects.equals( this.property, other.property )
             && Objects.equals( this.value, other.value );
     }
-    
+
     /**
      * Creates a cache key.
-     * 
+     *
      * @param locale the locale string, i.e. Locale.toString().
      * @param property the translation property.
      * @return a unique cache key valid for a given translated objects, or null
      *         if either locale or property is null.
      */
-    public static String getCacheKey( String locale, TranslationProperty property )
+    public static String getCacheKey( String locale, String property )
     {
-        return locale != null && property != null ? ( locale + property.name() ) : null;
+        return locale != null && property != null ? (locale + property) : null;
     }
 
-    //-------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
     // Accessors
-    //-------------------------------------------------------------------------------
+    // -------------------------------------------------------------------------------
 
     @JsonIgnore
     public int getId()

@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +25,34 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
-import org.apache.commons.lang.StringUtils;
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
+
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * Created by zubair on 08.03.17.
  */
-@Component( "org.hisp.dhis.user.PasswordLengthValidationRule" )
 public class PasswordLengthValidationRule implements PasswordValidationRule
 {
-    public static final String ERROR = "Password must have at least %d, and at most %d characters";
-    private static final String I18_ERROR = "password_length_validation";
+    private final SystemSettingManager systemSettings;
 
-    private final SystemSettingManager systemSettingManager;
-
-    @Autowired
-    public PasswordLengthValidationRule( SystemSettingManager systemSettingManager )
+    public PasswordLengthValidationRule( SystemSettingManager systemSettings )
     {
-        this.systemSettingManager = systemSettingManager;
+        this.systemSettings = systemSettings;
     }
 
     @Override
-    public PasswordValidationResult validate( CredentialsInfo credentialsInfo )
+    public PasswordValidationResult validate( CredentialsInfo credentials )
     {
-        if ( StringUtils.isBlank( credentialsInfo.getPassword() ) )
-        {
-            return new PasswordValidationResult( MANDATORY_PARAMETER_MISSING, I18_MANDATORY_PARAMETER_MISSING, false );
-        }
+        int minLength = (Integer) systemSettings.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH );
+        int maxLength = (Integer) systemSettings.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH );
 
-        int minCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH );
-
-        int maxCharLimit = (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH );
-
-        String password = credentialsInfo.getPassword();
-
-        if ( password.trim().length() < minCharLimit || password.trim().length() > maxCharLimit )
-        {
-            return new PasswordValidationResult( String.format( ERROR, minCharLimit, maxCharLimit ), I18_ERROR, false );
-        }
-
-        return new PasswordValidationResult( true );
-    }
-    
-    @Override
-    public boolean isRuleApplicable( CredentialsInfo credentialsInfo )
-    {
-        return true;
+        int length = credentials.getPassword().trim().length();
+        return length < minLength || length > maxLength
+            ? new PasswordValidationResult( PASSWORD_TOO_LONG_TOO_SHORT, minLength, maxLength )
+            : PasswordValidationResult.VALID;
     }
 }

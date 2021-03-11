@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
-import org.hibernate.SessionFactory;
-import org.hibernate.StatelessSession;
-import org.hisp.dhis.DhisSpringTest;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import org.hibernate.SessionFactory;
+import org.hibernate.StatelessSession;
+import org.hisp.dhis.DhisSpringTest;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Kristian Nordal
@@ -103,7 +102,7 @@ public class PeriodServiceTest
         PeriodType periodTypeA = it.next();
         PeriodType periodTypeB = it.next();
 
-        Period periodA = new Period( periodTypeA, getDay( 1 ), getDay( 2  ) );
+        Period periodA = new Period( periodTypeA, getDay( 1 ), getDay( 2 ) );
         Period periodB = new Period( periodTypeA, getDay( 2 ), getDay( 3 ) );
         Period periodC = new Period( periodTypeB, getDay( 2 ), getDay( 3 ) );
         Period periodD = new Period( periodTypeB, getDay( 3 ), getDay( 4 ) );
@@ -335,11 +334,13 @@ public class PeriodServiceTest
         periodService.addPeriod( periodM );
         periodService.addPeriod( periodN );
 
-        List<Period> periodsA = periodService.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) );
+        List<Period> periodsA = periodService.getIntersectingPeriodsByPeriodType( ypt, getDate( 2006, 6, 1 ),
+            getDate( 2006, 11, 30 ) );
         assertNotNull( periodsA );
         assertEquals( 1, periodsA.size() );
 
-        List<Period> periodsB = periodService.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ), getDate( 2006, 11, 30 ) );
+        List<Period> periodsB = periodService.getIntersectingPeriodsByPeriodType( mpt, getDate( 2006, 6, 1 ),
+            getDate( 2006, 11, 30 ) );
         assertNotNull( periodsB );
         assertEquals( 6, periodsB.size() );
     }

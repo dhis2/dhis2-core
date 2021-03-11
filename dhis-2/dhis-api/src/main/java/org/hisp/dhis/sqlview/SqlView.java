@@ -1,7 +1,5 @@
-package org.hisp.dhis.sqlview;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,15 @@ package org.hisp.dhis.sqlview;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sqlview;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableSet;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -40,12 +42,10 @@ import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.common.cache.Cacheable;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Dang Duy Hieu
@@ -57,20 +57,23 @@ public class SqlView
 {
     public static final String PREFIX_VIEWNAME = "_view";
 
-    public static final Set<String> PROTECTED_TABLES = ImmutableSet.<String>builder().add(
-        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue", "oauth_access_token", "oauth2client" ).build();
+    public static final Set<String> PROTECTED_TABLES = ImmutableSet.<String> builder().add(
+        "users", "userinfo", "trackedentityattribute", "trackedentityattributevalue", "oauth_access_token",
+        "oauth2client" ).build();
 
-    public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String>builder().add(
+    public static final Set<String> ILLEGAL_KEYWORDS = ImmutableSet.<String> builder().add(
         "delete", "alter", "update", "create", "drop", "commit", "createdb",
         "createuser", "insert", "rename", "restore", "write" ).build();
 
     public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
+
     public static final String CURRENT_USERNAME_VARIABLE = "_current_username";
 
     public static final Set<String> STANDARD_VARIABLES = ImmutableSet.of(
         CURRENT_USER_ID_VARIABLE, CURRENT_USERNAME_VARIABLE );
 
     private static final String CRITERIA_SEP = ":";
+
     private static final String REGEX_SEP = "|";
 
     private static final String QUERY_VALUE_REGEX = "^[\\w\\s\\-]*$";

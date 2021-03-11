@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions.metadata;
 
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,6 +29,7 @@ package org.hisp.dhis.actions.metadata;
  */
 
 
+import com.google.gson.JsonObject;
 import io.restassured.matcher.RestAssuredMatchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -36,6 +37,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 import java.io.File;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.not;
 
 /**
@@ -53,10 +55,32 @@ public class MetadataActions
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( queryParams );
-        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
+        queryParamsBuilder.addAll( "importReportMode=FULL" );
 
         ApiResponse response = postFile( file, queryParamsBuilder );
         response.validate().statusCode( 200 );
+
+        return response;
+    }
+
+    public ApiResponse importMetadata( JsonObject object, String... queryParams )
+    {
+        QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
+        queryParamsBuilder.addAll( queryParams );
+        queryParamsBuilder.addAll( "atomicMode=OBJECT", "importReportMode=FULL" );
+
+        ApiResponse response = post( object, queryParamsBuilder );
+        response.validate().statusCode( 200 );
+
+        return response;
+    }
+
+    public ApiResponse importAndValidateMetadata( JsonObject object, String... queryParams )
+    {
+        ApiResponse response = importMetadata( object, queryParams );
+
+        response.validate().body( "stats.ignored", not(
+            equalTo( response.extract( "stats.total" ) ) ) );
 
         return response;
     }
@@ -65,7 +89,8 @@ public class MetadataActions
     {
         ApiResponse response = importMetadata( file, queryParams );
 
-        response.validate().body( "stats.ignored", not( RestAssuredMatchers.equalToPath( "stats.total" ) ) );
+        response.validate().body( "stats.ignored", not(
+            equalTo( response.extract( "stats.total" ) ) ) );
 
         return response;
     }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.feedback.ErrorReport;
-
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
+
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Chau Thu Tran
@@ -43,6 +43,7 @@ import java.util.UUID;
 public interface UserService
 {
     String ID = UserService.class.getName();
+
     String PW_NO_INTERNAL_LOGIN = "--[##no_internal_login##]--";
 
     // -------------------------------------------------------------------------
@@ -97,8 +98,8 @@ public interface UserService
     User getUserByUsername( String username );
 
     /**
-     * Retrieves the User by attempting to look up by various identifiers
-     * in the following order:
+     * Retrieves the User by attempting to look up by various identifiers in the
+     * following order:
      *
      * <ul>
      * <li>UID</li>
@@ -120,6 +121,14 @@ public interface UserService
     List<User> getUsers( Collection<String> uids );
 
     /**
+     * Retrieves a collection of User with the given usernames.
+     *
+     * @param usernames the usernames of the collection of Users to retrieve.
+     * @return the User.
+     */
+    List<UserCredentials> getUserCredentialsByUsernames( Collection<String> usernames );
+
+    /**
      * Returns a List of all Users.
      *
      * @return a Collection of Users.
@@ -130,9 +139,9 @@ public interface UserService
      * Retrieves all Users with first name, surname or user name like the given
      * name.
      *
-     * @param name  the name.
+     * @param name the name.
      * @param first the first item to return.
-     * @param max   the max number of item to return.
+     * @param max the max number of item to return.
      * @return a list of Users.
      */
     List<User> getAllUsersBetweenByName( String name, int first, int max );
@@ -148,21 +157,24 @@ public interface UserService
      * Checks if the given user represents the last user with ALL authority.
      *
      * @param userCredentials the user.
-     * @return true if the given user represents the last user with ALL authority.
+     * @return true if the given user represents the last user with ALL
+     *         authority.
      */
     boolean isLastSuperUser( UserCredentials userCredentials );
 
     /**
-     * Checks if the given user role represents the last role with ALL authority.
+     * Checks if the given user role represents the last role with ALL
+     * authority.
      *
      * @param userAuthorityGroup the user role.
-     * @return true if the given user role represents the last role with ALL authority.
+     * @return true if the given user role represents the last role with ALL
+     *         authority.
      */
     boolean isLastSuperRole( UserAuthorityGroup userAuthorityGroup );
 
     /**
-     * Returns a list of users based on the given query parameters.
-     * The default order of last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. The default
+     * order of last name and first name will be applied.
      *
      * @param params the user query parameters.
      * @return a List of users.
@@ -170,9 +182,9 @@ public interface UserService
     List<User> getUsers( UserQueryParams params );
 
     /**
-     * Returns a list of users based on the given query parameters.
-     * If the specified list of orders are empty, default order of
-     * last name and first name will be applied.
+     * Returns a list of users based on the given query parameters. If the
+     * specified list of orders are empty, default order of last name and first
+     * name will be applied.
      *
      * @param params the user query parameters.
      * @param orders the already validated order strings (e.g. email:asc).
@@ -230,6 +242,14 @@ public interface UserService
      */
     void updateUserCredentials( UserCredentials userCredentials );
 
+    /**
+     * Retrieves the UserCredentials associated with the User with the given id
+     * token.
+     *
+     * @param token the id token of the User.
+     * @return the UserCredentials.
+     */
+    public UserCredentials getUserCredentialsByIdToken( String token );
 
     /**
      * Retrieves the UserCredentials associated with the User with the given
@@ -268,28 +288,31 @@ public interface UserService
     List<UserCredentials> getAllUserCredentials();
 
     /**
-     * Encodes and sets the password of the User.
-     * Due to business logic required on password updates the password for a user
-     * should only be changed using this method or {@link #encodeAndSetPassword(UserCredentials, String) encodeAndSetPassword}
-     * and not directly on the User or UserCredentials object.
+     * Encodes and sets the password of the User. Due to business logic required
+     * on password updates the password for a user should only be changed using
+     * this method or {@link #encodeAndSetPassword(UserCredentials, String)
+     * encodeAndSetPassword} and not directly on the User or UserCredentials
+     * object.
      * <p>
      * Note that the changes made to the User object are not persisted.
      *
-     * @param user        the User.
+     * @param user the User.
      * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( User user, String rawPassword );
 
     /**
-     * Encodes and sets the password of the UserCredentials.
-     * Due to business logic required on password updates the password for a user
-     * should only be changed using this method or {@link #encodeAndSetPassword(User, String) encodeAndSetPassword}
-     * and not directly on the User or UserCredentials object.
+     * Encodes and sets the password of the UserCredentials. Due to business
+     * logic required on password updates the password for a user should only be
+     * changed using this method or {@link #encodeAndSetPassword(User, String)
+     * encodeAndSetPassword} and not directly on the User or UserCredentials
+     * object.
      * <p>
-     * Note that the changes made to the UserCredentials object are not persisted.
+     * Note that the changes made to the UserCredentials object are not
+     * persisted.
      *
      * @param userCredentials the UserCredentials.
-     * @param rawPassword     the raw password.
+     * @param rawPassword the raw password.
      */
     void encodeAndSetPassword( UserCredentials userCredentials, String rawPassword );
 
@@ -396,8 +419,8 @@ public interface UserService
     int countDataSetUserAuthorityGroups( DataSet dataSet );
 
     /**
-     * Filters the given collection of user roles based on whether the current user
-     * is allowed to issue it.
+     * Filters the given collection of user roles based on whether the current
+     * user is allowed to issue it.
      *
      * @param userRoles the collection of user roles.
      */
@@ -406,9 +429,11 @@ public interface UserService
     List<ErrorReport> validateUser( User user, User currentUser );
 
     /**
-     * Returns list of active users whose credentials are expiring with in few days.
+     * Returns list of active users whose credentials are expiring with in few
+     * days.
      *
-     * @return list of active users whose credentials are expiring with in few days.
+     * @return list of active users whose credentials are expiring with in few
+     *         days.
      */
     List<User> getExpiringUsers();
 
@@ -421,4 +446,29 @@ public interface UserService
      * @param credentials the user credentials
      */
     void expireActiveSessions( UserCredentials credentials );
+
+    /**
+     * Whether or not the provided account is expired right now.
+     *
+     * @param credentials the user credentials
+     * @return true, if the provided account is already expired, otherwise false
+     */
+    boolean isAccountExpired( UserCredentials credentials );
+
+    /**
+     * Sets {@link UserCredentials#setDisabled(boolean)} to {@code true} for all
+     * users where the {@link UserCredentials#getLastLogin()} is before or equal
+     * to the provided pivot {@link Date}.
+     *
+     * @param inactiveSince the most recent point in time that is considered
+     *        inactive together with accounts only active further in the past.#
+     * @return number of users disabled
+     */
+    int disableUsersInactiveSince( Date inactiveSince );
+
+    /**
+     * Get user display name by concat( firstname,' ', surname ) Return null if
+     * User doesn't exist
+     */
+    String getDisplayName( String userUid );
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,12 @@ package org.hisp.dhis.dxf2.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.dataset;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hisp.dhis.DhisConvenienceTest.assertIllegalQueryEx;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOption;
-import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
-import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
-import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
-import static org.hisp.dhis.DhisConvenienceTest.createPeriod;
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.junit.Assert.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,7 +42,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.CacheBuilderProvider;
+import org.hisp.dhis.cache.DefaultCacheBuilderProvider;
 import org.hisp.dhis.cache.DefaultCacheProvider;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -69,6 +63,8 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.util.InputUtils;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -181,6 +177,9 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
     private CachingMap<String, CategoryOptionCombo> aocCache;
 
     @Mock
+    private DhisConfigurationProvider dhisConfigurationProvider;
+
+    @Mock
     private Environment environment;
 
     @Mock
@@ -201,13 +200,16 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         user = new User();
 
         when( environment.getActiveProfiles() ).thenReturn( new String[] { "test" } );
-        CacheProvider cacheProvider = new DefaultCacheProvider();
+        when( dhisConfigurationProvider.getProperty( ConfigurationKey.SYSTEM_CACHE_MAX_SIZE_FACTOR ) )
+            .thenReturn( "1" );
+        CacheBuilderProvider cacheBuilderProvider = new DefaultCacheBuilderProvider();
 
-        InputUtils inputUtils = new InputUtils( categoryService, idObjManager, environment, cacheProvider );
-        inputUtils.init();
+        DefaultCacheProvider cacheContext = new DefaultCacheProvider( cacheBuilderProvider, environment,
+            dhisConfigurationProvider );
+        InputUtils inputUtils = new InputUtils( categoryService, idObjManager, cacheContext );
 
         DefaultAggregateAccessManager aggregateAccessManager = new DefaultAggregateAccessManager( aclService,
-            environment );
+            cacheContext );
 
         subject = new DefaultCompleteDataSetRegistrationExchangeService( cdsrStore, idObjManager, orgUnitService,
             notifier, i18nManager, batchHandlerFactory, systemSettingManager, categoryService, periodService,
@@ -285,7 +287,6 @@ public class DefaultCompleteDataSetRegistrationExchangeServiceTest
         when( metaDataCaches.getAttrOptionCombos() ).thenReturn( aocCache );
         when( metaDataCaches.getOrgUnitInHierarchyMap() ).thenReturn( orgUnitInHierarchyCache );
         when( metaDataCaches.getAttrOptComboOrgUnitMap() ).thenReturn( attrOptComboOrgUnitCache );
-
 
         when( notifier.notify( null, NotificationLevel.INFO, "Import done", true ) ).thenReturn( notifier );
 

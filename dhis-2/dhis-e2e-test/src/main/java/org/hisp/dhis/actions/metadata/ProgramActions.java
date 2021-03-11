@@ -1,7 +1,7 @@
 package org.hisp.dhis.actions.metadata;
 
 /*
- * Copyright (c) 2004-2020 University of Oslo
+ * Copyright (c) 2004-2021 University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,13 @@ import com.google.gson.JsonObject;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
-import org.hisp.dhis.utils.JsonObjectBuilder;
 
+import java.util.Arrays;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -45,12 +47,12 @@ import java.util.Optional;
 public class ProgramActions
     extends RestApiActions
 {
-    public RestApiActions programStageActions;
+    public ProgramStageActions programStageActions;
 
     public ProgramActions()
     {
         super( "/programs" );
-        this.programStageActions = new RestApiActions( "/programStages" );
+        this.programStageActions = new ProgramStageActions( );
     }
 
     public ApiResponse createProgram( String programType )
@@ -165,6 +167,7 @@ public class ProgramActions
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "name", "AutoTest program " + random )
             .addProperty( "shortName", "AutoTest program " + random )
+            .addUserGroupAccess()
             .build();
 
         return object;
@@ -195,6 +198,13 @@ public class ProgramActions
         object.add( "organisationUnits", orgUnits );
 
         return object;
+    }
+
+    public ApiResponse getOrgUnitsAssociations(String... programUids)
+    {
+        return get("/orgUnits", new QueryParamsBuilder().add(
+                Arrays.stream(programUids)
+                        .collect(Collectors.joining(",", "programs=", ""))));
     }
 
 }

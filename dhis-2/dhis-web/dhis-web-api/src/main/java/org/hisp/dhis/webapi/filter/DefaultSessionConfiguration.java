@@ -1,6 +1,5 @@
-package org.hisp.dhis.webapi.filter;
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +25,7 @@ package org.hisp.dhis.webapi.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.filter;
 
 import javax.servlet.Filter;
 
@@ -33,7 +33,6 @@ import org.hisp.dhis.condition.RedisDisabledCondition;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 /**
@@ -49,7 +48,6 @@ import org.springframework.web.filter.CharacterEncodingFilter;
  *
  */
 @Configuration
-@DependsOn("dhisConfigurationProvider")
 @Conditional( RedisDisabledCondition.class )
 public class DefaultSessionConfiguration
 {
@@ -59,7 +57,7 @@ public class DefaultSessionConfiguration
      *
      * @return a {@link CharacterEncodingFilter} without specifying encoding.
      */
-    @Bean
+    @Bean( "springSessionRepositoryFilter" )
     public Filter springSessionRepositoryFilter()
     {
         return new CharacterEncodingFilter();

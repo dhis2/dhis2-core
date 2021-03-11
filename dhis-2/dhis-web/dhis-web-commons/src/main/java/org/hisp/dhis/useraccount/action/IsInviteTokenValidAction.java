@@ -1,7 +1,5 @@
-package org.hisp.dhis.useraccount.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.useraccount.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.useraccount.action;
 
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
@@ -53,18 +52,6 @@ public class IsInviteTokenValidAction
     // Input
     // -------------------------------------------------------------------------
 
-    private String username;
-
-    public String getUsername()
-    {
-        return username;
-    }
-
-    public void setUsername( String username )
-    {
-        this.username = username;
-    }
-
     private String token;
 
     public String getToken()
@@ -81,18 +68,9 @@ public class IsInviteTokenValidAction
     // Output
     // -------------------------------------------------------------------------
 
-    private UserCredentials userCredentials;
-
-    public UserCredentials getUserCredentials()
-    {
-        return userCredentials;
-    }
-
-    private final String accountAction = "invited";
-
     public String getAccountAction()
     {
-        return accountAction;
+        return "invited";
     }
 
     private String usernameChoice;
@@ -109,6 +87,13 @@ public class IsInviteTokenValidAction
         return email;
     }
 
+    private String username;
+
+    public String getUsername()
+    {
+        return username;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -116,24 +101,34 @@ public class IsInviteTokenValidAction
     @Override
     public String execute()
     {
-        userCredentials = userService.getUserCredentialsByUsername( username );
+        String[] idAndRestoreToken = securityService.decodeEncodedTokens( token );
+        String idToken = idAndRestoreToken[0];
+        String restoreToken = idAndRestoreToken[1];
+
+        UserCredentials userCredentials = userService.getUserCredentialsByIdToken( idToken );
 
         if ( userCredentials == null )
         {
             return ERROR;
         }
 
-        email = userCredentials.getUserInfo().getEmail();
+        String errorMessage = securityService.verifyRestoreToken( userCredentials, restoreToken, RestoreType.INVITE );
 
-        RestoreOptions restoreOptions = securityService.getRestoreOptions( token );
+        if ( errorMessage != null )
+        {
+            return ERROR;
+        }
+
+        email = userCredentials.getUserInfo().getEmail();
+        username = userCredentials.getUsername();
+
+        RestoreOptions restoreOptions = securityService.getRestoreOptions( restoreToken );
 
         if ( restoreOptions != null )
         {
             usernameChoice = Boolean.toString( restoreOptions.isUsernameChoice() );
         }
 
-        String errorMessage = securityService.verifyToken( userCredentials, token, RestoreType.INVITE );
-
-        return errorMessage == null ? SUCCESS : ERROR;
+        return SUCCESS;
     }
 }

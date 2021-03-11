@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -36,6 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
@@ -102,7 +102,7 @@ public class JacksonEventService extends AbstractEventService
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
         UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, CacheProvider cacheProvider )
     {
         checkNotNull( eventImporter );
         checkNotNull( eventManager );
@@ -156,6 +156,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.dataElementCache = cacheProvider.createDataElementCache();
     }
 
     @SuppressWarnings( "unchecked" )

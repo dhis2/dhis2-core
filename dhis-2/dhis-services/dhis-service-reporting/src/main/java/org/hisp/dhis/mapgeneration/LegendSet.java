@@ -1,7 +1,5 @@
-package org.hisp.dhis.mapgeneration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.mapgeneration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mapgeneration;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -39,7 +38,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 
 /**
  * This class can be used to render a set of legends onto one image.
- * 
+ *
  * @author Kristin Simonsen <krissimo@ifi.uio.no>
  * @author Kjetil Andresen <kjetil.andrese@gmail.com>
  */
@@ -50,9 +49,11 @@ public class LegendSet
     private Color backgroundColor = null;
 
     public static final int LEGEND_WIDTH = 132;
+
     public static final int LEGEND_MARGIN_LEFT = 3;
+
     public static final int LEGEND_MARGIN_BOTTOM = 20;
-    
+
     public static final int LEGEND_TOTAL_WIDTH = LEGEND_WIDTH + LEGEND_MARGIN_LEFT;
 
     public LegendSet()
@@ -78,7 +79,7 @@ public class LegendSet
      * added. The image height can be decided by the user, but if the biggest
      * legend is higher than imageMaxHeight, the height will automatically be
      * set to the height of this legend.
-     * 
+     *
      * @param format the i18n format.
      * @return a buffered image.
      */
@@ -151,10 +152,10 @@ public class LegendSet
         {
             imageHeight += legend.getHeight() + LEGEND_MARGIN_BOTTOM;
         }
-        
+
         return imageHeight;
     }
-    
+
     @Override
     public String toString()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,7 +25,10 @@ package org.hisp.dhis.datastatistics.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datastatistics.hibernate;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.setting.SettingKey.COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS;
 import static org.hisp.dhis.util.DateUtils.asSqlDate;
 
 import java.util.Date;
@@ -42,6 +43,7 @@ import org.hisp.dhis.datastatistics.DataStatisticsEventStore;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
 import org.hisp.dhis.datastatistics.FavoriteStatistics;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
+import org.hisp.dhis.setting.SystemSettingManager;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.PreparedStatementSetter;
@@ -59,9 +61,16 @@ public class HibernateDataStatisticsEventStore
     extends HibernateGenericStore<DataStatisticsEvent>
     implements DataStatisticsEventStore
 {
-    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    private final SystemSettingManager systemSettingManager;
+
+    public HibernateDataStatisticsEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, DataStatisticsEvent.class, false );
+
+        checkNotNull( systemSettingManager );
+
+        this.systemSettingManager = systemSettingManager;
     }
 
     @Override
@@ -69,8 +78,7 @@ public class HibernateDataStatisticsEventStore
     {
         Map<DataStatisticsEventType, Double> eventTypeCountMap = new HashMap<>();
 
-        final String sql =
-            "select eventtype as eventtype, count(eventtype) as numberofviews " +
+        final String sql = "select eventtype as eventtype, count(eventtype) as numberofviews " +
             "from datastatisticsevent " +
             "where timestamp between ? and ? " +
             "group by eventtype;";
@@ -82,12 +90,12 @@ public class HibernateDataStatisticsEventStore
         };
 
         jdbcTemplate.query( sql, pss, ( rs, i ) -> {
-            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ), rs.getDouble( "numberofviews" ) );
+            eventTypeCountMap.put( DataStatisticsEventType.valueOf( rs.getString( "eventtype" ) ),
+                rs.getDouble( "numberofviews" ) );
             return eventTypeCountMap;
         } );
 
-        final String totalSql =
-            "select count(eventtype) as total " +
+        final String totalSql = "select count(eventtype) as total " +
             "from datastatisticsevent " +
             "where timestamp between ? and ?;";
 
@@ -99,23 +107,22 @@ public class HibernateDataStatisticsEventStore
     }
 
     @Override
-    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username )
+    public List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize,
+        SortOrder sortOrder, String username )
     {
         Assert.notNull( eventType, "Data statistics event type cannot be null" );
         Assert.notNull( sortOrder, "Sort order cannot be null" );
 
-        String sql =
-            "select c.uid, views, c.name, c.created from ( " +
+        String sql = "select c.uid, views, c.name, c.created from ( " +
             "select favoriteuid as uid, count(favoriteuid) as views " +
-            "from datastatisticsevent ";
+            "from datastatisticsevent where eventtype = '" + eventType.name() + "' ";
 
         if ( username != null )
         {
-            sql += "where username = ? ";
+            sql += "and username = ? ";
         }
 
-        sql +=
-            "group by uid) as events " +
+        sql += "group by uid) as events " +
             "inner join " + eventType.getTable() + " c on c.uid = events.uid " +
             "order by events.views " + sortOrder.getValue() + " " +
             "limit ?;";
@@ -147,10 +154,14 @@ public class HibernateDataStatisticsEventStore
     @Override
     public FavoriteStatistics getFavoriteStatistics( String uid )
     {
-        String sql =
-            "select count(dse.favoriteuid) " +
+        String sql = "select count(dse.favoriteuid) " +
             "from datastatisticsevent dse " +
-            "where dse.favoriteuid = ?;";
+            "where dse.favoriteuid = ?";
+
+        if ( !(boolean) systemSettingManager.getSystemSetting( COUNT_PASSIVE_DASHBOARD_VIEWS_IN_USAGE_ANALYTICS ) )
+        {
+            sql += " and dse.eventtype != '" + DataStatisticsEventType.PASSIVE_DASHBOARD_VIEW.name() + "'";
+        }
 
         Object[] args = Lists.newArrayList( uid ).toArray();
 
@@ -161,4 +172,3 @@ public class HibernateDataStatisticsEventStore
         return stats;
     }
 }
-

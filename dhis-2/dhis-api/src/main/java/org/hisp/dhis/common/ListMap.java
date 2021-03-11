@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,8 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -98,7 +98,7 @@ public class ListMap<T, V>
     {
         List<V> results = new ArrayList<>();
 
-        for ( Map.Entry<T, List<V>> entry: entrySet() )
+        for ( Map.Entry<T, List<V>> entry : entrySet() )
         {
             results.addAll( entry.getValue() );
         }
@@ -106,11 +106,11 @@ public class ListMap<T, V>
         return results;
     }
 
-    public Set<V> uniqueValues( )
+    public Set<V> uniqueValues()
     {
         Set<V> results = new HashSet<>();
 
-        for ( Map.Entry<T, List<V>> entry: entrySet() )
+        for ( Map.Entry<T, List<V>> entry : entrySet() )
         {
             results.addAll( entry.getValue() );
         }
@@ -136,8 +136,8 @@ public class ListMap<T, V>
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for
-     * each entry is produced by applying the given keyMapper function.
+     * Produces a ListMap based on the given list of values. The key for each
+     * entry is produced by applying the given keyMapper function.
      *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
@@ -158,16 +158,17 @@ public class ListMap<T, V>
     }
 
     /**
-     * Produces a ListMap based on the given list of values. The key for
-     * each entry is produced by applying the given keyMapper function. The value
-     * for each entry is produced by applying the given valueMapper function.
+     * Produces a ListMap based on the given list of values. The key for each
+     * entry is produced by applying the given keyMapper function. The value for
+     * each entry is produced by applying the given valueMapper function.
      *
      * @param values the values of the map.
      * @param keyMapper the function producing the key for each entry.
      * @param valueMapper the function producing the value for each entry.
      * @return a ListMap.
      */
-    public static <T, U, V> ListMap<T, U> getListMap( List<V> values, Function<V, T> keyMapper, Function<V, U> valueMapper )
+    public static <T, U, V> ListMap<T, U> getListMap( List<V> values, Function<V, T> keyMapper,
+        Function<V, U> valueMapper )
     {
         ListMap<T, U> map = new ListMap<>();
 

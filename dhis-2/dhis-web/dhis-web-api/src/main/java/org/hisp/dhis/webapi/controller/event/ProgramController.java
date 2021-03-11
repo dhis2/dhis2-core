@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,13 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
+import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -51,6 +53,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
@@ -67,13 +70,15 @@ public class ProgramController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters, List<Order> orders )
+    protected List<Program> getEntityList( WebMetadata metadata, WebOptions options, List<String> filters,
+        List<Order> orders )
         throws QueryParserException
     {
         boolean userFilter = Boolean.parseBoolean( options.getOptions().get( "userFilter" ) );
 
         List<Program> entityList;
-        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ), options.getRootJunction() );
+        Query query = queryService.getQueryFromUrl( getEntityClass(), filters, orders, getPaginationData( options ),
+            options.getRootJunction() );
         query.setDefaultOrder();
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
@@ -97,7 +102,9 @@ public class ProgramController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid, @RequestParam( required = false, defaultValue = "false" ) boolean download ) throws WebMessageException
+    public ResponseEntity<RootNode> getProgramWithDependencies( @PathVariable( "uid" ) String pvUid,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException
     {
         Program program = programService.getProgram( pvUid );
 
@@ -108,4 +115,20 @@ public class ProgramController
 
         return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, program, download );
     }
+
+    @ResponseBody
+    @RequestMapping( value = "orgUnits" )
+    IdentifiableObjectAssociations getProgramOrgUnitsAssociations(
+        @RequestParam( value = "programs" ) Set<String> programUids )
+    {
+
+        if ( Objects.isNull( programUids ) || programUids.size() == 0 )
+        {
+            throw new IllegalArgumentException( "At least one program uid must be specified" );
+        }
+
+        return programService.getProgramOrganisationUnitsAssociations( programUids );
+
+    }
+
 }

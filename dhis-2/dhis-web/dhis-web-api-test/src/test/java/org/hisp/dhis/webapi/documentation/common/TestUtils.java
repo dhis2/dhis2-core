@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.documentation.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,20 @@ package org.hisp.dhis.webapi.documentation.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.documentation.common;
+
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.springframework.http.MediaType;
+import org.springframework.restdocs.payload.FieldDescriptor;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -34,28 +46,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.springframework.http.MediaType;
-import org.springframework.restdocs.payload.FieldDescriptor;
-
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
 public class TestUtils
 {
-    public static final MediaType APPLICATION_JSON_UTF8 = new MediaType( MediaType.APPLICATION_JSON.getType(), MediaType.APPLICATION_JSON.getSubtype(), Charset.forName( "utf8" ) );
+    public static final MediaType APPLICATION_JSON_UTF8 = new MediaType( MediaType.APPLICATION_JSON.getType(),
+        MediaType.APPLICATION_JSON.getSubtype(), StandardCharsets.UTF_8 );
 
-    public static byte[] convertObjectToJsonBytes( Object object ) throws IOException
+    public static byte[] convertObjectToJsonBytes( Object object )
+        throws IOException
     {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.setSerializationInclusion( JsonInclude.Include.NON_NULL );
@@ -92,13 +93,10 @@ public class TestUtils
         Set<FieldDescriptor> fieldDescriptors = new HashSet<>();
         Map<String, Property> persistedPropertyMap = schema.getPersistedProperties();
 
-        Iterator<?> persistedItr = persistedPropertyMap.keySet().iterator();
-
-        while ( persistedItr.hasNext() )
+        for ( String s : persistedPropertyMap.keySet() )
         {
-            Property p = persistedPropertyMap.get( persistedItr.next() );
-            String pName = p.isCollection() ? p.getCollectionName() : p.getName();
-            FieldDescriptor f = fieldWithPath( pName ).description( TestUtils.getFieldDescription( p ) );
+            Property p = persistedPropertyMap.get( s );
+            FieldDescriptor f = fieldWithPath( p.key() ).description( TestUtils.getFieldDescription( p ) );
 
             if ( !p.isRequired() )
             {
@@ -109,13 +107,11 @@ public class TestUtils
         }
 
         Map<String, Property> nonPersistedPropertyMap = schema.getNonPersistedProperties();
-        Iterator<?> nonPersistedItr = nonPersistedPropertyMap.keySet().iterator();
 
-        while ( nonPersistedItr.hasNext() )
+        for ( String s : nonPersistedPropertyMap.keySet() )
         {
-            Property p = nonPersistedPropertyMap.get( nonPersistedItr.next() );
-            String pName = p.isCollection() ? p.getCollectionName() : p.getName();
-            FieldDescriptor f = fieldWithPath( pName ).description( TestUtils.getFieldDescription( p ) );
+            Property p = nonPersistedPropertyMap.get( s );
+            FieldDescriptor f = fieldWithPath( p.key() ).description( TestUtils.getFieldDescription( p ) );
 
             if ( !p.isRequired() )
             {
@@ -127,7 +123,8 @@ public class TestUtils
         return fieldDescriptors;
     }
 
-    public static String getCreatedUid( String responseJson ) throws IOException
+    public static String getCreatedUid( String responseJson )
+        throws IOException
     {
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( responseJson );

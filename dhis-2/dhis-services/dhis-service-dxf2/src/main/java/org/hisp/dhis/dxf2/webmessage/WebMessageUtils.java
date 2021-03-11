@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.webmessage;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.dxf2.webmessage;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.webmessage;
+
+import java.util.List;
+import java.util.function.Supplier;
 
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -45,8 +47,6 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -60,7 +60,8 @@ public final class WebMessageUtils
         return webMessage;
     }
 
-    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus, ErrorCode errorCode )
+    public static WebMessage createWebMessage( String message, Status status, HttpStatus httpStatus,
+        ErrorCode errorCode )
     {
         WebMessage webMessage = new WebMessage( status, httpStatus );
         webMessage.setErrorCode( errorCode );
@@ -339,6 +340,24 @@ public final class WebMessageUtils
         }
 
         return webMessage;
+    }
+
+    /**
+     * Runs the provided validation and throws a {@link WebMessageException}
+     * with the {@link #errorReports(List)} in case there are any.
+     *
+     * @param validation a validation computation to run to see if there are
+     *        {@link ErrorReport}s.
+     * @throws WebMessageException In case there were any {@link ErrorReport}s
+     */
+    public static void validateAndThrowErrors( Supplier<List<ErrorReport>> validation )
+        throws WebMessageException
+    {
+        List<ErrorReport> errors = validation.get();
+        if ( !errors.isEmpty() )
+        {
+            throw new WebMessageException( errorReports( errors ) );
+        }
     }
 
     private WebMessageUtils()
