@@ -66,6 +66,5 @@ public class TrackedEntityInstanceQueryTest
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
             () -> instanceService.validate( params ) );
         assertEquals( "Either Program or Tracked entity type should be specified", exception.getMessage() );
-        ;
     }
 }
