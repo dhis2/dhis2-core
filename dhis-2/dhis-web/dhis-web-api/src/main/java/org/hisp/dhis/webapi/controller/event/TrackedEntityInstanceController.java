@@ -161,13 +161,13 @@ public class TrackedEntityInstanceController
 
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
 
-        //Adding this check here to avoid further querying if teicount is already exceeded
+        // Validating here to avoid further querying
         if ( queryParams.getMaxTeiLimit() > 0 && count > 0
             && count > queryParams.getMaxTeiLimit() )
         {
             throw new IllegalQueryException( "maxteicountreached" );
         }
-        
+
         if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
