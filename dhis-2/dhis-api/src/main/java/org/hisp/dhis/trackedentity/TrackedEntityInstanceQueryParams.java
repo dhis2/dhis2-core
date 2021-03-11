@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -242,6 +241,11 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+
+    /**
+     * Indicates if there is a maximum tei retrieval limit. 0 no limit.
+     */
+    private int maxTeiLimit;
 
     /**
      * Indicates whether to include soft-deleted elements
@@ -1144,6 +1148,17 @@ public class TrackedEntityInstanceQueryParams
         return skipPaging;
     }
 
+    public int getMaxTeiLimit()
+    {
+        return maxTeiLimit;
+    }
+
+    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    {
+        this.maxTeiLimit = maxTeiLimit;
+        return this;
+    }
+
     public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
@@ -1280,6 +1295,12 @@ public class TrackedEntityInstanceQueryParams
         this.trackedEntityTypes = trackedEntityTypes;
     }
 
+    public boolean hasFilterForPrograms()
+    {
+        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
+            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
+    }
+
     @Getter
     @AllArgsConstructor
     public enum OrderColumn
@@ -1287,24 +1308,10 @@ public class TrackedEntityInstanceQueryParams
         TRACKEDENTITY( "trackedEntity", "tei.uid" ),
         CREATED( CREATED_ID, "tei.created" ),
         CREATED_AT( "createdAt", "tei.created" ),
-        CREATED_AT_CLIENT( "createdAtClient", "tei.createdAtClient" ),
         UPDATED_AT( "updatedAt", "tei.lastUpdated" ),
-        UPDATED_AT_CLIENT( "updatedAtClient", "tei.lastUpdatedAtClient" ),
-        ENROLLED_AT( "enrolledAt", "pi.enrollmentDate" ),
         // this works only for the new endpoint
         // ORGUNIT_NAME( "orgUnitName", "tei.organisationUnit.name" ),
-        INACTIVE( INACTIVE_ID, "tei.inactive" ),
-        ENROLLMENT_OCCURED_AT( "enrollmentOccurredAt", "pi.incidentDate" ),
-        ENROLLMENT_CREATED_AT( "enrollmentCreatedAt", "pi.created" ),
-        ENROLLMENT_CREATED_AT_CLIENT( "enrollmentCreatedAtClient", "pi.createdAtClient" ),
-        ENROLLMENT_UPDATED_AT( "enrollmentUpdatedAt", "pi.lastUpdated" ),
-        ENROLLMENT_UPDATED_AT_CLIENT( "enrollmentUpdatedAtClient", "pi.lastUpdatedAtClient" ),
-        ENROLLMENT_STATUS( "status",
-            "(case when pi.status = 'ACTIVE' then 1 when pi.status = 'COMPLETED' then 2 else 3 end)" );
-
-        private static final EnumSet<OrderColumn> enrollmentOrderColumns = EnumSet.of( ENROLLED_AT,
-            ENROLLMENT_OCCURED_AT, ENROLLMENT_CREATED_AT, ENROLLMENT_CREATED_AT_CLIENT,
-            ENROLLMENT_UPDATED_AT, ENROLLMENT_UPDATED_AT_CLIENT, ENROLLMENT_STATUS );
+        INACTIVE( INACTIVE_ID, "tei.inactive" );
 
         private final String propName;
 
@@ -1313,12 +1320,6 @@ public class TrackedEntityInstanceQueryParams
         public static boolean isStaticColumn( String propName )
         {
             return Arrays.stream( OrderColumn.values() )
-                .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
-        }
-
-        public static boolean isEnrollmentColumn( String propName )
-        {
-            return OrderColumn.enrollmentOrderColumns.stream()
                 .anyMatch( orderColumn -> orderColumn.getPropName().equals( propName ) );
         }
 
