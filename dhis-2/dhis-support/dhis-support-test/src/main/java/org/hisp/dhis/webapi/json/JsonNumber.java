@@ -41,9 +41,19 @@ public interface JsonNumber extends JsonPrimitive
      */
     Number number();
 
+    default <T extends Number> T number( T orDefault )
+    {
+        return exists() ? (T) number() : orDefault;
+    }
+
     default int intValue()
     {
         return mapNonNull( number(), Number::intValue );
+    }
+
+    default int intValue( int orDefault )
+    {
+        return exists() ? intValue() : orDefault;
     }
 
     default long longValue()

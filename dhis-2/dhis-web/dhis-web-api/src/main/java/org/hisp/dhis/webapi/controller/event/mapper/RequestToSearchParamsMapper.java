@@ -295,7 +295,7 @@ public class RequestToSearchParamsMapper
     {
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
-            eventCriteria.getEvent(),
+            eventCriteria.getAttributeCc(),
             eventCriteria.getAttributeCos(),
             true );
 
