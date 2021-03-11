@@ -396,7 +396,7 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
     {
-        String sql = getQuery( params );
+        String sql = getQuery( params, true );
         log.debug( "Tracked entity instance query SQL: " + sql );
 
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet( sql );
