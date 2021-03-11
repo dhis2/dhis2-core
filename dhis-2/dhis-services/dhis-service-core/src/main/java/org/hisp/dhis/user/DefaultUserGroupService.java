@@ -27,18 +27,13 @@
  */
 package org.hisp.dhis.user;
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.cache.HibernateCacheManager;
-import org.hisp.dhis.security.acl.AclService;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import static com.google.common.base.Preconditions.*;
+import org.hisp.dhis.cache.*;
+import org.hisp.dhis.security.acl.*;
+import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import java.util.*;
 
 /**
  * @author Lars Helge Overland
@@ -268,6 +263,6 @@ public class DefaultUserGroupService
     public String getDisplayName( String uid )
     {
          return userGroupNameCache.get( uid,
-            n -> userGroupStore.getByUid( uid ).getDisplayName() ).orElse( null );
+            n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
     }
 }
