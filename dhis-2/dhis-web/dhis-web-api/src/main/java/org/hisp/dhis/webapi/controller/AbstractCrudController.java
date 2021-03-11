@@ -794,6 +794,14 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             ((BaseIdentifiableObject) parsed).setTranslations( new HashSet<>( entity.getTranslations() ) );
         }
 
+        if ( params.isSkipSharing() )
+        {
+            // TODO this is a workaround to keep sharing
+            params.setSkipSharing( false );
+            T entity = manager.get( getEntityClass(), pvUid );
+            ((BaseIdentifiableObject) parsed).setSharing( entity.getSharing() );
+        }
+
         ImportReport importReport = importService.importMetadata( params );
         WebMessage webMessage = WebMessageUtils.objectReport( importReport );
 

@@ -70,9 +70,11 @@ public class AuthenticationListener
         Authentication auth = event.getAuthentication();
         String username = event.getAuthentication().getName();
 
-        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        Object details = auth.getDetails();
+
+        if ( details != null && TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
             log.info( String.format( "Login attempt failed for remote IP: %s", authDetails.getIp() ) );
         }
@@ -88,8 +90,8 @@ public class AuthenticationListener
                 username = userCredentials.getUsername();
             }
 
-            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = details.getRemoteAddress();
+            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = tokenDetails.getRemoteAddress();
 
             log.info( String.format( "OIDC login attempt failed for remote IP: %s", remoteAddress ) );
         }
@@ -103,9 +105,11 @@ public class AuthenticationListener
         Authentication auth = event.getAuthentication();
         String username = event.getAuthentication().getName();
 
-        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( auth.getDetails().getClass() ) )
+        Object details = auth.getDetails();
+
+        if ( TwoFactorWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
         {
-            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) auth.getDetails();
+            TwoFactorWebAuthenticationDetails authDetails = (TwoFactorWebAuthenticationDetails) details;
 
             log.debug( String.format( "Login attempt succeeded for remote IP: %s", authDetails.getIp() ) );
         }
@@ -117,8 +121,8 @@ public class AuthenticationListener
             UserCredentials userCredentials = principal.getUserCredentials();
             username = userCredentials.getUsername();
 
-            WebAuthenticationDetails details = (WebAuthenticationDetails) authenticationToken.getDetails();
-            String remoteAddress = details.getRemoteAddress();
+            WebAuthenticationDetails tokenDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
+            String remoteAddress = tokenDetails.getRemoteAddress();
 
             log.debug( String.format( "OIDC login attempt succeeded for remote IP: %s", remoteAddress ) );
         }

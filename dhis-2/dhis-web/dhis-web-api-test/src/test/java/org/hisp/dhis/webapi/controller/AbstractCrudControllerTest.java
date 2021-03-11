@@ -41,6 +41,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
@@ -233,20 +234,32 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     public void testPutJsonObject_skipTranslations()
     {
         // first the updated entity needs to be created
-        String mapId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
 
-        assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + mapId + "/translations",
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + groupId + "/translations",
             "{'translations':[{'property':'NAME','locale':'no','value':'norsk test'}," +
                 "{'property':'DESCRIPTION','locale':'no','value':'norsk test beskrivelse'}]}" ) );
         // verify we have translations
-        assertEquals( 2, GET( "/userGroups/{uid}/translations", mapId )
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", groupId )
             .content().getArray( "translations" ).size() );
 
         // now put object with skipping translations
         assertSeries( SUCCESSFUL,
-            PUT( "/userGroups/" + mapId + "?skipTranslation=true", "{'name':'Europa'}" ) );
-        assertEquals( 2, GET( "/userGroups/{uid}/translations", mapId )
+            PUT( "/userGroups/" + groupId + "?skipTranslation=true", "{'name':'Europa'}" ) );
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", groupId )
             .content().getArray( "translations" ).size() );
+    }
+
+    @Test
+    public void testPutJsonObject_skipSharing()
+    {
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
+        JsonObject group = GET( "/userGroups/{id}", groupId ).content();
+
+        String groupWithoutSharing = group.getObject( "sharing" ).node().replaceWith( "null" ).toString();
+        assertStatus( HttpStatus.OK, PUT( "/userGroups/" + groupId + "?skipSharing=true", groupWithoutSharing ) );
+        assertEquals( "rw------", GET( "/userGroups/{id}", groupId )
+            .content().as( JsonGeoMap.class ).getSharing().getPublic().string() );
     }
 
     @Test

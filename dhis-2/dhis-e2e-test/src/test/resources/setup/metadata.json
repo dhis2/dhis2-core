@@ -235,7 +235,7 @@
           }
         },
         {
-          "dataElement":  {
+          "dataElement": {
             "id": "z3Z4TD3oBCP"
           }
         },
@@ -3641,6 +3641,62 @@
         }
       ],
       "legendSets": []
+    }
+  ],
+  "optionSets": [
+    {
+      "code": "TA_YES_NO",
+      "created": "2021-03-08T13:13:23.118",
+      "lastUpdated": "2021-03-08T13:15:58.740",
+      "name": "TA Yes/No ",
+      "id": "ZGkmoWb77MW",
+      "userGroupAccesses": [
+        {
+          "access": "rw------",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "version": 3,
+      "valueType": "TEXT",
+      "attributeValues": [],
+      "translations": [],
+      "options": [
+        {
+          "id": "NpP4y21f6fY"
+        },
+        {
+          "id": "jqsgAiRoxsG"
+        }
+      ]
+    }
+  ],
+  "options": [
+    {
+      "code": "TA_NO",
+      "created": "2021-03-08T13:15:37.252",
+      "lastUpdated": "2021-03-08T13:15:37.296",
+      "name": "No",
+      "id": "NpP4y21f6fY",
+      "sortOrder": 1,
+      "optionSet": {
+        "id": "ZGkmoWb77MW"
+      },
+      "attributeValues": [],
+      "translations": []
+    },
+    {
+      "code": "TA_YES",
+      "created": "2021-03-08T13:15:58.549",
+      "lastUpdated": "2021-03-08T13:15:58.572",
+      "name": "Yes",
+      "id": "jqsgAiRoxsG",
+      "sortOrder": 2,
+      "optionSet": {
+        "id": "ZGkmoWb77MW"
+      },
+      "attributeValues": [],
+      "translations": []
     }
   ]
 }
