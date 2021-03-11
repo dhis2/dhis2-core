@@ -248,12 +248,6 @@ public class TrackedEntityInstanceQueryParams
     private int maxTeiLimit;
 
     /**
-     * Indicates if a count of records for this params is already calculated.
-     * Used to avoid redundant querying to find count.
-     */
-    private int count;
-
-    /**
      * Indicates whether to include soft-deleted elements
      */
     private boolean includeDeleted;
@@ -1162,17 +1156,6 @@ public class TrackedEntityInstanceQueryParams
     public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
     {
         this.maxTeiLimit = maxTeiLimit;
-        return this;
-    }
-
-    public int getCount()
-    {
-        return count;
-    }
-
-    public TrackedEntityInstanceQueryParams setCount( int count )
-    {
-        this.count = count;
         return this;
     }
 
