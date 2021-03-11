@@ -385,12 +385,7 @@ public class TrackedEntityCriteriaMapper
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( isEnrollmentColumn( orderParam.getField() ) && Objects.isNull( program ) )
-                {
-                    throw new IllegalQueryException(
-                        "Invalid order property, program should be present: " + orderParam.getField() );
-                }
-                else if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }
