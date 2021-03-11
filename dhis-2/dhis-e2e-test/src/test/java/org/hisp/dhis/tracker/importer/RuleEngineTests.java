@@ -177,7 +177,6 @@ public class RuleEngineTests
             .body( "dataValues.value", contains( "AUTO_ASSIGNED_COMMENT" ) );
     }
 
-    @Disabled( "bug DHIS2-10127" )
     @Test
     public void shouldSendNotification()
     {
@@ -195,14 +194,17 @@ public class RuleEngineTests
                 .addProperty( "value", "40" )
                 .build() );
 
+        new LoginActions().loginAsAdmin();
         ApiResponse response = new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) );
 
         int size = response.getBody().getAsJsonArray( "messageConversations" ).size();
 
+        new LoginActions().loginAsSuperUser();
         trackerActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
 
-        new RestApiActions( "/messageConversations?fields=*" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
+        new LoginActions().loginAsAdmin();
+        new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
             .validate()
             .statusCode( 200 )
             .body( "messageConversations", arrayWithSize( size + 1 ) )
