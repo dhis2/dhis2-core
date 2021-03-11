@@ -47,6 +47,8 @@ public class UserGroupAccess
 {
     private String access;
 
+    private transient UserGroup userGroup;
+
     private String uid;
 
     private String displayName;
@@ -57,8 +59,7 @@ public class UserGroupAccess
 
     public UserGroupAccess( UserGroup userGroup, String access )
     {
-        this.uid = userGroup.getUid();
-        this.displayName = userGroup.getDisplayName();
+        this.userGroup = userGroup;
         this.access = access;
     }
 
@@ -90,7 +91,7 @@ public class UserGroupAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUserGroupUid()
     {
-        return uid;
+        return userGroup != null ? userGroup.getUid() : null;
     }
 
     @JsonProperty( "id" )
@@ -98,7 +99,7 @@ public class UserGroupAccess
     @Property( required = Property.Value.TRUE )
     public String getUid()
     {
-        return uid;
+        return uid != null ? uid : (userGroup != null ? userGroup.getUid() : null);
     }
 
     public void setUid( String uid )
@@ -121,15 +122,20 @@ public class UserGroupAccess
     @JsonIgnore
     public UserGroup getUserGroup()
     {
-        UserGroup userGroup = new UserGroup();
-        userGroup.setUid( uid );
+        if ( userGroup == null )
+        {
+            UserGroup userGroup = new UserGroup();
+            userGroup.setUid( uid );
+            return userGroup;
+        }
+
         return userGroup;
     }
 
+    @JsonProperty
     public void setUserGroup( UserGroup userGroup )
     {
-        this.setUid( userGroup.getUid() );
-        this.displayName = userGroup.getDisplayName();
+        this.userGroup = userGroup;
     }
 
     @Override
