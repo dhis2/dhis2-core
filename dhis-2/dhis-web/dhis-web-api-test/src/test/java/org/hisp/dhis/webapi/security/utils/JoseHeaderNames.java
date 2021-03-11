@@ -25,52 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
-
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+package org.hisp.dhis.webapi.security.utils;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public final class JoseHeaderNames
 {
-    private final ClientRegistration clientRegistration;
+    public static final String ALG = "alg";
 
-    private final String mappingClaimKey;
+    public static final String JKU = "jku";
 
-    private final String loginIcon;
+    public static final String JWK = "jwk";
 
-    private final String loginIconPadding;
+    public static final String KID = "kid";
 
-    private final String loginText;
+    public static final String X5U = "x5u";
 
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
+    public static final String X5C = "x5c";
 
-    public Collection<String> getClientIds()
+    public static final String X5T = "x5t";
+
+    public static final String X5T_S256 = "x5t#S256";
+
+    public static final String TYP = "typ";
+
+    public static final String CTY = "cty";
+
+    public static final String CRIT = "crit";
+
+    private JoseHeaderNames()
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
-
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
     }
 }

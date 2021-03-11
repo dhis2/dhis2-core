@@ -25,52 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
-
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
+package org.hisp.dhis.security.jwt;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcUser;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public class DhisJwtAuthenticationToken extends JwtAuthenticationToken
 {
-    private final ClientRegistration clientRegistration;
+    private final DhisOidcUser dhisOidcUser;
 
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    public DhisJwtAuthenticationToken( Jwt jwt, Collection<? extends GrantedAuthority> authorities, String name,
+        UserCredentials userCredentials )
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+        super( jwt, authorities, name );
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+        this.dhisOidcUser = new DhisOidcUser( userCredentials, jwt.getClaims(), IdTokenClaimNames.SUB, null );
+    }
+
+    @Override
+    public Object getPrincipal()
+    {
+        return this.dhisOidcUser;
     }
 }

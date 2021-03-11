@@ -25,52 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.webapi.security.utils;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.jwt.JwtException;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public class JwtEncodingException extends JwtException
 {
-    private final ClientRegistration clientRegistration;
-
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    public JwtEncodingException( String message )
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+        super( message );
+    }
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+    public JwtEncodingException( String message, Throwable cause )
+    {
+        super( message, cause );
     }
 }

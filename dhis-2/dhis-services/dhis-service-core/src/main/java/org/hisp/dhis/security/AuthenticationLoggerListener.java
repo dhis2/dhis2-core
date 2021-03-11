@@ -42,6 +42,7 @@ import org.springframework.security.web.authentication.session.SessionFixationPr
 import org.springframework.util.ClassUtils;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
@@ -117,8 +118,9 @@ public class AuthenticationLoggerListener
             }
         }
 
-        log.warn( eventClassName + "; username: " + authName + ipAddress + sessionId + exceptionMessage );
+        String userNamePrefix = Strings.isNullOrEmpty( authName ) ? "" : authName;
 
+        log.warn( eventClassName + userNamePrefix + authName + ipAddress + sessionId + exceptionMessage );
     }
 
     private String hashSessionId( String sessionId )
