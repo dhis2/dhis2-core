@@ -28,12 +28,13 @@
 package org.hisp.dhis.user;
 
 import static com.google.common.base.Preconditions.*;
+
+import java.util.*;
+
 import org.hisp.dhis.cache.*;
 import org.hisp.dhis.security.acl.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
-
-import java.util.*;
 
 /**
  * @author Lars Helge Overland
@@ -262,7 +263,7 @@ public class DefaultUserGroupService
     @Transactional( readOnly = true )
     public String getDisplayName( String uid )
     {
-         return userGroupNameCache.get( uid,
+        return userGroupNameCache.get( uid,
             n -> userGroupStore.getByUidNoAcl( uid ).getDisplayName() ).orElse( null );
     }
 }
