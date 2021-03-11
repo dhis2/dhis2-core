@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.dataitem.validator;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParams;
-import static org.hisp.dhis.webapi.controller.dataitem.validator.OrderValidator.checkOrderParamsAndFiltersAllowance;
 import static org.junit.rules.ExpectedException.none;
 
 import java.util.HashSet;
@@ -104,50 +103,5 @@ public class OrderValidatorTest
 
         // Then
         assert (noExceptionIsThrown);
-    }
-
-    @Test( expected = Test.None.class ) /* no exception is expected */
-    public void testCheckOrderParamsAndFiltersAllowanceWithSuccess()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:asc" ) );
-        final Set<String> filters = new HashSet<>( singletonList( "name:ilike:someName" ) );
-        final boolean noExceptionIsThrown = true;
-
-        // When
-        checkOrderParamsAndFiltersAllowance( orderings, filters );
-
-        // Then
-        assert (noExceptionIsThrown);
-    }
-
-    @Test
-    public void testCheckOrderParamsAndFiltersAllowanceUsingNameOnOrderAndDisplayNameOnFilter()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "name:asc" ) );
-        final Set<String> filters = new HashSet<>( singletonList( "displayName:ilike:someName" ) );
-
-        // Except exception
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Combination not supported: `name:asc + displayName:ilike:someName`" );
-
-        // When
-        checkOrderParamsAndFiltersAllowance( orderings, filters );
-    }
-
-    @Test
-    public void testCheckOrderParamsAndFiltersAllowanceUsingDisplayNameOnOrderAndNameOnFilter()
-    {
-        // Given
-        final Set<String> orderings = new HashSet<>( singletonList( "displayName:asc" ) );
-        final Set<String> filters = new HashSet<>( singletonList( "name:ilike:someName" ) );
-
-        // Except exception
-        exception.expect( IllegalQueryException.class );
-        exception.expectMessage( "Combination not supported: `displayName:asc + name:ilike:someName`" );
-
-        // When
-        checkOrderParamsAndFiltersAllowance( orderings, filters );
     }
 }

@@ -40,7 +40,11 @@ public class QueryParam
 
     public static final String NAME = "name";
 
+    public static final String SHORT_NAME = "shortName";
+
     public static final String DISPLAY_NAME = "displayName";
+
+    public static final String DISPLAY_SHORT_NAME = "displayShortName";
 
     public static final String LOCALE = "locale";
 
@@ -58,7 +62,11 @@ public class QueryParam
 
     public static final String NAME_ORDER = "nameOrder";
 
+    public static final String SHORT_NAME_ORDER = "shortNameOrder";
+
     public static final String DISPLAY_NAME_ORDER = "displayNameOrder";
+
+    public static final String DISPLAY_SHORT_NAME_ORDER = "displayShortNameOrder";
 
     public static final String UID = "uid";
 

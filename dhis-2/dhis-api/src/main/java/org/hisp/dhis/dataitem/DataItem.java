@@ -66,7 +66,15 @@ public class DataItem implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String shortName;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
     private String displayName;
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String displayShortName;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DXF_2_0 )
