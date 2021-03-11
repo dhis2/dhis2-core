@@ -46,7 +46,7 @@ public class TrackedEntityInstanceQueryTest
 {
     @Autowired
     private TrackedEntityInstanceService instanceService;
-    
+
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
 
@@ -59,7 +59,7 @@ public class TrackedEntityInstanceQueryTest
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
     }
-    
+
     @Test
     public void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
     {
