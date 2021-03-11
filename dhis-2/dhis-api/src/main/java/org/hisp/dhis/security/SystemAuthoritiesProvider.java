@@ -25,50 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.authority;
+package org.hisp.dhis.security;
 
 import java.util.Collection;
 
-import org.hisp.dhis.security.SystemAuthoritiesProvider;
-
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: CachingSystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
+ * @version $Id: SystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
  *          torgeilo $
  */
-public class CachingSystemAuthoritiesProvider
-    implements SystemAuthoritiesProvider
+public interface SystemAuthoritiesProvider
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    String ID = SystemAuthoritiesProvider.class.getName();
 
-    private SystemAuthoritiesProvider source;
-
-    public void setSource( SystemAuthoritiesProvider source )
-    {
-        this.source = source;
-    }
-
-    public CachingSystemAuthoritiesProvider( SystemAuthoritiesProvider source )
-    {
-        this.source = source;
-    }
-
-    // -------------------------------------------------------------------------
-    // SystemAuthoritiesProvider implementation
-    // -------------------------------------------------------------------------
-
-    private Collection<String> cache;
-
-    @Override
-    public Collection<String> getSystemAuthorities()
-    {
-        if ( cache == null )
-        {
-            cache = source.getSystemAuthorities();
-        }
-
-        return cache;
-    }
+    Collection<String> getSystemAuthorities();
 }
