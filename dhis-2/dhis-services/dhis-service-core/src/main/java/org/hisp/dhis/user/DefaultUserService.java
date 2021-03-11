@@ -40,7 +40,6 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -820,7 +819,6 @@ public class DefaultUserService
     @Override
     public String getDisplayName( String userUid )
     {
-        Optional<String> displayName = userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );
-        return displayName.isPresent() ? displayName.get() : null;
+        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
     }
 }
