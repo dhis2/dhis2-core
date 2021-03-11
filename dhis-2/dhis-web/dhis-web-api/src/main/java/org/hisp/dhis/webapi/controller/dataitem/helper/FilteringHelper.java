@@ -46,11 +46,13 @@ import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
 import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.ROOT_JUNCTION;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.UID;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_GROUP_UIDS;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
@@ -63,10 +65,12 @@ import static org.hisp.dhis.user.UserSettingKey.UI_LOCALE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DIMENSION_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_NAME_ILIKE;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.DISPLAY_SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.IDENTIFIABLE_TOKEN;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.ID_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.PROGRAM_ID_EQUAL;
+import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.SHORT_NAME_ILIKE;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_EQUAL;
 import static org.hisp.dhis.webapi.controller.dataitem.Filter.Combination.VALUE_TYPE_IN;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
@@ -301,6 +305,20 @@ public class FilteringHelper
         if ( StringUtils.isNotEmpty( ilikeDisplayName ) )
         {
             paramsMap.addValue( DISPLAY_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayName ), "%" ) );
+        }
+
+        final String ilikeShortName = extractValueFromFilter( filters, SHORT_NAME_ILIKE );
+
+        if ( StringUtils.isNotEmpty( ilikeShortName ) )
+        {
+            paramsMap.addValue( SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeShortName ), "%" ) );
+        }
+
+        final String ilikeDisplayShortName = extractValueFromFilter( filters, DISPLAY_SHORT_NAME_ILIKE );
+
+        if ( StringUtils.isNotEmpty( ilikeDisplayShortName ) )
+        {
+            paramsMap.addValue( DISPLAY_SHORT_NAME, wrap( addIlikeReplacingCharacters( ilikeDisplayShortName ), "%" ) );
         }
 
         final String equalId = extractValueFromFilter( filters, ID_EQUAL, true );

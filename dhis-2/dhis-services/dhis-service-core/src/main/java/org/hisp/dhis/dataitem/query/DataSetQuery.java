@@ -35,20 +35,23 @@ import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
 import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayShortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.identifiableTokenFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifAny;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.ifSet;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
+import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
+import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
-import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_UNION;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
@@ -78,7 +81,7 @@ import org.springframework.stereotype.Component;
 public class DataSetQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "dataset.uid, dataset.name,"
-        + " dataset.code, dataset.datasetid as id, dataset.publicaccess as dataset_publicaccess";
+        + " dataset.code, dataset.datasetid as id, dataset.publicaccess as dataset_publicaccess, dataset.shortname";
 
     private static final String ITEM_UID = "dataset.uid";
 
@@ -114,9 +117,14 @@ public class DataSetQuery implements DataItemQuery
         {
             final String name = trimToNull( rowSet.getString( "name" ) );
             final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
+            final String shortName = trimToNull( rowSet.getString( "shortname" ) );
+            final String displayShortName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_shortname" ) ),
+                shortName );
 
-            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
-                .code( rowSet.getString( "code" ) ).dimensionItemType( REPORTING_RATE ).build() );
+            dataItems.add( builder().name( name ).shortName( shortName ).displayName( displayName )
+                .displayShortName( displayShortName ).id( rowSet.getString( "uid" ) )
+                .code( rowSet.getString( "code" ) ).dimensionItemType( REPORTING_RATE )
+                .build() );
         }
 
         return dataItems;
@@ -159,23 +167,8 @@ public class DataSetQuery implements DataItemQuery
 
         if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
         {
-            // Selecting only rows that contains translated names.
-            sql.append( selectRowsContainingTranslatedName( false ) )
-
-                .append( SPACED_UNION )
-
-                // Selecting ALL rows, not taking into consideration
-                // translations.
-                .append( selectAllRowsIgnoringAnyTranslation() )
-
-                /// AND excluding ALL translated rows previously selected
-                /// (translated data sets).
-                .append( SPACED_WHERE + "(" + ITEM_UID + ") not in (" )
-
-                .append( selectRowsContainingTranslatedName( true ) )
-
-                // Closing NOT IN exclusions.
-                .append( ")" );
+            // Selecting translated names.
+            sql.append( selectRowsContainingTranslatedName() );
         }
         else
         {
@@ -185,7 +178,7 @@ public class DataSetQuery implements DataItemQuery
 
         sql.append(
             " group by dataset.name, " + ITEM_UID + ", dataset.code, i18n_name,"
-                + " dataset.datasetid, dataset.publicaccess" );
+                + " dataset.datasetid, dataset.publicaccess, dataset.shortname, i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -199,8 +192,10 @@ public class DataSetQuery implements DataItemQuery
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayFiltering( "t.i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
+        optionalFilters.append( ifSet( shortNameFiltering( "t.shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
@@ -213,7 +208,8 @@ public class DataSetQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.i18n_name, t.uid", "t.name, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.i18n_name, t.uid", "t.name, t.uid",
+            "t.i18n_shortname, t.uid", "t.shortname, t.uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
 
         final String fullStatement = sql.toString();
@@ -223,24 +219,15 @@ public class DataSetQuery implements DataItemQuery
         return fullStatement;
     }
 
-    private String selectRowsContainingTranslatedName( final boolean onlyUidColumn )
+    private String selectRowsContainingTranslatedName()
     {
         final StringBuilder sql = new StringBuilder();
 
-        if ( onlyUidColumn )
-        {
-            sql.append( SPACED_SELECT + ITEM_UID );
-        }
-        else
-        {
-            sql.append( SPACED_SELECT + COMMON_COLUMNS )
-                .append( ", ds_displayname.value as i18n_name" );
-        }
+        sql.append( SPACED_SELECT + COMMON_COLUMNS )
+            .append( translationNamesColumnsFor( "dataset" ) );
 
         sql.append( " from dataset " )
-            .append(
-                " join jsonb_to_recordset(dataset.translations) as ds_displayname(value TEXT, locale TEXT, property TEXT) on ds_displayname.locale = :"
-                    + LOCALE + " and ds_displayname.property = 'NAME'" );
+            .append( translationNamesJoinsOn( "dataset" ) );
 
         return sql.toString();
     }
@@ -249,7 +236,7 @@ public class DataSetQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataset.name as i18n_name" )
+            .append( ", dataset.name as i18n_name, dataset.shortname as i18n_shortname" )
             .append( " from dataset " ).toString();
     }
 }
