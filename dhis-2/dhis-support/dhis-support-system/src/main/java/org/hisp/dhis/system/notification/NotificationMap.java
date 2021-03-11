@@ -39,7 +39,7 @@ import org.hisp.dhis.scheduling.JobType;
  */
 public class NotificationMap
 {
-    private final static int MAX_POOL_TYPE_SIZE = 100;
+    private final static int MAX_POOL_TYPE_SIZE = 500;
 
     private Map<JobType, Map<String, List<Notification>>> notificationsWithType;
 
