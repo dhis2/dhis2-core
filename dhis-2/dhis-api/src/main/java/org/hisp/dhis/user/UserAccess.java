@@ -48,9 +48,9 @@ public class UserAccess
 {
     private String access;
 
-    private transient User user;
-
     private String uid;
+
+    private String displayName;
 
     public UserAccess()
     {
@@ -58,7 +58,14 @@ public class UserAccess
 
     public UserAccess( User user, String access )
     {
-        this.user = user;
+        this.uid = user.getUid();
+        this.displayName = user.getDisplayName();
+        this.access = access;
+    }
+
+    public UserAccess( String uid, String access )
+    {
+        this.uid = uid;
         this.access = access;
     }
 
@@ -84,7 +91,7 @@ public class UserAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getUserUid()
     {
-        return user != null ? user.getUid() : null;
+        return uid;
     }
 
     @JsonProperty( "id" )
@@ -92,7 +99,7 @@ public class UserAccess
     @Property( required = Property.Value.TRUE )
     public String getUid()
     {
-        return uid != null ? uid : (user != null ? user.getUid() : null);
+        return uid;
     }
 
     public void setUid( String uid )
@@ -104,26 +111,27 @@ public class UserAccess
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String displayName()
     {
-        return user != null ? user.getDisplayName() : null;
+        return displayName;
+    }
+
+    public void setDisplayName( String displayName )
+    {
+        this.displayName = displayName;
     }
 
     @JsonIgnore
     public User getUser()
     {
-        if ( user == null )
-        {
-            User user = new User();
-            user.setUid( uid );
-            return user;
-        }
-
+        User user = new User();
+        user.setUid( uid );
         return user;
     }
 
     @JsonProperty
     public void setUser( User user )
     {
-        this.user = user;
+        this.uid = user.getUid();
+        this.displayName = user.getDisplayName();
     }
 
     @Override

@@ -25,20 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oauth2;
+package org.hisp.dhis.webapi.json;
 
-import org.hisp.dhis.system.deletion.DeletionHandler;
-import org.springframework.stereotype.Component;
+import java.net.URL;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * A {@link JsonURL} is a {@link JsonString} with a URL format.
+ *
+ * The {@link #url()} utility method allows to access the JSON string node as
+ * {@link URL}.
+ *
+ * @author Jan Bernitt
  */
-@Component
-public class OAuth2ClientDeletionHandler extends DeletionHandler
+public interface JsonURL extends JsonString
 {
-    @Override
-    protected String getClassName()
+
+    default URL url()
     {
-        return OAuth2Client.class.getName();
+        return converted( () -> new URL( string() ) );
     }
 }

@@ -28,9 +28,11 @@
 package org.hisp.dhis.program;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +43,7 @@ import org.springframework.stereotype.Component;
 public class ProgramStageInstanceDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    private static final DeletionVeto VETO = new DeletionVeto( ProgramStageInstance.class );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -58,26 +58,23 @@ public class ProgramStageInstanceDeletionHandler
         this.programStageInstanceService = programStageInstanceService;
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramStageInstance.class.getSimpleName();
+        whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
+        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenVetoing( Program.class, this::allowDeleteProgram );
+        whenVetoing( DataElement.class, this::allowDeleteDataElement );
     }
 
-    @Override
-    public String allowDeleteProgramStage( ProgramStage programStage )
+    private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         String sql = "SELECT COUNT(*) FROM programstageinstance WHERE programstageid = " + programStage.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( ProgramInstance programInstance )
     {
         for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
         {
@@ -85,20 +82,18 @@ public class ProgramStageInstanceDeletionHandler
         }
     }
 
-    @Override
-    public String allowDeleteProgram( Program program )
+    private DeletionVeto allowDeleteProgram( Program program )
     {
         String sql = "SELECT COUNT(*) FROM programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = "
             + program.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    public String allowDeleteDataElement( DataElement dataElement )
+    private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
         String sql = "select count(*) from programstageinstance where eventdatavalues ? '" + dataElement.getUid() + "'";
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 }

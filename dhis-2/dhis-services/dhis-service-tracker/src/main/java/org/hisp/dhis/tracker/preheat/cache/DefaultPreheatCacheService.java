@@ -146,7 +146,6 @@ public class DefaultPreheatCacheService implements PreheatCacheService
 
     private boolean isCacheEnabled()
     {
-
         return !isTestRun( this.environment.getActiveProfiles() )
             && config.isEnabled( ConfigurationKey.TRACKER_IMPORT_PREHEAT_CACHE_ENABLED );
     }

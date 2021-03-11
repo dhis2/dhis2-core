@@ -58,18 +58,14 @@ public class ProgramStageSectionDeletionHandler
         this.programStageSectionService = programStageSectionService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ProgramStageSection.class.getSimpleName();
+        whenDeleting( ProgramIndicator.class, this::deleteProgramIndicator );
+        whenDeleting( ProgramStage.class, this::deleteProgramStage );
     }
 
-    @Override
-    public void deleteProgramIndicator( ProgramIndicator programIndicator )
+    private void deleteProgramIndicator( ProgramIndicator programIndicator )
     {
         Collection<ProgramStageSection> sections = idObjectManager.getAllNoAcl( ProgramStageSection.class );
 
@@ -82,8 +78,7 @@ public class ProgramStageSectionDeletionHandler
         }
     }
 
-    @Override
-    public void deleteProgramStage( ProgramStage programStage )
+    private void deleteProgramStage( ProgramStage programStage )
     {
         List<ProgramStageSection> programStageSections = new ArrayList<>( programStage.getProgramStageSections() );
 
