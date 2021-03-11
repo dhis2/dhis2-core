@@ -74,7 +74,7 @@ public class RedisNotifier implements Notifier
 
     private static final String COLON = ":";
 
-    private final static int MAX_POOL_TYPE_SIZE = 100;
+    private final static int MAX_POOL_TYPE_SIZE = 500;
 
     private final ObjectMapper jsonMapper;
 
