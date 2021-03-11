@@ -63,7 +63,7 @@ public interface UserCredentialsStore
      * open ID.
      *
      * @param openId open ID.
-     * @return the UserCredentials.
+     * @return the UserCredentials or null if there is no match.
      */
     UserCredentials getUserCredentialsByOpenId( String openId );
 

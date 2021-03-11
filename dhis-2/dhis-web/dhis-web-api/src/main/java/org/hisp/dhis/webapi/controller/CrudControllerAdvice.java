@@ -66,6 +66,9 @@ import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.server.resource.BearerTokenError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
@@ -310,6 +313,25 @@ public class CrudControllerAdvice
         HttpServletRequest request )
     {
         webMessageService.send( WebMessageUtils.forbidden( ex.getMessage() ), response, request );
+    }
+
+    @ExceptionHandler( OAuth2AuthenticationException.class )
+    public void handleOAuth2AuthenticationException( OAuth2AuthenticationException ex, HttpServletResponse response,
+        HttpServletRequest request )
+    {
+        OAuth2Error error = ((OAuth2AuthenticationException) ex).getError();
+        if ( error instanceof BearerTokenError )
+        {
+            BearerTokenError bearerTokenError = (BearerTokenError) error;
+            HttpStatus status = ((BearerTokenError) error).getHttpStatus();
+
+            webMessageService.send( WebMessageUtils.createWebMessage( bearerTokenError.getErrorCode(),
+                bearerTokenError.getDescription(), Status.ERROR, status ), response, request );
+        }
+        else
+        {
+            webMessageService.send( WebMessageUtils.unathorized( ex.getMessage() ), response, request );
+        }
     }
 
     /**

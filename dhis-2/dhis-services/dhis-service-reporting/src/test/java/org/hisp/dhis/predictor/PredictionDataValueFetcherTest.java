@@ -340,7 +340,7 @@ public class PredictionDataValueFetcherTest
             fetcher.setSemaphoreTimeout( 2, TimeUnit.MILLISECONDS );
 
             when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
-                Thread.sleep( 3 );
+                Thread.sleep( 100 );
                 return null;
             } );
 
@@ -367,7 +367,7 @@ public class PredictionDataValueFetcherTest
 
             fetcher.getDataValues( orgUnitA );
 
-            Thread.sleep( 3 );
+            Thread.sleep( 100 );
         }
         catch ( Exception ex )
         {
@@ -494,6 +494,6 @@ public class PredictionDataValueFetcherTest
             throw new RuntimeException( "Could not acquire semaphore." );
         }
 
-        Thread.sleep( 10 ); // Milliseconds.
+        Thread.sleep( 200 ); // Milliseconds.
     }
 }

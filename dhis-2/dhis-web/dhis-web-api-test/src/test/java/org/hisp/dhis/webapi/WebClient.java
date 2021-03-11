@@ -193,6 +193,12 @@ public interface WebClient
             return contentUnchecked().as( JsonError.class );
         }
 
+        public JsonError error( HttpStatus expected )
+        {
+            assertStatus( expected, this );
+            return contentUnchecked().as( JsonError.class );
+        }
+
         public JsonError error( Series expected )
         {
             // OBS! cannot use assertSeries as it uses this method
@@ -215,5 +221,4 @@ public interface WebClient
             return response.getHeader( name );
         }
     }
-
 }

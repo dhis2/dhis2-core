@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newWarningRep
 import static org.hisp.dhis.tracker.validation.hooks.TrackerImporterAssertErrors.DATE_STRING_CANT_BE_NULL;
 
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -173,10 +174,10 @@ public abstract class AbstractTrackerDtoValidationHook
         T optionalObject, String value )
     {
         Optional.ofNullable( optionalObject.getOptionSet() )
-            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream()
+            .ifPresent( optionSet -> addErrorIf( () -> optionSet.getOptions().stream().filter( Objects::nonNull )
                 .noneMatch( o -> o.getCode().equalsIgnoreCase( value ) ), reporter, E1125, value,
                 optionalObject.getUid(), optionalObject.getClass().getSimpleName(),
-                optionalObject.getOptionSet().getOptions().stream().map( Option::getCode )
+                optionalObject.getOptionSet().getOptions().stream().filter( Objects::nonNull ).map( Option::getCode )
                     .collect( Collectors.joining( "," ) ) ) );
     }
 
