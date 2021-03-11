@@ -257,7 +257,6 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonObject group = GET( "/userGroups/{id}", groupId ).content();
 
         String groupWithoutSharing = group.getObject( "sharing" ).node().replaceWith( "null" ).toString();
-        System.out.println( groupWithoutSharing );
         assertStatus( HttpStatus.OK, PUT( "/userGroups/" + groupId + "?skipSharing=true", groupWithoutSharing ) );
         assertEquals( "rw------", GET( "/userGroups/{id}", groupId )
             .content().as( JsonGeoMap.class ).getSharing().getPublic().string() );
