@@ -38,6 +38,7 @@ import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -63,6 +64,8 @@ public class TeiValidationTests
     private String mandatoryTetAttribute;
 
     private String mandatoryProgramAttribute;
+
+    private String attributeWithOptionSet;
 
     @BeforeAll
     public void beforeAll()
@@ -153,6 +156,46 @@ public class TeiValidationTests
             .body( "errorCode", hasItem( "E1018" ) );
     }
 
+    @Test
+    public void shouldReturnErrorWhenAttributeWithOptionSetInvalid() {
+        JsonObject trackedEntities = new JsonObjectBuilder()
+            .addProperty( "trackedEntityType", trackedEntityType )
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .addArray( "attributes", new JsonObjectBuilder()
+                .addProperty( "attribute", mandatoryTetAttribute )
+                .addProperty( "value", DataGenerator.randomString() )
+                .build(),
+                new JsonObjectBuilder()
+                    .addProperty( "attribute", attributeWithOptionSet )
+                    .addProperty( "value", DataGenerator.randomString() )
+                    .build())
+            .wrapIntoArray( "trackedEntities" );
+
+        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ))
+            .validateErrorReport()
+            .body( "errorCode", hasItem( "E1125" ) )
+            .body( "trackerType", hasItem( "TRACKED_ENTITY" ) );
+    }
+
+    @Test
+    public void shouldNotReturnErrorWhenAttributeWithOptionSetIsPresent() {
+        JsonObject trackedEntities = new JsonObjectBuilder()
+            .addProperty( "trackedEntityType", trackedEntityType )
+            .addProperty( "orgUnit", Constants.ORG_UNIT_IDS[0] )
+            .addArray( "attributes",
+                new JsonObjectBuilder()
+                    .addProperty( "attribute", mandatoryTetAttribute )
+                    .addProperty( "value", DataGenerator.randomString() )
+                    .build(),
+                new JsonObjectBuilder()
+                    .addProperty( "attribute", attributeWithOptionSet )
+                    .addProperty( "value", "TA_YES" )
+                    .build())
+            .wrapIntoArray( "trackedEntities" );
+
+        trackerActions.postAndGetJobReport( trackedEntities ).validateSuccessfulImport();
+
+    }
     private void setupData()
     {
         // create attributes
@@ -161,6 +204,7 @@ public class TeiValidationTests
 
         mandatoryTetAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
         mandatoryProgramAttribute = trackedEntityAttributeActions.create( dummyTeiAttribute() );
+        attributeWithOptionSet = trackedEntityAttributeActions.create( dummyTeiAttributeWithOptionSet() );
 
         RestApiActions trackedEntityTypeActions = new RestApiActions( "trackedEntityTypes" );
 
@@ -174,7 +218,13 @@ public class TeiValidationTests
                     .addProperty( "mandatory", "true" )
                     .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
                         .addProperty( "id", mandatoryTetAttribute ) )
-                    .build() )
+                    .build(),
+                new JsonObjectBuilder()
+                    .addProperty( "mandatory", "false" )
+                    .addObject( "trackedEntityAttribute", new JsonObjectBuilder()
+                        .addProperty( "id", attributeWithOptionSet ) )
+                    .build()
+                )
             .build();
 
         trackedEntityType = trackedEntityTypeActions.create( trackedEntityTypePayload );
@@ -206,6 +256,17 @@ public class TeiValidationTests
             .addProperty( "valueType", "TEXT" )
             .addProperty( "aggregationType", "NONE" )
             .addProperty( "shortName", "TA attribute" + DataGenerator.randomString() )
+            .addUserGroupAccess()
+            .build();
+    }
+
+    private JsonObject dummyTeiAttributeWithOptionSet() {
+        return JsonObjectBuilder.jsonObject()
+            .addProperty( "name", "TA attribute " + DataGenerator.randomEntityName() )
+            .addProperty( "valueType", "TEXT" )
+            .addProperty( "aggregationType", "NONE" )
+            .addProperty( "shortName", "TA attribute" + DataGenerator.randomString() )
+            .addObject( "optionSet", new JsonObjectBuilder().addProperty( "id", "ZGkmoWb77MW" ) )
             .addUserGroupAccess()
             .build();
     }
