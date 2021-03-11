@@ -55,7 +55,6 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Component( "org.hisp.dhis.programrule.engine.RuleActionSendMessageImplementer" )
-@Transactional
 public class RuleActionSendMessageImplementer extends NotificationRuleActionImplementer
 {
     // -------------------------------------------------------------------------
@@ -82,6 +81,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         if ( !validate( ruleEffect, programInstance ) )
@@ -106,6 +106,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
+    @Transactional
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         checkNulls( ruleEffect, programStageInstance );
@@ -140,12 +141,14 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
+    @Transactional
     public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
     {
         implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
     }
 
     @Override
+    @Transactional
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );

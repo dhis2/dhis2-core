@@ -50,7 +50,6 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
-@Transactional
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*";
@@ -82,6 +81,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
@@ -91,6 +91,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
@@ -99,12 +100,14 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
     {
         implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
