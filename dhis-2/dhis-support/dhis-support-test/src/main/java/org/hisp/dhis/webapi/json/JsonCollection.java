@@ -66,7 +66,7 @@ public interface JsonCollection extends JsonValue
      */
     int size();
 
-    default <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
+    static <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
     {
         class ListView extends CollectionView<JsonArray> implements JsonList<E>
         {
@@ -84,7 +84,7 @@ public interface JsonCollection extends JsonValue
         return new ListView( array );
     }
 
-    default <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
+    static <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
     {
         class MapView extends CollectionView<JsonObject> implements JsonMap<E>
         {
@@ -109,6 +109,12 @@ public interface JsonCollection extends JsonValue
         protected CollectionView( T viewed )
         {
             this.viewed = viewed;
+        }
+
+        @Override
+        public final JsonNode node()
+        {
+            return viewed.node();
         }
 
         @Override
@@ -151,6 +157,12 @@ public interface JsonCollection extends JsonValue
         public final <V extends JsonValue> V as( Class<V> as )
         {
             return viewed.as( as );
+        }
+
+        @Override
+        public final String toString()
+        {
+            return viewed.toString();
         }
     }
 }
