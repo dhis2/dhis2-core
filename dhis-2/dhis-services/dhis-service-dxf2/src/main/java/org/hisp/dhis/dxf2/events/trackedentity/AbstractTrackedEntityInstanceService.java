@@ -201,6 +201,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     private List<TrackedEntityInstance> getTrackedEntityInstancesLegacy( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation )
     {
+        if ( queryParams.getMaxTeiLimit() > 0 && queryParams.getCount() > 0
+            && queryParams.getCount() > queryParams.getMaxTeiLimit() )
+        {
+            // For legacy fetch, we add this check here.
+            throw new IllegalQueryException( "maxteicountreached" );
+        }
+
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
             .getTrackedEntityInstances( queryParams, skipAccessValidation );
 

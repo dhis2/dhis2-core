@@ -163,6 +163,7 @@ public class TrackedEntityInstanceController
         if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
+            queryParams.setCount( count );
         }
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
