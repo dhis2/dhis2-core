@@ -523,6 +523,11 @@ public class DefaultTrackedEntityInstanceService
         {
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
+        
+        if ( !params.hasProgram() && !params.hasTrackedEntityType() )
+        {
+            violation = "Either Program or Tracked entity type should be specified";
+        }
 
         if ( params.hasProgramStatus() && !params.hasProgram() )
         {
