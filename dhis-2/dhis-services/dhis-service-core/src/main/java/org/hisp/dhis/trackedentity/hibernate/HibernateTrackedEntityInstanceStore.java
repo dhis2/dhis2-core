@@ -583,7 +583,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQuery( params, false ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
-            .append( getQueryOrderBy( false, params, isGridQuery ) )
+            .append( getQueryOrderBy( false, params ) )
             .toString();
     }
 
@@ -681,7 +681,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             // SORT
             fromSubQuery
-                .append( getQueryOrderBy( true, params, true ) )
+                .append( getQueryOrderBy( true, params ) )
 
                 // LIMIT, OFFSET
                 .append( getFromSubQueryLimitAndOffset( params ) );
@@ -1425,7 +1425,7 @@ public class HibernateTrackedEntityInstanceStore
      * @param params
      * @return a SQL ORDER BY clause.
      */
-    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean gridQuery )
+    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params )
     {
         if ( params.getOrders() != null && params.getAttributes() != null && !params.getAttributes().isEmpty() )
         {
