@@ -61,11 +61,11 @@ public @interface StrategyFor
     int ttl() default 5;
 
     /**
-     * The maximum number of entries hold by the cache. Defaults to
-     * 5. The reason for the low default, is that certain objects can contain
-     * a lot of references and quickly consume memory. For most metadata, a
-     * capacity of 5 is not neccesarily small either. We should always specify
-     * capacity for each strategy, on not rely on the default.
+     * The maximum number of entries hold by the cache. Defaults to 5. The
+     * reason for the low default, is that certain objects can contain a lot of
+     * references and quickly consume memory. For most metadata, a capacity of 5
+     * is not necessarily small either. We should always specify capacity for
+     * each strategy, on not rely on the default.
      */
     long capacity() default 5;
 }
