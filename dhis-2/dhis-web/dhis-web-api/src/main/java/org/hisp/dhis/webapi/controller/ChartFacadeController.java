@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.visualization.ConversionHelper.convertToChartList;
+import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -51,8 +51,6 @@ import org.cache2k.Cache2kBuilder;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.hisp.dhis.chart.Chart;
-import org.hisp.dhis.chart.ChartType;
-import org.hisp.dhis.chart.Series;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -111,9 +109,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.visualization.Axis;
 import org.hisp.dhis.visualization.Visualization;
-import org.hisp.dhis.visualization.VisualizationType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -1241,125 +1237,6 @@ public abstract class ChartFacadeController
         }
 
         return null;
-    }
-
-    private Visualization convertToVisualization( final Chart chart )
-    {
-        final Visualization visualization = new Visualization();
-
-        if ( chart != null )
-        {
-            copyProperties( chart, visualization );
-
-            if ( chart.getType() != null )
-            {
-                visualization.setType( VisualizationType.valueOf( chart.getType().name() ) );
-            }
-
-            // Copy seriesItems
-            if ( CollectionUtils.isNotEmpty( chart.getSeriesItems() ) )
-            {
-                final List<Series> seriesItems = chart.getSeriesItems();
-                final List<Axis> axes = visualization.getOptionalAxes();
-
-                for ( final Series seriesItem : seriesItems )
-                {
-                    final Axis axis = new Axis();
-                    axis.setDimensionalItem( seriesItem.getSeries() );
-                    axis.setAxis( seriesItem.getAxis() );
-                    axis.setId( seriesItem.getId() );
-
-                    axes.add( axis );
-                }
-                visualization.setOptionalAxes( axes );
-            }
-
-            // Add series into columns
-            if ( !StringUtils.isEmpty( chart.getSeries() ) )
-            {
-                if ( visualization.getColumnDimensions() != null )
-                {
-                    visualization.getColumnDimensions().add( chart.getSeries() );
-                }
-                else
-                {
-                    visualization.setColumnDimensions( Arrays.asList( chart.getSeries() ) );
-                }
-            }
-
-            // Add category into rows
-            if ( !StringUtils.isEmpty( chart.getCategory() ) )
-            {
-                if ( visualization.getRowDimensions() != null )
-                {
-                    visualization.getRowDimensions().add( chart.getCategory() );
-                }
-                else
-                {
-                    visualization.setRowDimensions( Arrays.asList( chart.getCategory() ) );
-                }
-            }
-
-            visualization.setCumulativeValues( chart.isCumulativeValues() );
-        }
-        return visualization;
-    }
-
-    private List<Chart> convertToChartList( List<Visualization> entities )
-    {
-        final List<Chart> charts = new ArrayList<>();
-
-        if ( CollectionUtils.isNotEmpty( entities ) )
-        {
-            for ( final Visualization visualization : entities )
-            {
-                final Chart chart = new Chart();
-                copyProperties( visualization, chart, "type" );
-
-                // Consider only Visualization type that is a Chart
-                if ( visualization.getType() != null )
-                {
-                    // Set the correct type
-                    chart.setType( ChartType.valueOf( visualization.getType().name() ) );
-
-                    // Copy seriesItems
-                    if ( CollectionUtils.isNotEmpty( visualization.getOptionalAxes() ) )
-                    {
-                        final List<Series> seriesItems = new ArrayList<>();
-                        final List<Axis> axes = visualization.getOptionalAxes();
-
-                        for ( final Axis axis : axes )
-                        {
-                            final Series series = new Series();
-                            series.setSeries( axis.getDimensionalItem() );
-                            series.setAxis( axis.getAxis() );
-                            series.setId( axis.getId() );
-
-                            seriesItems.add( series );
-                        }
-                        chart.setSeriesItems( seriesItems );
-                    }
-
-                    // Copy column into series
-                    if ( CollectionUtils.isNotEmpty( visualization.getColumnDimensions() ) )
-                    {
-                        final List<String> columns = visualization.getColumnDimensions();
-                        chart.setSeries( columns.get( 0 ) );
-                    }
-
-                    // Copy rows into category
-                    if ( CollectionUtils.isNotEmpty( visualization.getRowDimensions() ) )
-                    {
-                        final List<String> rows = visualization.getRowDimensions();
-                        chart.setCategory( rows.get( 0 ) );
-                    }
-
-                    chart.setCumulativeValues( visualization.isCumulativeValues() );
-                    charts.add( chart );
-                }
-            }
-        }
-        return charts;
     }
 
     protected List<Visualization> getEntity( String uid, WebOptions options )
