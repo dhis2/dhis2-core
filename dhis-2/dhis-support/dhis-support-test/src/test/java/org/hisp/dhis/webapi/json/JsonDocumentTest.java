@@ -37,7 +37,6 @@ import java.util.HashSet;
 import java.util.Map;
 
 import org.hisp.dhis.webapi.json.JsonDocument.JsonFormatException;
-import org.hisp.dhis.webapi.json.JsonDocument.JsonNode;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonPathException;
 import org.junit.Test;
@@ -50,7 +49,6 @@ import org.junit.Test;
  */
 public class JsonDocumentTest
 {
-
     @Test
     public void testStringNode()
     {
@@ -87,6 +85,10 @@ public class JsonDocumentTest
         assertEquals( "STRING node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
         assertEquals( "STRING node has no size property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::elements );
+        assertEquals( "STRING node has no elements property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::members );
+        assertEquals( "STRING node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -113,6 +115,10 @@ public class JsonDocumentTest
         assertEquals( "NUMBER node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
         assertEquals( "NUMBER node has no size property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::elements );
+        assertEquals( "NUMBER node has no elements property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::members );
+        assertEquals( "NUMBER node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -147,6 +153,10 @@ public class JsonDocumentTest
         assertEquals( "BOOLEAN node has no empty property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::size );
         assertEquals( "BOOLEAN node has no size property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::elements );
+        assertEquals( "BOOLEAN node has no elements property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::members );
+        assertEquals( "BOOLEAN node has no members property.", ex.getMessage() );
     }
 
     @Test
@@ -166,6 +176,20 @@ public class JsonDocumentTest
     }
 
     @Test
+    public void testNullNode_Unsupported()
+    {
+        JsonNode node = new JsonDocument( "null" ).get( "$" );
+        Exception ex = assertThrows( UnsupportedOperationException.class, node::isEmpty );
+        assertEquals( "NULL node has no empty property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::size );
+        assertEquals( "NULL node has no size property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::elements );
+        assertEquals( "NULL node has no elements property.", ex.getMessage() );
+        ex = assertThrows( UnsupportedOperationException.class, node::members );
+        assertEquals( "NULL node has no members property.", ex.getMessage() );
+    }
+
+    @Test
     public void testArray_Numbers()
     {
         JsonNode node = new JsonDocument( "[1, 2 ,3]" ).get( "$" );
@@ -175,14 +199,22 @@ public class JsonDocumentTest
     }
 
     @Test
+    public void testArray_Unsupported()
+    {
+        JsonNode node = new JsonDocument( "[]" ).get( "$" );
+        Exception ex = assertThrows( UnsupportedOperationException.class, node::members );
+        assertEquals( "ARRAY node has no members property.", ex.getMessage() );
+    }
+
+    @Test
     public void testObject_Flat()
     {
         JsonNode root = new JsonDocument( "{\"a\":1, \"bb\":true , \"ccc\":null }" ).get( "$" );
         assertEquals( JsonNodeType.OBJECT, root.getType() );
         assertFalse( root.isEmpty() );
         assertEquals( 3, root.size() );
-        Map<String, JsonNode> value = root.object();
-        assertEquals( new HashSet<>( asList( "a", "bb", "ccc" ) ), value.keySet() );
+        Map<String, JsonNode> members = root.members();
+        assertEquals( new HashSet<>( asList( "a", "bb", "ccc" ) ), members.keySet() );
     }
 
     @Test
@@ -246,6 +278,14 @@ public class JsonDocumentTest
     }
 
     @Test
+    public void testObject_Unsupported()
+    {
+        JsonNode node = new JsonDocument( "{}" ).get( "$" );
+        Exception ex = assertThrows( UnsupportedOperationException.class, node::elements );
+        assertEquals( "OBJECT node has no elements property.", ex.getMessage() );
+    }
+
+    @Test
     public void testObject_NoSuchProperty()
     {
         JsonDocument doc = new JsonDocument( "{\"a\": { \"b\" : [12, false] } }" );
@@ -293,5 +333,23 @@ public class JsonDocumentTest
         JsonFormatException ex = assertThrows( JsonFormatException.class, () -> doc.get( ".a" ) );
         assertEquals( "Unexpected character at position 6,\n" + "{\"a\": hello }\n" + "      ^ expected start of value",
             ex.getMessage() );
+    }
+
+    @Test
+    public void testNull()
+    {
+        JsonNode node = new JsonDocument( "null" ).get( "$" );
+        assertEquals( JsonNodeType.NULL, node.getType() );
+        assertNull( node.value() );
+    }
+
+    @Test
+    public void testExtractAndReplace()
+    {
+        JsonDocument doc = new JsonDocument( "{\"a\": { \"b\" : [12, false] } }" );
+        JsonNode onlyA = doc.get( "$.a" ).extract();
+        assertEquals( "{ \"b\" : [12, false] }", onlyA.toString() );
+        assertEquals( "{ \"b\" : [42, false] }",
+            onlyA.members().get( "b" ).elements().get( 0 ).replaceWith( "42" ).toString() );
     }
 }

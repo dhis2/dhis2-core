@@ -247,13 +247,13 @@ public class NotifierTest extends DhisSpringTest
         throws InterruptedException
     {
         ExecutorService e = Executors.newFixedThreadPool( 5 );
-        IntStream.range( 0, 100 ).forEach( i -> {
+        IntStream.range( 0, 500 ).forEach( i -> {
             e.execute( () -> {
                 notifier.notify( createJobConfig( i ), "somethingid" );
             } );
         } );
         e.awaitTermination( 200, TimeUnit.MILLISECONDS );
-        assertEquals( 100, notifier.getNotificationsByJobType( METADATA_IMPORT ).size() );
+        assertEquals( 500, notifier.getNotificationsByJobType( METADATA_IMPORT ).size() );
     }
 
     private JobConfiguration createJobConfig( int i )

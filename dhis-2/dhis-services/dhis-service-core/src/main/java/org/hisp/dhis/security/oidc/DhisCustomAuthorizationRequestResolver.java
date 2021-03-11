@@ -59,7 +59,7 @@ public class DhisCustomAuthorizationRequestResolver implements OAuth2Authorizati
     public static final String HASH_DIGEST_ALGORITHM = "SHA-256";
 
     @Autowired
-    private DhisClientRegistrationRepository clientRegistrationRepository;
+    private DhisOidcProviderRepository clientRegistrationRepository;
 
     private DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 

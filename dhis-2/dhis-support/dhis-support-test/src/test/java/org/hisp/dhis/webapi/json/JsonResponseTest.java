@@ -77,6 +77,19 @@ public class JsonResponseTest
     }
 
     @Test
+    public void testObjectHas()
+    {
+        JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':[]}}" );
+        assertTrue( response.has( "users" ) );
+        assertTrue( response.getObject( "users" ).has( "foo", "bar" ) );
+        assertFalse( response.has( "no-a-member" ) );
+        assertFalse( createJSON( "[]" ).getObject( "undefined" ).has( "foo" ) );
+        JsonObject bar = response.getObject( "users" ).getObject( "bar" );
+        Exception ex = assertThrows( UnsupportedOperationException.class, () -> bar.has( "is-array" ) );
+        assertEquals( "Path `$.users.bar` does not contain a OBJECT but a(n) ARRAY: []", ex.getMessage() );
+    }
+
+    @Test
     public void testDateType()
     {
         JsonObject response = createJSON( "{'user': {'lastUpdated': '2021-01-21T15:14:54.000'}}" );
@@ -232,6 +245,65 @@ public class JsonResponseTest
             "{'message':'my message','response':{'objectReports':[{'klass':'java.lang.String','errorReports': [{'errorCode':'E4000','message':'m1'}]}]}}" );
         assertEquals( "my message\n" + "* class java.lang.String\n" + "  E4000 m1",
             response.as( JsonError.class ).summary() );
+    }
+
+    @Test
+    public void testBooleanNode()
+    {
+        JsonObject response = createJSON( "{'a': true }" );
+        assertEquals( "true", response.getBoolean( "a" ).node().getDeclaration() );
+    }
+
+    @Test
+    public void testNumberNode()
+    {
+        JsonObject response = createJSON( "{'a': 42 }" );
+        assertEquals( "42", response.getNumber( "a" ).node().getDeclaration() );
+    }
+
+    @Test
+    public void testStringNode()
+    {
+        JsonObject response = createJSON( "{'a': 'hello, again' }" );
+        assertEquals( "\"hello, again\"", response.getString( "a" ).node().getDeclaration() );
+    }
+
+    @Test
+    public void testArrayNode()
+    {
+        JsonObject response = createJSON( "{'a': ['hello, again', 12] }" );
+        assertEquals( "[\"hello, again\", 12]", response.getArray( "a" ).node().getDeclaration() );
+    }
+
+    @Test
+    public void testObjectNode()
+    {
+        JsonObject response = createJSON( "{'a': ['hello, again', 12] }" );
+        assertEquals( "{\"a\": [\"hello, again\", 12] }", response.node().getDeclaration() );
+    }
+
+    @Test
+    public void testToString()
+    {
+        JsonList<JsonNumber> list = createJSON( "[12,42]" ).asList( JsonNumber.class );
+        assertEquals( "[12,42]", list.toString() );
+        JsonMap<JsonNumber> map = createJSON( "{'a':12,'b':42}" ).asMap( JsonNumber.class );
+        assertEquals( "{\"a\":12,\"b\":42}", map.toString() );
+    }
+
+    @Test
+    public void testToString_NonExistingPath()
+    {
+        JsonList<JsonNumber> list = createJSON( "[12,42]" ).getObject( "non-existing" ).asList( JsonNumber.class );
+        assertEquals( "Path `.non-existing` does not exist, parent `` is not an OBJECT but a ARRAY node.",
+            list.toString() );
+    }
+
+    @Test
+    public void testToString_MalformedJson()
+    {
+        JsonMap<JsonNumber> map = createJSON( "{'a:12}" ).asMap( JsonNumber.class );
+        assertEquals( "Expected \" but reach EOI: {\"a:12}", map.toString() );
     }
 
     private JsonResponse createJSON( String content )

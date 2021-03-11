@@ -35,7 +35,7 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class OidcEnabledCondition extends PropertiesAwareConfigurationCondition
+public class OIDCLoginEnabledCondition extends PropertiesAwareConfigurationCondition
 {
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
