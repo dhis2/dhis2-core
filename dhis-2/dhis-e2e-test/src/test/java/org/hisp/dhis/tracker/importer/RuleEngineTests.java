@@ -207,7 +207,7 @@ public class RuleEngineTests
         new RestApiActions( "/messageConversations" ).get( "", new QueryParamsBuilder().add( "fields=*" ) )
             .validate()
             .statusCode( 200 )
-            .body( "messageConversations", arrayWithSize( size + 1 ) )
+            .body( "messageConversations", hasSize( size + 1 ) )
             .body( "messageConversations.subject", hasItem( "Program rule triggered" ) );
     }
 
