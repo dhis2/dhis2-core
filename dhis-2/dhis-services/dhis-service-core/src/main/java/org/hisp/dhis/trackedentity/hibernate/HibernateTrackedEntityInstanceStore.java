@@ -796,9 +796,8 @@ public class HibernateTrackedEntityInstanceStore
 
         for ( QueryItem orderAttribute : getOrderAttributes( params ) )
         {
-            if ( orderAttribute.hasFilter() ) // We already joined this if it is
-                                              // a filter.
-            {
+            if ( orderAttribute.hasFilter() )
+            { // We already joined this if it is a filter.
                 continue;
             }
 
