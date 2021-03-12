@@ -87,7 +87,8 @@ import com.google.common.collect.Lists;
 public class JdbcEventAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
-    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT,
+    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of(
+        ValueType.TEXT,
         ValueType.LONG_TEXT );
 
     public static final String OU_NAME_COL_SUFFIX = "_name";
@@ -122,8 +123,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
             .withIndexType( GEOMETRY_INDEX_TYPE ),
-        // TODO latitude and longitude deprecated in 2.30, should be removed
-        // after 2.33
+        // TODO latitude and longitude deprecated in 2.30, remove in 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
@@ -231,9 +231,9 @@ public class JdbcEventAnalyticsTableManager
             }
             else
             {
-                log.info(
-                    String.format( "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                        program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
+                log.info( String.format(
+                    "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
+                    program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
             }
         }
 
@@ -370,11 +370,11 @@ public class JdbcEventAnalyticsTableManager
             .collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, false ) )
+            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), false ) )
             .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, true ) )
+            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), true ) )
             .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
         columns.addAll( getFixedColumns() );
@@ -396,7 +396,8 @@ public class JdbcEventAnalyticsTableManager
         ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
         String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
         String select = getSelectClause( attribute.getValueType(), "value" );
-        boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
+        String sql = selectForInsert( attribute, select, dataClause );
+        boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
 
         if ( attribute.getValueType().isOrganisationUnit() )
         {
@@ -405,18 +406,20 @@ public class JdbcEventAnalyticsTableManager
                 final String geoSql = selectForInsert( attribute,
                     "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
                 columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                    ColumnDataType.GEOMETRY, geoSql ).withSkipIndex( skipIndex ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+                    ColumnDataType.GEOMETRY, geoSql )
+                        .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
             }
-            // add the OU name for this Tracked Entity Attribute
-            final String ouNameSql = selectForInsert( attribute,
-                "ou.name from organisationunit ou where ou.uid = (select value", dataClause );
+
+            // Add org unit name column
+            final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+            final String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
 
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-                .withSkipIndex( skipIndex ) );
+                .withSkipIndex( true ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
-            selectForInsert( attribute, select, dataClause ) ).withSkipIndex( skipIndex ) );
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
+            .withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause ) : columns;
     }
@@ -444,14 +447,12 @@ public class JdbcEventAnalyticsTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        // Assemble a regex dataClause with using jsonb #>> operator
+        ColumnDataType dataType = getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() );
         String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
-
         String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-
         String select = getSelectClause( dataElement.getValueType(), columnName );
-
         String sql = selectForInsert( dataElement, select, dataClause );
+        boolean skipIndex = skipIndex( dataElement.getValueType(), dataElement.hasOptionSet() );
 
         if ( dataElement.getValueType().isOrganisationUnit() )
         {
@@ -462,20 +463,19 @@ public class JdbcEventAnalyticsTableManager
 
                 columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                     ColumnDataType.GEOMETRY, geoSql )
-                        .withSkipIndex( true ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+                        .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
             }
 
-            // Add org unit name for data value
-            String ouNameSql = selectForInsert( dataElement,
-                "ou.name from organisationunit ou where ou.uid = (select " + columnName, dataClause );
+            // Add org unit name column
+            final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+            final String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
                 .withSkipIndex( true ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ),
-            getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() ), sql ).withSkipIndex(
-                NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet() ) );
+        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql )
+            .withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromDataElementWithLegendSet( dataElement, select, dataClause ) : columns;
     }
@@ -547,5 +547,10 @@ public class JdbcEventAnalyticsTableManager
     private AnalyticsTableColumn toCharColumn( String name, String prefix, Date created )
     {
         return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
+    }
+
+    private boolean skipIndex( ValueType valueType, boolean hasOptionSet )
+    {
+        return NO_INDEX_VAL_TYPES.contains( valueType ) && !hasOptionSet;
     }
 }

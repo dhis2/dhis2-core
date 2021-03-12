@@ -78,13 +78,6 @@ public abstract class AbstractEventJdbcTableManager
             databaseInfo, jdbcTemplate );
     }
 
-    protected final String numericClause = " and value " + statementBuilder.getRegexpMatch() + " '"
-        + NUMERIC_LENIENT_REGEXP + "'";
-
-    protected final String dateClause = " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
-
-    protected static final String GEOMETRY_INDEX_TYPE = "gist";
-
     @Override
     @Async
     public Future<?> applyAggregationLevels( ConcurrentLinkedQueue<AnalyticsTablePartition> partitions,
@@ -98,6 +91,16 @@ public abstract class AbstractEventJdbcTableManager
     public Future<?> vacuumTablesAsync( ConcurrentLinkedQueue<AnalyticsTablePartition> tables )
     {
         return ConcurrentUtils.getImmediateFuture();
+    }
+
+    protected final String getNumericClause()
+    {
+        return " and value " + statementBuilder.getRegexpMatch() + " '" + NUMERIC_LENIENT_REGEXP + "'";
+    }
+
+    protected final String getDateClause()
+    {
+        return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
     }
 
     /**
@@ -209,7 +212,8 @@ public abstract class AbstractEventJdbcTableManager
         for ( TrackedEntityAttribute attribute : program.getNonConfidentialTrackedEntityAttributes() )
         {
             ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
-            String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
+            String dataClause = attribute.isNumericType() ? getNumericClause()
+                : attribute.isDateType() ? getDateClause() : "";
             String select = getSelectClause( attribute.getValueType(), "value" );
             boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
 
