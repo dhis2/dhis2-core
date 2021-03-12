@@ -524,11 +524,6 @@ public class DefaultTrackedEntityInstanceService
             violation = "Program and tracked entity cannot be specified simultaneously";
         }
 
-        if ( !params.hasTrackedEntityInstances() && !params.hasProgram() && !params.hasTrackedEntityType() )
-        {
-            violation = "Either Program or Tracked entity type should be specified";
-        }
-
         if ( params.hasProgramStatus() && !params.hasProgram() )
         {
             violation = "Program must be defined when program status is defined";
@@ -696,7 +691,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
 
-                if ( !params.hasTrackedEntityInstances() && isProgramMinAttributesViolated( params ) )
+                if ( isProgramMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getProgram().getMinAttributesRequiredToSearch()
@@ -708,7 +703,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
 
-                if ( !params.hasTrackedEntityInstances() && isTeTypeMinAttributesViolated( params ) )
+                if ( isTeTypeMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()

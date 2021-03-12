@@ -193,7 +193,7 @@
           "displayShortName": "null TEAA",
           "externalAccess": false,
           "valueType": "TEXT",
-          "searchable": true,
+          "searchable": false,
           "displayInList": false,
           "favorite": false,
           "access": {

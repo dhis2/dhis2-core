@@ -93,7 +93,6 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -107,11 +106,10 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Test
     public void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
-        final String tetUid = CodeGenerator.generateUid();
         doInTransaction( () -> {
 
             TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
-            trackedEntityTypeZ.setUid( tetUid );
+            trackedEntityTypeZ.setUid( CodeGenerator.generateUid() );
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
 
@@ -131,7 +129,6 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeService.getTrackedEntityType( tetUid ) );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
