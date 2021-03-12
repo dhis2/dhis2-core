@@ -564,6 +564,7 @@ public class HibernateTrackedEntityInstanceStore
      *
      *
      * @param params params defining the query
+     * @param isGridQuery indicates if the query is a grid query.
      * @return SQL string
      */
     private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
@@ -571,10 +572,10 @@ public class HibernateTrackedEntityInstanceStore
         return new StringBuilder()
             .append( getQuerySelect( params, isGridQuery ) )
             .append( "FROM " )
-            .append( getFromSubQuery( params, false ) )
+            .append( getFromSubQuery( params, false, isGridQuery ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
-            .append( getQueryOrderBy( false, params ) )
+            .append( getQueryOrderBy( false, params, isGridQuery ) )
             .toString();
     }
 
@@ -589,7 +590,7 @@ public class HibernateTrackedEntityInstanceStore
             .append( getQueryCountSelect( params ) )
             .append( getQuerySelect( params, true ) )
             .append( "FROM " )
-            .append( getFromSubQuery( params, true ) )
+            .append( getFromSubQuery( params, true, true ) )
             .append( getQueryRelatedTables( params ) )
             .append( getQueryGroupBy( params ) )
             .append( " ) teicount" )
@@ -639,9 +640,10 @@ public class HibernateTrackedEntityInstanceStore
      * Orchestrates all the different segments of the SQL into a complete subquery.
      * @param params
      * @param isCountQuery indicates if the query is a count query. In that case we skip order and limit.
+     * @param isGridQuery indicates if the query is a grid query.
      * @return an SQL subquery
      */
-    private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery )
+    private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery, boolean isGridQuery )
     {
         SqlHelper whereAnd = new SqlHelper( true );
         StringBuilder fromSubQuery = new StringBuilder()
@@ -666,7 +668,7 @@ public class HibernateTrackedEntityInstanceStore
         {
             // SORT
             fromSubQuery
-                .append( getQueryOrderBy( true, params ) )
+                .append( getQueryOrderBy( true, params, isGridQuery ) )
 
                 // LIMIT, OFFSET
                 .append( getFromSubQueryLimitAndOffset( params ) );
@@ -1353,15 +1355,16 @@ public class HibernateTrackedEntityInstanceStore
      * subquery, we want to make sure we get the right teis. When we order in the main query, it's to make sure we return
      * the results in the correct order, since order might be mixed after GROUP BY.
      * @param innerOrder indicates whether this is the subquery order by or main query order by
-     * @param params
+     * @param params 
+     * @param isGridQuery indicates if the query is a grid query.   
      * @return a SQL ORDER BY clause.
      */
-    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params )
+    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
     {
         List<String> cols = getStaticGridColumns();
 
-        if ( params.getOrders() != null && params.getAttributes() != null && !params.getAttributes().isEmpty() && !cols
-            .isEmpty() )
+        if ( params.getOrders() != null
+            && (!isGridQuery || (params.getAttributes() != null && !params.getAttributes().isEmpty())) )
         {
             ArrayList<String> orderFields = new ArrayList<String>();
 
