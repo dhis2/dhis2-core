@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 
@@ -96,6 +97,7 @@ public class AuthoritiesProviderConfig
     @Qualifier( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
     public OrganisationUnitService organisationUnitService;
 
+    @Primary
     @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
     public SystemAuthoritiesProvider systemAuthoritiesProvider()
     {
