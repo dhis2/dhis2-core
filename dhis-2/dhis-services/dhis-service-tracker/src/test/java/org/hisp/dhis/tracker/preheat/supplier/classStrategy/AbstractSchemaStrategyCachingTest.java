@@ -114,7 +114,7 @@ public class AbstractSchemaStrategyCachingTest
 
         verify( cache, times( 1 ) ).hasKey( "RelationshipType" );
 
-        verify( cache, times( 5 ) ).put( eq( "RelationshipType" ), anyString(), any(), eq( 10 ), eq( Long.MAX_VALUE ) );
+        verify( cache, times( 5 ) ).put( eq( "RelationshipType" ), anyString(), any(), eq( 10 ), eq( 10L ) );
     }
 
     @Test
@@ -162,7 +162,7 @@ public class AbstractSchemaStrategyCachingTest
         // Then
         assertThat( preheat.getAll( Program.class ), hasSize( 1 ) );
 
-        verify( cache, times( 1 ) ).put( eq( "Program" ), anyString(), any(), eq( 20 ), eq( Long.MAX_VALUE ) );
+        verify( cache, times( 1 ) ).put( eq( "Program" ), anyString(), any(), eq( 20 ), eq( 10L ) );
     }
 
 }

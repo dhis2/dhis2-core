@@ -33,6 +33,7 @@ import com.google.gson.JsonObject;
 import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
+import org.hisp.dhis.actions.MessageConversationsActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
@@ -61,11 +62,15 @@ public class SideEffectsTests
 
     private TrackerActions trackerActions;
 
+    private MessageConversationsActions messageConversationsActions;
+
     @BeforeAll
     public void beforeAll()
         throws Exception
     {
         trackerActions = new TrackerActions();
+        messageConversationsActions = new MessageConversationsActions();
+
         new LoginActions().loginAsSuperUser();
 
         setupData();
@@ -87,7 +92,7 @@ public class SideEffectsTests
 
         int expectedCount = (shouldSkipSideEffects) ? size : size + 1;
 
-        response = waitForNotification( expectedCount );
+        response = messageConversationsActions.waitForNotification( expectedCount );
 
         response
             .validate()
@@ -100,24 +105,6 @@ public class SideEffectsTests
         }
 
         response.validate().body( "messageConversations.subject", hasItem( "TA program stage completion" ) );
-    }
-
-    public ApiResponse waitForNotification( int expectedCount )
-    {
-
-        boolean isReceived = false;
-        int attemptCount = 10;
-        ApiResponse response = null;
-        while ( !isReceived && attemptCount > 0 )
-        {
-            response = new RestApiActions( "/messageConversations" )
-                .get( "", new QueryParamsBuilder().add( "fields=subject" ) );
-
-            isReceived = (response.extractList( "messageConversations" ).size() == expectedCount);
-            attemptCount--;
-        }
-
-        return response;
     }
 
     private void setupData()

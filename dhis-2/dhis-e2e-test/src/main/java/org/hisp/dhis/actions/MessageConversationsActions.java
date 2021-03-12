@@ -25,26 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.preheat.supplier.classStrategy;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.tracker.preheat.cache.PreheatCacheService;
-import org.hisp.dhis.tracker.preheat.mappers.RelationshipTypeMapper;
-import org.springframework.stereotype.Component;
+package org.hisp.dhis.actions;
+
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
- * @author Luciano Fiandesio
+ * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Component
-@StrategyFor( value = RelationshipType.class, mapper = RelationshipTypeMapper.class, cache = true, ttl = 10, capacity = 10 )
-public class RelationshipTypeStrategy extends AbstractSchemaStrategy
+public class MessageConversationsActions
+    extends RestApiActions
 {
-    public RelationshipTypeStrategy( SchemaService schemaService, QueryService queryService,
-        IdentifiableObjectManager manager, PreheatCacheService cacheService )
+    public MessageConversationsActions()
     {
-        super( schemaService, queryService, manager, cacheService );
+        super( "/messageConversations" );
+    }
+
+    public ApiResponse waitForNotification( int expectedCount )
+    {
+        boolean isReceived = false;
+        int attemptCount = 20;
+        ApiResponse response = null;
+        while ( !isReceived && attemptCount > 0 )
+        {
+            response = this.get( "", new QueryParamsBuilder().add( "fields=subject" ) );
+            isReceived = (response.extractList( "messageConversations" ).size() == expectedCount);
+            attemptCount--;
+        }
+
+        return response;
     }
 }

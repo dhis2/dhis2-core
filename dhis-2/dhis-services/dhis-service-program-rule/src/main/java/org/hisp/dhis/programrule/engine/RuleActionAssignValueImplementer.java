@@ -43,6 +43,7 @@ import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Zubair Asghar
@@ -80,6 +81,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
@@ -89,6 +91,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
         ProgramInstance programInstance = programStageInstance.getProgramInstance();
@@ -97,12 +100,14 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implementEnrollmentAction( RuleEffect ruleEffect, String programInstance )
     {
         implement( ruleEffect, programInstanceService.getProgramInstance( programInstance ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void implementEventAction( RuleEffect ruleEffect, String programStageInstance )
     {
         implement( ruleEffect, programStageInstanceService.getProgramStageInstance( programStageInstance ) );
