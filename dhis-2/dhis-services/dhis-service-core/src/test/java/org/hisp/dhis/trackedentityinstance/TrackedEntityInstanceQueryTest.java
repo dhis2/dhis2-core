@@ -29,11 +29,14 @@ package org.hisp.dhis.trackedentityinstance;
  */
 
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -45,6 +48,9 @@ public class TrackedEntityInstanceQueryTest
     @Autowired
     private TrackedEntityInstanceService instanceService;
     
+    @Rule
+    public ExpectedException expectedException = ExpectedException.none();
+    
     @Test
     public void testValidateNoOrgUnitsModeAll()
     {
@@ -52,6 +58,16 @@ public class TrackedEntityInstanceQueryTest
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType(  'A' );
         params.setTrackedEntityType( trackedEntityTypeA );        
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        instanceService.validate( params );
+    }
+    
+    @Test
+    public void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
+    {
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        expectedException.expect( IllegalQueryException.class );
+        expectedException.expectMessage( "Either Program or Tracked entity type should be specified" );
         instanceService.validate( params );
     }
 }
