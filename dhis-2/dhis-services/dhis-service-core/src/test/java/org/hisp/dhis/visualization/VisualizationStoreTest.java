@@ -90,9 +90,6 @@ public class VisualizationStoreTest
 
         VisualizationFontStyle fontStyle = new VisualizationFontStyle();
         fontStyle.setVisualizationTitle( visualizationTitle );
-        fontStyle.setHorizontalAxisTitle( horizontalAxisTitle );
-        fontStyle.setSeriesAxisLabel( seriesAxisLabel );
-        fontStyle.setTargetLineLabel( targetLineLabel );
 
         RelativePeriods relativePeriods = new RelativePeriods()
             .setLast30Days( true );
@@ -114,15 +111,6 @@ public class VisualizationStoreTest
         assertNotNull( vA.getFontStyle().getVisualizationTitle() );
         assertEquals( Font.VERDANA, vA.getFontStyle().getVisualizationTitle().getFont() );
         assertEquals( Integer.valueOf( 16 ), vA.getFontStyle().getVisualizationTitle().getFontSize() );
-        assertNotNull( vA.getFontStyle().getHorizontalAxisTitle() );
-        assertEquals( Font.ARIAL, vA.getFontStyle().getHorizontalAxisTitle().getFont() );
-        assertTrue( vA.getFontStyle().getHorizontalAxisTitle().getItalic() );
-        assertNotNull( vA.getFontStyle().getSeriesAxisLabel() );
-        assertEquals( Font.ARIAL, vA.getFontStyle().getSeriesAxisLabel().getFont() );
-        assertTrue( vA.getFontStyle().getSeriesAxisLabel().getUnderline() );
-        assertNotNull( vA.getFontStyle().getTargetLineLabel() );
-        assertEquals( Font.VERDANA, vA.getFontStyle().getTargetLineLabel().getFont() );
-        assertTrue( vA.getFontStyle().getTargetLineLabel().getBold() );
 
         assertNotNull( vA.getRelatives() );
         assertTrue( vA.getRelatives().isLast30Days() );
