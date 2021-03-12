@@ -229,7 +229,7 @@ public class TrackedEntityAttributeServiceTest
         Option option1 = new Option();
         option1.setCode( "CODE1" );
 
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        optionSet.setOptions( Arrays.asList( null, option, option1 ) );
         tea.setOptionSet( optionSet );
 
         assertNull( trackedEntityAttributeService.validateValueType( tea, "CODE" ) );
