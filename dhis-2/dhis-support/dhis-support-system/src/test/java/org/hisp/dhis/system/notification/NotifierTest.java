@@ -43,7 +43,6 @@ import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.user.User;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -211,7 +210,6 @@ public class NotifierTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore( "Fails randomly due to awaitTermination" )
     public void testInsertingNotificationsInSameJobConcurrently()
         throws InterruptedException
     {
@@ -240,7 +238,6 @@ public class NotifierTest extends DhisSpringTest
     }
 
     @Test
-    @Ignore( "Fails randomly due to awaitTermination" )
     public void testInsertingNotificationJobConcurrently()
         throws InterruptedException
     {
