@@ -31,9 +31,9 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
@@ -43,7 +43,7 @@ import org.hisp.dhis.program.ProgramStatus;
 
 @Builder
 @Getter
-@NoArgsConstructor
+@AllArgsConstructor
 public class EventDataQueryRequest
 {
     private String program;
