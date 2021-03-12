@@ -27,7 +27,11 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThrows;
+
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -52,5 +56,15 @@ public class TrackedEntityInstanceQueryTest
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
+    }
+
+    @Test
+    public void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
+    {
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
+        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+            () -> instanceService.validate( params ) );
+        assertEquals( "Either Program or Tracked entity type should be specified", exception.getMessage() );
     }
 }

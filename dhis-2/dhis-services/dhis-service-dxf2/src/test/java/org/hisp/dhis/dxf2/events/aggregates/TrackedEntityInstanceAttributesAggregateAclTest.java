@@ -93,6 +93,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -106,10 +107,11 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
     @Test
     public void verifyTeiCanBeAccessedWhenDATA_READPublicAccessOnTrackedEntityType()
     {
+        final String tetTypeUid = CodeGenerator.generateUid();
         doInTransaction( () -> {
 
             TrackedEntityType trackedEntityTypeZ = createTrackedEntityType( 'Z' );
-            trackedEntityTypeZ.setUid( CodeGenerator.generateUid() );
+            trackedEntityTypeZ.setUid( tetTypeUid );
             trackedEntityTypeZ.setName( "TrackedEntityTypeZ" + trackedEntityTypeZ.getUid() );
             trackedEntityTypeService.addTrackedEntityType( trackedEntityTypeZ );
 
@@ -117,7 +119,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
             // public access value is ignored
             // therefore we need to update the previously saved TeiType
             final TrackedEntityType trackedEntityType = trackedEntityTypeService
-                .getTrackedEntityType( trackedEntityTypeZ.getUid() );
+                .getTrackedEntityType( tetTypeUid );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
 
@@ -127,8 +129,11 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
             this.persistTrackedEntityInstance();
         } );
 
+        TrackedEntityType trackedEntityType = trackedEntityTypeService
+            .getTrackedEntityType( tetTypeUid );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityType );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
