@@ -223,6 +223,17 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
+    
+    /**
+     * Indicates if there is a maximum tei retrieval limit. 0 no limit.
+     */
+    private int maxTeiLimit;
+
+    /**
+     * Indicates if a count of records for this params is already calculated.
+     * Used to avoid redundant querying to find count.
+     */
+    private int count;
 
     /**
      * Indicates whether to include soft-deleted elements
@@ -1085,6 +1096,28 @@ public class TrackedEntityInstanceQueryParams
         this.skipPaging = skipPaging;
         return this;
     }
+    
+    public int getMaxTeiLimit()
+    {
+        return maxTeiLimit;
+    }
+
+    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    {
+        this.maxTeiLimit = maxTeiLimit;
+        return this;
+    }
+
+    public int getCount()
+    {
+        return count;
+    }
+
+    public TrackedEntityInstanceQueryParams setCount( int count )
+    {
+        this.count = count;
+        return this;
+    }
 
     public boolean isIncludeDeleted()
     {
@@ -1203,5 +1236,11 @@ public class TrackedEntityInstanceQueryParams
     public void setTrackedEntityTypes( List<TrackedEntityType> trackedEntityTypes )
     {
         this.trackedEntityTypes = trackedEntityTypes;
+    }
+    
+    public boolean hasFilterForPrograms()
+    {
+        return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
+            || hasProgramIncidentStartDate() || hasProgramIncidentEndDate() || hasFilterForEvents();
     }
 }
