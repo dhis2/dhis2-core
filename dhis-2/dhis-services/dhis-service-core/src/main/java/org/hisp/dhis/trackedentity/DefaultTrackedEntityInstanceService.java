@@ -244,11 +244,11 @@ public class DefaultTrackedEntityInstanceService
     /**
      * This method handles any dynamic sort order columns in the params. These
      * has to be added to attribute list if there it is neither present in
-     * attribute list nor filter list.
+     * attribute list
      *
-     * For example, if attributes or filters doesnt have a specific
-     * trackedentityattribute uid, but sorting has been requested for that tea
-     * uid, then we need to add them to the attribute list.
+     * For example, if attributes doesnt have a specific trackedentityattribute
+     * uid, but sorting has been requested for that tea uid, then we need to add
+     * them to the attribute list.
      *
      * @param params The TEIQueryParams object
      */
@@ -262,8 +262,8 @@ public class DefaultTrackedEntityInstanceService
                     return attributeService.getTrackedEntityAttribute( orderParam.getField() );
                 } ).collect( Collectors.toList() );
 
-            // adding to attributes conditionally if they are also not present
-            // in filters.
+            // adding to attributes conditionally if they are not already
+            // present
             params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ) );
         }
     }
