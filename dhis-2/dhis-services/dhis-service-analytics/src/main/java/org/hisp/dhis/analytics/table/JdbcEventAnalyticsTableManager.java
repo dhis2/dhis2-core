@@ -401,21 +401,7 @@ public class JdbcEventAnalyticsTableManager
 
         if ( attribute.getValueType().isOrganisationUnit() )
         {
-            if ( databaseInfo.isSpatialSupport() )
-            {
-                final String geoSql = selectForInsert( attribute,
-                    "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
-                columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                    ColumnDataType.GEOMETRY, geoSql )
-                        .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
-            }
-
-            // Add org unit name column
-            final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
-            final String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-                .withSkipIndex( true ) );
+            columns.addAll( getColumnsFromOrgUnitTrackedEntityAttribute( attribute, dataClause ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
@@ -456,28 +442,63 @@ public class JdbcEventAnalyticsTableManager
 
         if ( dataElement.getValueType().isOrganisationUnit() )
         {
-            if ( databaseInfo.isSpatialSupport() )
-            {
-                String geoSql = selectForInsert( dataElement,
-                    "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
-
-                columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                    ColumnDataType.GEOMETRY, geoSql )
-                        .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
-            }
-
-            // Add org unit name column
-            final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
-            final String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
-
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-                .withSkipIndex( true ) );
+            columns.addAll( getColumnFromOrgUnitDataElement( dataElement, dataClause ) );
         }
 
         columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql )
             .withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromDataElementWithLegendSet( dataElement, select, dataClause ) : columns;
+    }
+
+    private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute( TrackedEntityAttribute attribute,
+        String dataClause )
+    {
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        if ( databaseInfo.isSpatialSupport() )
+        {
+            final String geoSql = selectForInsert( attribute,
+                "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
+                ColumnDataType.GEOMETRY, geoSql )
+                    .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+        }
+
+        // Add org unit name column
+        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        final String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
+
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
+            .withSkipIndex( true ) );
+
+        return columns;
+    }
+
+    private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement( DataElement dataElement, String dataClause )
+    {
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+
+        if ( databaseInfo.isSpatialSupport() )
+        {
+            String geoSql = selectForInsert( dataElement,
+                "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
+
+            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
+                ColumnDataType.GEOMETRY, geoSql )
+                    .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+        }
+
+        // Add org unit name column
+        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+        final String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
+
+        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
+            .withSkipIndex( true ) );
+
+        return columns;
     }
 
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
