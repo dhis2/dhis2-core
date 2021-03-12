@@ -32,11 +32,14 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM;
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_GOOGLE_REDIRECT_URI;
 
+import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.GenericOidcProviderConfigParser;
 import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
@@ -52,12 +55,48 @@ public class GoogleProvider extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static DhisOidcClientRegistration build( DhisConfigurationProvider config )
+    public static DhisOidcClientRegistration parse( Properties config )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
-        String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID );
-        String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET );
+        Map<String, Set<String>> allKeysByProvider = GenericOidcProviderConfigParser
+            .extractKeysGroupByProvider( config );
+
+        // Skip parsing if there is no keys matching REGISTRATION_ID
+        if ( !allKeysByProvider.containsKey( REGISTRATION_ID ) || allKeysByProvider.get( REGISTRATION_ID ).isEmpty() )
+        {
+            return null;
+        }
+
+        Set<String> googleKeys = allKeysByProvider.get( REGISTRATION_ID );
+
+        Map<String, Map<String, String>> externalClientConfigs = GenericOidcProviderConfigParser
+            .getAllExternalClients( config, REGISTRATION_ID, googleKeys );
+
+        ClientRegistration clientRegistration = buildClientRegistration( config );
+
+        if ( clientRegistration == null )
+        {
+            return null;
+        }
+
+        return DhisOidcClientRegistration.builder()
+            .clientRegistration( clientRegistration )
+            .mappingClaimKey(
+                StringUtils.firstNonBlank(
+                    config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM.getKey() ),
+                    "email" ) )
+            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
+            .loginIconPadding( "0px 0px" )
+            .loginText( "login_with_google" )
+            .externalClients( externalClientConfigs )
+            .build();
+    }
+
+    private static ClientRegistration buildClientRegistration( Properties config )
+    {
+        String clientId = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_ID.getKey() );
+        String clientSecret = config.getProperty( OIDC_PROVIDER_GOOGLE_CLIENT_SECRET.getKey() );
 
         if ( clientId.isEmpty() )
         {
@@ -69,20 +108,12 @@ public class GoogleProvider extends AbstractOidcProvider
             throw new IllegalArgumentException( "Google client secret is missing!" );
         }
 
-        final ClientRegistration clientRegistration = CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
+        return CommonOAuth2Provider.GOOGLE.getBuilder( REGISTRATION_ID )
             .clientId( clientId )
             .clientSecret( clientSecret )
             .redirectUri( StringUtils.firstNonBlank(
-                config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI ),
+                config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI.getKey() ),
                 DEFAULT_REDIRECT_TEMPLATE_URL ) )
-            .build();
-
-        return DhisOidcClientRegistration.builder()
-            .clientRegistration( clientRegistration )
-            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM ) )
-            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
-            .loginIconPadding( "0px 0px" )
-            .loginText( "login_with_google" )
             .build();
     }
 }

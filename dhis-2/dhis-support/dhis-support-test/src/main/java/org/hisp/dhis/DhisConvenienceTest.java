@@ -184,6 +184,7 @@ import org.springframework.util.Assert;
 import org.springframework.util.MimeTypeUtils;
 import org.xml.sax.InputSource;
 
+import com.google.api.client.util.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.common.hash.HashCode;
@@ -1723,6 +1724,44 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
+    public static RelationshipType createTeiToEnrollmentRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_enrollment_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
+    public static RelationshipType createTeiToEventRelationshipType( char uniqueCharacter, Program program,
+        TrackedEntityType trackedEntityType, boolean isBidirectional )
+    {
+        RelationshipConstraint teiConstraintA = new RelationshipConstraint();
+        teiConstraintA.setProgram( program );
+        teiConstraintA.setTrackedEntityType( trackedEntityType );
+        teiConstraintA.setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
+        RelationshipConstraint teiConstraintB = new RelationshipConstraint();
+        teiConstraintB.setProgram( program );
+        teiConstraintB.setTrackedEntityType( trackedEntityType );
+        teiConstraintB.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
+        relationshipType.setName( "Tei_to_event_" + uniqueCharacter );
+        relationshipType.setBidirectional( isBidirectional );
+        relationshipType.setFromConstraint( teiConstraintA );
+        relationshipType.setToConstraint( teiConstraintB );
+        return relationshipType;
+    }
+
     public static RelationshipType createRelationshipType( char uniqueCharacter )
     {
         RelationshipType relationshipType = new RelationshipType();
@@ -2262,9 +2301,17 @@ public abstract class DhisConvenienceTest
 
     protected User createUser( String username, String... authorities )
     {
-        checkUserServiceWasInjected();
+        return _createUser( username, null, authorities );
+    }
 
-        String password = DEFAULT_ADMIN_PASSWORD;
+    protected User createOpenIDUser( String username, String openIDIdentifier )
+    {
+        return _createUser( username, openIDIdentifier );
+    }
+
+    private User _createUser( String username, String openIDIdentifier, String... authorities )
+    {
+        checkUserServiceWasInjected();
 
         UserAuthorityGroup group = createAuthorityGroup( username, authorities );
 
@@ -2274,9 +2321,9 @@ public abstract class DhisConvenienceTest
 
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, user, group );
+        UserCredentials credentials = createUserCredentials( username, openIDIdentifier, user, group );
 
-        userService.encodeAndSetPassword( credentials, password );
+        userService.encodeAndSetPassword( credentials, DEFAULT_ADMIN_PASSWORD );
         userService.addUserCredentials( credentials );
 
         user.setUserCredentials( credentials );
@@ -2302,7 +2349,7 @@ public abstract class DhisConvenienceTest
 
         userService.addUser( user );
 
-        UserCredentials credentials = createUserCredentials( username, user, group );
+        UserCredentials credentials = createUserCredentials( username, null, user, group );
         credentials.setUid( "KvMx6c1eoYo" );
         credentials.setUuid( UUID.fromString( "6507f586-f154-4ec1-a25e-d7aa51de5216" ) );
 
@@ -2414,7 +2461,8 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private static UserCredentials createUserCredentials( String username, User user, UserAuthorityGroup group )
+    private static UserCredentials createUserCredentials( String username, String openIDIdentifier, User user,
+        UserAuthorityGroup group )
     {
         UserCredentials credentials = new UserCredentials();
         credentials.setCode( username );
@@ -2422,6 +2470,13 @@ public abstract class DhisConvenienceTest
         credentials.setUserInfo( user );
         credentials.setUsername( username );
         credentials.getUserAuthorityGroups().add( group );
+
+        if ( !Strings.isNullOrEmpty( openIDIdentifier ) )
+        {
+            credentials.setOpenId( openIDIdentifier );
+            credentials.setExternalAuth( true );
+        }
+
         return credentials;
     }
 

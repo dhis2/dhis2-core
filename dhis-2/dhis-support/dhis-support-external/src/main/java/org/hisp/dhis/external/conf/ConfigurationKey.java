@@ -44,6 +44,7 @@ public enum ConfigurationKey
     SYSTEM_MONITORING_PASSWORD( "system.monitoring.password" ),
     SYSTEM_SQL_VIEW_TABLE_PROTECTION( "system.sql_view_table_protection", Constants.ON, false ),
     SYSTEM_PROGRAM_RULE_SERVER_EXECUTION( "system.program_rule.server_execution", Constants.ON, false ),
+    SYSTEM_CACHE_MAX_SIZE_FACTOR( "system.cache.max_size.factor", "0.5", false ),
     NODE_ID( "node.id", "", false ),
     ENCRYPTION_PASSWORD( "encryption.password", "", true ),
     CONNECTION_DIALECT( "connection.dialect", "", false ),
@@ -128,7 +129,7 @@ public enum ConfigurationKey
     OIDC_LOGOUT_REDIRECT_URL( "oidc.logout.redirect_url", "", false ),
     OIDC_PROVIDER_GOOGLE_CLIENT_ID( "oidc.provider.google.client_id", "", true ),
     OIDC_PROVIDER_GOOGLE_CLIENT_SECRET( "oidc.provider.google.client_secret", "", true ),
-    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "email", true ),
+    OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM( "oidc.provider.google.mapping_claim", "", true ),
     OIDC_PROVIDER_GOOGLE_REDIRECT_URI( "oidc.provider.google.redirect_url", "", true ),
     OIDC_PROVIDER_WSO2_CLIENT_ID( "oidc.provider.wso2.client_id", "", false ),
     OIDC_PROVIDER_WSO2_CLIENT_SECRET( "oidc.provider.wso2.client_secret", "", false ),
@@ -145,7 +146,9 @@ public enum ConfigurationKey
     DB_POOL_TYPE( "db.pool.type", "c3p0", false ),
     ACTIVE_READ_REPLICAS( "active.read.replicas", "0", false ),
     AUDIT_ENABLED( "system.audit.enabled", Constants.TRUE, false ),
-    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false );
+    TRACKER_IMPORT_PREHEAT_CACHE_ENABLED( "tracker.import.preheat.cache.enabled", Constants.ON, false ),
+    ENABLE_OAUTH2_AUTHORIZATION_SERVER( "oauth2.authorization.server.enabled", Constants.ON, false ),
+    ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false );
 
     private final String key;
 

@@ -59,6 +59,11 @@ public interface JsonError extends JsonObject
         return getString( "message" ).string();
     }
 
+    default String getDevMessage()
+    {
+        return getString( "devMessage" ).string();
+    }
+
     /**
      * OBS! This property only exists in some error responses.
      */
@@ -85,7 +90,8 @@ public interface JsonError extends JsonObject
                 }
             }
         };
-        str.append( getMessage() );
+        String message = getMessage();
+        str.append( message != null ? message : "(no error message in response)" );
         if ( getTypeReport().exists() )
         {
             printer.accept( getTypeReport().getErrorReports() );

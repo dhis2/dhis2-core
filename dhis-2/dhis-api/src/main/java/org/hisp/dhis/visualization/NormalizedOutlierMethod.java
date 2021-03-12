@@ -32,5 +32,5 @@ package org.hisp.dhis.visualization;
  */
 public enum NormalizedOutlierMethod
 {
-    XY_RATIO
+    Y_RESIDUALS_LINEAR
 }

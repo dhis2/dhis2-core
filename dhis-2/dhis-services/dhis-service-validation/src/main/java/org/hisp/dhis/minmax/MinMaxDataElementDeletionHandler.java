@@ -37,17 +37,12 @@ import org.springframework.stereotype.Component;
 
 /**
  * @author Lars Helge Overland
- * @version $Id$
  */
 @Component( "org.hisp.dhis.minmax.MinMaxDataElementDeletionHandler" )
 public class MinMaxDataElementDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
-    private MinMaxDataElementService minMaxDataElementService;
+    private final MinMaxDataElementService minMaxDataElementService;
 
     public MinMaxDataElementDeletionHandler( MinMaxDataElementService minMaxDataElementService )
     {
@@ -56,30 +51,25 @@ public class MinMaxDataElementDeletionHandler
         this.minMaxDataElementService = minMaxDataElementService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return MinMaxDataElement.class.getSimpleName();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( CategoryOptionCombo.class, this::deleteCategoryOptionCombo );
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
         minMaxDataElementService.removeMinMaxDataElements( dataElement );
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit source )
+    private void deleteOrganisationUnit( OrganisationUnit source )
     {
         minMaxDataElementService.removeMinMaxDataElements( source );
     }
 
-    @Override
-    public void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
+    private void deleteCategoryOptionCombo( CategoryOptionCombo optionCombo )
     {
         minMaxDataElementService.removeMinMaxDataElements( optionCombo );
     }

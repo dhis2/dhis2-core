@@ -41,10 +41,6 @@ import org.springframework.stereotype.Component;
 public class UserSettingDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
-
     private final UserSettingService userSettingService;
 
     public UserSettingDeletionHandler( UserSettingService userSettingService )
@@ -54,18 +50,13 @@ public class UserSettingDeletionHandler
         this.userSettingService = userSettingService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return User.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         Iterator<UserSetting> settings = userSettingService.getUserSettings( user ).iterator();
 

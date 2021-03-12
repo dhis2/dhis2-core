@@ -72,18 +72,20 @@ public class DataSetDeletionHandler
         this.categoryService = categoryService;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return DataSet.class.getSimpleName();
+        whenDeleting( DataElement.class, this::deleteDataElement );
+        whenDeleting( Indicator.class, this::deleteIndicator );
+        whenDeleting( Section.class, this::deleteSection );
+        whenDeleting( LegendSet.class, this::deleteLegendSet );
+        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
+        whenDeleting( OrganisationUnit.class, this::deleteOrganisationUnit );
+        whenDeleting( DataEntryForm.class, this::deleteDataEntryForm );
+        whenDeleting( DataApprovalWorkflow.class, this::deleteDataApprovalWorkflow );
     }
 
-    @Override
-    public void deleteDataElement( DataElement dataElement )
+    private void deleteDataElement( DataElement dataElement )
     {
         Iterator<DataSetElement> elements = dataElement.getDataSetElements().iterator();
 
@@ -122,8 +124,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteIndicator( Indicator indicator )
+    private void deleteIndicator( Indicator indicator )
     {
         for ( DataSet dataSet : indicator.getDataSets() )
         {
@@ -132,8 +133,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteSection( Section section )
+    private void deleteSection( Section section )
     {
         DataSet dataSet = section.getDataSet();
 
@@ -144,8 +144,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteLegendSet( LegendSet legendSet )
+    private void deleteLegendSet( LegendSet legendSet )
     {
         for ( DataSet dataSet : idObjectManager.getAllNoAcl( DataSet.class ) )
         {
@@ -161,8 +160,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteCategoryCombo( CategoryCombo categoryCombo )
+    private void deleteCategoryCombo( CategoryCombo categoryCombo )
     {
         CategoryCombo defaultCategoryCombo = categoryService
             .getCategoryComboByName( DEFAULT_CATEGORY_COMBO_NAME );
@@ -179,8 +177,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteOrganisationUnit( OrganisationUnit unit )
+    private void deleteOrganisationUnit( OrganisationUnit unit )
     {
         for ( DataSet dataSet : unit.getDataSets() )
         {
@@ -189,8 +186,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataEntryForm( DataEntryForm dataEntryForm )
+    private void deleteDataEntryForm( DataEntryForm dataEntryForm )
     {
         List<DataSet> associatedDataSets = dataSetService.getDataSetsByDataEntryForm( dataEntryForm );
 
@@ -201,8 +197,7 @@ public class DataSetDeletionHandler
         }
     }
 
-    @Override
-    public void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
+    private void deleteDataApprovalWorkflow( DataApprovalWorkflow workflow )
     {
         for ( DataSet dataSet : workflow.getDataSets() )
         {

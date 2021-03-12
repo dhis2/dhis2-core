@@ -48,13 +48,12 @@ public class UserKeyJsonValueDeletionHandler
     }
 
     @Override
-    protected String getClassName()
+    protected void register()
     {
-        return UserKeyJsonValue.class.getSimpleName();
+        whenDeleting( User.class, this::deleteUser );
     }
 
-    @Override
-    public void deleteUser( User user )
+    private void deleteUser( User user )
     {
         jdbcTemplate.execute( "DELETE FROM userkeyjsonvalue WHERE userid = " + user.getId() );
     }

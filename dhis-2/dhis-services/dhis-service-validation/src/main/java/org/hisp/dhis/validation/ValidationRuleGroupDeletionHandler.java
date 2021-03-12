@@ -40,7 +40,7 @@ import org.springframework.stereotype.Component;
 public class ValidationRuleGroupDeletionHandler
     extends DeletionHandler
 {
-    private IdentifiableObjectManager idObjectManager;
+    private final IdentifiableObjectManager idObjectManager;
 
     public ValidationRuleGroupDeletionHandler( IdentifiableObjectManager idObjectManager )
     {
@@ -49,18 +49,13 @@ public class ValidationRuleGroupDeletionHandler
         this.idObjectManager = idObjectManager;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String getClassName()
+    protected void register()
     {
-        return ValidationRuleGroup.class.getSimpleName();
+        whenDeleting( ValidationRule.class, this::deleteValidationRule );
     }
 
-    @Override
-    public void deleteValidationRule( ValidationRule validationRule )
+    private void deleteValidationRule( ValidationRule validationRule )
     {
         for ( ValidationRuleGroup group : validationRule.getGroups() )
         {
