@@ -729,7 +729,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getProgram().getMaxTeiCountToReturn();
 
-                if ( isProgramMinAttributesViolated( params ) )
+                if ( !params.hasTrackedEntityInstances() && isProgramMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getProgram().getMinAttributesRequiredToSearch()
@@ -741,7 +741,7 @@ public class DefaultTrackedEntityInstanceService
             {
                 maxTeiLimit = params.getTrackedEntityType().getMaxTeiCountToReturn();
 
-                if ( isTeTypeMinAttributesViolated( params ) )
+                if ( !params.hasTrackedEntityInstances() && isTeTypeMinAttributesViolated( params ) )
                 {
                     throw new IllegalQueryException(
                         "At least " + params.getTrackedEntityType().getMinAttributesRequiredToSearch()
