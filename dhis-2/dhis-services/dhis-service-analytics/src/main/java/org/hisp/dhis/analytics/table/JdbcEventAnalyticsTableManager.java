@@ -76,7 +76,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -87,10 +86,6 @@ import com.google.common.collect.Lists;
 public class JdbcEventAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
-    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of(
-        ValueType.TEXT,
-        ValueType.LONG_TEXT );
-
     public static final String OU_NAME_COL_SUFFIX = "_name";
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
@@ -568,10 +563,5 @@ public class JdbcEventAnalyticsTableManager
     private AnalyticsTableColumn toCharColumn( String name, String prefix, Date created )
     {
         return new AnalyticsTableColumn( name, CHARACTER_11, prefix + "." + name ).withCreated( created );
-    }
-
-    private boolean skipIndex( ValueType valueType, boolean hasOptionSet )
-    {
-        return NO_INDEX_VAL_TYPES.contains( valueType ) && !hasOptionSet;
     }
 }

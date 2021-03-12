@@ -103,6 +103,11 @@ public abstract class AbstractEventJdbcTableManager
         return " and value " + statementBuilder.getRegexpMatch() + " '" + DATE_REGEXP + "'";
     }
 
+    protected final boolean skipIndex( ValueType valueType, boolean hasOptionSet )
+    {
+        return NO_INDEX_VAL_TYPES.contains( valueType ) && !hasOptionSet;
+    }
+
     /**
      * Returns the select clause, potentially with a cast statement, based on
      * the given value type.
@@ -215,7 +220,7 @@ public abstract class AbstractEventJdbcTableManager
             String dataClause = attribute.isNumericType() ? getNumericClause()
                 : attribute.isDateType() ? getDateClause() : "";
             String select = getSelectClause( attribute.getValueType(), "value" );
-            boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
+            boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
 
             String sql = "(select " + select + " " +
                 "from trackedentityattributevalue where trackedentityinstanceid=pi.trackedentityinstanceid " +
