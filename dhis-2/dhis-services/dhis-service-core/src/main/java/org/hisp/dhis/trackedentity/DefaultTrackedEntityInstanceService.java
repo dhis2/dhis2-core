@@ -264,8 +264,7 @@ public class DefaultTrackedEntityInstanceService
 
             // adding to attributes conditionally if they are also not present
             // in filters.
-            params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ).stream()
-                .filter( sAtt -> !params.getFilters().contains( sAtt ) ).collect( Collectors.toList() ) );
+            params.addAttributesIfNotExist( QueryItem.getQueryItems( sortAttributes ) );
         }
     }
 
