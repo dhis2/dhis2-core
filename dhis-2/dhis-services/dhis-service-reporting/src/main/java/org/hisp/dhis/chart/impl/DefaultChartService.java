@@ -30,6 +30,15 @@ package org.hisp.dhis.chart.impl;
 import static com.google.common.base.Preconditions.*;
 import static java.util.Collections.*;
 import static org.apache.commons.lang3.ObjectUtils.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.commons.collection.ListUtils.*;
+
+import java.awt.*;
+import java.awt.Font;
+import java.util.*;
+import java.util.List;
+import java.util.Map.*;
+
 import org.apache.commons.math3.analysis.*;
 import org.apache.commons.math3.analysis.interpolation.*;
 import org.apache.commons.math3.exception.*;
@@ -39,8 +48,6 @@ import org.hisp.dhis.analytics.event.*;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.chart.*;
 import org.hisp.dhis.common.*;
-import static org.hisp.dhis.common.DimensionalObject.*;
-import static org.hisp.dhis.commons.collection.ListUtils.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.datavalue.*;
 import org.hisp.dhis.i18n.*;
@@ -65,12 +72,6 @@ import org.jfree.data.general.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
-
-import java.awt.Font;
-import java.awt.*;
-import java.util.List;
-import java.util.*;
-import java.util.Map.*;
 
 /**
  * @author Lars Helge Overland

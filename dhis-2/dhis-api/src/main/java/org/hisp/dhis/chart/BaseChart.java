@@ -27,23 +27,25 @@
  */
 package org.hisp.dhis.chart;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
 import static org.apache.commons.lang3.StringUtils.*;
+import static org.hisp.dhis.schema.annotation.Property.Value.*;
+
+import java.util.*;
+
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.*;
 import org.hisp.dhis.legend.*;
 import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.period.*;
 import org.hisp.dhis.schema.*;
-import org.hisp.dhis.schema.annotation.Property;
-import static org.hisp.dhis.schema.annotation.Property.Value.*;
 import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.translation.*;
 import org.hisp.dhis.user.*;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
 
 /**
  * @author Lars Helge Overland

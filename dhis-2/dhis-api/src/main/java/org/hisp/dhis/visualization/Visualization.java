@@ -27,22 +27,26 @@
  */
 package org.hisp.dhis.visualization;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
 import static com.google.common.base.Verify.*;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
-import org.hisp.dhis.analytics.*;
-import org.hisp.dhis.category.*;
-import org.hisp.dhis.common.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
 import static org.hisp.dhis.common.DimensionalObjectUtils.*;
 import static org.hisp.dhis.common.DxfNamespaces.*;
 import static org.hisp.dhis.common.ValueType.*;
+import static org.hisp.dhis.visualization.DimensionDescriptor.*;
+import static org.hisp.dhis.visualization.VisualizationType.*;
+
+import java.util.*;
+import java.util.ArrayList;
+import java.util.Objects;
+
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.category.*;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.i18n.*;
 import org.hisp.dhis.legend.*;
 import org.hisp.dhis.organisationunit.*;
@@ -50,13 +54,11 @@ import org.hisp.dhis.period.*;
 import org.hisp.dhis.schema.annotation.*;
 import org.hisp.dhis.translation.*;
 import org.hisp.dhis.user.*;
-import static org.hisp.dhis.visualization.DimensionDescriptor.*;
-import static org.hisp.dhis.visualization.VisualizationType.*;
 import org.springframework.util.*;
 
-import java.util.ArrayList;
-import java.util.Objects;
-import java.util.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization

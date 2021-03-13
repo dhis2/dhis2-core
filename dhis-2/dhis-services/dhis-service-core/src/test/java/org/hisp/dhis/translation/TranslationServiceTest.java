@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.translation;
 
+import static org.junit.Assert.*;
+
+import java.util.*;
+
 import org.hisp.dhis.*;
 import org.hisp.dhis.chart.*;
 import org.hisp.dhis.common.*;
@@ -39,11 +43,8 @@ import org.hisp.dhis.relationship.*;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.user.*;
 import org.hisp.dhis.visualization.*;
-import static org.junit.Assert.*;
 import org.junit.*;
 import org.springframework.beans.factory.annotation.*;
-
-import java.util.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>

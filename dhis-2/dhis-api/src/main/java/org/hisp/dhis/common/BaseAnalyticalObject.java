@@ -27,21 +27,21 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
-import com.google.common.collect.*;
-import org.hisp.dhis.analytics.*;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.*;
-import org.hisp.dhis.category.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+
+import java.util.*;
+import java.util.stream.*;
+
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.adapter.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.i18n.*;
 import org.hisp.dhis.indicator.*;
 import org.hisp.dhis.interpretation.*;
 import org.hisp.dhis.organisationunit.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 import org.hisp.dhis.period.*;
 import org.hisp.dhis.schema.annotation.*;
 import org.hisp.dhis.trackedentity.*;
@@ -49,8 +49,10 @@ import org.hisp.dhis.translation.*;
 import org.hisp.dhis.user.*;
 import org.hisp.dhis.visualization.*;
 
-import java.util.*;
-import java.util.stream.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import com.google.common.collect.*;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -1116,7 +1118,6 @@ public abstract class BaseAnalyticalObject
     {
         return title;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
