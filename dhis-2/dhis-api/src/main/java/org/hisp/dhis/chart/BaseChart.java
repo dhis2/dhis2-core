@@ -27,39 +27,23 @@
  */
 package org.hisp.dhis.chart;
 
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.schema.annotation.Property.Value.TRUE;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hisp.dhis.common.AnalyticsType;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.HideEmptyItemStrategy;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.RegressionType;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.PropertyType;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import static org.apache.commons.lang3.StringUtils.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.i18n.*;
+import org.hisp.dhis.legend.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.schema.*;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.User;
+import static org.hisp.dhis.schema.annotation.Property.Value.*;
+import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.translation.*;
+import org.hisp.dhis.user.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.*;
 
 /**
  * @author Lars Helge Overland
@@ -266,6 +250,13 @@ public abstract class BaseChart
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_DOMAIN_AXIS_LABEL, getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -276,6 +267,13 @@ public abstract class BaseChart
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_RANGE_AXIS_LABEL, getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -352,6 +350,13 @@ public abstract class BaseChart
         return targetLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_TARGET_LINE_LABEL, getTargetLineLabel() );
+    }
+
     public void setTargetLineLabel( String targetLineLabel )
     {
         this.targetLineLabel = targetLineLabel;
@@ -374,6 +379,13 @@ public abstract class BaseChart
     public String getBaseLineLabel()
     {
         return baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_BASE_LINE_LABEL, getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )
