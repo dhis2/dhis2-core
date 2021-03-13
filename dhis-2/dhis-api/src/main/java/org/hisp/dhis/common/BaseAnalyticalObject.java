@@ -28,62 +28,29 @@ package org.hisp.dhis.common;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.category.CategoryOptionGroupSetDimension;
-import org.hisp.dhis.common.adapter.JacksonPeriodDeserializer;
-import org.hisp.dhis.common.adapter.JacksonPeriodSerializer;
-import org.hisp.dhis.dataelement.*;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.interpretation.Interpretation;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
-import org.hisp.dhis.organisationunit.OrganisationUnitGroupSetDimension;
-import org.hisp.dhis.period.ConfigurablePeriod;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.RelativePeriodEnum;
-import org.hisp.dhis.period.RelativePeriods;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
-import org.hisp.dhis.user.User;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Maps;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_OCTOBER;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import com.google.common.collect.*;
+import org.hisp.dhis.analytics.*;
+import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.*;
+import org.hisp.dhis.category.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
+import org.hisp.dhis.common.adapter.*;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.i18n.*;
+import org.hisp.dhis.indicator.*;
+import org.hisp.dhis.interpretation.*;
+import org.hisp.dhis.organisationunit.*;
 import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.translation.*;
+import org.hisp.dhis.user.*;
+
+import java.util.*;
+import java.util.stream.*;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -1145,6 +1112,14 @@ public abstract class BaseAnalyticalObject
         return title;
     }
 
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayTitle()
+    {
+        return getTranslation( TranslationProperty.TITLE, getTitle() );
+    }
+
     public void setTitle( String title )
     {
         this.title = title;
@@ -1155,6 +1130,13 @@ public abstract class BaseAnalyticalObject
     public String getSubtitle()
     {
         return subtitle;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplaySubtitle()
+    {
+        return getTranslation( TranslationProperty.SUBTITLE, getSubtitle() );
     }
 
     public void setSubtitle( String subtitle )
