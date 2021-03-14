@@ -27,49 +27,26 @@
  */
 package org.hisp.dhis.cache;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import static org.junit.Assert.assertEquals;
 
-/**
- * Provides cache builder to build instances.
- *
- * @author Ameen Mohamed
- *
- */
-@Component( "cacheProvider" )
-public class DefaultCacheBuilderProvider implements CacheBuilderProvider
+import org.junit.Test;
+
+public class CappedLocalCacheTest
 {
-    private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, ?> redisTemplate;
+    private final Sizeof sizeof = new GenericSizeof( 20L, obj -> obj );
 
-    private CappedLocalCache cappedLocalCache;
-
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder()
+    @Test
+    public void testSizeofCacheEntry()
     {
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, cappedLocalCache::createRegion );
-    }
-
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
-
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
-    @Autowired
-    public void setCappedLocalCache( CappedLocalCache cappedLocalCache )
-    {
-        this.cappedLocalCache = cappedLocalCache;
+        // 20 object header of CacheEntry
+        // + 4 ref region + 20 object header String
+        // + 4 ref key + 20 object header String
+        // + 4 ref value + 20 object header V
+        // + 8 created
+        // + 8 expires
+        // + 8 size
+        // + 4 reads
+        assertEquals( 124L, sizeof.sizeof( CappedLocalCache.EMPTY ) );
     }
 }
