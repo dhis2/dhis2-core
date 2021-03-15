@@ -1,7 +1,5 @@
-package org.hisp.dhis.result;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.result;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.result;
 
 import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
@@ -45,9 +44,9 @@ import com.opensymphony.xwork2.ActionInvocation;
 import com.opensymphony.xwork2.Result;
 
 /**
- * Creates a PDF representation of the given Grid or list of Grids and writes
- * it to the servlet outputstream. One of the grid or grids arguments must be set.
- * 
+ * Creates a PDF representation of the given Grid or list of Grids and writes it
+ * to the servlet outputstream. One of the grid or grids arguments must be set.
+ *
  * @author Lars Helge Overland
  */
 public class GridPdfResult
@@ -77,9 +76,9 @@ public class GridPdfResult
     {
         this.grids = grids;
     }
-   
+
     private boolean attachment = true;
-    
+
     protected boolean isAttachment()
     {
         return attachment;
@@ -103,9 +102,9 @@ public class GridPdfResult
         grid = _grid != null ? _grid : grid;
 
         List<Grid> _grids = (List<Grid>) invocation.getStack().findValue( "grids" );
-        
+
         grids = _grids != null ? _grids : grids;
-        
+
         // ---------------------------------------------------------------------
         // Configure response
         // ---------------------------------------------------------------------
@@ -114,8 +113,10 @@ public class GridPdfResult
 
         OutputStream out = response.getOutputStream();
 
-        String filename = filenameEncode( defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) ) + ".pdf";
-        
+        String filename = filenameEncode(
+            defaultIfEmpty( grid != null ? grid.getTitle() : grids.iterator().next().getTitle(), DEFAULT_NAME ) )
+            + ".pdf";
+
         ContextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, true, filename, isAttachment() );
 
         // ---------------------------------------------------------------------

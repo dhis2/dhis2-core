@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.message;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,18 +25,19 @@ package org.hisp.dhis.program.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.message;
 
 import java.util.Set;
 
 import org.hisp.dhis.common.DeliveryChannel;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.ValueType;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -62,11 +61,11 @@ public abstract class DeliveryChannelStrategy
     protected abstract void validate( ProgramMessage message );
 
     protected abstract String getOrganisationUnitRecipient( OrganisationUnit orgUnit );
-    
+
     // -------------------------------------------------------------------------
     // Public methods
     // -------------------------------------------------------------------------
-    
+
     public String getTrackedEntityInstanceRecipient( TrackedEntityInstance tei, ValueType type )
     {
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
@@ -80,13 +79,14 @@ public abstract class DeliveryChannelStrategy
             }
         }
 
-        throw new IllegalQueryException( "Tracked entity does not have any attribute of value type: " + type.toString() );
+        throw new IllegalQueryException(
+            "Tracked entity does not have any attribute of value type: " + type.toString() );
     }
 
     // -------------------------------------------------------------------------
     // Public methods
     // -------------------------------------------------------------------------
-    
+
     protected TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
     {
         if ( message.getRecipients().getTrackedEntityInstance() == null )

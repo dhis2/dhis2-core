@@ -1,7 +1,5 @@
-package org.hisp.dhis.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,14 @@ package org.hisp.dhis.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.analytics.SortOrder;
-
-import org.hisp.dhis.common.GenericStore;
+package org.hisp.dhis.datastatistics;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.common.GenericStore;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -61,11 +59,12 @@ public interface DataStatisticsEventStore
      * @param username of user
      * @return list of FavoriteStatistics
      */
-    List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder, String username );
+    List<FavoriteStatistics> getFavoritesData( DataStatisticsEventType eventType, int pageSize, SortOrder sortOrder,
+        String username );
 
     /**
      * Returns data statistics for the favorite with the given identifier.
-     * 
+     *
      * @param uid the favorite identifier.
      * @return data statistics for the favorite with the given identifier.
      */

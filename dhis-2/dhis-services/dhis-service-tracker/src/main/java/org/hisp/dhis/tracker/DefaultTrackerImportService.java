@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,13 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
 
-import com.google.common.base.Enums;
+import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,8 +53,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Map;
+import com.google.common.base.Enums;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -168,7 +169,8 @@ public class DefaultTrackerImportService
         params.setUser( getUser( params.getUser(), params.getUserId() ) );
         params.setValidationMode( getEnumWithDefault( ValidationMode.class, parameters, "validationMode",
             ValidationMode.FULL ) );
-        params.setImportMode( getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
+        params.setImportMode(
+            getEnumWithDefault( TrackerBundleMode.class, parameters, "importMode", TrackerBundleMode.COMMIT ) );
         params.setIdentifiers( getTrackerIdentifiers( parameters ) );
         params.setImportStrategy( getEnumWithDefault( TrackerImportStrategy.class, parameters, "importStrategy",
             TrackerImportStrategy.CREATE_AND_UPDATE ) );
@@ -178,28 +180,39 @@ public class DefaultTrackerImportService
         return params;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     private TrackerIdentifierParams getTrackerIdentifiers( Map<String, List<String>> parameters )
     {
-        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme", TrackerIdScheme.UID );
-        TrackerIdScheme orgUnitIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme", idScheme );
-        TrackerIdScheme programIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme", idScheme );
-        TrackerIdScheme programStageIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "programStageIdScheme", idScheme );
-        TrackerIdScheme dataElementIdScheme  = getEnumWithDefault( TrackerIdScheme.class, parameters, "dataElementIdScheme", idScheme );
+        TrackerIdScheme idScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "idScheme",
+            TrackerIdScheme.UID );
+        TrackerIdScheme orgUnitIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "orgUnitIdScheme",
+            idScheme );
+        TrackerIdScheme programIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters, "programIdScheme",
+            idScheme );
+        TrackerIdScheme programStageIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            "programStageIdScheme", idScheme );
+        TrackerIdScheme dataElementIdScheme = getEnumWithDefault( TrackerIdScheme.class, parameters,
+            "dataElementIdScheme", idScheme );
 
         return TrackerIdentifierParams.builder()
-            .idScheme( TrackerIdentifier.builder().idScheme( idScheme ).value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
-            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme ).value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
-            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme ).value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
-            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme ).value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
-            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme ).value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
+            .idScheme( TrackerIdentifier.builder().idScheme( idScheme )
+                .value( getAttributeUidOrNull( parameters, "idScheme" ) ).build() )
+            .orgUnitIdScheme( TrackerIdentifier.builder().idScheme( orgUnitIdScheme )
+                .value( getAttributeUidOrNull( parameters, "orgUnitIdScheme" ) ).build() )
+            .programIdScheme( TrackerIdentifier.builder().idScheme( programIdScheme )
+                .value( getAttributeUidOrNull( parameters, "programIdScheme" ) ).build() )
+            .programStageIdScheme( TrackerIdentifier.builder().idScheme( programStageIdScheme )
+                .value( getAttributeUidOrNull( parameters, "programStageIdScheme" ) ).build() )
+            .dataElementIdScheme( TrackerIdentifier.builder().idScheme( dataElementIdScheme )
+                .value( getAttributeUidOrNull( parameters, "dataElementIdScheme" ) ).build() )
             .build();
     }
 
-    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters, String key, T defaultValue )
+    private <T extends Enum<T>> T getEnumWithDefault( Class<T> enumKlass, Map<String, List<String>> parameters,
+        String key, T defaultValue )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
@@ -216,7 +229,7 @@ public class DefaultTrackerImportService
         return Enums.getIfPresent( enumKlass, value ).or( defaultValue );
     }
 
-    private String getAttributeUidOrNull(Map<String, List<String>> parameters, String key)
+    private String getAttributeUidOrNull( Map<String, List<String>> parameters, String key )
     {
         if ( parameters == null || parameters.get( key ) == null || parameters.get( key ).isEmpty() )
         {
@@ -246,7 +259,8 @@ public class DefaultTrackerImportService
 
     private User getUser( User user, String userUid )
     {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
+        if ( user != null ) // ıf user already set, reload the user to make sure
+                            // its loaded in the current tx
         {
             return manager.get( User.class, user.getUid() );
         }

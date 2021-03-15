@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi;
 
 import org.hisp.dhis.H2DhisConfigurationProvider;
 import org.hisp.dhis.config.*;
@@ -48,30 +47,30 @@ import org.springframework.stereotype.Service;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com
  */
 @Configuration
-@ImportResource( locations ={"classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml"} )
-@ComponentScan(basePackages = {"org.hisp.dhis"}, useDefaultFilters = false, includeFilters = {
-        @Filter(type=FilterType.ANNOTATION, value= Service.class),
-        @Filter(type=FilterType.ANNOTATION, value= Component.class),
-        @Filter(type=FilterType.ANNOTATION, value= Repository.class)
+@ImportResource( locations = { "classpath*:/META-INF/dhis/beans.xml", "classpath*:/META-INF/dhis/servlet.xml" } )
+@ComponentScan( basePackages = { "org.hisp.dhis" }, useDefaultFilters = false, includeFilters = {
+    @Filter( type = FilterType.ANNOTATION, value = Service.class ),
+    @Filter( type = FilterType.ANNOTATION, value = Component.class ),
+    @Filter( type = FilterType.ANNOTATION, value = Repository.class )
 
-}, excludeFilters = @Filter(Configuration.class))
+}, excludeFilters = @Filter( Configuration.class ) )
 @Import( {
-        JdbcConfig.class,
-        HibernateConfig.class,
-        FlywayConfig.class,
-        EncryptionConfig.class,
-        ServiceConfig.class,
-        StoreConfig.class,
-        LeaderElectionConfiguration.class,
-        org.hisp.dhis.setting.config.ServiceConfig.class,
-        org.hisp.dhis.external.config.ServiceConfig.class,
-        org.hisp.dhis.dxf2.config.ServiceConfig.class,
-        org.hisp.dhis.support.config.ServiceConfig.class,
-        org.hisp.dhis.validation.config.ServiceConfig.class,
-        org.hisp.dhis.validation.config.StoreConfig.class,
-        org.hisp.dhis.reporting.config.StoreConfig.class,
-        org.hisp.dhis.analytics.config.ServiceConfig.class,
-        org.hisp.dhis.commons.config.CommonsConfig.class} )
+    JdbcConfig.class,
+    HibernateConfig.class,
+    FlywayConfig.class,
+    EncryptionConfig.class,
+    ServiceConfig.class,
+    StoreConfig.class,
+    LeaderElectionConfiguration.class,
+    org.hisp.dhis.setting.config.ServiceConfig.class,
+    org.hisp.dhis.external.config.ServiceConfig.class,
+    org.hisp.dhis.dxf2.config.ServiceConfig.class,
+    org.hisp.dhis.support.config.ServiceConfig.class,
+    org.hisp.dhis.validation.config.ServiceConfig.class,
+    org.hisp.dhis.validation.config.StoreConfig.class,
+    org.hisp.dhis.reporting.config.StoreConfig.class,
+    org.hisp.dhis.analytics.config.ServiceConfig.class,
+    org.hisp.dhis.commons.config.CommonsConfig.class } )
 public class WebTestConfiguration
 {
     @Bean( name = "dhisConfigurationProvider" )
@@ -87,22 +86,27 @@ public class WebTestConfiguration
     }
 
     @Bean
-    public LdapAuthenticator ldapAuthenticator() {
+    public LdapAuthenticator ldapAuthenticator()
+    {
         return authentication -> null;
     }
 
     @Bean
-    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator() {
-        return (dirContextOperations, s) -> null;
+    public LdapAuthoritiesPopulator ldapAuthoritiesPopulator()
+    {
+        return ( dirContextOperations, s ) -> null;
     }
-    @Bean("oAuth2AuthenticationManager")
-    public AuthenticationManager oAuth2AuthenticationManager() {
+
+    @Bean( "oAuth2AuthenticationManager" )
+    public AuthenticationManager oAuth2AuthenticationManager()
+    {
         return authentication -> null;
     }
 
-    @Bean("authenticationManager")
+    @Bean( "authenticationManager" )
     @Primary
-    public AuthenticationManager authenticationManager() {
+    public AuthenticationManager authenticationManager()
+    {
         return authentication -> null;
     }
 }

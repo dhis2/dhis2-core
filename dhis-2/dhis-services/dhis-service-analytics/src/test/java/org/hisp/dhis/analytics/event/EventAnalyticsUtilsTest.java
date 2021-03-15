@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
+
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import static org.junit.Assert.assertEquals;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
@@ -38,14 +45,6 @@ import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Henning Håkonsen
@@ -81,7 +80,7 @@ public class EventAnalyticsUtilsTest
     {
         Map<String, List<EventAnalyticsDimensionalItem>> tableRows = new LinkedHashMap<>();
 
-        Grid grid = new ListGrid( );
+        Grid grid = new ListGrid();
 
         DataElement deA = createDataElement( 'A' );
         deA.setValueType( ValueType.BOOLEAN );
@@ -89,13 +88,13 @@ public class EventAnalyticsUtilsTest
         grid.addMetaData( deA.getUid(), deA );
 
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'B' );
-        OptionSet optionSet = new OptionSet( );
+        OptionSet optionSet = new OptionSet();
         optionSet.addOption( new Option( "name", "code" ) );
         trackedEntityAttribute.setOptionSet( optionSet );
 
         grid.addMetaData( trackedEntityAttribute.getUid(), trackedEntityAttribute );
 
-        List<EventAnalyticsDimensionalItem> objects = new ArrayList<>( );
+        List<EventAnalyticsDimensionalItem> objects = new ArrayList<>();
         Option t = new Option();
         t.setCode( "1" );
         t.setName( "Yes" );
@@ -107,12 +106,14 @@ public class EventAnalyticsUtilsTest
         objects.add( new EventAnalyticsDimensionalItem( t, deA.getUid() ) );
         objects.add( new EventAnalyticsDimensionalItem( f, deA.getUid() ) );
 
-        objects.add( new EventAnalyticsDimensionalItem( new Option( "name", "code" ), trackedEntityAttribute.getUid() ) );
+        objects
+            .add( new EventAnalyticsDimensionalItem( new Option( "name", "code" ), trackedEntityAttribute.getUid() ) );
 
         tableRows.put( deA.getUid(), objects );
-        tableRows.put( trackedEntityAttribute.getDimensionItem(), objects);
+        tableRows.put( trackedEntityAttribute.getDimensionItem(), objects );
 
-        List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils.generateEventDataPermutations( tableRows );
+        List<Map<String, EventAnalyticsDimensionalItem>> rowPermutations = EventAnalyticsUtils
+            .generateEventDataPermutations( tableRows );
 
         assertEquals( 9, rowPermutations.size() );
     }

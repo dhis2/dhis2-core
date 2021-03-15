@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -82,7 +82,7 @@ public class JsonBinaryTypeTest
     public void testEquals()
     {
         DeviceRenderTypeMap<ValueTypeRenderingObject> objOne = getDeviceRenderTypeAs(
-                this::getValueTypeRenderingObject );
+            this::getValueTypeRenderingObject );
         DeviceRenderTypeMap<Map<String, Object>> objTwo = getDeviceRenderTypeAs( this::getMap );
 
         assertTrue( jsonBinaryType.equals( objOne, objTwo ) );

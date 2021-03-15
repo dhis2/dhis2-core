@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 /**
  * Class with utility methods for constructing SQL strings.
@@ -89,8 +88,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "and" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "and" for
+     * subsequent invocations.
      *
      * @return empty string or "and".
      */
@@ -104,8 +103,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "or" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "or" for
+     * subsequent invocations.
      *
      * @return empty string or "or".
      */
@@ -119,8 +118,8 @@ public class SqlHelper
     }
 
     /**
-     * Returns the empty string the first time it is invoked, then "or" for subsequent
-     * invocations.
+     * Returns the empty string the first time it is invoked, then "or" for
+     * subsequent invocations.
      *
      * @return empty or "or".
      */

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -70,11 +74,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -158,15 +158,16 @@ public class DefaultTrackerPreheatService
         for ( Class<?> klass : identifierMap.keySet() )
         {
             Set<String> identifiers = identifierMap
-                .get( klass ); // assume UID for now, will be done according to IdSchemes
+                .get( klass ); // assume UID for now, will be done according to
+                               // IdSchemes
             List<List<String>> splitList = Lists.partition( new ArrayList<>( identifiers ), 20000 );
 
             if ( klass.isAssignableFrom( TrackedEntity.class ) )
             {
                 for ( List<String> ids : splitList )
                 {
-                    List<TrackedEntityInstance> trackedEntityInstances =
-                        trackedEntityInstanceStore.getByUid( ids, preheat.getUser() );
+                    List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getByUid( ids,
+                        preheat.getUser() );
                     preheat.putTrackedEntities( TrackerIdScheme.UID, trackedEntityInstances );
                 }
             }
@@ -232,9 +233,11 @@ public class DefaultTrackerPreheatService
             }
         }
 
-        // since TrackedEntityTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        // since TrackedEntityTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( TrackedEntityType.class ) );
-        // since RelationshipTypes are not really required by incoming payload, and they are small in size/count, we preload them all here
+        // since RelationshipTypes are not really required by incoming payload,
+        // and they are small in size/count, we preload them all here
         preheat.put( TrackerIdentifier.UID, manager.getAll( RelationshipType.class ) );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
@@ -288,7 +291,7 @@ public class DefaultTrackerPreheatService
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private void queryForIdentifiableObjects( TrackerPreheat preheat, Schema schema, TrackerIdentifier identifier,
         List<List<String>> splitList )
     {

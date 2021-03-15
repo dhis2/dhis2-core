@@ -1,7 +1,5 @@
-package org.hisp.dhis.color;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.color;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.color;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -62,8 +61,9 @@ public class DefaultColorService
         colorSetStore.save( colorSet );
         return colorSet.getId();
     }
+
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public ColorSet getColorSet( String uid )
     {
         return colorSetStore.getByUid( uid );

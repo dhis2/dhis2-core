@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,18 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
 
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.junit.Test;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
+import static org.junit.Assert.*;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
-import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
-import static org.junit.Assert.*;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland
@@ -67,10 +66,14 @@ public class OperandTest
         DataElementOperand dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionComboB );
         DataElementOperand dataElementOperandC = new DataElementOperand( dataElementA, categoryOptionComboB );
         DataElementOperand dataElementOperandD = new DataElementOperand( dataElementB, categoryOptionComboA );
-        DataElementOperand dataElementOperandE = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboA );
-        DataElementOperand dataElementOperandF = new DataElementOperand( dataElementA, categoryOptionComboB, categoryOptionComboB );
-        DataElementOperand dataElementOperandG = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboB );
-        DataElementOperand dataElementOperandH = new DataElementOperand( dataElementA, categoryOptionComboB, categoryOptionComboA );
+        DataElementOperand dataElementOperandE = new DataElementOperand( dataElementA, categoryOptionComboA,
+            categoryOptionComboA );
+        DataElementOperand dataElementOperandF = new DataElementOperand( dataElementA, categoryOptionComboB,
+            categoryOptionComboB );
+        DataElementOperand dataElementOperandG = new DataElementOperand( dataElementA, categoryOptionComboA,
+            categoryOptionComboB );
+        DataElementOperand dataElementOperandH = new DataElementOperand( dataElementA, categoryOptionComboB,
+            categoryOptionComboA );
         DataElementOperand dataElementOperandI = new DataElementOperand( dataElementA );
         DataElementOperand dataElementOperandJ = new DataElementOperand( dataElementA, defaultCatOptionCombo );
 
@@ -88,7 +91,7 @@ public class OperandTest
 
         assertEquals( 10, dataElementOperands.size() );
     }
-    
+
     @Test
     public void testEquals()
     {
@@ -112,10 +115,14 @@ public class OperandTest
         DataElementOperand dataElementOperandB = new DataElementOperand( dataElementB, categoryOptionComboB );
         DataElementOperand dataElementOperandC = new DataElementOperand( dataElementA, categoryOptionComboA );
         DataElementOperand dataElementOperandD = new DataElementOperand( dataElementB, categoryOptionComboB );
-        DataElementOperand dataElementOperandE = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboA );
-        DataElementOperand dataElementOperandF = new DataElementOperand( dataElementA, categoryOptionComboB, categoryOptionComboB );
-        DataElementOperand dataElementOperandG = new DataElementOperand( dataElementA, categoryOptionComboA, categoryOptionComboA );
-        DataElementOperand dataElementOperandH = new DataElementOperand( dataElementA, categoryOptionComboB, categoryOptionComboB );
+        DataElementOperand dataElementOperandE = new DataElementOperand( dataElementA, categoryOptionComboA,
+            categoryOptionComboA );
+        DataElementOperand dataElementOperandF = new DataElementOperand( dataElementA, categoryOptionComboB,
+            categoryOptionComboB );
+        DataElementOperand dataElementOperandG = new DataElementOperand( dataElementA, categoryOptionComboA,
+            categoryOptionComboA );
+        DataElementOperand dataElementOperandH = new DataElementOperand( dataElementA, categoryOptionComboB,
+            categoryOptionComboB );
         DataElementOperand dataElementOperandI = new DataElementOperand( dataElementA );
         DataElementOperand dataElementOperandJ = new DataElementOperand( dataElementA, defaultCatOptionCombo );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.webapi.controller.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.tracker;
+
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.io.IOException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.render.RenderService;
@@ -54,13 +61,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.List;
-
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -71,9 +71,13 @@ public class TrackerController
     public static final String RESOURCE_PATH = "/tracker";
 
     private final TrackerImportService trackerImportService;
+
     private final RenderService renderService;
+
     private final ContextService contextService;
+
     private final TrackerMessageManager trackerMessageManager;
+
     private final Notifier notifier;
 
     public TrackerController(
@@ -92,11 +96,13 @@ public class TrackerController
 
     @PostMapping( value = "", consumes = MediaType.APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_TRACKER_IMPORTER_EXPERIMENTAL')" )
-    public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser ) throws IOException
+    public void postJsonTracker( HttpServletRequest request, HttpServletResponse response, User currentUser )
+        throws IOException
     {
         TrackerImportParams params = trackerImportService.getParamsFromMap( contextService.getParameterValuesMap() );
 
-        TrackerBundle trackerBundle = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService.fromJson( request.getInputStream(), TrackerBundleParams.class )
+            .toTrackerBundle();
         params.setTrackedEntities( trackerBundle.getTrackedEntities() );
         params.setEnrollments( trackerBundle.getEnrollments() );
         params.setEvents( trackerBundle.getEvents() );
@@ -114,12 +120,12 @@ public class TrackerController
             .setResponse(
                 TrackerJobWebMessageResponse.builder()
                     .id( jobId ).location( location )
-                    .build()
-            ) );
+                    .build() ) );
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = MediaType.APPLICATION_JSON_VALUE )
-    public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response ) throws HttpStatusCodeException
+    public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
+        throws HttpStatusCodeException
     {
         List<Notification> notifications = notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );
@@ -128,7 +134,8 @@ public class TrackerController
     }
 
     @GetMapping( value = "/jobs/{uid}/report", produces = MediaType.APPLICATION_JSON_VALUE )
-    public TrackerImportReport getJobReport( @PathVariable String uid, HttpServletResponse response ) throws HttpStatusCodeException
+    public TrackerImportReport getJobReport( @PathVariable String uid, HttpServletResponse response )
+        throws HttpStatusCodeException
     {
         Object importReport = notifier.getJobSummaryByJobId( JobType.TRACKER_IMPORT_JOB, uid );
         setNoStore( response );

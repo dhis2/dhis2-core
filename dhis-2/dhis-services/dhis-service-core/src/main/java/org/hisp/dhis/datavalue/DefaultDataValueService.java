@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,19 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.dataValueIsZeroAndInsignificant;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_AGGREGATE;
 
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
@@ -51,8 +52,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Data value service implementation. Note that data values are softly deleted,
@@ -239,7 +238,7 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo )
     {
@@ -249,7 +248,7 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public DataValue getDataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
@@ -261,7 +260,7 @@ public class DefaultDataValueService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getDataValues( DataExportParams params )
     {
         validate( params );
@@ -324,14 +323,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getAllDataValues()
     {
         return dataValueStore.getAllDataValues();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataValue> getDataValues( OrganisationUnit source, Period period,
         Collection<DataElement> dataElements, CategoryOptionCombo attributeOptionCombo )
     {
@@ -339,14 +338,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DeflatedDataValue> getDeflatedDataValues( DataExportParams params )
     {
         return dataValueStore.getDeflatedDataValues( params );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
@@ -356,14 +355,14 @@ public class DefaultDataValueService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCountLastUpdatedAfter( Date date, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( date, null, includeDeleted );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public int getDataValueCountLastUpdatedBetween( Date startDate, Date endDate, boolean includeDeleted )
     {
         return dataValueStore.getDataValueCountLastUpdatedBetween( startDate, endDate, includeDeleted );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,8 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import com.google.common.base.Enums;
-import com.google.common.base.Optional;
-import com.google.common.collect.Lists;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.util.DateUtils;
-
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.persistence.TypedQuery;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -48,6 +35,20 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import javax.persistence.TypedQuery;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.NumberUtils;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.util.DateUtils;
+
+import com.google.common.base.Enums;
+import com.google.common.base.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -197,7 +198,8 @@ public final class QueryUtils
         else
         {
             Object[] possibleValues = klass.getEnumConstants();
-            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: " + Arrays.toString( possibleValues ) );
+            throw new QueryParserException( "Unable to parse `" + value + "` as `" + klass + "`, available values are: "
+                + Arrays.toString( possibleValues ) );
         }
     }
 
@@ -225,8 +227,9 @@ public final class QueryUtils
      * Convert a List of select fields into a string as in sql select query.
      *
      * @param fields: list of fields in a select query
-     * @return a string which is concat of list fields, separate by comma character.
-     * If input is null, return "*" means the query will select all fields.
+     * @return a string which is concat of list fields, separate by comma
+     *         character. If input is null, return "*" means the query will
+     *         select all fields.
      */
     public static String parseSelectFields( List<String> fields )
     {
@@ -249,9 +252,9 @@ public final class QueryUtils
         }
     }
 
-
     /**
-     * Convert a String with json format [x,y,z] into sql query collection format (x,y,z)
+     * Convert a String with json format [x,y,z] into sql query collection
+     * format (x,y,z)
      *
      * @param value a string contains a collection with json format [x,y,z]
      * @return a string contains a collection with sql query format (x,y,z)
@@ -290,14 +293,13 @@ public final class QueryUtils
         return str;
     }
 
-
     /**
      * Convert a DHIS2 filter operator into SQl operator
      *
      * @param operator the filter operator of DHIS2
-     * @param value    value of the current sql query condition
+     * @param value value of the current sql query condition
      * @return a string contains an sql expression with operator and value.
-     * Example parseFilterOperator('eq', 5)  will return "=5"
+     *         Example parseFilterOperator('eq', 5) will return "=5"
      */
     public static String parseFilterOperator( String operator, String value )
     {
@@ -309,119 +311,120 @@ public final class QueryUtils
 
         switch ( operator )
         {
-            case "eq":
-            {
-                return "= " + QueryUtils.parseValue( value );
-            }
-            case "!eq":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "ne":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "neq":
-            {
-                return "!= " + QueryUtils.parseValue( value );
-            }
-            case "gt":
-            {
-                return "> " + QueryUtils.parseValue( value );
-            }
-            case "lt":
-            {
-                return "< " + QueryUtils.parseValue( value );
-            }
-            case "gte":
-            {
-                return ">= " + QueryUtils.parseValue( value );
-            }
-            case "ge":
-            {
-                return ">= " + QueryUtils.parseValue( value );
-            }
-            case "lte":
-            {
-                return "<= " + QueryUtils.parseValue( value );
-            }
-            case "le":
-            {
-                return "<= " + QueryUtils.parseValue( value );
-            }
-            case "like":
-            {
-                return "like '%" + value + "%'";
-            }
-            case "!like":
-            {
-                return "not like '%" + value + "%'";
-            }
-            case "^like":
-            {
-                return " like '" + value + "%'";
-            }
-            case "!^like":
-            {
-                return " not like '" + value + "%'";
-            }
-            case "$like":
-            {
-                return " like '%" + value + "'";
-            }
-            case "!$like":
-            {
-                return " not like '%" + value + "'";
-            }
-            case "ilike":
-            {
-                return " ilike '%" + value + "%'";
-            }
-            case "!ilike":
-            {
-                return " not ilike '%" + value + "%'";
-            }
-            case "^ilike":
-            {
-                return " ilike '" + value + "%'";
-            }
-            case "!^ilike":
-            {
-                return " not ilike '" + value + "%'";
-            }
-            case "$ilike":
-            {
-                return " ilike '%" + value + "'";
-            }
-            case "!$ilike":
-            {
-                return " not ilike '%" + value + "'";
-            }
-            case "in":
-            {
-                return "in " + QueryUtils.convertCollectionValue( value );
-            }
-            case "!in":
-            {
-                return " not in " + QueryUtils.convertCollectionValue( value );
-            }
-            case "null":
-            {
-                return "is null";
-            }
-            case "!null":
-            {
-                return "is not null";
-            }
-            default:
-            {
-                throw new QueryParserException( "`" + operator + "` is not a valid operator." );
-            }
+        case "eq":
+        {
+            return "= " + QueryUtils.parseValue( value );
+        }
+        case "!eq":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "ne":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "neq":
+        {
+            return "!= " + QueryUtils.parseValue( value );
+        }
+        case "gt":
+        {
+            return "> " + QueryUtils.parseValue( value );
+        }
+        case "lt":
+        {
+            return "< " + QueryUtils.parseValue( value );
+        }
+        case "gte":
+        {
+            return ">= " + QueryUtils.parseValue( value );
+        }
+        case "ge":
+        {
+            return ">= " + QueryUtils.parseValue( value );
+        }
+        case "lte":
+        {
+            return "<= " + QueryUtils.parseValue( value );
+        }
+        case "le":
+        {
+            return "<= " + QueryUtils.parseValue( value );
+        }
+        case "like":
+        {
+            return "like '%" + value + "%'";
+        }
+        case "!like":
+        {
+            return "not like '%" + value + "%'";
+        }
+        case "^like":
+        {
+            return " like '" + value + "%'";
+        }
+        case "!^like":
+        {
+            return " not like '" + value + "%'";
+        }
+        case "$like":
+        {
+            return " like '%" + value + "'";
+        }
+        case "!$like":
+        {
+            return " not like '%" + value + "'";
+        }
+        case "ilike":
+        {
+            return " ilike '%" + value + "%'";
+        }
+        case "!ilike":
+        {
+            return " not ilike '%" + value + "%'";
+        }
+        case "^ilike":
+        {
+            return " ilike '" + value + "%'";
+        }
+        case "!^ilike":
+        {
+            return " not ilike '" + value + "%'";
+        }
+        case "$ilike":
+        {
+            return " ilike '%" + value + "'";
+        }
+        case "!$ilike":
+        {
+            return " not ilike '%" + value + "'";
+        }
+        case "in":
+        {
+            return "in " + QueryUtils.convertCollectionValue( value );
+        }
+        case "!in":
+        {
+            return " not in " + QueryUtils.convertCollectionValue( value );
+        }
+        case "null":
+        {
+            return "is null";
+        }
+        case "!null":
+        {
+            return "is not null";
+        }
+        default:
+        {
+            throw new QueryParserException( "`" + operator + "` is not a valid operator." );
+        }
         }
     }
 
     /**
-     * Converts the specified string orders (e.g. <code>name:asc</code>) to order objects.
+     * Converts the specified string orders (e.g. <code>name:asc</code>) to
+     * order objects.
      *
      * @param orders the order strings that should be converted.
      * @param schema the schema that should be used to perform the conversion.
@@ -440,7 +443,7 @@ public final class QueryUtils
         {
             String[] split = o.split( ":" );
 
-            //Using ascending as default direction.
+            // Using ascending as default direction.
             String direction = "asc";
 
             if ( split.length < 1 )
@@ -454,7 +457,6 @@ public final class QueryUtils
 
             String propertyName = split[0];
             Property property = schema.getProperty( propertyName );
-
 
             if ( result.containsKey( propertyName ) || !schema.haveProperty( propertyName )
                 || !validProperty( property ) || !validDirection( direction ) )
@@ -479,10 +481,12 @@ public final class QueryUtils
             || "iasc".equals( direction ) || "idesc".equals( direction );
     }
 
-    public static <T> T getSingleResult( TypedQuery<T> query ) {
+    public static <T> T getSingleResult( TypedQuery<T> query )
+    {
         query.setMaxResults( 1 );
         List<T> list = query.getResultList();
-        if ( list == null || list.isEmpty() ) {
+        if ( list == null || list.isEmpty() )
+        {
             return null;
         }
 

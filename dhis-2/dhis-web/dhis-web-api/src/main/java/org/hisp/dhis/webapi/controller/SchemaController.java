@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,15 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -58,11 +63,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -107,7 +108,8 @@ public class SchemaController
         linkService.generateSchemaLinks( schemas.getSchemas() );
 
         RootNode rootNode = NodeUtils.createRootNode( "schemas" );
-        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class, new FieldFilterParams( schemas.getSchemas(), fields ) );
+        CollectionNode collectionNode = fieldFilterService.toCollectionNode( Schema.class,
+            new FieldFilterParams( schemas.getSchemas(), fields ) );
         collectionNode.setWrapping( false );
         rootNode.addChild( collectionNode );
 
@@ -138,8 +140,10 @@ public class SchemaController
         throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Type " + type + " does not exist." );
     }
 
-    @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = { MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
-    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response ) throws IOException
+    @RequestMapping( value = "/{type}", method = { RequestMethod.POST, RequestMethod.PUT }, consumes = {
+        MediaType.APPLICATION_JSON_VALUE, MediaType.APPLICATION_XML_VALUE } )
+    public void validateSchema( @PathVariable String type, HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         Schema schema = getSchemaFromType( type );
 
@@ -170,7 +174,8 @@ public class SchemaController
             return schema.getProperty( property );
         }
 
-        throw new HttpClientErrorException( HttpStatus.NOT_FOUND, "Property " + property + " does not exist on type " + type + "." );
+        throw new HttpClientErrorException( HttpStatus.NOT_FOUND,
+            "Property " + property + " does not exist on type " + type + "." );
     }
 
     private Schema getSchemaFromType( String type )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.email;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.email;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.email;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.message.MessageSender;
@@ -42,10 +45,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
-import java.util.Set;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
  */
@@ -55,6 +54,7 @@ public class DefaultEmailService
     implements EmailService
 {
     private static final String TEST_EMAIL_SUBJECT = "Test email from DHIS 2";
+
     private static final String TEST_EMAIL_TEXT = "This is an automatically generated email from ";
 
     // -------------------------------------------------------------------------
@@ -92,7 +92,8 @@ public class DefaultEmailService
     @Override
     public OutboundMessageResponse sendEmail( Email email )
     {
-        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(), email.getRecipients(), true );
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, email.getSender(),
+            email.getRecipients(), true );
     }
 
     @Override
@@ -105,9 +106,10 @@ public class DefaultEmailService
     public OutboundMessageResponse sendTestEmail()
     {
         String instanceName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        
-        Email email = new Email( TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null, Sets.newHashSet( currentUserService.getCurrentUser() ) );
-        
+
+        Email email = new Email( TEST_EMAIL_SUBJECT, TEST_EMAIL_TEXT + instanceName, null,
+            Sets.newHashSet( currentUserService.getCurrentUser() ) );
+
         return sendEmail( email );
     }
 
@@ -125,17 +127,18 @@ public class DefaultEmailService
             response.setDescription( "No recipient found" );
 
             return response;
-        }        
-        
+        }
+
         User user = new User();
         UserCredentials credentials = new UserCredentials();
         credentials.setUsername( recipient );
         user.setEmail( recipient );
-        
+
         User sender = new User();
         sender.setFirstName( StringUtils.trimToEmpty( appTitle ) );
         sender.setSurname( recipient );
-        
-        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, sender, Sets.newHashSet( user ), true );
+
+        return emailMessageSender.sendMessage( email.getSubject(), email.getText(), null, sender,
+            Sets.newHashSet( user ), true );
     }
 }

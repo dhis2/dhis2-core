@@ -1,7 +1,5 @@
-package org.hisp.dhis.deletedobject.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,19 @@ package org.hisp.dhis.deletedobject.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.deletedobject.hibernate;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.StatelessSession;
 import org.hibernate.event.spi.PostCommitDeleteEventListener;
 import org.hibernate.event.spi.PostDeleteEvent;
-import org.hibernate.event.spi.PostDeleteEventListener;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.UserContext;
 import org.hisp.dhis.deletedobject.DeletedObject;
-import org.hisp.dhis.deletedobject.DeletedObjectService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -71,7 +68,7 @@ public class DeletedObjectPostDeleteEventListener implements PostCommitDeleteEve
             }
             catch ( Exception ex )
             {
-                log.error( "Failed to save DeletedObject: "+ deletedObject );
+                log.error( "Failed to save DeletedObject: " + deletedObject );
                 session.getTransaction().rollback();
             }
             finally

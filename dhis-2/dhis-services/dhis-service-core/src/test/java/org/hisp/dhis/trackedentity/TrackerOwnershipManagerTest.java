@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
 import static com.google.common.collect.Sets.newHashSet;
 import static org.junit.Assert.assertFalse;
@@ -90,8 +89,10 @@ public class TrackerOwnershipManagerTest extends DhisSpringTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ), newHashSet( organisationUnitA ), "" );
-        setDependency( trackerOwnershipAccessManager, "currentUserService", mockCurrentUserService, CurrentUserService.class );
+        CurrentUserService mockCurrentUserService = new MockCurrentUserService( false, newHashSet( organisationUnitA ),
+            newHashSet( organisationUnitA ), "" );
+        setDependency( trackerOwnershipAccessManager, "currentUserService", mockCurrentUserService,
+            CurrentUserService.class );
 
         entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );

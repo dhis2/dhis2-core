@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,7 +37,7 @@ public class OptionSet
     extends Model
 {
     private String clientVersion;
-    
+
     private List<String> options = new ArrayList<>();
 
     public List<String> getOptions()
@@ -50,7 +49,7 @@ public class OptionSet
     {
         this.options = options;
     }
-    
+
     @Override
     public String getClientVersion()
     {
@@ -76,7 +75,7 @@ public class OptionSet
             dout.writeUTF( option );
         }
     }
-    
+
     @Override
     public void serializeVersion2_8( DataOutputStream dout )
         throws IOException
@@ -90,7 +89,7 @@ public class OptionSet
             dout.writeUTF( option );
         }
     }
-    
+
     @Override
     public void serializeVersion2_9( DataOutputStream dout )
         throws IOException
@@ -100,10 +99,11 @@ public class OptionSet
         dout.writeInt( this.options.size() );
 
         for ( String option : this.options )
-        {	
-        	if (option != null) {
-        		dout.writeUTF( option );
-        	}
+        {
+            if ( option != null )
+            {
+                dout.writeUTF( option );
+            }
         }
     }
 

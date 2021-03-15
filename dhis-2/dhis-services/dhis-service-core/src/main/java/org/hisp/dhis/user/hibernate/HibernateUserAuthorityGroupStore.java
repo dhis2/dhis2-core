@@ -1,7 +1,5 @@
-package org.hisp.dhis.user.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user.hibernate;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -50,18 +49,21 @@ public class HibernateUserAuthorityGroupStore
     implements UserAuthorityGroupStore
 {
     public HibernateUserAuthorityGroupStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService, deletedObjectService,
+        super( sessionFactory, jdbcTemplate, publisher, UserAuthorityGroup.class, currentUserService,
+            deletedObjectService,
             aclService, true );
     }
 
     @Override
     public int countDataSetUserAuthorityGroups( DataSet dataSet )
     {
-        Query<Long> query = getTypedQuery( "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
+        Query<Long> query = getTypedQuery(
+            "select count(distinct c) from UserAuthorityGroup c where :dataSet in elements(c.dataSets)" );
         query.setParameter( "dataSet", dataSet );
 
-        return  query.getSingleResult().intValue();
+        return query.getSingleResult().intValue();
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.util;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,63 +33,63 @@ import lombok.extern.slf4j.Slf4j;
 public class Timer
 {
     private long startTime;
-    
+
     private boolean printDisabled;
-        
+
     public Timer disablePrint()
     {
         this.printDisabled = true;
         return this;
     }
-    
+
     public Timer start()
     {
         startTime = System.nanoTime();
         return this;
     }
-    
+
     public long getSplitTime()
     {
         return getSplitTime( "Split" );
     }
-    
+
     public long getSplitTime( String msg )
     {
         long endTime = System.nanoTime();
-        
-        long time = ( endTime - startTime ) / 1000;
-        
+
+        long time = (endTime - startTime) / 1000;
+
         if ( !printDisabled )
         {
             log.info( "Time: " + time + " micros: " + msg );
         }
-        
+
         return time;
     }
 
     public long getTimeInMs()
     {
         long endTime = System.nanoTime();
-        long time = ( endTime - startTime ) / 1000000;
+        long time = (endTime - startTime) / 1000000;
         return time;
     }
 
     public long getTimeInS()
     {
         long endTime = System.nanoTime();
-        long time = ( endTime - startTime ) / 1000000000;
+        long time = (endTime - startTime) / 1000000000;
         return time;
     }
-    
+
     public long getTime( String msg )
     {
         long time = getSplitTime( msg );
-                
+
         start();
-        
+
         return time;
     }
-    
+
     public long getTime()
     {
         return getTime( "Time" );

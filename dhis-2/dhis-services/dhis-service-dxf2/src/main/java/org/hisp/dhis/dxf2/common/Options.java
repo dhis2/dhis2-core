@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.common;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -39,17 +38,17 @@ import org.hisp.dhis.util.DateUtils;
  */
 public class Options
 {
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Internal State
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected Map<String, String> options = new HashMap<>();
 
     protected boolean assumeTrue;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public Options( Map<String, String> options )
     {
@@ -61,9 +60,9 @@ public class Options
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Object helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     /**
      * Indicates whether the given object type is enabled. Takes the assumeTrue
@@ -85,9 +84,9 @@ public class Options
         return !isEnabled( type );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Options helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public Date getDate( String key )
     {
@@ -103,8 +102,8 @@ public class Options
     }
 
     /**
-     * Indicates whether the options contains a non-null option value for the given
-     * parameter key.
+     * Indicates whether the options contains a non-null option value for the
+     * given parameter key.
      */
     public boolean containsValue( String key )
     {
@@ -144,9 +143,9 @@ public class Options
         return options.containsKey( key ) && Boolean.parseBoolean( options.get( key ) );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and Setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public Map<String, String> getOptions()
     {
@@ -168,18 +167,18 @@ public class Options
         this.assumeTrue = assumeTrue;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters for standard options
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public Date getLastUpdated()
     {
         return getDate( "lastUpdated" );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Adding options
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public void addOption( String option, String value )
     {
@@ -191,9 +190,9 @@ public class Options
         options.putAll( options );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Static helpers
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected static String stringAsString( String str, String defaultValue )
     {

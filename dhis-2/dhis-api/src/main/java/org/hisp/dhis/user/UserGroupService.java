@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
 
 import java.util.Collection;
 import java.util.List;
@@ -47,12 +46,13 @@ public interface UserGroupService
 
     /**
      * Indicates whether the current user can add or remove members for the user
-     * group with the given UID. To to so the current user must have write access
-     * to the group or have read access as well as the F_USER_GROUPS_READ_ONLY_ADD_MEMBERS
-     * authority.
+     * group with the given UID. To to so the current user must have write
+     * access to the group or have read access as well as the
+     * F_USER_GROUPS_READ_ONLY_ADD_MEMBERS authority.
      *
      * @param uid the user group UID.
-     * @return true if the current user can add or remove members of the user group.
+     * @return true if the current user can add or remove members of the user
+     *         group.
      */
     boolean canAddOrRemoveMember( String uid );
 

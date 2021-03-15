@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -47,9 +46,9 @@ public class Patient
     private String clientVersion;
 
     private int id;
-    
+
     private String organisationUnitName;
-    
+
     private String trackedEntityName;
 
     private List<PatientAttribute> attributes = new ArrayList<>();
@@ -61,11 +60,10 @@ public class Patient
     private List<Relationship> relationships = new ArrayList<>();
 
     private int idToAddRelative;
-    
-    private int relTypeIdToAdd;
-    
-    private Relationship enrollmentRelationship;
 
+    private int relTypeIdToAdd;
+
+    private Relationship enrollmentRelationship;
 
     // -------------------------------------------------------------------------
     // Getters and setters
@@ -120,17 +118,17 @@ public class Patient
     {
         this.organisationUnitName = organisationUnitName;
     }
-    
+
     public String getTrackedEntityName()
     {
         return trackedEntityName;
     }
-    
+
     public void setTrackedEntityName( String trackedEntityName )
     {
         this.trackedEntityName = trackedEntityName;
     }
-    
+
     public List<ProgramInstance> getEnrollmentPrograms()
     {
         return enrollmentPrograms;
@@ -160,22 +158,22 @@ public class Patient
     {
         this.idToAddRelative = idToAddRelative;
     }
-    
+
     public int getRelTypeIdToAdd()
     {
         return relTypeIdToAdd;
     }
-    
+
     public void setRelTypeIdToAdd( int relTypeIdToAdd )
     {
         this.relTypeIdToAdd = relTypeIdToAdd;
     }
-    
+
     public Relationship getEnrollmentRelationship()
     {
         return enrollmentRelationship;
     }
-    
+
     public void setEnrollmentRelationship( Relationship enrollmentRelationship )
     {
         this.enrollmentRelationship = enrollmentRelationship;
@@ -189,8 +187,8 @@ public class Patient
     public void serialize( DataOutputStream dout )
         throws IOException
     {
-//        ByteArrayOutputStream bout = new ByteArrayOutputStream();
-//        DataOutputStream dout = new DataOutputStream( bout );
+        // ByteArrayOutputStream bout = new ByteArrayOutputStream();
+        // DataOutputStream dout = new DataOutputStream( bout );
 
         dout.writeInt( this.getId() );
         dout.writeUTF( this.getOrganisationUnitName() );
@@ -225,7 +223,7 @@ public class Patient
         }
         dout.writeInt( this.getIdToAddRelative() );
         dout.writeInt( this.getRelTypeIdToAdd() );
-        if(enrollmentRelationship!=null)
+        if ( enrollmentRelationship != null )
         {
             dout.writeInt( 1 );
             enrollmentRelationship.serialize( dout );
@@ -235,13 +233,14 @@ public class Patient
             dout.writeInt( 0 );
         }
 
-//        bout.flush();
-//        bout.writeTo( out );
+        // bout.flush();
+        // bout.writeTo( out );
     }
 
     @Override
     public void deSerialize( DataInputStream din )
-        throws IOException, EOFException
+        throws IOException,
+        EOFException
     {
         this.setId( din.readInt() );
         this.setOrganisationUnitName( din.readUTF() );
@@ -300,9 +299,9 @@ public class Patient
         }
         this.setIdToAddRelative( din.readInt() );
         this.setRelTypeIdToAdd( din.readInt() );
-        
+
         int numEnrollmentRelationships = din.readInt();
-        if(numEnrollmentRelationships > 0)
+        if ( numEnrollmentRelationships > 0 )
         {
             Relationship enrollmentRelationship = new Relationship();
             enrollmentRelationship.deSerialize( din );

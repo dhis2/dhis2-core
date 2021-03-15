@@ -1,7 +1,5 @@
-package org.hisp.dhis.datavalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,12 @@ package org.hisp.dhis.datavalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.datavalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import java.io.Serializable;
+import java.util.Date;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -40,9 +41,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.regex.Pattern;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * @author Kristian Nordal
@@ -60,6 +60,7 @@ public class DataValue
     private static final Pattern ZERO_PATTERN = Pattern.compile( "^0(\\.0*)?$" );
 
     public static final String TRUE = "true";
+
     public static final String FALSE = "false";
 
     // -------------------------------------------------------------------------
@@ -93,7 +94,7 @@ public class DataValue
     private String comment;
 
     private Boolean followup;
-    
+
     private boolean deleted;
 
     // -------------------------------------------------------------------------
@@ -117,14 +118,14 @@ public class DataValue
     }
 
     /**
-     * @param dataElement          the data element.
-     * @param period               the period.
-     * @param source               the organisation unit.
-     * @param categoryOptionCombo  the category option combo.
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param source the organisation unit.
+     * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
      */
-    public DataValue(DataElement dataElement, Period period, OrganisationUnit source,
-                     CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo )
     {
         this.dataElement = dataElement;
         this.period = period;
@@ -136,12 +137,12 @@ public class DataValue
     }
 
     /**
-     * @param dataElement          the data element.
-     * @param period               the period.
-     * @param source               the organisation unit.
-     * @param categoryOptionCombo  the category option combo.
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param source the organisation unit.
+     * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
-     * @param value                the value.
+     * @param value the value.
      */
     public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
         CategoryOptionCombo categoryOptionCombo, CategoryOptionCombo attributeOptionCombo, String value )
@@ -157,17 +158,18 @@ public class DataValue
     }
 
     /**
-     * @param dataElement          the data element.
-     * @param period               the period.
-     * @param source               the organisation unit.
-     * @param categoryOptionCombo  the category option combo.
+     * @param dataElement the data element.
+     * @param period the period.
+     * @param source the organisation unit.
+     * @param categoryOptionCombo the category option combo.
      * @param attributeOptionCombo the attribute option combo.
-     * @param value                the value.
-     * @param storedBy             the user that stored this data value.
-     * @param lastUpdated          the time of the last update to this data value.
-     * @param comment              the comment.
+     * @param value the value.
+     * @param storedBy the user that stored this data value.
+     * @param lastUpdated the time of the last update to this data value.
+     * @param comment the comment.
      */
-    public DataValue( DataElement dataElement, Period period, OrganisationUnit source, CategoryOptionCombo categoryOptionCombo,
+    public DataValue( DataElement dataElement, Period period, OrganisationUnit source,
+        CategoryOptionCombo categoryOptionCombo,
         CategoryOptionCombo attributeOptionCombo, String value, String storedBy, Date lastUpdated, String comment )
     {
         this.dataElement = dataElement;
@@ -199,7 +201,8 @@ public class DataValue
      */
     public boolean isZero()
     {
-        return dataElement != null && dataElement.getValueType().isNumeric() && value != null && ZERO_PATTERN.matcher( value ).find();
+        return dataElement != null && dataElement.getValueType().isNumeric() && value != null
+            && ZERO_PATTERN.matcher( value ).find();
     }
 
     /**
@@ -214,7 +217,7 @@ public class DataValue
     {
         return followup != null && followup;
     }
-    
+
     public boolean hasComment()
     {
         return comment != null && !comment.isEmpty();
@@ -242,7 +245,7 @@ public class DataValue
         this.followup = other.isFollowup();
         this.deleted = other.isDeleted();
     }
-    
+
     // -------------------------------------------------------------------------
     // hashCode and equals
     // -------------------------------------------------------------------------
@@ -267,12 +270,11 @@ public class DataValue
 
         final DataValue other = (DataValue) o;
 
-        return
-            dataElement.equals( other.getDataElement() ) &&
-                period.equals( other.getPeriod() ) &&
-                source.equals( other.getSource() ) &&
-                categoryOptionCombo.equals( other.getCategoryOptionCombo() ) &&
-                attributeOptionCombo.equals( other.getAttributeOptionCombo() );
+        return dataElement.equals( other.getDataElement() ) &&
+            period.equals( other.getPeriod() ) &&
+            source.equals( other.getSource() ) &&
+            categoryOptionCombo.equals( other.getCategoryOptionCombo() ) &&
+            attributeOptionCombo.equals( other.getAttributeOptionCombo() );
     }
 
     @Override
@@ -297,7 +299,7 @@ public class DataValue
             ", period: " + period.getUid() +
             ", source: " + source.getUid() +
             ", category option combo: " + categoryOptionCombo.getUid() +
-            ", attribute option combo: " + attributeOptionCombo.getUid() + 
+            ", attribute option combo: " + attributeOptionCombo.getUid() +
             ", value: " + value +
             ", deleted: " + deleted + "]";
     }

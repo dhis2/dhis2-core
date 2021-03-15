@@ -1,7 +1,5 @@
-package org.hisp.dhis.validation;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.validation;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataset.DataSet;
+package org.hisp.dhis.validation;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 
 /**
  * @author Margrethe Store
@@ -87,7 +86,8 @@ public interface ValidationRuleService
     /**
      * Get all validation rules.
      *
-     * @return a List of ValidationRule or null if there are no validation rules.
+     * @return a List of ValidationRule or null if there are no validation
+     *         rules.
      */
     List<ValidationRule> getAllValidationRules();
 
@@ -95,7 +95,7 @@ public interface ValidationRuleService
      * Get all validation rules for form validation.
      *
      * @return a List of ValidationRule or null if there are none for form
-     * validation.
+     *         validation.
      */
     List<ValidationRule> getAllFormValidationRules();
 
@@ -109,7 +109,7 @@ public interface ValidationRuleService
     /**
      * Get data elements part of the left side and right side expressions of the
      * given validation rule.
-     * 
+     *
      * @param validationRule the validation rule.
      * @return a set of data elements.
      */
@@ -124,7 +124,8 @@ public interface ValidationRuleService
     Collection<ValidationRule> getValidationRulesForDataSet( DataSet dataSet );
 
     /**
-     * Returns all ValidationRules which have associated ValidationNotificationTemplates.
+     * Returns all ValidationRules which have associated
+     * ValidationNotificationTemplates.
      *
      * @return a List of ValidationRule.
      */
@@ -143,7 +144,8 @@ public interface ValidationRuleService
     long addValidationRuleGroup( ValidationRuleGroup validationRuleGroup );
 
     /**
-     * Delete a ValidationRuleGroup with the given identifiers from the database.
+     * Delete a ValidationRuleGroup with the given identifiers from the
+     * database.
      *
      * @param validationRuleGroup the ValidationRuleGroup to delete.
      */
@@ -175,7 +177,8 @@ public interface ValidationRuleService
     /**
      * Get all ValidationRuleGroups.
      *
-     * @return a List of ValidationRuleGroup or null if it there are no ValidationRuleGroups.
+     * @return a List of ValidationRuleGroup or null if it there are no
+     *         ValidationRuleGroups.
      */
     List<ValidationRuleGroup> getAllValidationRuleGroups();
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.bundle;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.tracker.bundle;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.bundle;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -45,33 +51,26 @@ import org.hisp.dhis.tracker.FlushMode;
 import org.hisp.dhis.tracker.TrackerIdScheme;
 import org.hisp.dhis.tracker.TrackerProgramRuleService;
 import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
-import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.domain.Attribute;
 import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatParams;
 import org.hisp.dhis.tracker.preheat.TrackerPreheatService;
 import org.hisp.dhis.tracker.report.TrackerBundleReport;
 import org.hisp.dhis.tracker.report.TrackerObjectReport;
 import org.hisp.dhis.tracker.report.TrackerTypeReport;
+import org.hisp.dhis.tracker.sideeffect.SideEffectHandlerService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -105,6 +104,7 @@ public class DefaultTrackerBundleService
     private final ReservedValueService reservedValueService;
 
     private List<TrackerBundleHook> bundleHooks = new ArrayList<>();
+
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
     @Autowired( required = false )
@@ -159,14 +159,15 @@ public class DefaultTrackerBundleService
         TrackerPreheat preheat = trackerPreheatService.preheat( preheatParams );
         trackerBundle.setPreheat( preheat );
 
-        Map<String, List<RuleEffect>> enrollmentRuleEffects =
-            trackerProgramRuleService.calculateEnrollmentRuleEffects( trackerBundle );
-        Map<String, List<RuleEffect>> eventRuleEffects =
-            trackerProgramRuleService.calculateEventRuleEffects( trackerBundle );
+        Map<String, List<RuleEffect>> enrollmentRuleEffects = trackerProgramRuleService
+            .calculateEnrollmentRuleEffects( trackerBundle );
+        Map<String, List<RuleEffect>> eventRuleEffects = trackerProgramRuleService
+            .calculateEventRuleEffects( trackerBundle );
         trackerBundle.setEnrollmentRuleEffects( enrollmentRuleEffects );
         trackerBundle.setEventRuleEffects( eventRuleEffects );
 
-        return Collections.singletonList( trackerBundle ); // for now we don't split the bundles
+        return Collections.singletonList( trackerBundle ); // for now we don't
+                                                           // split the bundles
     }
 
     @Override
@@ -215,10 +216,12 @@ public class DefaultTrackerBundleService
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
             TrackedEntity trackedEntity = trackedEntities.get( idx );
-            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService.from(
-                bundle.getPreheat(), trackedEntity );
+            org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = trackedEntityTrackerConverterService
+                .from(
+                    bundle.getPreheat(), trackedEntity );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY, trackedEntityInstance.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.TRACKED_ENTITY,
+                trackedEntityInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             if ( bundle.getImportStrategy().isCreate() )
@@ -232,9 +235,11 @@ public class DefaultTrackerBundleService
             trackedEntityInstance.setLastUpdatedBy( bundle.getUser() );
 
             session.persist( trackedEntityInstance );
-            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(), Collections.singletonList( trackedEntityInstance ) );
+            bundle.getPreheat().putTrackedEntities( bundle.getIdentifier(),
+                Collections.singletonList( trackedEntityInstance ) );
 
-            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(), trackedEntityInstance );
+            handleTrackedEntityAttributeValues( session, bundle.getPreheat(), trackedEntity.getAttributes(),
+                trackedEntityInstance );
 
             if ( FlushMode.OBJECT == bundle.getFlushMode() )
             {
@@ -243,7 +248,8 @@ public class DefaultTrackerBundleService
         }
 
         session.flush();
-        trackedEntities.forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
+        trackedEntities
+            .forEach( o -> bundleHooks.forEach( hook -> hook.postCreate( TrackedEntity.class, o, bundle ) ) );
 
         return typeReport;
     }
@@ -263,7 +269,8 @@ public class DefaultTrackerBundleService
             Enrollment enrollment = enrollments.get( idx );
             ProgramInstance programInstance = enrollmentTrackerConverterService.from( bundle.getPreheat(), enrollment );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT, programInstance.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.ENROLLMENT,
+                programInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             if ( bundle.getImportStrategy().isCreate() )
@@ -318,7 +325,8 @@ public class DefaultTrackerBundleService
             Event event = events.get( idx );
             ProgramStageInstance programStageInstance = eventTrackerConverterService.from( bundle.getPreheat(), event );
 
-            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT, programStageInstance.getUid(), idx );
+            TrackerObjectReport objectReport = new TrackerObjectReport( TrackerType.EVENT,
+                programStageInstance.getUid(), idx );
             typeReport.addObjectReport( objectReport );
 
             Date now = new Date();
@@ -402,9 +410,9 @@ public class DefaultTrackerBundleService
         return typeReport;
     }
 
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
     // Utility Methods
-    //-----------------------------------------------------------------------------------
+    // -----------------------------------------------------------------------------------
 
     private void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
         List<Attribute> attributes, TrackedEntityInstance trackedEntityInstance )
@@ -415,13 +423,17 @@ public class DefaultTrackerBundleService
         List<String> assignedFileResources = new ArrayList<>();
         List<String> unassignedFileResources = new ArrayList<>();
 
-        Map<String, TrackedEntityAttributeValue> attributeValueMap = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
-            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(), trackedEntityAttributeValue -> trackedEntityAttributeValue ) );
+        Map<String, TrackedEntityAttributeValue> attributeValueMap = trackedEntityInstance
+            .getTrackedEntityAttributeValues().stream()
+            .collect( Collectors.toMap( teav -> teav.getAttribute().getUid(),
+                trackedEntityAttributeValue -> trackedEntityAttributeValue ) );
 
         for ( Attribute at : attributes )
         {
-            // TEAV.getValue has a lot of trickery behind it since its being used for encryption, so we can't rely on that to
-            // get empty/null values, instead we build a simple list here to compare with.
+            // TEAV.getValue has a lot of trickery behind it since its being
+            // used for encryption, so we can't rely on that to
+            // get empty/null values, instead we build a simple list here to
+            // compare with.
             if ( StringUtils.isEmpty( at.getValue() ) )
             {
                 attributeValuesForDeletion.add( at.getAttribute() );
@@ -433,7 +445,8 @@ public class DefaultTrackerBundleService
                 }
             }
 
-            TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class, at.getAttribute() );
+            TrackedEntityAttribute attribute = preheat.get( TrackerIdScheme.UID, TrackedEntityAttribute.class,
+                at.getAttribute() );
             TrackedEntityAttributeValue attributeValue = null;
 
             if ( attributeValueMap.containsKey( at.getAttribute() ) )
@@ -469,7 +482,8 @@ public class DefaultTrackerBundleService
 
         for ( TrackedEntityAttributeValue attributeValue : attributeValues )
         {
-            // since TEAV is the owning side here, we don't bother updating the TE.teav collection
+            // since TEAV is the owning side here, we don't bother updating the
+            // TE.teav collection
             // as it will be reloaded on session clear
             if ( attributeValuesForDeletion.contains( attributeValue.getAttribute().getUid() ) )
             {
@@ -520,7 +534,8 @@ public class DefaultTrackerBundleService
 
     private User getUser( User user, String userUid )
     {
-        if ( user != null ) // ıf user already set, reload the user to make sure its loaded in the current tx
+        if ( user != null ) // ıf user already set, reload the user to make sure
+                            // its loaded in the current tx
         {
             return manager.get( User.class, user.getUid() );
         }

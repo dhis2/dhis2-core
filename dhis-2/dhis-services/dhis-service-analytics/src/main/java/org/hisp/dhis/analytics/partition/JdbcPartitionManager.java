@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.partition;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.analytics.partition;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.partition;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.Partitions;
@@ -42,8 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -66,8 +65,7 @@ public class JdbcPartitionManager
             return analyticsPartitions.get( tableType );
         }
 
-        final String sql =
-            "select table_name from information_schema.tables " +
+        final String sql = "select table_name from information_schema.tables " +
             "where table_name like '" + tableType.getTableName() + "%' " +
             "and table_type = 'BASE TABLE'";
 
@@ -83,8 +81,7 @@ public class JdbcPartitionManager
     @Override
     public boolean tableExists( String table )
     {
-        final String sql =
-            "select count(table_name) from information_schema.tables " +
+        final String sql = "select count(table_name) from information_schema.tables " +
             "where table_name = '" + table + "' " +
             "and table_type = 'BASE TABLE'";
 

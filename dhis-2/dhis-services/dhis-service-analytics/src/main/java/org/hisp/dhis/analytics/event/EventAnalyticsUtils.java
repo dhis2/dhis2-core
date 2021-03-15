@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,9 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
-import org.hisp.dhis.common.Grid;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +38,9 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
+import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.EventAnalyticsDimensionalItem;
+import org.hisp.dhis.common.Grid;
 
 /**
  * @author Henning Haakonsen
@@ -99,7 +98,7 @@ public class EventAnalyticsUtils
     }
 
     /**
-     *  Get all permutations for event report dimensions.
+     * Get all permutations for event report dimensions.
      *
      * @param dataOptionMap the map to generate permutations from
      * @return a list of a map with a permutations

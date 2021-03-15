@@ -1,7 +1,5 @@
-package org.hisp.dhis.expression.dataitem;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.expression.dataitem;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
-import org.hisp.dhis.common.DimensionalItemId;
+package org.hisp.dhis.expression.dataitem;
 
 import static org.apache.commons.lang3.ObjectUtils.anyNotNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT_OPERAND;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
+
+import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
+import org.hisp.dhis.common.DimensionalItemId;
 
 /**
  * Expression items DataElement and DataElementOperand
@@ -67,8 +66,8 @@ public class DimItemDataElementAndOperand
         if ( isDataElementOperandSyntax( ctx ) )
         {
             return ctx.uid0.getText() + "." +
-                ( ctx.uid1 == null ? "*" : ctx.uid1.getText() ) +
-                ( ctx.uid2 == null ? "" : "." + ctx.uid2.getText() );
+                (ctx.uid1 == null ? "*" : ctx.uid1.getText()) +
+                (ctx.uid2 == null ? "" : "." + ctx.uid2.getText());
         }
         else // Data element:
         {
@@ -81,8 +80,8 @@ public class DimItemDataElementAndOperand
     // -------------------------------------------------------------------------
 
     /**
-     * Does an item of the form #{...} have the syntax of a
-     * data element operand (as opposed to a data element)?
+     * Does an item of the form #{...} have the syntax of a data element operand
+     * (as opposed to a data element)?
      *
      * @param ctx the item context
      * @return true if data element operand syntax
@@ -91,7 +90,8 @@ public class DimItemDataElementAndOperand
     {
         if ( ctx.uid0 == null )
         {
-            throw new ParserExceptionWithoutContext( "Data Element or DataElementOperand must have a uid " + ctx.getText() );
+            throw new ParserExceptionWithoutContext(
+                "Data Element or DataElementOperand must have a uid " + ctx.getText() );
         }
 
         return anyNotNull( ctx.uid1, ctx.uid2 );

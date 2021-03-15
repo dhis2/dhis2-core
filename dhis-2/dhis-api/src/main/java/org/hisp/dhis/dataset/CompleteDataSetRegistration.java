@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,26 +25,29 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.Period;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.google.common.base.MoreObjects;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author Lars Helge Overland
  */
 @JacksonXmlRootElement( localName = "completeDataSetRegistration", namespace = DxfNamespaces.DXF_2_0 )
 public class CompleteDataSetRegistration
-        implements Serializable
+    implements Serializable
 {
     /**
      * Determines if a de-serialized file is compatible with this class.
@@ -91,7 +92,8 @@ public class CompleteDataSetRegistration
     }
 
     public CompleteDataSetRegistration( DataSet dataSet, Period period, OrganisationUnit source,
-        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, Date lastUpdated, String lastUpdatedBy, Boolean completed )
+        CategoryOptionCombo attributeOptionCombo, Date date, String storedBy, Date lastUpdated, String lastUpdatedBy,
+        Boolean completed )
     {
         this.dataSet = dataSet;
         this.period = period;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.action.smscommand;
-
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,11 @@ package org.hisp.dhis.mobile.action.smscommand;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.action.smscommand;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -42,14 +37,17 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.sms.command.CompletenessMethod;
-import org.hisp.dhis.sms.parse.ParserType;
-import org.hisp.dhis.sms.command.code.SMSCode;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.SMSSpecialCharacter;
+import org.hisp.dhis.sms.command.code.SMSCode;
+import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.user.UserGroupService;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opensymphony.xwork2.Action;
 
 public class EditSMSCommandForm
@@ -219,19 +217,21 @@ public class EditSMSCommandForm
                 }
             }
 
-            if ( command.getParserType() == ParserType.EVENT_REGISTRATION_PARSER || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER )
+            if ( command.getParserType() == ParserType.EVENT_REGISTRATION_PARSER
+                || command.getParserType() == ParserType.PROGRAM_STAGE_DATAENTRY_PARSER )
             {
                 root = mapper.readValue( programStageDataElementCodes, JsonNode.class );
                 JsonNode regPsCodes = root.get( "programStageDataElementCodes" );
-                                
+
                 if ( regPsCodes != null && regPsCodes.size() > 0 )
                 {
                     regPsCodes.iterator().forEachRemaining( regCode -> {
                         if ( regCode.get( "code" ) != null && regCode.get( "programStageDataElementId" ) != null )
                         {
                             SMSCode c = new SMSCode();
-                            c.setCode( regCode.get( "code" ).asText() );      
-                            c.setDataElement( dataElementService.getDataElement( regCode.get( "programStageDataElementId" ).asInt() ) );
+                            c.setCode( regCode.get( "code" ).asText() );
+                            c.setDataElement( dataElementService
+                                .getDataElement( regCode.get( "programStageDataElementId" ).asInt() ) );
                             c.setCompulsory( regCode.get( "compulsory" ).asBoolean() );
                             codeSet.add( c );
                         }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,23 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
-import com.google.common.collect.*;
-import org.hisp.dhis.analytics.*;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.*;
-import org.hisp.dhis.category.*;
 import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
+
+import java.util.*;
+import java.util.stream.*;
+
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.adapter.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.i18n.*;
 import org.hisp.dhis.indicator.*;
 import org.hisp.dhis.interpretation.*;
 import org.hisp.dhis.organisationunit.*;
-import static org.hisp.dhis.organisationunit.OrganisationUnit.*;
 import org.hisp.dhis.period.*;
 import org.hisp.dhis.schema.annotation.*;
 import org.hisp.dhis.trackedentity.*;
@@ -50,8 +49,10 @@ import org.hisp.dhis.translation.*;
 import org.hisp.dhis.user.*;
 import org.hisp.dhis.visualization.*;
 
-import java.util.*;
-import java.util.stream.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import com.google.common.collect.*;
 
 /**
  * This class contains associations to dimensional meta-data. Should typically
@@ -376,11 +377,11 @@ public abstract class BaseAnalyticalObject
 
     /**
      * Assembles a DimensionalObject based on the persisted properties of this
-     * AnalyticalObject. Collapses indicators, data elements, data element operands
-     * and data sets into the dx dimension.
+     * AnalyticalObject. Collapses indicators, data elements, data element
+     * operands and data sets into the dx dimension.
      * <p>
-     * Collapses fixed and relative periods into the pe dimension. Collapses fixed
-     * and user organisation units into the ou dimension.
+     * Collapses fixed and relative periods into the pe dimension. Collapses
+     * fixed and user organisation units into the ou dimension.
      *
      * @param dimension the dimension identifier.
      * @param date the date used for generating relative periods.
@@ -439,13 +440,15 @@ public abstract class BaseAnalyticalObject
             if ( organisationUnitLevels != null && !organisationUnitLevels.isEmpty()
                 && organisationUnitsAtLevel != null )
             {
-                items.addAll( organisationUnitsAtLevel ); // Must be set externally
+                items.addAll( organisationUnitsAtLevel ); // Must be set
+                                                          // externally
             }
 
             if ( itemOrganisationUnitGroups != null && !itemOrganisationUnitGroups.isEmpty()
                 && organisationUnitsInGroups != null )
             {
-                items.addAll( organisationUnitsInGroups ); // Must be set externally
+                items.addAll( organisationUnitsInGroups ); // Must be set
+                                                           // externally
             }
 
             type = DimensionType.ORGANISATION_UNIT;
@@ -540,13 +543,14 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Assembles a list of DimensionalObjects based on the concrete objects in this
-     * BaseAnalyticalObject.
+     * Assembles a list of DimensionalObjects based on the concrete objects in
+     * this BaseAnalyticalObject.
      * <p>
      * Merges fixed and relative periods into the pe dimension, where the
      * RelativePeriods object is represented by enums (e.g. LAST_MONTH). Merges
      * fixed and user organisation units into the ou dimension, where user
-     * organisation units properties are represented by enums (e.g. USER_ORG_UNIT).
+     * organisation units properties are represented by enums (e.g.
+     * USER_ORG_UNIT).
      * <p>
      * This method is useful when serializing the AnalyticalObject.
      *
@@ -704,8 +708,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Searches for a {@link DimensionalObject} with the given dimension identifier
-     * in the given list of {@link DimensionalEmbeddedObject} items.
+     * Searches for a {@link DimensionalObject} with the given dimension
+     * identifier in the given list of {@link DimensionalEmbeddedObject} items.
      *
      * @param dimension the dimension identifier.
      * @param dimensionType the dimension type.
@@ -738,8 +742,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Returns meta-data mapping for this analytical object. Includes a identifier
-     * to name mapping for dynamic dimensions.
+     * Returns meta-data mapping for this analytical object. Includes a
+     * identifier to name mapping for dynamic dimensions.
      */
     public Map<String, String> getMetaData()
     {
@@ -757,8 +761,8 @@ public abstract class BaseAnalyticalObject
     }
 
     /**
-     * Clear or set to false all persistent dimensional (not property) properties
-     * for this object.
+     * Clear or set to false all persistent dimensional (not property)
+     * properties for this object.
      */
     public void clear()
     {
@@ -1114,7 +1118,6 @@ public abstract class BaseAnalyticalObject
     {
         return title;
     }
-
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-
-import java.util.List;
-import java.util.Date;
 
 /**
  * @author Stian Sandvold
@@ -41,27 +40,34 @@ public interface KeyJsonValueStore
 {
     /**
      * Retrieves a list of all namespaces
+     *
      * @return a list of strings representing each existing namespace
      */
     List<String> getNamespaces();
 
     /**
      * Retrieves a list of keys associated with a given namespace.
+     *
      * @param namespace the namespace to retrieve keys from
-     * @return a list of strings representing the different keys in the namespace
+     * @return a list of strings representing the different keys in the
+     *         namespace
      */
     List<String> getKeysInNamespace( String namespace );
 
     /**
-     * Retrieves a list of keys associated with a given namespace which are updated after lastUpdated time.
+     * Retrieves a list of keys associated with a given namespace which are
+     * updated after lastUpdated time.
+     *
      * @param namespace the namespace to retrieve keys from
      * @param lastUpdated the lastUpdated time to retrieve keys from
-     * @return a list of strings representing the different keys in the namespace
+     * @return a list of strings representing the different keys in the
+     *         namespace
      */
     List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 
     /**
      * Retrieves a list of KeyJsonValue objects based on a given namespace
+     *
      * @param namespace the namespace to retrieve KeyJsonValues from
      * @return a List of KeyJsonValues
      */
@@ -69,6 +75,7 @@ public interface KeyJsonValueStore
 
     /**
      * Retrieves a KeyJsonValue based on the associated key and namespace
+     *
      * @param namespace the namespace where the key is stored
      * @param key the key referencing the value
      * @return the KeyJsonValue retrieved

@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collection;
 import java.util.List;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.system.startup.TransactionContextStartupRoutine;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -90,7 +89,7 @@ public class PeriodTypePopulator
             types.forEach( type -> {
                 session.insert( type );
                 log.debug( "Added PeriodType: " + type.getName() );
-            });
+            } );
         }
         catch ( Exception exception )
         {
@@ -101,6 +100,6 @@ public class PeriodTypePopulator
             DbmsUtils.closeStatelessSession( session );
         }
 
-        types.forEach( type ->  periodStore.reloadPeriodType( type ) );
+        types.forEach( type -> periodStore.reloadPeriodType( type ) );
     }
 }

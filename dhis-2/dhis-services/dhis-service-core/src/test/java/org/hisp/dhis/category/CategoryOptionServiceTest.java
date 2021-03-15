@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,19 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.category.Category;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.DataDimensionType;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.common.DataDimensionType;
+import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author Lars Helge Overland
@@ -52,15 +48,19 @@ public class CategoryOptionServiceTest
 {
     @Autowired
     private CategoryService categoryService;
-   
+
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private CategoryOption categoryOptionC;
-    
+
     private Category categoryA;
+
     private Category categoryB;
+
     private Category categoryC;
-    
+
     // -------------------------------------------------------------------------
     // Tests
     // -------------------------------------------------------------------------
@@ -71,11 +71,11 @@ public class CategoryOptionServiceTest
         categoryOptionA = new CategoryOption( "CategoryOptionA" );
         categoryOptionB = new CategoryOption( "CategoryOptionB" );
         categoryOptionC = new CategoryOption( "CategoryOptionC" );
-        
+
         long idA = categoryService.addCategoryOption( categoryOptionA );
         long idB = categoryService.addCategoryOption( categoryOptionB );
         long idC = categoryService.addCategoryOption( categoryOptionC );
-        
+
         assertEquals( categoryOptionA, categoryService.getCategoryOption( idA ) );
         assertEquals( categoryOptionB, categoryService.getCategoryOption( idB ) );
         assertEquals( categoryOptionC, categoryService.getCategoryOption( idC ) );
@@ -91,11 +91,11 @@ public class CategoryOptionServiceTest
         long idA = categoryService.addCategoryOption( categoryOptionA );
         long idB = categoryService.addCategoryOption( categoryOptionB );
         long idC = categoryService.addCategoryOption( categoryOptionC );
-        
+
         assertNotNull( categoryService.getCategoryOption( idA ) );
         assertNotNull( categoryService.getCategoryOption( idB ) );
         assertNotNull( categoryService.getCategoryOption( idC ) );
-        
+
         categoryService.deleteCategoryOption( categoryOptionA );
 
         assertNull( categoryService.getCategoryOption( idA ) );
@@ -119,13 +119,13 @@ public class CategoryOptionServiceTest
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
-        
+
         List<CategoryOption> categoryOptions = categoryService.getAllCategoryOptions();
-        
+
         assertEquals( 4, categoryOptions.size() ); // Including default
         assertTrue( categoryOptions.contains( categoryOptionA ) );
         assertTrue( categoryOptions.contains( categoryOptionB ) );
-        assertTrue( categoryOptions.contains( categoryOptionC ) );        
+        assertTrue( categoryOptions.contains( categoryOptionC ) );
     }
 
     @Test
@@ -138,42 +138,42 @@ public class CategoryOptionServiceTest
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
         categoryService.addCategoryOption( categoryOptionC );
-        
+
         List<CategoryOption> optionsA = new ArrayList<>();
         List<CategoryOption> optionsB = new ArrayList<>();
-           
+
         optionsA.add( categoryOptionA );
         optionsA.add( categoryOptionB );
         optionsB.add( categoryOptionC );
-        
+
         categoryA = new Category( "CategoryA", DataDimensionType.DISAGGREGATION, optionsA );
         categoryB = new Category( "CategoryB", DataDimensionType.DISAGGREGATION, optionsB );
         categoryC = new Category( "CategoryC", DataDimensionType.DISAGGREGATION );
-        
+
         Set<Category> categoriesA = new HashSet<>();
         Set<Category> categoriesB = new HashSet<>();
-        
+
         categoriesA.add( categoryA );
         categoriesB.add( categoryB );
-        
+
         categoryOptionA.setCategories( categoriesA );
         categoryOptionB.setCategories( categoriesA );
         categoryOptionC.setCategories( categoriesB );
-        
+
         categoryService.addCategory( categoryA );
         categoryService.addCategory( categoryB );
         categoryService.addCategory( categoryC );
-        
+
         List<CategoryOption> categoryOptions = categoryService.getCategoryOptions( categoryA );
 
         assertEquals( 2, categoryOptions.size() );
-        
+
         categoryOptions = categoryService.getCategoryOptions( categoryB );
 
         assertEquals( 1, categoryOptions.size() );
-        
+
         categoryOptions = categoryService.getCategoryOptions( categoryC );
 
-        assertEquals( 0, categoryOptions.size() );        
+        assertEquals( 0, categoryOptions.size() );
     }
 }

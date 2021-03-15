@@ -1,8 +1,5 @@
-package org.hisp.dhis.period;
-
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -28,10 +25,7 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
+package org.hisp.dhis.period;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -39,6 +33,11 @@ import java.time.temporal.WeekFields;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Kristian Wærstad
@@ -124,8 +123,8 @@ public class BiWeeklyAbstractPeriodType
     }
 
     /**
-     * Generates bi-weekly Periods for the whole year in which the given Period's
-     * startDate exists.
+     * Generates bi-weekly Periods for the whole year in which the given
+     * Period's startDate exists.
      */
     @Override
     public List<Period> generatePeriods( DateTimeUnit start )

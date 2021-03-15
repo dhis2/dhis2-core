@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,17 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.collect.Sets;
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -54,14 +61,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.servlet.http.HttpServletResponse;
+import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -176,7 +176,8 @@ public class UserSettingController
      *
      * @param key the name of a UserSettingKey
      * @return the UserSettingKey
-     * @throws WebMessageException throws an exception if no UserSettingKey was found
+     * @throws WebMessageException throws an exception if no UserSettingKey was
+     *         found
      */
     private UserSettingKey getUserSettingKey( String key )
         throws WebMessageException
@@ -192,13 +193,16 @@ public class UserSettingController
     }
 
     /**
-     * Tries to find a user based on the uid or username. If none is supplied, currentUser will be returned.
-     * If uid or username is found, it will also make sure the current user has access to the user.
+     * Tries to find a user based on the uid or username. If none is supplied,
+     * currentUser will be returned. If uid or username is found, it will also
+     * make sure the current user has access to the user.
      *
-     * @param uid      the user uid
+     * @param uid the user uid
      * @param username the user username
-     * @return the user found with uid or username, or current user if no uid or username was specified
-     * @throws WebMessageException throws an exception if user was not found, or current user don't have access
+     * @return the user found with uid or username, or current user if no uid or
+     *         username was specified
+     * @throws WebMessageException throws an exception if user was not found, or
+     *         current user don't have access
      */
     private User getUser( String uid, String username )
         throws WebMessageException

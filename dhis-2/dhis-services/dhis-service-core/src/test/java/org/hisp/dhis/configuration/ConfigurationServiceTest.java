@@ -1,7 +1,5 @@
-package org.hisp.dhis.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,21 +25,20 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
+
+import static org.junit.Assert.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.configuration.Configuration;
-import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -66,7 +63,7 @@ public class ConfigurationServiceTest
 
         UserGroup group = new UserGroup( "UserGroupA" );
         group.getMembers().add( userA );
-        group.getMembers().add(  userB );
+        group.getMembers().add( userB );
 
         userService.addUser( userA );
         userService.addUser( userB );

@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.webapi.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.service;
 
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -70,8 +70,8 @@ public interface ContextService
     HttpServletRequest getRequest();
 
     /**
-     * Returns a list of values from a parameter, if the parameter doesn't exist, it will
-     * return a empty list.
+     * Returns a list of values from a parameter, if the parameter doesn't
+     * exist, it will return a empty list.
      *
      * @param name Parameter to get
      * @return List of parameter values, or empty if not found
@@ -79,7 +79,8 @@ public interface ContextService
     Set<String> getParameterValues( String name );
 
     /**
-     * Get all parameters as a map of key => values, supports more than one pr key (so values is a collection)
+     * Get all parameters as a map of key => values, supports more than one pr
+     * key (so values is a collection)
      */
     Map<String, List<String>> getParameterValuesMap();
 }

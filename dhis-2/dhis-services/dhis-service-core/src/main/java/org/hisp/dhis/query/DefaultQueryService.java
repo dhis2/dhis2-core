@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -38,8 +39,6 @@ import org.hisp.dhis.preheat.Preheat;
 import org.hisp.dhis.query.planner.QueryPlan;
 import org.hisp.dhis.query.planner.QueryPlanner;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Default implementation of QueryService which works with IdObjects.
@@ -109,19 +108,24 @@ public class DefaultQueryService
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, pagination, DEFAULT_JUNCTION_TYPE );
     }
 
     @Override
-    public Query getQueryFromUrl(Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination,
+        Junction.Type rootJunction )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, pagination, rootJunction, false );
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination, Junction.Type rootJunction, boolean restrictToCaptureScope ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders, Pagination pagination,
+        Junction.Type rootJunction, boolean restrictToCaptureScope )
+        throws QueryParserException
     {
         Query query = queryParser.parse( klass, filters, rootJunction, restrictToCaptureScope );
 
@@ -132,19 +136,20 @@ public class DefaultQueryService
             query.setFirstResult( pagination.getFirstResult() );
             query.setMaxResults( pagination.getSize() );
         }
-        
+
         return query;
     }
 
     @Override
-    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders ) throws QueryParserException
+    public Query getQueryFromUrl( Class<?> klass, List<String> filters, List<Order> orders )
+        throws QueryParserException
     {
         return getQueryFromUrl( klass, filters, orders, new Pagination(), DEFAULT_JUNCTION_TYPE );
     }
 
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
     // Helper methods
-    //---------------------------------------------------------------------------------------------
+    // ---------------------------------------------------------------------------------------------
 
     private int countObjects( Query query )
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
-import com.google.common.base.MoreObjects;
 import org.hisp.dhis.util.ObjectUtils;
 
+import com.google.common.base.MoreObjects;
+
 /**
- * Identifier schemes used to map meta data. The general identifier
- * scheme can be overridden by id schemes specific to individual
- * object types. The default id scheme is UID.
+ * Identifier schemes used to map meta data. The general identifier scheme can
+ * be overridden by id schemes specific to individual object types. The default
+ * id scheme is UID.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -84,9 +84,9 @@ public class IdSchemes
         return this;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Object type id schemes
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public IdScheme getDataElementIdScheme()
     {
@@ -209,9 +209,9 @@ public class IdSchemes
         return this;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Get value methods
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public static String getValue( String uid, String code, IdentifiableProperty identifiableProperty )
     {

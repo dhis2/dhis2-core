@@ -1,7 +1,5 @@
-package org.hisp.dhis.configuration;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.configuration;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.configuration;
 
 import java.io.Serializable;
 import java.util.HashSet;
@@ -62,9 +61,9 @@ public class Configuration
      * Determines if a de-serialized file is compatible with this class.
      */
     private static final long serialVersionUID = 936186436040704261L;
-    
+
     private static final PeriodType DEFAULT_INFRASTRUCTURAL_PERIODTYPE = new YearlyPeriodType();
-    
+
     private int id;
 
     // -------------------------------------------------------------------------
@@ -72,23 +71,23 @@ public class Configuration
     // -------------------------------------------------------------------------
 
     private String systemId;
-    
+
     private UserGroup feedbackRecipients;
-    
+
     private OrganisationUnitLevel offlineOrganisationUnitLevel;
 
     private IndicatorGroup infrastructuralIndicators;
 
     private DataElementGroup infrastructuralDataElements;
-    
+
     private PeriodType infrastructuralPeriodType;
-    
+
     private UserAuthorityGroup selfRegistrationRole;
-    
+
     private OrganisationUnit selfRegistrationOrgUnit;
-    
+
     private Set<String> corsWhitelist = new HashSet<>();
-    
+
     // -------------------------------------------------------------------------
     // Constructor
     // -------------------------------------------------------------------------
@@ -105,12 +104,12 @@ public class Configuration
     {
         return infrastructuralPeriodType != null ? infrastructuralPeriodType : DEFAULT_INFRASTRUCTURAL_PERIODTYPE;
     }
-    
+
     public boolean selfRegistrationAllowed()
     {
         return selfRegistrationRole != null && selfRegistrationOrgUnit != null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Set and get methods
     // -------------------------------------------------------------------------
@@ -124,7 +123,7 @@ public class Configuration
     {
         this.id = id;
     }
-    
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getSystemId()
@@ -157,7 +156,7 @@ public class Configuration
     {
         return offlineOrganisationUnitLevel;
     }
-    
+
     public void setOfflineOrganisationUnitLevel( OrganisationUnitLevel offlineOrganisationUnitLevel )
     {
         this.offlineOrganisationUnitLevel = offlineOrganisationUnitLevel;

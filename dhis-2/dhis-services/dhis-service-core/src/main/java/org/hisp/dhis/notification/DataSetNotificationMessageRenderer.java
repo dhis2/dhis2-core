@@ -1,7 +1,5 @@
-package org.hisp.dhis.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.notification;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Collections;
 import java.util.Date;
@@ -37,12 +38,11 @@ import java.util.function.Function;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.notifications.DataSetNotificationTemplateVariables;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * Created by zubair on 04.07.17.
@@ -51,19 +51,19 @@ import static com.google.common.base.Preconditions.checkNotNull;
 public class DataSetNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<CompleteDataSetRegistration>
 {
-    private final ImmutableMap<TemplateVariable, Function<CompleteDataSetRegistration, String>> VARIABLE_RESOLVERS =
-        new ImmutableMap.Builder<TemplateVariable, Function<CompleteDataSetRegistration, String>>()
-            .put( DataSetNotificationTemplateVariables.DATASET_NAME, cdsr -> cdsr.getDataSet().getName() )
-            .put( DataSetNotificationTemplateVariables.DATASET_DESCRIPTION, cdsr -> cdsr.getDataSet().getDescription() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_OU, cdsr -> cdsr.getSource().getName() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, CompleteDataSetRegistration::getPeriodName )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, CompleteDataSetRegistration::getStoredBy )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_TIME, cdsr -> DateUtils.getMediumDateString() )
-            .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, this::getAttributeOptionCombo)
-            .put( DataSetNotificationTemplateVariables.CURRENT_DATE, cdsr -> formatDate( new Date() ) )
-            .build();
+    private final ImmutableMap<TemplateVariable, Function<CompleteDataSetRegistration, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<CompleteDataSetRegistration, String>>()
+        .put( DataSetNotificationTemplateVariables.DATASET_NAME, cdsr -> cdsr.getDataSet().getName() )
+        .put( DataSetNotificationTemplateVariables.DATASET_DESCRIPTION, cdsr -> cdsr.getDataSet().getDescription() )
+        .put( DataSetNotificationTemplateVariables.COMPLETE_REG_OU, cdsr -> cdsr.getSource().getName() )
+        .put( DataSetNotificationTemplateVariables.COMPLETE_REG_PERIOD, CompleteDataSetRegistration::getPeriodName )
+        .put( DataSetNotificationTemplateVariables.COMPLETE_REG_USER, CompleteDataSetRegistration::getStoredBy )
+        .put( DataSetNotificationTemplateVariables.COMPLETE_REG_TIME, cdsr -> DateUtils.getMediumDateString() )
+        .put( DataSetNotificationTemplateVariables.COMPLETE_REG_ATT_OPT_COMBO, this::getAttributeOptionCombo )
+        .put( DataSetNotificationTemplateVariables.CURRENT_DATE, cdsr -> formatDate( new Date() ) )
+        .build();
 
-    private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet.of( ExpressionType.VARIABLE );
+    private static final ImmutableSet<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
+        .of( ExpressionType.VARIABLE );
 
     private final CategoryService dataElementCategoryService;
 
@@ -81,7 +81,8 @@ public class DataSetNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, CompleteDataSetRegistration entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
+        CompleteDataSetRegistration entity )
     {
         // Attributes are not supported for dataset notifications
         return Collections.emptyMap();
@@ -94,7 +95,8 @@ public class DataSetNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, CompleteDataSetRegistration entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys,
+        CompleteDataSetRegistration entity )
     {
         // DataElement is not supported for dataset notifications
         return Collections.emptyMap();

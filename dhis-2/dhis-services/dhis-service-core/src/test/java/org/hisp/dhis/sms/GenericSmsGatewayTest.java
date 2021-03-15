@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.sms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -46,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.collect.Sets;
 import org.hisp.dhis.sms.config.ContentType;
 import org.hisp.dhis.sms.config.GenericGatewayParameter;
 import org.hisp.dhis.sms.config.GenericHttpGatewayConfig;
@@ -70,6 +68,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import org.testcontainers.shaded.org.apache.commons.lang.StringUtils;
 import org.testcontainers.shaded.org.apache.commons.lang.text.StrSubstitutor;
+
+import com.google.common.collect.Sets;
 
 /**
  * @Author Zubair Asghar.
@@ -163,13 +163,13 @@ public class GenericSmsGatewayTest
         ResponseEntity<String> responseEntity = new ResponseEntity<>( "success", HttpStatus.OK );
 
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-                eq( String.class ) ) )
+            eq( String.class ) ) )
                 .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
         verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-                httpEntityArgumentCaptor.capture(), eq( String.class ) );
+            httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );
@@ -215,13 +215,13 @@ public class GenericSmsGatewayTest
 
         when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
-                eq( String.class ) ) )
+            eq( String.class ) ) )
                 .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
         verify( restTemplate ).exchange( any( URI.class ), httpMethodArgumentCaptor.capture(),
-                httpEntityArgumentCaptor.capture(), eq( String.class ) );
+            httpEntityArgumentCaptor.capture(), eq( String.class ) );
 
         assertNotNull( httpEntityArgumentCaptor.getValue() );
         assertNotNull( httpMethodArgumentCaptor.getValue() );

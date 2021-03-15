@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.database;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.system.database;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.database;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
@@ -41,9 +43,6 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.mock.env.MockEnvironment;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
 
 /**
  * Unit tests for {@link HibernateDatabaseInfoProvider}.
@@ -77,20 +76,27 @@ public class HibernateDatabaseInfoProviderTest
 
     @Test
     @SuppressWarnings( "unchecked" )
-    public void init() throws SQLException
+    public void init()
+        throws SQLException
     {
-        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) ).thenReturn( "2" );
+        Mockito.when(
+            jdbcTemplate.queryForObject( Mockito.eq( "select postgis_full_version();" ), Mockito.eq( String.class ) ) )
+            .thenReturn( "2" );
 
-        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) ).thenReturn( "jdbc:postgresql:dhisx" );
+        Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_URL ) ) )
+            .thenReturn( "jdbc:postgresql:dhisx" );
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_USERNAME ) ) ).thenReturn( "dhisy" );
         Mockito.when( config.getProperty( Mockito.eq( ConfigurationKey.CONNECTION_PASSWORD ) ) ).thenReturn( "dhisz" );
 
-        Mockito.when( resultSet.getString( Mockito.eq( 1 ) ) ).thenReturn( "PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit" );
+        Mockito.when( resultSet.getString( Mockito.eq( 1 ) ) )
+            .thenReturn( "PostgreSQL 10.5, compiled by Visual C++ build 1800, 64-bit" );
         Mockito.when( resultSet.getString( Mockito.eq( 2 ) ) ).thenReturn( "dhis2" );
         Mockito.when( resultSet.getString( Mockito.eq( 3 ) ) ).thenReturn( "dhis" );
 
-        Mockito.when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ), Mockito.isA( RowMapper.class ) ) )
-            .thenAnswer( invocation -> ( (RowMapper<?>) invocation.getArgument( 1 ) ).mapRow( resultSet, 1 ) );
+        Mockito
+            .when( jdbcTemplate.queryForObject( Mockito.eq( "select version(),current_catalog,current_user" ),
+                Mockito.isA( RowMapper.class ) ) )
+            .thenAnswer( invocation -> ((RowMapper<?>) invocation.getArgument( 1 )).mapRow( resultSet, 1 ) );
 
         provider.init();
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.sms.command.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.sms.command.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.sms.command.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -42,15 +45,13 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import java.util.List;
-
 @Repository( "org.hisp.dhis.sms.command.hibernate.SMSCommandStore" )
 public class HibernateSMSCommandStore
     extends HibernateIdentifiableObjectStore<SMSCommand> implements SMSCommandStore
 {
     public HibernateSMSCommandStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService, AclService aclService )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, SMSCommand.class, currentUserService, deletedObjectService,
             aclService, true );
@@ -72,11 +73,12 @@ public class HibernateSMSCommandStore
 
         List<SMSCommand> list = getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "parserType" ), parserType ) )
-            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName, JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
+            .addPredicate( root -> JpaQueryUtils.stringPredicateIgnoreCase( builder, root.get( "name" ), commandName,
+                JpaQueryUtils.StringSearchMode.ANYWHERE ) ) );
 
         if ( list != null && !list.isEmpty() )
         {
-            return  list.get( 0 );
+            return list.get( 0 );
         }
 
         return null;
@@ -89,6 +91,6 @@ public class HibernateSMSCommandStore
         query.setParameter( "dataSet", dataSet );
         // TODO rename data set property
 
-        return  query.getSingleResult().intValue();
+        return query.getSingleResult().intValue();
     }
 }

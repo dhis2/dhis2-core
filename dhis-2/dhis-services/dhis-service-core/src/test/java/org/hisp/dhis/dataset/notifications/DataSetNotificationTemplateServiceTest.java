@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset.notifications;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,14 @@ package org.hisp.dhis.dataset.notifications;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset.notifications;
+
+import static org.junit.Assert.*;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -42,13 +48,6 @@ import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.*;
 
 /**
  * Created by zubair@dhis2.org on 28.07.17.
@@ -72,24 +71,33 @@ public class DataSetNotificationTemplateServiceTest
     private UserGroupService userGroupService;
 
     private Set<DataSet> dataSets = new HashSet<>();
+
     private Set<User> users = new HashSet<>();
+
     private Set<DeliveryChannel> channels = new HashSet<>();
 
     private DataSet dataSetA;
+
     private DataSet dataSetB;
+
     private DataSet dataSetC;
 
     private User userA;
+
     private User userB;
 
     private DeliveryChannel smsChannel = DeliveryChannel.SMS;
+
     private DeliveryChannel emailChannel = DeliveryChannel.EMAIL;
 
     private OrganisationUnit ouA;
+
     private OrganisationUnit ouB;
+
     private OrganisationUnit ouC;
 
     private UserGroup userGroupA;
+
     private UserGroup userGroupB;
 
     private DataSetNotificationRecipient notificationRecipient;
@@ -97,11 +105,15 @@ public class DataSetNotificationTemplateServiceTest
     private DataSetNotificationTrigger completion = DataSetNotificationTrigger.DATA_SET_COMPLETION;
 
     private DataSetNotificationTemplate templateA;
+
     private DataSetNotificationTemplate templateB;
 
     private String templateNameA = "TemplateA";
+
     private String templateNameB = "TemplateB";
+
     private String message = "message";
+
     private String subject = "subject";
 
     // -------------------------------------------------------------------------
@@ -109,7 +121,8 @@ public class DataSetNotificationTemplateServiceTest
     // -------------------------------------------------------------------------
 
     @Override
-    protected void setUpTest() throws Exception
+    protected void setUpTest()
+        throws Exception
     {
 
         ouA = createOrganisationUnit( "ouA" );
@@ -159,7 +172,8 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testSaveGet()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
@@ -174,11 +188,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testDelete()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -203,11 +219,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetAll()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 
@@ -223,11 +241,13 @@ public class DataSetNotificationTemplateServiceTest
     @Test
     public void testGetNotificationsByTriggerType()
     {
-        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateA = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupA, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateA.setAutoFields();
         templateA.setName( templateNameA );
 
-        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion, subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
+        templateB = new DataSetNotificationTemplate( dataSets, channels, message, notificationRecipient, completion,
+            subject, userGroupB, 0, SendStrategy.SINGLE_NOTIFICATION );
         templateB.setAutoFields();
         templateB.setName( templateNameB );
 

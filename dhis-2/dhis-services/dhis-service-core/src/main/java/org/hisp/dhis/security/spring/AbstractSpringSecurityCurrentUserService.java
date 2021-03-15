@@ -1,12 +1,5 @@
-package org.hisp.dhis.security.spring;
-
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,6 +25,12 @@ import org.springframework.security.core.userdetails.UserDetails;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.spring;
+
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -69,8 +68,8 @@ public abstract class AbstractSpringSecurityCurrentUserService
     }
 
     /**
-     * Returns the current UserDetails, or null of there is no
-     * current user or if principal is not of type UserDetails.
+     * Returns the current UserDetails, or null of there is no current user or
+     * if principal is not of type UserDetails.
      */
     protected UserDetails getCurrentUserDetails()
     {

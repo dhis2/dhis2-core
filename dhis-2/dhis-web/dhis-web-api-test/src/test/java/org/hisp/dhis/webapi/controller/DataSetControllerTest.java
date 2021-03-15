@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,12 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.net.HttpHeaders;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
@@ -46,9 +48,7 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.google.common.net.HttpHeaders;
 
 /**
  * Unit tests for {@link DataSetController}.
@@ -76,18 +76,21 @@ public class DataSetControllerTest
     public MockitoRule mockitoRule = MockitoJUnit.rule();
 
     @Test
-    public void getWithDependencies() throws Exception
+    public void getWithDependencies()
+        throws Exception
     {
         getWithDependencies( false );
     }
 
     @Test
-    public void getWithDependenciesAsDownload() throws Exception
+    public void getWithDependenciesAsDownload()
+        throws Exception
     {
         getWithDependencies( true );
     }
 
-    private void getWithDependencies( boolean download ) throws Exception
+    private void getWithDependencies( boolean download )
+        throws Exception
     {
         final Map<String, List<String>> parameterValuesMap = new HashMap<>();
         final MetadataExportParams exportParams = new MetadataExportParams();
@@ -96,7 +99,9 @@ public class DataSetControllerTest
         Mockito.when( service.getDataSet( Mockito.eq( "88dshgdga" ) ) ).thenReturn( dataSet );
         Mockito.when( contextService.getParameterValuesMap() ).thenReturn( parameterValuesMap );
         Mockito.when( exportService.getParamsFromMap( Mockito.same( parameterValuesMap ) ) ).thenReturn( exportParams );
-        Mockito.when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( dataSet ), Mockito.same( exportParams ) ) )
+        Mockito
+            .when( exportService.getMetadataWithDependenciesAsNode( Mockito.same( dataSet ),
+                Mockito.same( exportParams ) ) )
             .thenReturn( rootNode );
 
         final ResponseEntity<RootNode> responseEntity = controller.getDataSetWithDependencies( "88dshgdga", download );

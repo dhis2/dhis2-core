@@ -1,7 +1,5 @@
-package org.hisp.dhis.userkeyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,12 @@ package org.hisp.dhis.userkeyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.userkeyjsonvalue;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.user.User;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Stian Sandvold
@@ -54,7 +54,8 @@ public class UserKeyJsonValue
     private String key;
 
     /**
-     * A value referenced by a key, namespace and user, JSON-formatted data stored as a jsonb in db
+     * A value referenced by a key, namespace and user, JSON-formatted data
+     * stored as a jsonb in db
      */
     private String jbPlainValue;
 
@@ -69,8 +70,9 @@ public class UserKeyJsonValue
     private Boolean encrypted = false;
 
     /**
-     * Temporary variable to hold any new values set during session. Will be made into the correct type
-     * when being persisted by the persistence layer (encrypted or plain).
+     * Temporary variable to hold any new values set during session. Will be
+     * made into the correct type when being persisted by the persistence layer
+     * (encrypted or plain).
      */
     private String value;
 
@@ -81,7 +83,7 @@ public class UserKeyJsonValue
     public UserKeyJsonValue()
     {
     }
-    
+
     public UserKeyJsonValue( User user, String namespace, String key, String value, Boolean encrypted )
     {
         this.user = user;
@@ -90,7 +92,7 @@ public class UserKeyJsonValue
         this.value = value;
         this.encrypted = encrypted;
     }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------

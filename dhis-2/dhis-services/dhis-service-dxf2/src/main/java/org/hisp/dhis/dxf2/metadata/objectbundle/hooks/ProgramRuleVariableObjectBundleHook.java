@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import com.google.common.collect.ImmutableMap;
+import java.util.function.Consumer;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.springframework.stereotype.Component;
 
-import java.util.function.Consumer;
+import com.google.common.collect.ImmutableMap;
 
 /**
  * @Author Zubair Asghar.
@@ -43,8 +43,7 @@ import java.util.function.Consumer;
 @Component
 public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHook
 {
-    private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>
-        SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
+    private final ImmutableMap<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>> SOURCE_TYPE_RESOLVER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Consumer<ProgramRuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE, this::processCalculatedValue )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT, this::processDataElement )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM, this::processDataElement )
@@ -56,11 +55,13 @@ public class ProgramRuleVariableObjectBundleHook extends AbstractObjectBundleHoo
     @Override
     public <T extends IdentifiableObject> void preUpdate( T object, T persistedObject, ObjectBundle bundle )
     {
-        if( !ProgramRuleVariable.class.isInstance( object ) ) return;
+        if ( !ProgramRuleVariable.class.isInstance( object ) )
+            return;
 
         ProgramRuleVariable variable = (ProgramRuleVariable) object;
 
-        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {} ).accept( variable );
+        SOURCE_TYPE_RESOLVER.getOrDefault( variable.getSourceType(), v -> {
+        } ).accept( variable );
     }
 
     private void processCalculatedValue( ProgramRuleVariable variable )

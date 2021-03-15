@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,23 @@ package org.hisp.dhis.analytics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics;
 
 import org.hisp.dhis.common.Grid;
 
 /**
  * Manager for queries for retrieval of raw analytics data.
- * 
+ *
  * @author Lars Helge Overland
  */
 public interface RawAnalyticsManager
 {
     /**
      * Adds raw analytics data to the given grid based on the given query.
-     * 
+     *
      * @param params the query.
      * @param grid the grid.
      * @return a grid with data.
      */
-    Grid getRawDataValues( DataQueryParams params, Grid grid );    
+    Grid getRawDataValues( DataQueryParams params, Grid grid );
 }

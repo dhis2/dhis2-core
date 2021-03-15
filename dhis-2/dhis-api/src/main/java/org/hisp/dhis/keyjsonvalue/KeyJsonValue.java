@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
+
+import org.hisp.dhis.common.BaseIdentifiableObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.base.MoreObjects;
-
-import org.hisp.dhis.common.BaseIdentifiableObject;
 
 /**
  * @author Stian Sandvold
@@ -50,7 +49,8 @@ public class KeyJsonValue
     private String key;
 
     /**
-     * A value referenced by a key and namespace, JSON-formatted data stored as a string but in a jsonb column.
+     * A value referenced by a key and namespace, JSON-formatted data stored as
+     * a string but in a jsonb column.
      */
     private String jbPlainValue;
 
@@ -65,8 +65,9 @@ public class KeyJsonValue
     private String encryptedValue;
 
     /**
-     * Temporary variable to hold any new values set during session. Will be made into the correct type
-     * when being persisted by the persistence layer (encrypted or plain).
+     * Temporary variable to hold any new values set during session. Will be
+     * made into the correct type when being persisted by the persistence layer
+     * (encrypted or plain).
      */
     private String value;
 
@@ -77,7 +78,7 @@ public class KeyJsonValue
     public KeyJsonValue()
     {
     }
-    
+
     public KeyJsonValue( String namespace, String key, String value, Boolean encrypted )
     {
         this.namespace = namespace;
@@ -89,7 +90,7 @@ public class KeyJsonValue
     // -------------------------------------------------------------------------
     // toString
     // -------------------------------------------------------------------------
-    
+
     @Override
     public String toString()
     {
@@ -98,11 +99,11 @@ public class KeyJsonValue
             .add( "key", key )
             .add( "value", value ).toString();
     }
-    
+
     // -------------------------------------------------------------------------
     // Get and set methods
     // -------------------------------------------------------------------------
-    
+
     @JsonProperty
     public String getNamespace()
     {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.userkeyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.userkeyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.userkeyjsonvalue;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
-
-import java.util.List;
 
 /**
  * @author Stian Sandvold
@@ -41,6 +40,7 @@ public interface UserKeyJsonValueStore
 {
     /**
      * Retrieves a KeyJsonValue based on the associated key and user
+     *
      * @param user the user where the key is stored
      * @param namespace the namespace referencing the value
      * @param key the key referencing the value
@@ -50,6 +50,7 @@ public interface UserKeyJsonValueStore
 
     /**
      * Retrieves a list of namespaces associated with a user
+     *
      * @param user to search namespaces for
      * @return a list of strings representing namespaces
      */
@@ -57,14 +58,17 @@ public interface UserKeyJsonValueStore
 
     /**
      * Retrieves a list of keys associated with a given user and namespace.
+     *
      * @param user the user to retrieve keys from
      * @param namespace the namespace to search
-     * @return a list of strings representing the different keys stored on the user
+     * @return a list of strings representing the different keys stored on the
+     *         user
      */
     List<String> getKeysByUserAndNamespace( User user, String namespace );
 
     /**
      * Retrieves all UserKeyJsonvalues from a given user and namespace
+     *
      * @param user to search
      * @param namespace to search
      */

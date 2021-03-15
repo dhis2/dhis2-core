@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -35,7 +34,6 @@ import static org.junit.Assert.assertTrue;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.junit.Test;
 
 /**
@@ -44,7 +42,7 @@ import org.junit.Test;
 public class ExpressionUtilsTest
 {
     private static final double DELTA = 0.01;
-    
+
     @Test
     public void testEvaluateToDouble()
     {
@@ -56,13 +54,14 @@ public class ExpressionUtilsTest
         assertEquals( 15.6, ExpressionUtils.evaluateToDouble( "12.4 + 3.2", null ), DELTA );
         assertEquals( 2.0, ExpressionUtils.evaluateToDouble( "2 > 1 ? 2.0 : 1.0", null ), DELTA );
         assertEquals( 1.0, ExpressionUtils.evaluateToDouble( "2 > 4 ? 2.0 : 1.0", null ), DELTA );
-        assertEquals( 3d, ExpressionUtils.evaluateToDouble( "d2:zing(3)", null ), DELTA );        
+        assertEquals( 3d, ExpressionUtils.evaluateToDouble( "d2:zing(3)", null ), DELTA );
         assertEquals( 2d, ExpressionUtils.evaluateToDouble( "d2:zing(-3) + 2.0", null ), DELTA );
         assertEquals( 4d, ExpressionUtils.evaluateToDouble( "d2:zing(-1) + 4 + d2:zing(-2)", null ), DELTA );
         assertEquals( 0d, ExpressionUtils.evaluateToDouble( "d2:oizp(-4)", null ), DELTA );
         assertEquals( 1d, ExpressionUtils.evaluateToDouble( "d2:oizp(0)", null ), DELTA );
         assertEquals( 2d, ExpressionUtils.evaluateToDouble( "d2:oizp(-4) + d2:oizp(0) + d2:oizp(3.0)", null ), DELTA );
-        assertEquals( 3d, ExpressionUtils.evaluateToDouble( "d2:daysBetween('2015-03-01','2015-03-04')", null ), DELTA );
+        assertEquals( 3d, ExpressionUtils.evaluateToDouble( "d2:daysBetween('2015-03-01','2015-03-04')", null ),
+            DELTA );
         assertEquals( 1d, ExpressionUtils.evaluateToDouble( "d2:oizp(d2:zing(3))", null ), DELTA );
         assertEquals( 1d, ExpressionUtils.evaluateToDouble( "d2:zing(d2:oizp(3))", null ), DELTA );
         assertEquals( 2d, ExpressionUtils.evaluateToDouble( "d2:zpvc(1,3)", null ), DELTA );
@@ -77,34 +76,33 @@ public class ExpressionUtilsTest
         assertEquals( 3d, ExpressionUtils.evaluateToDouble( "d2:zpvc(1,null,2,-3,0)", null ), DELTA );
         assertEquals( 2d, ExpressionUtils.evaluateToDouble( "d2:zpvc(null,null,2,-3,0)", null ), DELTA );
     }
-    
+
     @Test
     public void testEvaluateToDoubleWithVars()
     {
         Map<String, Object> vars = new HashMap<>();
-        
+
         vars.put( "v1", 4d );
         vars.put( "v2", -5d );
-        
+
         assertEquals( 7d, ExpressionUtils.evaluateToDouble( "v1 + 3", vars ), DELTA );
         assertEquals( 4d, ExpressionUtils.evaluateToDouble( "d2:zing(v1)", vars ), DELTA );
         assertEquals( 0d, ExpressionUtils.evaluateToDouble( "d2:zing(v2)", vars ), DELTA );
         assertEquals( 4d, ExpressionUtils.evaluateToDouble( "d2:zing(v1) + d2:zing(v2)", vars ), DELTA );
     }
-    
+
     @Test
     public void testEvaluateToDoubleZeroPositiveValueCount()
     {
         String expression = "d2:zpvc(2,3,-1,0)";
-        
+
         assertEquals( 3d, ExpressionUtils.evaluateToDouble( expression, null ), DELTA );
-        
+
         expression = "(d2:zing(4) + d2:zing(0) + d2:zing(-1)) / d2:zpvc(2,0,-1)";
 
         assertEquals( 2d, ExpressionUtils.evaluateToDouble( expression, null ), DELTA );
 
-        expression = 
-            "((d2:zing(4) + d2:zing(0) + d2:zing(-1)) / d2:zpvc(2,0,-1) * 0.25) + " +
+        expression = "((d2:zing(4) + d2:zing(0) + d2:zing(-1)) / d2:zpvc(2,0,-1) * 0.25) + " +
             "((d2:zing(8) + d2:zing(0) + d2:zing(-1)) / d2:zpvc(2,0,-1) * 0.75)";
 
         assertEquals( 3.5, ExpressionUtils.evaluateToDouble( expression, null ), DELTA );
@@ -117,9 +115,10 @@ public class ExpressionUtilsTest
         assertEquals( 3, ExpressionUtils.evaluate( "d2:condition('5 > 7',4,3)", null ) );
         assertEquals( "yes", ExpressionUtils.evaluate( "d2:condition(\"'goat' == 'goat'\",'yes','no')", null ) );
         assertEquals( "no", ExpressionUtils.evaluate( "d2:condition(\"'goat' != 'goat'\",'yes','no')", null ) );
-        assertEquals( "indoor", ExpressionUtils.evaluate( "d2:condition(\"'weather' == 'nice'\",'beach','indoor')", null ) );
+        assertEquals( "indoor",
+            ExpressionUtils.evaluate( "d2:condition(\"'weather' == 'nice'\",'beach','indoor')", null ) );
     }
-    
+
     @Test
     public void testIsTrue()
     {
@@ -129,24 +128,24 @@ public class ExpressionUtilsTest
         assertTrue( ExpressionUtils.isTrue( "'b' == 'b'", null ) );
         assertTrue( ExpressionUtils.isTrue( "('b' == 'b') && ('c' == 'c')", null ) );
         assertTrue( ExpressionUtils.isTrue( "'goat' == 'goat'", null ) );
-        
+
         assertFalse( ExpressionUtils.isTrue( "2 < 1", null ) );
         assertFalse( ExpressionUtils.isTrue( "(2 * 3) == 8", null ) );
         assertFalse( ExpressionUtils.isTrue( "\"a\" == \"b\"", null ) );
         assertFalse( ExpressionUtils.isTrue( "'b' == 'c'", null ) );
         assertFalse( ExpressionUtils.isTrue( "'goat' == 'cow'", null ) );
     }
-    
+
     @Test
     public void testIsTrueWithVars()
     {
         Map<String, Object> vars = new HashMap<>();
-        
+
         vars.put( "v1", "4" );
         vars.put( "v2", "12" );
         vars.put( "v3", "goat" );
         vars.put( "v4", "horse" );
-        
+
         assertTrue( ExpressionUtils.isTrue( "v1 > 1", vars ) );
         assertTrue( ExpressionUtils.isTrue( "v2 < 18", vars ) );
         assertTrue( ExpressionUtils.isTrue( "v2 < '23'", vars ) );
@@ -161,15 +160,15 @@ public class ExpressionUtilsTest
         assertFalse( ExpressionUtils.isTrue( "v4 == 'goat'", vars ) );
         assertFalse( ExpressionUtils.isTrue( "v4 == \"goat\"", vars ) );
     }
-    
+
     @Test
     public void testIsBoolean()
     {
         Map<String, Object> vars = new HashMap<>();
-        
+
         vars.put( "uA2hsh8j26j", "FEMALE" );
         vars.put( "v2", "12" );
-        
+
         assertTrue( ExpressionUtils.isBoolean( "2 > 1", null ) );
         assertTrue( ExpressionUtils.isBoolean( "(2 * 3) == 6", null ) );
         assertTrue( ExpressionUtils.isBoolean( "\"a\" == \"a\"", null ) );
@@ -181,7 +180,7 @@ public class ExpressionUtilsTest
         assertFalse( ExpressionUtils.isBoolean( "3 + 2", null ) );
         assertFalse( ExpressionUtils.isBoolean( "someinvalid expr", null ) );
     }
-    
+
     @Test
     public void testAsSql()
     {
@@ -190,14 +189,14 @@ public class ExpressionUtilsTest
         assertEquals( "'a' = 1", ExpressionUtils.asSql( "'a' == 1" ) );
         assertEquals( "\"oZg33kd9taw\" = 'Female'", ExpressionUtils.asSql( "\"oZg33kd9taw\" == 'Female'" ) );
     }
-        
+
     @Test
     public void testIsValid()
     {
         Map<String, Object> vars = new HashMap<>();
-        
+
         vars.put( "v1", "12" );
-        
+
         assertTrue( ExpressionUtils.isValid( "2 + 8", null ) );
         assertTrue( ExpressionUtils.isValid( "3 - v1", vars ) );
         assertTrue( ExpressionUtils.isValid( "d2:zing(1)", null ) );
@@ -209,7 +208,7 @@ public class ExpressionUtilsTest
         assertTrue( ExpressionUtils.isValid( "1/(1/100)", null ) );
         assertTrue( ExpressionUtils.isValid( "SUM(1)", null ) );
         assertTrue( ExpressionUtils.isValid( "avg(2+1)", null ) );
-        
+
         assertFalse( ExpressionUtils.isValid( "2 a 3", null ) );
         assertFalse( ExpressionUtils.isValid( "4 b", vars ) );
         assertFalse( ExpressionUtils.isValid( "4 + A", vars ) );

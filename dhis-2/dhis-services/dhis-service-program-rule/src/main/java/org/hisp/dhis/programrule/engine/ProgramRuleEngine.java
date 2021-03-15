@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -37,6 +36,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
@@ -54,8 +55,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by zubair@dhis2.org on 11.10.17.
@@ -114,7 +113,7 @@ public class ProgramRuleEngine
         this.constantService = constantService;
     }
 
-    public List<RuleEffect> evaluateEnrollment(ProgramInstance enrollment )
+    public List<RuleEffect> evaluateEnrollment( ProgramInstance enrollment )
     {
         if ( enrollment == null )
         {
@@ -125,27 +124,32 @@ public class ProgramRuleEngine
 
         List<ProgramRule> implementableProgramRules = getImplementableRules( enrollment.getProgram() );
 
-        if ( implementableProgramRules.isEmpty() ) // if implementation does not exist on back end side
+        if ( implementableProgramRules.isEmpty() ) // if implementation does not
+                                                   // exist on back end side
         {
             return ruleEffects;
         }
 
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
-        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances() );
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService
+            .toMappedRuleEvents( enrollment.getProgramStageInstances() );
 
         RuleEngine ruleEngine;
 
         try
         {
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).events( ruleEvents )
+                .build();
 
-            ruleEffects = ruleEngine.evaluate( ruleEnrollment  ).call();
+            ruleEffects = ruleEngine.evaluate( ruleEnrollment ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach(
+                    action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -173,23 +177,28 @@ public class ProgramRuleEngine
             return ruleEffects;
         }
 
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( enrollment.getProgram() );
+        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService
+            .getProgramRuleVariable( enrollment.getProgram() );
 
         RuleEnrollment ruleEnrollment = programRuleEntityMapperService.toMappedRuleEnrollment( enrollment );
 
-        List<RuleEvent> ruleEvents = programRuleEntityMapperService.toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
+        List<RuleEvent> ruleEvents = programRuleEntityMapperService
+            .toMappedRuleEvents( enrollment.getProgramStageInstances(), programStageInstance );
 
         RuleEngine ruleEngine;
 
         try
         {
 
-            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables ).enrollment( ruleEnrollment ).events( ruleEvents ).build();
+            ruleEngine = ruleEngineBuilder( implementableProgramRules, programRuleVariables )
+                .enrollment( ruleEnrollment ).events( ruleEvents ).build();
 
-            ruleEffects = ruleEngine.evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance )  ).call();
+            ruleEffects = ruleEngine
+                .evaluate( programRuleEntityMapperService.toMappedRuleEvent( programStageInstance ) ).call();
 
             ruleEffects.stream().map( RuleEffect::ruleAction )
-                .forEach( action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
+                .forEach(
+                    action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
@@ -199,7 +208,8 @@ public class ProgramRuleEngine
         return ruleEffects;
     }
 
-    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules, List<ProgramRuleVariable> programRuleVariables )
+    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules,
+        List<ProgramRuleVariable> programRuleVariables )
     {
         Map<String, List<String>> supplementaryData = new HashMap<>();
 
@@ -229,13 +239,15 @@ public class ProgramRuleEngine
 
         if ( !orgUnitGroups.isEmpty() )
         {
-            supplementaryData = orgUnitGroups.stream().collect( Collectors.toMap( g -> g,  g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
-                .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
+            supplementaryData = orgUnitGroups.stream().collect(
+                Collectors.toMap( g -> g, g -> organisationUnitGroupService.getOrganisationUnitGroup( g ).getMembers()
+                    .stream().map( OrganisationUnit::getUid ).collect( Collectors.toList() ) ) );
         }
 
         if ( currentUserService.getCurrentUser() != null )
         {
-            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials().getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
+            supplementaryData.put( USER, currentUserService.getCurrentUser().getUserCredentials()
+                .getUserAuthorityGroups().stream().map( UserAuthorityGroup::getUid ).collect( Collectors.toList() ) );
         }
 
         return RuleEngineContext
@@ -252,13 +264,15 @@ public class ProgramRuleEngine
     {
         List<ProgramRule> permittedRules;
 
-        permittedRules = programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getNotificationLinkedTypes() );
+        permittedRules = programRuleService.getImplementableProgramRules( program,
+            ProgramRuleActionType.getNotificationLinkedTypes() );
 
         if ( permittedRules.isEmpty() )
         {
             return permittedRules;
         }
 
-        return programRuleService.getImplementableProgramRules( program, ProgramRuleActionType.getImplementedActions() );
+        return programRuleService.getImplementableProgramRules( program,
+            ProgramRuleActionType.getImplementedActions() );
     }
 }

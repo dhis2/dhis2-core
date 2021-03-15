@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.function;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.program.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.function;
+
+import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
+import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
+import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 import org.hisp.dhis.antlr.ParserExceptionWithoutContext;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.program.ProgramExpressionItem;
 import org.hisp.dhis.relationship.RelationshipType;
-
-import static org.hisp.dhis.antlr.AntlrParserUtils.trimQuotes;
-import static org.hisp.dhis.parser.expression.CommonExpressionVisitor.DEFAULT_DOUBLE_VALUE;
-import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
 /**
  * Program indicator function: d2 relationship count
@@ -52,7 +51,8 @@ public class D2RelationshipCount
         {
             String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
 
-            RelationshipType relationshipType = visitor.getRelationshipTypeService().getRelationshipType( relationshipId );
+            RelationshipType relationshipType = visitor.getRelationshipTypeService()
+                .getRelationshipType( relationshipId );
 
             if ( relationshipType == null )
             {
@@ -74,9 +74,8 @@ public class D2RelationshipCount
         {
             String relationshipId = trimQuotes( ctx.QUOTED_UID().getText() );
 
-            relationshipIdConstraint =
-                " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
-                    + relationshipId + "'";
+            relationshipIdConstraint = " join relationshiptype rt on r.relationshiptypeid = rt.relationshiptypeid and rt.uid = '"
+                + relationshipId + "'";
         }
 
         return "(select count(*) from relationship r" + relationshipIdConstraint +

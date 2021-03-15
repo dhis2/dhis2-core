@@ -1,7 +1,5 @@
-package org.hisp.dhis.indicator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,16 @@ package org.hisp.dhis.indicator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.indicator;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataset.DataSet;
+import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Property;
+import org.hisp.dhis.translation.TranslationProperty;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -34,14 +42,6 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.*;
-import org.hisp.dhis.dataset.DataSet;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.translation.TranslationProperty;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Lars Helge Overland
@@ -157,17 +157,17 @@ public class Indicator
     {
         return DimensionItemType.INDICATOR;
     }
-    
+
     /**
-     * A denominator value of "1" implies that there is no denominator
-     * and that the indicator represents a sum.
+     * A denominator value of "1" implies that there is no denominator and that
+     * the indicator represents a sum.
      */
     @Override
     public TotalAggregationType getTotalAggregationType()
     {
         return "1".equals( denominator ) ? TotalAggregationType.SUM : TotalAggregationType.AVERAGE;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -237,7 +237,8 @@ public class Indicator
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayNumeratorDescription()
     {
-        displayNumeratorDescription = getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION, displayNumeratorDescription );
+        displayNumeratorDescription = getTranslation( TranslationProperty.NUMERATOR_DESCRIPTION,
+            displayNumeratorDescription );
         return displayNumeratorDescription != null ? displayNumeratorDescription : getNumeratorDescription();
     }
 
@@ -285,7 +286,8 @@ public class Indicator
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDenominatorDescription()
     {
-        displayDenominatorDescription = getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION, displayDenominatorDescription );
+        displayDenominatorDescription = getTranslation( TranslationProperty.DENOMINATOR_DESCRIPTION,
+            displayDenominatorDescription );
         return displayDenominatorDescription != null ? displayDenominatorDescription : getDenominatorDescription();
     }
 

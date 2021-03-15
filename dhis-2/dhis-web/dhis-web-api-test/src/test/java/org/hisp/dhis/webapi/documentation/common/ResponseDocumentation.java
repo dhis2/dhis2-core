@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.documentation.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.webapi.documentation.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.documentation.common;
 
-import com.google.common.collect.Lists;
-import org.springframework.restdocs.payload.FieldDescriptor;
+import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
 
 import java.util.List;
 
-import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import org.springframework.restdocs.payload.FieldDescriptor;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -55,8 +55,7 @@ public final class ResponseDocumentation
             fieldWithPath( "access" ).description( "Property" ),
             fieldWithPath( "userGroupAccesses" ).description( "Property" ),
             fieldWithPath( "attributeValues" ).description( "Property" ),
-            fieldWithPath( "translations" ).description( "Property" )
-        );
+            fieldWithPath( "translations" ).description( "Property" ) );
     }
 
     public static List<FieldDescriptor> nameableObject()
@@ -65,8 +64,7 @@ public final class ResponseDocumentation
             fieldWithPath( "shortName" ).description( "Property" ),
             fieldWithPath( "displayShortName" ).description( "Property" ),
             fieldWithPath( "description" ).description( "Property" ),
-            fieldWithPath( "displayDescription" ).description( "Property" )
-        );
+            fieldWithPath( "displayDescription" ).description( "Property" ) );
     }
 
     public static List<FieldDescriptor> pager()
@@ -75,7 +73,6 @@ public final class ResponseDocumentation
             fieldWithPath( "pager.page" ).description( "Property" ),
             fieldWithPath( "pager.pageCount" ).description( "Property" ),
             fieldWithPath( "pager.total" ).description( "Property" ),
-            fieldWithPath( "pager.pageSize" ).description( "Property" )
-        );
+            fieldWithPath( "pager.pageSize" ).description( "Property" ) );
     }
 }

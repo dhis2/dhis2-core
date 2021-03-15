@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.comparator;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.comparator;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.comparator;
 
 import java.util.Comparator;
 
@@ -42,17 +41,20 @@ public class TrackedEntityAttributeValueSortOrderComparator
         {
             return 0;
         }
-        
-        if ( value0.getAttribute().getSortOrderInListNoProgram() == null || value0.getAttribute().getSortOrderInListNoProgram() == 0 )
+
+        if ( value0.getAttribute().getSortOrderInListNoProgram() == null
+            || value0.getAttribute().getSortOrderInListNoProgram() == 0 )
         {
             return value0.getAttribute().getName().compareTo( value1.getAttribute().getName() );
         }
 
-        if ( value1.getAttribute().getSortOrderInListNoProgram() == null || value1.getAttribute().getSortOrderInListNoProgram() == 0 )
+        if ( value1.getAttribute().getSortOrderInListNoProgram() == null
+            || value1.getAttribute().getSortOrderInListNoProgram() == 0 )
         {
             return value0.getAttribute().getName().compareTo( value1.getAttribute().getName() );
         }
 
-        return value0.getAttribute().getSortOrderInListNoProgram() - value1.getAttribute().getSortOrderInListNoProgram();
+        return value0.getAttribute().getSortOrderInListNoProgram()
+            - value1.getAttribute().getSortOrderInListNoProgram();
     }
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.calendar;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,13 @@ package org.hisp.dhis.calendar;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.calendar;
 
 import javax.validation.constraints.NotNull;
 
 /**
  * Class representing a date interval.
+ *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  * @see DateTimeUnit
  * @see Calendar
@@ -86,14 +86,19 @@ public class DateInterval
     @Override
     public boolean equals( Object o )
     {
-        if ( this == o ) return true;
-        if ( o == null || getClass() != o.getClass() ) return false;
+        if ( this == o )
+            return true;
+        if ( o == null || getClass() != o.getClass() )
+            return false;
 
         DateInterval that = (DateInterval) o;
 
-        if ( from != null ? !from.equals( that.from ) : that.from != null ) return false;
-        if ( to != null ? !to.equals( that.to ) : that.to != null ) return false;
-        if ( type != that.type ) return false;
+        if ( from != null ? !from.equals( that.from ) : that.from != null )
+            return false;
+        if ( to != null ? !to.equals( that.to ) : that.to != null )
+            return false;
+        if ( type != that.type )
+            return false;
 
         return true;
     }

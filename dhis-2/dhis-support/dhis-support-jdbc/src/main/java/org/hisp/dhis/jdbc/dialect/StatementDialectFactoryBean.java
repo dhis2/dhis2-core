@@ -1,7 +1,5 @@
-package org.hisp.dhis.jdbc.dialect;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.jdbc.dialect;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.jdbc.dialect;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.hibernate.cfg.Configuration;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.quick.StatementDialect;
 import org.springframework.beans.factory.FactoryBean;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Lars Helge Overland
@@ -45,9 +44,9 @@ public class StatementDialectFactoryBean
     implements FactoryBean<StatementDialect>
 {
     private static final String KEY_DIALECT = "hibernate.dialect";
-    
+
     private static Map<String, StatementDialect> dialectMap;
-    
+
     static
     {
         dialectMap = new HashMap<>();
@@ -56,13 +55,13 @@ public class StatementDialectFactoryBean
         dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisPostgresDialect", StatementDialect.POSTGRESQL );
         dialectMap.put( "org.hibernate.dialect.HSQLDialect", StatementDialect.HSQL );
         dialectMap.put( "org.hibernate.dialect.H2Dialect", StatementDialect.H2 );
-        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect",StatementDialect.H2 );
+        dialectMap.put( "org.hisp.dhis.hibernate.dialect.DhisH2Dialect", StatementDialect.H2 );
     }
-    
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
-    
+
     private final HibernateConfigurationProvider hibernateConfigurationProvider;
 
     public StatementDialectFactoryBean( HibernateConfigurationProvider hibernateConfigurationProvider )
@@ -72,19 +71,19 @@ public class StatementDialectFactoryBean
     }
 
     private StatementDialect statementDialect;
-    
+
     // -------------------------------------------------------------------------
     // Initialisation
     // -------------------------------------------------------------------------
-    
+
     public void init()
     {
         Configuration hibernateConfiguration = hibernateConfigurationProvider.getConfiguration();
-        
+
         String dialect = hibernateConfiguration.getProperty( KEY_DIALECT );
 
         statementDialect = dialectMap.get( dialect );
-        
+
         if ( statementDialect == null )
         {
             throw new RuntimeException( "Unsupported dialect: " + dialect );
@@ -94,9 +93,10 @@ public class StatementDialectFactoryBean
     // -------------------------------------------------------------------------
     // FactoryBean implementation
     // -------------------------------------------------------------------------
-        
+
     @Override
-    public StatementDialect getObject() {
+    public StatementDialect getObject()
+    {
         return statementDialect;
     }
 

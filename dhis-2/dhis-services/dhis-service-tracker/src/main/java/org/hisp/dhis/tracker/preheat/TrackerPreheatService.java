@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -34,7 +33,8 @@ package org.hisp.dhis.tracker.preheat;
 public interface TrackerPreheatService
 {
     /**
-     * Preheat a set of pre-defined classes. If size == 0, then preheat all metadata classes automatically.
+     * Preheat a set of pre-defined classes. If size == 0, then preheat all
+     * metadata classes automatically.
      *
      * @param params Params for preheating
      */

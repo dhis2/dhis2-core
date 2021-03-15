@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -90,21 +89,23 @@ public class TrackerOwnershipController
 
     @RequestMapping( value = "/transfer", method = RequestMethod.PUT, produces = MediaType.APPLICATION_JSON_VALUE )
     public void updateTrackerProgramOwner( @RequestParam String trackedEntityInstance, @RequestParam String program,
-                                           @RequestParam String ou, HttpServletRequest request, HttpServletResponse response ) {
+        @RequestParam String ou, HttpServletRequest request, HttpServletResponse response )
+    {
 
         trackerOwnershipAccessManager.transferOwnership(
-                trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
-                programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
+            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
         webMessageService.send( WebMessageUtils.ok( "Ownership transferred" ), response, request );
     }
 
     @RequestMapping( value = "/override", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE )
     public void overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
-                                         @RequestParam String program, HttpServletRequest request, HttpServletResponse response ) {
+        @RequestParam String program, HttpServletRequest request, HttpServletResponse response )
+    {
 
         trackerOwnershipAccessManager.grantTemporaryOwnership(
-                trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
-                programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
+            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
         webMessageService.send( WebMessageUtils.ok( "Temporary Ownership granted" ), response, request );
     }

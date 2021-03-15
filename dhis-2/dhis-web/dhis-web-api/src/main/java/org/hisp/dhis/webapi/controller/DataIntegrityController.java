@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
+
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -40,11 +44,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
 
 /**
  * @author Halvdan Hoem Grelland <halvdanhg@gmail.com>
@@ -65,15 +64,16 @@ public class DataIntegrityController
 
     public static final String RESOURCE_PATH = "/dataIntegrity";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Start asynchronous data integrity task
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @RequestMapping( value = DataIntegrityController.RESOURCE_PATH, method = RequestMethod.POST )
     public void runAsyncDataIntegrity( HttpServletResponse response, HttpServletRequest request )
     {
-        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null, true );
+        JobConfiguration jobConfiguration = new JobConfiguration( "runAsyncDataIntegrity", JobType.DATA_INTEGRITY, null,
+            true );
         jobConfiguration.setUserUid( currentUserService.getCurrentUser().getUid() );
         jobConfiguration.setAutoFields();
 

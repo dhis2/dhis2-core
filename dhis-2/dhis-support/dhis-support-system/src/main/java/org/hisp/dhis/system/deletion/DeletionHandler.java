@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.deletion;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.deletion;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.deletion;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -137,8 +136,8 @@ import org.hisp.dhis.visualization.Visualization;
  * will affect the current object in any way. Eg. a DeletionHandler for
  * DataElementGroup should override the deleteDataElement(..) method which
  * should remove the DataElement from all DataElementGroups. Also, it should
- * override the allowDeleteDataElement() method and return a non-null String value
- * if there exists objects that are dependent on the DataElement and are
+ * override the allowDeleteDataElement() method and return a non-null String
+ * value if there exists objects that are dependent on the DataElement and are
  * considered not be deleted. The return value could be a hint for which object
  * is denying the delete, like the name.
  *
@@ -1014,7 +1013,7 @@ public abstract class DeletionHandler
     {
     }
 
-    public String allowDeleteJobConfiguration(JobConfiguration jobConfiguration )
+    public String allowDeleteJobConfiguration( JobConfiguration jobConfiguration )
     {
         return null;
     }
@@ -1072,12 +1071,12 @@ public abstract class DeletionHandler
     public void deletePotentialDuplicate( PotentialDuplicate potentialDuplicate )
     {
     }
-    
+
     public String allowDeleteVisualization( Visualization visualization )
     {
         return null;
     }
-    
+
     public void deleteVisualization( Visualization visualization )
     {
     }
@@ -1087,7 +1086,7 @@ public abstract class DeletionHandler
         return null;
     }
 
-    public void deleteInterpretationComment ( InterpretationComment comment )
+    public void deleteInterpretationComment( InterpretationComment comment )
     {
     }
 }

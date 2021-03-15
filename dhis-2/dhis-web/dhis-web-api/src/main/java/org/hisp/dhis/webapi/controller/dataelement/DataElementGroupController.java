@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,16 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataelement;
 
-import com.google.common.collect.Lists;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.Pager;
@@ -54,12 +60,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -76,8 +77,10 @@ public class DataElementGroupController
     private DataElementService dataElementService;
 
     @RequestMapping( value = "/{uid}/operands", method = RequestMethod.GET )
-    public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters, Model model,
-        TranslateParams translateParams, HttpServletRequest request, HttpServletResponse response ) throws Exception
+    public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
+        Model model,
+        TranslateParams translateParams, HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         WebOptions options = new WebOptions( parameters );
         setUserContext( translateParams );
@@ -89,7 +92,8 @@ public class DataElementGroupController
         }
 
         WebMetadata metadata = new WebMetadata();
-        List<DataElementOperand> dataElementOperands = Lists.newArrayList( dataElementCategoryService.getOperands( dataElementGroups.get( 0 ).getMembers() ) );
+        List<DataElementOperand> dataElementOperands = Lists
+            .newArrayList( dataElementCategoryService.getOperands( dataElementGroups.get( 0 ).getMembers() ) );
         Collections.sort( dataElementOperands );
 
         metadata.setDataElementOperands( dataElementOperands );
@@ -112,8 +116,10 @@ public class DataElementGroupController
 
     @RequestMapping( value = "/{uid}/operands/query/{q}", method = RequestMethod.GET )
     public String getOperandsByQuery( @PathVariable( "uid" ) String uid,
-        @PathVariable( "q" ) String q, @RequestParam Map<String, String> parameters, TranslateParams translateParams, Model model,
-        HttpServletRequest request, HttpServletResponse response ) throws Exception
+        @PathVariable( "q" ) String q, @RequestParam Map<String, String> parameters, TranslateParams translateParams,
+        Model model,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
     {
         WebOptions options = new WebOptions( parameters );
         setUserContext( translateParams );
@@ -127,7 +133,8 @@ public class DataElementGroupController
         WebMetadata metadata = new WebMetadata();
         List<DataElementOperand> dataElementOperands = Lists.newArrayList();
 
-        for ( DataElementOperand dataElementOperand : dataElementCategoryService.getOperands( dataElementGroups.get( 0 ).getMembers() ) )
+        for ( DataElementOperand dataElementOperand : dataElementCategoryService
+            .getOperands( dataElementGroups.get( 0 ).getMembers() ) )
         {
             if ( dataElementOperand.getDisplayName().toLowerCase().contains( q.toLowerCase() ) )
             {
@@ -154,16 +161,21 @@ public class DataElementGroupController
     }
 
     @RequestMapping( value = "/{uid}/metadata", method = RequestMethod.GET )
-    public ResponseEntity<RootNode> getDataElementGroupWithDependencies( @PathVariable( "uid" ) String dataElementGroupId, @RequestParam( required = false, defaultValue = "false" ) boolean download )
-        throws WebMessageException, IOException
+    public ResponseEntity<RootNode> getDataElementGroupWithDependencies(
+        @PathVariable( "uid" ) String dataElementGroupId,
+        @RequestParam( required = false, defaultValue = "false" ) boolean download )
+        throws WebMessageException,
+        IOException
     {
         DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( dataElementGroupId );
 
         if ( dataElementGroup == null )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
+            throw new WebMessageException(
+                WebMessageUtils.notFound( "DataElementGroup not found for uid: " + dataElementGroupId ) );
         }
 
-        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataElementGroup, download );
+        return MetadataExportControllerUtils.getWithDependencies( contextService, exportService, dataElementGroup,
+            download );
     }
 }

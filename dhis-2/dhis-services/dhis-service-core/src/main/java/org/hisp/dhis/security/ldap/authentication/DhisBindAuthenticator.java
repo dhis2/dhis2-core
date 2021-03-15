@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.ldap.authentication;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.security.ldap.authentication;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security.ldap.authentication;
 
 import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
@@ -42,7 +41,7 @@ import org.springframework.security.ldap.authentication.BindAuthenticator;
  * Authenticator which checks whether LDAP authentication is configured. If not,
  * the authentication will be aborted, otherwise authentication is delegated to
  * Spring BindAuthenticator.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class DhisBindAuthenticator
@@ -50,7 +49,7 @@ public class DhisBindAuthenticator
 {
     @Autowired
     private UserService userService;
-    
+
     public DhisBindAuthenticator( BaseLdapPathContextSource contextSource )
     {
         super( contextSource );
@@ -60,17 +59,18 @@ public class DhisBindAuthenticator
     public DirContextOperations authenticate( Authentication authentication )
     {
         UserCredentials userCredentials = userService.getUserCredentialsByUsername( authentication.getName() );
-                
+
         if ( userCredentials == null )
         {
             throw new BadCredentialsException( "Incorrect user credentials" );
         }
-        
+
         if ( userCredentials.hasLdapId() )
         {
-            authentication = new UsernamePasswordAuthenticationToken( userCredentials.getLdapId(), authentication.getCredentials() );
+            authentication = new UsernamePasswordAuthenticationToken( userCredentials.getLdapId(),
+                authentication.getCredentials() );
         }
-        
+
         return super.authenticate( authentication );
     }
 }

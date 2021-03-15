@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.dxf2.events;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events;
+
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.HashSet;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,11 +55,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -82,8 +81,11 @@ public class NoRegistrationSingleEventServiceTest
     private UserService _userService;
 
     private OrganisationUnit organisationUnitA;
+
     private DataElement dataElementA;
+
     private Program programA;
+
     private ProgramStage programStageA;
 
     @Override
@@ -139,7 +141,8 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( importSummary.getReference() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( importSummary.getReference() );
 
         assertNotNull( programStageInstance );
         assertNotNull( eventService.getEvent( programStageInstance ) );
@@ -167,7 +170,8 @@ public class NoRegistrationSingleEventServiceTest
         assertEquals( 0, importSummary.getConflicts().size() );
         assertNotNull( importSummary.getReference() );
 
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        event = eventService
+            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertNotNull( event );
         assertEquals( 1, event.getDataValues().size() );
     }
@@ -184,11 +188,13 @@ public class NoRegistrationSingleEventServiceTest
         assertNotNull( importSummary.getReference() );
         assertEquals( "10", event.getDataValues().iterator().next().getValue() );
 
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        event = eventService
+            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         event.getDataValues().iterator().next().setValue( "254" );
         eventService.updateEvent( event, false, false );
 
-        event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        event = eventService
+            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
         assertEquals( "254", event.getDataValues().iterator().next().getValue() );
     }
 

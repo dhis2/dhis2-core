@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,14 +37,14 @@ import org.hisp.dhis.api.mobile.model.Model;
 
 /**
  * @author Nguyen Kim Lai
- * 
+ *
  * @version OptionSet.java 3:42:54 PM Mar 12, 2013 $
  */
 public class OptionSet
     extends Model
 {
-private String clientVersion;
-    
+    private String clientVersion;
+
     private List<String> options = new ArrayList<>();
 
     public List<String> getOptions()
@@ -57,7 +56,7 @@ private String clientVersion;
     {
         this.options = options;
     }
-    
+
     @Override
     public String getClientVersion()
     {
@@ -69,7 +68,7 @@ private String clientVersion;
     {
         this.clientVersion = clientVersion;
     }
-    
+
     @Override
     public void serialize( DataOutputStream dout )
         throws IOException
@@ -85,7 +84,7 @@ private String clientVersion;
         }
 
     }
-    
+
     @Override
     public void deSerialize( DataInputStream dint )
         throws IOException

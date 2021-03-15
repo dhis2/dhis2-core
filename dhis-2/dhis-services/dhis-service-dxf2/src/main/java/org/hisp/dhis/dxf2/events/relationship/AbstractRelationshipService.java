@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.relationship;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.relationship;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.relationship;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
 import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
@@ -42,7 +41,6 @@ import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -65,6 +63,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -119,7 +118,7 @@ public abstract class AbstractRelationshipService
     private HashMap<String, ProgramStageInstance> programStageInstanceCache = new HashMap<>();
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
         TrackedEntityInstance tei, boolean skipAccessValidation )
     {
@@ -131,7 +130,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
@@ -142,7 +141,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
         boolean skipAccessValidation )
     {
@@ -164,7 +163,8 @@ public abstract class AbstractRelationshipService
         List<Relationship> update = new ArrayList<>();
         List<Relationship> delete = new ArrayList<>();
 
-        //TODO: Logic "delete relationships missing in the payload" is missing. Has to be implemented later.
+        // TODO: Logic "delete relationships missing in the payload" is missing.
+        // Has to be implemented later.
 
         if ( importOptions.getImportStrategy().isCreate() )
         {
@@ -398,12 +398,12 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Relationship getRelationshipByUid( String id )
     {
         org.hisp.dhis.relationship.Relationship relationship = relationshipService.getRelationship( id );
 
-        if ( relationship == null)
+        if ( relationship == null )
         {
             return null;
         }
@@ -412,7 +412,7 @@ public abstract class AbstractRelationshipService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Relationship getRelationship( org.hisp.dhis.relationship.Relationship dao, RelationshipParams params,
         User user )
     {
@@ -556,7 +556,8 @@ public abstract class AbstractRelationshipService
     }
 
     /**
-     * Checks the relationship for any conflicts, like missing or invalid references.
+     * Checks the relationship for any conflicts, like missing or invalid
+     * references.
      *
      */
     private List<ImportConflict> checkRelationship( Relationship relationship )
@@ -587,7 +588,8 @@ public abstract class AbstractRelationshipService
 
         if ( relationship.getFrom().equals( relationship.getTo() ) )
         {
-            conflicts.add( new ImportConflict( relationship.getRelationship(), "Self-referencing relationships are not allowed." ));
+            conflicts.add( new ImportConflict( relationship.getRelationship(),
+                "Self-referencing relationships are not allowed." ) );
         }
 
         if ( !conflicts.isEmpty() )
@@ -612,11 +614,12 @@ public abstract class AbstractRelationshipService
     }
 
     /**
-     * Finds and returns any conflicts between relationship and relationship type
+     * Finds and returns any conflicts between relationship and relationship
+     * type
      *
-     * @param constraint       the constraint to check
+     * @param constraint the constraint to check
      * @param relationshipItem the relationshipItem to check
-     * @param relationshipUid  the uid of the relationship
+     * @param relationshipUid the uid of the relationship
      * @return a list of conflicts
      */
     private List<ImportConflict> getRelationshipConstraintConflicts( RelationshipConstraint constraint,
@@ -703,7 +706,7 @@ public abstract class AbstractRelationshipService
         return "";
     }
 
-    private org.hisp.dhis.relationship.Relationship createDAORelationship(Relationship relationship )
+    private org.hisp.dhis.relationship.Relationship createDAORelationship( Relationship relationship )
     {
         RelationshipType relationshipType = relationshipTypeCache.get( relationship.getRelationshipType() );
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
@@ -773,14 +776,15 @@ public abstract class AbstractRelationshipService
         Map<String, List<Relationship>> relationshipTypeMap = relationships.stream()
             .collect( Collectors.groupingBy( Relationship::getRelationshipType ) );
 
-        // Find all the RelationshipTypes first, so we know what the uids refer to
+        // Find all the RelationshipTypes first, so we know what the uids refer
+        // to
         Query query = Query.from( schemaService.getDynamicSchema( RelationshipType.class ) );
         query.setUser( user );
         query.add( Restrictions.in( "id", relationshipTypeMap.keySet() ) );
         queryService.query( query ).forEach( rt -> relationshipTypeCache.put( rt.getUid(), (RelationshipType) rt ) );
 
         // Group all uids into their respective RelationshipEntities
-        relationshipTypeCache.values().forEach(relationshipType -> {
+        relationshipTypeCache.values().forEach( relationshipType -> {
             List<String> fromUids = relationshipTypeMap.get( relationshipType.getUid() ).stream()
                 .map( ( r ) -> getUidOfRelationshipItem( r.getFrom() ) ).collect( Collectors.toList() );
 
@@ -799,7 +803,7 @@ public abstract class AbstractRelationshipService
         // Find and put all Relationship members in their respective cache
         if ( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ) != null )
         {
-            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user)
+            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user )
                 .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), tei ) );
         }
 
@@ -847,7 +851,7 @@ public abstract class AbstractRelationshipService
         return importOptions;
     }
 
-    private void reloadUser(ImportOptions importOptions)
+    private void reloadUser( ImportOptions importOptions )
     {
         if ( importOptions == null || importOptions.getUser() == null )
         {

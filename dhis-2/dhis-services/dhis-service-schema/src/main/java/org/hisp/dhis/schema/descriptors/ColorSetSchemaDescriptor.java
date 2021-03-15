@@ -1,7 +1,5 @@
-package org.hisp.dhis.schema.descriptors;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.schema.descriptors;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.color.ColorSet;
 import org.hisp.dhis.schema.Schema;
@@ -55,7 +54,8 @@ public class ColorSetSchemaDescriptor implements SchemaDescriptor
         schema.setOrder( 1080 );
 
         schema.getAuthorities().add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_COLOR_SET_ADD" ) ) );
-        schema.getAuthorities().add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_COLOR_SET_DELETE" ) ) );
+        schema.getAuthorities()
+            .add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_COLOR_SET_DELETE" ) ) );
 
         return schema;
     }

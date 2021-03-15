@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.controller;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -107,7 +106,8 @@ public class MobileClientController
 
     @RequestMapping( method = RequestMethod.GET, value = "/{version}/LWUIT" )
     @ResponseBody
-    public org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits getOrgUnitsForUserLWUIT( HttpServletRequest request, @PathVariable String version )
+    public org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits getOrgUnitsForUserLWUIT( HttpServletRequest request,
+        @PathVariable String version )
         throws NotAllowedException
     {
         User user = currentUserService.getCurrentUser();
@@ -118,13 +118,14 @@ public class MobileClientController
         }
 
         Collection<OrganisationUnit> units = user.getOrganisationUnits();
-        
+
         List<org.hisp.dhis.api.mobile.model.LWUITmodel.MobileOrgUnitLinks> unitList = new ArrayList<>();
         for ( OrganisationUnit unit : units )
         {
             unitList.add( getTrackerOrgUnit( unit, request ) );
         }
-        org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits orgUnits = new org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits( unitList );
+        org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits orgUnits = new org.hisp.dhis.api.mobile.model.LWUITmodel.OrgUnits(
+            unitList );
         orgUnits.setClientVersion( version );
         return orgUnits;
     }

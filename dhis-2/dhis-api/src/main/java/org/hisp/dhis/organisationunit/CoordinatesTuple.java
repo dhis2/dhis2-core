@@ -1,7 +1,5 @@
-package org.hisp.dhis.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.organisationunit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,25 +41,25 @@ public class CoordinatesTuple
     {
         this.coordinatesTuple.add( coordinates );
     }
-    
+
     public long getNumberOfCoordinates()
     {
         return this.coordinatesTuple.size();
     }
-    
+
     public List<String> getCoordinatesTuple()
     {
         return coordinatesTuple;
     }
-    
+
     public boolean hasCoordinates()
     {
         return this.coordinatesTuple != null && this.coordinatesTuple.size() > 0;
     }
-    
+
     public static boolean hasCoordinates( List<CoordinatesTuple> list )
     {
-        if  ( list != null && list.size() > 0 )
+        if ( list != null && list.size() > 0 )
         {
             for ( CoordinatesTuple tuple : list )
             {
@@ -70,7 +69,7 @@ public class CoordinatesTuple
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -79,12 +78,12 @@ public class CoordinatesTuple
     {
         final int prime = 31;
         int result = 1;
-        
+
         for ( String c : coordinatesTuple )
         {
             result = prime * result + c.hashCode();
         }
-        
+
         return result;
     }
 
@@ -95,26 +94,26 @@ public class CoordinatesTuple
         {
             return true;
         }
-        
+
         if ( o == null )
         {
             return false;
         }
-        
+
         if ( getClass() != o.getClass() )
         {
             return false;
         }
-        
+
         final CoordinatesTuple other = (CoordinatesTuple) o;
 
         if ( coordinatesTuple.size() != other.getCoordinatesTuple().size() )
         {
             return false;
         }
-        
+
         int size = coordinatesTuple.size();
-        
+
         for ( int i = 0; i < size; i++ )
         {
             if ( !coordinatesTuple.get( i ).equals( other.getCoordinatesTuple().get( i ) ) )
@@ -122,7 +121,7 @@ public class CoordinatesTuple
                 return false;
             }
         }
-        
+
         return true;
-    }    
+    }
 }

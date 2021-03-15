@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
-import org.hisp.dhis.analytics.AggregationType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.junit.Before;
-import org.junit.Test;
+import static org.hisp.dhis.system.util.ReflectionUtils.*;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.*;
-import static org.junit.Assert.*;
+import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.dataelement.DataElement;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Lars Helge Overland

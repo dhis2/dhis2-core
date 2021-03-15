@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.organisationunit;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.webapi.controller.organisationunit;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.organisationunit;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -43,11 +48,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author James Chang <jamesbchang@gmail.com>
@@ -74,7 +74,8 @@ public class OrganisationUnitLocationController
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam Double distance,
-        @RequestParam( required = false ) String orgUnitGroupSetId, HttpServletResponse response ) throws Exception
+        @RequestParam( required = false ) String orgUnitGroupSetId, HttpServletResponse response )
+        throws Exception
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitWithinDistance( longitude, latitude, distance ) );
@@ -93,7 +94,8 @@ public class OrganisationUnitLocationController
                         if ( orgunitGroupSet.getUid().compareTo( orgUnitGroupSetId ) == 0 )
                         {
                             AttributeValue attributeValue = new AttributeValue();
-                            // attributeValue.setAttribute( new Attribute( ORGUNIGROUP_SYMBOL, ORGUNIGROUP_SYMBOL ) );
+                            // attributeValue.setAttribute( new Attribute(
+                            // ORGUNIGROUP_SYMBOL, ORGUNIGROUP_SYMBOL ) );
                             attributeValue.setAttribute( new Attribute( ORGUNIGROUP_SYMBOL, ValueType.TEXT ) );
                             attributeValue.setValue( organisationUnitGroup.getSymbol() );
                             attributeValues.add( attributeValue );
@@ -115,14 +117,17 @@ public class OrganisationUnitLocationController
     }
 
     /**
-     * Get lowest level Org Units that includes the location in their polygon shape.
+     * Get lowest level Org Units that includes the location in their polygon
+     * shape.
      */
-    @RequestMapping( value = "/orgUnitByLocation", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @RequestMapping( value = "/orgUnitByLocation", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
     public void getParentByLocation(
         @RequestParam Double longitude,
         @RequestParam Double latitude,
         @RequestParam( required = false ) String topOrgUnit,
-        @RequestParam( required = false ) Integer targetLevel, HttpServletResponse response ) throws Exception
+        @RequestParam( required = false ) Integer targetLevel, HttpServletResponse response )
+        throws Exception
     {
         List<OrganisationUnit> entityList = new ArrayList<>(
             organisationUnitService.getOrganisationUnitByCoordinate( longitude, latitude, topOrgUnit, targetLevel ) );
@@ -144,15 +149,18 @@ public class OrganisationUnitLocationController
     /**
      * Check if the location lies within the organisation unit boundary
      */
-    @RequestMapping( value = "/locationWithinOrgUnitBoundary", method = RequestMethod.GET, produces = { "*/*", "application/json" } )
+    @RequestMapping( value = "/locationWithinOrgUnitBoundary", method = RequestMethod.GET, produces = { "*/*",
+        "application/json" } )
     public void checkLocationWithinOrgUnit( @RequestParam String orgUnitUid,
-        @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response ) throws Exception
+        @RequestParam Double longitude, @RequestParam Double latitude, HttpServletResponse response )
+        throws Exception
     {
         boolean withinOrgUnit = false;
 
         List<OrganisationUnit> organisationUnits = new ArrayList<>();
         organisationUnits.add( organisationUnitService.getOrganisationUnit( orgUnitUid ) );
-        FilterUtils.filter( organisationUnits, new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
+        FilterUtils.filter( organisationUnits,
+            new OrganisationUnitPolygonCoveringCoordinateFilter( longitude, latitude ) );
 
         if ( !organisationUnits.isEmpty() )
         {

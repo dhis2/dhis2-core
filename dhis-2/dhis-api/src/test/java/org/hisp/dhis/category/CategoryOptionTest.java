@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.common.SystemDefaultMetadataObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -36,8 +37,6 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Test;
-
-import static org.junit.Assert.*;
 
 /**
  * Unit tests for {@link CategoryOption}.

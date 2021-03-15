@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.anyString;
@@ -65,40 +64,57 @@ import com.google.common.collect.Sets;
 public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 {
     private static final String SAMPLE_VALUE_A = "textValueA";
+
     private static final String SAMPLE_VALUE_B = "textValueB";
 
     private List<ProgramRule> programRules = new ArrayList<>();
+
     private List<ProgramRuleVariable> programRuleVariables = new ArrayList<>();
 
     private Program program;
+
     private ProgramStage programStage;
 
     private ProgramRule programRuleA = null;
+
     private ProgramRule programRuleB = null;
+
     private ProgramRule programRuleC = null;
+
     private ProgramRule programRuleD = null;
 
     private ProgramRuleAction assignAction = null;
+
     private ProgramRuleAction sendMessageAction = null;
+
     private ProgramRuleAction displayText = null;
 
     private ProgramRuleVariable programRuleVariableA = null;
+
     private ProgramRuleVariable programRuleVariableB = null;
 
     private OrganisationUnit organisationUnit;
 
     private TrackedEntityAttribute trackedEntityAttribute;
+
     private TrackedEntityAttributeValue trackedEntityAttributeValue;
+
     private DataElement dataElement;
+
     private EventDataValue eventDataValueA;
+
     private EventDataValue eventDataValueB;
 
     private ProgramInstance programInstance;
+
     private ProgramInstance programInstanceB;
+
     private TrackedEntityInstance trackedEntityInstance;
 
     private ProgramStageInstance programStageInstanceA;
+
     private ProgramStageInstance programStageInstanceB;
+
     private ProgramStageInstance programStageInstanceC;
 
     @org.junit.Rule
@@ -181,7 +197,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
             if ( variable instanceof RuleVariableAttribute )
             {
                 ruleVariableAttribute = (RuleVariableAttribute) variable;
-                assertEquals( ruleVariableAttribute.trackedEntityAttribute(), programRuleVariableB.getAttribute().getUid() );
+                assertEquals( ruleVariableAttribute.trackedEntityAttribute(),
+                    programRuleVariableB.getAttribute().getUid() );
                 assertEquals( ruleVariableAttribute.name(), programRuleVariableB.getName() );
             }
 
@@ -239,7 +256,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
-        List<RuleEvent> ruleEvents = subject.toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA  );
+        List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
+            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
 
         assertEquals( ruleEvents.size(), 1 );
         RuleEvent ruleEvent = ruleEvents.get( 0 );
@@ -264,7 +282,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
 
-        List<RuleEvent> ruleEvents = subject.toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB )  );
+        List<RuleEvent> ruleEvents = subject
+            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ) );
 
         assertEquals( ruleEvents.size(), 2 );
     }
@@ -290,13 +309,15 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private void setUpProgramRules()
     {
-        program = createProgram('P' );
+        program = createProgram( 'P' );
         programStage = createProgramStage( 'S', program );
 
         programRuleVariableA = createProgramRuleVariable( 'V', program );
         programRuleVariableB = createProgramRuleVariable( 'W', program );
-        programRuleVariableA = setProgramRuleVariable( programRuleVariableA, ProgramRuleVariableSourceType.CALCULATED_VALUE, program, null, createDataElement( 'D' ), null );
-        programRuleVariableB = setProgramRuleVariable( programRuleVariableB, ProgramRuleVariableSourceType.TEI_ATTRIBUTE, program, null, null, createTrackedEntityAttribute( 'Z' ) );
+        programRuleVariableA = setProgramRuleVariable( programRuleVariableA,
+            ProgramRuleVariableSourceType.CALCULATED_VALUE, program, null, createDataElement( 'D' ), null );
+        programRuleVariableB = setProgramRuleVariable( programRuleVariableB,
+            ProgramRuleVariableSourceType.TEI_ATTRIBUTE, program, null, null, createTrackedEntityAttribute( 'Z' ) );
 
         programRuleVariables.add( programRuleVariableA );
         programRuleVariables.add( programRuleVariableB );
@@ -328,7 +349,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
         trackedEntityInstance = createTrackedEntityInstance( 'I', organisationUnit, trackedEntityAttribute );
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'E', trackedEntityInstance, trackedEntityAttribute );
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'E', trackedEntityInstance,
+            trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( SAMPLE_VALUE_A );
         trackedEntityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
 
@@ -368,7 +390,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         programStageInstanceB.setEventDataValues( Sets.newHashSet( eventDataValueB ) );
     }
 
-    private ProgramRule setProgramRule( ProgramRule programRule, String condition, Set<ProgramRuleAction> ruleActions, Integer priority )
+    private ProgramRule setProgramRule( ProgramRule programRule, String condition, Set<ProgramRuleAction> ruleActions,
+        Integer priority )
     {
         programRule.setPriority( priority );
         programRule.setCondition( condition );
@@ -377,11 +400,12 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         return programRule;
     }
 
-    private ProgramRuleAction setProgramRuleAction( ProgramRuleAction programRuleActionA, ProgramRuleActionType type, String content, String data )
+    private ProgramRuleAction setProgramRuleAction( ProgramRuleAction programRuleActionA, ProgramRuleActionType type,
+        String content, String data )
     {
         programRuleActionA.setProgramRuleActionType( type );
 
-        if( type == ProgramRuleActionType.ASSIGN )
+        if ( type == ProgramRuleActionType.ASSIGN )
         {
             programRuleActionA.setContent( content );
             programRuleActionA.setData( data );
@@ -394,7 +418,7 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
             programRuleActionA.setData( "true" );
         }
 
-        if( type == ProgramRuleActionType.SENDMESSAGE )
+        if ( type == ProgramRuleActionType.SENDMESSAGE )
         {
             ProgramNotificationTemplate notificationTemplate = new ProgramNotificationTemplate();
             notificationTemplate.setUid( "uid0" );
@@ -405,7 +429,8 @@ public class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     }
 
     private ProgramRuleVariable setProgramRuleVariable( ProgramRuleVariable variable,
-       ProgramRuleVariableSourceType sourceType, Program program, ProgramStage programStage, DataElement dataElement, TrackedEntityAttribute attribute )
+        ProgramRuleVariableSourceType sourceType, Program program, ProgramStage programStage, DataElement dataElement,
+        TrackedEntityAttribute attribute )
     {
         variable.setSourceType( sourceType );
         variable.setProgram( program );

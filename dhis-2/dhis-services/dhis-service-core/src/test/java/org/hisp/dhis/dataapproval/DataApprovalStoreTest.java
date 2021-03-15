@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
+
+import static com.google.common.collect.Sets.newHashSet;
+import static org.junit.Assert.*;
+
+import java.util.Date;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -41,11 +45,6 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-
-import static com.google.common.collect.Sets.newHashSet;
-import static org.junit.Assert.*;
-
 /**
  * @author Jim Grace
  */
@@ -57,7 +56,7 @@ public class DataApprovalStoreTest
 
     @Autowired
     private DataApprovalLevelService dataApprovalLevelService;
-    
+
     @Autowired
     private DataApprovalService dataApprovalService;
 
@@ -72,27 +71,35 @@ public class DataApprovalStoreTest
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
-    
+
     // -------------------------------------------------------------------------
     // Supporting data
     // -------------------------------------------------------------------------
 
     private DataApprovalLevel level1;
+
     private DataApprovalLevel level2;
 
     private DataApprovalWorkflow workflowA1;
+
     private DataApprovalWorkflow workflowA12;
+
     private DataApprovalWorkflow workflowB12;
 
     private Period periodA;
+
     private Period periodB;
 
     private OrganisationUnit sourceA;
+
     private OrganisationUnit sourceB;
+
     private OrganisationUnit sourceC;
+
     private OrganisationUnit sourceD;
 
     private User userA;
+
     private User userB;
 
     private CategoryOptionCombo categoryOptionCombo;
@@ -102,7 +109,8 @@ public class DataApprovalStoreTest
     // -------------------------------------------------------------------------
 
     @Override
-    public void setUpTest() throws Exception
+    public void setUpTest()
+        throws Exception
     {
         // ---------------------------------------------------------------------
         // Add supporting data
@@ -154,13 +162,18 @@ public class DataApprovalStoreTest
     // -------------------------------------------------------------------------
 
     @Test
-    public void testAddAndGetDataApproval() throws Exception
+    public void testAddAndGetDataApproval()
+        throws Exception
     {
         Date date = new Date();
-        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA );
-        DataApproval dataApprovalB = new DataApproval( level2, workflowA12, periodA, sourceB, categoryOptionCombo, false, date, userA );
-        DataApproval dataApprovalC = new DataApproval( level1, workflowA12, periodB, sourceA, categoryOptionCombo, false, date, userA );
-        DataApproval dataApprovalD = new DataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo, false, date, userA );
+        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo,
+            false, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflowA12, periodA, sourceB, categoryOptionCombo,
+            false, date, userA );
+        DataApproval dataApprovalC = new DataApproval( level1, workflowA12, periodB, sourceA, categoryOptionCombo,
+            false, date, userA );
+        DataApproval dataApprovalD = new DataApproval( level1, workflowB12, periodA, sourceA, categoryOptionCombo,
+            false, date, userA );
         DataApproval dataApprovalE = null;
 
         dataApprovalStore.addDataApproval( dataApprovalA );
@@ -209,14 +222,17 @@ public class DataApprovalStoreTest
     }
 
     @Test
-    public void testDeleteDataApproval() throws Exception
+    public void testDeleteDataApproval()
+        throws Exception
     {
         dataApprovalLevelService.addDataApprovalLevel( level1 );
         dataApprovalLevelService.addDataApprovalLevel( level2 );
 
         Date date = new Date();
-        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo, false, date, userA );
-        DataApproval dataApprovalB = new DataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo, false, date, userB );
+        DataApproval dataApprovalA = new DataApproval( level1, workflowA12, periodA, sourceA, categoryOptionCombo,
+            false, date, userA );
+        DataApproval dataApprovalB = new DataApproval( level2, workflowB12, periodB, sourceB, categoryOptionCombo,
+            false, date, userB );
 
         dataApprovalStore.addDataApproval( dataApprovalA );
         dataApprovalStore.addDataApproval( dataApprovalB );

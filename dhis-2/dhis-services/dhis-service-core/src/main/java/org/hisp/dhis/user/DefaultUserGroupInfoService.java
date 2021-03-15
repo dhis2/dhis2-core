@@ -1,4 +1,3 @@
-package org.hisp.dhis.user;
 /*
  * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
@@ -26,6 +25,13 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.user;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.concurrent.TimeUnit;
+
+import javax.annotation.PostConstruct;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -33,11 +39,6 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.PostConstruct;
-import java.util.concurrent.TimeUnit;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 @Service
 public class DefaultUserGroupInfoService implements UserGroupInfoService
@@ -49,8 +50,8 @@ public class DefaultUserGroupInfoService implements UserGroupInfoService
     private final UserGroupInfoStore userGroupInfoStore;
 
     /**
-     * Cache for checking if user is member of a UserGroup
-     * Cache key userGroupUid-userUid
+     * Cache for checking if user is member of a UserGroup Cache key
+     * userGroupUid-userUid
      */
     private Cache<Boolean> IS_USER_GROUP_MEMBER;
 
@@ -81,6 +82,7 @@ public class DefaultUserGroupInfoService implements UserGroupInfoService
     @Transactional( readOnly = true )
     public boolean isMember( UserGroup userGroup, String userUid )
     {
-        return IS_USER_GROUP_MEMBER.get( userGroup.getUid() + "-" + userUid, bol -> userGroupInfoStore.isMember( userGroup, userUid ) ).get();
+        return IS_USER_GROUP_MEMBER
+            .get( userGroup.getUid() + "-" + userUid, bol -> userGroupInfoStore.isMember( userGroup, userUid ) ).get();
     }
 }

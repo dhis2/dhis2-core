@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.sync;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.dxf2.sync;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.sync;
+
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
@@ -57,8 +58,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
@@ -125,6 +124,7 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     private TrackedEntityInstanceService subject;
 
     private TrackedEntityInstanceQueryParams queryParams;
+
     private TrackedEntityInstanceParams params;
 
     private Session currentSession;
@@ -175,7 +175,8 @@ public class TrackerSynchronizationTest extends DhisSpringTest
         CurrentUserService currentUserService = new MockCurrentUserService( user );
 
         subject = new JacksonTrackedEntityInstanceService( teiService, trackedEntityAttributeService,
-            _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService, manager, _userService,
+            _relationshipService, relationshipService, relationshipTypeService, trackedEntityAttributeValueService,
+            manager, _userService,
             dbmsManager, enrollmentService, programInstanceService, currentUserService, schemaService, queryService,
             reservedValueService, trackerAccessManager, fileResourceService, trackerOwnershipAccessManager, notifier );
 
@@ -197,9 +198,9 @@ public class TrackerSynchronizationTest extends DhisSpringTest
     @Test
     public void testSkipSyncFunctionality()
     {
-        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis =
-            subject.getTrackedEntityInstances( queryParams, params, true );
+        List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
+            .getTrackedEntityInstances( queryParams, params, true );
 
-        assertEquals( 1, fetchedTeis.get(0).getAttributes().size() );
+        assertEquals( 1, fetchedTeis.get( 0 ).getAttributes().size() );
     }
 }

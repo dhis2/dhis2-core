@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataapproval.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval.hibernate;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
@@ -78,7 +77,8 @@ public class HibernateDataApprovalAuditStore
      * Used only for testing, remove when test is refactored
      */
     @Deprecated
-    public void setCurrentUserService(CurrentUserService currentUserService) {
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
         this.currentUserService = currentUserService;
     }
 
@@ -91,8 +91,7 @@ public class HibernateDataApprovalAuditStore
     {
         String hql = "delete from DataApprovalAudit d where d.organisationUnit = :unit";
 
-        getSession().createQuery( hql ).
-            setParameter( "unit", organisationUnit ).executeUpdate();
+        getSession().createQuery( hql ).setParameter( "unit", organisationUnit ).executeUpdate();
     }
 
     @Override
@@ -104,22 +103,26 @@ public class HibernateDataApprovalAuditStore
 
         if ( params.hasWorkflows() )
         {
-            hql += hlp.whereAnd() + " a.workflow.uid in (" + getQuotedCommaDelimitedString( getUids( params.getWorkflows() ) ) + ") ";
+            hql += hlp.whereAnd() + " a.workflow.uid in ("
+                + getQuotedCommaDelimitedString( getUids( params.getWorkflows() ) ) + ") ";
         }
 
         if ( params.hasLevels() )
         {
-            hql += hlp.whereAnd() + " a.level.uid in (" + getQuotedCommaDelimitedString( getUids( params.getLevels() ) ) + ") ";
+            hql += hlp.whereAnd() + " a.level.uid in (" + getQuotedCommaDelimitedString( getUids( params.getLevels() ) )
+                + ") ";
         }
 
         if ( params.hasOrganisationUnits() )
         {
-            hql += hlp.whereAnd() + " a.organisationUnit.uid in (" + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ") ";
+            hql += hlp.whereAnd() + " a.organisationUnit.uid in ("
+                + getQuotedCommaDelimitedString( getUids( params.getOrganisationUnits() ) ) + ") ";
         }
 
         if ( params.hasAttributeOptionCombos() )
         {
-            hql += hlp.whereAnd() + " a.attributeOptionCombo.uid in (" + getQuotedCommaDelimitedString( getUids( params.getAttributeOptionCombos() ) ) + ") ";
+            hql += hlp.whereAnd() + " a.attributeOptionCombo.uid in ("
+                + getQuotedCommaDelimitedString( getUids( params.getAttributeOptionCombos() ) ) + ") ";
         }
 
         if ( params.hasStartDate() )

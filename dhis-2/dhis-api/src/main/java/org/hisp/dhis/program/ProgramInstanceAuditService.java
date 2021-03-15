@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.List;
 
@@ -41,21 +40,21 @@ public interface ProgramInstanceAuditService
 
     /**
      * Adds program instance audit
-     * 
+     *
      * @param programInstanceAudit the audit to add
      */
     void addProgramInstanceAudit( ProgramInstanceAudit programInstanceAudit );
 
     /**
      * Deletes program instance audit for the given program instance
-     * 
+     *
      * @param programInstance the program instance
      */
     void deleteProgramInstanceAudit( ProgramInstance programInstance );
 
     /**
      * Returns program instance audits matching query params
-     * 
+     *
      * @param params program instance audit query params
      * @return matching ProgramInstanceAudits
      */
@@ -63,7 +62,7 @@ public interface ProgramInstanceAuditService
 
     /**
      * Returns count of program instance audits matching query params
-     * 
+     *
      * @param params program instance audit query params
      * @return count of ProgramInstanceAudits
      */

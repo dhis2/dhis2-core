@@ -1,7 +1,5 @@
-package org.hisp.dhis.oust.manager;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.oust.manager;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.oust.manager;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,8 +45,9 @@ public class DefaultSelectionTreeManager
     implements SelectionTreeManager
 {
     private static final String SESSION_KEY_SELECTED_ORG_UNITS = "dhis-oust-selected-org-units";
+
     private static final String SESSION_KEY_ROOT_ORG_UNITS = "dhis-oust-root-org-units";
-    
+
     private static final int LIMIT_SELECT_ALL_ORG_UNITS = 200;
 
     // -------------------------------------------------------------------------
@@ -212,7 +212,7 @@ public class DefaultSelectionTreeManager
     // Session methods
     // -------------------------------------------------------------------------
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings( "unchecked" )
     private final Collection<OrganisationUnit> getCollectionFromSession( String key )
     {
         return (Collection<OrganisationUnit>) SessionUtils.getSessionVar( key );
@@ -235,13 +235,13 @@ public class DefaultSelectionTreeManager
         {
             Set<OrganisationUnit> orgUnits = Sets.newHashSet( organisationUnitService.getAllOrganisationUnits() );
             orgUnits.retainAll( Sets.newHashSet( units ) );
-            
+
             return orgUnits;
         }
         else // Select one by one
         {
             Set<OrganisationUnit> reloadedUnits = new HashSet<>();
-            
+
             for ( OrganisationUnit unit : units )
             {
                 OrganisationUnit reloadedUnit = reloadOrganisationUnit( unit );
@@ -251,16 +251,17 @@ public class DefaultSelectionTreeManager
                     reloadedUnits.add( reloadedUnit );
                 }
             }
-            
+
             return reloadedUnits;
-        }        
+        }
     }
 
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
 
-    private Collection<OrganisationUnit> getUnitsInTree( Collection<OrganisationUnit> rootUnits, Collection<OrganisationUnit> selectedUnits )
+    private Collection<OrganisationUnit> getUnitsInTree( Collection<OrganisationUnit> rootUnits,
+        Collection<OrganisationUnit> selectedUnits )
     {
         Collection<OrganisationUnit> unitsInTree = new ArrayList<>();
 
