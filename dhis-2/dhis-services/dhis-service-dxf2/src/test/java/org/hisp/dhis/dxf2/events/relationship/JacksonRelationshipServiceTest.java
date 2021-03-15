@@ -1,45 +1,5 @@
-package org.hisp.dhis.dxf2.events.relationship;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.HashMap;
-import java.util.Optional;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dbms.DbmsManager;
-import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
-import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.RelationshipConstraint;
-import org.hisp.dhis.relationship.RelationshipEntity;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserService;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnit;
-import org.mockito.junit.MockitoRule;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,6 +25,45 @@ import org.mockito.junit.MockitoRule;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.relationship;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
+
+import java.util.HashMap;
+import java.util.Optional;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.dbms.DbmsManager;
+import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.events.event.EventService;
+import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
+import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.importsummary.ImportStatus;
+import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.random.BeanRandomizer;
+import org.hisp.dhis.relationship.RelationshipConstraint;
+import org.hisp.dhis.relationship.RelationshipEntity;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.UserService;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnit;
+import org.mockito.junit.MockitoRule;
 
 /**
  * @author Luciano Fiandesio
@@ -142,7 +141,7 @@ public class JacksonRelationshipServiceTest
     public void verifyRelationshipIsNotImportedWhenDoesExist()
     {
         org.hisp.dhis.relationship.Relationship daoRelationship = new org.hisp.dhis.relationship.Relationship();
-        daoRelationship.setUid("12345");
+        daoRelationship.setUid( "12345" );
 
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
@@ -153,7 +152,8 @@ public class JacksonRelationshipServiceTest
         assertThat( importSummary.getStatus(), is( ImportStatus.ERROR ) );
         assertThat( importSummary.getImportCount().getImported(), is( 0 ) );
         assertThat( importSummary.getReference(), is( daoRelationship.getUid() ) );
-        assertThat( importSummary.getDescription(), is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
+        assertThat( importSummary.getDescription(),
+            is( "Relationship " + daoRelationship.getUid() + " already exists" ) );
     }
 
     private void initFakeCaches( Relationship relationship, RelationshipType relationshipType )
@@ -190,10 +190,12 @@ public class JacksonRelationshipServiceTest
         Relationship relationship = new Relationship();
 
         RelationshipItem from = new RelationshipItem();
-        from.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
+        from.setTrackedEntityInstance(
+            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         RelationshipItem to = new RelationshipItem();
-        to.setTrackedEntityInstance( rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class )  );
+        to.setTrackedEntityInstance(
+            rnd.randomObject( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance.class ) );
 
         relationship.setFrom( from );
         relationship.setTo( to );

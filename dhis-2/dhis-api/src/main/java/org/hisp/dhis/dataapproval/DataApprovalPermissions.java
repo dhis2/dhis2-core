@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataapproval;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataapproval;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataapproval;
 
 import org.hisp.dhis.common.DxfNamespaces;
 
@@ -35,19 +34,19 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @JacksonXmlRootElement( localName = "dataApprovalPermissions", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalPermissions
-{   
+{
     private boolean mayApprove;
-    
+
     private boolean mayUnapprove;
-    
+
     private boolean mayAccept;
 
     private boolean mayUnaccept;
 
     private boolean mayReadData;
-    
+
     private transient String state;
-    
+
     public DataApprovalPermissions()
     {
     }
@@ -130,11 +129,11 @@ public class DataApprovalPermissions
     public String toString()
     {
         return "DataApprovalPermissions{" +
-                "mayApprove=" + mayApprove +
-                ", mayUnapprove=" + mayUnapprove +
-                ", mayAccept=" + mayAccept +
-                ", mayUnaccept=" + mayUnaccept +
-                ", mayReadData=" + mayReadData +
-                '}';
+            "mayApprove=" + mayApprove +
+            ", mayUnapprove=" + mayUnapprove +
+            ", mayAccept=" + mayAccept +
+            ", mayUnaccept=" + mayUnaccept +
+            ", mayReadData=" + mayReadData +
+            '}';
     }
 }

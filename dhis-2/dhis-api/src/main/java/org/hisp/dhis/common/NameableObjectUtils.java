@@ -1,7 +1,5 @@
-package org.hisp.dhis.common;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.common;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.common;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,15 +71,16 @@ public class NameableObjectUtils
     }
 
     /**
-     * Returns a list of BaseNameableObjects based on the given list of NameableObjects.
-     * 
+     * Returns a list of BaseNameableObjects based on the given list of
+     * NameableObjects.
+     *
      * @param objects the list of NameableObjects.
      * @return a list of BaseNameableObejcts.
      */
     public static List<NameableObject> getAsNameableObjects( List<? extends NameableObject> objects )
     {
         List<NameableObject> list = new ArrayList<>();
-        
+
         for ( NameableObject object : objects )
         {
             if ( object != null )
@@ -88,10 +88,10 @@ public class NameableObjectUtils
                 list.add( new BaseNameableObject( object ) );
             }
         }
-        
+
         return list;
     }
-    
+
     /**
      * Returns a mapping between the UID and the nameable objects.
      *
@@ -121,7 +121,8 @@ public class NameableObjectUtils
      * @param displayProperty the property to use as value.
      * @return mapping between the uid and the property of the given objects.
      */
-    public static Map<String, String> getUidDisplayPropertyMap( Collection<? extends NameableObject> objects, DisplayProperty displayProperty )
+    public static Map<String, String> getUidDisplayPropertyMap( Collection<? extends NameableObject> objects,
+        DisplayProperty displayProperty )
     {
         Map<String, String> map = new HashMap<>();
 
@@ -135,10 +136,11 @@ public class NameableObjectUtils
 
         return map;
     }
-        
+
     /**
-     * Returns a copy of the given list. Returns an empty list if the argument is null.
-     * 
+     * Returns a copy of the given list. Returns an empty list if the argument
+     * is null.
+     *
      * @param objects a list.
      * @return a list of objects.
      */

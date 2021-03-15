@@ -1,7 +1,5 @@
-package org.hisp.dhis.fieldfilter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.fieldfilter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.fieldfilter;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -37,6 +36,8 @@ import java.util.stream.Stream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -71,8 +72,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -82,7 +81,8 @@ public class DefaultFieldFilterService implements FieldFilterService
 {
     private final static Pattern FIELD_PATTERN = Pattern.compile( "^(?<field>\\w+)" );
 
-    private final static Pattern TRANSFORMER_PATTERN = Pattern.compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
+    private final static Pattern TRANSFORMER_PATTERN = Pattern
+        .compile( "(?<type>\\||::|~)(?<name>\\w+)(?:\\((?<args>[\\w;]+)\\))?" );
 
     private final FieldParser fieldParser;
 
@@ -103,7 +103,8 @@ public class DefaultFieldFilterService implements FieldFilterService
     private Property baseIdentifiableIdProperty;
 
     public DefaultFieldFilterService( FieldParser fieldParser, SchemaService schemaService, AclService aclService,
-        CurrentUserService currentUserService, AttributeService attributeService, @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
+        CurrentUserService currentUserService, AttributeService attributeService,
+        @Autowired( required = false ) Set<NodeTransformer> nodeTransformers )
     {
         this.fieldParser = fieldParser;
         this.schemaService = schemaService;
@@ -170,10 +171,15 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( params.getSkipSharing() )
         {
-            final List<String> fieldList = CollectionUtils.isEmpty( params.getFields() ) ? Collections.singletonList( "*" ) : params.getFields();
-            // excludes must be preserved (e.g. when field collections like :owner are used, which is not expanded by modify filter)
-            fields = Stream.concat( fieldParser.modifyFilter( fieldList, SHARING_FIELDS ).stream(), SHARING_FIELDS.stream() )
-                .filter( org.apache.commons.lang3.StringUtils::isNotBlank ).distinct().collect( Collectors.joining( "," ) );
+            final List<String> fieldList = CollectionUtils.isEmpty( params.getFields() )
+                ? Collections.singletonList( "*" )
+                : params.getFields();
+            // excludes must be preserved (e.g. when field collections like
+            // :owner are used, which is not expanded by modify filter)
+            fields = Stream
+                .concat( fieldParser.modifyFilter( fieldList, SHARING_FIELDS ).stream(), SHARING_FIELDS.stream() )
+                .filter( org.apache.commons.lang3.StringUtils::isNotBlank ).distinct()
+                .collect( Collectors.joining( "," ) );
         }
 
         if ( params.getObjects().isEmpty() )
@@ -224,16 +230,18 @@ public class DefaultFieldFilterService implements FieldFilterService
     private boolean mayExclude( Class<?> klass, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isAssignableFrom( klass ) &&
-            ( Preheat.isDefaultClass( klass ) || klass.isInterface() || ( klass.getModifiers() & Modifier.ABSTRACT ) != 0 );
+            (Preheat.isDefaultClass( klass ) || klass.isInterface() || (klass.getModifiers() & Modifier.ABSTRACT) != 0);
     }
 
     private boolean shouldExclude( Object object, Defaults defaults )
     {
         return Defaults.EXCLUDE == defaults && IdentifiableObject.class.isInstance( object ) &&
-            Preheat.isDefaultClass( (IdentifiableObject) object ) && "default".equals( ((IdentifiableObject) object).getName() );
+            Preheat.isDefaultClass( (IdentifiableObject) object )
+            && "default".equals( ((IdentifiableObject) object).getName() );
     }
 
-    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName, Defaults defaults )
+    private AbstractNode buildNode( FieldMap fieldMap, Class<?> klass, Object object, User user, String nodeName,
+        Defaults defaults )
     {
         Schema schema = schemaService.getDynamicSchema( klass );
 
@@ -271,14 +279,16 @@ public class DefaultFieldFilterService implements FieldFilterService
             if ( property == null || !property.isReadable() )
             {
                 // throw new FieldFilterException( fieldKey, schema );
-                log.debug( "Unknown field property `" + fieldKey + "`, available fields are " + schema.getPropertyMap().keySet() );
+                log.debug( "Unknown field property `" + fieldKey + "`, available fields are "
+                    + schema.getPropertyMap().keySet() );
                 continue;
             }
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
             Class<?> propertyClass = property.getKlass();
             Schema propertySchema = schemaService.getDynamicSchema( propertyClass );
-            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection() && property.getKlass().isInterface() && !property.isIdentifiableObject() )
+            if ( returnValue != null && propertySchema.getProperties().isEmpty() && !property.isCollection()
+                && property.getKlass().isInterface() && !property.isIdentifiableObject() )
             {
                 // try to retrieve schema from concrete class
                 propertyClass = returnValue.getClass();
@@ -314,7 +324,8 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     if ( property.isIdentifiableObject() && isProperIdObject( property.getItemKlass() ) )
                     {
-                        final boolean mayExclude = collection.isEmpty() || mayExclude( property.getItemKlass(), defaults );
+                        final boolean mayExclude = collection.isEmpty()
+                            || mayExclude( property.getItemKlass(), defaults );
 
                         for ( Object collectionObject : collection )
                         {
@@ -344,7 +355,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                         {
                             for ( Object collectionObject : collection )
                             {
-                                SimpleNode simpleNode = child.addChild( new SimpleNode( property.getName(), collectionObject ) );
+                                SimpleNode simpleNode = child
+                                    .addChild( new SimpleNode( property.getName(), collectionObject ) );
                                 simpleNode.setProperty( property );
                             }
                         }
@@ -369,7 +381,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                     }
                     else
                     {
-                        child = buildNode( getFullFieldMap( propertySchema ), propertyClass, returnValue, user, defaults );
+                        child = buildNode( getFullFieldMap( propertySchema ), propertyClass, returnValue, user,
+                            defaults );
                     }
                 }
             }
@@ -382,7 +395,8 @@ public class DefaultFieldFilterService implements FieldFilterService
 
                     for ( Object collectionObject : (Collection<?>) returnValue )
                     {
-                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user, property.getName(), defaults );
+                        Node node = buildNode( fieldValue, property.getItemKlass(), collectionObject, user,
+                            property.getName(), defaults );
 
                         if ( !node.getChildren().isEmpty() )
                         {
@@ -402,7 +416,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                 child.setName( fieldKey );
                 child.setProperty( property );
 
-                // TODO fix ugly hack, will be replaced by custom field serializer/deserializer
+                // TODO fix ugly hack, will be replaced by custom field
+                // serializer/deserializer
                 if ( child.isSimple() && PeriodType.class.isInstance( (((SimpleNode) child).getValue()) ) )
                 {
                     child = new SimpleNode( child.getName(), ((PeriodType) ((SimpleNode) child).getValue()).getName() );
@@ -422,7 +437,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             return;
         }
 
-        // we need two run this (at least) two times, since some of the presets might contain other presets
+        // we need two run this (at least) two times, since some of the presets
+        // might contain other presets
         updateFields( fieldMap, klass, true );
         updateFields( fieldMap, klass, false );
     }
@@ -460,7 +476,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             else if ( ":owner".equals( fieldKey ) )
             {
                 properties.stream()
-                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted() && property.isOwner() )
+                    .filter( property -> !fieldMap.containsKey( property.key() ) && property.isPersisted()
+                        && property.isOwner() )
                     .forEach( property -> fieldMap.put( property.key(), new FieldMap() ) );
 
                 cleanupFields.add( fieldKey );
@@ -510,7 +527,8 @@ public class DefaultFieldFilterService implements FieldFilterService
                     if ( transformers.containsKey( nameMatch ) )
                     {
                         NodeTransformer transformer = transformers.get( nameMatch );
-                        List<String> args = argsMatch == null ? new ArrayList<>() : Lists.newArrayList( argsMatch.split( ";" ) );
+                        List<String> args = argsMatch == null ? new ArrayList<>()
+                            : Lists.newArrayList( argsMatch.split( ";" ) );
                         value.getPipeline().addTransformer( transformer, args );
                     }
                 }
@@ -559,7 +577,8 @@ public class DefaultFieldFilterService implements FieldFilterService
             return null;
         }
 
-        // performance optimization for ID only queries on base identifiable objects
+        // performance optimization for ID only queries on base identifiable
+        // objects
         if ( isBaseIdentifiableObjectIdOnly( object, fields ) )
         {
             return createBaseIdentifiableObjectIdNode( currentProperty, object );
@@ -611,7 +630,7 @@ public class DefaultFieldFilterService implements FieldFilterService
     private ComplexNode createBaseIdentifiableObjectIdNode( @Nonnull Property currentProperty, @Nonnull Object object )
     {
         return new ComplexNode( currentProperty, new SimpleNode(
-            "id", baseIdentifiableIdProperty, ( (BaseIdentifiableObject) object ).getUid() ) );
+            "id", baseIdentifiableIdProperty, ((BaseIdentifiableObject) object).getUid() ) );
     }
 
     private boolean isProperIdObject( Class<?> klass )
@@ -620,16 +639,16 @@ public class DefaultFieldFilterService implements FieldFilterService
     }
 
     /**
-     * {@link AttributeValue} is saved as JSONB, and it contains only Attribute's uid
-     * If fields parameter requires more than just Attribute's uid
-     * then we need to get full {@link Attribute} object ( from cache )
-     * e.g. fields=id,name,attributeValues[value,attribute[id,name,description]]
+     * {@link AttributeValue} is saved as JSONB, and it contains only
+     * Attribute's uid If fields parameter requires more than just Attribute's
+     * uid then we need to get full {@link Attribute} object ( from cache ) e.g.
+     * fields=id,name,attributeValues[value,attribute[id,name,description]]
      */
     private Object handleJsonbObjectProperties( Class klass, Class propertyClass, Object returnObject )
     {
         if ( AttributeValue.class.isAssignableFrom( klass ) && Attribute.class.isAssignableFrom( propertyClass ) )
         {
-            returnObject = attributeService.getAttribute( ( ( Attribute ) returnObject ).getUid() );
+            returnObject = attributeService.getAttribute( ((Attribute) returnObject).getUid() );
         }
 
         return returnObject;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.dbms;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,19 @@ package org.hisp.dhis.dbms;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dbms;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -387,7 +387,7 @@ public class HibernateDbmsManager
     }
 
     @Override
-    @Transactional //TODO need to be fixed as this reduces performance
+    @Transactional // TODO need to be fixed as this reduces performance
     public void clearSession()
     {
         sessionFactory.getCurrentSession().flush();
@@ -416,16 +416,14 @@ public class HibernateDbmsManager
     @Override
     public boolean tableExists( String tableName )
     {
-        final String sql =
-            "select table_name from information_schema.tables " +
-                "where table_name = '" + tableName + "' " +
-                "and table_type = 'BASE TABLE'";
+        final String sql = "select table_name from information_schema.tables " +
+            "where table_name = '" + tableName + "' " +
+            "and table_type = 'BASE TABLE'";
 
         List<Object> tables = jdbcTemplate.queryForList( sql, Object.class );
 
         return tables != null && tables.size() > 0;
     }
-
 
     @Override
     public List<List<Object>> getTableContent( String table )
@@ -480,7 +478,8 @@ public class HibernateDbmsManager
     {
         try
         {
-            jdbcTemplate.update( "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem; update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; delete from relationshipconstraint; delete from relationshiptype;" );
+            jdbcTemplate.update(
+                "update relationshipitem set relationshipid = null; delete from relationship; delete from relationshipitem; update relationshiptype set from_relationshipconstraintid = null,to_relationshipconstraintid = null; delete from relationshipconstraint; delete from relationshiptype;" );
         }
         catch ( BadSqlGrammarException ex )
         {

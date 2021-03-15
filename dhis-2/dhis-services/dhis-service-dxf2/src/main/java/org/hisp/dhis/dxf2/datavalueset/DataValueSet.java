@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.datavalueset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,20 +25,22 @@ package org.hisp.dhis.dxf2.datavalueset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.datavalueset;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.IdScheme;
-import org.hisp.dhis.dxf2.datavalue.DataValue;
+import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.dxf2.datavalue.DataValue;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
@@ -49,42 +49,54 @@ import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
 public class DataValueSet
 {
     protected static final String FIELD_IDSCHEME = "idScheme";
+
     protected static final String FIELD_DATAELEMENTIDSCHEME = "dataElementIdScheme";
+
     protected static final String FIELD_ORGUNITIDSCHEME = "orgUnitIdScheme";
+
     protected static final String FIELD_CATEGORYOPTCOMBOIDSCHEME = "categoryOptionComboIdScheme";
+
     protected static final String FIELD_DATASETIDSCHEME = "dataSetIdScheme";
+
     protected static final String FIELD_DRYRUN = "dryRun";
+
     protected static final String FIELD_IMPORTSTRATEGY = "importStrategy";
 
     protected static final String FIELD_DATAVALUESET = "dataValueSet";
+
     protected static final String FIELD_DATAVALUE = "dataValue";
+
     protected static final String FIELD_DATASET = "dataSet";
+
     protected static final String FIELD_COMPLETEDATE = "completeDate";
+
     protected static final String FIELD_PERIOD = "period";
+
     protected static final String FIELD_ORGUNIT = "orgUnit";
+
     protected static final String FIELD_ATTRIBUTE_OPTION_COMBO = "attributeOptionCombo";
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Options
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected String idScheme;
 
     protected String dataElementIdScheme;
 
     protected String orgUnitIdScheme;
-    
+
     protected String categoryOptionComboIdScheme;
-    
+
     protected String dataSetIdScheme;
 
     protected Boolean dryRun;
 
     protected String strategy;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Properties
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     protected String dataSet;
 
@@ -100,17 +112,17 @@ public class DataValueSet
 
     protected List<String> attributeCategoryOptions;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Constructors
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     public DataValueSet()
     {
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Getters and setters
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
@@ -281,9 +293,9 @@ public class DataValueSet
         this.attributeCategoryOptions = attributeCategoryOptions;
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Logic
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     private Iterator<DataValue> dataValueIterator;
 
@@ -342,9 +354,9 @@ public class DataValueSet
     }
 
     /**
-     * Returns the organisation unit identifier scheme. Falls back to the general
-     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has
-     * been set.
+     * Returns the organisation unit identifier scheme. Falls back to the
+     * general identifier scheme if not set. IdScheme.NULL is returned if no
+     * scheme has been set.
      */
     public IdScheme getOrgUnitIdSchemeProperty()
     {
@@ -352,9 +364,9 @@ public class DataValueSet
     }
 
     /**
-     * Returns the category option combo identifier scheme. Falls back to the general
-     * identifier scheme if not set. IdScheme.NULL is returned if no scheme has
-     * been set.
+     * Returns the category option combo identifier scheme. Falls back to the
+     * general identifier scheme if not set. IdScheme.NULL is returned if no
+     * scheme has been set.
      */
     public IdScheme getCategoryOptionComboIdSchemeProperty()
     {
@@ -377,10 +389,10 @@ public class DataValueSet
         scheme = defaultIfEmpty( objectIdScheme, scheme );
         return IdScheme.from( scheme );
     }
-    
-    //--------------------------------------------------------------------------
+
+    // --------------------------------------------------------------------------
     // toString
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @Override
     public String toString()

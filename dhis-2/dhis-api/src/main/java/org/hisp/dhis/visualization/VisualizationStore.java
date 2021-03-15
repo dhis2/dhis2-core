@@ -1,7 +1,5 @@
-package org.hisp.dhis.visualization;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.visualization;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.visualization;
 
 import java.util.Date;
 import java.util.List;
@@ -40,8 +39,8 @@ public interface VisualizationStore
 {
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of
-     * type Chart.
+     * Query the Visualization collection and retrieve only the Visualizations
+     * of type Chart.
      *
      * @param first the first result row
      * @param max the maximum result row
@@ -50,8 +49,8 @@ public interface VisualizationStore
     List<Visualization> getCharts( int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of
-     * type Pivot Table.
+     * Query the Visualization collection and retrieve only the Visualizations
+     * of type Pivot Table.
      *
      * @param first the first result row
      * @param max the maximum result row
@@ -60,8 +59,8 @@ public interface VisualizationStore
     List<Visualization> getPivotTables( int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of
-     * type Chart comparing the name using the given "chars".
+     * Query the Visualization collection and retrieve only the Visualizations
+     * of type Chart comparing the name using the given "chars".
      *
      * @param words the characters describing the Visualization's name
      * @param first the first result row
@@ -71,8 +70,8 @@ public interface VisualizationStore
     List<Visualization> getChartsLikeName( Set<String> words, int first, int max );
 
     /**
-     * Query the Visualization collection and retrieve only the Visualizations of
-     * type Pivot Table comparing the name using the given "chars".
+     * Query the Visualization collection and retrieve only the Visualizations
+     * of type Pivot Table comparing the name using the given "chars".
      *
      * @param words the characters describing the Visualization's name
      * @param first the first result row
@@ -87,7 +86,7 @@ public interface VisualizationStore
      * @param startingAt
      * @return the total of Pivot Table found.
      */
-    int countPivotTablesCreated ( Date startingAt );
+    int countPivotTablesCreated( Date startingAt );
 
     /**
      * Counts the number of Chart created since the given date.
@@ -95,5 +94,5 @@ public interface VisualizationStore
      * @param startingAt
      * @return the total of Chart found.
      */
-    int countChartsCreated ( Date startingAt );
+    int countChartsCreated( Date startingAt );
 }

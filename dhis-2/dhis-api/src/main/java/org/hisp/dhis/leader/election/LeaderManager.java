@@ -1,7 +1,5 @@
-package org.hisp.dhis.leader.election;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,21 @@ package org.hisp.dhis.leader.election;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.leader.election;
 
 import org.hisp.dhis.scheduling.SchedulingManager;
 
 /**
- * Manages cluster leader node elections, renewals, revocations and to check whether
- * the current instance is the leader in the cluster.
+ * Manages cluster leader node elections, renewals, revocations and to check
+ * whether the current instance is the leader in the cluster.
  *
  * @author Ameen Mohamed
  */
 public interface LeaderManager
 {
     /**
-     * Extend the expiration time of leadership if this node is the current leader.
+     * Extend the expiration time of leadership if this node is the current
+     * leader.
      */
     void renewLeader();
 
@@ -56,7 +56,8 @@ public interface LeaderManager
     boolean isLeader();
 
     /**
-     * Setter to set the scheduling manager to gain access to systems scheduling mechanisms.
+     * Setter to set the scheduling manager to gain access to systems scheduling
+     * mechanisms.
      *
      * @param schedulingManager the instantiated scheduling manager.
      */

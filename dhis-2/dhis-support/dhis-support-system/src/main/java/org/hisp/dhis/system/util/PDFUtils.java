@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,12 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
+
+import static com.lowagie.text.Element.ALIGN_CENTER;
+import static com.lowagie.text.Element.ALIGN_LEFT;
+
+import java.io.OutputStream;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -38,11 +42,6 @@ import com.lowagie.text.pdf.BaseFont;
 import com.lowagie.text.pdf.PdfPCell;
 import com.lowagie.text.pdf.PdfPTable;
 import com.lowagie.text.pdf.PdfWriter;
-
-import java.io.OutputStream;
-
-import static com.lowagie.text.Element.ALIGN_CENTER;
-import static com.lowagie.text.Element.ALIGN_LEFT;
 
 /**
  * @author Lars Helge Overland
@@ -67,7 +66,7 @@ public class PDFUtils
      * Creates a document.
      *
      * @param outputStream The output stream to write the document content.
-     * @param pageSize     the page size.
+     * @param pageSize the page size.
      * @return A Document.
      */
     public static Document openDocument( OutputStream outputStream, Rectangle pageSize )
@@ -114,7 +113,7 @@ public class PDFUtils
      * </p>
      *
      * @param keepTogether Indicates whether the table could be broken across
-     *                     multiple pages or should be kept at one page.
+     *        multiple pages or should be kept at one page.
      * @param columnWidths The column widths.
      * @return
      */
@@ -132,7 +131,7 @@ public class PDFUtils
      * Adds a table to a document.
      *
      * @param document The document to add the table to.
-     * @param table    The table to add to the document.
+     * @param table The table to add to the document.
      */
     public static void addTableToDocument( Document document, PdfPTable table )
     {
@@ -172,9 +171,9 @@ public class PDFUtils
     /**
      * Creates a cell.
      *
-     * @param text            The text to include in the cell.
-     * @param colspan         The column span of the cell.
-     * @param font            The font of the cell text.
+     * @param text The text to include in the cell.
+     * @param colspan The column span of the cell.
+     * @param font The font of the cell text.
      * @param horizontalAlign The vertical alignment of the text in the cell.
      * @return A PdfCell.
      */
@@ -238,7 +237,7 @@ public class PDFUtils
      * Creates an empty cell.
      *
      * @param colspan The column span of the cell.
-     * @param height  The height of the column.
+     * @param height The height of the column.
      * @return A PdfCell.
      */
     public static PdfPCell getEmptyCell( int colSpan, int height )

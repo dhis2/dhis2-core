@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.webapi.controller.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.security;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
@@ -45,11 +50,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * @author Henning Håkonsen
  */
@@ -60,7 +60,7 @@ public class SecurityController
 {
     @Autowired
     private CurrentUserService currentUserService;
-    
+
     @Autowired
     private SystemSettingManager systemSettingManager;
 
@@ -78,7 +78,7 @@ public class SecurityController
         }
 
         String appName = (String) systemSettingManager.getSystemSetting( SettingKey.APPLICATION_TITLE );
-        
+
         String url = SecurityUtils.generateQrUrl( appName, currentUser );
 
         Map<String, Object> map = new HashMap<>();

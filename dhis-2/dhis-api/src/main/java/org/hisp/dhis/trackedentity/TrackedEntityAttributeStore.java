@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
+package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+
+import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw
@@ -61,10 +60,12 @@ public interface TrackedEntityAttributeStore
     List<TrackedEntityAttribute> getDisplayInListNoProgram();
 
     /**
-     * Check whether there already exists a TrackedEntityInstance with given unique attribute value. If yes, return
-     * Optional containing UID of it. Otherwise, return empty Optional.
+     * Check whether there already exists a TrackedEntityInstance with given
+     * unique attribute value. If yes, return Optional containing UID of it.
+     * Otherwise, return empty Optional.
      *
-     * @param params Query params. Contains value of unique attribute that should be checked.
+     * @param params Query params. Contains value of unique attribute that
+     *        should be checked.
      * @return Optional of TrackedEntityInstance UID or empty Optional.
      */
     Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
@@ -78,10 +79,12 @@ public interface TrackedEntityAttributeStore
     Set<TrackedEntityAttribute> getTrackedEntityAttributesByTrackedEntityTypes();
 
     /**
-     * Fetches all {@link TrackedEntityAttribute} and groups them by {@link Program}
+     * Fetches all {@link TrackedEntityAttribute} and groups them by
+     * {@link Program}
      *
-     * @return a Map, where the key is the {@link Program} and the values is a Set of
-     * {@link TrackedEntityAttribute} associated to the {@link Program} in the key
+     * @return a Map, where the key is the {@link Program} and the values is a
+     *         Set of {@link TrackedEntityAttribute} associated to the
+     *         {@link Program} in the key
      */
     Map<Program, Set<TrackedEntityAttribute>> getTrackedEntityAttributesByProgram();
 }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 /**
- * This interface provides a mechanism for accessing the applications in situations
- * where no users exist in the database.
- * 
+ * This interface provides a mechanism for accessing the applications in
+ * situations where no users exist in the database.
+ *
  * @author Torgeir Lorange Ostby
- * @version $Id: AutomaticAccessProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: AutomaticAccessProvider.java 3160 2007-03-24 20:15:06Z torgeilo
+ *          $
  */
 public interface AutomaticAccessProvider
 {

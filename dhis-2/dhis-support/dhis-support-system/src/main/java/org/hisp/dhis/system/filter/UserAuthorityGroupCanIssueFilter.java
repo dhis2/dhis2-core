@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.filter;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,12 @@ package org.hisp.dhis.system.filter;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.filter;
 
+import org.hisp.dhis.commons.filter.Filter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.commons.filter.Filter;
 
 /**
  * @author Lars Helge Overland
@@ -40,13 +39,13 @@ public class UserAuthorityGroupCanIssueFilter
     implements Filter<UserAuthorityGroup>
 {
     private UserCredentials userCredentials;
-    
+
     private boolean canGrantOwnUserAuthorityGroups = false;
-    
+
     protected UserAuthorityGroupCanIssueFilter()
     {
     }
-    
+
     public UserAuthorityGroupCanIssueFilter( User user, boolean canGrantOwnUserAuthorityGroups )
     {
         if ( user != null && user.getUserCredentials() != null )

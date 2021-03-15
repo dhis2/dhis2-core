@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,20 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.Lists;
-
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
+package org.hisp.dhis.period;
 
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
+
 /**
- * Abstract class for SixMonthly period types, including those starting
- * at the beginning of the calendar year and those starting at the beginning
- * of other months.
+ * Abstract class for SixMonthly period types, including those starting at the
+ * beginning of the calendar year and those starting at the beginning of other
+ * months.
  *
  * @author Jim Grace
  */
@@ -134,8 +133,8 @@ public abstract class SixMonthlyAbstractPeriodType
     }
 
     /**
-     * Generates the last 2 six-months where the last one is the six-month
-     * which the given date is inside.
+     * Generates the last 2 six-months where the last one is the six-month which
+     * the given date is inside.
      */
     @Override
     public List<Period> generateRollingPeriods( Date date )

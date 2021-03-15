@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,25 @@ package org.hisp.dhis.webapi.controller.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.event;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.Lists;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AccessLevel;
@@ -47,7 +60,6 @@ import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.trackedentity.ImportTrackedEntitiesTask;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -80,6 +92,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -101,28 +114,17 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
-import static org.hisp.dhis.scheduling.JobType.TEI_IMPORT;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.Lists;
 
 /**
- * The following statements are added not to cause api break.
- * They need to be remove say in 2.26 or so once users are aware of the changes.
+ * The following statements are added not to cause api break. They need to be
+ * remove say in 2.26 or so once users are aware of the changes.
  * <p>
- * programEnrollmentStartDate= ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
- * programEnrollmentEndDate= ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
+ * programEnrollmentStartDate= ObjectUtils.firstNonNull(
+ * programEnrollmentStartDate, programStartDate ); programEnrollmentEndDate=
+ * ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -206,7 +208,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) boolean includeAllAttributes,
-        @RequestParam( required = false ) String order ) throws Exception
+        @RequestParam( required = false ) String order )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -220,7 +223,7 @@ public class TrackedEntityInstanceController
         Set<String> orgUnits = TextUtils.splitToArray( ou, TextUtils.SEMICOLON );
 
         Set<String> assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
-        
+
         Set<String> trackedEntityInstanceUids = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -229,14 +232,18 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration, programEnrollmentStartDate,
-            programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
-            eventStartDate, eventEndDate, assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages,
+        TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
+            programEnrollmentStartDate,
+            programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage,
+            eventStatus,
+            eventStartDate, eventEndDate, assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page,
+            pageSize, totalPages,
             skipPaging, includeDeleted, includeAllAttributes, getOrderParams( order ) );
 
         trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                getTrackedEntityInstanceParams( fields ), false );
+            getTrackedEntityInstanceParams( fields ), false );
 
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, false );
 
@@ -295,11 +302,13 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) ImageFileDimension dimension,
         HttpServletResponse response,
         HttpServletRequest request )
-        throws WebMessageException, NotFoundException
+        throws WebMessageException,
+        NotFoundException
     {
         User user = currentUserService.getCurrentUser();
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = instanceService.getTrackedEntityInstance( teiId );
+        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = instanceService
+            .getTrackedEntityInstance( teiId );
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
 
@@ -309,7 +318,8 @@ public class TrackedEntityInstanceController
 
         if ( !trackerAccessErrors.isEmpty() )
         {
-            throw new WebMessageException( WebMessageUtils.unathorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+            throw new WebMessageException( WebMessageUtils
+                .unathorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
         }
 
         if ( attribute.size() == 0 )
@@ -337,7 +347,8 @@ public class TrackedEntityInstanceController
 
         if ( fileResource == null || fileResource.getDomain() != FileResourceDomain.DATA_VALUE )
         {
-            throw new WebMessageException( WebMessageUtils.notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
+            throw new WebMessageException( WebMessageUtils
+                .notFound( "A data value file resource with id " + value.getValue() + " does not exist." ) );
         }
 
         if ( fileResource.getStorageStatus() != FileResourceStorageStatus.STORED )
@@ -347,21 +358,23 @@ public class TrackedEntityInstanceController
             // underlying file content still not stored to external file store
             // -----------------------------------------------------------------
 
-            throw new WebMessageException( WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
-                "The content requested is in transit to the file store and will be available at a later time." ) );
+            throw new WebMessageException(
+                WebMessageUtils.conflict( "The content is being processed and is not available yet. Try again later.",
+                    "The content requested is in transit to the file store and will be available at a later time." ) );
         }
 
         // ---------------------------------------------------------------------
         // Build response and return
         // ---------------------------------------------------------------------
 
-        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+        FileResourceUtils.setImageFileDimensions( fileResource,
+            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         response.setContentType( fileResource.getContentType() );
         response.setContentLength( new Long( fileResource.getContentLength() ).intValue() );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
-        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource  ) )
+        try ( InputStream inputStream = fileResourceService.getFileResourceContent( fileResource ) )
         {
             BufferedImage img = ImageIO.read( inputStream );
             height = height == null ? img.getHeight() : height;
@@ -380,7 +393,8 @@ public class TrackedEntityInstanceController
         }
     }
 
-    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON, ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
+    @RequestMapping( value = "/query", method = RequestMethod.GET, produces = { ContextUtils.CONTENT_TYPE_JSON,
+        ContextUtils.CONTENT_TYPE_JAVASCRIPT } )
     public @ResponseBody Grid queryTrackedEntityInstancesJson(
         @RequestParam( required = false ) String query,
         @RequestParam( required = false ) Set<String> attribute,
@@ -415,7 +429,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
         Model model,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -425,10 +440,14 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate, programEnrollmentEndDate,
-            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate,
-            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate,
+            programEnrollmentEndDate,
+            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
+            eventStartDate, eventEndDate,
+            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages,
+            skipPaging, includeDeleted,
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON, CacheStrategy.NO_CACHE );
@@ -469,7 +488,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -479,10 +499,14 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate, programEnrollmentEndDate,
-            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate,
-            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate,
+            programEnrollmentEndDate,
+            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
+            eventStartDate, eventEndDate,
+            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages,
+            skipPaging, includeDeleted,
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.NO_CACHE );
@@ -524,7 +548,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -534,10 +559,14 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate, programEnrollmentEndDate,
-            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate,
-            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate,
+            programEnrollmentEndDate,
+            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
+            eventStartDate, eventEndDate,
+            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages,
+            skipPaging, includeDeleted,
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.NO_CACHE );
@@ -579,7 +608,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false ) boolean includeDeleted,
         @RequestParam( required = false ) String order,
-        HttpServletResponse response ) throws Exception
+        HttpServletResponse response )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -589,10 +619,14 @@ public class TrackedEntityInstanceController
 
         skipPaging = PagerUtils.isSkipPaging( skipPaging, paging );
 
-        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate, programEnrollmentEndDate,
-            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus, eventStartDate, eventEndDate,
-            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages, skipPaging, includeDeleted,
+        TrackedEntityInstanceQueryParams params = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, null, programEnrollmentStartDate,
+            programEnrollmentEndDate,
+            programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
+            eventStartDate, eventEndDate,
+            assignedUserMode, assignedUsers, trackedEntityInstanceUids, skipMeta, page, pageSize, totalPages,
+            skipPaging, includeDeleted,
             false, getOrderParams( order ) );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.NO_CACHE );
@@ -627,7 +661,8 @@ public class TrackedEntityInstanceController
         @RequestParam( required = false ) EventStatus eventStatus,
         @RequestParam( required = false ) Date eventStartDate,
         @RequestParam( required = false ) Date eventEndDate,
-        @RequestParam( required = false ) boolean includeDeleted ) throws Exception
+        @RequestParam( required = false ) boolean includeDeleted )
+        throws Exception
     {
         programEnrollmentStartDate = ObjectUtils.firstNonNull( programEnrollmentStartDate, programStartDate );
         programEnrollmentEndDate = ObjectUtils.firstNonNull( programEnrollmentEndDate, programEndDate );
@@ -642,11 +677,15 @@ public class TrackedEntityInstanceController
         Set<String> assignedUsers = TextUtils.splitToArray( assignedUser, TextUtils.SEMICOLON );
         Set<String> trackedEntityInstanceUids = TextUtils.splitToArray( trackedEntityInstance, TextUtils.SEMICOLON );
 
-        TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits, ouMode, program,
-            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration, programEnrollmentStartDate,
-            programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage, eventStatus,
+        TrackedEntityInstanceQueryParams queryParams = instanceService.getFromUrl( query, attribute, filter, orgUnits,
+            ouMode, program,
+            programStatus, followUp, lastUpdatedStartDate, lastUpdatedEndDate, lastUpdatedDuration,
+            programEnrollmentStartDate,
+            programEnrollmentEndDate, programIncidentStartDate, programIncidentEndDate, trackedEntityType, programStage,
+            eventStatus,
             eventStartDate, eventEndDate, assignedUserMode, assignedUsers, trackedEntityInstanceUids, true,
-            TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true, includeDeleted, false, null );
+            TrackedEntityInstanceQueryParams.DEFAULT_PAGE, Pager.DEFAULT_PAGE_SIZE, true, true, includeDeleted, false,
+            null );
 
         return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
     }
@@ -654,7 +693,9 @@ public class TrackedEntityInstanceController
     @RequestMapping( value = "/{id}", method = RequestMethod.GET )
     public @ResponseBody RootNode getTrackedEntityInstanceById(
         @PathVariable( "id" ) String pvId,
-        @RequestParam( required = false ) String program ) throws WebMessageException, NotFoundException
+        @RequestParam( required = false ) String program )
+        throws WebMessageException,
+        NotFoundException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -678,8 +719,10 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
-    public void postTrackedEntityInstanceJson( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
+    public void postTrackedEntityInstanceJson(
+        @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         importOptions.setStrategy( strategy );
         importOptions.setSkipLastUpdated( true );
@@ -687,7 +730,8 @@ public class TrackedEntityInstanceController
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceJson( inputStream, importOptions );
+            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceJson( inputStream,
+                importOptions );
             importSummaries.setImportOptions( importOptions );
             response.setContentType( MediaType.APPLICATION_JSON_VALUE );
 
@@ -696,9 +740,11 @@ public class TrackedEntityInstanceController
                     importSummary -> !importOptions.isDryRun() &&
                         !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
                         !importOptions.getImportStrategy().isDelete() &&
-                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+                        (!importOptions.getImportStrategy().isSync()
+                            || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
-                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
+                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
+                        + importSummary.getReference() ) );
 
             if ( importSummaries.getImportSummaries().size() == 1 )
             {
@@ -716,21 +762,25 @@ public class TrackedEntityInstanceController
         }
         else
         {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesJson( inputStream );
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+                .getTrackedEntityInstancesJson( inputStream );
             startAsyncImport( importOptions, trackedEntityInstances, request, response );
         }
     }
 
     @RequestMapping( value = "", method = RequestMethod.POST, consumes = MediaType.APPLICATION_XML_VALUE )
-    public void postTrackedEntityInstanceXml( @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
-        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response ) throws IOException
+    public void postTrackedEntityInstanceXml(
+        @RequestParam( defaultValue = "CREATE_AND_UPDATE" ) ImportStrategy strategy,
+        ImportOptions importOptions, HttpServletRequest request, HttpServletResponse response )
+        throws IOException
     {
         importOptions.setStrategy( strategy );
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
         if ( !importOptions.isAsync() )
         {
-            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream, importOptions );
+            ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstanceXml( inputStream,
+                importOptions );
             importSummaries.setImportOptions( importOptions );
             response.setContentType( MediaType.APPLICATION_XML_VALUE );
 
@@ -739,9 +789,11 @@ public class TrackedEntityInstanceController
                     importSummary -> !importOptions.isDryRun() &&
                         !importSummary.getStatus().equals( ImportStatus.ERROR ) &&
                         !importOptions.getImportStrategy().isDelete() &&
-                        (!importOptions.getImportStrategy().isSync() || importSummary.getImportCount().getDeleted() == 0) )
+                        (!importOptions.getImportStrategy().isSync()
+                            || importSummary.getImportCount().getDeleted() == 0) )
                 .forEach( importSummary -> importSummary.setHref(
-                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/" + importSummary.getReference() ) );
+                    ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
+                        + importSummary.getReference() ) );
 
             if ( importSummaries.getImportSummaries().size() == 1 )
             {
@@ -759,7 +811,8 @@ public class TrackedEntityInstanceController
         }
         else
         {
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstancesXml( inputStream );
+            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+                .getTrackedEntityInstancesXml( inputStream );
             startAsyncImport( importOptions, trackedEntityInstances, request, response );
         }
     }
@@ -776,7 +829,8 @@ public class TrackedEntityInstanceController
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, program, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceXml( id, program,
+            inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
@@ -790,7 +844,8 @@ public class TrackedEntityInstanceController
         throws IOException
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
-        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, program, inputStream, importOptions );
+        ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstanceJson( id, program,
+            inputStream, importOptions );
         importSummary.setImportOptions( importOptions );
 
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
@@ -801,7 +856,8 @@ public class TrackedEntityInstanceController
     // -------------------------------------------------------------------------
 
     @RequestMapping( value = "/{id}", method = RequestMethod.DELETE )
-    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request, HttpServletResponse response )
+    public void deleteTrackedEntityInstance( @PathVariable String id, HttpServletRequest request,
+        HttpServletResponse response )
     {
         ImportSummary importSummary = trackedEntityInstanceService.deleteTrackedEntityInstance( id );
         webMessageService.send( WebMessageUtils.importSummary( importSummary ), response, request );
@@ -814,23 +870,26 @@ public class TrackedEntityInstanceController
     /**
      * Starts an asynchronous import task.
      *
-     * @param importOptions          the ImportOptions.
+     * @param importOptions the ImportOptions.
      * @param trackedEntityInstances the teis to import.
-     * @param request                the HttpRequest.
-     * @param response               the HttpResponse.
+     * @param request the HttpRequest.
+     * @param response the HttpResponse.
      */
-    private void startAsyncImport( ImportOptions importOptions, List<TrackedEntityInstance> trackedEntityInstances, HttpServletRequest request, HttpServletResponse response )
+    private void startAsyncImport( ImportOptions importOptions, List<TrackedEntityInstance> trackedEntityInstances,
+        HttpServletRequest request, HttpServletResponse response )
     {
         JobConfiguration jobId = new JobConfiguration( "inMemoryEventImport",
             TEI_IMPORT, currentUserService.getCurrentUser().getUid(), true );
-        schedulingManager.executeJob( new ImportTrackedEntitiesTask( trackedEntityInstances, trackedEntityInstanceService, importOptions, jobId ) );
+        schedulingManager.executeJob( new ImportTrackedEntitiesTask( trackedEntityInstances,
+            trackedEntityInstanceService, importOptions, jobId ) );
 
         response.setHeader( "Location", ContextUtils.getRootPath( request ) + "/system/tasks/" + TEI_IMPORT );
         webMessageService.send( jobConfigurationReport( jobId ), response, request );
     }
 
     private TrackedEntityInstance getTrackedEntityInstance( String id, String pr, List<String> fields )
-        throws NotFoundException, WebMessageException
+        throws NotFoundException,
+        WebMessageException
     {
         TrackedEntityInstanceParams trackedEntityInstanceParams = getTrackedEntityInstanceParams( fields );
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService.getTrackedEntityInstance( id,
@@ -853,7 +912,8 @@ public class TrackedEntityInstanceController
             }
 
             List<String> errors = trackerAccessManager.canRead( user,
-                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program, false );
+                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
+                false );
 
             if ( !errors.isEmpty() )
             {
@@ -868,7 +928,8 @@ public class TrackedEntityInstanceController
 
             if ( trackedEntityInstanceParams.isIncludeProgramOwners() )
             {
-                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream().filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
+                List<ProgramOwner> filteredProgramOwners = trackedEntityInstance.getProgramOwners().stream()
+                    .filter( tei -> tei.getProgram().equals( pr ) ).collect( Collectors.toList() );
                 trackedEntityInstance.setProgramOwners( filteredProgramOwners );
             }
         }
@@ -894,7 +955,8 @@ public class TrackedEntityInstanceController
 
     private String getResourcePath( HttpServletRequest request, ImportSummary importSummary )
     {
-        return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/" + importSummary.getReference();
+        return ContextUtils.getContextPath( request ) + "/api/" + "trackedEntityInstances" + "/"
+            + importSummary.getReference();
     }
 
     private List<String> getOrderParams( String order )

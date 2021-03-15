@@ -1,7 +1,5 @@
-package org.hisp.dhis.parser.expression.function;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,17 @@ package org.hisp.dhis.parser.expression.function;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
-import org.hisp.dhis.parser.expression.ExpressionItem;
+package org.hisp.dhis.parser.expression.function;
 
 import static org.hisp.dhis.antlr.AntlrParserUtils.castClass;
 import static org.hisp.dhis.parser.expression.antlr.ExpressionParser.ExprContext;
 
+import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
+import org.hisp.dhis.parser.expression.ExpressionItem;
+
 /**
  * Function if
+ *
  * <pre>
  *
  * In-memory Logic:
@@ -68,8 +68,8 @@ public class FunctionIf
         return arg0 == null
             ? null
             : arg0
-            ? visitor.visit( ctx.expr( 1 ) )
-            : visitor.visit( ctx.expr( 2 ) );
+                ? visitor.visit( ctx.expr( 1 ) )
+                : visitor.visit( ctx.expr( 2 ) );
     }
 
     @Override

@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -108,8 +107,9 @@ public class Message
             dout.writeUTF( this.getLastSenderName() );
         }
 
-        int recipientSize = (this.recipient == null || this.recipient.getUserList() == null) ? 0 : this.recipient
-            .getUserList().size();
+        int recipientSize = (this.recipient == null || this.recipient.getUserList() == null) ? 0
+            : this.recipient
+                .getUserList().size();
         dout.writeInt( recipientSize );
         if ( recipientSize > 0 )
         {

@@ -1,7 +1,5 @@
-package org.hisp.dhis.security.authority;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,18 @@ package org.hisp.dhis.security.authority;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.opensymphony.xwork2.config.entities.ActionConfig;
-import org.springframework.security.access.SecurityMetadataSource;
+package org.hisp.dhis.security.authority;
 
 import java.util.Collection;
 
+import org.springframework.security.access.SecurityMetadataSource;
+
+import com.opensymphony.xwork2.config.entities.ActionConfig;
+
 /**
  * @author Torgeir Lorange Ostby
- * @version $Id: RequiredAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z torgeilo $
+ * @version $Id: RequiredAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
+ *          torgeilo $
  */
 public interface RequiredAuthoritiesProvider
 {
@@ -46,7 +47,7 @@ public interface RequiredAuthoritiesProvider
      * needed.
      *
      * @param actionConfig the secure actionConfig to get required authorities
-     *                     from.
+     *        from.
      */
     public SecurityMetadataSource createSecurityMetadataSource( ActionConfig actionConfig );
 
@@ -56,7 +57,7 @@ public interface RequiredAuthoritiesProvider
      * SecurityMetadataSource may include additional attributes if needed.
      *
      * @param actionConfig the actionConfig to get required authorities from.
-     * @param object       the secure object.
+     * @param object the secure object.
      */
     public SecurityMetadataSource createSecurityMetadataSource( ActionConfig actionConfig, Object object );
 

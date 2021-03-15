@@ -1,7 +1,5 @@
-package org.hisp.dhis.artemis.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,13 @@ package org.hisp.dhis.artemis.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.artemis.config;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.jms.ConnectionFactory;
+import javax.jms.DeliveryMode;
 
 import org.apache.activemq.artemis.api.core.RoutingType;
 import org.apache.activemq.artemis.api.core.SimpleString;
@@ -49,12 +54,6 @@ import org.springframework.jms.annotation.EnableJms;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 import org.springframework.jms.core.JmsTemplate;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.DeliveryMode;
-import java.util.HashMap;
-import java.util.Map;
-
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -63,6 +62,7 @@ import java.util.Map;
 public class ArtemisConfig
 {
     private final DhisConfigurationProvider dhisConfig;
+
     private final LocationManager locationManager;
 
     public ArtemisConfig(
@@ -76,7 +76,8 @@ public class ArtemisConfig
     @Bean
     public ConnectionFactory jmsConnectionFactory( ArtemisConfigData artemisConfigData )
     {
-        JmsConnectionFactory connectionFactory = new JmsConnectionFactory( String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
+        JmsConnectionFactory connectionFactory = new JmsConnectionFactory(
+            String.format( "amqp://%s:%d", artemisConfigData.getHost(), artemisConfigData.getPort() ) );
         connectionFactory.setClientIDPrefix( "dhis2" );
         connectionFactory.setCloseLinksThatFailOnReconnect( false );
         connectionFactory.setForceAsyncAcks( true );
@@ -85,19 +86,22 @@ public class ArtemisConfig
     }
 
     @Bean
-    public JmsTemplate jmsTopicTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public JmsTemplate jmsTopicTemplate( ConnectionFactory connectionFactory,
+        NameDestinationResolver nameDestinationResolver )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.NON_PERSISTENT );
         template.setDestinationResolver( nameDestinationResolver );
-        // set to true, since we only use topics and we want to resolve names to topic destination
+        // set to true, since we only use topics and we want to resolve names to
+        // topic destination
         template.setPubSubDomain( true );
 
         return template;
     }
 
     @Bean
-    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public JmsTemplate jmsQueueTemplate( ConnectionFactory connectionFactory,
+        NameDestinationResolver nameDestinationResolver )
     {
         JmsTemplate template = new JmsTemplate( connectionFactory );
         template.setDeliveryMode( DeliveryMode.PERSISTENT );
@@ -108,21 +112,25 @@ public class ArtemisConfig
     }
 
     @Bean // configured for topics
-    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public DefaultJmsListenerContainerFactory jmsListenerContainerFactory( ConnectionFactory connectionFactory,
+        NameDestinationResolver nameDestinationResolver )
     {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
         factory.setDestinationResolver( nameDestinationResolver );
-        // set to true, since we only use topics and we want to resolve names to topic destination
+        // set to true, since we only use topics and we want to resolve names to
+        // topic destination
         factory.setPubSubDomain( true );
-        // 1 forces the listener to use only one consumer, to avoid duplicated messages
+        // 1 forces the listener to use only one consumer, to avoid duplicated
+        // messages
         factory.setConcurrency( "1" );
 
         return factory;
     }
 
     @Bean // configured for queues
-    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory, NameDestinationResolver nameDestinationResolver )
+    public DefaultJmsListenerContainerFactory jmsQueueListenerContainerFactory( ConnectionFactory connectionFactory,
+        NameDestinationResolver nameDestinationResolver )
     {
         DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
         factory.setConnectionFactory( connectionFactory );
@@ -134,7 +142,8 @@ public class ArtemisConfig
     }
 
     @Bean
-    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData ) throws Exception
+    public EmbeddedActiveMQ createEmbeddedServer( ArtemisConfigData artemisConfigData )
+        throws Exception
     {
         EmbeddedActiveMQ server = new EmbeddedActiveMQ();
 
@@ -214,7 +223,8 @@ public class ArtemisConfig
     }
 
     /**
-     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve the topic name from the scope
+     * Holds a Map of AuditScope -> Topic Name so that a Producer can resolve
+     * the topic name from the scope
      */
     @Bean
     public Map<AuditScope, String> scopeToDestinationMap()

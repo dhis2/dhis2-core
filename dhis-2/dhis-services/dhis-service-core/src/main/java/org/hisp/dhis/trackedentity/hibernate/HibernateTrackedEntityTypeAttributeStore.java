@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,19 @@ package org.hisp.dhis.trackedentity.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity.hibernate;
+
+import java.util.List;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.deletedobject.DeletedObjectService;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -43,21 +47,18 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Root;
-import java.util.List;
-
 @Repository( "org.hisp.dhis.program.TrackedEntityTypeAttributeStore" )
 public class HibernateTrackedEntityTypeAttributeStore
     extends HibernateIdentifiableObjectStore<TrackedEntityTypeAttribute>
     implements TrackedEntityTypeAttributeStore
 {
     public HibernateTrackedEntityTypeAttributeStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, DeletedObjectService deletedObjectService,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService,
+        DeletedObjectService deletedObjectService,
         AclService aclService, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, currentUserService, deletedObjectService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityTypeAttribute.class, currentUserService,
+            deletedObjectService, aclService, true );
     }
 
     @Override

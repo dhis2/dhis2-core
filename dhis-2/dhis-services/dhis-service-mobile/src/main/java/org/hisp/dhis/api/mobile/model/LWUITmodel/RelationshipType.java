@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -42,7 +41,7 @@ public class RelationshipType
     private String aIsToB;
 
     private String bIsToA;
-    
+
     @Override
     public long getId()
     {
@@ -84,7 +83,7 @@ public class RelationshipType
         dataOutputStream.writeUTF( this.aIsToB );
         dataOutputStream.writeUTF( this.bIsToA );
     }
-    
+
     @Override
     public void deSerialize( DataInputStream dataInputStream )
         throws IOException
@@ -100,7 +99,7 @@ public class RelationshipType
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -108,7 +107,7 @@ public class RelationshipType
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override

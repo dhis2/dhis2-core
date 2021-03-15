@@ -1,7 +1,5 @@
-package org.hisp.dhis.commons.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.commons.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.commons.util;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.jexl2.Expression;
 import org.apache.commons.jexl2.JexlContext;
@@ -34,10 +37,6 @@ import org.apache.commons.jexl2.JexlEngine;
 import org.apache.commons.jexl2.JexlException;
 import org.apache.commons.jexl2.MapContext;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Utility class for expression language based on JEXL.
@@ -47,11 +46,12 @@ import java.util.regex.Pattern;
 public class ExpressionUtils
 {
     private static final JexlEngine JEXL = new JexlEngine();
+
     private static final JexlEngine JEXL_STRICT = new JexlEngine();
 
     private static final Map<String, String> EL_SQL_MAP = new HashMap<>();
-    private static final String IGNORED_KEYWORDS_REGEX =
-        "SUM|sum|AVG|avg|COUNT|count|STDDEV|stddev|VARIANCE|variance|MIN|min|MAX|max|NONE|none";
+
+    private static final String IGNORED_KEYWORDS_REGEX = "SUM|sum|AVG|avg|COUNT|count|STDDEV|stddev|VARIANCE|variance|MIN|min|MAX|max|NONE|none";
 
     private static final Pattern NUMERIC_PATTERN = Pattern.compile( "^(-?0|-?[1-9]\\d*)(\\.\\d+)?$" );
 
@@ -74,7 +74,7 @@ public class ExpressionUtils
         EL_SQL_MAP.put( "\\|\\|", "or" );
         EL_SQL_MAP.put( "==", "=" );
 
-        //TODO Add support for textual operators like eq, ne and lt
+        // TODO Add support for textual operators like eq, ne and lt
     }
 
     /**
@@ -112,8 +112,8 @@ public class ExpressionUtils
     /**
      * Evaluates the given expression. The given variables will be substituted
      * in the expression. Converts the result of the evaluation to a Double.
-     * Throws an IllegalStateException if the result could not be converted to
-     * a Double
+     * Throws an IllegalStateException if the result could not be converted to a
+     * Double
      *
      * @param expression the expression.
      * @param vars the variables, can be null.
@@ -148,7 +148,7 @@ public class ExpressionUtils
     {
         Object result = evaluate( expression, vars );
 
-        return ( result != null && result instanceof Boolean ) ? (Boolean) result : false;
+        return (result != null && result instanceof Boolean) ? (Boolean) result : false;
     }
 
     /**
@@ -165,7 +165,7 @@ public class ExpressionUtils
         {
             Object result = evaluate( expression, vars );
 
-            return ( result instanceof Boolean );
+            return (result instanceof Boolean);
         }
         catch ( JexlException | NumberFormatException ex )
         {

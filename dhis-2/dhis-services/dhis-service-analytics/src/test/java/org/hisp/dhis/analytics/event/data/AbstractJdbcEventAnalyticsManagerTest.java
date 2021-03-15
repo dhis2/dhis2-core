@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -90,8 +89,10 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void setUp()
     {
         StatementBuilder statementBuilder = new PostgreSQLStatementBuilder();
-        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder( programIndicatorService );
-        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService, programIndicatorSubqueryBuilder );
+        DefaultProgramIndicatorSubqueryBuilder programIndicatorSubqueryBuilder = new DefaultProgramIndicatorSubqueryBuilder(
+            programIndicatorService );
+        subject = new JdbcEventAnalyticsManager( jdbcTemplate, statementBuilder, programIndicatorService,
+            programIndicatorSubqueryBuilder );
 
         // data init
 
@@ -172,7 +173,7 @@ public class AbstractJdbcEventAnalyticsManagerTest
         assertThat( clause, is( "sum(ax.\"fWIAEtYVEGk\")" ) );
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test( expected = IllegalArgumentException.class )
     public void verifyGetAggregateClauseWithValueFails()
     {
         DimensionalItemObject dio = new BaseDimensionalItemObject( dataElementA.getUid() );
@@ -207,12 +208,13 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void verifyGetAggregateClauseWithProgramIndicatorAndCustomAggregationType()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAggregationType(AggregationType.CUSTOM);
+        programIndicator.setAggregationType( AggregationType.CUSTOM );
 
-        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() ).withProgramIndicator( programIndicator ).build();
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withProgramIndicator( programIndicator ).build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
-                params.getEarliestStartDate(), params.getLatestEndDate() ) )
+            params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
         String clause = subject.getAggregateClause( params );
@@ -224,13 +226,13 @@ public class AbstractJdbcEventAnalyticsManagerTest
     public void verifyGetAggregateClauseWithEnrollmentDimension()
     {
         ProgramIndicator programIndicator = createProgramIndicator( 'A', programA, "9.0", null );
-        programIndicator.setAnalyticsType(AnalyticsType.ENROLLMENT);
+        programIndicator.setAnalyticsType( AnalyticsType.ENROLLMENT );
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withProgramIndicator( programIndicator )
             .build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), programIndicator,
-                params.getEarliestStartDate(), params.getLatestEndDate() ) )
+            params.getEarliestStartDate(), params.getLatestEndDate() ) )
                 .thenReturn( "select * from table" );
 
         String clause = subject.getAggregateClause( params );

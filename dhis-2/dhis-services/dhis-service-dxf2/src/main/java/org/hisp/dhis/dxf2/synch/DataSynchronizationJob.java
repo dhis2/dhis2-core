@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.synch;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,9 @@ package org.hisp.dhis.dxf2.synch;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.synch;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -37,8 +38,6 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Lars Helge Overland
@@ -77,7 +76,7 @@ public class DataSynchronizationJob
         }
         catch ( WebMessageParseException e )
         {
-            log.error("Error while executing data value sync task. "+ e.getMessage(), e );
+            log.error( "Error while executing data value sync task. " + e.getMessage(), e );
         }
 
         try
@@ -90,7 +89,7 @@ public class DataSynchronizationJob
         }
         catch ( WebMessageParseException e )
         {
-            log.error( "Error while executing complete data set registration sync task. "+ e.getMessage(), e );
+            log.error( "Error while executing complete data set registration sync task. " + e.getMessage(), e );
         }
 
         notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
@@ -103,7 +102,8 @@ public class DataSynchronizationJob
 
         if ( !isRemoteServerAvailable.isAvailable() )
         {
-            return new ErrorReport( DataSynchronizationJob.class, ErrorCode.E7010, isRemoteServerAvailable.getMessage() );
+            return new ErrorReport( DataSynchronizationJob.class, ErrorCode.E7010,
+                isRemoteServerAvailable.getMessage() );
         }
 
         return super.validate();

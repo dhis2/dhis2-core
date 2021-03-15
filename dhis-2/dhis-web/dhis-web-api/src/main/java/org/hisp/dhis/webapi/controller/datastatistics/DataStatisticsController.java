@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.datastatistics;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,19 @@ package org.hisp.dhis.webapi.controller.datastatistics;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.datastatistics;
+
+import static java.util.Calendar.DATE;
+import static java.util.Calendar.MILLISECOND;
+import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.datastatistics.AggregatedStatistics;
 import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datastatistics.DataStatisticsEventType;
@@ -41,7 +50,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -53,15 +61,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-
-import javax.servlet.http.HttpServletResponse;
-
-import static java.util.Calendar.DATE;
-import static java.util.Calendar.MILLISECOND;
-import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Yrjan A. F. Fraschetti
@@ -93,14 +92,16 @@ public class DataStatisticsController
 
     @GetMapping
     public @ResponseBody List<AggregatedStatistics> getReports( @RequestParam Date startDate,
-        @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response ) throws WebMessageException
+        @RequestParam Date endDate, @RequestParam EventInterval interval, HttpServletResponse response )
+        throws WebMessageException
     {
         if ( startDate.after( endDate ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict( "Start date is after end date" ) );
         }
 
-        // The endDate is arriving as: "2019-09-28". After the conversion below it will become: "2019-09-28 23:59:59.999"
+        // The endDate is arriving as: "2019-09-28". After the conversion below
+        // it will become: "2019-09-28 23:59:59.999"
         endDate = DateUtils.calculateDateFrom( endDate, 1, DATE );
         endDate = DateUtils.calculateDateFrom( endDate, -1, MILLISECOND );
 
@@ -126,7 +127,7 @@ public class DataStatisticsController
     {
         return dataStatisticsService.getFavoriteStatistics( uid );
     }
-    
+
     @PreAuthorize( "hasRole('ALL')" )
     @ResponseStatus( HttpStatus.CREATED )
     @PostMapping( "/snapshot" )

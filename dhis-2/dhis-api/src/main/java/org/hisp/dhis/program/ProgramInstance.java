@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -107,7 +106,8 @@ public class ProgramInstance
     {
     }
 
-    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance, Program program )
+    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
+        Program program )
     {
         this.enrollmentDate = enrollmentDate;
         this.incidentDate = incidentDate;
@@ -144,7 +144,7 @@ public class ProgramInstance
      * the given entity instance and program.
      *
      * @param entityInstance the entity instance to enroll.
-     * @param program        the program to enroll the entity instance to.
+     * @param program the program to enroll the entity instance to.
      */
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
@@ -177,7 +177,8 @@ public class ProgramInstance
         {
             if ( programStageInstance.getProgramStage().getOpenAfterEnrollment()
                 && !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+                && (programStageInstance.getStatus() != null
+                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
             {
                 return programStageInstance;
             }
@@ -186,7 +187,8 @@ public class ProgramInstance
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
             if ( !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+                && (programStageInstance.getStatus() != null
+                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
             {
                 return programStageInstance;
             }
@@ -199,7 +201,9 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            if ( !programStageInstance.isDeleted()
+                && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
+                && programStageInstance.getStatus() == EventStatus.ACTIVE )
             {
                 return true;
             }
@@ -212,7 +216,9 @@ public class ProgramInstance
     {
         for ( ProgramStageInstance programStageInstance : programStageInstances )
         {
-            if ( !programStageInstance.isDeleted() && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() ) && programStageInstance.getStatus() != EventStatus.SKIPPED )
+            if ( !programStageInstance.isDeleted()
+                && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
+                && programStageInstance.getStatus() != EventStatus.SKIPPED )
             {
                 return true;
             }

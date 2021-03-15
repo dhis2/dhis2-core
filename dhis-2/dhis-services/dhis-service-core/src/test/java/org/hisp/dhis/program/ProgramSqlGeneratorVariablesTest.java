@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,20 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.startsWith;
+import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
+import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
+import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
+import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.antlr.AntlrExprLiteral;
@@ -49,19 +61,6 @@ import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.startsWith;
-import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
-import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_SAMPLE_PERIODS;
-import static org.hisp.dhis.parser.expression.ParserUtils.ITEM_GET_SQL;
-import static org.hisp.dhis.program.DefaultProgramIndicatorService.PROGRAM_INDICATOR_ITEMS;
 
 /**
  * @author Luciano Fiandesio
@@ -105,6 +104,7 @@ public class ProgramSqlGeneratorVariablesTest
     private CommonExpressionVisitor subject;
 
     private ProgramIndicator eventIndicator;
+
     private ProgramIndicator enrollmentIndicator;
 
     @Before
@@ -137,7 +137,8 @@ public class ProgramSqlGeneratorVariablesTest
     {
         String sql = castString( test( "V{creation_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql,
-            is( "(select created from analytics_event_" + enrollmentIndicator.getProgram().getUid() + " where analytics_event_"
+            is( "(select created from analytics_event_" + enrollmentIndicator.getProgram().getUid()
+                + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
                 + ".pi = ax.pi and created is not null order by executiondate desc limit 1 )" ) );
     }
@@ -152,9 +153,10 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testCompletedDateForEnrollment()
     {
-        String sql =  castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
+        String sql = castString( test( "V{completed_date}", new DefaultLiteral(), enrollmentIndicator ) );
         assertThat( sql,
-            is( "(select completeddate from analytics_event_" + enrollmentIndicator.getProgram().getUid() + " where analytics_event_"
+            is( "(select completeddate from analytics_event_" + enrollmentIndicator.getProgram().getUid()
+                + " where analytics_event_"
                 + enrollmentIndicator.getProgram().getUid()
                 + ".pi = ax.pi and completeddate is not null order by executiondate desc limit 1 )" ) );
     }
@@ -248,7 +250,7 @@ public class ProgramSqlGeneratorVariablesTest
     @Test
     public void testProgramStageName()
     {
-        String sql =  castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
+        String sql = castString( test( "V{program_stage_name}", new DefaultLiteral(), eventIndicator ) );
         assertThat( sql, is( "(select name from programstage where uid = ps)" ) );
     }
 

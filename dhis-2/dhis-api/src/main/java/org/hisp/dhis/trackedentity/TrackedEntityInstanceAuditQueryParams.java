@@ -1,7 +1,5 @@
-package org.hisp.dhis.trackedentity;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.trackedentity;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -44,12 +43,12 @@ public class TrackedEntityInstanceAuditQueryParams
      * Tracked entity instances to fetch audits for
      */
     private Set<String> trackedEntityInstances = new HashSet<>();
-    
+
     /**
      * Users to fetch audits for
      */
     private Set<String> users = new HashSet<>();
-    
+
     /**
      * AuditType to fetch for
      */
@@ -64,16 +63,16 @@ public class TrackedEntityInstanceAuditQueryParams
      * Ending date.
      */
     private Date endDate = null;
-    
+
     /**
      * Tracked entity instance audit count start
      */
     private int first;
-    
+
     /**
      * Tracked entity instance audit count end
      */
-    private int max;    
+    private int max;
 
     /**
      * Traked entity instance audit skip paging or not
@@ -96,12 +95,12 @@ public class TrackedEntityInstanceAuditQueryParams
     {
         return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
     }
-    
+
     public boolean hasUsers()
     {
         return users != null && !users.isEmpty();
     }
-    
+
     public boolean hasAuditType()
     {
         return auditType != null;
@@ -129,7 +128,7 @@ public class TrackedEntityInstanceAuditQueryParams
     public void setTrackedEntityInstances( Set<String> trackedEntityInstances )
     {
         this.trackedEntityInstances = trackedEntityInstances;
-    }    
+    }
 
     public Set<String> getUsers()
     {
@@ -139,7 +138,7 @@ public class TrackedEntityInstanceAuditQueryParams
     public void setUsers( Set<String> users )
     {
         this.users = users;
-    }    
+    }
 
     public AuditType getAuditType()
     {
@@ -189,7 +188,7 @@ public class TrackedEntityInstanceAuditQueryParams
     public void setMax( int max )
     {
         this.max = max;
-    }    
+    }
 
     public boolean isSkipPaging()
     {

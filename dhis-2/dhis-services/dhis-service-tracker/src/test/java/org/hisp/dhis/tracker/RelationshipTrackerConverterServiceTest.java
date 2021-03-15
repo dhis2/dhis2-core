@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,24 +25,19 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
+
+import static junit.framework.TestCase.assertNotNull;
+import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.util.List;
 
 import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeValue;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleParams;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleValidationService;
-import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
-import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.render.RenderFormat;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -55,22 +48,12 @@ import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleParams;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.converter.TrackerConverterService;
-import org.hisp.dhis.tracker.domain.Event;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.ClassPathResource;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import static junit.framework.TestCase.assertNotNull;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Enrico Colasante
@@ -80,8 +63,11 @@ public class RelationshipTrackerConverterServiceTest
 {
 
     private final static String MOTHER_TO_CHILD_RELATIONSHIP_TYPE = "dDrh5UyCyvQ";
+
     private final static String CHILD_TO_MOTHER_RELATIONSHIP_TYPE = "tBeOL0DL026";
+
     private final static String MOTHER = "Ea0rRdBPAIp";
+
     private final static String CHILD = "G1afLIEKt8A";
 
     @Autowired
@@ -111,10 +97,9 @@ public class RelationshipTrackerConverterServiceTest
 
     private TrackerBundle trackerBundle;
 
-
-
     @Override
-    protected void setUpTest() throws IOException
+    protected void setUpTest()
+        throws IOException
     {
         renderService = _renderService;
         userService = _userService;
@@ -126,17 +111,21 @@ public class RelationshipTrackerConverterServiceTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
 
-        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceA = createTrackedEntityInstance( 'A', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceA.setUid( MOTHER );
-        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit, trackedEntityAttribute );
+        TrackedEntityInstance trackedEntityInstanceB = createTrackedEntityInstance( 'B', organisationUnit,
+            trackedEntityAttribute );
         trackedEntityInstanceB.setUid( CHILD );
 
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
 
-        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A' , null, trackedEntityType, false);
+        RelationshipType relationshipTypeA = createPersonToPersonRelationshipType( 'A', null, trackedEntityType,
+            false );
         relationshipTypeA.setUid( MOTHER_TO_CHILD_RELATIONSHIP_TYPE );
-        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType, false );
+        RelationshipType relationshipTypeB = createPersonToPersonRelationshipType( 'B', null, trackedEntityType,
+            false );
         relationshipTypeB.setUid( CHILD_TO_MOTHER_RELATIONSHIP_TYPE );
         relationshipTypeService.addRelationshipType( relationshipTypeA );
         relationshipTypeService.addRelationshipType( relationshipTypeB );
@@ -145,11 +134,10 @@ public class RelationshipTrackerConverterServiceTest
             .fromJson( new ClassPathResource( "tracker/relationships.json" ).getInputStream(),
                 TrackerBundleParams.class );
 
-        TrackerImportParams trackerImportParams =
-            TrackerImportParams
-                .builder()
-                .relationships( trackerBundleParams.getRelationships() )
-                .build();
+        TrackerImportParams trackerImportParams = TrackerImportParams
+            .builder()
+            .relationships( trackerBundleParams.getRelationships() )
+            .build();
         trackerBundle = trackerBundleService.create( trackerImportParams.toTrackerBundleParams() ).get( 0 );
     }
 

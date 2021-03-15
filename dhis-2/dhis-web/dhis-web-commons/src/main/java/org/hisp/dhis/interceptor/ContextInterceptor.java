@@ -1,7 +1,5 @@
-package org.hisp.dhis.interceptor;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,19 @@ package org.hisp.dhis.interceptor;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.interceptor;
 
-import com.opensymphony.xwork2.ActionInvocation;
-import com.opensymphony.xwork2.interceptor.Interceptor;
-import org.apache.struts2.ServletActionContext;
-import org.hisp.dhis.system.database.DatabaseInfoProvider;
-import org.hisp.dhis.commons.util.TextUtils;
+import static org.hisp.dhis.util.ContextUtils.getCookieValue;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hisp.dhis.util.ContextUtils.getCookieValue;
+import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.system.database.DatabaseInfoProvider;
+
+import com.opensymphony.xwork2.ActionInvocation;
+import com.opensymphony.xwork2.interceptor.Interceptor;
 
 /**
  * @author Lars Helge Overland
@@ -46,8 +46,11 @@ public class ContextInterceptor
     implements Interceptor
 {
     private static final String KEY_IN_MEMORY_DATABASE = "inMemoryDatabase";
+
     private static final String KEY_TEXT_UTILS = "dhisTextUtils";
+
     private static final String KEY_CURRENT_PAGE = "keyCurrentPage";
+
     private static final String KEY_CURRENT_KEY = "keyCurrentKey";
 
     private DatabaseInfoProvider databaseInfoProvider;

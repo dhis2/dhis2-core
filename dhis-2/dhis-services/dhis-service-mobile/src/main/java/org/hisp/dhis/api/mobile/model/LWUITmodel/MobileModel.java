@@ -1,7 +1,5 @@
-package org.hisp.dhis.api.mobile.model.LWUITmodel;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.api.mobile.model.LWUITmodel;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.api.mobile.model.LWUITmodel;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -38,7 +37,7 @@ import org.hisp.dhis.api.mobile.model.DataStreamSerializable;
 
 /**
  * @author Nguyen Kim Lai
- * 
+ *
  * @version MobileModel.java 2:57:06 PM Jul 1, 2013 $
  */
 public class MobileModel
@@ -47,7 +46,7 @@ public class MobileModel
     private String clientVersion;
 
     private List<Program> programs;
-    
+
     private List<RelationshipType> relationshipTypes;
 
     private Date serverCurrentDate;
@@ -71,15 +70,15 @@ public class MobileModel
         }
         // Write current server's date
         dout.writeLong( serverCurrentDate.getTime() );
-        
-        if(relationshipTypes == null)
+
+        if ( relationshipTypes == null )
         {
             dout.writeInt( 0 );
         }
         else
         {
             dout.writeInt( relationshipTypes.size() );
-            for (RelationshipType relType:relationshipTypes)
+            for ( RelationshipType relType : relationshipTypes )
             {
                 relType.serialize( dout );
             }
@@ -115,13 +114,13 @@ public class MobileModel
     {
         this.clientVersion = clientVersion;
     }
-    
+
     public List<RelationshipType> getRelationshipTypes()
     {
         return relationshipTypes;
     }
-    
-    public void setRelationshipTypes(List<RelationshipType> relationshipTypes)
+
+    public void setRelationshipTypes( List<RelationshipType> relationshipTypes )
     {
         this.relationshipTypes = relationshipTypes;
     }
@@ -131,7 +130,7 @@ public class MobileModel
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -139,7 +138,7 @@ public class MobileModel
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override
@@ -147,7 +146,7 @@ public class MobileModel
         throws IOException
     {
         // TODO Auto-generated method stub
-        
+
     }
 
     @Override

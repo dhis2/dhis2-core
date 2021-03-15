@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,16 @@ package org.hisp.dhis.analytics.event.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event.data;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.collect.ImmutableSet;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
+import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+
+import java.util.Date;
+import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -51,13 +56,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.Date;
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.analytics.event.EventAnalyticsService.*;
-import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Lars Helge Overland
@@ -67,7 +67,9 @@ public class DefaultEventDataQueryService
     implements EventDataQueryService
 {
     private static final String COL_NAME_EVENTDATE = "executiondate";
+
     private static final String COL_NAME_ENROLLMENTDATE = "enrollmentdate";
+
     private static final String COL_NAME_INCIDENTDATE = "incidentdate";
 
     private static final ImmutableSet<String> SORTABLE_ITEMS = ImmutableSet.of(
@@ -256,7 +258,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItem( getQueryItem( dimension.getDimension(), dimension.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 
@@ -271,7 +274,8 @@ public class DefaultEventDataQueryService
             }
             else
             {
-                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(), object.getOutputType() ) );
+                params.addItemFilter( getQueryItem( filter.getDimension(), filter.getFilter(), object.getProgram(),
+                    object.getOutputType() ) );
             }
         }
 
@@ -304,7 +308,9 @@ public class DefaultEventDataQueryService
         {
             if ( ValueType.COORDINATE != dataElement.getValueType() )
             {
-                throw new IllegalQueryException( "Data element must be of value type coordinate to be used as coordinate field: " + coordinateField );
+                throw new IllegalQueryException(
+                    "Data element must be of value type coordinate to be used as coordinate field: "
+                        + coordinateField );
             }
 
             return dataElement.getUid();
@@ -316,7 +322,8 @@ public class DefaultEventDataQueryService
         {
             if ( ValueType.COORDINATE != attribute.getValueType() )
             {
-                throw new IllegalQueryException( "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
+                throw new IllegalQueryException(
+                    "Attribute must be of value type coordinate to be used as coordinate field: " + coordinateField );
             }
 
             return attribute.getUid();

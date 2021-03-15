@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -41,7 +40,8 @@ import org.springframework.mock.web.MockHttpSession;
 public class ApiVersionMethodTest extends DhisWebSpringTest
 {
     @Test
-    public void testMethodV31V32() throws Exception
+    public void testMethodV31V32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testV31V32";
@@ -75,7 +75,8 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodAll() throws Exception
+    public void testMethodAll()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testAll";
@@ -97,7 +98,8 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodAllExcludeV32() throws Exception
+    public void testMethodAllExcludeV32()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testAllExcludeV32";
@@ -122,7 +124,8 @@ public class ApiVersionMethodTest extends DhisWebSpringTest
     }
 
     @Test
-    public void testMethodDefault() throws Exception
+    public void testMethodDefault()
+        throws Exception
     {
         MockHttpSession session = getSession( "ALL" );
         String endpoint = "/method/testDefault";

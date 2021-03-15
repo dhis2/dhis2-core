@@ -1,7 +1,5 @@
-package org.hisp.dhis.user;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,15 @@ package org.hisp.dhis.user;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.base.MoreObjects;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+package org.hisp.dhis.user;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+
+import com.google.common.base.MoreObjects;
 
 /**
  * @author Lars Helge Overland
@@ -41,43 +41,43 @@ import java.util.List;
 public class UserQueryParams
 {
     private String query;
-    
+
     private String phoneNumber;
-    
+
     private User user;
-    
+
     private boolean canManage;
-    
+
     private boolean authSubset;
-    
+
     private boolean disjointRoles;
-    
+
     private Date lastLogin;
-    
+
     private Date inactiveSince;
 
     private Date passwordLastUpdated;
-    
+
     private Integer inactiveMonths;
-    
+
     private boolean selfRegistered;
 
     private boolean isNot2FA;
-    
+
     private UserInvitationStatus invitationStatus;
-    
+
     private List<OrganisationUnit> organisationUnits = new ArrayList<>();
-    
+
     private Integer first;
-    
+
     private Integer max;
-    
+
     private boolean userOrgUnits;
 
     private boolean includeOrgUnitChildren;
-    
+
     private boolean prefetchUserGroups;
-    
+
     private Boolean disabled;
 
     // -------------------------------------------------------------------------
@@ -130,12 +130,12 @@ public class UserQueryParams
         this.organisationUnits.add( unit );
         return this;
     }
-    
+
     public boolean hasUser()
     {
         return user != null;
     }
-    
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -260,7 +260,7 @@ public class UserQueryParams
         this.isNot2FA = isNot2FA;
         return this;
     }
-    
+
     public UserInvitationStatus getInvitationStatus()
     {
         return invitationStatus;
@@ -326,7 +326,7 @@ public class UserQueryParams
         this.includeOrgUnitChildren = includeOrgUnitChildren;
         return this;
     }
-    
+
     public boolean isPrefetchUserGroups()
     {
         return prefetchUserGroups;

@@ -1,7 +1,5 @@
-package org.hisp.dhis.message;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.DhisSpringTest;
@@ -34,14 +41,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Stian Sandvold
@@ -92,7 +91,7 @@ public class MessageConversationStoreTest
 
         conversationIds = new HashSet<>();
 
-        conversationA = messageService.sendPrivateMessage( usersA,"Subject1", "Text", "Meta", null );
+        conversationA = messageService.sendPrivateMessage( usersA, "Subject1", "Text", "Meta", null );
         MessageConversation mc = messageService.getMessageConversation( conversationA );
         mc.markRead( userC );
         messageService.updateMessageConversation( mc );

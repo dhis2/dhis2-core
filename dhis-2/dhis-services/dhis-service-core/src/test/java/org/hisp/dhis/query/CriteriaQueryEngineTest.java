@@ -1,7 +1,5 @@
-package org.hisp.dhis.query;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.query;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.Collection;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -44,10 +47,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -263,7 +263,8 @@ public class CriteriaQueryEngineTest
     public void getBetweenQuery()
     {
         Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
-        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(), Year.parseYear( "2005" ).getStart() ) );
+        query.add( Restrictions.between( "created", Year.parseYear( "2003" ).getStart(),
+            Year.parseYear( "2005" ).getStart() ) );
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         assertEquals( 3, objects.size() );

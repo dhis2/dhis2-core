@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.pdfform;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.pdfform;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.pdfform;
 
 import java.io.IOException;
 
@@ -69,8 +68,8 @@ public class PdfFieldCell
 
     public static final int TPYE_LABEL = 6;
 
-    public static final String TPYEDEFINE_NAME = "T";    
-    
+    public static final String TPYEDEFINE_NAME = "T";
+
     private static final float RADIOBUTTON_WIDTH = 10.0f;
 
     private static final float RADIOBUTTON_TEXTOFFSET = 3.0f;
@@ -78,7 +77,7 @@ public class PdfFieldCell
     private static final float OFFSET_TOP = 0.5f;
 
     private static final float OFFSET_LEFT = 3.0f;
-    
+
     private PdfFormField parent;
 
     private PdfFormField formField;
@@ -86,7 +85,7 @@ public class PdfFieldCell
     private PdfWriter writer;
 
     private float width;
-    
+
     private float height;
 
     private int type;
@@ -102,8 +101,7 @@ public class PdfFieldCell
     private String text;
 
     private String name;
-    
-    
+
     // Constructors
     public PdfFieldCell( PdfFormField formField, float width, float height, PdfWriter writer )
     {
@@ -133,7 +131,8 @@ public class PdfFieldCell
         this.jsAction = jsAction;
     }
 
-    public PdfFieldCell( PdfFormField parent, String[] texts, String[] values, String checkValue, float width, float height,
+    public PdfFieldCell( PdfFormField parent, String[] texts, String[] values, String checkValue, float width,
+        float height,
         int type, PdfWriter writer )
     {
         this.writer = writer;
@@ -152,7 +151,7 @@ public class PdfFieldCell
         try
         {
             PdfContentByte canvasText = canvases[PdfPTable.TEXTCANVAS];
-            
+
             if ( type == TYPE_RADIOBUTTON )
             {
                 if ( parent != null )
@@ -162,7 +161,7 @@ public class PdfFieldCell
 
                     String text;
                     String value;
-                    
+
                     for ( int i = 0; i < texts.length; i++ )
                     {
 
@@ -220,14 +219,14 @@ public class PdfFieldCell
             {
                 float extraCheckBoxOffset_Left = 2.0f;
                 float extraCheckBoxOffset_Top = 1.5f;
-                
+
                 formField.setWidget(
-                    new Rectangle( rect.getLeft() + OFFSET_LEFT + extraCheckBoxOffset_Left
-                        , rect.getTop() - height - OFFSET_TOP - extraCheckBoxOffset_Top
-                        , rect.getLeft() + width + OFFSET_LEFT + extraCheckBoxOffset_Left
-                        , rect.getTop() - OFFSET_TOP - extraCheckBoxOffset_Top ),
+                    new Rectangle( rect.getLeft() + OFFSET_LEFT + extraCheckBoxOffset_Left,
+                        rect.getTop() - height - OFFSET_TOP - extraCheckBoxOffset_Top,
+                        rect.getLeft() + width + OFFSET_LEFT + extraCheckBoxOffset_Left,
+                        rect.getTop() - OFFSET_TOP - extraCheckBoxOffset_Top ),
                     PdfAnnotation.HIGHLIGHT_NONE );
-            }            
+            }
             else
             {
 
@@ -237,10 +236,12 @@ public class PdfFieldCell
                         "if(event.value == '') app.alert('Please enter org unit identifier');", writer ) );
                 }
 
-                // TYPE_TEXT_NUMBER and TYPE_CHECKBOX cases included as well here
-                
+                // TYPE_TEXT_NUMBER and TYPE_CHECKBOX cases included as well
+                // here
+
                 formField.setWidget(
-                    new Rectangle( rect.getLeft() + OFFSET_LEFT, rect.getTop() - height - OFFSET_TOP, rect.getLeft() + width + OFFSET_LEFT, rect.getTop() - OFFSET_TOP ),
+                    new Rectangle( rect.getLeft() + OFFSET_LEFT, rect.getTop() - height - OFFSET_TOP,
+                        rect.getLeft() + width + OFFSET_LEFT, rect.getTop() - OFFSET_TOP ),
                     PdfAnnotation.HIGHLIGHT_NONE );
 
             }

@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker.preheat;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,9 +25,15 @@ package org.hisp.dhis.tracker.preheat;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker.preheat;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.DhisSpringTest;
+import static org.junit.Assert.*;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -57,12 +61,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -99,7 +98,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testEventMetadata() throws IOException
+    public void testEventMetadata()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -117,7 +117,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testCollectIdentifiersSimple() throws IOException
+    public void testCollectIdentifiersSimple()
+        throws IOException
     {
         TrackerBundleParams params = new TrackerBundleParams();
         Map<Class<?>, Set<String>> collectedMap = TrackerIdentifierCollector.collect( params );
@@ -125,9 +126,11 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testCollectIdentifiersEvents() throws IOException
+    public void testCollectIdentifiersEvents()
+        throws IOException
     {
-        TrackerBundleParams params = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+        TrackerBundleParams params = renderService.fromJson(
+            new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
             TrackerBundleParams.class );
 
         assertTrue( params.getTrackedEntities().isEmpty() );
@@ -169,13 +172,14 @@ public class TrackerPreheatServiceTest
     {
         TrackerBundleParams params = TrackerBundleParams.builder()
             .identifiers( TrackerIdentifierParams.builder()
-                .idScheme( TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" ).build() ).build() )
+                .idScheme(
+                    TrackerIdentifier.builder().idScheme( TrackerIdScheme.ATTRIBUTE ).value( "ATTR1234567" ).build() )
+                .build() )
             .trackedEntities( Lists.newArrayList(
                 TrackedEntity.builder()
                     .trackedEntity( "TEI12345678" )
                     .orgUnit( "OU123456789" )
-                    .build()
-            ) )
+                    .build() ) )
             .build();
 
         assertFalse( params.getTrackedEntities().isEmpty() );
@@ -197,10 +201,13 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testPreheatValidation() throws IOException
+    public void testPreheatValidation()
+        throws IOException
     {
-        TrackerBundle bundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle bundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertTrue( bundle.getTrackedEntities().isEmpty() );
         assertTrue( bundle.getEnrollments().isEmpty() );
@@ -211,7 +218,8 @@ public class TrackerPreheatServiceTest
     }
 
     @Test
-    public void testPreheatEvents() throws IOException
+    public void testPreheatEvents()
+        throws IOException
     {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
             new ClassPathResource( "tracker/event_metadata.json" ).getInputStream(), RenderFormat.JSON );
@@ -227,8 +235,10 @@ public class TrackerPreheatServiceTest
 
         objectBundleService.commit( objectBundle );
 
-        TrackerBundle trackerBundle = renderService.fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
-            TrackerBundleParams.class ).toTrackerBundle();
+        TrackerBundle trackerBundle = renderService
+            .fromJson( new ClassPathResource( "tracker/event_events.json" ).getInputStream(),
+                TrackerBundleParams.class )
+            .toTrackerBundle();
 
         assertTrue( trackerBundle.getTrackedEntities().isEmpty() );
         assertTrue( trackerBundle.getEnrollments().isEmpty() );

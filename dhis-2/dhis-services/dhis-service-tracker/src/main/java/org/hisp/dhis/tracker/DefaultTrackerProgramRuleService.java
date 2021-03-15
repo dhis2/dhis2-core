@@ -1,7 +1,5 @@
-package org.hisp.dhis.tracker;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,11 @@ package org.hisp.dhis.tracker;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.tracker;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -35,14 +38,10 @@ import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 /**
  * @author Enrico Colasante
  */
-@Service( "org.hisp.dhis.tracker.TrackerProgramRuleService")
+@Service( "org.hisp.dhis.tracker.TrackerProgramRuleService" )
 public class DefaultTrackerProgramRuleService
     implements TrackerProgramRuleService
 {

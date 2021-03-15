@@ -1,7 +1,5 @@
-package org.hisp.dhis.webportal.module;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,13 @@ package org.hisp.dhis.webportal.module;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webportal.module;
 
-import com.opensymphony.xwork2.config.*;
-import com.opensymphony.xwork2.config.entities.*;
+import java.util.*;
+import java.util.stream.*;
+
 import lombok.extern.slf4j.*;
+
 import org.apache.struts2.dispatcher.*;
 import org.hisp.dhis.appmanager.*;
 import org.hisp.dhis.i18n.*;
@@ -38,8 +39,8 @@ import org.hisp.dhis.i18n.locale.*;
 import org.hisp.dhis.security.*;
 import org.springframework.beans.factory.annotation.*;
 
-import java.util.*;
-import java.util.stream.*;
+import com.opensymphony.xwork2.config.*;
+import com.opensymphony.xwork2.config.entities.*;
 
 /**
  * @author Torgeir Lorange Ostby

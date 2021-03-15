@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelement;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -35,6 +34,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -65,8 +66,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Abyot Asalefew
@@ -153,28 +152,28 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Category> getAllDataElementCategories()
     {
         return categoryStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Category getCategory( long id )
     {
         return categoryStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Category getCategory( String uid )
     {
         return categoryStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Category getCategoryByName( String name )
     {
         List<Category> dataElementCategories = new ArrayList<>(
@@ -189,35 +188,35 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Category getDefaultCategory()
     {
         return getCategoryByName( Category.DEFAULT_NAME );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Category> getDisaggregationCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.DISAGGREGATION );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Category> getDisaggregationDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.DISAGGREGATION, true );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Category> getAttributeCategories()
     {
         return categoryStore.getCategoriesByDimensionType( DataDimensionType.ATTRIBUTE );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<Category> getAttributeDataDimensionCategoriesNoAcl()
     {
         return categoryStore.getCategoriesNoAcl( DataDimensionType.ATTRIBUTE, true );
@@ -251,49 +250,49 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOption getCategoryOption( long id )
     {
         return categoryOptionStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOption getCategoryOption( String uid )
     {
         return categoryOptionStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOption getCategoryOptionByName( String name )
     {
         return categoryOptionStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOption getDefaultCategoryOption()
     {
         return getCategoryOptionByName( CategoryOption.DEFAULT_NAME );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOption> getAllCategoryOptions()
     {
         return categoryOptionStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOption> getCategoryOptions( Category category )
     {
         return categoryOptionStore.getCategoryOptions( category );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<CategoryOption> getCoDimensionConstraints( UserCredentials userCredentials )
     {
         Set<CategoryOption> options = null;
@@ -341,56 +340,56 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryCombo> getAllCategoryCombos()
     {
         return categoryComboStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryCombo getCategoryCombo( long id )
     {
         return categoryComboStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryCombo getCategoryCombo( String uid )
     {
         return categoryComboStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryCombo getCategoryComboByName( String name )
     {
         return categoryComboStore.getByName( name );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryCombo getDefaultCategoryCombo()
     {
         return getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryCombo> getDisaggregationCategoryCombos()
     {
         return categoryComboStore.getCategoryCombosByDimensionType( DataDimensionType.DISAGGREGATION );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryCombo> getAttributeCategoryCombos()
     {
         return categoryComboStore.getCategoryCombosByDimensionType( DataDimensionType.ATTRIBUTE );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public String validateCategoryCombo( CategoryCombo categoryCombo )
     {
         if ( categoryCombo == null )
@@ -461,28 +460,28 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getCategoryOptionCombo( long id )
     {
         return categoryOptionComboStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getCategoryOptionCombo( String uid )
     {
         return categoryOptionComboStore.getByUid( uid );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getCategoryOptionComboByCode( String code )
     {
         return categoryOptionComboStore.getByCode( code );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
         Set<CategoryOption> categoryOptions )
     {
@@ -496,7 +495,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionCombo> getAllCategoryOptionCombos()
     {
         return categoryOptionComboStore.getAll();
@@ -538,7 +537,8 @@ public class DefaultCategoryService
         // CategoryCombo
         // ---------------------------------------------------------------------
 
-        CategoryCombo categoryCombo = new CategoryCombo( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME, DataDimensionType.DISAGGREGATION );
+        CategoryCombo categoryCombo = new CategoryCombo( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME,
+            DataDimensionType.DISAGGREGATION );
         categoryCombo.setUid( "bjDvmb4bfuf" );
         categoryCombo.setCode( "default" );
         categoryCombo.setDataDimensionType( DataDimensionType.DISAGGREGATION );
@@ -576,12 +576,14 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getDefaultCategoryOptionCombo()
     {
         CategoryCombo categoryCombo = getCategoryComboByName( CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME );
 
-        return categoryCombo != null && categoryCombo.hasOptionCombos() ? categoryCombo.getOptionCombos().iterator().next() : null;
+        return categoryCombo != null && categoryCombo.hasOptionCombos()
+            ? categoryCombo.getOptionCombos().iterator().next()
+            : null;
     }
 
     @Override
@@ -646,9 +648,8 @@ public class DefaultCategoryService
         }
     }
 
-
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id )
     {
         CategoryOptionCombo coc = idObjectManager.getObject( CategoryOptionCombo.class, property, id );
@@ -681,14 +682,14 @@ public class DefaultCategoryService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementOperand> getOperands( Collection<DataElement> dataElements )
     {
         return getOperands( dataElements, false );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementOperand> getOperands( Collection<DataElement> dataElements, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
@@ -714,7 +715,7 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<DataElementOperand> getOperands( DataSet dataSet, boolean includeTotals )
     {
         List<DataElementOperand> operands = Lists.newArrayList();
@@ -767,14 +768,14 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionGroup getCategoryOptionGroup( long id )
     {
         return categoryOptionGroupStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionGroup getCategoryOptionGroup( String uid )
     {
         return categoryOptionGroupStore.getByUid( uid );
@@ -788,21 +789,21 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionGroup> getAllCategoryOptionGroups()
     {
         return categoryOptionGroupStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionGroup> getCategoryOptionGroups( CategoryOptionGroupSet groupSet )
     {
         return categoryOptionGroupStore.getCategoryOptionGroups( groupSet );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public Set<CategoryOptionGroup> getCogDimensionConstraints( UserCredentials userCredentials )
     {
         Set<CategoryOptionGroup> groups = null;
@@ -843,14 +844,14 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionGroupSet getCategoryOptionGroupSet( long id )
     {
         return categoryOptionGroupSetStore.get( id );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public CategoryOptionGroupSet getCategoryOptionGroupSet( String uid )
     {
         return categoryOptionGroupSetStore.getByUid( uid );
@@ -864,21 +865,21 @@ public class DefaultCategoryService
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionGroupSet> getAllCategoryOptionGroupSets()
     {
         return categoryOptionGroupSetStore.getAll();
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionGroupSet> getDisaggregationCategoryOptionGroupSetsNoAcl()
     {
         return categoryOptionGroupSetStore.getCategoryOptionGroupSetsNoAcl( DataDimensionType.DISAGGREGATION, true );
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional( readOnly = true )
     public List<CategoryOptionGroupSet> getAttributeCategoryOptionGroupSetsNoAcl()
     {
         return categoryOptionGroupSetStore.getCategoryOptionGroupSetsNoAcl( DataDimensionType.ATTRIBUTE, true );

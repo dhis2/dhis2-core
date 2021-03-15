@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
 
-import com.google.common.collect.Lists;
+import static org.junit.Assert.*;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -37,10 +40,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -49,14 +49,19 @@ public class CategoryServiceTest
     extends DhisSpringTest
 {
     private DataElement deA;
+
     private DataElement deB;
 
     private CategoryOption categoryOptionA;
+
     private CategoryOption categoryOptionB;
+
     private CategoryOption categoryOptionC;
 
     private Category categoryA;
+
     private Category categoryB;
+
     private Category categoryC;
 
     private CategoryCombo ccA;

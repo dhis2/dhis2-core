@@ -1,7 +1,5 @@
-package org.hisp.dhis.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.FactoryBean;
@@ -42,7 +41,7 @@ public class ConnectionPropertyFactoryBean
     // -------------------------------------------------------------------------
 
     private HibernateConfigurationProvider hibernateConfigurationProvider;
-    
+
     public void setHibernateConfigurationProvider( HibernateConfigurationProvider hibernateConfigurationProvider )
     {
         this.hibernateConfigurationProvider = hibernateConfigurationProvider;
@@ -54,7 +53,7 @@ public class ConnectionPropertyFactoryBean
     {
         this.hibernateProperty = hibernateProperty;
     }
-    
+
     private String defaultValue;
 
     public void setDefaultValue( String defaultValue )
@@ -70,7 +69,7 @@ public class ConnectionPropertyFactoryBean
     public String getObject()
     {
         String value = hibernateConfigurationProvider.getConfiguration().getProperty( hibernateProperty );
-        
+
         return StringUtils.defaultIfEmpty( value, defaultValue );
     }
 

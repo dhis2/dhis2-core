@@ -1,7 +1,5 @@
-package org.hisp.dhis.message;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,15 +25,16 @@ package org.hisp.dhis.message;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.message;
+
+import java.util.Set;
+import java.util.concurrent.Future;
 
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
 import org.hisp.dhis.user.User;
 import org.springframework.util.concurrent.ListenableFuture;
-
-import java.util.Set;
-import java.util.concurrent.Future;
 
 /**
  * @author Lars Helge Overland
@@ -45,16 +44,19 @@ public interface MessageSender
     /**
      * Sends a message. The given message will be sent to the given set of
      * users.
-     * 
+     *
      * @param subject the message subject.
      * @param text the message text.
-     * @param footer the message footer. Optionally included by the implementation.
+     * @param footer the message footer. Optionally included by the
+     *        implementation.
      * @param users the users to send the message to.
      * @param forceSend force sending the message despite user settings.
      */
-    OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
-    
-    Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender, Set<User> users, boolean forceSend );
+    OutboundMessageResponse sendMessage( String subject, String text, String footer, User sender, Set<User> users,
+        boolean forceSend );
+
+    Future<OutboundMessageResponse> sendMessageAsync( String subject, String text, String footer, User sender,
+        Set<User> users, boolean forceSend );
 
     OutboundMessageResponse sendMessage( String subject, String text, Set<String> recipient );
 
@@ -62,6 +64,7 @@ public interface MessageSender
 
     /**
      * Sends message batch based on DeliveryChannels configured.
+     *
      * @param batch batch of messages to be processed.
      */
     OutboundMessageResponseSummary sendMessageBatch( OutboundMessageBatch batch );

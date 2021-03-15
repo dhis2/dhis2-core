@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.notification;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,19 @@ package org.hisp.dhis.program.notification;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.notification;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Date;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 
-import java.util.Date;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Zubair Asghar
@@ -59,7 +59,8 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     {
     }
 
-    public ProgramNotificationInstance( ProgramInstance programInstance, ProgramNotificationTemplate programNotificationTemplate,
+    public ProgramNotificationInstance( ProgramInstance programInstance,
+        ProgramNotificationTemplate programNotificationTemplate,
         ProgramStageInstance programStageInstance, Date scheduledAt, Date sentAt )
     {
         this.programInstance = programInstance;
@@ -92,7 +93,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
         this.programInstance = programInstance;
     }
 
-    @JsonProperty()
+    @JsonProperty( )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramNotificationTemplate getProgramNotificationTemplate()

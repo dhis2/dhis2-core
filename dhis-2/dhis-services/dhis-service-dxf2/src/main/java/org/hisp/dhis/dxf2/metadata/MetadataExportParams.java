@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.metadata;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,9 @@ package org.hisp.dhis.dxf2.metadata;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.metadata;
 
-import com.google.common.collect.Lists;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.fieldfilter.Defaults;
-import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.node.config.InclusionStrategy;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.user.User;
+import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -43,7 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.hisp.dhis.commons.collection.CollectionUtils.addAllUnique;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.fieldfilter.Defaults;
+import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.node.config.InclusionStrategy;
+import org.hisp.dhis.query.Query;
+import org.hisp.dhis.user.User;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -56,7 +56,8 @@ public class MetadataExportParams
     private User user;
 
     /**
-     * If doing full export, this contains the list of classes you want exported.
+     * If doing full export, this contains the list of classes you want
+     * exported.
      */
     private Set<Class<? extends IdentifiableObject>> classes = new HashSet<>();
 
@@ -66,7 +67,8 @@ public class MetadataExportParams
     private Map<Class<? extends IdentifiableObject>, Query> queries = new HashMap<>();
 
     /**
-     * Contains a set of field filters that allows the default field filter (:owner) to be overridden.
+     * Contains a set of field filters that allows the default field filter
+     * (:owner) to be overridden.
      */
     private Map<Class<? extends IdentifiableObject>, List<String>> fields = new HashMap<>();
 
@@ -86,12 +88,14 @@ public class MetadataExportParams
     private List<String> defaultOrder = new ArrayList<>();
 
     /**
-     * Should exported payload include defaults (coc, co etc) objects/references.
+     * Should exported payload include defaults (coc, co etc)
+     * objects/references.
      */
     private Defaults defaults = Defaults.INCLUDE;
 
     /**
-     * Inclusion strategy to use. There are a few already defined inclusions in the Inclusions enum.
+     * Inclusion strategy to use. There are a few already defined inclusions in
+     * the Inclusions enum.
      */
     private InclusionStrategy inclusionStrategy = InclusionStrategy.Include.NON_NULL;
 
@@ -138,7 +142,8 @@ public class MetadataExportParams
     @SuppressWarnings( "unchecked" )
     public MetadataExportParams addQuery( Query query )
     {
-        if ( !query.getSchema().isIdentifiableObject() ) return this;
+        if ( !query.getSchema().isIdentifiableObject() )
+            return this;
 
         Class<? extends IdentifiableObject> klass = (Class<? extends IdentifiableObject>) query.getSchema().getKlass();
         classes.add( klass );

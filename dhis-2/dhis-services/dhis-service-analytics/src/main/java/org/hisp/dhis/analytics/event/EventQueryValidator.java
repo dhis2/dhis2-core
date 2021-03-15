@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.analytics.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.event;
+
+import java.util.List;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MaintenanceModeException;
 import org.hisp.dhis.feedback.ErrorMessage;
-
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -48,12 +47,13 @@ public interface EventQueryValidator
      * @throws IllegalQueryException if the query is invalid.
      */
     void validate( EventQueryParams params )
-        throws IllegalQueryException, MaintenanceModeException;
+        throws IllegalQueryException,
+        MaintenanceModeException;
 
     /**
      * Validates the given query. Returns null if the query is valid, or an
-     * {@link ErrorMessage} describing the validation violation if the query
-     * is invalid.
+     * {@link ErrorMessage} describing the validation violation if the query is
+     * invalid.
      *
      * @param params the event query parameters.
      * @return null if valid or {@link ErrorMessage} if invalid.
@@ -74,7 +74,8 @@ public interface EventQueryValidator
         throws IllegalQueryException;
 
     /**
-     * Returns the max number of records to return. A value of 0 indicates no limit.
+     * Returns the max number of records to return. A value of 0 indicates no
+     * limit.
      *
      * @return the max number of records to return.
      */

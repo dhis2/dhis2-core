@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller.dataelement;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.webapi.controller.dataelement;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller.dataelement;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +51,6 @@ import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
-import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Query;
@@ -74,9 +75,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.google.common.collect.Lists;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -86,18 +84,27 @@ import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 public class DataElementOperandController
 {
     private final IdentifiableObjectManager manager;
+
     private final QueryService queryService;
+
     private final FieldFilterService fieldFilterService;
+
     private final LinkService linkService;
+
     private final ContextService contextService;
+
     private final SchemaService schemaService;
+
     private final CategoryService dataElementCategoryService;
+
     private final CurrentUserService currentUserService;
-    
-    private Cache<String,Integer> paginationCountCache = new Cache2kBuilder<String, Integer>() {}
+
+    private Cache<String, Integer> paginationCountCache = new Cache2kBuilder<String, Integer>()
+    {
+    }
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
-    
+
     public DataElementOperandController( IdentifiableObjectManager manager, QueryService queryService,
         FieldFilterService fieldFilterService, LinkService linkService, ContextService contextService,
         SchemaService schemaService,
@@ -124,8 +131,9 @@ public class DataElementOperandController
 
     @GetMapping
     @SuppressWarnings( "unchecked" )
-    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters, OrderParams orderParams )
-            throws QueryParserException
+    public @ResponseBody RootNode getObjectList( @RequestParam Map<String, String> rpParameters,
+        OrderParams orderParams )
+        throws QueryParserException
     {
         Schema schema = schemaService.getDynamicSchema( DataElementOperand.class );
 

@@ -1,7 +1,5 @@
-package org.hisp.dhis.analytics.data;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.analytics.data;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.analytics.data;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.hisp.dhis.analytics.DataQueryParams.*;
@@ -38,6 +37,8 @@ import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.analytics.DataQueryParams;
@@ -55,11 +56,8 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import lombok.extern.slf4j.Slf4j;
-
 /**
- * Class responsible for retrieving raw data from the
- * analytics tables.
+ * Class responsible for retrieving raw data from the analytics tables.
  *
  * @author Lars Helge Overland
  */
@@ -93,8 +91,10 @@ public class JdbcRawAnalyticsManager
 
         if ( params.isIncludePeriodStartEndDates() )
         {
-            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC, PERIOD_START_DATE_NAME, new ArrayList<>() ) );
-            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_START_DATE_ID, DimensionType.STATIC,
+                PERIOD_START_DATE_NAME, new ArrayList<>() ) );
+            dimensions.add( new BaseDimensionalObject( PERIOD_END_DATE_ID, DimensionType.STATIC, PERIOD_END_DATE_NAME,
+                new ArrayList<>() ) );
         }
 
         String sql = getSelectStatement( params, dimensions );
@@ -131,7 +131,8 @@ public class JdbcRawAnalyticsManager
      */
     private String getSelectStatement( DataQueryParams params, List<DimensionalObject> dimensions )
     {
-        String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString().toLowerCase();
+        String idScheme = ObjectUtils.firstNonNull( params.getOutputIdScheme(), IdScheme.UID ).getIdentifiableString()
+            .toLowerCase();
 
         List<String> dimensionColumns = dimensions.stream()
             .map( d -> asColumnSelect( d, idScheme ) )
@@ -139,8 +140,7 @@ public class JdbcRawAnalyticsManager
 
         SqlHelper sqlHelper = new SqlHelper();
 
-        String sql =
-            "select " + StringUtils.join( dimensionColumns, ", " ) + ", " +  DIM_NAME_OU + ", value " +
+        String sql = "select " + StringUtils.join( dimensionColumns, ", " ) + ", " + DIM_NAME_OU + ", value " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "inner join organisationunit ou on ax.ou = ou.uid " +
             "inner join _orgunitstructure ous on ax.ou = ous.organisationunituid " +
@@ -167,7 +167,8 @@ public class JdbcRawAnalyticsManager
                 }
                 else
                 {
-                    sql += sqlHelper.whereAnd() + " " + col + " in (" + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                    sql += sqlHelper.whereAnd() + " " + col + " in ("
+                        + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
                 }
             }
         }
@@ -180,8 +181,8 @@ public class JdbcRawAnalyticsManager
     }
 
     /**
-     * Converts the given dimension to a column select statement according to the
-     * given identifier scheme.
+     * Converts the given dimension to a column select statement according to
+     * the given identifier scheme.
      *
      * @param dimension the dimensional object.
      * @param idScheme the identifier scheme.
@@ -191,13 +192,13 @@ public class JdbcRawAnalyticsManager
     {
         if ( DimensionType.ORGANISATION_UNIT == dimension.getDimensionType() )
         {
-            return ( "ou." + idScheme + " as " + quote( dimension.getDimensionName() ) );
+            return ("ou." + idScheme + " as " + quote( dimension.getDimensionName() ));
         }
         else if ( DimensionType.ORGANISATION_UNIT_LEVEL == dimension.getDimensionType() )
         {
             int level = AnalyticsUtils.getLevelFromOrgUnitDimensionName( dimension.getDimensionName() );
 
-            return ( "ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ) );
+            return ("ous." + idScheme + "level" + level + " as " + quote( dimension.getDimensionName() ));
         }
         else
         {

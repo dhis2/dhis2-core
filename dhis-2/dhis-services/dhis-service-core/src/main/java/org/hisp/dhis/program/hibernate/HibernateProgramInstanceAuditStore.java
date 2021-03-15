@@ -1,7 +1,5 @@
-package org.hisp.dhis.program.hibernate;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,15 @@ package org.hisp.dhis.program.hibernate;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program.hibernate;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -39,13 +46,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Function;
-
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
@@ -55,7 +55,8 @@ public class HibernateProgramInstanceAuditStore
     extends HibernateGenericStore<ProgramInstanceAudit>
     implements ProgramInstanceAuditStore
 {
-    public HibernateProgramInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate, ApplicationEventPublisher publisher )
+    public HibernateProgramInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramInstanceAudit.class, false );
     }
@@ -74,7 +75,8 @@ public class HibernateProgramInstanceAuditStore
     public void deleteProgramInstanceAudit( ProgramInstance programInstance )
     {
         String hql = "delete ProgramInstanceAudit where programInstance = :programInstance";
-        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "programInstance", programInstance ).executeUpdate();
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "programInstance", programInstance )
+            .executeUpdate();
     }
 
     @Override
@@ -86,7 +88,7 @@ public class HibernateProgramInstanceAuditStore
             .addPredicates( getProgramInstanceAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
-        if( !params.isSkipPaging() )
+        if ( !params.isSkipPaging() )
         {
             jpaParameters.setFirstResult( params.getFirst() ).setMaxResults( params.getMax() );
         }
@@ -104,7 +106,8 @@ public class HibernateProgramInstanceAuditStore
             .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    private List<Function<Root<ProgramInstanceAudit>, Predicate>> getProgramInstanceAuditPredicates( ProgramInstanceAuditQueryParams params, CriteriaBuilder builder )
+    private List<Function<Root<ProgramInstanceAudit>, Predicate>> getProgramInstanceAuditPredicates(
+        ProgramInstanceAuditQueryParams params, CriteriaBuilder builder )
     {
         List<Function<Root<ProgramInstanceAudit>, Predicate>> predicates = new ArrayList<>();
 
@@ -135,7 +138,7 @@ public class HibernateProgramInstanceAuditStore
 
         if ( params.hasEndDate() )
         {
-            predicates.add(  root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
+            predicates.add( root -> builder.lessThanOrEqualTo( root.get( "created" ), params.getEndDate() ) );
         }
 
         return predicates;

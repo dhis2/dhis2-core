@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.event;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.events.event;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.event;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,17 +37,16 @@ import java.util.List;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
+import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.dxf2.events.eventdatavalue.EventDataValueService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.node.geometry.JtsXmlModule;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -60,6 +58,7 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -81,8 +80,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * Implementation of EventService that uses Jackson for serialization and
- * deserialization. This class has the prototype scope and can hence have
- * class scoped variables such as caches.
+ * deserialization. This class has the prototype scope and can hence have class
+ * scoped variables such as caches.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -119,13 +118,15 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromXml( String input, Class<?> clazz ) throws IOException
+    private static <T> T fromXml( String input, Class<?> clazz )
+        throws IOException
     {
         return (T) XML_MAPPER.readValue( input, clazz );
     }
 
     @SuppressWarnings( "unchecked" )
-    private static <T> T fromJson( String input, Class<?> clazz ) throws IOException
+    private static <T> T fromJson( String input, Class<?> clazz )
+        throws IOException
     {
         return (T) JSON_MAPPER.readValue( input, clazz );
     }
@@ -156,12 +157,13 @@ public class JacksonEventService extends AbstractEventService
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_SETTERS );
         JSON_MAPPER.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 
-        JSON_MAPPER.registerModules( module, new JtsModule(  ) );
+        JSON_MAPPER.registerModules( module, new JtsModule() );
         XML_MAPPER.registerModules( module, new JtsXmlModule() );
     }
 
     @Override
-    public List<Event> getEventsXml( InputStream inputStream ) throws IOException
+    public List<Event> getEventsXml( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
@@ -169,7 +171,8 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public List<Event> getEventsJson( InputStream inputStream ) throws IOException
+    public List<Event> getEventsJson( InputStream inputStream )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
 
@@ -177,13 +180,15 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         return addEventsXml( inputStream, null, updateImportOptions( importOptions ) );
     }
 
     @Override
-    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsXml( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
         List<Event> events = parseXmlEvents( input );
@@ -192,13 +197,15 @@ public class JacksonEventService extends AbstractEventService
     }
 
     @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsJson( InputStream inputStream, ImportOptions importOptions )
+        throws IOException
     {
         return addEventsJson( inputStream, null, updateImportOptions( importOptions ) );
     }
 
     @Override
-    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions ) throws IOException
+    public ImportSummaries addEventsJson( InputStream inputStream, JobConfiguration jobId, ImportOptions importOptions )
+        throws IOException
     {
         String input = StreamUtils.copyToString( inputStream, StandardCharsets.UTF_8 );
         List<Event> events = parseJsonEvents( input );

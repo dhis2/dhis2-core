@@ -1,7 +1,5 @@
-package org.hisp.dhis.keyjsonvalue;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,13 @@ package org.hisp.dhis.keyjsonvalue;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.keyjsonvalue;
+
+import static org.junit.Assert.*;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static org.junit.Assert.*;
 
 /**
  * @author Lars Helge Overland
@@ -41,23 +40,23 @@ public class KeyJsonValueServiceTest
     extends DhisSpringTest
 {
     private final String namespace = "DOGS";
-    
+
     @Autowired
     private KeyJsonValueService keyJsonValueService;
-    
+
     @Test
     public void testAddGetObject()
     {
         Dog dogA = new Dog( "1", "Fido", "Brown" );
         Dog dogB = new Dog( "2", "Aldo", "Black" );
-        
+
         keyJsonValueService.addValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.addValue( namespace, dogB.getId(), dogB );
-        
+
         dogA = keyJsonValueService.getValue( namespace, dogA.getId(), Dog.class );
         dogB = keyJsonValueService.getValue( namespace, dogB.getId(), Dog.class );
-        
-        assertNotNull( dogA );        
+
+        assertNotNull( dogA );
         assertEquals( "1", dogA.getId() );
         assertEquals( "Fido", dogA.getName() );
         assertNotNull( dogB );
@@ -70,7 +69,7 @@ public class KeyJsonValueServiceTest
     {
         Dog dogA = new Dog( "1", "Fido", "Brown" );
         Dog dogB = new Dog( "2", "Aldo", "Black" );
-        
+
         keyJsonValueService.addValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.addValue( namespace, dogB.getId(), dogB );
 
@@ -79,10 +78,10 @@ public class KeyJsonValueServiceTest
 
         assertEquals( "Fido", dogA.getName() );
         assertEquals( "Aldo", dogB.getName() );
-        
+
         dogA.setName( "Lilly" );
         dogB.setName( "Teddy" );
-        
+
         keyJsonValueService.updateValue( namespace, dogA.getId(), dogA );
         keyJsonValueService.updateValue( namespace, dogB.getId(), dogB );
 

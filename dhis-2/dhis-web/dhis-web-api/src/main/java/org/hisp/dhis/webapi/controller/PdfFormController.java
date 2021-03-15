@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -100,13 +99,14 @@ public class PdfFormController
     @Autowired
     private WebMessageService webMessageService;
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // DataSet
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 
     @RequestMapping( value = "/dataSet/{dataSetUid}", method = RequestMethod.GET )
     public void getFormPdfDataSet( @PathVariable String dataSetUid, HttpServletRequest request,
-        HttpServletResponse response, OutputStream out ) throws Exception
+        HttpServletResponse response, OutputStream out )
+        throws Exception
     {
         Document document = new Document();
 
@@ -126,7 +126,8 @@ public class PdfFormController
         String fileName = dataSetService.getDataSet( dataSetUid ).getName() + " " +
             DateUtils.getMediumDateString() + ".pdf";
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName, true );
+        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_PDF, CacheStrategy.NO_CACHE, fileName,
+            true );
         response.setContentLength( baos.size() );
 
         baos.writeTo( out );
@@ -151,7 +152,7 @@ public class PdfFormController
         webMessageService.send( WebMessageUtils.ok( "Import successful." ), response, request );
     }
 
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
     // Program Stage
-    //--------------------------------------------------------------------------
+    // --------------------------------------------------------------------------
 }

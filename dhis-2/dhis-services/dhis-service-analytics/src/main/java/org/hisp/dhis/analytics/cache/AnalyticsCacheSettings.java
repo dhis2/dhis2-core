@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.analytics.cache;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -64,20 +63,20 @@ public class AnalyticsCacheSettings
      *
      * @see AnalyticsCacheTtlMode#PROGRESSIVE
      *
-     * @return true if the current cache is enabled and set to PROGRESSIVE, false
-     *         otherwise.
+     * @return true if the current cache is enabled and set to PROGRESSIVE,
+     *         false otherwise.
      */
     public boolean isProgressiveCachingEnabled()
     {
         final AnalyticsCacheTtlMode analyticsCacheMode = (AnalyticsCacheTtlMode) systemSettingManager
-                .getSystemSetting( ANALYTICS_CACHE_TTL_MODE );
+            .getSystemSetting( ANALYTICS_CACHE_TTL_MODE );
 
         return PROGRESSIVE == analyticsCacheMode;
     }
 
     /**
-     * Returns true if the analytics cache mode, at application level, is correctly
-     * set to FIXED.
+     * Returns true if the analytics cache mode, at application level, is
+     * correctly set to FIXED.
      *
      * @see AnalyticsCacheTtlMode#FIXED
      *
@@ -86,7 +85,7 @@ public class AnalyticsCacheSettings
     public boolean isFixedCachingEnabled()
     {
         final AnalyticsCacheTtlMode analyticsCacheMode = (AnalyticsCacheTtlMode) systemSettingManager
-                .getSystemSetting( ANALYTICS_CACHE_TTL_MODE );
+            .getSystemSetting( ANALYTICS_CACHE_TTL_MODE );
 
         final CacheStrategy cacheStrategy = (CacheStrategy) systemSettingManager.getSystemSetting( CACHE_STRATEGY );
 
@@ -100,7 +99,8 @@ public class AnalyticsCacheSettings
      * @param dateBeforeToday the date to be used during the calculation of the
      *        progressive expiration time.
      *
-     * @return the expiration time computed based on the given "dateBeforeToday".
+     * @return the expiration time computed based on the given
+     *         "dateBeforeToday".
      */
     public long progressiveExpirationTimeOrDefault( final Date dateBeforeToday )
     {
@@ -108,8 +108,8 @@ public class AnalyticsCacheSettings
     }
 
     /**
-     * Retrieves the expiration time in seconds based on the system settings defined
-     * by the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}
+     * Retrieves the expiration time in seconds based on the system settings
+     * defined by the {@link org.hisp.dhis.setting.SettingKey#CACHE_STRATEGY}
      *
      * @see CacheStrategy
      *
@@ -151,15 +151,15 @@ public class AnalyticsCacheSettings
     }
 
     /**
-     * Returns the TTL factor set in system settings or 1 (when the factor is set to
-     * ZERO or negative).
+     * Returns the TTL factor set in system settings or 1 (when the factor is
+     * set to ZERO or negative).
      *
      * @return the ttl factor
      */
     private int getProgressiveTtlFactorOrDefault()
     {
         final Integer ttlFactor = (Integer) systemSettingManager
-                .getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
+            .getSystemSetting( ANALYTICS_CACHE_PROGRESSIVE_TTL_FACTOR );
 
         return max( ttlFactor, 1 );
     }

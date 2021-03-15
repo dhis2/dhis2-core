@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
+
+import static junit.framework.TestCase.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import static junit.framework.TestCase.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -55,8 +54,8 @@ public class PasswordManagerTest
         assertFalse( encodedPassword1.equals( encodedPassword2 ) );
         assertFalse( password.equals( encodedPassword1 ) );
 
-        assertTrue( passwordManager.matches( password, encodedPassword1 ));
-        assertTrue( passwordManager.matches( password, encodedPassword2 ));
+        assertTrue( passwordManager.matches( password, encodedPassword1 ) );
+        assertTrue( passwordManager.matches( password, encodedPassword2 ) );
 
         assertFalse( passwordManager.matches( password, "anotherPassword" ) );
     }

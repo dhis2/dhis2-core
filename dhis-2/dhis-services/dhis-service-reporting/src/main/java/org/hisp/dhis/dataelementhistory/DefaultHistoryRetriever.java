@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataelementhistory;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,16 @@ package org.hisp.dhis.dataelementhistory;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataelementhistory;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.List;
 
 import org.apache.commons.math3.util.MathUtils;
 import org.apache.commons.math3.util.Precision;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.minmax.MinMaxDataElement;
@@ -40,10 +43,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-
-import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -57,9 +56,9 @@ public class DefaultHistoryRetriever
     // -------------------------------------------------------------------------
 
     private final MinMaxDataElementService minMaxDataElementService;
-    
+
     private final DataValueService dataValueService;
-    
+
     private final PeriodService periodService;
 
     public DefaultHistoryRetriever( MinMaxDataElementService minMaxDataElementService,
@@ -80,7 +79,8 @@ public class DefaultHistoryRetriever
 
     @Override
     public DataElementHistory getHistory( DataElement dataElement, CategoryOptionCombo optionCombo,
-    		CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod, int historyLength )
+        CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period lastPeriod,
+        int historyLength )
     {
         if ( !dataElement.getValueType().isNumeric() )
         {
@@ -178,7 +178,7 @@ public class DefaultHistoryRetriever
      *
      * @param history DataElementHistory
      * @return the lowest Double value entred. If no values are entred,
-     * Double.MAX_VALUE is returned
+     *         Double.MAX_VALUE is returned
      */
     private Double getMinValue( DataElementHistory history )
     {
@@ -205,7 +205,7 @@ public class DefaultHistoryRetriever
      *
      * @param history DataElementHistory
      * @return the highest entred value. If no value is entred
-     * Double.NEGATIVE_INFINITY is returned
+     *         Double.NEGATIVE_INFINITY is returned
      */
     private Double getMaxValue( DataElementHistory history )
     {
@@ -227,9 +227,10 @@ public class DefaultHistoryRetriever
     }
 
     private Double getValue( DataElement dataElement, CategoryOptionCombo optionCombo,
-    		CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period period )
+        CategoryOptionCombo attributeOptionCombo, OrganisationUnit organisationUnit, Period period )
     {
-        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, optionCombo, attributeOptionCombo );
+        DataValue dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, optionCombo,
+            attributeOptionCombo );
 
         if ( dataValue != null )
         {

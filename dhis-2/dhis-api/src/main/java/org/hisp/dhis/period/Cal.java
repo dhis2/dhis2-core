@@ -1,7 +1,5 @@
-package org.hisp.dhis.period;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,17 +25,19 @@ package org.hisp.dhis.period;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.period;
+
+import java.util.Calendar;
+import java.util.Date;
 
 import org.hisp.dhis.calendar.CalendarService;
 import org.hisp.dhis.calendar.DateTimeUnit;
 import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 
-import java.util.Calendar;
-import java.util.Date;
-
 /**
- * An abstraction over a calendar implementation, expects input to be in whatever the current
- * system calendar is using, and all output will be in ISO 8601.
+ * An abstraction over a calendar implementation, expects input to be in
+ * whatever the current system calendar is using, and all output will be in ISO
+ * 8601.
  *
  * @author Lars Helge Overland
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -69,9 +69,9 @@ public class Cal
     }
 
     /**
-     * @param year  the year starting at AD 1.
+     * @param year the year starting at AD 1.
      * @param month the month starting at 1.
-     * @param day   the day of the month starting at 1.
+     * @param day the day of the month starting at 1.
      */
     public Cal( int year, int month, int day )
     {
@@ -79,9 +79,9 @@ public class Cal
     }
 
     /**
-     * @param year    the year starting at AD 1.
-     * @param month   the month starting at 1.
-     * @param day     the day of the month starting at 1.
+     * @param year the year starting at AD 1.
+     * @param month the month starting at 1.
+     * @param day the day of the month starting at 1.
      * @param iso8601 is this period an iso period
      */
     public Cal( int year, int month, int day, boolean iso8601 )
@@ -109,23 +109,23 @@ public class Cal
     /**
      * Adds the given amount of time to the given calendar field.
      *
-     * @param field  the calendar field.
+     * @param field the calendar field.
      * @param amount the amount of time.
      */
     public Cal add( int field, int amount )
     {
         switch ( field )
         {
-            case Calendar.YEAR:
-                dateTimeUnit = getCalendar().plusYears( dateTimeUnit, amount );
-            case Calendar.MONTH:
-                dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
-            case Calendar.DAY_OF_MONTH:
-            case Calendar.DAY_OF_YEAR:
-                dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
+        case Calendar.YEAR:
+            dateTimeUnit = getCalendar().plusYears( dateTimeUnit, amount );
+        case Calendar.MONTH:
+            dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
+        case Calendar.DAY_OF_MONTH:
+        case Calendar.DAY_OF_YEAR:
+            dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
             break;
-            default:
-                throw new UnsupportedOperationException();
+        default:
+            throw new UnsupportedOperationException();
         }
 
         return this;
@@ -134,23 +134,23 @@ public class Cal
     /**
      * Subtracts the given amount of time to the given calendar field.
      *
-     * @param field  the calendar field.
+     * @param field the calendar field.
      * @param amount the amount of time.
      */
     public Cal subtract( int field, int amount )
     {
         switch ( field )
         {
-            case Calendar.YEAR:
-                dateTimeUnit = getCalendar().minusYears( dateTimeUnit, amount );
-            case Calendar.MONTH:
-                dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
-            case Calendar.DAY_OF_MONTH:
-            case Calendar.DAY_OF_YEAR:
-                dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );
+        case Calendar.YEAR:
+            dateTimeUnit = getCalendar().minusYears( dateTimeUnit, amount );
+        case Calendar.MONTH:
+            dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
+        case Calendar.DAY_OF_MONTH:
+        case Calendar.DAY_OF_YEAR:
+            dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );
             break;
-            default:
-                throw new UnsupportedOperationException();
+        default:
+            throw new UnsupportedOperationException();
         }
 
         return this;
@@ -179,9 +179,9 @@ public class Cal
     /**
      * Sets the current time.
      *
-     * @param year  the year starting at AD 1.
+     * @param year the year starting at AD 1.
      * @param month the month starting at 1.
-     * @param day   the day of the month starting at 1.
+     * @param day the day of the month starting at 1.
      */
     public Cal set( int year, int month, int day )
     {
@@ -193,7 +193,7 @@ public class Cal
      * Sets the current month and day.
      *
      * @param month the month starting at 1.
-     * @param day   the day of the month starting at 1.
+     * @param day the day of the month starting at 1.
      */
     public Cal set( int month, int day )
     {

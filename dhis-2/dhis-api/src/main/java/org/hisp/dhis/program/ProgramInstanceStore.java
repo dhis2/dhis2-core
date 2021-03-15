@@ -1,7 +1,5 @@
-package org.hisp.dhis.program;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,13 +25,14 @@ package org.hisp.dhis.program;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.program;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Abyot Asalefew
@@ -72,25 +71,27 @@ public interface ProgramInstanceStore
      * Retrieve program instances on a program by status
      *
      * @param program Program
-     * @param status  Status of program-instance, include STATUS_ACTIVE,
-     *                STATUS_COMPLETED and STATUS_CANCELLED
+     * @param status Status of program-instance, include STATUS_ACTIVE,
+     *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
     List<ProgramInstance> get( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a program
+     * Retrieve program instances on a TrackedEntityInstance with a status by a
+     * program
      *
      * @param entityInstance TrackedEntityInstance
-     * @param program        Program
-     * @param status         Status of program-instance, include STATUS_ACTIVE,
-     *                       STATUS_COMPLETED and STATUS_CANCELLED
+     * @param program Program
+     * @param status Status of program-instance, include STATUS_ACTIVE,
+     *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
     List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Checks for the existence of a PI by UID, Deleted PIs are not taken into account.
+     * Checks for the existence of a PI by UID, Deleted PIs are not taken into
+     * account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -98,7 +99,8 @@ public interface ProgramInstanceStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the deleted PIs.
+     * Checks for the existence of a PI by UID. Takes into account also the
+     * deleted PIs.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -106,7 +108,8 @@ public interface ProgramInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramInstances (including deleted) from the provided UIDs
+     * Returns UIDs of existing ProgramInstances (including deleted) from the
+     * provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of existing PSIs (including deleted)
@@ -114,9 +117,10 @@ public interface ProgramInstanceStore
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Get all ProgramInstances which have notifications with the given ProgramNotificationTemplate scheduled on the given date.
+     * Get all ProgramInstances which have notifications with the given
+     * ProgramNotificationTemplate scheduled on the given date.
      *
-     * @param template         the template.
+     * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramInstance.
      */
@@ -125,7 +129,8 @@ public interface ProgramInstanceStore
     /**
      * Return all program instance by type.
      * <p>
-     * Warning: this is meant to be used for WITHOUT_REGISTRATION programs only, be careful if you need it for other uses.
+     * Warning: this is meant to be used for WITHOUT_REGISTRATION programs only,
+     * be careful if you need it for other uses.
      *
      * @param type ProgramType to fetch by
      * @return List of all PIs that matches the wanted type

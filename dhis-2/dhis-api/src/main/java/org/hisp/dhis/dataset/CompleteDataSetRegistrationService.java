@@ -1,7 +1,5 @@
-package org.hisp.dhis.dataset;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.dataset;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dataset;
+
+import java.util.Date;
+import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-
-import java.util.Date;
-import java.util.List;
 
 /**
  * @author Lars Helge Overland
@@ -93,14 +92,16 @@ public interface CompleteDataSetRegistrationService
     List<CompleteDataSetRegistration> getAllCompleteDataSetRegistrations();
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given DataSet.
+     * Deletes the CompleteDataSetRegistrations associated with the given
+     * DataSet.
      *
      * @param dataSet the DataSet.
      */
     void deleteCompleteDataSetRegistrations( DataSet dataSet );
 
     /**
-     * Deletes the CompleteDataSetRegistrations associated with the given OrganisationUnit.
+     * Deletes the CompleteDataSetRegistrations associated with the given
+     * OrganisationUnit.
      *
      * @param unit the OrganisationUnit.
      */
@@ -120,9 +121,11 @@ public interface CompleteDataSetRegistrationService
         OrganisationUnit source, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns the number of Complete DataSets which have been updated at or after the given date time.
+     * Returns the number of Complete DataSets which have been updated at or
+     * after the given date time.
      *
-     * @param lastUpdated specifies the date to filter complete data sets last updated after
+     * @param lastUpdated specifies the date to filter complete data sets last
+     *        updated after
      * @return the number of completed DataSets.
      */
     int getCompleteDataSetCountLastUpdatedAfter( Date lastUpdated );

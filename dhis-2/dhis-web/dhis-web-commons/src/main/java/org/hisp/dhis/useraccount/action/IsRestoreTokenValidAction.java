@@ -1,7 +1,5 @@
-package org.hisp.dhis.useraccount.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,10 @@ package org.hisp.dhis.useraccount.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.useraccount.action;
+
+import static java.lang.Integer.max;
+import static java.lang.Integer.min;
 
 import org.hisp.dhis.security.RestoreType;
 import org.hisp.dhis.security.SecurityService;
@@ -38,9 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
 
-import static java.lang.Integer.max;
-import static java.lang.Integer.min;
-
 /**
  * @author Lars Helge Overland
  */
@@ -49,7 +48,7 @@ public class IsRestoreTokenValidAction
 {
     @Autowired
     private SecurityService securityService;
-    
+
     @Autowired
     private UserService userService;
 
@@ -111,9 +110,12 @@ public class IsRestoreTokenValidAction
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
-        // TODO: Remove hardcoded password length limits here and in ValidationUtils.passwordIsValid
-        minPasswordLength = String.valueOf( max(8, (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH ) ) );
-        maxPasswordLength = String.valueOf( min(35, (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH ) ) );
+        // TODO: Remove hardcoded password length limits here and in
+        // ValidationUtils.passwordIsValid
+        minPasswordLength = String
+            .valueOf( max( 8, (Integer) systemSettingManager.getSystemSetting( SettingKey.MIN_PASSWORD_LENGTH ) ) );
+        maxPasswordLength = String
+            .valueOf( min( 35, (Integer) systemSettingManager.getSystemSetting( SettingKey.MAX_PASSWORD_LENGTH ) ) );
 
         if ( credentials == null )
         {

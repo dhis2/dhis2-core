@@ -1,7 +1,5 @@
-package org.hisp.dhis.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,22 +25,23 @@ package org.hisp.dhis.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.security;
 
 /**
- * Options for user account restore operation. These options are represented
- * in the user account restore email as a prefix to the restore token.
- * This token is hashed, and the hash is stored in the database. This means
- * that the options cannot be hacked to change them, because then the token
- * would no longer match the saved hash in the database.
+ * Options for user account restore operation. These options are represented in
+ * the user account restore email as a prefix to the restore token. This token
+ * is hashed, and the hash is stored in the database. This means that the
+ * options cannot be hacked to change them, because then the token would no
+ * longer match the saved hash in the database.
  *
  * @author Jim Grace
  */
 
 public enum RestoreOptions
 {
-    RECOVER_PASSWORD_OPTION ( "R", RestoreType.RECOVER_PASSWORD, false ),
-    INVITE_WITH_USERNAME_CHOICE ( "IC", RestoreType.INVITE, true ),
-    INVITE_WITH_DEFINED_USERNAME ( "ID", RestoreType.INVITE, false );
+    RECOVER_PASSWORD_OPTION( "R", RestoreType.RECOVER_PASSWORD, false ),
+    INVITE_WITH_USERNAME_CHOICE( "IC", RestoreType.INVITE, true ),
+    INVITE_WITH_DEFINED_USERNAME( "ID", RestoreType.INVITE, false );
 
     /**
      * Prefix to be used on restore token, to represent this set of options.
@@ -50,8 +49,8 @@ public enum RestoreOptions
     private final String tokenPrefix;
 
     /**
-     * The type of restore operation to perform (i.e. password recovery
-     * or invite to create account.)
+     * The type of restore operation to perform (i.e. password recovery or
+     * invite to create account.)
      */
     private final RestoreType restoreType;
 

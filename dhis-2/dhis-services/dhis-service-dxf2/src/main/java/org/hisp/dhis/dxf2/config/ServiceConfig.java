@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.config;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.dxf2.config;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.config;
 
 import java.util.HashMap;
 import java.util.List;
@@ -62,7 +61,7 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @Configuration( "dxf2ServiceConfig" )
-@SuppressWarnings("unchecked")
+@SuppressWarnings( "unchecked" )
 public class ServiceConfig
 {
 
@@ -94,9 +93,9 @@ public class ServiceConfig
     }
 
     /*
-
-    Default validation chains for each Import Strategy
-
+     *
+     * Default validation chains for each Import Strategy
+     *
      */
 
     private final static List<Class<? extends ValidationCheck>> CREATE_UPDATE_CHECKS = Lists.newArrayList(
@@ -104,7 +103,8 @@ public class ServiceConfig
         UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> CREATE_CHECKS = Lists.newArrayList(
-        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class, SchemaCheck.class,
+        DuplicateIdsCheck.class, ValidationHooksCheck.class, SecurityCheck.class, CreationCheck.class,
+        SchemaCheck.class,
         UniquenessCheck.class, MandatoryAttributesCheck.class, UniqueAttributesCheck.class, ReferencesCheck.class );
 
     private final static List<Class<? extends ValidationCheck>> UPDATE_CHECKS = Lists.newArrayList(
@@ -121,7 +121,6 @@ public class ServiceConfig
             ImportStrategy.CREATE_AND_UPDATE, CREATE_UPDATE_CHECKS,
             ImportStrategy.CREATE, CREATE_CHECKS,
             ImportStrategy.UPDATE, UPDATE_CHECKS,
-            ImportStrategy.DELETE, DELETE_CHECKS
-        );
+            ImportStrategy.DELETE, DELETE_CHECKS );
     }
 }

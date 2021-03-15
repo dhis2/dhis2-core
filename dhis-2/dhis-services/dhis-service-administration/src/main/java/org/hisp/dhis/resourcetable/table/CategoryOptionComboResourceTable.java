@@ -1,7 +1,5 @@
-package org.hisp.dhis.resourcetable.table;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,16 @@ package org.hisp.dhis.resourcetable.table;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.resourcetable.table;
 
-import com.google.common.collect.Lists;
+import java.util.List;
+import java.util.Optional;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.resourcetable.ResourceTable;
 import org.hisp.dhis.resourcetable.ResourceTableType;
 
-import java.util.List;
-import java.util.Optional;
+import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
@@ -68,8 +68,7 @@ public class CategoryOptionComboResourceTable
     @Override
     public Optional<String> getPopulateTempTableStatement()
     {
-        String sql =
-            "insert into " + getTempTableName() +
+        String sql = "insert into " + getTempTableName() +
             " (dataelementid, dataelementuid, categoryoptioncomboid, categoryoptioncombouid) " +
             "select de.dataelementid as dataelementid, de.uid as dataelementuid, " +
             "coc.categoryoptioncomboid as categoryoptioncomboid, coc.uid as categoryoptioncombouid " +

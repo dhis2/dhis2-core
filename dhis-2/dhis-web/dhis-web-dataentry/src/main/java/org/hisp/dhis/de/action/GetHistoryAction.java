@@ -1,7 +1,5 @@
-package org.hisp.dhis.de.action;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,12 +25,15 @@ package org.hisp.dhis.de.action;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.de.action;
 
-import com.google.common.collect.Lists;
-import com.opensymphony.xwork2.Action;
-import org.hisp.dhis.dataelement.DataElement;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataelementhistory.DataElementHistory;
 import org.hisp.dhis.dataelementhistory.HistoryRetriever;
@@ -51,9 +52,8 @@ import org.hisp.dhis.user.UserCredentials;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.common.collect.Lists;
+import com.opensymphony.xwork2.Action;
 
 /**
  * @author Torgeir Lorange Ostby
@@ -243,15 +243,18 @@ public class GetHistoryAction
 
     private Map<String, String> fileNames;
 
-    public Map<String, String> getFileNames() { return fileNames; }
-    
+    public Map<String, String> getFileNames()
+    {
+        return fileNames;
+    }
+
     private String attributeOptionComboId;
-    
+
     public String getAttributeOptionComboId()
     {
         return attributeOptionComboId;
     }
-    
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -280,12 +283,15 @@ public class GetHistoryAction
 
         CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo( cc, cp, false );
 
-        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo, organisationUnit, period, HISTORY_LENGTH );
+        dataElementHistory = historyRetriever.getHistory( dataElement, categoryOptionCombo, attributeOptionCombo,
+            organisationUnit, period, HISTORY_LENGTH );
 
-        dataValueAudits = dataValueAuditService.getDataValueAudits( Lists.newArrayList( dataElement ), Lists.newArrayList( period ),
+        dataValueAudits = dataValueAuditService.getDataValueAudits( Lists.newArrayList( dataElement ),
+            Lists.newArrayList( period ),
             Lists.newArrayList( organisationUnit ), categoryOptionCombo, attributeOptionCombo, null );
 
-        dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo, attributeOptionCombo );
+        dataValue = dataValueService.getDataValue( dataElement, period, organisationUnit, categoryOptionCombo,
+            attributeOptionCombo );
 
         if ( dataValue != null )
         {
@@ -308,7 +314,7 @@ public class GetHistoryAction
         minMaxInvalid = !dataElement.getValueType().isNumeric();
 
         commentOptionSet = dataElement.getCommentOptionSet();
-        
+
         attributeOptionComboId = attributeOptionCombo.getUid();
 
         return SUCCESS;

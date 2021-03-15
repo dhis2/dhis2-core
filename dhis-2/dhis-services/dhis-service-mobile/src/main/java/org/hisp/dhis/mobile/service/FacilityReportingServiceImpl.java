@@ -1,7 +1,5 @@
-package org.hisp.dhis.mobile.service;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,23 @@ package org.hisp.dhis.mobile.service;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.mobile.service;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.Vector;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.api.mobile.FacilityReportingService;
 import org.hisp.dhis.api.mobile.NotAllowedException;
@@ -41,8 +54,8 @@ import org.hisp.dhis.api.mobile.model.DataSetValueList;
 import org.hisp.dhis.api.mobile.model.DataValue;
 import org.hisp.dhis.api.mobile.model.Model;
 import org.hisp.dhis.api.mobile.model.Section;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
@@ -60,22 +73,9 @@ import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
 import org.hisp.dhis.user.CurrentUserService;
-
-import com.google.common.collect.Sets;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.Vector;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.collect.Sets;
 
 @Slf4j
 @Service( "org.hisp.dhis.mobile.api.FacilityReportingService" )
@@ -124,7 +124,7 @@ public class FacilityReportingServiceImpl
         this.oUnitService = oUnitService;
     }
 
-// -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     // Service methods
     // -------------------------------------------------------------------------
 
@@ -299,9 +299,11 @@ public class FacilityReportingServiceImpl
                     List<Model> categoryOptionCombos = dataElementList.get( i ).getCategoryOptionCombos().getModels();
                     List<Model> newCategoryOptionCombos = new ArrayList<>();
 
-                    for (Model categoryOptionCombo : categoryOptionCombos) {
-                        if (!isGreyField(sec, dataElementList.get(i).getId(), categoryOptionCombo.getId())) {
-                            newCategoryOptionCombos.add(categoryOptionCombo);
+                    for ( Model categoryOptionCombo : categoryOptionCombos )
+                    {
+                        if ( !isGreyField( sec, dataElementList.get( i ).getId(), categoryOptionCombo.getId() ) )
+                        {
+                            newCategoryOptionCombos.add( categoryOptionCombo );
                         }
                     }
 
@@ -404,7 +406,8 @@ public class FacilityReportingServiceImpl
         String storedBy = currentUserService.getCurrentUser().getUsername();
         Date now = new Date();
 
-        registration = new CompleteDataSetRegistration( dataSet, period, unit, optionCombo, now, storedBy, now, storedBy, true );
+        registration = new CompleteDataSetRegistration( dataSet, period, unit, optionCombo, now, storedBy, now,
+            storedBy, true );
 
         registrationService.saveCompleteDataSetRegistration( registration );
 
@@ -413,7 +416,8 @@ public class FacilityReportingServiceImpl
     }
 
     @Override
-    public DataSetValueList getDataSetValues( OrganisationUnit unit, DataSetList dataSetList ) {
+    public DataSetValueList getDataSetValues( OrganisationUnit unit, DataSetList dataSetList )
+    {
         DataSetValueList dataSetValueList = new DataSetValueList();
         List<DataSet> dataSets = dataSetList.getCurrentDataSets();
 
@@ -435,10 +439,11 @@ public class FacilityReportingServiceImpl
                     {
                         Set<org.hisp.dhis.dataelement.DataElement> dataElements = apiDataSet.getDataElements();
 
-                        Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService.getDataValues( new DataExportParams()
-                            .setDataElements( dataElements )
-                            .setPeriods( Sets.newHashSet( period ) )
-                            .setOrganisationUnits( Sets.newHashSet( unit ) ) );
+                        Collection<org.hisp.dhis.datavalue.DataValue> dataValues = dataValueService
+                            .getDataValues( new DataExportParams()
+                                .setDataElements( dataElements )
+                                .setPeriods( Sets.newHashSet( period ) )
+                                .setOrganisationUnits( Sets.newHashSet( unit ) ) );
 
                         if ( dataValues != null && !dataValues.isEmpty() )
                         {
@@ -501,7 +506,8 @@ public class FacilityReportingServiceImpl
 
         if ( dataValue == null )
         {
-            dataValue = new org.hisp.dhis.datavalue.DataValue( dataElement, period, unit, catOptCombo, categoryService.getDefaultCategoryOptionCombo(),
+            dataValue = new org.hisp.dhis.datavalue.DataValue( dataElement, period, unit, catOptCombo,
+                categoryService.getDefaultCategoryOptionCombo(),
                 value, "", new Date(), "" );
             dataValueService.addDataValue( dataValue );
         }
@@ -550,7 +556,6 @@ public class FacilityReportingServiceImpl
 
         return false;
     }
-
 
     @Override
     public Contact updateContactForMobile()

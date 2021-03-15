@@ -1,7 +1,5 @@
-package org.hisp.dhis.programrule.engine;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +25,16 @@ package org.hisp.dhis.programrule.engine;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.programrule.engine;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.external.conf.ConfigurationKey.SYSTEM_PROGRAM_RULE_SERVER_EXECUTION;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.ProgramInstance;
@@ -43,9 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.
@@ -102,8 +102,7 @@ public class DefaultProgramRuleEngineService
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
-            {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, programInstance );
@@ -157,8 +156,7 @@ public class DefaultProgramRuleEngineService
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i ->
-            {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, psi );

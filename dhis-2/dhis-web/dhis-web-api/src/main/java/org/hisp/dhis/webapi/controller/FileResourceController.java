@@ -1,7 +1,5 @@
-package org.hisp.dhis.webapi.controller;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,19 +25,25 @@ package org.hisp.dhis.webapi.controller;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.webapi.controller;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.hash.Hashing;
-import com.google.common.io.ByteSource;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+
+import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageUtils;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
+import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -49,7 +53,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -62,10 +65,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletResponse;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import com.google.common.base.MoreObjects;
+import com.google.common.hash.Hashing;
+import com.google.common.io.ByteSource;
 
 /**
  * @author Halvdan Hoem Grelland
@@ -95,7 +97,8 @@ public class FileResourceController
     // -------------------------------------------------------------------------
 
     @GetMapping( value = "/{uid}" )
-    public FileResource getFileResource( @PathVariable String uid, @RequestParam ( required = false ) ImageFileDimension dimension )
+    public FileResource getFileResource( @PathVariable String uid,
+        @RequestParam( required = false ) ImageFileDimension dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -105,13 +108,15 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+        FileResourceUtils.setImageFileDimensions( fileResource,
+            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         return fileResource;
     }
 
     @GetMapping( value = "/{uid}/data" )
-    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response, @RequestParam ( required = false ) ImageFileDimension dimension )
+    public void getFileResourceData( @PathVariable String uid, HttpServletResponse response,
+        @RequestParam( required = false ) ImageFileDimension dimension )
         throws WebMessageException
     {
         FileResource fileResource = fileResourceService.getFileResource( uid );
@@ -121,16 +126,19 @@ public class FileResourceController
             throw new WebMessageException( WebMessageUtils.notFound( FileResource.class, uid ) );
         }
 
-        FileResourceUtils.setImageFileDimensions( fileResource, MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
+        FileResourceUtils.setImageFileDimensions( fileResource,
+            MoreObjects.firstNonNull( dimension, ImageFileDimension.ORIGINAL ) );
 
         if ( !checkSharing( fileResource ) )
         {
             throw new WebMessageException(
-                WebMessageUtils.unathorized( "You don't have access to fileResource '" + uid + "' or this fileResource is not available from this endpoint" ) );
+                WebMessageUtils.unathorized( "You don't have access to fileResource '" + uid
+                    + "' or this fileResource is not available from this endpoint" ) );
         }
 
         response.setContentType( fileResource.getContentType() );
-        response.setHeader( HttpHeaders.CONTENT_LENGTH, String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
+        response.setHeader( HttpHeaders.CONTENT_LENGTH,
+            String.valueOf( fileResourceService.getFileResourceContentLength( fileResource ) ) );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "filename=" + fileResource.getName() );
 
         try
@@ -148,9 +156,9 @@ public class FileResourceController
 
     @PostMapping
     public WebMessage saveFileResource( @RequestParam MultipartFile file,
-        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain
-    )
-        throws WebMessageException, IOException
+        @RequestParam( defaultValue = "DATA_VALUE" ) FileResourceDomain domain )
+        throws WebMessageException,
+        IOException
     {
         String filename = StringUtils
             .defaultIfBlank( FilenameUtils.getName( file.getOriginalFilename() ), DEFAULT_FILENAME );
@@ -186,14 +194,17 @@ public class FileResourceController
 
     /**
      * Checks is the current user has access to view the fileResource.
+     *
      * @return true if user has access, false if not.
      */
     private boolean checkSharing( FileResource fileResource )
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        /* Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint doesn't make sense
-         * So we will return false if the fileResource have either of these domains.
+        /*
+         * Serving DATA_VALUE and PUSH_ANALYSIS fileResources from this endpoint
+         * doesn't make sense So we will return false if the fileResource have
+         * either of these domains.
          */
 
         if ( fileResource.getDomain().equals( FileResourceDomain.USER_AVATAR ) )

@@ -1,7 +1,5 @@
-package org.hisp.dhis.textpattern;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,10 +25,11 @@ package org.hisp.dhis.textpattern;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
-import com.google.common.collect.ImmutableSet;
+package org.hisp.dhis.textpattern;
 
 import java.util.regex.Pattern;
+
+import com.google.common.collect.ImmutableSet;
 
 /**
  * @author Stian Sandvold
@@ -38,40 +37,35 @@ import java.util.regex.Pattern;
 public enum TextPatternMethod
 {
     /**
-     * Text method is just a fixed text that is a part of the pattern. It starts and ends with a quotation mark: "
-     * A Text can contain quotation marks, but they need to be escaped.
-     * Example usage:
-     * "Hello world"
-     * "Hello \"world\""
+     * Text method is just a fixed text that is a part of the pattern. It starts
+     * and ends with a quotation mark: " A Text can contain quotation marks, but
+     * they need to be escaped. Example usage: "Hello world" "Hello \"world\""
      * <p>
      * This is the only method that has no keyword associated with it.
      */
     TEXT( new TextMethodType( Pattern.compile( "\"([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)\"" ) ) ),
 
     /**
-     * Generator methods has a required param, that needs to be between 1 and 12 characters.
-     * SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
+     * Generator methods has a required param, that needs to be between 1 and 12
+     * characters. SEQUENTIAL only accepts #'s while RANDOM accepts #Xx's
      */
     RANDOM( new GeneratedMethodType( Pattern.compile( "RANDOM\\(([#Xx\\*]{1,12})\\)" ) ) ),
     SEQUENTIAL( new GeneratedMethodType( Pattern.compile( "SEQUENTIAL\\(([#]{1,12})\\)" ) ) ),
 
     /**
-     * Variable methods has an optional param, that can:
-     * start with ^
-     * have 1 or more . (representing a character)
-     * end with $
+     * Variable methods has an optional param, that can: start with ^ have 1 or
+     * more . (representing a character) end with $
      * <p>
-     * ^ will start the format form the start of the resolved value
-     * $ will start the format from the end of the resolved value
-     * . will match a single character. At least 1 is required if a param is supplied
+     * ^ will start the format form the start of the resolved value $ will start
+     * the format from the end of the resolved value . will match a single
+     * character. At least 1 is required if a param is supplied
      * <p>
-     * Alternatively, an empty param means the entire resolved value will be returned.
+     * Alternatively, an empty param means the entire resolved value will be
+     * returned.
      * <p>
      * Example usage assuming ORG_UNIT_CODE resolved to "Hello world":
-     * ORG_UNIT_CODE() = "Hello world"
-     * ORG_UNIT_CODE(..) = "He"
-     * ORG_UNIT_CODE(^..) = "He"
-     * ORG_UNIT_CODE(..$) = "ld"
+     * ORG_UNIT_CODE() = "Hello world" ORG_UNIT_CODE(..) = "He"
+     * ORG_UNIT_CODE(^..) = "He" ORG_UNIT_CODE(..$) = "ld"
      */
     ORG_UNIT_CODE( new StringMethodType( Pattern.compile( "ORG_UNIT_CODE\\((.{0}|[\\^]?[.]+?[$]?)\\)" ) ) ),
 
@@ -86,17 +80,14 @@ public enum TextPatternMethod
 
     public static final ImmutableSet<TextPatternMethod> GENERATED = ImmutableSet.of(
         RANDOM,
-        SEQUENTIAL
-    );
+        SEQUENTIAL );
 
     public static final ImmutableSet<TextPatternMethod> REQUIRED = ImmutableSet.of(
-        ORG_UNIT_CODE
-    );
+        ORG_UNIT_CODE );
 
     public static final ImmutableSet<TextPatternMethod> OPTIONAL = ImmutableSet.of(
         RANDOM,
-        SEQUENTIAL
-    );
+        SEQUENTIAL );
 
     private MethodType type;
 

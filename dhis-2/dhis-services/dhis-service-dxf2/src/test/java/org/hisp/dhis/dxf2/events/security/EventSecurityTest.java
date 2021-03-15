@@ -1,7 +1,5 @@
-package org.hisp.dhis.dxf2.events.security;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,8 +25,13 @@ package org.hisp.dhis.dxf2.events.security;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.dxf2.events.security;
 
-import com.google.common.collect.Sets;
+import static org.junit.Assert.*;
+
+import java.util.Date;
+import java.util.HashSet;
+
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -57,10 +60,7 @@ import org.hisp.dhis.user.UserService;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Date;
-import java.util.HashSet;
-
-import static org.junit.Assert.*;
+import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -87,8 +87,11 @@ public class EventSecurityTest
     private UserService _userService;
 
     private OrganisationUnit organisationUnitA;
+
     private DataElement dataElementA;
+
     private Program programA;
+
     private ProgramStage programStageA;
 
     @Override
@@ -168,10 +171,8 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE
-     * programStage = DATA READ/WRITE
-     * orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit =
+     * Accessible status = SUCCESS
      */
     @Test
     public void testAddEventSimpleUserFullAccess1()
@@ -194,9 +195,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * programStage = DATA READ/WRITE
-     * orgUnit = Accessible
+     * program = DATA READ programStage = DATA READ/WRITE orgUnit = Accessible
      * status = ERROR
      */
     @Test
@@ -220,9 +219,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE
-     * programStage = DATA READ
-     * orgUnit = Accessible
+     * program = DATA READ/WRITE programStage = DATA READ orgUnit = Accessible
      * status = ERROR
      */
     @Test
@@ -246,10 +243,8 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ/WRITE
-     * programStage = DATA READ/WRITE
-     * orgUnit = Not Accessible
-     * status = ERROR
+     * program = DATA READ/WRITE programStage = DATA READ/WRITE orgUnit = Not
+     * Accessible status = ERROR
      */
     @Test
     public void testAddEventSimpleUserFullAccess4()
@@ -270,10 +265,8 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * programStage = DATA READ
-     * orgUnit = Accessible
-     * status = SUCCESS
+     * program = DATA READ programStage = DATA READ orgUnit = Accessible status
+     * = SUCCESS
      */
     @Test
     public void testAddEventSimpleUserFullAccess5()
@@ -303,7 +296,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );
@@ -313,9 +307,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA WRITE
-     * programStage = DATA WRITE
-     * orgUnit = Accessible
+     * program = DATA WRITE programStage = DATA WRITE orgUnit = Accessible
      * status = SUCCESS
      */
     @Test
@@ -346,7 +338,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );
@@ -356,9 +349,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA WRITE
-     * programStage = DATA WRITE
-     * orgUnit = Not Accessible
+     * program = DATA WRITE programStage = DATA WRITE orgUnit = Not Accessible
      * status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
@@ -388,7 +379,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );
@@ -398,9 +390,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * programStage = DATA READ
-     * orgUnit = Not Accessible
+     * program = DATA READ programStage = DATA READ orgUnit = Not Accessible
      * status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
@@ -430,7 +420,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );
@@ -440,10 +431,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program =
-     * programStage = DATA READ
-     * orgUnit = Accessible
-     * status = ERROR
+     * program = programStage = DATA READ orgUnit = Accessible status = ERROR
      */
     @Test( expected = IllegalQueryException.class )
     public void testAddEventSimpleUserFullAccess9()
@@ -473,7 +461,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );
@@ -483,10 +472,7 @@ public class EventSecurityTest
     }
 
     /**
-     * program = DATA READ
-     * programStage =
-     * orgUnit = Accessible
-     * status = ERROR
+     * program = DATA READ programStage = orgUnit = Accessible status = ERROR
      */
     @Test
     public void testAddEventSimpleUserFullAccess10()
@@ -516,7 +502,8 @@ public class EventSecurityTest
 
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        ProgramStageInstance programStageInstance = programStageInstanceService
+            .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
 
         Event eventFromPsi = eventService.getEvent( programStageInstance );

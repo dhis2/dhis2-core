@@ -1,7 +1,5 @@
-package org.hisp.dhis.query.operators;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,14 +25,15 @@ package org.hisp.dhis.query.operators;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.query.operators;
+
+import java.util.Collection;
 
 import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.query.Type;
 import org.hisp.dhis.query.Typed;
 import org.hisp.dhis.query.planner.QueryPath;
-
-import java.util.Collection;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -49,7 +48,7 @@ public class EmptyOperator extends Operator
     @Override
     public Criterion getHibernateCriterion( QueryPath queryPath )
     {
-        return Restrictions.sizeEq( queryPath.getPath(),0 );
+        return Restrictions.sizeEq( queryPath.getPath(), 0 );
     }
 
     @Override
@@ -64,7 +63,7 @@ public class EmptyOperator extends Operator
 
         if ( type.isCollection() )
         {
-            Collection<?> collection = ( Collection<?> ) value;
+            Collection<?> collection = (Collection<?>) value;
             return collection.isEmpty();
         }
 

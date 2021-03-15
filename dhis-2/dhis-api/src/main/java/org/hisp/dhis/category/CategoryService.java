@@ -1,7 +1,5 @@
-package org.hisp.dhis.category;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,16 +25,17 @@ package org.hisp.dhis.category;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.category;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.user.UserCredentials;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author Abyot Asalefew
@@ -65,9 +64,9 @@ public interface CategoryService
     void updateCategory( Category category );
 
     /**
-     * Deletes a Category. The Category is also removed
-     * from any CategoryCombos if it is a member of. It is not
-     * possible to delete a Category with options.
+     * Deletes a Category. The Category is also removed from any CategoryCombos
+     * if it is a member of. It is not possible to delete a Category with
+     * options.
      *
      * @param category the Category to delete.
      */
@@ -164,8 +163,7 @@ public interface CategoryService
      * Returns a CategoryOption.
      *
      * @param id the id of the CategoryOption to return.
-     * @return the CategoryOption with the given id, or null if no
-     * match.
+     * @return the CategoryOption with the given id, or null if no match.
      */
     CategoryOption getCategoryOption( long id );
 
@@ -173,8 +171,7 @@ public interface CategoryService
      * Returns a CategoryOption.
      *
      * @param uid the id of the CategoryOption to return.
-     * @return the CategoryOption with the given uid, or null if no
-     * match.
+     * @return the CategoryOption with the given uid, or null if no match.
      */
     CategoryOption getCategoryOption( String uid );
 
@@ -189,8 +186,8 @@ public interface CategoryService
     /**
      * Returns all CategoryOptions.
      *
-     * @return a list of all CategoryOptions, or an empty
-     * collection if there are no CategoryOptions.
+     * @return a list of all CategoryOptions, or an empty collection if there
+     *         are no CategoryOptions.
      */
     List<CategoryOption> getAllCategoryOptions();
 
@@ -198,14 +195,14 @@ public interface CategoryService
      * Returns all CategoryOptions for the given Category.
      *
      * @param category the Category.
-     * @return a list of all CategoryOptions, or an empty
-     * collection if there are no CategoryOptions.
+     * @return a list of all CategoryOptions, or an empty collection if there
+     *         are no CategoryOptions.
      */
     List<CategoryOption> getCategoryOptions( Category category );
 
     /**
-     * Returns a set of CategoryOptions that may be seen by the current
-     * user, if the current user has any Category constraint(s).
+     * Returns a set of CategoryOptions that may be seen by the current user, if
+     * the current user has any Category constraint(s).
      *
      * @param userCredentials User credentials to check restrictions for.
      * @return Set of CategoryOptions if constrained, else null.
@@ -311,8 +308,7 @@ public interface CategoryService
     /**
      * Adds a CategoryOptionCombo.
      *
-     * @param dataElementCategoryOptionCombo the CategoryOptionCombo
-     *                                       to add.
+     * @param dataElementCategoryOptionCombo the CategoryOptionCombo to add.
      * @return the generated identifier.
      */
     long addCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
@@ -320,16 +316,14 @@ public interface CategoryService
     /**
      * Updates a CategoryOptionCombo.
      *
-     * @param dataElementCategoryOptionCombo the CategoryOptionCombo
-     *                                       to update.
+     * @param dataElementCategoryOptionCombo the CategoryOptionCombo to update.
      */
     void updateCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
     /**
      * Deletes a CategoryOptionCombo.
      *
-     * @param dataElementCategoryOptionCombo the CategoryOptionCombo
-     *                                       to delete.
+     * @param dataElementCategoryOptionCombo the CategoryOptionCombo to delete.
      */
     void deleteCategoryOptionCombo( CategoryOptionCombo dataElementCategoryOptionCombo );
 
@@ -362,7 +356,7 @@ public interface CategoryService
     /**
      * Retrieves a CategoryOptionCombo.
      *
-     * @param categoryCombo   the CategoryOptionCombo.
+     * @param categoryCombo the CategoryOptionCombo.
      * @param categoryOptions the set of CategoryOptions.
      */
     CategoryOptionCombo getCategoryOptionCombo( CategoryCombo categoryCombo,
@@ -386,9 +380,8 @@ public interface CategoryService
     List<CategoryOptionCombo> getAllCategoryOptionCombos();
 
     /**
-     * Generates and persists a default Category,
-     * CategoryOption, CategoryCombo and
-     * CategoryOptionCombo.
+     * Generates and persists a default Category, CategoryOption, CategoryCombo
+     * and CategoryOptionCombo.
      */
     void generateDefaultDimension();
 
@@ -400,16 +393,15 @@ public interface CategoryService
     CategoryOptionCombo getDefaultCategoryOptionCombo();
 
     /**
-     * Generates and persists CategoryOptionCombos for the given
-     * CategoryCombo.
+     * Generates and persists CategoryOptionCombos for the given CategoryCombo.
      *
      * @param categoryCombo the CategoryCombo.
      */
     void generateOptionCombos( CategoryCombo categoryCombo );
 
     /**
-     * Invokes updateOptionCombos( CategoryCombo ) for all category
-     * combos which the given category is a part of.
+     * Invokes updateOptionCombos( CategoryCombo ) for all category combos which
+     * the given category is a part of.
      *
      * @param category the Category.
      */
@@ -425,12 +417,12 @@ public interface CategoryService
     void updateOptionCombos( CategoryCombo categoryCombo );
 
     /**
-     * Returns the category option combo with the given uid. Respects access control
-     * by only returning objects which the current user has {@code data write} access
-     * to.
+     * Returns the category option combo with the given uid. Respects access
+     * control by only returning objects which the current user has
+     * {@code data write} access to.
      *
      * @param property the property.
-     * @param id       the id.
+     * @param id the id.
      * @return a category option combo.
      */
     CategoryOptionCombo getCategoryOptionComboAcl( IdentifiableProperty property, String id );
@@ -455,7 +447,7 @@ public interface CategoryService
     /**
      * Returns generated Operands for the given Collection of DataElements.
      *
-     * @param dataElements  the Collection of DataElements.
+     * @param dataElements the Collection of DataElements.
      * @param includeTotals whether to include DataElement totals.
      * @return the Operands for the given Collection of DataElements.
      */

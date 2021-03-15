@@ -1,7 +1,5 @@
-package org.hisp.dhis.system.util;
-
 /*
- * Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +25,7 @@ package org.hisp.dhis.system.util;
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+package org.hisp.dhis.system.util;
 
 import java.io.OutputStream;
 
@@ -40,14 +39,15 @@ import net.sf.jasperreports.export.SimpleXlsReportConfiguration;
 
 /**
  * Supports PDF, HMTL and XLS exports.
- * 
+ *
  * @author Lars Helge Overland
  */
 public class JRExportUtils
 {
     public static final String TYPE_XLS = "xls";
+
     public static final String TYPE_PDF = "pdf";
-    
+
     /**
      * Export the provided JasperPrint the format given by type.
      *
@@ -62,13 +62,13 @@ public class JRExportUtils
         if ( TYPE_XLS.equals( type ) )
         {
             SimpleXlsReportConfiguration config = new SimpleXlsReportConfiguration();
-            
+
             config.setDetectCellType( true );
             config.setRemoveEmptySpaceBetweenRows( true );
             config.setRemoveEmptySpaceBetweenRows( true );
             config.setCollapseRowSpan( true );
             config.setWhitePageBackground( false );
-            
+
             JRXlsExporter exporter = new JRXlsExporter();
             exporter.setExporterInput( new SimpleExporterInput( jasperPrint ) );
             exporter.setExporterOutput( new SimpleOutputStreamExporterOutput( out ) );
@@ -84,5 +84,3 @@ public class JRExportUtils
         }
     }
 }
-
-
