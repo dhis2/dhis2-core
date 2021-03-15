@@ -54,8 +54,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.User;
+import static org.hisp.dhis.schema.annotation.Property.Value.*;
+import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.translation.*;
+import org.hisp.dhis.user.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -270,6 +272,13 @@ public abstract class BaseChart
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_DOMAIN_AXIS_LABEL, getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -280,6 +289,13 @@ public abstract class BaseChart
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_RANGE_AXIS_LABEL, getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -356,6 +372,13 @@ public abstract class BaseChart
         return targetLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_TARGET_LINE_LABEL, getTargetLineLabel() );
+    }
+
     public void setTargetLineLabel( String targetLineLabel )
     {
         this.targetLineLabel = targetLineLabel;
@@ -378,6 +401,13 @@ public abstract class BaseChart
     public String getBaseLineLabel()
     {
         return baseLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_BASE_LINE_LABEL, getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )
