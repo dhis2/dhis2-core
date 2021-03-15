@@ -147,7 +147,7 @@ public class EventUtils
         }
 
         Set<EventDataValue> dataValues = new HashSet<>();
-        if ( !org.apache.commons.lang3.StringUtils.isEmpty( content ) )
+        if ( !StringUtils.isEmpty( content ) )
         {
             Map<String, EventDataValue> parsed = jsonMapper.readValue( content, mapType );
             for ( String dataElementId : parsed.keySet() )
@@ -161,10 +161,10 @@ public class EventUtils
         return dataValues;
     }
 
+    @SuppressWarnings( "unchecked" )
     public static Set<AttributeValue> getAttributeValues( ObjectMapper jsonMapper, Object attributeValues )
         throws JsonProcessingException
     {
-
         Set<AttributeValue> attributeValueSet = new HashSet<>();
 
         String content = null;
@@ -203,7 +203,7 @@ public class EventUtils
     {
         try
         {
-            if ( org.apache.commons.lang3.StringUtils.isNotEmpty( userInfoAsString ) )
+            if ( StringUtils.isNotEmpty( userInfoAsString ) )
             {
                 return mapper.readValue( userInfoAsString, UserInfoSnapshot.class );
             }
