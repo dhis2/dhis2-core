@@ -46,6 +46,7 @@ import javax.annotation.Nonnull;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
+import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -151,14 +152,13 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
+        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
-        verify( templateStore, times( 2 ) ).getByUid( anyString() );
-        verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
+        verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
@@ -180,14 +180,13 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
+        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
-        verify( templateStore, times( 2 ) ).getByUid( anyString() );
-        verify( loggingService, times( 1 ) ).isValidForSending( anyString() );
+        verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
@@ -209,7 +208,9 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
+        NotificationValidationResult result = NotificationValidationResult.builder().valid( true ).build();
+
+        when( loggingService.getByKey( anyString() ) ).thenReturn( result.getLogEntry() );
 
         String key = template.getUid() + programInstance.getUid();
 
@@ -235,7 +236,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.isValidForSending( anyString() ) ).thenReturn( true );
+        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         String key = template.getUid() + programInstance.getUid();
 
@@ -254,7 +255,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         implementer.implement( ruleEffectWithActionSendMessage, programInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
-        verify( loggingService, never() ).isValidForSending( anyString() );
         verify( loggingService, never() ).save( any() );
     }
 
@@ -266,7 +266,6 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
-        verify( loggingService, never() ).isValidForSending( anyString() );
     }
 
     @Test
