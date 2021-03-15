@@ -65,6 +65,18 @@ public final class GenericSizeof implements Sizeof
     private static final Sizeof DOUBLE_WORD = Sizeof.constant( 8 );
 
     /**
+     * Result that means size in not fixed
+     */
+    private static final long NOT_FIXED = -1L;
+
+    /**
+     * Marker value for fixed size computation
+     */
+    private static final long FIXED_SIZE_RECURSIVE_MARKER = -2L;
+
+    private static final Sizeof SIZE_RECURSIVE_MARKER = obj -> 0L;
+
+    /**
      * The number of bytes we assume each {@link Object} requires for JVM object
      * headers which are not visible to reflection.
      */
@@ -113,6 +125,12 @@ public final class GenericSizeof implements Sizeof
         return sizeof.sizeof( obj );
     }
 
+    public boolean isFixedSize( Class<?> type )
+    {
+        Long fixedSize = fixedSizeOfType.get( type );
+        return fixedSize != null && fixedSize >= 0L;
+    }
+
     private Sizeof getSizeof( Class<?> type )
     {
         return getSizeof( type, type );
@@ -123,6 +141,10 @@ public final class GenericSizeof implements Sizeof
         Sizeof sizeof = sizeofByType.get( type );
         if ( sizeof != null )
         {
+            if ( sizeof == SIZE_RECURSIVE_MARKER )
+            {
+                return Sizeof.constant( objectHeaderSize );
+            }
             return sizeof;
         }
         try
@@ -130,9 +152,10 @@ public final class GenericSizeof implements Sizeof
             // OBS! we cannot use computeIfAbsent because this could cause
             // recursive
             // updates where computation of the value includes putting the key
-            sizeof = computeSizeof( type, genericType );
-            sizeofByType.putIfAbsent( genericType, sizeof );
-            return sizeof;
+            sizeofByType.putIfAbsent( genericType, SIZE_RECURSIVE_MARKER );
+            Sizeof newSizeof = computeSizeof( type, genericType );
+            return sizeofByType.compute( genericType,
+                ( key, value ) -> value == null || value == SIZE_RECURSIVE_MARKER ? newSizeof : value );
         }
         catch ( Exception | StackOverflowError t )
         {
@@ -196,7 +219,7 @@ public final class GenericSizeof implements Sizeof
 
     private Sizeof computeCollectionSizeof( Type collectionType )
     {
-        Type elementType = getTypeParameter( 0, collectionType );
+        Type elementType = getTypeParameter( 0, 1, collectionType );
         if ( elementType instanceof Class )
         {
             long elementSize = getFixedSize( (Class<?>) elementType );
@@ -210,17 +233,17 @@ public final class GenericSizeof implements Sizeof
 
     private Sizeof computeMapSizeof( Type mapType )
     {
-        return Sizeof.mapOfDynamic( objectHeaderSize,
-            getSizeof( getTypeParameter( 0, mapType ) ),
-            getSizeof( getTypeParameter( 1, mapType ) ) );
+        return Sizeof.mapOfDynamic( objectHeaderSize, getSizeof( getTypeParameter( 0, 2, mapType ) ),
+            getSizeof( getTypeParameter( 1, 2, mapType ) ) );
     }
 
-    private Type getTypeParameter( int index, Type genericType )
+    private Type getTypeParameter( int index, int expectedTypeArguments, Type genericType )
     {
         if ( genericType instanceof ParameterizedType )
         {
             ParameterizedType type = (ParameterizedType) genericType;
-            return type.getActualTypeArguments()[index];
+            Type[] typeArguments = type.getActualTypeArguments();
+            return typeArguments.length != expectedTypeArguments ? Object.class : typeArguments[index];
         }
         return Object.class; // we give up => dynamic analysis based on object
     }
@@ -251,6 +274,10 @@ public final class GenericSizeof implements Sizeof
                         parts.add(
                             Sizeof.fieldSizeof( field, unwrap, getSizeof( field.getType(), field.getGenericType() ) ) );
                     }
+                    if ( !field.getType().isPrimitive() )
+                    {
+                        fixedSizeSum += 4L;
+                    }
                 }
             }
             t = t.getSuperclass();
@@ -276,13 +303,18 @@ public final class GenericSizeof implements Sizeof
         Long size = fixedSizeOfType.get( type );
         if ( size != null )
         {
+            if ( size == FIXED_SIZE_RECURSIVE_MARKER )
+            {
+                return NOT_FIXED;
+            }
             return size;
         }
+        fixedSizeOfType.putIfAbsent( type, FIXED_SIZE_RECURSIVE_MARKER );
         long fixedSize = computeFixedSizeof( type );
         // OBS! we cannot use computeIfAbsent because this could cause recursive
         // updates where computation of the value includes putting the key
-        fixedSizeOfType.putIfAbsent( type, fixedSize );
-        return fixedSize;
+        return fixedSizeOfType.compute( type,
+            ( key, value ) -> value == null || value == FIXED_SIZE_RECURSIVE_MARKER ? fixedSize : value );
     }
 
     private long computeFixedSizeof( Class<?> type )
@@ -309,30 +341,28 @@ public final class GenericSizeof implements Sizeof
 
     private long computedFixedSizeofFields( Class<?> type )
     {
-        long sum = 0L;
-        for ( Field field : type.getDeclaredFields() )
+        long sum = objectHeaderSize;
+        Class<?> currentType = type;
+        while ( currentType != null && currentType != Object.class )
         {
-            if ( isInstanceField( field ) )
+            for ( Field field : currentType.getDeclaredFields() )
             {
-                long fieldSize = getFixedSize( field.getType() );
-                if ( fieldSize < 0L )
+                if ( isInstanceField( field ) )
                 {
-                    return -1L; // meh, not a constant type
+                    long fieldSize = getFixedSize( field.getType() );
+                    if ( fieldSize < 0L )
+                    {
+                        return -1L; // meh, not a constant type
+                    }
+                    sum += fieldSize;
+                    if ( !field.getType().isPrimitive() )
+                    {
+                        sum += 4L;
+                    }
                 }
-                sum += fieldSize;
             }
-        }
-        // now also add supertypes
-        Class<?> base = type.getSuperclass();
-        while ( base != null )
-        {
-            long baseSize = getFixedSize( base );
-            if ( baseSize < 0L )
-            {
-                return -1L; // meh, not constant size type
-            }
-            sum += baseSize;
-            base = base.getSuperclass();
+            // now also add supertypes
+            currentType = currentType.getSuperclass();
         }
         return sum;
     }

@@ -30,8 +30,10 @@ package org.hisp.dhis.cache;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
+import static java.util.Collections.singleton;
 import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
@@ -39,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
 
@@ -90,7 +93,7 @@ public class SizeofTest
         }
     }
 
-    private final Sizeof sizeof = new GenericSizeof( 20L, obj -> obj );
+    private final GenericSizeof sizeof = new GenericSizeof( 20L, obj -> obj );
 
     @Test
     public void testSizeofNull()
@@ -99,11 +102,32 @@ public class SizeofTest
     }
 
     @Test
-    public void testSizeofPrimitives()
+    public void testSizeofBoolean()
     {
-        assertEquals( 24L, sizeof.sizeof( 3 ) );
-        assertEquals( 28L, sizeof.sizeof( 3L ) );
+        assertEquals( 24L, sizeof.sizeof( Boolean.TRUE ) );
+        assertFixedSize( boolean.class, Boolean.class );
+
+    }
+
+    @Test
+    public void testSizeofDouble()
+    {
         assertEquals( 28L, sizeof.sizeof( 3d ) );
+        assertFixedSize( double.class, Double.class );
+    }
+
+    @Test
+    public void testSizeofLong()
+    {
+        assertEquals( 28L, sizeof.sizeof( 3L ) );
+        assertFixedSize( long.class, Long.class );
+    }
+
+    @Test
+    public void testSizeofInt()
+    {
+        assertEquals( 24L, sizeof.sizeof( 42 ) );
+        assertFixedSize( int.class, Integer.class );
     }
 
     @Test
@@ -127,6 +151,8 @@ public class SizeofTest
         // base costs are: 20 + 20 + 8 = 48
         assertEquals( 64L, sizeof.sizeof( "hello world!" ) );
         assertEquals( 58L, sizeof.sizeof( "hello!" ) );
+        assertNotFixedSize( String.class );
+        assertNotFixedSize( byte[].class );
     }
 
     @Test
@@ -137,13 +163,14 @@ public class SizeofTest
         // + 8 long
         // + 4 ref => + 24 Integer
         assertEquals( 60L, sizeof.sizeof( new PrimitiveAndWrapperBean() ) );
+        assertFixedSize( PrimitiveAndWrapperBean.class );
     }
 
     @Test
     public void testSizeofEmptyList()
     {
         // just the object header
-        assertEquals( 20L, sizeof.sizeof( emptyList() ) );
+        assertEquals( 24L, sizeof.sizeof( emptyList() ) );
     }
 
     @Test
@@ -224,5 +251,51 @@ public class SizeofTest
         {
             assertTrue( sizeof.sizeof( t ) > 0L );
         }
+    }
+
+    @Test
+    public void testSizeofCyclicTypeReference()
+    {
+        OrganisationUnit a = new OrganisationUnit();
+        a.setParent( new OrganisationUnit() );
+        a.setChildren( singleton( new OrganisationUnit() ) );
+
+        assertTrue( sizeof.sizeof( a ) > 500 );
+    }
+
+    @Test
+    public void testSizeofCyclicValueReferences()
+    {
+        OrganisationUnit a = new OrganisationUnit();
+        OrganisationUnit parent = new OrganisationUnit();
+        a.setParent( parent );
+        parent.setChildren( singleton( a ) );
+
+        long blankSize = sizeof.sizeof( a );
+        assertTrue( blankSize > 500 );
+        assertEquals( blankSize, sizeof.sizeof( a ) );
+
+        // now setting a field should come out identical to adding the size of
+        // the value of the field
+        a.setName( "UnitA" );
+        assertEquals( sizeof.sizeof( "UnitA" ), sizeof.sizeof( a ) - blankSize );
+    }
+
+    private void assertFixedSize( Class<?>... types )
+    {
+        for ( Class<?> t : types )
+        {
+            assertFixedSize( t );
+        }
+    }
+
+    private void assertFixedSize( Class<?> type )
+    {
+        assertTrue( type.getSimpleName() + " not detected as fixed size", sizeof.isFixedSize( type ) );
+    }
+
+    private void assertNotFixedSize( Class<?> type )
+    {
+        assertFalse( type.getSimpleName() + " wrongly considered as fixed size", sizeof.isFixedSize( type ) );
     }
 }

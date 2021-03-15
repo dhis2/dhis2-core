@@ -27,26 +27,95 @@
  */
 package org.hisp.dhis.cache;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+/**
+ * A test for the {@link CappedLocalCache}.
+ *
+ * @author Jan Bernitt
+ */
 public class CappedLocalCacheTest
 {
-
     private final Sizeof sizeof = new GenericSizeof( 20L, obj -> obj );
+
+    private final CappedLocalCache cache = new CappedLocalCache( sizeof, 0 );
+
+    private final Cache<String> testRegion = cache
+        .createRegion( new SimpleCacheBuilder<String>()
+            .forRegion( "test" )
+            .expireAfterWrite( 1, TimeUnit.MINUTES )
+            .forceInMemory() );
 
     @Test
     public void testSizeofCacheEntry()
     {
         // 20 object header of CacheEntry
-        // + 4 ref region + 20 object header String
-        // + 4 ref key + 20 object header String
-        // + 4 ref value + 20 object header V
+        // + 4 ref region
+        // + 4 ref key
+        // + 4 ref value
         // + 8 created
         // + 8 expires
         // + 8 size
         // + 4 reads
-        assertEquals( 124L, sizeof.sizeof( CappedLocalCache.EMPTY ) );
+        assertEquals( 60L, sizeof.sizeof( CappedLocalCache.EMPTY ) );
+    }
+
+    @Test
+    public void testPut()
+    {
+        String value = "bar";
+        testRegion.put( "foo", value );
+        assertSame( value, testRegion.get( "foo" ).get() );
+    }
+
+    @Test
+    public void testPutWithTTL()
+    {
+        String value = "bar";
+        testRegion.put( "foo", value, 2000L );
+        assertSame( value, testRegion.get( "foo" ).get() );
+    }
+
+    @Test
+    public void testGetExpired()
+    {
+        testRegion.put( "foo", "bar", 0L );
+        assertFalse( testRegion.get( "foo" ).isPresent() );
+    }
+
+    @Test
+    public void testInvalidateKey()
+    {
+        testRegion.put( "x", "y" );
+        testRegion.put( "a", "b" );
+        testRegion.invalidate( "x" );
+        assertFalse( testRegion.get( "x" ).isPresent() );
+        assertTrue( testRegion.get( "a" ).isPresent() );
+    }
+
+    @Test
+    public void testInvalidateAll()
+    {
+        testRegion.put( "x", "y" );
+        testRegion.put( "a", "b" );
+        testRegion.invalidateAll();
+        assertFalse( testRegion.get( "x" ).isPresent() );
+        assertFalse( testRegion.get( "a" ).isPresent() );
+    }
+
+    @Test
+    public void testGetAll()
+    {
+        testRegion.put( "x", "y" );
+        testRegion.put( "a", "b" );
+        assertContainsOnly( testRegion.getAll(), "y", "b" );
     }
 }

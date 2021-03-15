@@ -127,14 +127,17 @@ interface Sizeof
         return obj -> {
             if ( obj == null )
             {
-                return 4L; // this field
+                return 0L; // this field
             }
             try
             {
-                // 4 is for the field itself
                 // this would not be used for primitives
                 Object value = unwrap.apply( f.get( obj ) );
-                return 4L + operator.sizeof( value );
+                if ( value == null )
+                {
+                    return 0L;
+                }
+                return operator.sizeof( value );
             }
             catch ( IllegalAccessException e )
             {

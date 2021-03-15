@@ -171,6 +171,12 @@ public class CappedLocalCache
                 misses.incrementAndGet();
                 return Optional.empty();
             }
+            if ( entry.isExpired( currentTimeMillis() ) )
+            {
+                invalidate( entry, true );
+                misses.incrementAndGet();
+                return Optional.empty();
+            }
             hits.incrementAndGet();
             return Optional.ofNullable( value.apply( entry.read() ) );
         }
@@ -183,7 +189,8 @@ public class CappedLocalCache
                 throw new IllegalArgumentException( "MappingFunction cannot be null" );
             }
             CacheEntry<V> entry = entries.get( key );
-            V value = entry == null ? null : entry.read();
+            long now = currentTimeMillis();
+            V value = entry == null || entry.isExpired( now ) ? null : entry.read();
             if ( value != null )
             {
                 hits.incrementAndGet();
@@ -191,7 +198,7 @@ public class CappedLocalCache
             }
             misses.incrementAndGet();
             value = fetcher.apply( key );
-            if ( value == null && entry != null )
+            if ( value == null && entry != null && !entry.isExpired( now ) )
             {
                 // still null, no entry update needed
                 return Optional.ofNullable( defaultValue );
@@ -482,10 +489,10 @@ public class CappedLocalCache
      */
     private void ensureGuardThreadRunningWhenNeeded()
     {
-        if ( totalSize.get() > 0L && guardRunning.compareAndSet( false, true ) )
+        if ( totalSize.get() > 0L && capPercent > 0L && guardRunning.compareAndSet( false, true ) )
         {
             log.info( "Starting capped cache cap guard." );
-            Thread watcher = new Thread( this::runCacheWatcher );
+            Thread watcher = new Thread( this::runCacheGuard );
             watcher.setDaemon( true );
             watcher.setName( "Capped Local Cache Guard" );
             watcher.start();
@@ -604,7 +611,7 @@ public class CappedLocalCache
         return sizeLeft;
     }
 
-    private void runCacheWatcher()
+    private void runCacheGuard()
     {
         while ( totalSize.get() > 0L )
         {
