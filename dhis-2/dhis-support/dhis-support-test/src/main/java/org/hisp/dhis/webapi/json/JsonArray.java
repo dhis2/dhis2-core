@@ -123,4 +123,8 @@ public interface JsonArray extends JsonCollection
         return JsonCollection.asMap( getObject( index ), as );
     }
 
+    default <E extends JsonValue> JsonMultiMap<E> getMultiMap( int index, Class<E> as )
+    {
+        return JsonCollection.asMultiMap( getObject( index ), as );
+    }
 }

@@ -77,6 +77,17 @@ public class JsonResponseTest
     }
 
     @Test
+    public void testCustomObjectTypeMultiMap()
+    {
+        JsonMultiMap<JsonNumber> multiMap = createJSON( "{'foo':[1,23], 'bar':[34,56]}" )
+            .asMultiMap( JsonNumber.class );
+        assertFalse( multiMap.isEmpty() );
+        assertTrue( multiMap.isObject() );
+        assertEquals( 23, multiMap.get( "foo" ).get( 1 ).intValue() );
+        assertEquals( 34, multiMap.get( "bar" ).get( 0 ).intValue() );
+    }
+
+    @Test
     public void testObjectHas()
     {
         JsonObject response = createJSON( "{'users': {'foo':{'id':'foo'}, 'bar':[]}}" );

@@ -136,6 +136,19 @@ public interface JsonValue
     }
 
     /**
+     * This value as map of list value with of uniform elements (view on JSON
+     * object).
+     *
+     * @param valueType assumed map value type
+     * @param <V> type of map values
+     * @return map view of this value (assumes object)
+     */
+    default <V extends JsonValue> JsonMultiMap<V> asMultiMap( Class<V> valueType )
+    {
+        return JsonCollection.asMultiMap( as( JsonObject.class ), valueType );
+    }
+
+    /**
      * Access the node in the JSON document. This can be the low level API that
      * is concerned with extraction by path.
      *
