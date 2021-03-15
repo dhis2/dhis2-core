@@ -41,7 +41,26 @@ public class PublishEventPostProcessor
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
-        if ( !ctx.getImportOptions().isSkipNotifications() )
+        boolean isLinkedWithRuleVariable = false;
+
+        for ( final DataValue dv : event.getDataValues() )
+        {
+            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
+
+            if ( dataElement != null )
+            {
+                // TODO: luciano preload the value
+                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
+                    .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
+
+                if ( isLinkedWithRuleVariable )
+                {
+                    break;
+                }
+            }
+        }
+
+        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
         {
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
                 new DataValueUpdatedEvent( this, event.getEvent() ) );
