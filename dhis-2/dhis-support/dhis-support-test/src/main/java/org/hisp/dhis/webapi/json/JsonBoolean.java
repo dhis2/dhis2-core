@@ -34,12 +34,16 @@ package org.hisp.dhis.webapi.json;
  */
 public interface JsonBoolean extends JsonPrimitive
 {
-
     /**
      * @return boolean value of the property or {@code null} when this property
      *         is undefined or defined as JSON {@code null}.
      */
     Boolean bool();
+
+    default boolean booleanValue( boolean orDefault )
+    {
+        return exists() ? booleanValue() : orDefault;
+    }
 
     /**
      * Same as {@link #bool()} except that this throws an

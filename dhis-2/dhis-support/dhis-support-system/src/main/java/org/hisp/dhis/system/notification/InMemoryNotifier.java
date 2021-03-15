@@ -33,9 +33,9 @@ import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Lars Helge Overland
@@ -44,8 +44,6 @@ import org.springframework.util.StringUtils;
 public class InMemoryNotifier implements Notifier
 {
     private NotificationMap notificationMap = new NotificationMap();
-
-    private NotificationLoggerUtil notificationLogger;
 
     // -------------------------------------------------------------------------
     // Notifier implementation

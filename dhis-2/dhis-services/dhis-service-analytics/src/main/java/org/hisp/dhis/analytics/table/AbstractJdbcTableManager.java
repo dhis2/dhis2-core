@@ -92,31 +92,31 @@ public abstract class AbstractJdbcTableManager
 
     protected static final Set<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT, ValueType.LONG_TEXT );
 
-    public static final String PREFIX_ORGUNITGROUPSET = "ougs_";
+    protected static final String PREFIX_ORGUNITLEVEL = "uidlevel";
 
-    public static final String PREFIX_ORGUNITLEVEL = "uidlevel";
+    protected static final String GEOMETRY_INDEX_TYPE = "gist";
 
-    protected IdentifiableObjectManager idObjectManager;
+    protected final IdentifiableObjectManager idObjectManager;
 
-    protected OrganisationUnitService organisationUnitService;
+    protected final OrganisationUnitService organisationUnitService;
 
-    protected CategoryService categoryService;
+    protected final CategoryService categoryService;
 
-    protected SystemSettingManager systemSettingManager;
+    protected final SystemSettingManager systemSettingManager;
 
-    protected DataApprovalLevelService dataApprovalLevelService;
+    protected final DataApprovalLevelService dataApprovalLevelService;
 
-    protected ResourceTableService resourceTableService;
+    protected final ResourceTableService resourceTableService;
 
-    private AnalyticsTableHookService tableHookService;
+    protected final AnalyticsTableHookService tableHookService;
 
-    protected StatementBuilder statementBuilder;
+    protected final StatementBuilder statementBuilder;
 
-    protected PartitionManager partitionManager;
+    protected final PartitionManager partitionManager;
 
-    protected DatabaseInfo databaseInfo;
+    protected final DatabaseInfo databaseInfo;
 
-    protected JdbcTemplate jdbcTemplate;
+    protected final JdbcTemplate jdbcTemplate;
 
     @Autowired
     public AbstractJdbcTableManager( IdentifiableObjectManager idObjectManager,

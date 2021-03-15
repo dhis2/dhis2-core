@@ -46,15 +46,10 @@ import org.junit.runners.Parameterized;
 import org.mockito.Mock;
 import org.springframework.core.env.Environment;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 @RunWith( Parameterized.class )
 public class ProgramSupplierTest extends AbstractSupplierTest<Program>
 {
     private ProgramSupplier subject;
-
-    @Mock
-    private ObjectMapper objectMapper;
 
     @Mock
     private Environment env;
@@ -71,7 +66,7 @@ public class ProgramSupplierTest extends AbstractSupplierTest<Program>
     @Before
     public void setUp()
     {
-        this.subject = new ProgramSupplier( jdbcTemplate, objectMapper, env );
+        this.subject = new ProgramSupplier( jdbcTemplate, env );
         when( env.getActiveProfiles() ).thenReturn( new String[] { "test" } );
     }
 

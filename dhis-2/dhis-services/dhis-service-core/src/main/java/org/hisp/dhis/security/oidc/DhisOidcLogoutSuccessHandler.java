@@ -55,7 +55,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
     private OidcClientInitiatedLogoutSuccessHandler handler;
 
     @Autowired
-    private DhisClientRegistrationRepository dhisClientRegistrationRepository;
+    private DhisOidcProviderRepository dhisOidcProviderRepository;
 
     @Autowired
     public DhisConfigurationProvider dhisConfigurationProvider;
@@ -64,7 +64,7 @@ public class DhisOidcLogoutSuccessHandler implements LogoutSuccessHandler
     public void init()
     {
         String logoutUri = dhisConfigurationProvider.getProperty( OIDC_LOGOUT_REDIRECT_URL );
-        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisClientRegistrationRepository );
+        this.handler = new OidcClientInitiatedLogoutSuccessHandler( dhisOidcProviderRepository );
         this.handler.setPostLogoutRedirectUri( logoutUri );
     }
 

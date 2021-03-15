@@ -41,7 +41,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -57,9 +56,7 @@ import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.organisationunit.FeatureType;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -73,7 +70,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * This supplier builds and caches a Map of all the Programs in the system.
@@ -113,19 +109,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  *
  * @author Luciano Fiandesio
  */
-@Slf4j
 @Component( "workContextProgramsSupplier" )
 public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 {
     private final static String PROGRAM_CACHE_KEY = "000P";
 
-    private final ObjectMapper jsonMapper;
-
     private final Environment env;
 
     private final static String ATTRIBUTESCHEME_COL = "attributevalues";
-
-    private final static String PROGRAM_ID = "programid";
 
     private final static String PROGRAM_STAGE_ID = "programstageid";
 
@@ -133,8 +124,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private final static String TRACKED_ENTITY_TYPE_ID = "trackedentitytypeid";
 
-    // Caches the entire Program hierarchy, including Program Stages and ACL
-    // data
+    // Caches the entire program hierarchy, including program stages and ACL
     private final Cache<String, Map<String, Program>> programsCache = new Cache2kBuilder<String, Map<String, Program>>()
     {
     }
@@ -142,7 +132,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
         .expireAfterWrite( 1, TimeUnit.MINUTES )
         .build();
 
-    // Caches the User Groups and the Users belonging to each group
+    // Caches the user groups and the users belonging to each group
     private final Cache<Long, Set<User>> userGroupCache = new Cache2kBuilder<Long, Set<User>>()
     {
     }
@@ -158,10 +148,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             }
         } ).build();
 
-    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, ObjectMapper jsonMapper, Environment env )
+    public ProgramSupplier( NamedParameterJdbcTemplate jdbcTemplate, Environment env )
     {
         super( jdbcTemplate );
-        this.jsonMapper = jsonMapper;
         this.env = env;
     }
 
@@ -170,9 +159,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
     {
         boolean requiresReload = false;
 
-        //
-        // do not use cache is `skipCache` is true or if running as test
-        //
+        // Do not use cache if {@code skipCache} is true or if running as test
+
         if ( importOptions.isSkipCache() || SystemUtils.isTestRun( env.getActiveProfiles() ) )
         {
             programsCache.removeAll();
@@ -188,9 +176,8 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
         if ( requiresReload || programMap == null )
         {
-            //
-            // Load all the Programs
-            //
+            // Load all programs
+
             programMap = loadPrograms( importOptions.getIdSchemes() );
 
             if ( !MapUtils.isEmpty( programMap ) )
@@ -245,11 +232,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             .stream();
     }
 
-    //
-    // Load all DataElements for each Program Stage, partitioned into compulsory
-    // and
-    // non-compulsory
-    //
+    /**
+     * Loads all data elements for each program stage, partitioned into
+     * compulsory and non-compulsory.
+     */
     private Map<Long, DataElementSets> loadProgramStageDataElementSets()
     {
         final String sql = "select psde.programstageid, de.dataelementid, de.uid as de_uid, de.code as de_code, psde.compulsory "
@@ -309,11 +295,9 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
     private Map<String, Program> loadPrograms( IdSchemes idSchemes )
     {
-        //
-        // Get the IdScheme for Programs. Programs should support also the
-        // Attribute
-        // Scheme, based on JSONB
-        //
+        // Get Id scheme for programs, programs should support also the
+        // attribute scheme based on JSONB
+
         IdScheme idScheme = idSchemes.getProgramIdScheme();
 
         String sqlSelect = "select p.programid as id, p.uid, p.code, p.name, p.sharing as program_sharing, "
@@ -349,7 +333,7 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 {
                     Set<ProgramStage> programStages = new HashSet<>();
                     Program program = new Program();
-                    // identifiers
+
                     program.setId( rs.getLong( "id" ) );
                     program.setUid( rs.getString( "uid" ) );
                     program.setName( rs.getString( "name" ) );
@@ -357,10 +341,10 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
 
                     program.setProgramType( ProgramType.fromValue( rs.getString( "type" ) ) );
                     program.setSharing( toSharing( rs.getString( "program_sharing" ) ) );
+
                     // Do not add program stages without primary key (this
-                    // should not really happen,
-                    // but the database does allow Program Stage without a
-                    // Program Id
+                    // should not really happen, but the database does allow
+                    // Program Stage without a Program Id
                     if ( rs.getLong( "ps_id" ) != 0 )
                     {
                         programStages.add( toProgramStage( rs ) );
@@ -431,34 +415,6 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
             programStage.setValidationStrategy( ValidationStrategy.valueOf( validationStrategy ) );
         }
         return programStage;
-    }
-
-    private OrganisationUnit toOrganisationUnit( ResultSet rs )
-        throws SQLException
-    {
-        OrganisationUnit ou = new OrganisationUnit();
-        ou.setUid( rs.getString( "uid" ) );
-        ou.setId( rs.getLong( "organisationunitid" ) );
-        ou.setName( rs.getString( "name" ) );
-        ou.setCode( rs.getString( "code" ) );
-
-        final String attributeValueJson = rs.getString( ATTRIBUTESCHEME_COL );
-
-        if ( StringUtils.isNotEmpty( attributeValueJson ) && !attributeValueJson.equals( "{}" ) )
-        {
-            try
-            {
-                ou.setAttributeValues(
-                    EventUtils.getAttributeValues( jsonMapper, rs.getObject( ATTRIBUTESCHEME_COL ) ) );
-            }
-            catch ( JsonProcessingException e )
-            {
-                log.error( "An error occurred when processing an Organisation Unit's [id=" + ou.getId()
-                    + "] attribute values", e );
-            }
-        }
-
-        return ou;
     }
 
     private DataElement toDataElement( ResultSet rs )

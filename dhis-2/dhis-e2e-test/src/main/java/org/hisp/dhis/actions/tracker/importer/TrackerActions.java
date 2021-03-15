@@ -151,6 +151,11 @@ public class TrackerActions
 
     private TrackerApiResponse getJobReportByImportResponse( ApiResponse response )
     {
+        // if import is sync, just return response
+        if ( response.extractString( "response.id" ) == null) {
+            return new TrackerApiResponse( response );
+        }
+
         response.validate()
             .statusCode( 200 )
             .body( "response.id", notNullValue() );
