@@ -27,71 +27,38 @@
  */
 package org.hisp.dhis.visualization;
 
-import static com.google.common.base.Verify.verify;
+import static com.google.common.base.Verify.*;
 import static java.util.Arrays.asList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
-import static org.apache.commons.lang3.StringUtils.defaultIfEmpty;
-import static org.apache.commons.lang3.StringUtils.isBlank;
-import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.join;
-import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.ORG_UNIT_ANCESTORS;
-import static org.hisp.dhis.common.DimensionalObject.CATEGORYOPTIONCOMBO_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.DATA_X_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
-import static org.hisp.dhis.common.DimensionalObject.PRETTY_NAMES;
-import static org.hisp.dhis.common.DimensionalObjectUtils.NAME_SEP;
-import static org.hisp.dhis.common.DimensionalObjectUtils.getSortedKeysMap;
-import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
-import static org.hisp.dhis.visualization.DimensionDescriptor.getDimensionIdentifierFor;
-import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
+import static org.apache.commons.lang3.StringUtils.*;
+import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.*;
+import static org.hisp.dhis.common.DimensionalObject.*;
+import static org.hisp.dhis.common.DimensionalObjectUtils.*;
+import static org.hisp.dhis.common.DxfNamespaces.*;
+import static org.hisp.dhis.common.ValueType.*;
+import static org.hisp.dhis.visualization.DimensionDescriptor.*;
+import static org.hisp.dhis.visualization.VisualizationType.*;
 
+import java.util.*;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
-import org.hisp.dhis.analytics.NumberType;
-import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.CombinationGenerator;
-import org.hisp.dhis.common.DimensionType;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
-import org.hisp.dhis.common.DimensionalObjectUtils;
-import org.hisp.dhis.common.DisplayDensity;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.FontSize;
-import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.HideEmptyItemStrategy;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.RegressionType;
-import org.hisp.dhis.i18n.I18nFormat;
-import org.hisp.dhis.legend.LegendDisplayStrategy;
-import org.hisp.dhis.legend.LegendDisplayStyle;
-import org.hisp.dhis.legend.LegendSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.schema.annotation.PropertyRange;
-import org.hisp.dhis.user.User;
-import org.springframework.util.Assert;
+import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.category.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.i18n.*;
+import org.hisp.dhis.legend.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.schema.annotation.*;
+import org.hisp.dhis.translation.*;
+import org.hisp.dhis.user.*;
+import org.springframework.util.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
 
 @JacksonXmlRootElement( localName = "visualization", namespace = DXF_2_0 )
 public class Visualization
@@ -870,6 +837,13 @@ public class Visualization
         return domainAxisLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayDomainAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_DOMAIN_AXIS_LABEL, getDomainAxisLabel() );
+    }
+
     public void setDomainAxisLabel( String domainAxisLabel )
     {
         this.domainAxisLabel = domainAxisLabel;
@@ -880,6 +854,13 @@ public class Visualization
     public String getRangeAxisLabel()
     {
         return rangeAxisLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayRangeAxisLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_RANGE_AXIS_LABEL, getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -930,6 +911,13 @@ public class Visualization
         return baseLineLabel;
     }
 
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayBaseLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_BASE_LINE_LABEL, getBaseLineLabel() );
+    }
+
     public void setBaseLineLabel( String baseLineLabel )
     {
         this.baseLineLabel = baseLineLabel;
@@ -940,6 +928,13 @@ public class Visualization
     public String getTargetLineLabel()
     {
         return targetLineLabel;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getDisplayTargetLineLabel()
+    {
+        return getTranslation( TranslationProperty.CHART_TARGET_LINE_LABEL, getTargetLineLabel() );
     }
 
     public void setTargetLineLabel( String targetLineLabel )
