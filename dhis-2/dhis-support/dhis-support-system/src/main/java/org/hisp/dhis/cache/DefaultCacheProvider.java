@@ -114,7 +114,7 @@ public class DefaultCacheProvider
         userDisplayNameCache
     }
 
-    private final List<Cache> allCaches = Lists.newArrayList();
+    private final List<Cache<?>> allCaches = Lists.newArrayList();
 
     private long orZeroInTestRun( long value )
     {
