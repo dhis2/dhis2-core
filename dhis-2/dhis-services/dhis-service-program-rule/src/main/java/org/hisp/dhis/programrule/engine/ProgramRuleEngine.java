@@ -101,6 +101,7 @@ public class ProgramRuleEngine
         {
             return Lists.newArrayList();
         }
+
         return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
             Lists.newArrayList() );
     }
