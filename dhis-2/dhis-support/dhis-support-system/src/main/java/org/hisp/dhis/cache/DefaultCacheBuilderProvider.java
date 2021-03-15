@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.function.Function;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -51,7 +53,10 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
     @Override
     public <V> CacheBuilder<V> newCacheBuilder()
     {
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, cappedLocalCache::createRegion );
+        Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
+            ? cappedLocalCache::createRegion
+            : builder -> new NoOpCache<>();
+        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );
     }
 
     @Autowired
