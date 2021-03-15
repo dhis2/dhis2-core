@@ -29,10 +29,15 @@ package org.hisp.dhis.cache;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
+import static java.util.Collections.singletonMap;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.hisp.dhis.period.PeriodType;
 import org.junit.Test;
@@ -66,6 +71,19 @@ public class SizeofTest
         }
 
         CollectionBean( List<Integer> a, List<List<Long>> b )
+        {
+            this.a = a;
+            this.b = b;
+        }
+    }
+
+    public static class MapBean
+    {
+        Map<String, Integer> a;
+
+        Map<String, Map<Integer, Long>> b;
+
+        public MapBean( Map<String, Integer> a, Map<String, Map<Integer, Long>> b )
         {
             this.a = a;
             this.b = b;
@@ -122,10 +140,15 @@ public class SizeofTest
     }
 
     @Test
-    public void testSizeofList()
+    public void testSizeofEmptyList()
     {
         // just the object header
         assertEquals( 20L, sizeof.sizeof( emptyList() ) );
+    }
+
+    @Test
+    public void testSizeofUnknownElementTypeList()
+    {
         // dynamic list as we do not have a generic type
         // 20 object header wrapper
         // 20 object header size
@@ -144,6 +167,54 @@ public class SizeofTest
         // + 3 * 24 Integer's + 3 * 8 for list structure
         // + 20 object header empty list
         assertEquals( 164L, sizeof.sizeof( new CollectionBean( asList( 1, 2, 3 ), emptyList() ) ) );
+    }
+
+    @Test
+    public void testSizeofListOfListFields()
+    {
+        CollectionBean listOfLists = new CollectionBean( emptyList(),
+            asList( asList( 1L, 2L ), asList( 3L, 4L ), asList( 5L, 6L ) ) );
+        assertEquals( 368L, sizeof.sizeof( listOfLists ) );
+    }
+
+    @Test
+    public void testSizeofEmptyMapFields()
+    {
+        assertEquals( 28L, sizeof.sizeof( new MapBean( null, null ) ) );
+    }
+
+    @Test
+    public void testSizeofSingletonMapFields()
+    {
+        assertEquals( 159L, sizeof.sizeof( new MapBean( singletonMap( "key", 1 ), null ) ) );
+    }
+
+    @Test
+    public void testSizeofHashMapFields()
+    {
+        Map<String, Integer> map = new HashMap<>();
+        map.put( "a", 1 );
+        map.put( "b", 2 );
+        assertEquals( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
+    }
+
+    @Test
+    public void testSizeofTreeMapFields()
+    {
+        Map<String, Integer> map = new TreeMap<>();
+        map.put( "a", 1 );
+        map.put( "b", 2 );
+        assertEquals( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
+    }
+
+    @Test
+    public void testSizeofMapOfMapsFields()
+    {
+        Map<String, Map<Integer, Long>> map = new HashMap<>();
+        map.put( "tree", new TreeMap<>() );
+        map.put( "singleton", singletonMap( 1, 42L ) );
+        map.put( "empty", emptyMap() );
+        assertEquals( 462L, sizeof.sizeof( new MapBean( null, map ) ) );
     }
 
     @Test

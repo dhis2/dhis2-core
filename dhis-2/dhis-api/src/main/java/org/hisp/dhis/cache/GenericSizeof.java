@@ -88,6 +88,7 @@ public final class GenericSizeof implements Sizeof
     {
         this.objectHeaderSize = objectHeaderSize;
         this.unwrap = unwrap;
+        fixedSizeOfType.put( Object.class, -1L );
         fixedSizeOfType.put( Class.class, 0L );
         fixedSizeOfType.put( Constructor.class, 0L );
         fixedSizeOfType.put( Method.class, 0L );
@@ -133,7 +134,7 @@ public final class GenericSizeof implements Sizeof
             sizeofByType.putIfAbsent( genericType, sizeof );
             return sizeof;
         }
-        catch ( Throwable t )
+        catch ( Exception | StackOverflowError t )
         {
             log.error( "sizeof: Failed to compute function for " + type + ": ", t );
             return Sizeof.constant( objectHeaderSize ); // give up
@@ -198,8 +199,8 @@ public final class GenericSizeof implements Sizeof
         Type elementType = getTypeParameter( 0, collectionType );
         if ( elementType instanceof Class )
         {
-            long elementSize = computeFixedSizeof( (Class<?>) elementType );
-            if ( elementSize > 0L )
+            long elementSize = getFixedSize( (Class<?>) elementType );
+            if ( elementSize >= 0L )
             {
                 return Sizeof.collectionOfFixed( objectHeaderSize, elementSize );
             }
@@ -231,7 +232,7 @@ public final class GenericSizeof implements Sizeof
 
     private Sizeof computeFieldBasedSize( Class<?> type )
     {
-        long constantSizeSum = objectHeaderSize;
+        long fixedSizeSum = objectHeaderSize;
         List<Sizeof> parts = new ArrayList<>();
         Class<?> t = type;
         while ( t != null )
@@ -243,7 +244,7 @@ public final class GenericSizeof implements Sizeof
                     long fixedSize = getFixedSize( field.getType() );
                     if ( fixedSize >= 0 )
                     {
-                        constantSizeSum += fixedSize;
+                        fixedSizeSum += fixedSize;
                     }
                     else
                     {
@@ -254,13 +255,13 @@ public final class GenericSizeof implements Sizeof
             }
             t = t.getSuperclass();
         }
-        if ( constantSizeSum > 0 )
+        if ( fixedSizeSum > 0 )
         {
             if ( parts.isEmpty() )
             {
-                return Sizeof.constant( constantSizeSum );
+                return Sizeof.constant( fixedSizeSum );
             }
-            parts.add( Sizeof.constant( constantSizeSum ) );
+            parts.add( Sizeof.constant( fixedSizeSum ) );
         }
         return Sizeof.sum( parts.toArray( new Sizeof[0] ) );
     }

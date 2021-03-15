@@ -366,7 +366,7 @@ public class CappedLocalCache
     private final AtomicReference<Deque<CacheEntry<?>>> highBurdenEntries = new AtomicReference<>(
         new ConcurrentLinkedDeque<>() );
 
-    private final AtomicBoolean watcherStarted = new AtomicBoolean();
+    private final AtomicBoolean guardRunning = new AtomicBoolean();
 
     private final Runtime runtime;
     /*
@@ -472,7 +472,6 @@ public class CappedLocalCache
     @SuppressWarnings( "unchecked" )
     public <V> Cache<V> createRegion( CacheBuilder<V> builder )
     {
-        ensureWatcherThreadStarted();
         return (Cache<V>) regions.computeIfAbsent( builder.getRegion(),
             region -> new CacheRegion<>( builder, sizeof, this::sizeUpdate ) );
     }
@@ -481,13 +480,14 @@ public class CappedLocalCache
      * We do start the thread lazily by intention so that it is only active if
      * this cache is actually used with at least one {@link CacheRegion}.
      */
-    private void ensureWatcherThreadStarted()
+    private void ensureGuardThreadRunningWhenNeeded()
     {
-        if ( watcherStarted.compareAndSet( false, true ) )
+        if ( totalSize.get() > 0L && guardRunning.compareAndSet( false, true ) )
         {
+            log.info( "Starting capped cache cap guard." );
             Thread watcher = new Thread( this::runCacheWatcher );
             watcher.setDaemon( true );
-            watcher.setName( "Local Cache Watcher" );
+            watcher.setName( "Capped Local Cache Guard" );
             watcher.start();
         }
     }
@@ -499,6 +499,7 @@ public class CappedLocalCache
         {
             free( sizeDelta ); // try compensate
         }
+        ensureGuardThreadRunningWhenNeeded();
     }
 
     private void freeProtectRuntime()
@@ -605,9 +606,9 @@ public class CappedLocalCache
 
     private void runCacheWatcher()
     {
-        try
+        while ( totalSize.get() > 0L )
         {
-            while ( true )
+            try
             {
                 long start = currentTimeMillis();
                 long duration = currentTimeMillis() - start;
@@ -619,11 +620,12 @@ public class CappedLocalCache
                     waitFor( delay );
                 }
             }
+            catch ( RuntimeException ex )
+            {
+                log.error( "Cache guard threw exception", ex );
+            }
         }
-        catch ( RuntimeException ex )
-        {
-            log.error( "Cache watcher threw exception", ex );
-        }
+        guardRunning.compareAndSet( true, false );
     }
 
     private void updateHighBurdenState()
