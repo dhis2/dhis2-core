@@ -33,8 +33,7 @@ import org.hisp.dhis.notification.NotificationRecipient;
  * Created by zubair on 26.06.17.
  */
 public enum DataSetNotificationRecipient
-    implements
-    NotificationRecipient
+    implements NotificationRecipient
 {
     ORGANISATION_UNIT_CONTACT( true ),
     USER_GROUP( false );
