@@ -152,7 +152,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+        when( loggingService.getByKey( anyString() ) )
+            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
@@ -180,7 +181,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+        when( loggingService.getByKey( anyString() ) )
+            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
@@ -236,7 +238,8 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             return logEntry;
         } ).when( loggingService ).save( any() );
 
-        when( loggingService.getByKey( anyString() ) ).thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
+        when( loggingService.getByKey( anyString() ) )
+            .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
         String key = template.getUid() + programInstance.getUid();
 
