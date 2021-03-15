@@ -28,7 +28,6 @@
 package org.hisp.dhis.system.notification;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -39,7 +38,7 @@ import org.hisp.dhis.scheduling.JobType;
  */
 public class NotificationMap
 {
-    private final static int MAX_POOL_TYPE_SIZE = 500;
+    public final static int MAX_POOL_TYPE_SIZE = 500;
 
     private Map<JobType, Map<String, List<Notification>>> notificationsWithType;
 
@@ -49,11 +48,11 @@ public class NotificationMap
     {
         notificationsWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
-            .forEach( jobType -> notificationsWithType.put( jobType, new ConcurrentHashMap<>() ) );
+            .forEach( jobType -> notificationsWithType.put( jobType, new LinkedHashMap<>() ) );
 
         summariesWithType = new HashMap<>();
         Arrays.stream( JobType.values() )
-            .forEach( jobType -> summariesWithType.put( jobType, new ConcurrentHashMap<>() ) );
+            .forEach( jobType -> summariesWithType.put( jobType, new LinkedHashMap<>() ) );
     }
 
     public Map<JobType, Map<String, List<Notification>>> getNotifications()
@@ -61,7 +60,7 @@ public class NotificationMap
         return notificationsWithType;
     }
 
-    public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    public synchronized List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
         return Optional.ofNullable( notificationsWithType.get( jobType ) )
             .map( n -> n.get( jobId ) )
@@ -69,7 +68,7 @@ public class NotificationMap
             .orElse( new LinkedList<>() );
     }
 
-    public Map<String, List<Notification>> getNotificationsWithType( JobType jobType )
+    public synchronized Map<String, List<Notification>> getNotificationsWithType( JobType jobType )
     {
         return notificationsWithType.get( jobType )
             .entrySet()
@@ -79,7 +78,7 @@ public class NotificationMap
                 e -> e.getValue() != null ? new LinkedList<>( e.getValue() ) : new LinkedList<>() ) );
     }
 
-    synchronized public void add( JobConfiguration jobConfiguration, Notification notification )
+    public synchronized void add( JobConfiguration jobConfiguration, Notification notification )
     {
         String uid = jobConfiguration.getUid();
 
@@ -109,7 +108,7 @@ public class NotificationMap
         notificationsWithType.put( jobConfiguration.getJobType(), uidNotifications );
     }
 
-    synchronized public void addSummary( JobConfiguration jobConfiguration, Object summary )
+    public synchronized void addSummary( JobConfiguration jobConfiguration, Object summary )
     {
         Map<String, Object> summaries = summariesWithType.get( jobConfiguration.getJobType() );
 
