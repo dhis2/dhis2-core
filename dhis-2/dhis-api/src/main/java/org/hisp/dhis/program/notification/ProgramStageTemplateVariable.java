@@ -53,8 +53,7 @@ import org.hisp.dhis.notification.TemplateVariable;
  * @author Halvdan Hoem Grelland
  */
 public enum ProgramStageTemplateVariable
-    implements
-    TemplateVariable
+    implements TemplateVariable
 {
     PROGRAM_NAME( "program_name" ),
     PROGRAM_STAGE_NAME( "program_stage_name" ),
