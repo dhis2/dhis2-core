@@ -53,10 +53,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@RequestMapping( "/analytics/enrollments" )
 public class EnrollmentAnalyticsController
 {
-    private static final String RESOURCE_PATH = "/analytics/enrollments";
-
     @Autowired
     private EventDataQueryService eventDataQueryService;
 
@@ -66,7 +65,7 @@ public class EnrollmentAnalyticsController
     @Autowired
     private ContextUtils contextUtils;
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}", method = RequestMethod.GET, produces = {
+    @RequestMapping( value = "/query/{program}", method = RequestMethod.GET, produces = {
         "application/json", "application/javascript" } )
     public @ResponseBody Grid getQueryJson( // JSON, JSONP
         @PathVariable String program,
@@ -81,7 +80,7 @@ public class EnrollmentAnalyticsController
         return analyticsService.getEnrollments( params );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xml", method = RequestMethod.GET )
+    @RequestMapping( value = "/query/{program}.xml", method = RequestMethod.GET )
     public void getQueryXml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -98,7 +97,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toXml( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.xls", method = RequestMethod.GET )
+    @RequestMapping( value = "/query/{program}.xls", method = RequestMethod.GET )
     public void getQueryXls(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -115,7 +114,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toXls( grid, response.getOutputStream() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.csv", method = RequestMethod.GET )
+    @RequestMapping( value = "/query/{program}.csv", method = RequestMethod.GET )
     public void getQueryCsv(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -132,7 +131,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toCsv( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html", method = RequestMethod.GET )
+    @RequestMapping( value = "/query/{program}.html", method = RequestMethod.GET )
     public void getQueryHtml(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
@@ -149,7 +148,7 @@ public class EnrollmentAnalyticsController
         GridUtils.toHtml( grid, response.getWriter() );
     }
 
-    @RequestMapping( value = RESOURCE_PATH + "/query/{program}.html+css", method = RequestMethod.GET )
+    @RequestMapping( value = "/query/{program}.html+css", method = RequestMethod.GET )
     public void getQueryHtmlCss(
         @PathVariable String program,
         EnrollmentAnalyticsQueryCriteria criteria,
