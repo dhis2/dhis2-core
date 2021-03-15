@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.dxf2.events.importer.update.postprocess;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
@@ -43,26 +41,7 @@ public class PublishEventPostProcessor
     @Override
     public void process( final Event event, final WorkContext ctx )
     {
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( final DataValue dv : event.getDataValues() )
-        {
-            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
-
-            if ( dataElement != null )
-            {
-                // TODO: luciano preload the value
-                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
-
-        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
+        if ( !ctx.getImportOptions().isSkipNotifications() )
         {
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
                 new DataValueUpdatedEvent( this, event.getEvent() ) );
