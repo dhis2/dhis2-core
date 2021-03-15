@@ -73,14 +73,6 @@ public interface NotificationLoggingService
 
     /**
      *
-     * @param templateUid Uid of the template which needs to be sent.
-     * @return true in case there is no log entry for this template uid or
-     *         template is eligible for sending more then once. Otherwise false.
-     */
-    boolean isValidForSending( String templateUid );
-
-    /**
-     *
      * @param entry to be saved.
      */
     void save( ExternalNotificationLogEntry entry );

@@ -81,15 +81,6 @@ public class DefaultNotificationLoggingService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isValidForSending( String key )
-    {
-        ExternalNotificationLogEntry logEntry = getByKey( key );
-
-        return logEntry == null || logEntry.isAllowMultiple();
-    }
-
-    @Override
-    @Transactional( readOnly = true )
     public ExternalNotificationLogEntry getByTemplateUid( String templateUid )
     {
         return notificationLoggingStore.getByTemplateUid( templateUid );

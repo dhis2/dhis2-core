@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.programrule.engine;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
+import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -84,23 +87,20 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
     {
-        if ( !validate( ruleEffect, programInstance ) )
+        NotificationValidationResult result = validate( ruleEffect, programInstance );
+
+        if ( !result.isValid() )
         {
             return;
         }
 
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
-
-        if ( template == null )
-        {
-            return;
-        }
+        ProgramNotificationTemplate template = result.getTemplate();
 
         String key = generateKey( template, programInstance );
 
         publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance.getId() ) );
 
-        if ( notificationLoggingService.getByKey( key ) != null )
+        if ( result.getLogEntry() != null )
         {
             return;
         }
@@ -115,7 +115,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
     {
-        checkNulls( ruleEffect, programStageInstance );
+        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+
+        NotificationValidationResult result = validate( ruleEffect, programStageInstance.getProgramInstance() );
 
         // For program without registration
         if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
@@ -124,23 +126,20 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
             return;
         }
 
-        if ( !validate( ruleEffect, programStageInstance.getProgramInstance() ) )
+        if ( !result.isValid() )
         {
             return;
         }
 
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+        ProgramInstance pi = programStageInstance.getProgramInstance();
 
-        if ( template == null )
-        {
-            return;
-        }
+        ProgramNotificationTemplate template = result.getTemplate();
 
-        String key = generateKey( template, programStageInstance.getProgramInstance() );
+        String key = generateKey( template, pi );
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), pi.getId() ) );
 
-        if ( notificationLoggingService.getByKey( key ) != null )
+        if ( result.getLogEntry() != null )
         {
             return;
         }
