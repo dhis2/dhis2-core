@@ -69,37 +69,7 @@
     {
       "created": "2016-03-10T05:00:11.778+0000",
       "authorities": [
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
-        "ALL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_ADD",
-        "F_TRACKED_ENTITY_INSTANCE_DELETE",
-        "F_USER_GROUPS_READ_ONLY_ADD_MEMBERS",
-        "F_MAP_PUBLIC_ADD",
-        "F_USER_ADD_WITHIN_MANAGED_GROUP",
-        "F_TRACKED_ENTITY_INSTANCE_SEARCH",
-        "F_PROGRAM_ENROLLMENT",
-        "F_SQLVIEW_EXTERNAL",
-        "F_GIS_ADMIN",
-        "F_REPLICATE_USER",
-        "F_INSERT_CUSTOM_JS_CSS",
-        "F_DASHBOARD_PUBLIC_ADD",
-        "F_METADATA_IMPORT",
-        "F_VISUALIZATION_PUBLIC_ADD",
-        "F_VIEW_UNAPPROVED_DATA",
-        "F_VISUALIZATION_EXTERNAL",
-        "F_USERGROUP_MANAGING_RELATIONSHIPS_VIEW",
-        "F_METADATA_EXPORT",
-        "F_PROGRAM_UNENROLLMENT",
-        "F_APPROVE_DATA",
-        "F_ACCEPT_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_INSTANCE_ADD",
-        "F_USERGROUP_PUBLIC_ADD",
-        "F_OAUTH2_CLIENT_MANAGE",
-        "F_TRACKED_ENTITY_DATAVALUE_ADD",
-        "F_PROGRAM_DASHBOARD_CONFIG_ADMIN",
-        "F_MAP_EXTERNAL",
-        "F_APPROVE_DATA_LOWER_LEVELS",
-        "F_TRACKED_ENTITY_DATAVALUE_DELETE"
+        "ALL"
       ],
       "userGroupAccesses": [],
       "dataSets": [],
@@ -197,38 +167,6 @@
       "notificationTemplates": [],
       "programStageDataElements": [
         {
-          "lastUpdated": "2016-12-06T16:37:46.077",
-          "id": "d9wIqlzSMgE",
-          "created": "2016-04-01T15:07:12.695",
-          "displayInReports": true,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "allowFutureDate": false,
-          "compulsory": true,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 0,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": false,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "pTo4uMt3xur"
-          },
-          "dataElement": {
-            "id": "qrur9Dvnyt5"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-        {
           "lastUpdated": "2016-12-06T16:37:46.104",
           "id": "FKHaErzkvEF",
           "created": "2016-04-01T15:07:12.723",
@@ -239,38 +177,6 @@
           "compulsory": true,
           "allowProvidedElsewhere": false,
           "sortOrder": 1,
-          "favorite": false,
-          "access": {
-            "read": true,
-            "update": true,
-            "externalize": false,
-            "delete": true,
-            "write": true,
-            "manage": true
-          },
-          "programStage": {
-            "id": "pTo4uMt3xur"
-          },
-          "dataElement": {
-            "id": "oZg33kd9taw"
-          },
-          "favorites": [],
-          "translations": [],
-          "userGroupAccesses": [],
-          "attributeValues": [],
-          "userAccesses": []
-        },
-        {
-          "lastUpdated": "2016-12-06T16:37:46.116",
-          "id": "Zrem1VAqA8r",
-          "created": "2016-12-06T16:37:46.115",
-          "displayInReports": false,
-          "skipSynchronization": false,
-          "externalAccess": false,
-          "allowFutureDate": false,
-          "compulsory": false,
-          "allowProvidedElsewhere": false,
-          "sortOrder": 2,
           "favorite": false,
           "access": {
             "read": true,
@@ -315,49 +221,9 @@
       "publicAccess": "rw------",
       "zeroIsSignificant": false,
       "userGroupAccesses": [],
-      "valueType": "COORDINATE",
+      "valueType": "TEXT",
       "created": "2016-03-10T05:02:18.868+0000",
       "domainType": "AGGREGATE"
-    },
-    {
-      "name": "DataElementB",
-      "code": "DataElementCodeB",
-      "user": {
-        "id": "VIkpd2KHCb1"
-      },
-      "lastUpdated": "2016-03-10T05:02:47.024+0000",
-      "id": "oZg33kd9taw",
-      "aggregationType": "SUM",
-      "aggregationLevels": [],
-      "zeroIsSignificant": false,
-      "publicAccess": "rw------",
-      "domainType": "AGGREGATE",
-      "created": "2016-03-10T05:02:47.023+0000",
-      "valueType": "TEXT",
-      "userGroupAccesses": [],
-      "description": "DataElementDescriptionB",
-      "attributeValues": [],
-      "shortName": "DataElementShortB"
-    },
-    {
-      "lastUpdated": "2016-03-10T05:04:44.334+0000",
-      "user": {
-        "id": "VIkpd2KHCb1"
-      },
-      "name": "DataElementC",
-      "code": "DataElementCodeC",
-      "aggregationLevels": [],
-      "id": "qrur9Dvnyt5",
-      "aggregationType": "SUM",
-      "publicAccess": "rw------",
-      "zeroIsSignificant": false,
-      "valueType": "NUMBER",
-      "userGroupAccesses": [],
-      "domainType": "AGGREGATE",
-      "created": "2016-03-10T05:04:44.329+0000",
-      "description": "DataElementDescriptionC",
-      "shortName": "DataElementShortC",
-      "attributeValues": []
     }
   ]
 }
