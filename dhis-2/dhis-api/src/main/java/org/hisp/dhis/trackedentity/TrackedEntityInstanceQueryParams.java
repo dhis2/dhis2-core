@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
-import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -242,7 +241,7 @@ public class TrackedEntityInstanceQueryParams
      * Indicates whether paging should be skipped.
      */
     private boolean skipPaging;
-    
+
     /**
      * Indicates if there is a maximum tei retrieval limit. 0 no limit.
      */
@@ -1154,7 +1153,7 @@ public class TrackedEntityInstanceQueryParams
         this.skipPaging = skipPaging;
         return this;
     }
-    
+
     public int getMaxTeiLimit()
     {
         return maxTeiLimit;
@@ -1295,7 +1294,7 @@ public class TrackedEntityInstanceQueryParams
     {
         this.trackedEntityTypes = trackedEntityTypes;
     }
-    
+
     public boolean hasFilterForPrograms()
     {
         return hasProgramStatus() || hasFollowUp() || hasProgramEnrollmentStartDate() || hasProgramEnrollmentEndDate()
