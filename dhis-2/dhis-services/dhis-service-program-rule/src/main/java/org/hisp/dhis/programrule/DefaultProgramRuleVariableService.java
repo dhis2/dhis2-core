@@ -71,7 +71,6 @@ public class DefaultProgramRuleVariableService
     public long addProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.save( programRuleVariable );
-        programRuleVariablesCache.invalidateAll();
         return programRuleVariable.getId();
     }
 
@@ -88,7 +87,6 @@ public class DefaultProgramRuleVariableService
     public void updateProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.update( programRuleVariable );
-        programRuleVariablesCache.invalidateAll();
     }
 
     @Override
@@ -114,7 +112,7 @@ public class DefaultProgramRuleVariableService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
     {
         return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
             List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
@@ -122,7 +120,6 @@ public class DefaultProgramRuleVariableService
             return !ruleVariables.isEmpty();
         } )
             .orElse( false );
-
     }
 
     @Override
