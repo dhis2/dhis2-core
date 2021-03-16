@@ -75,7 +75,7 @@ public class ProgramNotificationPostProcessor implements Processor
             }
 
             ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                    new TrackerEventWebHookEvent( this, event.getEvent() ) );
+                new TrackerEventWebHookEvent( this, event.getEvent() ) );
         }
     }
 

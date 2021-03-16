@@ -73,7 +73,6 @@ public enum NotificationTrigger
      */
     SCHEDULED_DAYS_ENROLLMENT_DATE;
 
-
     private static final Set<NotificationTrigger> IMMEDIATE_TRIGGERS = new ImmutableSet.Builder<NotificationTrigger>()
         .add( ENROLLMENT, COMPLETION, PROGRAM_RULE ).build();
 

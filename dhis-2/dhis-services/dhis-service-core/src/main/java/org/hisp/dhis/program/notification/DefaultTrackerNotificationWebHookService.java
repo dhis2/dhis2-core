@@ -1,3 +1,30 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.program.notification;
 
 /*
@@ -28,10 +55,18 @@ package org.hisp.dhis.program.notification;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.google.common.collect.Lists;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
+
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.ProgramInstance;
@@ -50,13 +85,7 @@ import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import javax.annotation.Nonnull;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import com.google.common.collect.Lists;
 
 /**
  * @author Zubair Asghar
@@ -87,7 +116,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
             .collect( Collectors.toList() );
 
         Map<String, String> payload = new HashMap<>();
-        ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
+        ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS
+            .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
         sendPost( templates, payload.toString() );
     }
 
@@ -99,11 +129,12 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
         List<ProgramNotificationTemplate> templates = instance.getProgramStage().getNotificationTemplates()
             .stream()
-                .filter( t -> t.getNotificationRecipient() == ProgramNotificationRecipient.WEB_HOOK )
-            .collect(Collectors.toList());
+            .filter( t -> t.getNotificationRecipient() == ProgramNotificationRecipient.WEB_HOOK )
+            .collect( Collectors.toList() );
 
         Map<String, String> payload = new HashMap<>();
-        ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS.forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
+        ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
+            .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
         sendPost( templates, payload.toString() );
     }
 
@@ -116,7 +147,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
         HttpEntity<String> httpEntity = new HttpEntity<>( payload, httpHeaders );
 
-        for ( ProgramNotificationTemplate t: templates )
+        for ( ProgramNotificationTemplate t : templates )
         {
             URI uri = UriComponentsBuilder.fromHttpUrl( t.getMessageTemplate() ).build().encode().toUri();
 
