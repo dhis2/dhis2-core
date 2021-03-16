@@ -104,7 +104,7 @@ public class EventImportWithMetadataTest extends DhisSpringTest
     }
 
     @Test
-    public void shouldSuccessCsvLookUpByCode()
+    public void shouldSuccessImportCsvLookUpByCode()
     {
         idSchemes.setIdScheme( "CODE" );
         ImportOptions importOptions = new ImportOptions();
