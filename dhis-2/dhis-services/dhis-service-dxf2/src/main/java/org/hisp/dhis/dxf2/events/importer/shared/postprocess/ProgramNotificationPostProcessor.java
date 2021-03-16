@@ -39,6 +39,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
+import org.hisp.dhis.programrule.engine.TrackerEventWebHookEvent;
 import org.springframework.context.ApplicationEventPublisher;
 
 /**
@@ -72,6 +73,9 @@ public class ProgramNotificationPostProcessor implements Processor
                 applicationEventPublisher
                     .publishEvent( new StageScheduledEvaluationEvent( this, programStageInstance.getUid() ) );
             }
+
+            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
+                    new TrackerEventWebHookEvent( this, event.getEvent() ) );
         }
     }
 

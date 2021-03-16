@@ -68,6 +68,9 @@ public class ProgramNotificationTemplate
 
     private Boolean notifyParentOrganisationUnitOnly;
 
+    // only valid when notification recipient is WEB_HOOK
+    private String webHookUrl;
+
     // -------------------------------------------------------------------------
     // Conditionally relevant properties
     // -------------------------------------------------------------------------
@@ -131,6 +134,18 @@ public class ProgramNotificationTemplate
     public void setMessageTemplate( String messageTemplate )
     {
         this.messageTemplate = messageTemplate;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public String getWebHookUrl()
+    {
+        return webHookUrl;
+    }
+
+    public void setWebHookUrl( String webHookUrl )
+    {
+        this.webHookUrl = webHookUrl;
     }
 
     @JsonProperty

@@ -52,7 +52,7 @@ import com.google.common.collect.Maps;
 public class ProgramStageNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramStageInstance>
 {
-    private static final ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramStageInstance, String>>()
+    public static final ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramStageInstance, String>>()
         .put( ProgramStageTemplateVariable.PROGRAM_NAME, psi -> psi.getProgramStage().getProgram().getDisplayName() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_NAME, psi -> psi.getProgramStage().getDisplayName() )
         .put( ProgramStageTemplateVariable.ORG_UNIT_NAME, psi -> psi.getOrganisationUnit().getDisplayName() )
