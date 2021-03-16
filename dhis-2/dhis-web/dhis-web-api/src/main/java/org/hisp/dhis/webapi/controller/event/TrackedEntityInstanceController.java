@@ -47,6 +47,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -160,6 +161,12 @@ public class TrackedEntityInstanceController
 
         int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
 
+        if ( queryParams.getMaxTeiLimit() > 0 && count > 0
+            && count > queryParams.getMaxTeiLimit() )
+        {
+            throw new IllegalQueryException( "maxteicountreached" );
+        }
+        
         if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
