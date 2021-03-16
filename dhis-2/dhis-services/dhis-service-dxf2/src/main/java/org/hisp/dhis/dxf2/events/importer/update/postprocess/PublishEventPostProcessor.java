@@ -53,7 +53,7 @@ public class PublishEventPostProcessor
             {
                 // TODO: luciano preload the value
                 isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariable( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
+                    .isLinkedToProgramRuleVariableCached( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
 
                 if ( isLinkedWithRuleVariable )
                 {

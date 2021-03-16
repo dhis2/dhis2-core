@@ -28,11 +28,16 @@
 package org.hisp.dhis.programrule;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,17 +48,32 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultProgramRuleVariableService
     implements ProgramRuleVariableService
 {
+
+    private final Environment environment;
+
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
 
     private ProgramRuleVariableStore programRuleVariableStore;
 
-    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore )
+    private final Cache<Boolean> programRuleVariablesCache;
+
+    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore,
+        CacheProvider cacheProvider, Environment environment )
     {
         checkNotNull( programRuleVariableStore );
+        checkNotNull( environment );
 
         this.programRuleVariableStore = programRuleVariableStore;
+        this.environment = environment;
+        final boolean nonTestEnv = !isTestRun( this.environment.getActiveProfiles() );
+
+        this.programRuleVariablesCache = cacheProvider.newCacheBuilder( Boolean.class )
+            .forRegion( "programRuleVariablesCache" )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withMaximumSize( nonTestEnv ? 1000 : 0 )
+            .build();
     }
 
     // -------------------------------------------------------------------------
@@ -73,6 +93,7 @@ public class DefaultProgramRuleVariableService
     public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.delete( programRuleVariable );
+        programRuleVariablesCache.invalidateAll();
     }
 
     @Override
@@ -105,11 +126,14 @@ public class DefaultProgramRuleVariableService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
     {
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
-
-        return !ruleVariables.isEmpty();
+        return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
+            List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
+                .getProgramVariables( program, dataElement );
+            return !ruleVariables.isEmpty();
+        } )
+            .orElse( false );
     }
 
     @Override
