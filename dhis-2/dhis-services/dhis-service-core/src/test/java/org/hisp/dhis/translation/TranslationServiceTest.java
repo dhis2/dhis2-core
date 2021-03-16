@@ -243,17 +243,17 @@ public class TranslationServiceTest
         manager.save( ecA );
 
         Set<Translation> translations = new HashSet<>();
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.CHART_BASE_LINE_LABEL,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.baseLineLabel,
             "translated BaseLineLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.CHART_DOMAIN_AXIS_LABEL,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.domainAxisLabel,
             "translated DomainAxisLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.CHART_RANGE_AXIS_LABEL,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.rangeAxisLabel,
             "translated RangeAxisLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.CHART_TARGET_LINE_LABEL,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.targetLineLabel,
             "translated TargetLineLabel" ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.TITLE,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.title,
             "translated Title" ) );
-        translations.add( new Translation( locale.getLanguage(), TranslationProperty.SUBTITLE,
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.subtitle,
             "translated SubTitle" ) );
 
         manager.updateTranslations( ecA, translations );
