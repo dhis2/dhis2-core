@@ -73,6 +73,7 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -104,6 +105,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     @Nonnull
     private final RestTemplate restTemplate;
 
+    @Nonnull
+    private final RenderService renderService;
+
     @Override
     @Transactional
     public void handleEnrollment( String pi )
@@ -118,7 +122,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         Map<String, String> payload = new HashMap<>();
         ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS
             .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
-        sendPost( templates, payload.toString() );
+        sendPost( templates, renderService.toJsonAsString( payload ) );
     }
 
     @Override
@@ -135,7 +139,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         Map<String, String> payload = new HashMap<>();
         ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
             .forEach( ( key, value ) -> payload.put( key.name(), value.apply( instance ) ) );
-        sendPost( templates, payload.toString() );
+        sendPost( templates, renderService.toJsonAsString( payload ) );
     }
 
     private void sendPost( List<ProgramNotificationTemplate> templates, String payload )
