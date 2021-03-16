@@ -181,8 +181,8 @@ public class ProgramRuleVariableServiceTest
         variableService.addProgramRuleVariable( variableA );
         variableService.addProgramRuleVariable( variableB );
 
-        assertTrue( variableService.isLinkedToProgramRuleVariable( programA, dataElementA ) );
-        assertTrue( variableService.isLinkedToProgramRuleVariable( programA, dataElementB ) );
+        assertTrue( variableService.isLinkedToProgramRuleVariableCached( programA, dataElementA ) );
+        assertTrue( variableService.isLinkedToProgramRuleVariableCached( programA, dataElementB ) );
     }
 
     @Test
@@ -192,7 +192,7 @@ public class ProgramRuleVariableServiceTest
 
         variableService.addProgramRuleVariable( variableA );
 
-        assertFalse( variableService.isLinkedToProgramRuleVariable( programA, dataElementC ) );
+        assertFalse( variableService.isLinkedToProgramRuleVariableCached( programA, dataElementC ) );
     }
 
     @Test
