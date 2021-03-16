@@ -2654,7 +2654,8 @@ public abstract class AbstractEventService
 
             if ( dataElement != null )
             {
-                isLinkedWithRuleVariable = ruleVariableService.isLinkedToProgramRuleVariable( program, dataElement );
+                isLinkedWithRuleVariable = ruleVariableService
+                    .isLinkedToProgramRuleVariableCached( program, dataElement );
 
                 if ( isLinkedWithRuleVariable )
                 {
