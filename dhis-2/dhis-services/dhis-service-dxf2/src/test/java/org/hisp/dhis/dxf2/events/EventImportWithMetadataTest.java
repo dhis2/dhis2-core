@@ -47,21 +47,19 @@ public class EventImportWithMetadataTest extends DhisSpringTest
     @Autowired
     private MetadataImportService importService;
 
+    private static IdSchemes idSchemes = new IdSchemes();
+
+    private static Events events;
+
     @Override
     protected void setUpTest()
         throws Exception
     {
         renderService = _renderService;
         userService = _userService;
-    }
 
-    @Test
-    public void shouldImportCsv()
-        throws IOException,
-        ParseException
-    {
         Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource("dxf2/import/create_program_stages.json").getInputStream(), RenderFormat.JSON );
+            new ClassPathResource( "dxf2/import/create_program_stages.json" ).getInputStream(), RenderFormat.JSON );
 
         MetadataImportParams params = new MetadataImportParams();
         params.setImportMode( ObjectBundleMode.COMMIT );
@@ -72,19 +70,35 @@ public class EventImportWithMetadataTest extends DhisSpringTest
         ImportReport report = importService.importMetadata( params );
         assertEquals( Status.OK, report.getStatus() );
 
-        ImportOptions importOptions = new ImportOptions();
-        IdSchemes idSchemes = new IdSchemes();
         idSchemes.setDataElementIdScheme( "UID" );
         idSchemes.setOrgUnitIdScheme( "CODE" );
-        idSchemes.setProgramStageIdScheme( "UID" );
-        idSchemes.setIdScheme( "CODE" );
+        idSchemes.setProgramStageInstanceIdScheme( "UID" );
 
+        events = csvEventService
+            .readEvents( new ClassPathResource( "dxf2/import/csv/events_import_code.csv" ).getInputStream(), true );
+    }
+
+    @Test
+    public void shouldSuccessCsvLookUpByCode()
+    {
+        idSchemes.setIdScheme( "CODE" );
+        ImportOptions importOptions = new ImportOptions();
         importOptions.setIdSchemes( idSchemes );
 
-        Events events = csvEventService
-            .readEvents( new ClassPathResource( "dxf2/import/events-5b.csv" ).getInputStream(), true );
         ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
 
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
+    }
+
+    @Test
+    public void shouldFailImportCsvLookUpByUid()
+    {
+        idSchemes.setIdScheme( "UID" );
+        ImportOptions importOptions = new ImportOptions();
+        importOptions.setIdSchemes( idSchemes );
+
+        ImportSummaries importSummaries = eventService.addEvents( events.getEvents(), importOptions, null );
+
+        assertEquals( ImportStatus.ERROR, importSummaries.getStatus() );
     }
 }
