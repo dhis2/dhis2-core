@@ -110,6 +110,7 @@ public class DefaultCacheProvider
         dataElementCache,
         propertyTransformerCache,
         programRulesCache,
+        programRuleVariablesCache,
         userGroupNameCache,
         userDisplayNameCache
     }
@@ -427,6 +428,18 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.programRulesCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
+            .build() );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramRuleVariablesCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programRuleVariablesCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
