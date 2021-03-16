@@ -1123,7 +1123,7 @@ public abstract class BaseAnalyticalObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayTitle()
     {
-        return getTranslation( TranslationProperty.TITLE, getTitle() );
+        return getTranslation( TranslationProperty.title, getTitle() );
     }
 
     public void setTitle( String title )
@@ -1142,7 +1142,7 @@ public abstract class BaseAnalyticalObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplaySubtitle()
     {
-        return getTranslation( TranslationProperty.SUBTITLE, getSubtitle() );
+        return getTranslation( TranslationProperty.subtitle, getSubtitle() );
     }
 
     public void setSubtitle( String subtitle )
