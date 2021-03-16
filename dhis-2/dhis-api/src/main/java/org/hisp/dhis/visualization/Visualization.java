@@ -841,7 +841,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayDomainAxisLabel()
     {
-        return getTranslation( TranslationProperty.CHART_DOMAIN_AXIS_LABEL, getDomainAxisLabel() );
+        return getTranslation( TranslationProperty.domainAxisLabel, getDomainAxisLabel() );
     }
 
     public void setDomainAxisLabel( String domainAxisLabel )
@@ -860,7 +860,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayRangeAxisLabel()
     {
-        return getTranslation( TranslationProperty.CHART_RANGE_AXIS_LABEL, getRangeAxisLabel() );
+        return getTranslation( TranslationProperty.rangeAxisLabel, getRangeAxisLabel() );
     }
 
     public void setRangeAxisLabel( String rangeAxisLabel )
@@ -915,7 +915,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayBaseLineLabel()
     {
-        return getTranslation( TranslationProperty.CHART_BASE_LINE_LABEL, getBaseLineLabel() );
+        return getTranslation( TranslationProperty.baseLineLabel, getBaseLineLabel() );
     }
 
     public void setBaseLineLabel( String baseLineLabel )
@@ -934,7 +934,7 @@ public class Visualization
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDisplayTargetLineLabel()
     {
-        return getTranslation( TranslationProperty.CHART_TARGET_LINE_LABEL, getTargetLineLabel() );
+        return getTranslation( TranslationProperty.targetLineLabel, getTargetLineLabel() );
     }
 
     public void setTargetLineLabel( String targetLineLabel )
