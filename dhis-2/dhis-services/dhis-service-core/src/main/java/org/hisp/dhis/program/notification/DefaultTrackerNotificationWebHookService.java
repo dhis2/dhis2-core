@@ -118,7 +118,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
         for ( ProgramNotificationTemplate t: templates )
         {
-            URI uri = UriComponentsBuilder.fromHttpUrl( t.getWebHookUrl() ).build().encode().toUri();
+            URI uri = UriComponentsBuilder.fromHttpUrl( t.getMessageTemplate() ).build().encode().toUri();
 
             try
             {
@@ -137,7 +137,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
                 log.error( "Error " + ex.getMessage() );
             }
 
-            if ( SmsGateway.OK_CODES.contains( responseEntity.getStatusCode() ) )
+            if ( responseEntity != null && SmsGateway.OK_CODES.contains( responseEntity.getStatusCode() ) )
             {
                 log.info( "Post request to url: " + t.getMessageTemplate() + " successful." );
             }
