@@ -39,6 +39,7 @@ import org.hisp.dhis.cache.CacheInfo.CacheGroupInfo;
 import org.hisp.dhis.cache.CappedLocalCache;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,6 +57,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Controller
 @RequestMapping( value = "/caches" )
 @RequiredArgsConstructor
+@PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
 public class CacheController
 {
 

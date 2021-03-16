@@ -692,7 +692,7 @@ public class CappedLocalCache
         long totalNonExpiredSize = regionsInfo.stream().mapToLong( CacheGroupInfo::getSize ).sum();
         CacheGroupInfo total = new CacheGroupInfo( "total",
             regionsInfo.stream().mapToInt( CacheGroupInfo::getEntries ).sum(),
-            regionsInfo.stream().mapToLong( CacheGroupInfo::getHints ).sum(),
+            regionsInfo.stream().mapToLong( CacheGroupInfo::getHits ).sum(),
             regionsInfo.stream().mapToLong( CacheGroupInfo::getMisses ).sum(),
             totalNonExpiredSize,
             getRelativeBurden( totalBurden, totalNonExpiredSize ) );

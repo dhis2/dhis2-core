@@ -70,7 +70,7 @@ public final class CacheInfo
         private final int entries;
 
         @JsonProperty
-        private final long hints;
+        private final long hits;
 
         @JsonProperty
         private final long misses;
@@ -105,7 +105,7 @@ public final class CacheInfo
         @JsonProperty
         public float getHitsMissesRatio()
         {
-            return misses == 0 ? Float.MAX_VALUE : hints / (float) misses;
+            return misses == 0 ? Float.MAX_VALUE : hits / (float) misses;
         }
     }
 
