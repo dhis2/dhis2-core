@@ -32,6 +32,7 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CHANGELOG_TRACKER;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
 import javax.annotation.PostConstruct;
@@ -467,8 +468,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * @param program
      * @return a String representing a record of ownership
      */
-    private String getOwnershipCacheKey( Supplier<Long> trackedEntityInstanceIdSupplier, Program program )
+    private String getOwnershipCacheKey( LongSupplier trackedEntityInstanceIdSupplier, Program program )
     {
-        return trackedEntityInstanceIdSupplier.get() + "_" + program.getUid();
+        return trackedEntityInstanceIdSupplier.getAsLong() + "_" + program.getUid();
     }
 }

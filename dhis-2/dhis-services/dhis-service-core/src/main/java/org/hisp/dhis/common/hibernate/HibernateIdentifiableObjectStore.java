@@ -63,8 +63,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author bobj
  */
