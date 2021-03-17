@@ -67,7 +67,9 @@ import javax.persistence.criteria.Root;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
@@ -76,6 +78,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -907,9 +910,51 @@ public class HibernateTrackedEntityInstanceStore
     @SuppressWarnings( "unchecked" )
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
-        return getSharingCriteria( user )
-            .add( Restrictions.in( "uid", uids ) )
-            .list();
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+
+        List<TrackedEntityInstance> instances = new ArrayList<>();
+        for ( List<String> partition : uidPartitions )
+        {
+            instances.addAll(
+                getSharingCriteria( user )
+                    .add( Restrictions.in( "uid", partition ) )
+                    .list() );
+        }
+        return instances;
+    }
+
+    @Override
+    @SuppressWarnings( "unchecked" )
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+
+        List<EventContext.TrackedEntityOuInfo> instances = new ArrayList<>();
+
+        for ( List<String> partition : uidPartitions )
+        {
+            Criteria criteria = getSharingCriteria( user )
+                .add( Restrictions.in( "uid", partition ) )
+                .setProjection(
+                    Projections.projectionList()
+                        .add( Projections.id() )
+                        .add( Projections.property( "uid" ) )
+                        .add( Projections.property( "organisationUnit.id" ) ) );
+
+            List<Object[]> list = criteria.list();
+
+            instances.addAll( list.stream()
+                .map( this::toTrackedEntityOuInfo )
+                .collect( Collectors.toList() ) );
+
+        }
+
+        return instances;
+    }
+
+    private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
+    {
+        return new EventContext.TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
     }
 
     @Override

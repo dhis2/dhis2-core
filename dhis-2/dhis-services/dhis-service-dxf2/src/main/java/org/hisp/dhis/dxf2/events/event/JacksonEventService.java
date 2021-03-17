@@ -101,7 +101,7 @@ public class JacksonEventService extends AbstractEventService
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
         UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
-        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
+        @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, EventServiceContextBuilder eventServiceContextBuilder )
     {
         checkNotNull( eventImporter );
         checkNotNull( eventManager );
@@ -128,6 +128,7 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( eventSyncService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
+        checkNotNull( eventServiceContextBuilder );
 
         this.eventImporter = eventImporter;
         this.eventManager = eventManager;
@@ -155,6 +156,7 @@ public class JacksonEventService extends AbstractEventService
         this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
+        this.eventServiceContextBuilder = eventServiceContextBuilder;
     }
 
     @SuppressWarnings( "unchecked" )
