@@ -192,7 +192,7 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         setupGoogleProvider( GOOGLE_CLIENT_ID );
 
         assertInvalidTokenError(
-            "An error occurred while attempting to decode the Jwt: Jwt expired at 2021-03-05T16:19:50Z",
+            "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
             GET( "/me", JwtToken( EXPIRED_GOOGLE_JWT_TOKEN ) ) );
     }
 
