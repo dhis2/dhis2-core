@@ -790,11 +790,22 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
 
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
-            .addPredicates( getSharingPredicates( builder ) )
-            .addPredicate( root -> root.get( "uid" ).in( uids ) );
+        List<List<String>> uidPartitions = Lists.partition( new ArrayList<>( uids ), 20000 );
 
-        return getList( builder, jpaQueryParameters );
+        List<Function<Root<T>, Predicate>> sharingPredicates = getSharingPredicates( builder );
+
+        List<T> returnList = new ArrayList<>();
+
+        for ( List<String> partition : uidPartitions )
+        {
+            JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
+                .addPredicates( sharingPredicates )
+                .addPredicate( root -> root.get( "uid" ).in( partition ) );
+
+            returnList.addAll( getList( builder, jpaQueryParameters ) );
+        }
+
+        return returnList;
     }
 
     @Override

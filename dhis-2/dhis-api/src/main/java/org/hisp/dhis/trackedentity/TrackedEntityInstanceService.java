@@ -35,6 +35,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -323,5 +324,7 @@ public interface TrackedEntityInstanceService
         Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+
+    List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 
 }

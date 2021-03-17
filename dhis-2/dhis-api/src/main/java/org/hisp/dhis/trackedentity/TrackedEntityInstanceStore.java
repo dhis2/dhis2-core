@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.user.User;
 
 /**
@@ -88,4 +89,5 @@ public interface TrackedEntityInstanceStore
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
+    List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 }
