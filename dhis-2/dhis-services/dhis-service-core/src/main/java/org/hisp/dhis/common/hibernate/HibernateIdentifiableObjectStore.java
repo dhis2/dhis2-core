@@ -39,7 +39,6 @@ import javax.persistence.criteria.CriteriaQuery;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
@@ -62,6 +61,8 @@ import org.hisp.dhis.user.*;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.util.Assert;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author bobj
@@ -798,8 +799,8 @@ public class HibernateIdentifiableObjectStore<T extends BaseIdentifiableObject>
         for ( List<String> partition : uidPartitions )
         {
             JpaQueryParameters<T> jpaQueryParameters = new JpaQueryParameters<T>()
-                    .addPredicates( sharingPredicates )
-                    .addPredicate( root -> root.get( "uid" ).in( partition ) );
+                .addPredicates( sharingPredicates )
+                .addPredicate( root -> root.get( "uid" ).in( partition ) );
 
             returnList.addAll( getList( builder, jpaQueryParameters ) );
         }

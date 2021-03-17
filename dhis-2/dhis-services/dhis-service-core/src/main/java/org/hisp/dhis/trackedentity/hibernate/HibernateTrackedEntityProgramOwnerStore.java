@@ -30,7 +30,6 @@ package org.hisp.dhis.trackedentity.hibernate;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.google.common.collect.Lists;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
@@ -40,6 +39,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import com.google.common.collect.Lists;
 
 /**
  * @author Ameen Mohamed
@@ -59,7 +60,7 @@ public class HibernateTrackedEntityProgramOwnerStore
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId )
     {
         Query<TrackedEntityProgramOwner> query = getQuery(
-                "from TrackedEntityProgramOwner tepo where " +
+            "from TrackedEntityProgramOwner tepo where " +
                 "tepo.entityInstance.id= :teiId and " +
                 "tepo.program.id= :programId" );
 

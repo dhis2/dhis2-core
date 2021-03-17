@@ -227,7 +227,6 @@ public abstract class AbstractEventService
 
     private final EventServiceContextBuilder eventServiceContextBuilder;
 
-
     private static final int FLUSH_FREQUENCY = 100;
 
     public AbstractEventService( ProgramService programService, ProgramStageService programStageService,
@@ -950,8 +949,8 @@ public abstract class AbstractEventService
         for ( EventRow eventRow : eventRowList )
         {
             if ( trackerOwnershipAccessManager.hasAccessUsingContext( user,
-                 eventRow.getTrackedEntityInstance(),
-                 eventRow.getProgram(),
+                eventRow.getTrackedEntityInstance(),
+                eventRow.getProgram(),
                 eventContext ) )
             {
                 eventRows.getEventRows().add( eventRow );

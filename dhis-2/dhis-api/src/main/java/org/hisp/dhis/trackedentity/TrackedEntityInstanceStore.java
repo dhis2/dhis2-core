@@ -89,5 +89,5 @@ public interface TrackedEntityInstanceStore
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
-    List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids, User user);
+    List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 }

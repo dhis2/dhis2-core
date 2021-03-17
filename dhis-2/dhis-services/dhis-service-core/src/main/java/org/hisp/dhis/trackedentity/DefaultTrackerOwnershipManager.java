@@ -306,7 +306,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         OrganisationUnit ou = Optional.ofNullable( eventContext.getOrgUnitByTeiUidAndProgramUidPairs().get(
             Pair.of( trackedEntityInstanceUid, programUid ) ) )
             .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
-            .orElseGet( () -> organisationUnitService.getOrganisationUnit(trackedEntityOuInfo.getOrgUnitId()));
+            .orElseGet( () -> organisationUnitService.getOrganisationUnit( trackedEntityOuInfo.getOrgUnitId() ) );
 
         if ( program.isOpen() || program.isAudited() )
         {
@@ -440,14 +440,17 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * @param user The user object against which the check has to be performed
      * @return true if the user has temporary access, false otherwise
      */
-    private boolean hasTemporaryAccess(EventContext.TrackedEntityOuInfo trackedEntityOuInfo, Program program, User user )
+    private boolean hasTemporaryAccess( EventContext.TrackedEntityOuInfo trackedEntityOuInfo, Program program,
+        User user )
     {
         if ( canSkipOwnershipCheck( user, program ) || trackedEntityOuInfo == null )
         {
             return true;
         }
 
-        return temporaryTrackerOwnershipCache.get( tempAccessKey( trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUsername() ) ).orElse( false );
+        return temporaryTrackerOwnershipCache
+            .get( tempAccessKey( trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUsername() ) )
+            .orElse( false );
     }
 
     /**

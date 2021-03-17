@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2004-2020, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -14,17 +14,16 @@
  * be used to endorse or promote products derived from this software without
  * specific prior written permission.
  *
- *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
- *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
- *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
- *  DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
- *  ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
- *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
- *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
- *  ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 package org.hisp.dhis.dxf2.events.event;
 
@@ -81,9 +80,9 @@ public class EventServiceContextBuilder
 
         Map<String, EventContext.TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
             .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids, user ).stream()
-                .collect(Collectors.toMap(
-                        EventContext.TrackedEntityOuInfo::getTrackedEntityUid,
-                        trackedEntityOuInfo -> trackedEntityOuInfo));
+            .collect( Collectors.toMap(
+                EventContext.TrackedEntityOuInfo::getTrackedEntityUid,
+                trackedEntityOuInfo -> trackedEntityOuInfo ) );
 
         Map<String, Program> programsByUid = programService.getPrograms(
             eventRowList.stream()
@@ -100,7 +99,7 @@ public class EventServiceContextBuilder
                     .map( EventRow::getTrackedEntityInstance )
                     .filter( Objects::nonNull )
                     .map( trackedEntityInstanceByUid::get )
-                    .map(EventContext.TrackedEntityOuInfo::getTrackerEntityId)
+                    .map( EventContext.TrackedEntityOuInfo::getTrackerEntityId )
                     .distinct()
                     .collect( Collectors.toList() ),
                 programsByUid.get( programUid ) ).stream() )

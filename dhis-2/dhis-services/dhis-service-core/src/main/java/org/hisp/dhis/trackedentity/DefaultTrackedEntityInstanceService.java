@@ -980,7 +980,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids, User user)
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
     {
         if ( uids == null || uids.isEmpty() )
         {

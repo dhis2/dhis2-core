@@ -1681,7 +1681,7 @@ public class HibernateTrackedEntityInstanceStore
         for ( List<String> partition : uidPartitions )
         {
             instances.addAll(
-                    getSharingCriteria( user )
+                getSharingCriteria( user )
                     .add( Restrictions.in( "uid", partition ) )
                     .list() );
         }
@@ -1690,7 +1690,7 @@ public class HibernateTrackedEntityInstanceStore
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid(List<String> uids, User user )
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 
@@ -1698,27 +1698,26 @@ public class HibernateTrackedEntityInstanceStore
 
         for ( List<String> partition : uidPartitions )
         {
-            Criteria criteria =
-                    getSharingCriteria( user )
-                            .add( Restrictions.in( "uid", partition ) )
-                            .setProjection(
-                                    Projections.projectionList()
-                                            .add( Projections.id() )
-                                            .add( Projections.property( "uid" ) )
-                                            .add( Projections.property( "organisationUnit.id" ) ) );
+            Criteria criteria = getSharingCriteria( user )
+                .add( Restrictions.in( "uid", partition ) )
+                .setProjection(
+                    Projections.projectionList()
+                        .add( Projections.id() )
+                        .add( Projections.property( "uid" ) )
+                        .add( Projections.property( "organisationUnit.id" ) ) );
 
             List<Object[]> list = criteria.list();
 
             instances.addAll( list.stream()
-                    .map( this::toTrackedEntityOuInfo )
-                    .collect( Collectors.toList() ) );
+                .map( this::toTrackedEntityOuInfo )
+                .collect( Collectors.toList() ) );
 
         }
 
         return instances;
     }
 
-    private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo(Object[] objects )
+    private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
     {
         return new EventContext.TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
     }
