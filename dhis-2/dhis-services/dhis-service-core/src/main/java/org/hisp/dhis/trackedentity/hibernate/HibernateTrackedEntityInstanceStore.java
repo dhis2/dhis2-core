@@ -1642,7 +1642,8 @@ public class HibernateTrackedEntityInstanceStore
             }
             else if ( params.isEventStatus( EventStatus.SKIPPED ) )
             {
-                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' " + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE
+                hql += " psi.dueDate >= '" + start + "' and psi.dueDate <= '" + end + "' "
+                    + AND_PSI_STATUS_EQUALS_SINGLE_QUOTE
                     + EventStatus.SKIPPED.name() + "' and ";
             }
         }
