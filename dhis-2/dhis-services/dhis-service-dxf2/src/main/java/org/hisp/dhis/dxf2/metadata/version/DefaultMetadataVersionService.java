@@ -62,7 +62,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.collect.Lists;
 
 /**
- * Service implementation for the MetadataVersionService.
+ * Service implementation for the {@link MetadataVersionService}.
  *
  * @author aamerm
  */
@@ -303,7 +303,7 @@ public class DefaultMetadataVersionService
 
         KeyJsonValue keyJsonValue = new KeyJsonValue();
         keyJsonValue.setKey( versionName );
-        keyJsonValue.setNamespace( MetadataVersionService.METADATASTORE );
+        keyJsonValue.setNamespace( MetadataKeyJsonService.METADATA_STORE_NS );
 
         // MetadataWrapper is used to avoid Metadata keys reordering by jsonb
         // (jsonb does not preserve keys order)
