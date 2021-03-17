@@ -32,7 +32,8 @@ import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
@@ -41,8 +42,6 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
-
-import com.google.api.client.util.Lists;
 
 /**
  * The {@link DefaultCacheProvider} has the specific configuration for each of
@@ -115,7 +114,7 @@ public class DefaultCacheProvider
         userDisplayNameCache
     }
 
-    private final List<Cache> allCaches = Lists.newArrayList();
+    private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
 
     private long orZeroInTestRun( long value )
     {
@@ -127,10 +126,10 @@ public class DefaultCacheProvider
         return cacheBuilderProvider.newCacheBuilder();
     }
 
-    private <V> Cache<V> registerCache( Cache<V> cache )
+    @SuppressWarnings( "unchecked" )
+    private <V> Cache<V> registerCache( CacheBuilder<V> builder )
     {
-        allCaches.add( cache );
-        return cache;
+        return (Cache<V>) allCaches.computeIfAbsent( builder.getRegion(), region -> builder.build() );
     }
 
     private long getActualSize( long size )
@@ -144,16 +143,14 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.analyticsResponse.name() )
             .expireAfterWrite( initialExpirationTime.toMillis(), MILLISECONDS )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
     public <V> Cache<V> createAppCache()
     {
         return registerCache( this.<V> newBuilder()
-            .forRegion( Region.appCache.name() )
-            .build() );
+            .forRegion( Region.appCache.name() ) );
     }
 
     /**
@@ -169,8 +166,7 @@ public class DefaultCacheProvider
             .expireAfterAccess( 12, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 4 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_100 ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_100 ) ) ) );
     }
 
     @Override
@@ -179,8 +175,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.isDataApproved.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -191,8 +186,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 2, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( 1 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1 ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1 ) ) ) );
     }
 
     @Override
@@ -203,8 +197,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -215,8 +208,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -227,8 +219,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -239,8 +230,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 24, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 200 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -249,8 +239,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userAccountRecoverAttempt.name() )
             .expireAfterWrite( 15, MINUTES )
-            .withDefaultValue( defaultValue )
-            .build() );
+            .withDefaultValue( defaultValue ) );
     }
 
     @Override
@@ -259,8 +248,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userFailedLoginAttempt.name() )
             .expireAfterWrite( 15, MINUTES )
-            .withDefaultValue( defaultValue )
-            .build() );
+            .withDefaultValue( defaultValue ) );
     }
 
     @Override
@@ -269,8 +257,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.programOwner.name() )
             .expireAfterWrite( 5, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     @Override
@@ -279,8 +266,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.programTempOwner.name() )
             .expireAfterWrite( 30, TimeUnit.MINUTES )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -291,8 +277,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 200 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -302,8 +287,7 @@ public class DefaultCacheProvider
             .forRegion( Region.currentUserGroupInfoCache.name() )
             .expireAfterWrite( 1, TimeUnit.HOURS )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -312,8 +296,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -324,8 +307,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -334,8 +316,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.systemSetting.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     /**
@@ -348,8 +329,7 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.googleAccessToken.name() )
             .expireAfterAccess( 10, MINUTES )
-            .withMaximumSize( orZeroInTestRun( 1 ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( 1 ) ) );
     }
 
     @Override
@@ -360,8 +340,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 5, MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -371,8 +350,7 @@ public class DefaultCacheProvider
             .forRegion( Region.metadataAttributes.name() )
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     @Override
@@ -383,8 +361,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -395,8 +372,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 10, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -407,8 +383,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 60, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -419,8 +394,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 12, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
     }
 
     @Override
@@ -431,8 +405,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     @Override
@@ -443,37 +416,34 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build() );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     @EventListener
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
-        allCaches.forEach( Cache::invalidateAll );
+        allCaches.values().forEach( Cache::invalidateAll );
     }
 
     @Override
     public <V> Cache<V> createUserGroupNameCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userGroupNameCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 
     @Override
     public <V> Cache<V> createUserDisplayNameCache()
     {
-        return this.<V> newBuilder()
+        return registerCache( this.<V> newBuilder()
             .forRegion( Region.userDisplayNameCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( SIZE_10K ) )
-            .build();
+            .withMaximumSize( orZeroInTestRun( SIZE_10K ) ) );
     }
 }
