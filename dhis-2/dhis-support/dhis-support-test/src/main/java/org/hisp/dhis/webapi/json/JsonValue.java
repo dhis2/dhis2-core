@@ -81,6 +81,15 @@ public interface JsonValue
     boolean isNull();
 
     /**
+     * @return true if this JSON node either does not exist at all or is defined
+     *         as JSON {@code null}, otherwise false
+     */
+    default boolean isUndefined()
+    {
+        return !exists() || isNull();
+    }
+
+    /**
      * @return true if the value exists and is a JSON array node (empty or not)
      *         but not JSON {@code null}
      * @throws java.util.NoSuchElementException in case this value does not

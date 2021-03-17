@@ -25,34 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.webapi.json.domain;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.webapi.json.JsonValue;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Web API equivalent of a {@link org.hisp.dhis.keyjsonvalue.KeyJsonValue}.
+ *
+ * @author Jan Bernitt
  */
-@ResponseStatus( HttpStatus.NOT_FOUND )
-public class NotFoundException extends Exception
+public interface JsonKeyJsonValue extends JsonIdentifiableObject
 {
-    public static NotFoundException notFoundUid( String uid )
+    default String getNamespace()
     {
-        return new NotFoundException( "Object not found for uid: " + uid );
+        return getString( "namespace" ).string();
     }
 
-    public NotFoundException()
+    default String getKey()
     {
-        super( "Object not found." );
+        return getString( "key" ).string();
     }
 
-    public NotFoundException( String message )
+    default JsonValue getValue()
     {
-        super( message );
-    }
-
-    public NotFoundException( String type, String uid )
-    {
-        super( type + " not found for uid: " + uid );
+        return get( "value" );
     }
 }

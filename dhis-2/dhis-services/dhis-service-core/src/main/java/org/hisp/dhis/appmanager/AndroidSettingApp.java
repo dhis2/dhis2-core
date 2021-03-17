@@ -25,34 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.exception;
+package org.hisp.dhis.appmanager;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * The main purpose (so far) of the {@link AndroidSettingApp} component is to
+ * establish the protected {@link #NAMESPACE} in the {@link KeyJsonValueService}
+ * so that only the app can write to it using a role having the
+ * {@link #AUTHORITY}.
+ *
+ * @author Jan Bernitt
  */
-@ResponseStatus( HttpStatus.NOT_FOUND )
-public class NotFoundException extends Exception
+@Component
+public class AndroidSettingApp
 {
-    public static NotFoundException notFoundUid( String uid )
-    {
-        return new NotFoundException( "Object not found for uid: " + uid );
-    }
+    public static final String NAMESPACE = "ANDROID_SETTING_APP";
 
-    public NotFoundException()
-    {
-        super( "Object not found." );
-    }
+    public static final String AUTHORITY = "M_Android_Setting";
 
-    public NotFoundException( String message )
+    public AndroidSettingApp( KeyJsonValueService service )
     {
-        super( message );
-    }
-
-    public NotFoundException( String type, String uid )
-    {
-        super( type + " not found for uid: " + uid );
+        service.addProtection( new KeyJsonNamespaceProtection( NAMESPACE, ProtectionType.NONE,
+            ProtectionType.RESTRICTED, false, AUTHORITY ) );
     }
 }
