@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 
@@ -267,4 +268,7 @@ public interface TrackedEntityInstanceService
         Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+
+    List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
+
 }
