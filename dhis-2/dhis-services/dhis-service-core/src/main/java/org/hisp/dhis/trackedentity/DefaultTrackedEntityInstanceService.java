@@ -259,7 +259,8 @@ public class DefaultTrackedEntityInstanceService
 
         params.handleCurrentUserSelectionMode();
 
-        return trackedEntityInstanceStore.countTrackedEntityInstances( params );
+        // leveraging the better performant sql for count
+        return trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params );
     }
 
     // TODO lower index on attribute value?
@@ -711,13 +712,12 @@ public class DefaultTrackedEntityInstanceService
                 }
             }
 
-            if ( maxTeiLimit > 0 &&
-                ((isGridSearch
-                    && trackedEntityInstanceStore.getTrackedEntityInstanceCountForGrid( params ) > maxTeiLimit) ||
-                    (!isGridSearch && trackedEntityInstanceStore.countTrackedEntityInstances( params ) > maxTeiLimit)) )
+            if ( maxTeiLimit > 0 && params.isPaging()
+                && params.getOffset() > 0 && (params.getOffset() + params.getPageSizeWithDefault()) > maxTeiLimit )
             {
                 throw new IllegalQueryException( "maxteicountreached" );
             }
+            params.setMaxTeiLimit( maxTeiLimit );
         }
     }
 
