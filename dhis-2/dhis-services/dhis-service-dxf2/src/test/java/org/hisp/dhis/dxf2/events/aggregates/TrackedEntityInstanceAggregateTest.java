@@ -119,7 +119,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -153,7 +152,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -183,7 +181,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -213,7 +210,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -248,7 +244,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -280,7 +275,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -319,7 +313,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -372,7 +365,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -421,7 +413,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -447,7 +438,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -480,7 +470,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -512,7 +501,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -564,7 +552,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -606,7 +593,6 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
-        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
