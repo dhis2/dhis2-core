@@ -119,6 +119,13 @@ public class DefaultProgramService
     }
 
     @Override
+    @Transactional( readOnly = true )
+    public Collection<Program> getPrograms( Collection<String> uids )
+    {
+        return programStore.getByUid( uids );
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<Program> getPrograms( OrganisationUnit organisationUnit )
     {
