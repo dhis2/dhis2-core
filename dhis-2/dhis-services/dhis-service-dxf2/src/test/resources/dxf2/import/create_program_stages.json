@@ -209,9 +209,6 @@
       "description": "DataElementDescriptionA",
       "shortName": "DataElementShortA",
       "attributeValues": [],
-      "user": {
-        "id": "VIkpd2KHCb1"
-      },
       "lastUpdated": "2016-03-10T05:02:18.871+0000",
       "code": "DataElementCodeA",
       "name": "DataElementA",
