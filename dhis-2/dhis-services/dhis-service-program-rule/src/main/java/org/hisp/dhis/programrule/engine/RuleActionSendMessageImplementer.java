@@ -137,7 +137,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         String key = generateKey( template, pi );
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), pi.getId() ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance.getId() ) );
 
         if ( result.getLogEntry() != null )
         {
