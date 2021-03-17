@@ -102,6 +102,24 @@ public interface JsonCollection extends JsonValue
         return new MapView( object );
     }
 
+    static <E extends JsonValue> JsonMultiMap<E> asMultiMap( JsonObject object, Class<E> as )
+    {
+        class MultiMapView extends CollectionView<JsonObject> implements JsonMultiMap<E>
+        {
+            MultiMapView( JsonObject viewed )
+            {
+                super( viewed );
+            }
+
+            @Override
+            public JsonList<E> get( String key )
+            {
+                return viewed.getList( key, as );
+            }
+        }
+        return new MultiMapView( object );
+    }
+
     abstract class CollectionView<T extends JsonCollection> implements JsonCollection
     {
         protected final T viewed;
