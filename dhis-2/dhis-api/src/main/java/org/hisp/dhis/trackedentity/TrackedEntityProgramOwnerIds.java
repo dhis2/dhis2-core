@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,44 +27,33 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.List;
-
-import org.hisp.dhis.common.GenericStore;
-
-/**
- * @author Ameen Mohamed
- */
-public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner>
+public class TrackedEntityProgramOwnerIds
 {
-    String ID = TrackedEntityProgramOwnerStore.class.getName();
+    private final String trackedEntityInstanceId;
 
-    /**
-     * Get tracked entity program owner entity for the tei-program combination.
-     *
-     * @param teiId The tracked entity instance id.
-     * @param programId the program id
-     * @return matching tracked entity program owner entity
-     */
-    TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId );
+    private final String programId;
 
-    /**
-     * Get all Tracked entity program owner entities for the list of teis.
-     *
-     * @param teiIds The list of tracked entity instance ids.
-     * @return matching tracked entity program owner entities.
-     */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds );
+    private final String orgUnitUid;
 
-    /**
-     * Get all Tracked entity program owner entities for the list of teis and
-     * program.
-     *
-     * @param teiIds The list of tracked entity instance ids.
-     * @param programId The program id
-     * @return matching tracked entity program owner entities.
-     */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId );
+    public TrackedEntityProgramOwnerIds( String trackedEntityInstanceId, String programId, String orgUnitUid )
+    {
+        this.trackedEntityInstanceId = trackedEntityInstanceId;
+        this.programId = programId;
+        this.orgUnitUid = orgUnitUid;
+    }
 
-    List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId );
+    public String getTrackedEntityInstanceId()
+    {
+        return trackedEntityInstanceId;
+    }
 
+    public String getProgramId()
+    {
+        return programId;
+    }
+
+    public String getOrgUnitUid()
+    {
+        return orgUnitUid;
+    }
 }
