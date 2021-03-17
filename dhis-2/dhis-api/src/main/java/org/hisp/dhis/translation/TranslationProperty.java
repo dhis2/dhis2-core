@@ -43,12 +43,12 @@ public enum TranslationProperty
     RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
     INSTRUCTION( "instruction" ),
     CONTENT( "content" ),
-    CHART_DOMAIN_AXIS_LABEL( "domainAxisLabel" ),
-    CHART_RANGE_AXIS_LABEL( "rangeAxisLabel" ),
-    CHART_TARGET_LINE_LABEL( "targetLineLabel" ),
-    CHART_BASE_LINE_LABEL( "baseLineLabel" ),
-    TITLE( "title" ),
-    SUBTITLE( "subtitle" );
+    domainAxisLabel( "domainAxisLabel" ),
+    rangeAxisLabel( "rangeAxisLabel" ),
+    targetLineLabel( "targetLineLabel" ),
+    baseLineLabel( "baseLineLabel" ),
+    title( "title" ),
+    subtitle( "subtitle" );
 
     private String name;
 
