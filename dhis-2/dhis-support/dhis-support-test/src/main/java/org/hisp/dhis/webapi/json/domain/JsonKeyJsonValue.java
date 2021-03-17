@@ -25,47 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.postprocess;
+package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.webapi.json.JsonValue;
 
 /**
- * @author maikel arabori
+ * Web API equivalent of a {@link org.hisp.dhis.keyjsonvalue.KeyJsonValue}.
+ *
+ * @author Jan Bernitt
  */
-public class PublishEventPostProcessor
-    implements Processor
+public interface JsonKeyJsonValue extends JsonIdentifiableObject
 {
-    @Override
-    public void process( final Event event, final WorkContext ctx )
+    default String getNamespace()
     {
-        boolean isLinkedWithRuleVariable = false;
+        return getString( "namespace" ).string();
+    }
 
-        for ( final DataValue dv : event.getDataValues() )
-        {
-            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
+    default String getKey()
+    {
+        return getString( "key" ).string();
+    }
 
-            if ( dataElement != null )
-            {
-                // TODO: luciano preload the value
-                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariableCached( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
-
-        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, event.getEvent() ) );
-        }
+    default JsonValue getValue()
+    {
+        return get( "value" );
     }
 }

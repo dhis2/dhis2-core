@@ -28,36 +28,59 @@
 package org.hisp.dhis.keyjsonvalue;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
-import java.io.UncheckedIOException;
-import java.util.Collections;
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 
-import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserCredentials;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * @author Stian Sandvold
+ * @author Jan Bernitt
  */
 @Service( "org.hisp.dhis.keyjsonvalue.KeyJsonValueService" )
 public class DefaultKeyJsonValueService
     implements KeyJsonValueService
 {
-    private final KeyJsonValueStore keyJsonValueStore;
 
-    private final ObjectMapper jsonMapper;
+    private final Map<String, KeyJsonNamespaceProtection> protectionByNamespace = new ConcurrentHashMap<>();
 
-    public DefaultKeyJsonValueService( KeyJsonValueStore keyJsonValueStore, ObjectMapper jsonMapper )
+    private final KeyJsonValueStore store;
+
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    private final RenderService renderService;
+
+    public DefaultKeyJsonValueService( KeyJsonValueStore store, CurrentUserService currentUserService,
+        AclService aclService, RenderService renderService )
     {
-        this.jsonMapper = jsonMapper;
-        checkNotNull( keyJsonValueStore );
+        checkNotNull( store );
+        checkNotNull( currentUserService );
+        checkNotNull( aclService );
+        checkNotNull( renderService );
 
-        this.keyJsonValueStore = keyJsonValueStore;
+        this.store = store;
+        this.currentUserService = currentUserService;
+        this.aclService = aclService;
+        this.renderService = renderService;
     }
 
     // -------------------------------------------------------------------------
@@ -65,162 +88,191 @@ public class DefaultKeyJsonValueService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional( readOnly = true )
-    public List<String> getNamespaces( boolean isAdmin )
+    public void addProtection( KeyJsonNamespaceProtection protection )
     {
-        List<String> namespaces = keyJsonValueStore.getNamespaces();
-        if ( !isAdmin )
-        {
-            namespaces.remove( MetadataVersionService.METADATASTORE );
-        }
+        protectionByNamespace.put( protection.getNamespace(), protection );
+    }
 
-        return namespaces;
+    @Override
+    public void removeProtection( String namespace )
+    {
+        protectionByNamespace.remove( namespace );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin )
+    public List<String> getNamespaces()
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return Collections.emptyList();
-        }
-
-        return keyJsonValueStore.getKeysInNamespace( namespace, lastUpdated );
+        return store.getNamespaces().stream().filter( this::isNamespaceVisible ).collect( toList() );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin )
+    public boolean isUsedNamespace( String namespace )
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return null;
-        }
-
-        return keyJsonValueStore.getKeyJsonValue( namespace, key );
+        return readProtectedIn( namespace, false,
+            () -> store.countKeysInNamespace( namespace ) > 0 );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin )
+    public List<String> getKeysInNamespace( String namespace, Date lastUpdated )
     {
-        if ( !isAdmin && MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return Collections.emptyList();
-        }
+        return readProtectedIn( namespace, emptyList(),
+            () -> store.getKeysInNamespace( namespace, lastUpdated ) );
+    }
 
-        return keyJsonValueStore.getKeyJsonValueByNamespace( namespace );
+    @Override
+    @Transactional( readOnly = true )
+    public KeyJsonValue getKeyJsonValue( String namespace, String key )
+    {
+        return readProtectedIn( namespace, null,
+            () -> store.getKeyJsonValue( namespace, key ) );
     }
 
     @Override
     @Transactional
-    public Long addKeyJsonValue( KeyJsonValue keyJsonValue )
+    public void addKeyJsonValue( KeyJsonValue entry )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
+        if ( getKeyJsonValue( entry.getNamespace(), entry.getKey() ) != null )
         {
-            return null;
+            throw new IllegalStateException(
+                "The key '" + entry.getKey() + "' already exists on the namespace '" + entry.getNamespace() + "'." );
         }
-
-        keyJsonValueStore.save( keyJsonValue );
-
-        return keyJsonValue.getId();
+        validateJsonValue( entry );
+        writeProtectedIn( entry.getNamespace(),
+            () -> singletonList( entry ),
+            () -> store.save( entry ) );
     }
 
     @Override
     @Transactional
-    public void updateKeyJsonValue( KeyJsonValue keyJsonValue )
+    public void updateKeyJsonValue( KeyJsonValue entry )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
-        {
-            return;
-        }
-
-        keyJsonValueStore.update( keyJsonValue );
+        validateJsonValue( entry );
+        writeProtectedIn( entry.getNamespace(),
+            () -> singletonList( entry ),
+            () -> store.update( entry ) );
     }
 
     @Override
     @Transactional
     public void deleteNamespace( String namespace )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( namespace ) )
-        {
-            return;
-        }
-
-        keyJsonValueStore.getKeyJsonValueByNamespace( namespace ).forEach( keyJsonValueStore::delete );
+        writeProtectedIn( namespace,
+            () -> store.getKeyJsonValueByNamespace( namespace ),
+            () -> store.deleteNamespace( namespace ) );
     }
 
     @Override
     @Transactional
-    public void deleteKeyJsonValue( KeyJsonValue keyJsonValue )
+    public void deleteKeyJsonValue( KeyJsonValue entry )
     {
-        if ( MetadataVersionService.METADATASTORE.equals( keyJsonValue.getNamespace() ) )
-        {
-            return;
-        }
-
-        keyJsonValueStore.delete( keyJsonValue );
+        writeProtectedIn( entry.getNamespace(),
+            () -> singletonList( entry ),
+            () -> store.delete( entry ) );
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public <T> T getValue( String namespace, String key, Class<T> clazz )
+    private <T> T readProtectedIn( String namespace, T whenHidden, Supplier<T> read )
     {
-        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
-
-        if ( keyJsonValue == null || keyJsonValue.getJbPlainValue() == null )
+        KeyJsonNamespaceProtection protection = protectionByNamespace.get( namespace );
+        if ( protection == null
+            || protection.getReads() == ProtectionType.NONE
+            || currentUserHasAuthority( protection.getAuthorities() ) )
         {
-            return null;
+            T res = read.get();
+            if ( res instanceof KeyJsonValue && protection != null && protection.isSharingRespected() )
+            {
+                KeyJsonValue entry = (KeyJsonValue) res;
+                if ( !aclService.canRead( currentUserService.getCurrentUser(), entry ) )
+                {
+                    throw new AccessDeniedException( "You do not have the authority to access the key: '"
+                        + entry.getKey() + "' in the namespace:'" + namespace + "'" );
+                }
+            }
+            return res;
         }
-
-        try
+        else if ( protection.getReads() == ProtectionType.RESTRICTED )
         {
-            return jsonMapper.readValue( keyJsonValue.getJbPlainValue(), clazz );
+            throw accessDeniedTo( namespace );
         }
-        catch ( JsonProcessingException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
+        return whenHidden;
     }
 
-    @Override
-    @Transactional
-    public <T> void addValue( String namespace, String key, T object )
+    private void writeProtectedIn( String namespace, Supplier<List<KeyJsonValue>> whenSharing, Runnable write )
     {
-        try
+        KeyJsonNamespaceProtection protection = protectionByNamespace.get( namespace );
+        if ( protection == null || protection.getWrites() == ProtectionType.NONE )
         {
-            String value = jsonMapper.writeValueAsString( object );
-            KeyJsonValue keyJsonValue = new KeyJsonValue( namespace, key, value, false );
-            keyJsonValueStore.save( keyJsonValue );
+            write.run();
         }
-        catch ( JsonProcessingException ex )
+        else if ( currentUserHasAuthority( protection.getAuthorities() ) )
         {
-            throw new UncheckedIOException( ex );
+            // might also need to check sharing
+            if ( protection.isSharingRespected() )
+            {
+                for ( KeyJsonValue entry : whenSharing.get() )
+                {
+                    if ( !aclService.canWrite( currentUserService.getCurrentUser(), entry ) )
+                    {
+                        throw accessDeniedTo( namespace, entry.getKey() );
+                    }
+                }
+            }
+            write.run();
         }
+        else if ( protection.getWrites() == ProtectionType.RESTRICTED )
+        {
+            throw accessDeniedTo( namespace );
+        }
+        // HIDDEN: the operation silently just isn't run
     }
 
-    @Override
-    @Transactional
-    public <T> void updateValue( String namespace, String key, T object )
+    private AccessDeniedException accessDeniedTo( String namespace )
     {
-        KeyJsonValue keyJsonValue = keyJsonValueStore.getKeyJsonValue( namespace, key );
+        return new AccessDeniedException(
+            "The namespace '" + namespace
+                + "' is protected, and you don't have the right authority to access or modify it." );
+    }
 
-        if ( keyJsonValue == null )
+    private AccessDeniedException accessDeniedTo( String namespace, String key )
+    {
+        return new AccessDeniedException(
+            "You do not have the authority to modify the key: '" + key + "' in the namespace: '" + namespace + "'" );
+    }
+
+    private boolean isNamespaceVisible( String namespace )
+    {
+        KeyJsonNamespaceProtection protection = protectionByNamespace.get( namespace );
+        return protection == null
+            || protection.getReads() != ProtectionType.HIDDEN
+            || currentUserHasAuthority( protection.getAuthorities() );
+    }
+
+    private boolean currentUserHasAuthority( Set<String> authorities )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( currentUser == null )
         {
-            throw new IllegalStateException( String.format(
-                "No object found for namespace '%s' and key '%s'", namespace, key ) );
+            return false;
         }
+        UserCredentials credentials = currentUser.getUserCredentials();
+        return credentials.isSuper() || !authorities.isEmpty() && credentials.hasAnyAuthority( authorities );
+    }
 
+    private void validateJsonValue( KeyJsonValue entry )
+    {
+        String json = entry.getValue();
         try
         {
-            String value = jsonMapper.writeValueAsString( object );
-            keyJsonValue.setValue( value );
-            keyJsonValueStore.update( keyJsonValue );
+            if ( json != null && !renderService.isValidJson( json ) )
+            {
+                throw new IllegalArgumentException( "The data is not valid JSON." );
+            }
         }
-        catch ( JsonProcessingException ex )
+        catch ( IOException ex )
         {
-            throw new UncheckedIOException( ex );
+            throw new IllegalArgumentException( "The data is not valid JSON.", ex );
         }
     }
 }

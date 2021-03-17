@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.appmanager;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.springframework.stereotype.Component;
 
 /**
- * The purpose of this interface is to allow mixin style addition of the
- * convenience web API by implementing this interface's essential method
- * {@link #authWebRequest(String,MockHttpServletRequestBuilder)}.
+ * The main purpose (so far) of the {@link AndroidSettingApp} component is to
+ * establish the protected {@link #NAMESPACE} in the {@link KeyJsonValueService}
+ * so that only the app can write to it using a role having the
+ * {@link #AUTHORITY}.
  *
- * @author Morten Svanæs
+ * @author Jan Bernitt
  */
-@FunctionalInterface
-public interface AuthenticatedWebClient
+@Component
+public class AndroidSettingApp
 {
-    WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request );
+    public static final String NAMESPACE = "ANDROID_SETTING_APP";
 
-    default WebClient.HttpResponse GET( String token, String url, Object... args )
-    {
-        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
-    }
+    public static final String AUTHORITY = "M_Android_Setting";
 
-    default WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
+    public AndroidSettingApp( KeyJsonValueService service )
     {
-        return authWebRequest( token, request );
+        service.addProtection( new KeyJsonNamespaceProtection( NAMESPACE, ProtectionType.NONE,
+            ProtectionType.RESTRICTED, false, AUTHORITY ) );
     }
 }
