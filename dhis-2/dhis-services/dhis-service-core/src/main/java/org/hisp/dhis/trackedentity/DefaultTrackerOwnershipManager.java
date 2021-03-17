@@ -459,7 +459,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      *
      * @return true if ownership check can be skipped
      */
-    public static boolean canSkipOwnershipCheck( User user, Program program )
+    private boolean canSkipOwnershipCheck( User user, Program program )
     {
         return user == null || user.isSuper() || program == null || program.isWithoutRegistration();
     }
