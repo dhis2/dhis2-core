@@ -31,7 +31,9 @@ import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JS
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.getComponent;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.plainTextOrJson;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.requestComponentsIn;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.startWithMediaType;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
 import static org.junit.Assert.assertEquals;
@@ -70,53 +72,108 @@ public interface WebClient
 
     HttpResponse webRequest( MockHttpServletRequestBuilder request );
 
+    interface RequestComponent
+    {
+
+    }
+
+    static Header Header( String name, Object value )
+    {
+        return new Header( name, value );
+    }
+
+    static Header JwtToken( String token )
+    {
+        return Header( "Authorization", "Bearer " + token );
+    }
+
+    static Body Body( String body )
+    {
+        return new Body( body );
+    }
+
+    final class Header implements RequestComponent
+    {
+        final String name;
+
+        final Object value;
+
+        Header( String name, Object value )
+        {
+            this.name = name;
+            this.value = value;
+        }
+    }
+
+    final class Body implements RequestComponent
+    {
+        final String body;
+
+        Body( String body )
+        {
+            this.body = body;
+        }
+    }
+
     default HttpResponse GET( String url, Object... args )
     {
-        return webRequest( get( substitutePlaceholders( url, args ) ), "" );
+        return webRequest( get( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse POST( String url, Object... args )
     {
-        return POST( substitutePlaceholders( url, args ), "" );
+        return webRequest( post( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse POST( String url, String body )
     {
-        return webRequest( post( url ), body );
+        return webRequest( post( url ), new Body( body ) );
     }
 
     default HttpResponse PATCH( String url, Object... args )
     {
-        return PATCH( substitutePlaceholders( url, args ), "" );
+        return webRequest( patch( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse PATCH( String url, String body )
     {
-        return webRequest( patch( url ), body );
+        return webRequest( patch( url ), new Body( body ) );
     }
 
     default HttpResponse PUT( String url, Object... args )
     {
-        return PUT( substitutePlaceholders( url, args ), "" );
+        return webRequest( put( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse PUT( String url, String body )
     {
-        return webRequest( put( url ), body );
+        return webRequest( put( url ), new Body( body ) );
     }
 
     default HttpResponse DELETE( String url, Object... args )
     {
-        return DELETE( substitutePlaceholders( url, args ), "" );
+        return webRequest( delete( substitutePlaceholders( url, args ) ), requestComponentsIn( args ) );
     }
 
     default HttpResponse DELETE( String url, String body )
     {
-        return webRequest( delete( url ), body );
+        return webRequest( delete( url ), new Body( body ) );
     }
 
-    default HttpResponse webRequest( MockHttpServletRequestBuilder request, String body )
+    default HttpResponse webRequest( MockHttpServletRequestBuilder request, RequestComponent... components )
     {
+        // configure headers
+        for ( RequestComponent c : components )
+        {
+            if ( c instanceof Header )
+            {
+                Header header = (Header) c;
+                request.header( header.name, header.value );
+            }
+        }
+        // configure body
+        Body bodyComponent = getComponent( Body.class, components );
+        String body = bodyComponent == null ? "" : bodyComponent.body;
         if ( body != null && body.endsWith( ".json" ) )
         {
             return failOnException( () -> webRequest( request

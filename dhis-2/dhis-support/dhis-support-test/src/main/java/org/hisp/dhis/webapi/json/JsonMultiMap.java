@@ -25,32 +25,18 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
-
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+package org.hisp.dhis.webapi.json;
 
 /**
- * The purpose of this interface is to allow mixin style addition of the
- * convenience web API by implementing this interface's essential method
- * {@link #authWebRequest(String,MockHttpServletRequestBuilder)}.
+ * A {@link JsonMap} with {@link JsonList} of elements.
  *
- * @author Morten Svanæs
+ * This needs a dedicated type as we cannot pass a {@link JsonMap} {@link Class}
+ * with the generics of a {@link JsonList} of the element type otherwise.
+ *
+ * @author Jan Bernitt
+ *
+ * @param <E> type of the map list elements
  */
-@FunctionalInterface
-public interface AuthenticatedWebClient
+public interface JsonMultiMap<E extends JsonValue> extends JsonMap<JsonList<E>>
 {
-    WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request );
-
-    default WebClient.HttpResponse GET( String token, String url, Object... args )
-    {
-        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
-    }
-
-    default WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
-    {
-        return authWebRequest( token, request );
-    }
 }
