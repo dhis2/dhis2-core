@@ -195,10 +195,8 @@ public class LocalAppStorageService
     }
 
     @Override
-    public boolean deleteApp( App app )
+    public void deleteApp( App app )
     {
-        boolean deleted = false;
-
         if ( !apps.containsKey( app.getUrlFriendlyName() ) )
         {
             log.warn( String.format( "Failed to delete app '%s': App not found", app.getName() ) );
@@ -208,8 +206,6 @@ public class LocalAppStorageService
         {
             String folderPath = getAppFolderPath() + File.separator + app.getFolderName();
             FileUtils.forceDelete( new File( folderPath ) );
-
-            deleted = true;
         }
         catch ( FileNotFoundException ex )
         {
@@ -223,8 +219,6 @@ public class LocalAppStorageService
         {
             discoverInstalledApps();
         }
-
-        return deleted;
     }
 
     private String getAppFolderPath()

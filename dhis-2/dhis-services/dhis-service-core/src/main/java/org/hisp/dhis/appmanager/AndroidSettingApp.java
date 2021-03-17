@@ -25,47 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.postprocess;
+package org.hisp.dhis.appmanager;
 
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.hisp.dhis.programrule.engine.DataValueUpdatedEvent;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.hisp.dhis.keyjsonvalue.KeyJsonValueService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author maikel arabori
+ * The main purpose (so far) of the {@link AndroidSettingApp} component is to
+ * establish the protected {@link #NAMESPACE} in the {@link KeyJsonValueService}
+ * so that only the app can write to it using a role having the
+ * {@link #AUTHORITY}.
+ *
+ * @author Jan Bernitt
  */
-public class PublishEventPostProcessor
-    implements Processor
+@Component
+public class AndroidSettingApp
 {
-    @Override
-    public void process( final Event event, final WorkContext ctx )
+    public static final String NAMESPACE = "ANDROID_SETTING_APP";
+
+    public static final String AUTHORITY = "M_Android_Setting";
+
+    public AndroidSettingApp( KeyJsonValueService service )
     {
-        boolean isLinkedWithRuleVariable = false;
-
-        for ( final DataValue dv : event.getDataValues() )
-        {
-            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
-
-            if ( dataElement != null )
-            {
-                // TODO: luciano preload the value
-                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariableCached( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
-
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
-        }
-
-        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, event.getEvent() ) );
-        }
+        service.addProtection( new KeyJsonNamespaceProtection( NAMESPACE, ProtectionType.NONE,
+            ProtectionType.RESTRICTED, false, AUTHORITY ) );
     }
 }

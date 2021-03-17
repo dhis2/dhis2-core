@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +36,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+
+import com.google.common.collect.ImmutableList;
 
 abstract class ImplementableRuleService
 {
@@ -68,9 +69,10 @@ abstract class ImplementableRuleService
     public List<ProgramRule> getProgramRules( Program program, String programStageUid )
     {
         Optional<Boolean> optionalCacheValue = getProgramRulesCache().get( program.getUid() );
+
         if ( optionalCacheValue.isPresent() && Boolean.FALSE.equals( optionalCacheValue.get() ) )
         {
-            return Collections.EMPTY_LIST;
+            return ImmutableList.of();
         }
 
         List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );

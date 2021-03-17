@@ -31,6 +31,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.springframework.stereotype.Service;
@@ -49,11 +51,15 @@ public class DefaultProgramRuleVariableService
 
     private ProgramRuleVariableStore programRuleVariableStore;
 
-    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore )
+    private final Cache<Boolean> programRuleVariablesCache;
+
+    public DefaultProgramRuleVariableService( ProgramRuleVariableStore programRuleVariableStore,
+        CacheProvider cacheProvider )
     {
         checkNotNull( programRuleVariableStore );
 
         this.programRuleVariableStore = programRuleVariableStore;
+        this.programRuleVariablesCache = cacheProvider.createProgramRulesCache();
     }
 
     // -------------------------------------------------------------------------
@@ -73,6 +79,7 @@ public class DefaultProgramRuleVariableService
     public void deleteProgramRuleVariable( ProgramRuleVariable programRuleVariable )
     {
         programRuleVariableStore.delete( programRuleVariable );
+        programRuleVariablesCache.invalidateAll();
     }
 
     @Override
@@ -105,11 +112,14 @@ public class DefaultProgramRuleVariableService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isLinkedToProgramRuleVariable( Program program, DataElement dataElement )
+    public boolean isLinkedToProgramRuleVariableCached( Program program, DataElement dataElement )
     {
-        List<ProgramRuleVariable> ruleVariables = programRuleVariableStore.getProgramVariables( program, dataElement );
-
-        return !ruleVariables.isEmpty();
+        return programRuleVariablesCache.get( dataElement.getUid(), uid -> {
+            List<ProgramRuleVariable> ruleVariables = programRuleVariableStore
+                .getProgramVariables( program, dataElement );
+            return !ruleVariables.isEmpty();
+        } )
+            .orElse( false );
     }
 
     @Override

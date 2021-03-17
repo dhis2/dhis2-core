@@ -30,26 +30,48 @@ package org.hisp.dhis.keyjsonvalue;
 import java.util.Date;
 import java.util.List;
 
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
+import org.springframework.security.access.AccessDeniedException;
+
 /**
  * @author Stian Sandvold
+ * @author Jan Bernitt
  */
 public interface KeyJsonValueService
 {
     /**
+     * Applies the configuration for the provided protection so it is considered
+     * by this service in future requests.
+     *
+     * @param protection configuration for protection protection
+     */
+    void addProtection( KeyJsonNamespaceProtection protection );
+
+    /**
+     * Removes any {@link KeyJsonNamespaceProtection} configuration for the
+     * given namespace (if exists).
+     *
+     * @param namespace the namespace for which to remove configuration
+     */
+    void removeProtection( String namespace );
+
+    /**
+     * True, if there is at least a single value for the provided namespace.
+     *
+     * @param namespace the namespace to check
+     * @return true, if the namespace exists, else false
+     */
+    boolean isUsedNamespace( String namespace );
+
+    /**
      * Retrieves a list of existing namespaces.
+     *
+     * This does not include {@link ProtectionType#HIDDEN} namespaces that the
+     * current user cannot see.
      *
      * @return a list of strings representing the existing namespaces.
      */
-    List<String> getNamespaces( boolean isAdmin );
-
-    /**
-     * Retrieves list of KeyJsonValue objects belonging to the specified
-     * namespace.
-     *
-     * @param namespace the namespace where the key is associated
-     * @return list of matching KeyJsonValues
-     */
-    List<KeyJsonValue> getKeyJsonValuesInNamespace( String namespace, boolean isAdmin );
+    List<String> getNamespaces();
 
     /**
      * Retrieves a list of keys from a namespace which are updated after
@@ -58,8 +80,9 @@ public interface KeyJsonValueService
      * @param namespace the namespace to retrieve keys from.
      * @param lastUpdated the lastUpdated time to retrieve keys from.
      * @return a list of strings representing the keys from the namespace.
+     * @throws AccessDeniedException when user lacks authority for namespace
      */
-    List<String> getKeysInNamespace( String namespace, Date lastUpdated, boolean isAdmin );
+    List<String> getKeysInNamespace( String namespace, Date lastUpdated );
 
     /**
      * Retrieves a KeyJsonValue based on a namespace and key.
@@ -67,63 +90,48 @@ public interface KeyJsonValueService
      * @param namespace the namespace where the key is associated.
      * @param key the key referencing the value.
      * @return the KeyJsonValue matching the key and namespace.
+     * @throws AccessDeniedException when user lacks authority for namespace
      */
-    KeyJsonValue getKeyJsonValue( String namespace, String key, boolean isAdmin );
+    KeyJsonValue getKeyJsonValue( String namespace, String key );
 
     /**
-     * Adds a new KeyJsonValue.
+     * Adds a new entry.
      *
-     * @param keyJsonValue the KeyJsonValue to be stored.
-     * @return the id of the KeyJsonValue stored.
+     * @param entry the KeyJsonValue to be stored.
+     * @throws IllegalStateException when an entry with same namespace and key
+     *         already exists
+     * @throws IllegalArgumentException when the entry value is not valid JSON
+     * @throws AccessDeniedException when user lacks authority for namespace or
+     *         entry
      */
-    Long addKeyJsonValue( KeyJsonValue keyJsonValue );
+    void addKeyJsonValue( KeyJsonValue entry );
 
     /**
-     * Updates a KeyJsonValue.
+     * Updates an entry.
      *
-     * @param keyJsonValue the updated KeyJsonValue.
+     * @param entry the updated KeyJsonValue.
+     * @throws IllegalArgumentException when the entry value is not valid JSON
+     * @throws AccessDeniedException when user lacks authority for namespace or
+     *         entry
      */
-    void updateKeyJsonValue( KeyJsonValue keyJsonValue );
+    void updateKeyJsonValue( KeyJsonValue entry );
 
     /**
-     * Deletes a keyJsonValue.
+     * Deletes an entry.
      *
-     * @param keyJsonValue the KeyJsonValue to be deleted.
+     * @param entry the KeyJsonValue to be deleted.
+     * @throws AccessDeniedException when user lacks authority for namespace or
+     *         entry
      */
-    void deleteKeyJsonValue( KeyJsonValue keyJsonValue );
+    void deleteKeyJsonValue( KeyJsonValue entry );
 
     /**
-     * Deletes all keys associated with a given namespace.
+     * Deletes all entries associated with a given namespace.
      *
      * @param namespace the namespace to delete
+     * @throws AccessDeniedException when user lacks authority for namespace or
+     *         any of the entries
      */
     void deleteNamespace( String namespace );
 
-    /**
-     * Retrieves a value object.
-     *
-     * @param namespace the namespace where the key is associated.
-     * @param key the key referencing the value.
-     * @param clazz the class of the object to retrievev.
-     * @return a value object.
-     */
-    <T> T getValue( String namespace, String key, Class<T> clazz );
-
-    /**
-     * Adds a value object.
-     *
-     * @param namespace the namespace where the key is associated.
-     * @param key the key referencing the value.
-     * @param value the value object to add.
-     */
-    <T> void addValue( String namespace, String key, T value );
-
-    /**
-     * Updates a value object.
-     *
-     * @param namespace the namespace where the key is associated.
-     * @param key the key referencing the value.
-     * @param value the value object to update.
-     */
-    <T> void updateValue( String namespace, String key, T value );
 }
