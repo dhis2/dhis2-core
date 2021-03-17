@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.dxf2.events.event;
 
-import java.util.Map;
-
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+
+import java.util.Map;
 
 public class EventContext
 {
@@ -77,8 +74,6 @@ public class EventContext
         return orgUnitsByUid;
     }
 
-    @Data
-    @RequiredArgsConstructor
     public static class TrackedEntityOuInfo
     {
         private final Long trackerEntityId;
@@ -86,5 +81,23 @@ public class EventContext
         private final String trackedEntityUid;
 
         private final Long orgUnitId;
+
+        public TrackedEntityOuInfo(Long trackerEntityId, String trackedEntityUid, Long orgUnitId) {
+            this.trackerEntityId = trackerEntityId;
+            this.trackedEntityUid = trackedEntityUid;
+            this.orgUnitId = orgUnitId;
+        }
+
+        public Long getTrackerEntityId() {
+            return trackerEntityId;
+        }
+
+        public String getTrackedEntityUid() {
+            return trackedEntityUid;
+        }
+
+        public Long getOrgUnitId() {
+            return orgUnitId;
+        }
     }
 }
