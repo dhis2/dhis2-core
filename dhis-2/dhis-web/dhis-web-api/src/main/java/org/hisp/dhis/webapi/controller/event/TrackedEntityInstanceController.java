@@ -166,7 +166,7 @@ public class TrackedEntityInstanceController
         {
             throw new IllegalQueryException( "maxteicountreached" );
         }
-        
+
         if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
         {
             queryParams.setUseLegacy( true );
