@@ -25,36 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.preprocess;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
+import java.util.Collections;
+
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
+import org.junit.Test;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Enrico Colasante
  */
-@Component
-public class EventGeoValidationHook
-    extends AbstractTrackerDtoValidationHook
+public class EventProgramPreProcessorTest
 {
-    @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    private EventProgramPreProcessor preProcessorToTest = new EventProgramPreProcessor();
+
+    @Test
+    public void testEnrollmentIsAddedIntoEventWhenItBelongsToProgramWithoutRegistration()
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
+        // Given
+        Event event = new Event();
+        event.setProgram( null );
+        event.setProgramStage( "programStageUid" );
 
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+        TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
 
-        if ( event.getGeometry() != null )
-        {
-            ValidationUtils.validateGeometry( reporter,
-                event.getGeometry(),
-                programStage.getFeatureType() );
-        }
+        Program program = new Program();
+        program.setUid( "programUid" );
+
+        ProgramStage programStage = new ProgramStage();
+        programStage.setUid( "programStageUid" );
+        programStage.setProgram( program );
+
+        TrackerPreheat preheat = new TrackerPreheat();
+        preheat.put( TrackerIdentifier.UID, programStage );
+        bundle.setPreheat( preheat );
+
+        // When
+        preProcessorToTest.process( bundle );
+
+        // Then
+        assertEquals( "programUid", bundle.getEvents().get( 0 ).getProgram() );
+        assertNotNull( bundle.getPreheat().get( Program.class, "programUid" ) );
     }
 }

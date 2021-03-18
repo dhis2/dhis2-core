@@ -25,36 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.hooks;
+package org.hisp.dhis.tracker.preprocess;
 
-import static com.google.api.client.util.Preconditions.checkNotNull;
+import java.util.Objects;
 
+import org.apache.logging.log4j.util.Strings;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.tracker.TrackerIdentifier;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.report.ValidationErrorReporter;
-import org.hisp.dhis.tracker.validation.TrackerImportValidationContext;
 import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * This preprocessor is responsible for setting the Program UID on an Event from
+ * the ProgramStage if the Program is not present in the payload
+ *
+ * @author Enrico Colasante
  */
 @Component
-public class EventGeoValidationHook
-    extends AbstractTrackerDtoValidationHook
+public class EventProgramPreProcessor
+    implements BundlePreProcessor
 {
     @Override
-    public void validateEvent( ValidationErrorReporter reporter, Event event )
+    public void process( TrackerBundle bundle )
     {
-        TrackerImportValidationContext context = reporter.getValidationContext();
-
-        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
-        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
-
-        if ( event.getGeometry() != null )
+        for ( Event event : bundle.getEvents() )
         {
-            ValidationUtils.validateGeometry( reporter,
-                event.getGeometry(),
-                programStage.getFeatureType() );
+            if ( Strings.isEmpty( event.getProgram() ) && Strings.isNotEmpty( event.getProgramStage() ) )
+            {
+                ProgramStage programStage = bundle.getPreheat().get( ProgramStage.class, event.getProgramStage() );
+                if ( Objects.nonNull( programStage ) )
+                {
+                    event.setProgram( programStage.getProgram().getUid() );
+                    bundle.getPreheat().put( TrackerIdentifier.UID, programStage.getProgram() );
+                }
+            }
         }
     }
 }
