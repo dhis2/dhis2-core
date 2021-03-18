@@ -156,7 +156,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -172,6 +172,11 @@ public class DefaultTrackedEntityInstanceService
         if ( !skipAccessValidation )
         {
             validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -206,7 +211,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -225,6 +230,11 @@ public class DefaultTrackedEntityInstanceService
         if ( !skipAccessValidation )
         {
             validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
         }
 
         User user = currentUserService.getCurrentUser();
