@@ -196,7 +196,8 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/me" ).error( HttpStatus.UNAUTHORIZED );
 
         assertEquals( "invalid_token", error.getMessage() );
-        assertEquals( "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
+        assertEquals(
+            "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
             error.getDevMessage() );
     }
 
