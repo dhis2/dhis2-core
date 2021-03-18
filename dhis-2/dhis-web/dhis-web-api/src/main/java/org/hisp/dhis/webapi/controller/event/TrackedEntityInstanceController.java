@@ -47,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;

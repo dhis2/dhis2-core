@@ -75,7 +75,6 @@ public class TrackerTrackedEntitiesExportController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-
         if ( queryParams.isSkipPaging() )
         {
             /*
