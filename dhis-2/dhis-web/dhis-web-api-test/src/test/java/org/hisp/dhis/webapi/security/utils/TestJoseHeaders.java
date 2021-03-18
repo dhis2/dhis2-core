@@ -25,52 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.webapi.security.utils;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
+import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public final class TestJoseHeaders
 {
-    private final ClientRegistration clientRegistration;
-
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    private TestJoseHeaders()
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+    }
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+    public static JoseHeader.Builder joseHeader( String provider )
+    {
+        return joseHeader( SignatureAlgorithm.RS256, provider );
+    }
+
+    public static JoseHeader.Builder joseHeader( SignatureAlgorithm signatureAlgorithm, String provider )
+    {
+        return JoseHeader.withAlgorithm( signatureAlgorithm )
+            .jwkSetUri( "https://" + provider + "/oauth2/jwks" )
+            .jwk( rsaJwk() )
+            .keyId( "keyId" )
+            .x509Uri( "https://" + provider + "/oauth2/x509" )
+            .x509CertificateChain( Arrays.asList( "x509Cert1", "x509Cert2" ) )
+            .x509SHA1Thumbprint( "x509SHA1Thumbprint" )
+            .x509SHA256Thumbprint( "x509SHA256Thumbprint" )
+            .type( "JWT" )
+            .contentType( "jwt-content-type" )
+            .header( "custom-header-name", "custom-header-value" );
+    }
+
+    private static Map<String, Object> rsaJwk()
+    {
+        Map<String, Object> rsaJwk = new HashMap<>();
+        rsaJwk.put( "kty", "RSA" );
+        rsaJwk.put( "n", "modulus" );
+        rsaJwk.put( "e", "exponent" );
+        return rsaJwk;
     }
 }

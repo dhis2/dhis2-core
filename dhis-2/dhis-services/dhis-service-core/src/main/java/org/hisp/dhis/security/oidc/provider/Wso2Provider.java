@@ -36,9 +36,9 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_MA
 import static org.hisp.dhis.external.conf.ConfigurationKey.OIDC_PROVIDER_WSO2_SERVER_URL;
 
 import java.util.Objects;
+import java.util.Properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthenticationMethod;
@@ -46,6 +46,7 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 import org.springframework.security.oauth2.core.oidc.IdTokenClaimNames;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
 /**
@@ -60,25 +61,38 @@ public class Wso2Provider extends AbstractOidcProvider
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static DhisOidcClientRegistration build( DhisConfigurationProvider config )
+    public static DhisOidcClientRegistration parse( Properties config )
     {
         Objects.requireNonNull( config, "DhisConfigurationProvider is missing!" );
 
-        String wso2ClientId = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_ID );
-        String wso2ClientSecret = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_SECRET );
+        String wso2ClientId = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_ID.getKey() );
+        String wso2ClientSecret = config.getProperty( OIDC_PROVIDER_WSO2_CLIENT_SECRET.getKey() );
 
-        if ( wso2ClientId.isEmpty() )
+        if ( Strings.isNullOrEmpty( wso2ClientId ) )
         {
             return null;
         }
 
-        if ( wso2ClientSecret.isEmpty() )
+        if ( Strings.isNullOrEmpty( wso2ClientSecret ) )
         {
             throw new IllegalArgumentException( "WSO2 client secret is missing!" );
         }
 
-        String providerBaseUrl = config.getProperty( OIDC_PROVIDER_WSO2_SERVER_URL );
+        ClientRegistration clientRegistration = buildClientRegistration( config,
+            wso2ClientId, wso2ClientSecret, config.getProperty( OIDC_PROVIDER_WSO2_SERVER_URL.getKey() ) );
 
+        return DhisOidcClientRegistration.builder()
+            .clientRegistration( clientRegistration )
+            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_WSO2_MAPPING_CLAIM.getKey() ) )
+            .loginIcon( "../security/wso2-logo.svg" )
+            .loginIconPadding( "0px 1px" )
+            .loginText( config.getProperty( OIDC_PROVIDER_WSO2_DISPLAY_ALIAS.getKey() ) )
+            .build();
+    }
+
+    private static ClientRegistration buildClientRegistration( Properties config, String wso2ClientId,
+        String wso2ClientSecret, String providerBaseUrl )
+    {
         ClientRegistration.Builder builder = ClientRegistration.withRegistrationId( Wso2Provider.REGISTRATION_ID );
         builder.clientName( wso2ClientId );
         builder.clientId( wso2ClientId );
@@ -91,25 +105,17 @@ public class Wso2Provider extends AbstractOidcProvider
         builder.jwkSetUri( providerBaseUrl + "/oauth2/jwks" );
         builder.userInfoUri( providerBaseUrl + "/oauth2/userinfo" );
         builder.redirectUri( StringUtils.firstNonBlank(
-            config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI ),
+            config.getProperty( OIDC_PROVIDER_GOOGLE_REDIRECT_URI.getKey() ),
             DEFAULT_REDIRECT_TEMPLATE_URL ) );
         builder.userInfoAuthenticationMethod( AuthenticationMethod.HEADER );
         builder.userNameAttributeName( IdTokenClaimNames.SUB );
 
-        if ( Boolean.parseBoolean( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT ) ) )
+        if ( Boolean.parseBoolean( config.getProperty( OIDC_PROVIDER_WSO2_ENABLE_LOGOUT.getKey() ) ) )
         {
             builder.providerConfigurationMetadata( ImmutableMap
                 .of( "end_session_endpoint", providerBaseUrl + "/oidc/logout" ) );
         }
 
-        ClientRegistration clientRegistration = builder.build();
-
-        return DhisOidcClientRegistration.builder()
-            .clientRegistration( clientRegistration )
-            .mappingClaimKey( config.getProperty( OIDC_PROVIDER_WSO2_MAPPING_CLAIM ) )
-            .loginIcon( "../security/wso2-logo.svg" )
-            .loginIconPadding( "0px 1px" )
-            .loginText( config.getProperty( OIDC_PROVIDER_WSO2_DISPLAY_ALIAS ) )
-            .build();
+        return builder.build();
     }
 }
