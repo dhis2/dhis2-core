@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
@@ -47,6 +46,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
+import org.hisp.dhis.system.util.ValidationUtils;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -64,21 +64,26 @@ import com.google.common.collect.Lists;
  * @author Zubair Asghar
  */
 @Slf4j
-@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
 public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
 {
-    @NonNull
     private final ProgramInstanceStore programInstanceStore;
 
-    @NonNull
     private final ProgramStageInstanceStore programStageInstanceStore;
 
-    @Nonnull
     private final RestTemplate restTemplate;
 
-    @Nonnull
     private final RenderService renderService;
+
+    public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceStore programInstanceStore,
+        @NonNull ProgramStageInstanceStore programStageInstanceStore,
+        @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService )
+    {
+        this.programInstanceStore = programInstanceStore;
+        this.programStageInstanceStore = programStageInstanceStore;
+        this.restTemplate = restTemplate;
+        this.renderService = renderService;
+    }
 
     @Override
     @Transactional
@@ -125,6 +130,13 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
         for ( ProgramNotificationTemplate t : templates )
         {
+            if ( !ValidationUtils.urlIsValid( t.getMessageTemplate() ) )
+            {
+                log.error( String.format( "Webhook url: %s is invalid for template: %s", t.getMessageTemplate(),
+                    t.getUid() ) );
+                continue;
+            }
+
             URI uri = UriComponentsBuilder.fromHttpUrl( t.getMessageTemplate() ).build().encode().toUri();
 
             try
@@ -146,11 +158,11 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
             if ( responseEntity != null && SmsGateway.OK_CODES.contains( responseEntity.getStatusCode() ) )
             {
-                log.info( "Post request to url: " + t.getMessageTemplate() + " successful." );
+                log.info( String.format( "Post request successful for url: %s and template: %s", uri, t.getUid() ) );
             }
             else
             {
-                log.error( "Post request to url: " + t.getMessageTemplate() + " failed." );
+                log.info( String.format( "Post request failed for url: %s and template: %s", uri, t.getUid() ) );
             }
         }
     }
