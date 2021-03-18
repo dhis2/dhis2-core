@@ -67,11 +67,12 @@ public interface TrackedEntityInstanceService
      *        the directives for how much data should be fetched (e.g.
      *        Enrollments, Events, Relationships)
      * @param skipAccessValidation whether access validation should be ignored
-     *
+     * @param skipSearchScopeValidation whether search scope validation should
+     *        be ignored
      * @return a List of {@see TrackedEntityInstance}
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation );
+        TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
