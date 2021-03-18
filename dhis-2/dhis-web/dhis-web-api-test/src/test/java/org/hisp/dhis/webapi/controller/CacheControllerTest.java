@@ -25,56 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cache;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.function.Function;
+import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 
-import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.junit.Test;
+import org.springframework.http.HttpStatus;
 
 /**
- * Provides cache builder to build instances.
+ * Tests the {@link CacheController}.
  *
- * @author Ameen Mohamed
+ * Mostly that only users with proper authority can use it.
  *
+ * @author Jan Bernitt
  */
-@Component( "cacheProvider" )
-public class DefaultCacheBuilderProvider implements CacheBuilderProvider
+public class CacheControllerTest extends DhisControllerConvenienceTest
 {
-    private DhisConfigurationProvider configurationProvider;
 
-    private RedisTemplate<String, ?> redisTemplate;
-
-    private CappedLocalCache cappedLocalCache;
-
-    @Override
-    public <V> CacheBuilder<V> newCacheBuilder()
+    @Test
+    public void testInvalidate()
     {
-        Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
-            ? cappedLocalCache::createRegion
-            : builder -> new NoOpCache<>();
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );
-    }
-
-    @Autowired
-    public void setConfigurationProvider( DhisConfigurationProvider configurationProvider )
-    {
-        this.configurationProvider = configurationProvider;
-    }
-
-    @Autowired( required = false )
-    @Qualifier( "redisTemplate" )
-    public void setRedisTemplate( RedisTemplate<String, ?> redisTemplate )
-    {
-        this.redisTemplate = redisTemplate;
-    }
-
-    @Autowired
-    public void setCappedLocalCache( CappedLocalCache cappedLocalCache )
-    {
-        this.cappedLocalCache = cappedLocalCache;
+        switchToNewUser( "no-special-authority-user" );
+        assertStatus( HttpStatus.FORBIDDEN, POST( "/caches/invalidate" ) );
     }
 }
