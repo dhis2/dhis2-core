@@ -41,7 +41,9 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -144,5 +146,11 @@ public class WebTestConfiguration
         defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
             ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
         return defaultAuthenticationEventPublisher;
+    }
+
+    @Bean
+    public SystemAuthoritiesProvider systemAuthoritiesProvider()
+    {
+        return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
     }
 }

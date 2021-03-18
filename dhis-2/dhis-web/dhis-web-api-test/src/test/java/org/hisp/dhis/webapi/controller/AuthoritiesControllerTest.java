@@ -25,18 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.authority;
+package org.hisp.dhis.webapi.controller;
 
-import java.util.Collection;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
 
 /**
- * @author Torgeir Lorange Ostby
- * @version $Id: SystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
- *          torgeilo $
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.security.AuthoritiesController}.
+ *
+ * @author Jan Bernitt
  */
-public interface SystemAuthoritiesProvider
+public class AuthoritiesControllerTest extends DhisControllerConvenienceTest
 {
-    String ID = SystemAuthoritiesProvider.class.getName();
-
-    Collection<String> getSystemAuthorities();
+    @Test
+    public void testGetAuthorities()
+    {
+        JsonArray systemAuthorities = GET( "/authorities" ).content().getArray( "systemAuthorities" );
+        assertTrue( systemAuthorities.size() > 10 );
+        JsonObject all = systemAuthorities.getObject( 0 ); // its sorted
+        assertEquals( "ALL", all.getString( "id" ).string() );
+        assertEquals( "ALL", all.getString( "name" ).string() );
+    }
 }

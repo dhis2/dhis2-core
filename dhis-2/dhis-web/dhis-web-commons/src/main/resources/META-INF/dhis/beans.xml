@@ -1,15 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
-  xsi:schemaLocation="
-		http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd">
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans	http://www.springframework.org/schema/beans/spring-beans-4.3.xsd">
 
   <!-- Web Portal -->
 
   <bean id="org.hisp.dhis.security.authority.RequiredAuthoritiesProvider"
         class="org.hisp.dhis.security.authority.DefaultRequiredAuthoritiesProvider">
-    <property name="requiredAuthoritiesKey" value="requiredAuthorities" />
-    <property name="anyAuthoritiesKey" value="anyAuthorities" />
+    <property name="requiredAuthoritiesKey" value="requiredAuthorities"/>
+    <property name="anyAuthoritiesKey" value="anyAuthorities"/>
     <property name="globalAttributes">
       <set>
         <value>M_MODULE_ACCESS_VOTER_ENABLED</value>
@@ -273,7 +272,8 @@
 
   <bean id="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction" class="org.hisp.dhis.commons.action.GetSystemAuthoritiesAction"
         scope="prototype">
-    <property name="authoritiesProvider" ref="org.hisp.dhis.security.authority.SystemAuthoritiesProvider" />
+    <property name="authoritiesProvider"
+              ref="org.hisp.dhis.security.SystemAuthoritiesProvider"/>
   </bean>
 
   <bean id="org.hisp.dhis.commons.action.GetUserAction" class="org.hisp.dhis.commons.action.GetUserAction" scope="prototype">
