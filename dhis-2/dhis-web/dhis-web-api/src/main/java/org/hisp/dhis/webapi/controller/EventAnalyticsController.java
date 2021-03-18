@@ -64,13 +64,13 @@ public class EventAnalyticsController
     private static final String RESOURCE_PATH = "/analytics/events";
 
     @NonNull
-    private EventDataQueryService eventDataService;
+    private final EventDataQueryService eventDataService;
 
     @NonNull
-    private EventAnalyticsService analyticsService;
+    private final EventAnalyticsService analyticsService;
 
     @NonNull
-    private ContextUtils contextUtils;
+    private final ContextUtils contextUtils;
 
     // -------------------------------------------------------------------------
     // Aggregate
@@ -85,7 +85,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         configResponseForJson( response );
 
@@ -165,7 +165,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         configResponseForJson( response );
 
@@ -187,7 +187,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
@@ -212,7 +212,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         configResponseForJson( response );
 
@@ -286,7 +286,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = eventDataService.getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING,
             file, false );
@@ -299,20 +299,21 @@ public class EventAnalyticsController
         String contentType, String file,
         HttpServletResponse response )
     {
-        EventQueryParams params = eventDataService
-            .getFromRequest( mapFromCriteria( criteria, program, apiVersion ) );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
         return analyticsService.getEvents( params );
     }
 
-    private EventDataQueryRequest mapFromCriteria( EventsAnalyticsQueryCriteria criteria, String program,
+    private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
         DhisApiVersion apiVersion )
     {
-        return EventDataQueryRequest.newBuilder()
-            .program( program )
+        EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( criteria )
+            .program( program )
             .apiVersion( apiVersion ).build();
+
+        return eventDataService.getFromRequest( request );
     }
 
     private void configResponseForJson( HttpServletResponse response )
