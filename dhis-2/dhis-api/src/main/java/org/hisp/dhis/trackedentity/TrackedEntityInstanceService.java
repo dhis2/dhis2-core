@@ -117,12 +117,27 @@ public interface TrackedEntityInstanceService
      * @param skipAccessValidation If true, access validation is skipped. Should
      *        be set to true only for internal tasks (e.g. currently used by
      *        synchronization job)
+     * @param skipSearchScopeValidation if true, search scope validation is
+     *        skipped.
      * @return List of TEIs matching the params
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation );
+        boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation );
+    /**
+     * Returns a list tracked entity instance primary key ids based on the given
+     * TrackedEntityInstanceQueryParams.
+     *
+     * @param params the TrackedEntityInstanceQueryParams.
+     * @param skipAccessValidation If true, access validation is skipped. Should
+     *        be set to true only for internal tasks (e.g. currently used by
+     *        synchronization job)
+     * @param skipSearchScopeValidation if true, search scope validation is
+     *        skipped.
+     * @return List of TEI IDs matching the params
+     */
+    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+        boolean skipSearchScopeValidation );
 
     /**
      * Return the count of the Tracked entity instances that meet the criteria

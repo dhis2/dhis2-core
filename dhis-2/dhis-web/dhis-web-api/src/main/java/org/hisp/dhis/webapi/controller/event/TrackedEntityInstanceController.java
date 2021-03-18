@@ -47,7 +47,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.cache.CacheStrategy;
@@ -159,28 +158,26 @@ public class TrackedEntityInstanceController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
-
-        // Validating here to avoid further querying
-        if ( queryParams.getMaxTeiLimit() > 0 && count > 0
-            && count > queryParams.getMaxTeiLimit() )
+        if ( queryParams.isSkipPaging() )
         {
-            throw new IllegalQueryException( "maxteicountreached" );
-        }
-
-        if ( count > TEI_COUNT_THRESHOLD_FOR_USE_LEGACY && queryParams.isSkipPaging() )
-        {
+            /*
+             * TODO: Find a way to not use legacy at all. If result set is huge,
+             * our refactored mechanism fails due to appending the huge list of
+             * ids in sql. To be safe, we switch to legacy mechanism if paging
+             * is explicitly skipped.
+             */
             queryParams.setUseLegacy( true );
         }
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
             queryParams,
-            getTrackedEntityInstanceParams( fields ), true );
+            getTrackedEntityInstanceParams( fields ), false, false );
 
         RootNode rootNode = NodeUtils.createMetadata();
 
         if ( queryParams.isPaging() && queryParams.isTotalPages() )
         {
+            int count = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
