@@ -37,8 +37,8 @@ import java.util.Set;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
-import org.hisp.dhis.security.oidc.DhisClientRegistrationRepository;
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
+import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mobile.device.Device;
 import org.springframework.mobile.device.DeviceResolver;
@@ -70,7 +70,7 @@ public class LoginAction
     private DhisConfigurationProvider configurationProvider;
 
     @Autowired
-    private DhisClientRegistrationRepository repository;
+    private DhisOidcProviderRepository repository;
 
     // -------------------------------------------------------------------------
     // Input & Output

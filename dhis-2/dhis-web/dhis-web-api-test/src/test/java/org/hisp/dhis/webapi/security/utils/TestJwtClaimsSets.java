@@ -25,52 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.oidc;
+package org.hisp.dhis.webapi.security.utils;
 
-import static org.hisp.dhis.security.oidc.provider.AbstractOidcProvider.CLIENT_ID;
-
-import java.util.Collection;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import lombok.Builder;
-import lombok.Data;
-
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Data
-@Builder
-public class DhisOidcClientRegistration
+public final class TestJwtClaimsSets
 {
-    private final ClientRegistration clientRegistration;
-
-    private final String mappingClaimKey;
-
-    private final String loginIcon;
-
-    private final String loginIconPadding;
-
-    private final String loginText;
-
-    @Builder.Default
-    private final Map<String, Map<String, String>> externalClients = new HashMap<>();
-
-    public Collection<String> getClientIds()
+    private TestJwtClaimsSets()
     {
-        Set<String> allExternalClientIds = externalClients.entrySet()
-            .stream()
-            .flatMap( e -> e.getValue().entrySet().stream() )
-            .filter( e -> e.getKey().contains( CLIENT_ID ) )
-            .map( Map.Entry::getValue )
-            .collect( Collectors.toSet() );
+    }
 
-        allExternalClientIds.add( clientRegistration.getClientId() );
-        return Collections.unmodifiableSet( allExternalClientIds );
+    public static JwtClaimsSet.Builder jwtClaimsSet( final String providerURI, String clientId,
+        String customClaimKey1, String customClaimValue1 )
+    {
+        String issuer = "https://" + providerURI;
+        Instant issuedAt = Instant.now();
+        Instant expiresAt = issuedAt.plus( 1, ChronoUnit.HOURS );
+
+        return JwtClaimsSet.builder()
+            .issuer( issuer )
+            .subject( "subject" )
+            .audience( Collections.singletonList( clientId ) )
+            .issuedAt( issuedAt )
+            .notBefore( issuedAt )
+            .expiresAt( expiresAt )
+            .id( "jti" )
+            .claim( customClaimKey1, customClaimValue1 );
     }
 }
