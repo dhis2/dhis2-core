@@ -90,7 +90,6 @@ public class GetSectionIndicatorsAction
 
         indicators.forEach( this::canReadInstance );
 
-
         for ( Section section : dataSet.getSections() )
         {
             indicators.removeAll( section.getIndicators() );

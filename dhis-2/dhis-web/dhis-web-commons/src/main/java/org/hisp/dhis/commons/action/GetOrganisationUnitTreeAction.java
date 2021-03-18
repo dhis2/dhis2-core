@@ -196,7 +196,6 @@ public class GetOrganisationUnitTreeAction extends BaseAction
 
         rootOrganisationUnits.forEach( this::canReadInstance );
 
-
         if ( byName != null )
         {
             List<OrganisationUnit> organisationUnitByName = organisationUnitService.getOrganisationUnitByName( byName );

@@ -33,7 +33,6 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.struts2.ServletActionContext;
-
 import org.hisp.dhis.commons.action.BaseAction;
 import org.hisp.dhis.system.paging.Paging;
 import org.hisp.dhis.util.ContextUtils;
