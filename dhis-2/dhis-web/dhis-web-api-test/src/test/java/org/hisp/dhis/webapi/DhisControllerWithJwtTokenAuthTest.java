@@ -60,7 +60,7 @@ import org.springframework.web.filter.CharacterEncodingFilter;
 @ContextConfiguration( classes = { WebMvcConfig.class, WebTestConfigurationWithJwtTokenAuth.class } )
 @ActiveProfiles( "test-h2" )
 @Transactional
-public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements AuthenticatedWebClient
+public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenienceTest implements WebClient
 {
     @Autowired
     private WebApplicationContext webApplicationContext;
@@ -88,12 +88,10 @@ public abstract class DhisControllerWithJwtTokenAuthTest extends DhisConvenience
         TestUtils.executeStartupRoutines( webApplicationContext );
     }
 
-    public WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request )
+    @Override
+    public HttpResponse webRequest( MockHttpServletRequestBuilder request )
     {
         return failOnException(
-            () -> new WebClient.HttpResponse(
-                mvc.perform( request.header( "Authorization", "Bearer " + token ) )
-                    .andReturn()
-                    .getResponse() ) );
+            () -> new HttpResponse( mvc.perform( request ).andReturn().getResponse() ) );
     }
 }
