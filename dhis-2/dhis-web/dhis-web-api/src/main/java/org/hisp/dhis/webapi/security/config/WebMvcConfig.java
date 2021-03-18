@@ -28,59 +28,34 @@ package org.hisp.dhis.webapi.security.config;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import static org.springframework.http.MediaType.parseMediaType;
+import com.google.common.collect.*;
+import org.apache.commons.lang3.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.node.*;
+import org.hisp.dhis.user.*;
+import org.hisp.dhis.webapi.mvc.*;
+import org.hisp.dhis.webapi.mvc.interceptor.*;
+import org.hisp.dhis.webapi.mvc.messageconverter.*;
+import org.hisp.dhis.webapi.service.*;
+import org.hisp.dhis.webapi.view.*;
+import org.springframework.beans.factory.annotation.*;
+import org.springframework.context.annotation.*;
+import org.springframework.core.annotation.*;
+import org.springframework.http.*;
+import static org.springframework.http.MediaType.*;
+import org.springframework.http.converter.*;
+import org.springframework.security.access.expression.method.*;
+import org.springframework.security.config.annotation.method.configuration.*;
+import org.springframework.web.accept.*;
+import org.springframework.web.method.support.*;
+import org.springframework.web.multipart.*;
+import org.springframework.web.multipart.commons.*;
+import org.springframework.web.servlet.config.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.*;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.commons.lang3.ArrayUtils;
-import org.hisp.dhis.common.Compression;
-import org.hisp.dhis.node.DefaultNodeService;
-import org.hisp.dhis.node.NodeService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.mvc.CurrentUserHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CurrentUserInfoHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.CustomRequestMappingHandlerMapping;
-import org.hisp.dhis.webapi.mvc.DhisApiVersionHandlerMethodArgumentResolver;
-import org.hisp.dhis.webapi.mvc.interceptor.UserContextInterceptor;
-import org.hisp.dhis.webapi.mvc.messageconverter.CsvMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.ExcelMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.PdfMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.RenderServiceMessageConverter;
-import org.hisp.dhis.webapi.mvc.messageconverter.XmlMessageConverter;
-import org.hisp.dhis.webapi.service.ContextService;
-import org.hisp.dhis.webapi.view.CustomPathExtensionContentNegotiationStrategy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Primary;
-import org.springframework.core.annotation.Order;
-import org.springframework.http.MediaType;
-import org.springframework.http.converter.ByteArrayHttpMessageConverter;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
-import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
-import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
-import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.accept.FixedContentNegotiationStrategy;
-import org.springframework.web.accept.HeaderContentNegotiationStrategy;
-import org.springframework.web.accept.ParameterContentNegotiationStrategy;
-import org.springframework.web.method.support.HandlerMethodArgumentResolver;
-import org.springframework.web.multipart.MultipartResolver;
-import org.springframework.web.multipart.commons.CommonsMultipartResolver;
-import org.springframework.web.servlet.config.annotation.DelegatingWebMvcConfiguration;
-import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-
-import com.google.common.collect.ImmutableMap;
+import java.nio.charset.*;
+import java.util.*;
+import java.util.stream.*;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -161,7 +136,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new PdfMessageConverter( nodeService() ) );
         converters.add( new ExcelMessageConverter( nodeService() ) );
 
-        converters.add( new StringHttpMessageConverter() );
+        converters.add( new StringHttpMessageConverter( Charset.forName( "UTF-8" ) ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 

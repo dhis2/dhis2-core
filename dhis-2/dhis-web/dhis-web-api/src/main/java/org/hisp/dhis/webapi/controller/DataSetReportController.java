@@ -105,8 +105,6 @@ public class DataSetReportController
             throw new WebMessageException( WebMessageUtils.conflict( "Data set form type must be 'custom': " + dataSet.getFormType() ) );
         }
 
-        contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING );
-
         return dataSetReportService.getCustomDataSetReport( dataSet, period, orgUnit, filter, selectedUnitOnly );
     }
 
