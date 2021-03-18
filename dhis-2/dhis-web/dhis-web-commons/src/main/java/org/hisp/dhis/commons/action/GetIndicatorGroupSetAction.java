@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Tran Thanh Tri
  */
-public class GetIndicatorGroupSetAction
+public class GetIndicatorGroupSetAction extends BaseAction
     implements Action
 {
 
@@ -75,10 +75,14 @@ public class GetIndicatorGroupSetAction
     @Override
     public String execute()
     {
+        canReadType( IndicatorGroupSet.class );
+
         if ( id != null )
         {
             indicatorGroupSet = indicatorService.getIndicatorGroupSet( id );
         }
+
+        canReadInstance( indicatorGroupSet );
 
         return SUCCESS;
     }

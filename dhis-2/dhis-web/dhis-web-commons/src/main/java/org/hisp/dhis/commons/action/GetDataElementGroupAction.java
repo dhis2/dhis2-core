@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Torgeir Lorange Ostby
  */
-public class GetDataElementGroupAction
+public class GetDataElementGroupAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -81,11 +81,15 @@ public class GetDataElementGroupAction
     @Override
     public String execute()
     {
+        canReadType( DataElementGroup.class );
+
         if ( id != null )
         {
             dataElementGroup = dataElementService.getDataElementGroup( id );
             memberCount = dataElementGroup.getMembers().size();
         }
+
+        canReadInstance( dataElementGroup );
 
         return SUCCESS;
     }

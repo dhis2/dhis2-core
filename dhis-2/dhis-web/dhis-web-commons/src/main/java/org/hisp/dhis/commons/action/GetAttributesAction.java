@@ -41,7 +41,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author mortenoh
  */
-public class GetAttributesAction
+public class GetAttributesAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -73,10 +73,14 @@ public class GetAttributesAction
     @Override
     public String execute()
     {
+        canReadType( Attribute.class );
+
         attributes = new ArrayList<>( attributeService.getAllAttributes() );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
             attributes );
+
+        attributes.forEach( this::canReadInstance );
 
         Collections.sort( attributes );
 

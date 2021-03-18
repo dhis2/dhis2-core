@@ -89,6 +89,8 @@ public class GetDataElementsNotInGroupAction
     @Override
     public String execute()
     {
+        canReadType( DataElement.class );
+
         // ---------------------------------------------------------------------
         // Get group members
         // ---------------------------------------------------------------------
@@ -102,6 +104,8 @@ public class GetDataElementsNotInGroupAction
             Collections.sort( groupMembers );
         }
 
+        groupMembers.forEach( this::canReadInstance );
+
         // ---------------------------------------------------------------------
         // Get available elements
         // ---------------------------------------------------------------------
@@ -111,6 +115,8 @@ public class GetDataElementsNotInGroupAction
         dataElements.removeAll( groupMembers );
 
         Collections.sort( dataElements );
+
+        dataElements.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

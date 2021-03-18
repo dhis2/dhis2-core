@@ -80,6 +80,8 @@ public class GetOrganisationUnitGroupsAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnitGroup.class );
+
         organisationUnitGroups = new ArrayList<>(
             organisationUnitGroupService.getAllOrganisationUnitGroups() );
 
@@ -89,6 +91,8 @@ public class GetOrganisationUnitGroupsAction
         }
 
         Collections.sort( organisationUnitGroups );
+
+        organisationUnitGroups.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

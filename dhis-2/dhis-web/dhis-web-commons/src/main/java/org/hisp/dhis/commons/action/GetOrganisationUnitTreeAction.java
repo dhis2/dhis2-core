@@ -45,7 +45,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class GetOrganisationUnitTreeAction
+public class GetOrganisationUnitTreeAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -174,6 +174,8 @@ public class GetOrganisationUnitTreeAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnit.class );
+
         version = getVersionString();
 
         username = currentUserService.getCurrentUsername();
@@ -191,6 +193,9 @@ public class GetOrganisationUnitTreeAction
         {
             rootOrganisationUnits = new ArrayList<>( organisationUnitService.getRootOrganisationUnits() );
         }
+
+        rootOrganisationUnits.forEach( this::canReadInstance );
+
 
         if ( byName != null )
         {
@@ -267,6 +272,8 @@ public class GetOrganisationUnitTreeAction
         }
 
         Collections.sort( rootOrganisationUnits );
+
+        organisationUnits.forEach( this::canReadInstance );
 
         return SUCCESS;
     }

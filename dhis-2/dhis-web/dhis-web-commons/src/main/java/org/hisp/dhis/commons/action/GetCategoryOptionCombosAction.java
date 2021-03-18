@@ -32,14 +32,15 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 
 import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetCategoryOptionCombosAction
+public class GetCategoryOptionCombosAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -103,6 +104,8 @@ public class GetCategoryOptionCombosAction
     @Override
     public String execute()
     {
+        canReadType( CategoryOptionCombo.class );
+
         if ( id != null )
         {
             DataElement dataElement = dataElementService.getDataElement( id );
@@ -130,6 +133,8 @@ public class GetCategoryOptionCombosAction
                 categoryOptionCombos = categoryCombo.getOptionCombos();
             }
         }
+
+        categoryOptionCombos.forEach( this::canReadInstance );
 
         return SUCCESS;
     }

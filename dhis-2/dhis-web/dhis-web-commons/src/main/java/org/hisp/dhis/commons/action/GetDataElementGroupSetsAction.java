@@ -79,12 +79,16 @@ public class GetDataElementGroupSetsAction
     public String execute()
         throws Exception
     {
+        canReadType( DataElementGroupSet.class );
+
         dataElementGroupSets = new ArrayList<>( dataElementService.getAllDataElementGroupSets() );
 
         if ( key != null )
         {
             dataElementGroupSets = IdentifiableObjectUtils.filterNameByKey( dataElementGroupSets, key, true );
         }
+
+        dataElementGroupSets.forEach( this::canReadInstance );
 
         Collections.sort( dataElementGroupSets );
 

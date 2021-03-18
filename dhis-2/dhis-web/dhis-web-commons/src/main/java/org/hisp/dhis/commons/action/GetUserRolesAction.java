@@ -71,9 +71,13 @@ public class GetUserRolesAction
     public String execute()
         throws Exception
     {
+        canReadType( UserAuthorityGroup.class );
+
         userRoles = new ArrayList<>( userService.getAllUserAuthorityGroups() );
 
         userService.canIssueFilter( userRoles );
+
+        userRoles.forEach( this::canReadInstance );
 
         Collections.sort( userRoles );
 

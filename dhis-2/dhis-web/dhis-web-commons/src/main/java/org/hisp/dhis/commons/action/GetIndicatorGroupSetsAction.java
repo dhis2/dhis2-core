@@ -79,6 +79,8 @@ public class GetIndicatorGroupSetsAction
     public String execute()
         throws Exception
     {
+        canReadType( IndicatorGroupSet.class );
+
         indicatorGroupSets = new ArrayList<>( indicatorService.getAllIndicatorGroupSets() );
 
         if ( key != null )
@@ -87,6 +89,8 @@ public class GetIndicatorGroupSetsAction
         }
 
         Collections.sort( indicatorGroupSets );
+
+        indicatorGroupSets.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

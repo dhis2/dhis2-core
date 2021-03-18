@@ -71,8 +71,12 @@ public class GetOrganisationUnitLevelsAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnitLevel.class );
+
         organisationUnitLevels = new ArrayList<>(
             organisationUnitService.getOrganisationUnitLevels() );
+
+        organisationUnitLevels.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

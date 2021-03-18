@@ -33,6 +33,8 @@ import java.util.List;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.struts2.ServletActionContext;
+
+import org.hisp.dhis.commons.action.BaseAction;
 import org.hisp.dhis.system.paging.Paging;
 import org.hisp.dhis.util.ContextUtils;
 
@@ -41,7 +43,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Quang Nguyen
  */
-public abstract class ActionPagingSupport<T>
+public abstract class ActionPagingSupport<T> extends BaseAction
     implements Action
 {
     protected Integer currentPage;

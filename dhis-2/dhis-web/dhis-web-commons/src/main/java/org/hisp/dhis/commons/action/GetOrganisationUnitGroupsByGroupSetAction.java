@@ -38,7 +38,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Jan Henrik Overland
  */
-public class GetOrganisationUnitGroupsByGroupSetAction
+public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -82,11 +82,15 @@ public class GetOrganisationUnitGroupsByGroupSetAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnitGroup.class );
+
         if ( id != null )
         {
             organisationUnitGroups = new ArrayList<>( organisationUnitGroupService
                 .getOrganisationUnitGroupSet( id ).getOrganisationUnitGroups() );
         }
+
+        organisationUnitGroups.forEach( this::canReadInstance );
 
         return SUCCESS;
     }

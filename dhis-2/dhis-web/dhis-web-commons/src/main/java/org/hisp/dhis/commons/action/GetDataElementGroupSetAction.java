@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Tran Thanh Tri
  */
-public class GetDataElementGroupSetAction
+public class GetDataElementGroupSetAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -74,10 +74,14 @@ public class GetDataElementGroupSetAction
     @Override
     public String execute()
     {
+        canReadType( DataElementGroupSet.class );
+
         if ( id != null )
         {
             dataElementGroupSet = dataElementService.getDataElementGroupSet( id );
         }
+
+        canReadInstance( dataElementGroupSet );
 
         return SUCCESS;
     }

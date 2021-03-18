@@ -37,7 +37,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetDataElementNameAction
+public class GetDataElementNameAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -94,12 +94,18 @@ public class GetDataElementNameAction
     @Override
     public String execute()
     {
+        canReadType( DataElement.class );
+
         if ( dataElementId != null && categoryOptionComboId != null )
         {
             DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
+            canReadInstance( dataElement );
+
             CategoryOptionCombo categoryOptionCombo = categoryService
                 .getCategoryOptionCombo( categoryOptionComboId );
+
+            canReadInstance( categoryOptionCombo );
 
             name = dataElement.getName() + " " + categoryOptionCombo.getName();
         }

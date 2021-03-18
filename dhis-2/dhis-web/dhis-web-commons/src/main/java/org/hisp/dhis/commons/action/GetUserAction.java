@@ -36,7 +36,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetUserAction
+public class GetUserAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -82,6 +82,8 @@ public class GetUserAction
     @Override
     public String execute()
     {
+        canReadType( User.class );
+
         if ( id != null )
         {
             user = userService.getUser( id );
@@ -92,6 +94,9 @@ public class GetUserAction
 
             user = credentials != null ? credentials.getUserInfo() : null;
         }
+
+        canReadInstance( user );
+
         return SUCCESS;
     }
 }

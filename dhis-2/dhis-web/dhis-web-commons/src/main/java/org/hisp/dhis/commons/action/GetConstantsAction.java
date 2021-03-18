@@ -85,6 +85,8 @@ public class GetConstantsAction
     @Override
     public String execute()
     {
+        canReadType( Constant.class );
+
         if ( isNotBlank( key ) ) // Filter on key only if set
         {
             this.paging = createPaging( constantService.getConstantCountByName( key ) );
@@ -99,6 +101,8 @@ public class GetConstantsAction
             constants = new ArrayList<>( constantService.getConstantsBetween( paging.getStartPos(),
                 paging.getPageSize() ) );
         }
+
+        constants.forEach( this::canReadInstance );
 
         Collections.sort( constants );
 

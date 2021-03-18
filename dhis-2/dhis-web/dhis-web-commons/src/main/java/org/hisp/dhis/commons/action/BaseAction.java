@@ -25,68 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.hisp.dhis.commons.action;
 
-import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorService;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 
-import com.opensymphony.xwork2.Action;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetIndicatorAction extends BaseAction
-    implements Action
+public class BaseAction
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Autowired
+    protected AclService aclService;
 
-    private IndicatorService indicatorService;
+    @Autowired
+    protected CurrentUserService currentUserService;
 
-    public void setIndicatorService( IndicatorService indicatorService )
+    public <T extends IdentifiableObject> void canReadType( Class<T> type )
     {
-        this.indicatorService = indicatorService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Input
-    // -------------------------------------------------------------------------
-
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private Indicator indicator;
-
-    public Indicator getIndicator()
-    {
-        return indicator;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( Indicator.class );
-
-        if ( id != null )
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
         {
-            indicator = indicatorService.getIndicator( id );
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
+    }
 
-        canReadInstance( indicator );
-
-        return SUCCESS;
+    public void canReadInstance( IdentifiableObject instance )
+    {
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), instance ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read this object instance." );
+        }
     }
 }

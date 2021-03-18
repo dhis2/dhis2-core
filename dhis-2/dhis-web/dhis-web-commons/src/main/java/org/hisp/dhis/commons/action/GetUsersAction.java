@@ -35,6 +35,7 @@ import java.util.ListIterator;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.comparator.UserComparator;
 import org.hisp.dhis.util.ContextUtils;
@@ -82,10 +83,12 @@ public class GetUsersAction
     public String execute()
         throws Exception
     {
-        // TODO: Allow user with F_USER_VIEW_WITHIN_MANAGED_GROUP and restrict
-        // viewing to within managed groups.
+        canReadType( User.class );
 
         users = new ArrayList<>( userService.getAllUsers() );
+
+        users.forEach( this::canReadInstance );
+
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), users );
 

@@ -40,7 +40,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetCategoryOptionsAction
+public class GetCategoryOptionsAction extends BaseAction
     implements Action
 {
     @Autowired
@@ -64,7 +64,11 @@ public class GetCategoryOptionsAction
     @Override
     public String execute()
     {
+        canReadType( CategoryOption.class );
+
         categoryOptions = new ArrayList<>( categoryService.getAllCategoryOptions() );
+
+        categoryOptions.forEach( this::canReadInstance );
 
         Collections.sort( categoryOptions );
 

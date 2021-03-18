@@ -79,7 +79,11 @@ public class GetUserGroupsAction
     public String execute()
         throws Exception
     {
+        canReadType( UserGroup.class );
+
         userGroups = new ArrayList<>( userGroupService.getAllUserGroups() );
+
+        userGroups.forEach( this::canReadInstance );
 
         if ( key != null )
         {

@@ -77,6 +77,8 @@ public class GetSectionIndicatorsAction
     public String execute()
         throws Exception
     {
+        canReadType( Indicator.class );
+
         if ( dataSetId == null )
         {
             return SUCCESS;
@@ -85,6 +87,9 @@ public class GetSectionIndicatorsAction
         DataSet dataSet = dataSetService.getDataSet( dataSetId );
 
         indicators = new ArrayList<>( dataSet.getIndicators() );
+
+        indicators.forEach( this::canReadInstance );
+
 
         for ( Section section : dataSet.getSections() )
         {

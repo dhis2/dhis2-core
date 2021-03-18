@@ -156,6 +156,8 @@ public class GetDataElementsAction
     public String execute()
         throws Exception
     {
+        canReadType( DataElement.class );
+
         if ( id != null && id != ALL )
         {
             DataElementGroup dataElementGroup = dataElementService.getDataElementGroup( id );
@@ -230,6 +232,8 @@ public class GetDataElementsAction
         {
             FilterUtils.filter( dataElements, new AggregatableDataElementFilter() );
         }
+
+        dataElements.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetDataElementAction
+public class GetDataElementAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -78,10 +78,14 @@ public class GetDataElementAction
     @Override
     public String execute()
     {
+        canReadType( DataElement.class );
+
         if ( id != null )
         {
             dataElement = dataElementService.getDataElement( id );
         }
+
+        canReadInstance( dataElement );
 
         return SUCCESS;
     }

@@ -107,6 +107,8 @@ public class GetIndicatorsAction
     public String execute()
         throws Exception
     {
+        canReadType( Indicator.class );
+
         if ( id != null && id != ALL )
         {
             IndicatorGroup indicatorGroup = indicatorService.getIndicatorGroup( id );
@@ -144,6 +146,8 @@ public class GetIndicatorsAction
         }
 
         Collections.sort( indicators );
+
+        indicators.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

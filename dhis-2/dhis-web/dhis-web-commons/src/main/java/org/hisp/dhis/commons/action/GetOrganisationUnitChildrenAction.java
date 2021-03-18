@@ -82,11 +82,15 @@ public class GetOrganisationUnitChildrenAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnit.class );
+
         OrganisationUnit unit = organisationUnitService.getOrganisationUnit( id );
 
         organisationUnits = new ArrayList<>( unit.getChildren() );
 
         Collections.sort( organisationUnits );
+
+        organisationUnits.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

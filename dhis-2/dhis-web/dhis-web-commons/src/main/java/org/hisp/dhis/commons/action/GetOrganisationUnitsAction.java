@@ -84,6 +84,8 @@ public class GetOrganisationUnitsAction
     public String execute()
         throws Exception
     {
+        canReadType( OrganisationUnit.class );
+
         if ( level == null || level == ALL )
         {
             organisationUnits = new ArrayList<>( organisationUnitService.getAllOrganisationUnits() );
@@ -95,6 +97,8 @@ public class GetOrganisationUnitsAction
         }
 
         Collections.sort( organisationUnits );
+
+        organisationUnits.forEach( this::canReadInstance );
 
         if ( usePaging )
         {

@@ -90,6 +90,8 @@ public class GetPeriodsAction
     public String execute()
         throws Exception
     {
+        canReadType( Period.class );
+
         if ( name == null || name.equals( ALL ) )
         {
             List<PeriodType> periodTypes = periodService.getAllPeriodTypes();
@@ -107,6 +109,8 @@ public class GetPeriodsAction
 
             periods = new ArrayList<>( periodService.getPeriodsByPeriodType( periodType ) );
         }
+
+        periods.forEach( this::canReadInstance );
 
         for ( Period period : periods )
         {

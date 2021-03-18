@@ -84,6 +84,8 @@ public class GetDataElementCategoriesAction
     public String execute()
         throws Exception
     {
+        canReadType( Category.class );
+
         if ( type == null )
         {
             dataElementCategories = new ArrayList<>(
@@ -99,6 +101,8 @@ public class GetDataElementCategoriesAction
             dataElementCategories = new ArrayList<>(
                 dataElementCategoryService.getDisaggregationCategories() );
         }
+
+        dataElementCategories.forEach( this::canReadInstance );
 
         Collections.sort( dataElementCategories );
 
