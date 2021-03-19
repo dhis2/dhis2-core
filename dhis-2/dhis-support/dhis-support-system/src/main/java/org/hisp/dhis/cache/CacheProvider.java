@@ -29,6 +29,8 @@ package org.hisp.dhis.cache;
 
 import java.time.Duration;
 
+import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
+
 /**
  * The {@link CacheProvider} has a factory method for each {@link Cache} use
  * case in DHIS2.
@@ -98,4 +100,6 @@ public interface CacheProvider
     <V> Cache<V> createUserGroupNameCache();
 
     <V> Cache<V> createUserDisplayNameCache();
+
+    void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
 }
