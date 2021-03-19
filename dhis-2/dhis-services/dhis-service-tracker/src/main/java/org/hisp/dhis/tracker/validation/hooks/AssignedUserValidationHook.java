@@ -33,10 +33,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1120;
 import java.util.Optional;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.domain.Enrollment;
 import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -79,30 +76,6 @@ public class AssignedUserValidationHook
     private boolean isNotValidAssignedUserUid( Event event )
     {
         return !CodeGenerator.isValidUid( event.getAssignedUser() );
-    }
-
-    @Override
-    public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
-    {
-        /*
-         * No implementation.
-         */
-    }
-
-    @Override
-    public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
-    {
-        /*
-         * No implementation.
-         */
-    }
-
-    @Override
-    public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity tei )
-    {
-        /*
-         * No implementation.
-         */
     }
 
     @Override

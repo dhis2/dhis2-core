@@ -83,6 +83,16 @@ public class EventDataValueTest
     }
 
     @Test
+    public void successWhenEventHasNoProgramAndHasProgramStage()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/validations/events-with_no_program.json" );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    }
+
+    @Test
     public void testEventDataValue()
         throws IOException
     {
