@@ -35,16 +35,15 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PostConstruct;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
@@ -55,6 +54,8 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
@@ -69,9 +70,9 @@ public class DefaultSchedulingManager
 {
     private static final int DEFAULT_INITIAL_DELAY_S = 10;
 
-    private Map<String, ScheduledFuture<?>> futures = new HashMap<>();
+    private Map<String, ScheduledFuture<?>> futures = new ConcurrentHashMap<>();
 
-    private Map<String, ListenableFuture<?>> currentTasks = new HashMap<>();
+    private Map<String, ListenableFuture<?>> currentTasks = new ConcurrentHashMap<>();
 
     // -------------------------------------------------------------------------
     // Dependencies
@@ -271,6 +272,12 @@ public class DefaultSchedulingManager
         return jobExecutor.submitListenable( callable );
     }
 
+    @Override
+    public Future<?> getTask( String uid )
+    {
+        return currentTasks.get( uid );
+    }
+
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
@@ -281,7 +288,9 @@ public class DefaultSchedulingManager
 
         ListenableFuture<?> future = jobExecutor.submitListenable( () -> jobInstance.execute( jobConfiguration ) );
 
-        currentTasks.put( jobConfiguration.getUid(), future );
+        String uid = jobConfiguration.getUid();
+        currentTasks.put( uid, future );
+        future.completable().whenComplete( ( res, ex ) -> currentTasks.remove( uid ) );
 
         log.info( String.format( "Scheduler initiated execution of job: %s", jobConfiguration ) );
     }

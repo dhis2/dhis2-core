@@ -360,4 +360,17 @@ public class JsonDocumentTest
         assertEquals( "{\"a\": { \"b\" : [12, false] , \"c\":{}} }",
             doc.get( ".a" ).addMember( "c", "{}" ).toString() );
     }
+
+    @Test
+    public void testVisit()
+    {
+        JsonDocument doc = new JsonDocument( "{\"a\": { \"b\" : [12, false, \"hello\"] } }" );
+        JsonNode root = doc.get( "$" );
+        assertEquals( 2, root.count( JsonNodeType.OBJECT ) );
+        assertEquals( 1, root.count( JsonNodeType.NUMBER ) );
+        assertEquals( 1, root.count( JsonNodeType.BOOLEAN ) );
+        assertEquals( 1, root.count( JsonNodeType.STRING ) );
+        assertEquals( 1, root.count( JsonNodeType.ARRAY ) );
+        assertEquals( 0, root.count( JsonNodeType.NULL ) );
+    }
 }

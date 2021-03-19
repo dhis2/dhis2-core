@@ -30,6 +30,9 @@ package org.hisp.dhis.webapi.json;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 
@@ -123,6 +126,25 @@ public interface JsonNode extends Serializable
     default List<JsonNode> elements()
     {
         throw new UnsupportedOperationException( getType() + " node has no elements property." );
+    }
+
+    void visit( JsonNodeType type, Consumer<JsonNode> visitor );
+
+    default int visit( JsonNodeType type, Predicate<JsonNode> visitor )
+    {
+        AtomicInteger count = new AtomicInteger();
+        visit( type, node -> {
+            if ( visitor.test( node ) )
+            {
+                count.incrementAndGet();
+            }
+        } );
+        return count.get();
+    }
+
+    default int count( JsonNodeType type )
+    {
+        return visit( type, node -> true );
     }
 
     /*
