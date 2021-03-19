@@ -408,6 +408,7 @@ public class DefaultCacheProvider
     }
 
     @EventListener
+    @Override
     public void handleApplicationCachesCleared( ApplicationCacheClearedEvent event )
     {
         allCaches.values().forEach( Cache::invalidateAll );
