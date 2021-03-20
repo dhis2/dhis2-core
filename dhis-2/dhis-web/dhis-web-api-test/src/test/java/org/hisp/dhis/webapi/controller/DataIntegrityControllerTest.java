@@ -31,21 +31,21 @@ import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 
-import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
+/**
+ * Tests a selection of data integrity checks.
+ *
+ * @author Jan Bernitt
+ */
 public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
 {
-
-    @Autowired
-    private SchedulingManager schedulingManager;
 
     @Test
     public void testDataIntegrity_NoErrors()
@@ -58,12 +58,29 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testDataIntegrity_OrphanedOrganisationUnits()
     {
-        String id = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits", "{'name':'testUnit', 'shortName':'test', 'openingDate':'2021'}" ) );
-        System.out.println( GET( "/organisationUnits/{id}", id ).content() );
+        // should match:
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits", "{'name':'OrphanedUnit', 'shortName':'test', 'openingDate':'2021'}" ) );
 
-        assertEquals( singletonList( "testUnit" ),
+        // should not match:
+        String id = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits", "{'name':'root', 'shortName':'root', 'openingDate':'2021'}" ) );
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits",
+                "{'name':'leaf', 'shortName':'leaf', 'openingDate':'2021', 'parent': { 'id': '" + id + "'}}" ) );
+
+        assertEquals( singletonList( "OrphanedUnit" ),
             getDataIntegrityReport().getOrphanedOrganisationUnits().as( JsonString::string ) );
+    }
+
+    @Test
+    public void testDataIntegrity_OrganisationUnitsWithoutGroups()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits", "{'name':'noGroupSet', 'shortName':'test', 'openingDate':'2021'}" ) );
+
+        assertEquals( singletonList( "noGroupSet" ),
+            getDataIntegrityReport().getOrganisationUnitsWithoutGroups().as( JsonString::string ) );
     }
 
     private JsonDataIntegrityReport getDataIntegrityReport()

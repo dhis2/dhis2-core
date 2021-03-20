@@ -170,6 +170,7 @@ public class WebTestConfiguration
      * During tests we do not want asynchronous job scheduling.
      */
     @Bean
+    @Primary
     public SchedulingManager synchronousSchedulingManager( MessageService messageService, LeaderManager leaderManager,
         JobConfigurationService jobConfigurationService, ApplicationContext applicationContext )
     {
