@@ -1,16 +1,42 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.util.concurrent.Future;
 
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonDocument.JsonNodeType;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonString;
+import org.hisp.dhis.webapi.json.domain.JsonDataIntegrityReport;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,41 +56,25 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testDataIntegrity_x()
+    public void testDataIntegrity_OrphanedOrganisationUnits()
     {
         String id = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits", "{'name':'test', 'shortName':'test', 'openingDate':'2021'}" ) );
+            POST( "/organisationUnits", "{'name':'testUnit', 'shortName':'test', 'openingDate':'2021'}" ) );
         System.out.println( GET( "/organisationUnits/{id}", id ).content() );
 
-        JsonObject report = getDataIntegrityReport();
-        System.out.println( report );
-        assertEquals( 0, report.node().count( JsonNodeType.STRING ) );
+        assertEquals( singletonList( "testUnit" ),
+            getDataIntegrityReport().getOrphanedOrganisationUnits().as( JsonString::string ) );
     }
 
-    private JsonObject getDataIntegrityReport()
+    private JsonDataIntegrityReport getDataIntegrityReport()
     {
         JsonObject response = POST( "/dataIntegrity" ).content().getObject( "response" );
 
         String id = response.getString( "id" ).string();
-        Future<?> job = schedulingManager.getTask( id );
-        try
-        {
-            job.get(); // wait until the job is done
-        }
-        catch ( Exception ex )
-        {
-            fail( "Data integrity check failed: " + ex.getMessage() );
-        }
-
         String jobType = response.getString( "jobType" ).string();
-        JsonObject report = GET( "/system/taskSummaries/{type}/{id}", jobType, id ).content();
 
-        // OBS! we do this after the GET just so that some time passed
-        // and the job had a chance to remove itself
-        // BTW this test has nothing to do with data integrity but it is a good
-        // chance to also cover the manager logic
-        assertNull( "job has not removed itself on completion", schedulingManager.getTask( id ) );
-
-        return report;
+        return GET( "/system/taskSummaries/{type}/{id}", jobType, id )
+            .content().as( JsonDataIntegrityReport.class );
     }
+
 }

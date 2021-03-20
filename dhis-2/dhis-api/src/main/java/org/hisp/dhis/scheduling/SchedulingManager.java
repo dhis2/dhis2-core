@@ -30,7 +30,6 @@ package org.hisp.dhis.scheduling;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
 
 import org.springframework.util.concurrent.ListenableFuture;
@@ -147,5 +146,4 @@ public interface SchedulingManager
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
 
-    Future<?> getTask( String uid );
 }
