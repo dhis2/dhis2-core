@@ -106,8 +106,6 @@ public class HibernateTrackedEntityInstanceStore
 {
     private final static String TEI_HQL_BY_UIDS = "from TrackedEntityInstance as tei where tei.uid in (:uids)";
 
-    private static final String AND_PSI_STATUS_EQUALS_SINGLE_QUOTE = "and psi.status = '";
-
     private static final String OFFSET = "OFFSET";
 
     private static final String LIMIT = "LIMIT";
