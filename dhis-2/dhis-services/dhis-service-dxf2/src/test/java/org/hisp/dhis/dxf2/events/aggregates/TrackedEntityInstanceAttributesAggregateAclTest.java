@@ -98,7 +98,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 0 ) );
     }
@@ -134,7 +134,7 @@ public class TrackedEntityInstanceAttributesAggregateAclTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 2 ) );
     }
