@@ -88,7 +88,8 @@ public class DataSetReportController
     @Autowired
     IdentifiableObjectManager idObjectManager;
 
-    @RequestMapping( value = RESOURCE_PATH + "/custom", method = RequestMethod.GET, produces = "text/html" )
+    @RequestMapping( value = RESOURCE_PATH
+        + "/custom", method = RequestMethod.GET, produces = "text/html;charset=UTF-8" )
     public @ResponseBody String getCustomDataSetReport( HttpServletResponse response,
         @RequestParam String ds,
         @RequestParam String pe,
