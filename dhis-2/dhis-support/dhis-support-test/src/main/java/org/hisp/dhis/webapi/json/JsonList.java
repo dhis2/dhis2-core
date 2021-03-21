@@ -112,7 +112,7 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
      *         provided mapper function from the {@link JsonValue}s of this
      *         {@link JsonList}.
      */
-    default <T> List<T> as( Function<E, T> mapper )
+    default <T> List<T> toList( Function<E, T> mapper )
     {
         return stream().map( mapper ).collect( Collectors.toList() );
     }

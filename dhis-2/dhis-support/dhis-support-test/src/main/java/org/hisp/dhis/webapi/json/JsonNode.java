@@ -128,8 +128,24 @@ public interface JsonNode extends Serializable
         throw new UnsupportedOperationException( getType() + " node has no elements property." );
     }
 
+    /**
+     * Visit subtree of this node including this node.
+     *
+     * @param type type of nodes to visitor accepts
+     * @param visitor consumes all nodes in the subtree of this node (including
+     *        this node) that are of the provided type in root first order.
+     */
     void visit( JsonNodeType type, Consumer<JsonNode> visitor );
 
+    /**
+     * Count matching nodes in a the subtree of this node including this node.
+     *
+     * @param type type of node to passed to the visitor
+     * @param visitor a {@link Predicate} returning true, to count the provided
+     *        node, false to not count it.
+     * @return total number of nodes in the subtree of this node for which the
+     *         visitor returned true
+     */
     default int visit( JsonNodeType type, Predicate<JsonNode> visitor )
     {
         AtomicInteger count = new AtomicInteger();
@@ -142,6 +158,13 @@ public interface JsonNode extends Serializable
         return count.get();
     }
 
+    /**
+     * Returns the number of notes of the given type in the entire subtree
+     * including this node.
+     *
+     * @param type type of node to count
+     * @return number of nodes in subtree
+     */
     default int count( JsonNodeType type )
     {
         return visit( type, node -> true );
