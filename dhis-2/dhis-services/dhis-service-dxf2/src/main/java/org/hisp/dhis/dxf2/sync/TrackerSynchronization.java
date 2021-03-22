@@ -175,7 +175,7 @@ public class TrackerSynchronization extends DataSynchronizationWithPaging
         queryParams.setPage( page );
 
         List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams,
-            TrackedEntityInstanceParams.DATA_SYNCHRONIZATION, true );
+            TrackedEntityInstanceParams.DATA_SYNCHRONIZATION, true, true );
         log.info( String.format( "Synchronizing page %d with page size %d", page, pageSize ) );
 
         if ( log.isDebugEnabled() )
