@@ -3,3 +3,4 @@
 
 alter table programnotificationtemplate add column if not exists sendrepeatable boolean;
 update programnotificationtemplate set sendrepeatable = false where sendrepeatable is null;
+alter table programnotificationtemplate alter column sendrepeatable set not null;

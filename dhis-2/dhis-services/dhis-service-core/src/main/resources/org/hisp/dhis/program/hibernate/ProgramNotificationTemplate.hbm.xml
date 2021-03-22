@@ -36,7 +36,7 @@
 
     <property name="notifyUsersInHierarchyOnly" column="notifyusersinhierarchyonly" />
 
-    <property name="sendRepeatable" column="sendrepeatable" />
+    <property name="sendRepeatable" column="sendrepeatable" not-null="true"/>
 
     <property name="notificationTrigger" column="notificationtrigger">
       <type name="org.hibernate.type.EnumType">
