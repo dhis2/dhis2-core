@@ -145,5 +145,4 @@ public interface SchedulingManager
      * @return list of jobs
      */
     Map<String, ScheduledFuture<?>> getAllFutureJobs();
-
 }
