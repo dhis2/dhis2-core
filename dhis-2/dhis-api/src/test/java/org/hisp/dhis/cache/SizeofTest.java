@@ -149,10 +149,12 @@ public class SizeofTest
     public void testSizeofString()
     {
         // base costs are: 20 + 20 + 8 = 48
-        long sizeofEmpty = this.sizeof.sizeof( "" );
+        long sizeofEmpty = sizeof.sizeof( "" );
+        long sizeOfHello = this.sizeof.sizeof( "hello!" );
+        long sizeofHelloWorld = this.sizeof.sizeof( "hello world!" );
         assertOnTheOrderOf( 52L, sizeofEmpty );
-        assertEquals( sizeofEmpty + 12L, this.sizeof.sizeof( "hello world!" ) );
-        assertEquals( sizeofEmpty + 6L, this.sizeof.sizeof( "hello!" ) );
+        assertTrue( sizeOfHello > sizeofEmpty );
+        assertTrue( sizeofHelloWorld > sizeOfHello );
         assertNotFixedSize( String.class );
         assertNotFixedSize( byte[].class );
     }
