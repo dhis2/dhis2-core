@@ -173,4 +173,16 @@ public interface JsonNode extends Serializable
      *         provided JSON
      */
     JsonNode replaceWith( String json );
+
+    /**
+     * Adds an additional property to this node assuming this node represents a
+     * {@link JsonNodeType#OBJECT}.
+     *
+     * @param name a JSON object property name
+     * @param value a JSON value
+     * @return a new document root where this node got another property with the
+     *         provided name and value
+     */
+    JsonNode addMember( String name, String value );
+
 }
