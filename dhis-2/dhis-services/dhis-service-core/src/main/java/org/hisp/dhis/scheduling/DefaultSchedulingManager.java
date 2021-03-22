@@ -44,6 +44,8 @@ import java.util.concurrent.ScheduledFuture;
 
 import javax.annotation.PostConstruct;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.leader.election.LeaderManager;
 import org.hisp.dhis.message.MessageService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -53,8 +55,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.util.concurrent.ListenableFuture;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Cron refers to the cron expression used for scheduling. Key refers to the key
