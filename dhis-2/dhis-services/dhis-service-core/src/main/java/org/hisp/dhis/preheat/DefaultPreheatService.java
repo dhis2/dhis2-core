@@ -28,19 +28,15 @@
 package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.*;
-
-import java.util.*;
-import java.util.stream.*;
-
+import com.google.common.collect.*;
 import lombok.extern.slf4j.*;
-
 import org.apache.commons.lang3.*;
 import org.hisp.dhis.attribute.*;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.*;
-import org.hisp.dhis.commons.timer.*;
 import org.hisp.dhis.commons.timer.Timer;
+import org.hisp.dhis.commons.timer.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.*;
 import org.hisp.dhis.hibernate.*;
@@ -50,13 +46,13 @@ import org.hisp.dhis.schema.*;
 import org.hisp.dhis.system.util.*;
 import org.hisp.dhis.trackedentity.*;
 import org.hisp.dhis.user.*;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.*;
 import org.springframework.context.annotation.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
-import com.google.common.collect.*;
+import java.util.*;
+import java.util.stream.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -268,7 +264,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
-        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
+        handleSharing( params.getObjects() );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
@@ -280,42 +276,10 @@ public class DefaultPreheatService implements PreheatService
         return preheat;
     }
 
-    private void handleSecurity( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,
-        PreheatIdentifier identifier, Preheat preheat )
+    private void handleSharing( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
-        objects.forEach( ( klass, list ) -> list.forEach( object -> {
-            object.getSharing().setExternal( object.getExternalAccess() );
-            object.getSharing().setOwner( object.getCreatedBy() );
-            object.getSharing().setPublicAccess( object.getPublicAccess() );
-
-            object.getUserAccesses().forEach( ua -> {
-                User user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
-
-                if ( user != null )
-                {
-                    ua.setUser( user );
-                    ua.setUid( user.getUid() );
-                    ua.setDisplayName( user.getDisplayName() );
-                }
-
-                // Copy legacy sharing to new jsonb sharing
-                object.getSharing().getUsers().put( ua.getUid(), new UserAccess( ua ) );
-            } );
-
-            object.getUserGroupAccesses().forEach( uga -> {
-                UserGroup userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
-
-                if ( userGroup != null )
-                {
-                    uga.setUserGroup( userGroup );
-                    uga.setUid( userGroup.getUid() );
-                    uga.setDisplayName( userGroup.getDisplayName() );
-                }
-
-                // Copy legacy sharing to new jsonb sharing
-                object.getSharing().getUserGroups().put( uga.getUid(), new UserGroupAccess( uga ) );
-            } );
-        } ) );
+        objects.forEach( ( klass, list ) -> list.forEach( object ->
+            ( (BaseIdentifiableObject) object ).setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) ) ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,
