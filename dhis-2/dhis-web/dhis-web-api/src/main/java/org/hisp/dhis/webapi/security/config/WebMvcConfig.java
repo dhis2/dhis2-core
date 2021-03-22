@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.security.config;
 
 import static org.springframework.http.MediaType.parseMediaType;
 
+import java.nio.charset.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -160,7 +161,7 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         converters.add( new PdfMessageConverter( nodeService() ) );
         converters.add( new ExcelMessageConverter( nodeService() ) );
 
-        converters.add( new StringHttpMessageConverter() );
+        converters.add( new StringHttpMessageConverter( StandardCharsets.UTF_8 ) );
         converters.add( new ByteArrayHttpMessageConverter() );
         converters.add( new FormHttpMessageConverter() );
 
