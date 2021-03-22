@@ -52,7 +52,6 @@ import org.hisp.dhis.sms.config.SmsConfiguration;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import org.apache.commons.lang3.LocaleUtils;
 
 /**
  * @author Lars Helge Overland
