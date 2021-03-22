@@ -181,7 +181,7 @@ public class SharingController
             sharing.getObject().getUser().setName( object.getCreatedBy().getDisplayName() );
         }
 
-        for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
+        for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : SharingUtils.getDtoUserGroupAccesses( object.getUserGroupAccesses(), object.getSharing() ) )
         {
             String userGroupDisplayName = userGroupService.getDisplayName( userGroupAccess.getId() );
 
@@ -199,7 +199,7 @@ public class SharingController
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
-        for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccess( object.getSharing() ) )
+        for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccesses( object.getUserAccesses(), object.getSharing() ) )
         {
             String userDisplayName = userService.getDisplayName( userAccess.getUid() );
 

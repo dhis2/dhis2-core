@@ -28,15 +28,19 @@
 package org.hisp.dhis.preheat;
 
 import static com.google.common.base.Preconditions.*;
-import com.google.common.collect.*;
+
+import java.util.*;
+import java.util.stream.*;
+
 import lombok.extern.slf4j.*;
+
 import org.apache.commons.lang3.*;
 import org.hisp.dhis.attribute.*;
 import org.hisp.dhis.category.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.*;
-import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.commons.timer.*;
+import org.hisp.dhis.commons.timer.Timer;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.dataset.*;
 import org.hisp.dhis.hibernate.*;
@@ -51,8 +55,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.stereotype.*;
 import org.springframework.transaction.annotation.*;
 
-import java.util.*;
-import java.util.stream.*;
+import com.google.common.collect.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -278,8 +281,8 @@ public class DefaultPreheatService implements PreheatService
 
     private void handleSharing( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
-        objects.forEach( ( klass, list ) -> list.forEach( object ->
-            ( (BaseIdentifiableObject) object ).setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) ) ) );
+        objects.forEach( ( klass, list ) -> list.forEach( object -> ((BaseIdentifiableObject) object)
+            .setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) ) ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,

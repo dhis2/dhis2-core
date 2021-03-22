@@ -27,19 +27,18 @@
  */
 package org.hisp.dhis.common;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import java.util.*;
+
 import org.apache.commons.lang3.*;
 import org.hibernate.annotations.*;
 import org.hisp.dhis.attribute.*;
 import org.hisp.dhis.audit.*;
 import org.hisp.dhis.common.annotation.*;
 import org.hisp.dhis.schema.*;
+import org.hisp.dhis.schema.annotation.*;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.*;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.annotation.*;
 import org.hisp.dhis.schema.transformer.*;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.*;
@@ -47,7 +46,9 @@ import org.hisp.dhis.user.*;
 import org.hisp.dhis.user.sharing.*;
 import org.hisp.dhis.util.*;
 
-import java.util.*;
+import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.annotation.*;
+import com.fasterxml.jackson.dataformat.xml.annotation.*;
 
 /**
  * @author Bob Jolliffe
@@ -114,7 +115,7 @@ public class BaseIdentifiableObject
     /**
      * This object is available as external read-only.
      */
-    protected transient boolean externalAccess;
+    protected transient Boolean externalAccess;
 
     /**
      * Access string for public access.
@@ -463,7 +464,6 @@ public class BaseIdentifiableObject
     public void setUser( User user )
     {
         // TODO remove this after implementing functions for using Owner
-        // property
         setCreatedBy( createdBy == null ? user : createdBy );
         setOwner( user != null ? user.getUid() : null );
     }
@@ -479,7 +479,7 @@ public class BaseIdentifiableObject
     @PropertyRange( min = 8, max = 8 )
     public String getPublicAccess()
     {
-        return getSharing().getPublicAccess();
+        return SharingUtils.getDtoPublicAccess( publicAccess, getSharing() );
     }
 
     public void setPublicAccess( String publicAccess )
@@ -493,11 +493,12 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean getExternalAccess()
     {
-        return getSharing().isExternal();
+        return SharingUtils.getDtoExternalAccess( externalAccess, getSharing() );
     }
 
     public void setExternalAccess( boolean externalAccess )
     {
+        this.externalAccess = externalAccess;
         getSharing().setExternal( externalAccess );
     }
 
@@ -507,7 +508,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
     {
-        return SharingUtils.getDtoUserGroupAccesses( getSharing() );
+        return SharingUtils.getDtoUserGroupAccesses( userGroupAccesses, getSharing() );
     }
 
     public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
@@ -522,7 +523,7 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
     public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
     {
-        return SharingUtils.getDtoUserAccess( sharing );
+        return SharingUtils.getDtoUserAccesses( userAccesses, getSharing() );
     }
 
     public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
