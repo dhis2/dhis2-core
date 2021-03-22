@@ -111,7 +111,9 @@ public class DefaultCacheProvider
         programRulesCache,
         programRuleVariablesCache,
         userGroupNameCache,
-        userDisplayNameCache
+        userDisplayNameCache,
+        programWebHookNotificationTemplateCache,
+        programStageWebHookNotificationTemplateCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -446,5 +448,27 @@ public class DefaultCacheProvider
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( SIZE_10K ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramWebHookNotificationTemplateCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.programWebHookNotificationTemplateCache.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( 20 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createProgramStageWebHookNotificationTemplateCache()
+    {
+        return registerCache( this.<V> newBuilder()
+                .forRegion( Region.programStageWebHookNotificationTemplateCache.name() )
+                .expireAfterWrite( 3, TimeUnit.HOURS )
+                .withInitialCapacity( (int) getActualSize( 20 ) )
+                .forceInMemory()
+                .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
     }
 }

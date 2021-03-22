@@ -91,6 +91,11 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     {
         ProgramInstance instance = programInstanceStore.getByUid( pi );
 
+        if ( instance == null || programInstanceStore.isLinkedToWebHookNotification( instance.getProgram() ) )
+        {
+            return;
+        }
+
         List<ProgramNotificationTemplate> templates = instance.getProgram().getNotificationTemplates()
             .stream()
             .filter( t -> ProgramNotificationRecipient.WEB_HOOK == t.getNotificationRecipient() )
@@ -107,6 +112,11 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     public void handleEvent( String psi )
     {
         ProgramStageInstance instance = programStageInstanceStore.getByUid( psi );
+
+        if ( instance == null || programStageInstanceStore.isLinkedToWebHookNotification( instance.getProgramStage() ) )
+        {
+            return;
+        }
 
         List<ProgramNotificationTemplate> templates = instance.getProgramStage().getNotificationTemplates()
             .stream()

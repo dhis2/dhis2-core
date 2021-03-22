@@ -137,4 +137,11 @@ public interface ProgramStageInstanceStore
      * @param lastSynchronized The date of last successful sync
      */
     void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+
+    /**
+     * Method is used to if {@link ProgramStage} is associated with any web hook notification template.
+     * @param programStage {@link ProgramStage} to check for association.
+     * @return true if {@link ProgramStage} is associated, otherwise false.
+     */
+    boolean isLinkedToWebHookNotification( ProgramStage programStage );
 }

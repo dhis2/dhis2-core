@@ -178,4 +178,11 @@ public interface ProgramInstanceStore
      */
     List<ProgramInstance> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
+
+    /**
+     * Method is used to if {@link Program} is associated with any web hook notification template.
+     * @param program {@link Program} to check for association.
+     * @return true if {@link Program} is associated, otherwise false.
+     */
+    boolean isLinkedToWebHookNotification( Program program );
 }
