@@ -34,6 +34,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.appmanager.AndroidSettingApp;
 import org.hisp.dhis.appmanager.AppManager;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>

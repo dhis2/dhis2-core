@@ -200,18 +200,31 @@ public final class JsonDocument implements Serializable
         @Override
         public final JsonNode replaceWith( String json )
         {
-            int end = endIndex();
+            int endIndex = endIndex();
             StringBuilder newJson = new StringBuilder();
             if ( start > 0 )
             {
                 newJson.append( this.json, 0, start );
             }
             newJson.append( json );
-            if ( end < this.json.length )
+            if ( endIndex < this.json.length )
             {
-                newJson.append( this.json, end, this.json.length - end );
+                newJson.append( this.json, endIndex, this.json.length - endIndex );
             }
             return new JsonDocument( newJson.toString() ).get( "$" );
+        }
+
+        @Override
+        public JsonNode addMember( String name, String value )
+        {
+            if ( getType() != JsonNodeType.OBJECT )
+            {
+                throw new IllegalStateException( "`add` only allowed for objects but was: " + getType() );
+            }
+            int endIndex = endIndex() - 1;
+            return new JsonDocument(
+                String.valueOf( json, 0, endIndex ) + ", \"" + name + "\":" + value
+                    + String.valueOf( json, endIndex, json.length - endIndex ) ).get( "$" );
         }
 
         static JsonNode autoDetect( String path, char[] json, int atIndex, Map<String, JsonNode> nodesByPath )
@@ -713,7 +726,9 @@ public final class JsonDocument implements Serializable
     private static int skipSeparator( char[] json, int index, char separator )
     {
         index = skipWhitespace( json, index );
-        return json[index] == separator ? skipWhitespace( json, index + 1 ) : index;
+        return index >= json.length
+            ? index
+            : json[index] == separator ? skipWhitespace( json, index + 1 ) : index;
     }
 
     private static int skipBoolean( char[] json, int fromIndex )

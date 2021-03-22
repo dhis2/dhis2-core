@@ -39,7 +39,6 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.domain.TrackedEntity;
 import org.hisp.dhis.tracker.domain.mapper.TrackedEntityMapper;
-import org.hisp.dhis.webapi.controller.event.TrackedEntityInstanceController;
 import org.hisp.dhis.webapi.controller.event.mapper.TrackedEntityCriteriaMapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.event.webrequest.tracker.TrackerTrackedEntityCriteria;
@@ -76,17 +75,20 @@ public class TrackerTrackedEntitiesExportController
 
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        int teiCount = trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
-
-        if ( teiCount > TrackedEntityInstanceController.TEI_COUNT_THRESHOLD_FOR_USE_LEGACY
-            && queryParams.isSkipPaging() )
+        if ( queryParams.isSkipPaging() )
         {
+            /*
+             * TODO: Find a way to not use legacy at all. If result set is huge,
+             * our refactored mechanism fails due to appending the huge list of
+             * ids in sql. To be safe, we switch to legacy mechanism if paging
+             * is explicitly skipped.
+             */
             queryParams.setUseLegacy( true );
         }
 
         Collection<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), true ) );
+                trackedEntityInstanceSupportService.getTrackedEntityInstanceParams( fields ), false, false ) );
 
         PagingWrapper<TrackedEntity> trackedEntityInstancePagingWrapper = new PagingWrapper<>();
 
@@ -94,7 +96,7 @@ public class TrackerTrackedEntitiesExportController
         {
 
             Long count = criteria.isTotalPages()
-                ? (long) teiCount
+                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true )
                 : null;
 
             trackedEntityInstancePagingWrapper = trackedEntityInstancePagingWrapper.withPager(

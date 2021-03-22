@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.apache.struts2.dispatcher.Dispatcher;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
 import com.opensymphony.xwork2.config.Configuration;
 import com.opensymphony.xwork2.config.entities.ActionConfig;

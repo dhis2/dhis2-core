@@ -199,10 +199,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     }
 
     private List<TrackedEntityInstance> getTrackedEntityInstancesLegacy( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation )
+        TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         List<org.hisp.dhis.trackedentity.TrackedEntityInstance> daoTEIs = teiService
-            .getTrackedEntityInstances( queryParams, skipAccessValidation );
+            .getTrackedEntityInstances( queryParams, skipAccessValidation, skipSearchScopeValidation );
 
         List<TrackedEntityInstance> dtoTeis = new ArrayList<>();
         User user = queryParams.getUser();
@@ -252,7 +252,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params, boolean skipAccessValidation )
+        TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( queryParams == null )
         {
@@ -262,11 +262,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( queryParams.isUseLegacy() )
         {
-            trackedEntityInstances = getTrackedEntityInstancesLegacy( queryParams, params, skipAccessValidation );
+            trackedEntityInstances = getTrackedEntityInstancesLegacy( queryParams, params, skipAccessValidation,
+                skipSearchScopeValidation );
         }
         else
         {
-            final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation );
+            final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, skipAccessValidation,
+                skipSearchScopeValidation );
 
             if ( ids.isEmpty() )
             {

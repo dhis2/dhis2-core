@@ -29,11 +29,13 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertError;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
@@ -260,6 +262,38 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.OK, PUT( "/userGroups/" + groupId + "?skipSharing=true", groupWithoutSharing ) );
         assertEquals( "rw------", GET( "/userGroups/{id}", groupId )
             .content().as( JsonGeoMap.class ).getSharing().getPublic().string() );
+    }
+
+    @Test
+    public void testPutJsonObject_accountExpiry()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/users/{id}", userId,
+                Body( user.getUserCredentials().node()
+                    .addMember( "accountExpiry", "null" ).toString() ) ) );
+
+        assertNull( GET( "/users/{id}", userId )
+            .content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
+    }
+
+    @Test
+    public void testPutJsonObject_accountExpiry_PutNoChange()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/users/{id}", userId, Body( user.toString() ) ) );
+
+        assertNull( GET( "/users/{id}", userId )
+            .content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
     }
 
     @Test
