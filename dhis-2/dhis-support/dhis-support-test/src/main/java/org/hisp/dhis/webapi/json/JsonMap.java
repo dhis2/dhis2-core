@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import java.util.Set;
+
 /**
  * {@link JsonMap}s are a special form of a {@link JsonObject} where all
  * properties have a common uniform value type.
@@ -47,4 +49,15 @@ public interface JsonMap<E extends JsonValue> extends JsonCollection
      */
     E get( String key );
 
+    /**
+     * @return The keys of this map.
+     * @throws java.util.NoSuchElementException in case this value does not
+     *         exist in the JSON document
+     * @throws UnsupportedOperationException in case this node does exist but is
+     *         not an object node
+     */
+    default Set<String> keys()
+    {
+        return node().members().keySet();
+    }
 }
