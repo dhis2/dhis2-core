@@ -180,7 +180,9 @@ public interface ProgramInstanceStore
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
 
     /**
-     * Method is used to if {@link Program} is associated with any web hook notification template.
+     * Method is used to check if {@link Program} is associated with any web
+     * hook notification template.
+     *
      * @param program {@link Program} to check for association.
      * @return true if {@link Program} is associated, otherwise false.
      */

@@ -78,7 +78,8 @@ public class HibernateProgramStageInstanceStore
     private final Cache<Boolean> programStageWebHookNotificationCache;
 
     public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService, CacheProvider cacheProvider )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        CacheProvider cacheProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
             aclService, false );

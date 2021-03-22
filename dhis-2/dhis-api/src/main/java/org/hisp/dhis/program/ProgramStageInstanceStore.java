@@ -139,7 +139,9 @@ public interface ProgramStageInstanceStore
     void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
 
     /**
-     * Method is used to if {@link ProgramStage} is associated with any web hook notification template.
+     * Method is used to check if {@link ProgramStage} is associated with any
+     * web hook notification template.
+     *
      * @param programStage {@link ProgramStage} to check for association.
      * @return true if {@link ProgramStage} is associated, otherwise false.
      */

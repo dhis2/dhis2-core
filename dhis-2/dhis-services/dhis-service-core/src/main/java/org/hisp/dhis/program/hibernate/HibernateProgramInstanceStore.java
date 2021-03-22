@@ -94,7 +94,8 @@ public class HibernateProgramInstanceStore
     private final Cache<Boolean> programWebHookNotificationCache;
 
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,  CacheProvider cacheProvider )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
+        CacheProvider cacheProvider )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, aclService, true );
         this.programWebHookNotificationCache = cacheProvider.createProgramWebHookNotificationTemplateCache();
@@ -403,7 +404,7 @@ public class HibernateProgramInstanceStore
         return false;
     }
 
-    private String toDateProperty(NotificationTrigger trigger )
+    private String toDateProperty( NotificationTrigger trigger )
     {
         if ( trigger == NotificationTrigger.SCHEDULED_DAYS_ENROLLMENT_DATE )
         {
