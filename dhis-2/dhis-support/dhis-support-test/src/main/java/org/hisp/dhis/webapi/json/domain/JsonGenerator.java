@@ -199,7 +199,7 @@ public class JsonGenerator
 
     private static String generateDateString()
     {
-        return DateTimeFormatter.ISO_LOCAL_DATE_TIME.format( LocalDateTime.now() );
+        return DateTimeFormatter.ISO_LOCAL_DATE.format( LocalDateTime.now() );
     }
 
     private static String generateString( JsonProperty property )

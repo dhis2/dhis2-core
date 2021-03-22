@@ -297,6 +297,19 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testPutJsonObject_accountExpiry_NaN()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        String body = user.getUserCredentials().node().addMember( "accountExpiry", "\"NaN\"" ).toString();
+        assertEquals( "Invalid date format 'NaN', only ISO format or UNIX Epoch timestamp is supported.",
+            PUT( "/users/{id}", userId, Body( body ) ).error().getMessage() );
+    }
+
+    @Test
     public void testDeleteObject()
     {
         // first the deleted entity needs to be created
