@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.analytics;
 
+/**
+ * Index type.
+ *
+ * @author Lars Helge Overland
+ */
 public enum IndexType
 {
     BTREE( "btree" ),
