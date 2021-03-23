@@ -31,11 +31,9 @@ import static org.hisp.dhis.visualization.ConversionHelper.convertToChartList;
 import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
