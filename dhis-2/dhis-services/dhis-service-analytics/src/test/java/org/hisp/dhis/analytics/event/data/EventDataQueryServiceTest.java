@@ -186,7 +186,7 @@ public class EventDataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401;201402" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );
@@ -207,7 +207,7 @@ public class EventDataQueryServiceTest
         Set<String> filterParams = new HashSet<>();
         filterParams.add( "pe:201401" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).build();
 
@@ -234,7 +234,7 @@ public class EventDataQueryServiceTest
         Set<String> desc = new HashSet<>();
         desc.add( "eventdate" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
@@ -263,7 +263,7 @@ public class EventDataQueryServiceTest
         Set<String> desc = new HashSet<>();
         desc.add( "ouname" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
@@ -292,7 +292,7 @@ public class EventDataQueryServiceTest
         Set<String> desc = new HashSet<>();
         desc.add( deA.getUid() );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
@@ -321,7 +321,7 @@ public class EventDataQueryServiceTest
         Set<String> desc = new HashSet<>();
         desc.add( atA.getUid() );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).value( deA.getUid() )
             .aggregationType( AggregationType.AVERAGE ).desc( desc ).build();
 
@@ -466,7 +466,7 @@ public class EventDataQueryServiceTest
         filterParams.add( "pe:201401;201402" );
         filterParams.add( atA.getUid() + ":LE:5" );
 
-        EventDataQueryRequest request = EventDataQueryRequest.newBuilder().program( prA.getUid() )
+        EventDataQueryRequest request = EventDataQueryRequest.builder().program( prA.getUid() )
             .dimension( dimensionParams ).filter( filterParams ).build();
 
         EventQueryParams params = dataQueryService.getFromRequest( request );

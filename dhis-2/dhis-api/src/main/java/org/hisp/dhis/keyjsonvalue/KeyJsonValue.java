@@ -57,7 +57,7 @@ public class KeyJsonValue
     /**
      * Whether or not this KeyJsonValue is encrypted or not. Default is false.
      */
-    private Boolean encrypted = false;
+    private boolean encrypted = false;
 
     /**
      * Encrypted value if encrypted is set to true
@@ -79,7 +79,12 @@ public class KeyJsonValue
     {
     }
 
-    public KeyJsonValue( String namespace, String key, String value, Boolean encrypted )
+    public KeyJsonValue( String namespace, String key )
+    {
+        this( namespace, key, null, false );
+    }
+
+    public KeyJsonValue( String namespace, String key, String value, boolean encrypted )
     {
         this.namespace = namespace;
         this.key = key;
@@ -149,7 +154,7 @@ public class KeyJsonValue
 
     public String getJbPlainValue()
     {
-        return !this.encrypted && this.value != null ? this.value : this.jbPlainValue;
+        return !encrypted && value != null ? value : jbPlainValue;
     }
 
     public void setJbPlainValue( String jbPlainValue )
@@ -159,7 +164,7 @@ public class KeyJsonValue
 
     public String getEncryptedValue()
     {
-        return this.encrypted && this.value != null ? this.value : this.encryptedValue;
+        return encrypted && value != null ? value : encryptedValue;
     }
 
     public void setEncryptedValue( String encryptedValue )

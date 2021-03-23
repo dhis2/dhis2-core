@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.commons.config.jackson;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.fail;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
@@ -46,38 +50,54 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class JacksonObjectMapperConfigTest
 {
-    private ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
     @Test
     public void testIsoDateSupport()
-        throws JsonProcessingException
     {
-        Map<String, Date> yearTest = jsonMapper.readValue( createDateTest( "2019" ), new DateMapTypeReference() );
-        assertEquals( yearTest.get( "date" ), DateUtils.parseDate( "2019" ) );
-        Map<String, Date> yearMonthTest = jsonMapper.readValue( createDateTest( "2019-01" ),
-            new DateMapTypeReference() );
-        assertEquals( yearMonthTest.get( "date" ), DateUtils.parseDate( "2019-01" ) );
+        assertParsedAsDate( DateUtils.parseDate( "2019" ), "2019" );
+        assertParsedAsDate( DateUtils.parseDate( "2019-01" ), "2019-01" );
+        assertParsedAsDate( DateUtils.parseDate( "2019-01-01" ), "2019-01-01" );
+        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55" ), "2019-01-01T11:55" );
+        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.444Z" ), "2019-01-01T11:55:01.444Z" );
+
+    }
+
+    @Test
+    public void testIsoDateSupport_UnsupportedFormats()
+    {
+        assertNotParsedAsDate( "2019-01-01T11:55:01.4444" );
     }
 
     @Test
     public void testUnixEpochTimestamp()
-        throws JsonProcessingException
     {
-        Map<String, Date> unixEpochDateString = jsonMapper.readValue( createDateTest( "1575118800000" ),
-            new DateMapTypeReference() );
-        assertEquals( unixEpochDateString.get( "date" ), new Date( 1575118800000L ) );
-
-        Map<String, Date> unixEpochDateLong = jsonMapper.readValue( createUnixEpochTest( 1575118800000L ),
-            new DateMapTypeReference() );
-        assertEquals( unixEpochDateLong.get( "date" ), new Date( 1575118800000L ) );
+        assertParsedAsDate( new Date( 1575118800000L ), "1575118800000" );
+        assertParsedAsDate( new Date( 1575118800000L ), 1575118800000L );
     }
 
     @Test
     public void testNullDate()
-        throws JsonProcessingException
     {
-        Map<String, Date> yearTest = jsonMapper.readValue( createDateTest( null ), new DateMapTypeReference() );
-        assertNull( yearTest.get( "date" ) );
+        assertParsedAsDate( null, null );
+    }
+
+    @Test
+    public void testNaNDate()
+    {
+        assertNotParsedAsDate( "NaN" );
+    }
+
+    @Test
+    public void testRubbishDate()
+    {
+        assertNotParsedAsDate( "NaN NaN NaN" );
+    }
+
+    @Test
+    public void testUnclearDate()
+    {
+        assertNotParsedAsDate( "999999999" );
     }
 
     @Test // DHIS2-8582
@@ -100,7 +120,7 @@ public class JacksonObjectMapperConfigTest
         assertEquals( user.getUid(), user.getLastUpdatedBy().getUid() );
     }
 
-    private String createDateTest( String str )
+    private String createDateString( String str )
     {
         if ( str == null )
         {
@@ -119,5 +139,45 @@ public class JacksonObjectMapperConfigTest
         extends
         TypeReference<Map<String, Date>>
     {
+    }
+
+    private void assertNotParsedAsDate( String value )
+    {
+        Exception ex = assertThrows( IOException.class, () -> parseAsDate( value ) );
+        assertEquals(
+            "Unexpected IOException (of type java.io.IOException): Invalid date format '" + value
+                + "', only ISO format or UNIX Epoch timestamp is supported.",
+            ex.getMessage() );
+    }
+
+    private void assertParsedAsDate( Date expected, Object value )
+    {
+        try
+        {
+            assertEquals( expected, parseAsDate( value ).get( "date" ) );
+        }
+        catch ( Exception e )
+        {
+            fail( e.getMessage() );
+        }
+    }
+
+    private Map<String, Date> parseAsDate( Object value )
+        throws Exception
+    {
+        String json;
+        if ( value instanceof Long )
+        {
+            json = createUnixEpochTest( (Long) value );
+        }
+        else if ( value instanceof String || value == null )
+        {
+            json = createDateString( (String) value );
+        }
+        else
+        {
+            throw new UnsupportedOperationException( "Value type not supported: " + value );
+        }
+        return jsonMapper.readValue( json, new DateMapTypeReference() );
     }
 }

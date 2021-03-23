@@ -37,7 +37,9 @@ public class Order
     public enum Attribute
     {
         NAME( "name" ),
-        DISPLAY_NAME( "displayName" );
+        DISPLAY_NAME( "displayName" ),
+        SHORT_NAME( "shortName" ),
+        DISPLAY_SHORT_NAME( "displayShortName" );
 
         private String name;
 

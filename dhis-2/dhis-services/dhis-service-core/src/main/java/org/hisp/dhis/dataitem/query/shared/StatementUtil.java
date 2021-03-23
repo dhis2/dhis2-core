@@ -42,8 +42,6 @@ public class StatementUtil
 
     public static final String SPACED_SELECT = " select ";
 
-    public static final String SPACED_UNION = " union ";
-
     public static final String SPACED_WHERE = " where ";
 
     public static final String SPACED_OR = " or ";

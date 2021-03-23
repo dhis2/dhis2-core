@@ -61,8 +61,7 @@ public class HibernateKeyJsonValueStore
     @Override
     public List<String> getNamespaces()
     {
-        String hql = "select distinct namespace from KeyJsonValue";
-        Query<String> query = getTypedQuery( hql );
+        Query<String> query = getTypedQuery( "select distinct namespace from KeyJsonValue" );
         return query.list();
     }
 
@@ -112,5 +111,20 @@ public class HibernateKeyJsonValueStore
         return getSingleResult( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "namespace" ), namespace ) )
             .addPredicate( root -> builder.equal( root.get( "key" ), key ) ) );
+    }
+
+    @Override
+    public void deleteNamespace( String namespace )
+    {
+        String hql = "delete from KeyJsonValue v where v.namespace = :namespace";
+        getSession().createQuery( hql ).setParameter( "namespace", namespace ).executeUpdate();
+    }
+
+    @Override
+    public int countKeysInNamespace( String namespace )
+    {
+        String hql = "select count(*) from KeyJsonValue v where v.namespace = :namespace";
+        Query<Long> count = getTypedQuery( hql );
+        return count.setParameter( "namespace", namespace ).getSingleResult().intValue();
     }
 }

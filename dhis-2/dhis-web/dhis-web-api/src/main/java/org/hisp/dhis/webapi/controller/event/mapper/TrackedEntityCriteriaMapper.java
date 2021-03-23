@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.event.mapper;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isEnrollmentColumn;
 import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.isStaticColumn;
 
 import java.util.Collections;
@@ -385,12 +384,7 @@ public class TrackedEntityCriteriaMapper
         {
             for ( OrderParam orderParam : orderParams )
             {
-                if ( isEnrollmentColumn( orderParam.getField() ) && Objects.isNull( program ) )
-                {
-                    throw new IllegalQueryException(
-                        "Invalid order property, program should be present: " + orderParam.getField() );
-                }
-                else if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
+                if ( !isStaticColumn( orderParam.getField() ) && !attributes.containsKey( orderParam.getField() ) )
                 {
                     throw new IllegalQueryException( "Invalid order property: " + orderParam.getField() );
                 }

@@ -55,7 +55,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.DataValue;
@@ -184,11 +183,6 @@ public class PreCheckMetaValidationHook
             addError( reporter, E1088, event, event.getProgram(), event.getProgramStage() );
         }
 
-        if ( program == null && programStage != null )
-        {
-            program = fetchProgramFromProgramStage( event, bundle, programStage );
-        }
-
         if ( program != null && programStage == null && program.isRegistration() )
         {
             addError( reporter, E1086, event, program );
@@ -222,24 +216,6 @@ public class PreCheckMetaValidationHook
                 .addArg( psi )
                 .addArg( existingProgram ) );
         }
-    }
-
-    private Program fetchProgramFromProgramStage( Event event, TrackerBundle bundle, ProgramStage programStage )
-    {
-        Program program;// We use a little trick here to put a program into the
-                        // event and bundle
-        // if program is missing from event but exists on the program stage.
-        // TODO: This trick mutates the data, try to avoid this...
-        program = programStage.getProgram();
-        TrackerIdentifier identifier = bundle.getPreheat().getIdentifiers().getProgramIdScheme();
-
-        // no need to add the program if already in preheat
-        if ( bundle.getPreheat().get( Program.class, identifier.getIdentifier( program ) ) == null )
-        {
-            bundle.getPreheat().put( identifier, program );
-        }
-        event.setProgram( identifier.getIdentifier( program ) );
-        return program;
     }
 
     private boolean programHasOrgUnit( Program program, OrganisationUnit orgUnit,

@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.keyjsonvalue;
 
-import static org.junit.Assert.*;
-
-import java.util.List;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
 import org.junit.Test;
@@ -42,93 +42,90 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
 {
 
     @Autowired
-    private KeyJsonValueStore keyJsonValueStore;
+    private KeyJsonValueStore store;
 
     @Test
     public void testAddKeyJsonValue()
     {
-        KeyJsonValue keyJsonValue = new KeyJsonValue();
-        keyJsonValue.setNamespace( "A" );
-        keyJsonValue.setKey( "1" );
+        KeyJsonValue entry = addKeyJsonValue( "A", "1" );
 
-        keyJsonValueStore.save( keyJsonValue );
-        long id = keyJsonValue.getId();
-
-        assertNotNull( keyJsonValue );
-        assertEquals( keyJsonValue, keyJsonValueStore.get( id ) );
+        assertNotNull( entry );
+        assertEquals( entry, store.get( entry.getId() ) );
     }
 
     @Test
     public void testAddKeyJsonValuesAndGetNamespaces()
     {
-        KeyJsonValue keyJsonValueA = new KeyJsonValue();
-        keyJsonValueA.setNamespace( "A" );
-        keyJsonValueA.setKey( "1" );
-        keyJsonValueStore.save( keyJsonValueA );
+        KeyJsonValue entryA = addKeyJsonValue( "A", "1" );
+        KeyJsonValue entryB = addKeyJsonValue( "B", "1" );
 
-        KeyJsonValue keyJsonValueB = new KeyJsonValue();
-        keyJsonValueB.setNamespace( "B" );
-        keyJsonValueB.setKey( "1" );
-        keyJsonValueStore.save( keyJsonValueB );
-
-        List<String> list = keyJsonValueStore.getNamespaces();
-
-        assertTrue( list.contains( "A" ) );
-        assertTrue( list.contains( "B" ) );
+        assertContainsOnly( store.getNamespaces(), "A", "B" );
     }
 
     @Test
     public void testAddKeyJsonValuesAndGetKeysFromNamespace()
     {
-        KeyJsonValue keyJsonValueA = new KeyJsonValue();
-        keyJsonValueA.setNamespace( "A" );
-        keyJsonValueA.setKey( "1" );
-        keyJsonValueStore.save( keyJsonValueA );
+        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
+        KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
+        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
 
-        KeyJsonValue keyJsonValueB = new KeyJsonValue();
-        keyJsonValueB.setNamespace( "A" );
-        keyJsonValueB.setKey( "2" );
-        keyJsonValueStore.save( keyJsonValueB );
-
-        List<String> list = keyJsonValueStore.getKeysInNamespace( "A" );
-
-        assertTrue( list.contains( "1" ) );
-        assertTrue( list.contains( "2" ) );
+        assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
     }
 
     @Test
     public void testAddKeyJsonValueAndGetKeyJsonValue()
     {
-        KeyJsonValue keyJsonValueA = new KeyJsonValue();
-        keyJsonValueA.setNamespace( "A" );
-        keyJsonValueA.setKey( "1" );
-        keyJsonValueStore.save( keyJsonValueA );
+        KeyJsonValue entryA = addKeyJsonValue( "A", "1" );
 
-        assertEquals( keyJsonValueStore.getKeyJsonValue( "A", "1" ), keyJsonValueA );
+        assertEquals( store.getKeyJsonValue( "A", "1" ), entryA );
     }
 
     @Test
     public void testGetKeyJsonValuesByNamespace()
     {
-        KeyJsonValue keyJsonValueA = new KeyJsonValue();
-        keyJsonValueA.setNamespace( "A" );
-        keyJsonValueA.setKey( "1" );
-        keyJsonValueStore.save( keyJsonValueA );
+        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
+        KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
+        KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
+        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
 
-        KeyJsonValue keyJsonValueB = new KeyJsonValue();
-        keyJsonValueB.setNamespace( "A" );
-        keyJsonValueB.setKey( "2" );
-        keyJsonValueStore.save( keyJsonValueB );
+        assertContainsOnly( store.getKeyJsonValueByNamespace( "A" ), entryA1, entryA2, entryA3 );
+    }
 
-        KeyJsonValue keyJsonValueC = new KeyJsonValue();
-        keyJsonValueC.setNamespace( "A" );
-        keyJsonValueC.setKey( "3" );
-        keyJsonValueStore.save( keyJsonValueC );
+    @Test
+    public void testCountKeysInNamespace()
+    {
+        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
+        KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
+        KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
+        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
 
-        List<KeyJsonValue> list = keyJsonValueStore.getKeyJsonValueByNamespace( "A" );
+        assertEquals( 3, store.countKeysInNamespace( "A" ) );
+        assertEquals( 1, store.countKeysInNamespace( "B" ) );
+        assertEquals( 0, store.countKeysInNamespace( "C" ) );
+    }
 
-        assertTrue( list.contains( keyJsonValueA ) );
-        assertTrue( list.contains( keyJsonValueB ) );
-        assertTrue( list.contains( keyJsonValueC ) );
+    @Test
+    public void deleteNamespace()
+    {
+        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
+        KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
+        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
+        KeyJsonValue entryC1 = addKeyJsonValue( "C", "1" );
+
+        store.deleteNamespace( "A" );
+
+        assertContainsOnly( store.getNamespaces(), "B", "C" );
+    }
+
+    private KeyJsonValue addKeyJsonValue( String ns, String key )
+    {
+        KeyJsonValue entry = createKeyJsonValue( ns, key );
+        store.save( entry );
+        return entry;
+    }
+
+    private static KeyJsonValue createKeyJsonValue( String ns, String key )
+    {
+        return new KeyJsonValue( ns, key );
     }
 }

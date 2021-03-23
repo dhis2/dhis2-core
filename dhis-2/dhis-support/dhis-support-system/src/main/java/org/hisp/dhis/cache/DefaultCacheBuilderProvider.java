@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.cache;
 
+import java.util.function.Function;
+
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -46,10 +48,15 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
 
     private RedisTemplate<String, ?> redisTemplate;
 
+    private CappedLocalCache cappedLocalCache;
+
     @Override
     public <V> CacheBuilder<V> newCacheBuilder()
     {
-        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider );
+        Function<CacheBuilder<V>, Cache<V>> capCacheFactory = cappedLocalCache != null
+            ? cappedLocalCache::createRegion
+            : builder -> new NoOpCache<>();
+        return new ExtendedCacheBuilder<>( redisTemplate, configurationProvider, capCacheFactory );
     }
 
     @Autowired
@@ -65,4 +72,9 @@ public class DefaultCacheBuilderProvider implements CacheBuilderProvider
         this.redisTemplate = redisTemplate;
     }
 
+    @Autowired
+    public void setCappedLocalCache( CappedLocalCache cappedLocalCache )
+    {
+        this.cappedLocalCache = cappedLocalCache;
+    }
 }
