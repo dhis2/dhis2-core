@@ -28,6 +28,7 @@
 package org.hisp.dhis.fieldfilter;
 
 import static java.beans.Introspector.decapitalize;
+import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -55,6 +56,7 @@ import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.SimpleCacheBuilder;
+import org.hisp.dhis.chart.Chart;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -67,6 +69,7 @@ import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.SimpleNode;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyTransformer;
 import org.hisp.dhis.schema.Schema;
@@ -76,6 +79,7 @@ import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentials;
+import org.hisp.dhis.visualization.Visualization;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -374,7 +378,28 @@ public class DefaultFieldFilterService implements FieldFilterService
 
         if ( fieldMap.containsKey( "access" ) && schema.isIdentifiableObject() )
         {
-            ((BaseIdentifiableObject) object).setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
+            // These checks for Chart and ReportTable are needed to keep the
+            // backward compatibility with Visualization. Should be removed once
+            // Chart and ReportTable are gone.
+            if ( object instanceof Chart )
+            {
+                final Visualization visualization = convertToVisualization( (Chart) object );
+
+                ((BaseIdentifiableObject) object)
+                    .setAccess( aclService.getAccess( visualization, user ) );
+            }
+            else if ( object instanceof ReportTable )
+            {
+                final Visualization visualization = convertToVisualization( (ReportTable) object );
+
+                ((BaseIdentifiableObject) object)
+                    .setAccess( aclService.getAccess( visualization, user ) );
+            }
+            else
+            {
+                ((BaseIdentifiableObject) object)
+                    .setAccess( aclService.getAccess( (IdentifiableObject) object, user ) );
+            }
         }
 
         if ( fieldMap.containsKey( "attribute" ) && AttributeValue.class.isAssignableFrom( object.getClass() ) )
