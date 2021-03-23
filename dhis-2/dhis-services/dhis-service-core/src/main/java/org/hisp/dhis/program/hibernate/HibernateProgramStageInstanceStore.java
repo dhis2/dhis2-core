@@ -41,8 +41,6 @@ import javax.persistence.criteria.Root;
 import org.apache.commons.lang.time.DateUtils;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramInstance;
@@ -75,15 +73,11 @@ public class HibernateProgramStageInstanceStore
         NotificationTrigger.getAllApplicableToProgramStageInstance(),
         NotificationTrigger.getAllScheduledTriggers() );
 
-    private final Cache<Boolean> programStageWebHookNotificationCache;
-
     public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        CacheProvider cacheProvider )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
             aclService, false );
-        this.programStageWebHookNotificationCache = cacheProvider.createProgramStageWebHookNotificationTemplateCache();
     }
 
     @Override
@@ -207,12 +201,6 @@ public class HibernateProgramStageInstanceStore
             .setParameter( "lastSynchronized", lastSynchronized )
             .setParameter( "programStageInstances", programStageInstanceUIDs )
             .executeUpdate();
-    }
-
-    @Override
-    public boolean isLinkedToWebHookNotification( ProgramStage programStage )
-    {
-        return false;
     }
 
     @Override

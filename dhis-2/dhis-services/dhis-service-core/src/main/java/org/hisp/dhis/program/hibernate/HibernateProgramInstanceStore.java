@@ -49,8 +49,6 @@ import org.apache.commons.lang.time.DateUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
@@ -91,14 +89,10 @@ public class HibernateProgramInstanceStore
         NotificationTrigger.getAllApplicableToProgramInstance(),
         NotificationTrigger.getAllScheduledTriggers() );
 
-    private final Cache<Boolean> programWebHookNotificationCache;
-
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        CacheProvider cacheProvider )
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, aclService, true );
-        this.programWebHookNotificationCache = cacheProvider.createProgramWebHookNotificationTemplateCache();
     }
 
     @Override
@@ -396,12 +390,6 @@ public class HibernateProgramInstanceStore
             .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( cr ).getResultList();
-    }
-
-    @Override
-    public boolean isLinkedToWebHookNotification( Program program )
-    {
-        return false;
     }
 
     private String toDateProperty( NotificationTrigger trigger )

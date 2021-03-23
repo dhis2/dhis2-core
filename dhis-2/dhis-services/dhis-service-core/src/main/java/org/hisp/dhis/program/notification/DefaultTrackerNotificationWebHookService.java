@@ -41,9 +41,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -67,31 +69,38 @@ import com.google.common.collect.Lists;
 @Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
 public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
 {
-    private final ProgramInstanceStore programInstanceStore;
+    private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceStore programStageInstanceStore;
+    private final ProgramStageInstanceService programStageInstanceService;
+
+    private final ProgramService programService;
+
+    private final ProgramStageService programStageService;
 
     private final RestTemplate restTemplate;
 
     private final RenderService renderService;
 
-    public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceStore programInstanceStore,
-        @NonNull ProgramStageInstanceStore programStageInstanceStore,
-        @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService )
+    public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceService programInstanceService,
+        @NonNull ProgramStageInstanceService programStageInstanceService, ProgramService programService,
+        @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService,
+        ProgramStageService programStageService )
     {
-        this.programInstanceStore = programInstanceStore;
-        this.programStageInstanceStore = programStageInstanceStore;
+        this.programInstanceService = programInstanceService;
+        this.programStageInstanceService = programStageInstanceService;
         this.restTemplate = restTemplate;
         this.renderService = renderService;
+        this.programService = programService;
+        this.programStageService = programStageService;
     }
 
     @Override
     @Transactional
     public void handleEnrollment( String pi )
     {
-        ProgramInstance instance = programInstanceStore.getByUid( pi );
+        ProgramInstance instance = programInstanceService.getProgramInstance( pi );
 
-        if ( instance == null || programInstanceStore.isLinkedToWebHookNotification( instance.getProgram() ) )
+        if ( instance == null || programService.isLinkedToWebHookNotification( instance.getProgram() ) )
         {
             return;
         }
@@ -111,9 +120,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     @Transactional
     public void handleEvent( String psi )
     {
-        ProgramStageInstance instance = programStageInstanceStore.getByUid( psi );
+        ProgramStageInstance instance = programStageInstanceService.getProgramStageInstance( psi );
 
-        if ( instance == null || programStageInstanceStore.isLinkedToWebHookNotification( instance.getProgramStage() ) )
+        if ( instance == null || programStageService.isLinkedToWebHookNotification( instance.getProgramStage() ) )
         {
             return;
         }

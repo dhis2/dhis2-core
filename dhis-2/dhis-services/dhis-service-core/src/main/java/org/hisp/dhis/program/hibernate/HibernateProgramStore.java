@@ -107,6 +107,12 @@ public class HibernateProgramStore
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
 
+    @Override
+    public boolean isLinkedToWebHookNotification( Program program )
+    {
+        return false;
+    }
+
     public boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit )
     {
         NativeQuery<Long> query = getSession().createNativeQuery(
