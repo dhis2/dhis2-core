@@ -46,4 +46,8 @@ public interface ProgramNotificationTemplateStore
     boolean isProgramLinkedToWebHookNotification( Program program );
 
     boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
+
+    List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
+
+    List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
 }

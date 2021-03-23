@@ -87,4 +87,28 @@ public class DefaultProgramNotificationTemplateStore
 
         return !query.getResultList().isEmpty();
     }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient",
+            ProgramNotificationTemplate.class );
+        query.setParameter( "pid", program.getId() );
+        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getResultList();
+    }
+
+    @Override
+    public List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage )
+    {
+        NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
+            "select * from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient",
+            ProgramNotificationTemplate.class );
+        query.setParameter( "psid", programStage.getId() );
+        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+
+        return query.getResultList();
+    }
 }

@@ -115,4 +115,18 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
             .get( programStage.getUid(), uid -> store.isProgramStageLinkedToWebHookNotification( programStage ) )
             .orElse( false );
     }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program )
+    {
+        return store.getProgramLinkedToWebHookNotifications( program );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage )
+    {
+        return store.getProgramStageLinkedToWebHookNotifications( programStage );
+    }
 }

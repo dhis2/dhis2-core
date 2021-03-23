@@ -66,4 +66,9 @@ public interface ProgramNotificationTemplateService
      * @return true if {@link ProgramStage} is associated, otherwise false.
      */
     boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
+
+    List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
+
+    List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
+
 }

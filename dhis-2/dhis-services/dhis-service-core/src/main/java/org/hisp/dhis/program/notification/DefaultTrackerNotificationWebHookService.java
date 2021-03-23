@@ -31,7 +31,6 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -100,9 +99,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
             return;
         }
 
-        List<ProgramNotificationTemplate> templates = instance.getProgram().getNotificationTemplates().stream()
-            .filter( t -> ProgramNotificationRecipient.WEB_HOOK == t.getNotificationRecipient() )
-            .collect( Collectors.toList() );
+        List<ProgramNotificationTemplate> templates = templateService
+            .getProgramLinkedToWebHookNotifications( instance.getProgram() );
 
         Map<String, String> payload = new HashMap<>();
         ProgramNotificationMessageRenderer.VARIABLE_RESOLVERS
@@ -122,9 +120,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
             return;
         }
 
-        List<ProgramNotificationTemplate> templates = instance.getProgramStage().getNotificationTemplates().stream()
-            .filter( t -> ProgramNotificationRecipient.WEB_HOOK == t.getNotificationRecipient() )
-            .collect( Collectors.toList() );
+        List<ProgramNotificationTemplate> templates = templateService
+            .getProgramStageLinkedToWebHookNotifications( instance.getProgramStage() );
 
         Map<String, String> payload = new HashMap<>();
         ProgramStageNotificationMessageRenderer.VARIABLE_RESOLVERS
