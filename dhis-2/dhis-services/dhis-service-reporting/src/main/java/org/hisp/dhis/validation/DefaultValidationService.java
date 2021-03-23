@@ -202,15 +202,15 @@ public class DefaultValidationService
     {
         ValidationRunContext context = getValidationContext( parameters );
 
-        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
+        ValidationRuleExpressionDetails details = new ValidationRuleExpressionDetails();
 
-        context.setValidationRuleExpressionDetails( validationRuleExpressionDetails );
+        context.setValidationRuleExpressionDetails( details );
 
         Validator.validate( context, applicationContext, analyticsService );
 
-        validationRuleExpressionDetails.sortByName();
+        details.sortByName();
 
-        return validationRuleExpressionDetails;
+        return details;
     }
 
     @Override

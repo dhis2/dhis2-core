@@ -56,37 +56,39 @@ import org.hisp.dhis.period.PeriodType;
  */
 public class PeriodTypeExtended
 {
-    private PeriodType periodType;
+    private final PeriodType periodType;
 
-    private Set<Period> periods = new HashSet<>();
+    private final Set<Period> periods = new HashSet<>();
 
-    private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
+    private final Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
-    private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
+    private final Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+    private final Set<DimensionalItemObject> eventItems = new HashSet<>();
 
-    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+    private final Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
-    private Set<DimensionalItemObject> indicators = new HashSet<>();
+    private final Set<DimensionalItemObject> indicators = new HashSet<>();
 
-    private Set<DataElement> dataElements = new HashSet<>();
+    private final Set<DataElement> dataElements = new HashSet<>();
 
-    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+    private final Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
-    private Map<Long, DataElement> dataElementIdMap = new HashMap<>();
+    private final Map<Long, DataElement> dataElementIdMap = new HashMap<>();
 
-    private Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+    private final Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+
+    private final Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
+
+    private final Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
 
     private boolean slidingWindowsNeeded = false;
 
     private boolean nonSlidingWindowsNeeded = false;
 
-    private Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
-
-    private Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
-
-    private Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap;
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -166,15 +168,6 @@ public class PeriodTypeExtended
     }
 
     // -------------------------------------------------------------------------
-    // Set methods
-    // -------------------------------------------------------------------------
-
-    public void setDimensionItemMap( Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
-    {
-        this.dimensionItemMap = dimensionItemMap;
-    }
-
-    // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
 
@@ -241,10 +234,5 @@ public class PeriodTypeExtended
     public Set<DimensionalItemId> getRightSideItemIds()
     {
         return rightSideItemIds;
-    }
-
-    public Map<DimensionalItemId, DimensionalItemObject> getDimensionItemMap()
-    {
-        return dimensionItemMap;
     }
 }
