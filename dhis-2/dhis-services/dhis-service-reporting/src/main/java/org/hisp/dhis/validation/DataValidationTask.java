@@ -478,26 +478,14 @@ public class DataValidationTask
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
-        Map<DimensionalItemObject, Double> nonAocValues = valueMap == null
-            ? null
-            : valueMap.get( NON_AOC );
-
-        MapMap<String, DimensionalItemObject, Double> aocValues = valueMap;
-
-        if ( aocValues == null )
+        if ( valueMap == null )
         {
-            if ( nonAocValues == null )
-            {
-                return expressionValueMap;
-            }
-            else
-            {
-                aocValues = new MapMap<>();
-                aocValues.putEntries( context.getDefaultAttributeCombo().getUid(), nonAocValues );
-            }
+            return expressionValueMap;
         }
 
-        for ( Map.Entry<String, Map<DimensionalItemObject, Double>> entry : aocValues.entrySet() )
+        Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( NON_AOC );
+
+        for ( Map.Entry<String, Map<DimensionalItemObject, Double>> entry : valueMap.entrySet() )
         {
             Map<DimensionalItemObject, Double> values = entry.getValue();
 

@@ -399,6 +399,34 @@ public class DefaultValidationService
 
         SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds = new SetMap<>();
 
+        getItemIdsForRules( allItemIds, periodItemIds, periodTypeXMap, rules );
+
+        // 2. Get the dimensional objects from the IDs. (Get them all at once
+        // for best performance.)
+
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap =
+            dimensionService.getNoAclDataDimensionalItemObjectMap( allItemIds );
+
+        // 3. Save the dimensional objects in the extended period types.
+
+        saveObjectsInPeriodTypeX( periodItemIds, dimensionItemMap );
+
+        return dimensionItemMap;
+    }
+
+    /**
+     * Finds all the dimensional object IDs in the validation rules expressions.
+     *
+     * @param allItemIds inserts all IDs here.
+     * @param periodItemIds inserts IDs by period type here.
+     * @param periodTypeXMap map of extended period types by period type.
+     * @param rules validation rules to process.
+     */
+    private void getItemIdsForRules( Set<DimensionalItemId> allItemIds,
+        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds,
+        Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+        Collection<ValidationRule> rules )
+    {
         for ( ValidationRule rule : rules )
         {
             PeriodTypeExtended periodX = periodTypeXMap.get( rule.getPeriodType() );
@@ -430,15 +458,19 @@ public class DefaultValidationService
 
             allItemIds.addAll( bothSidesItemIds );
         }
+    }
 
-        // 2. Get the dimensional objects from the IDs. (Get them all at once
-        // for best performance.)
-
-        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = dimensionService
-            .getNoAclDataDimensionalItemObjectMap( allItemIds );
-
-        // 3. Save the dimensional objects in the extended period types.
-
+    /**
+     * Saves the dimension item objects in the period type extended, organizing
+     * them according to how they will be used in fetching their values.
+     *
+     * @param periodItemIds map from periodX to set of object IDs.
+     * @param dimensionItemMap map from object ID to Object.
+     */
+    private void saveObjectsInPeriodTypeX(
+        SetMap<PeriodTypeExtended, DimensionalItemId> periodItemIds,
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
+    {
         for ( Map.Entry<PeriodTypeExtended, Set<DimensionalItemId>> entry : periodItemIds.entrySet() )
         {
             PeriodTypeExtended periodTypeX = entry.getKey();
@@ -472,8 +504,6 @@ public class DefaultValidationService
                 }
             }
         }
-
-        return dimensionItemMap;
     }
 
     /**

@@ -244,7 +244,7 @@ public class ExpressionService2Test extends DhisSpringTest
     public void setUp()
     {
         target = new DefaultExpressionService( hibernateGenericStore, dataElementService, constantService,
-            categoryService, organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
+            organisationUnitGroupService, dimensionService, idObjectManager, cacheProvider );
 
         rnd = new BeanRandomizer();
 

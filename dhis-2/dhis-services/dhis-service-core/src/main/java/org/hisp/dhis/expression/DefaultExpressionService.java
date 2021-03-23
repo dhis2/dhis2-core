@@ -156,8 +156,6 @@ public class DefaultExpressionService
 
     private final ConstantService constantService;
 
-    private final CategoryService categoryService;
-
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
     private final DimensionService dimensionService;
@@ -243,14 +241,13 @@ public class DefaultExpressionService
 
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
-        DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
+        DataElementService dataElementService, ConstantService constantService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
         IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
         checkNotNull( constantService );
-        checkNotNull( categoryService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
         checkNotNull( cacheProvider );
@@ -258,7 +255,6 @@ public class DefaultExpressionService
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
         this.constantService = constantService;
-        this.categoryService = categoryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
