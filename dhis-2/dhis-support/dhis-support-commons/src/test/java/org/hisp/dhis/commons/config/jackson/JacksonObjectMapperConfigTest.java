@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.commons.config.jackson;
 
+import static java.time.ZoneId.systemDefault;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Map;
 
@@ -60,13 +62,12 @@ public class JacksonObjectMapperConfigTest
         assertParsedAsDate( DateUtils.parseDate( "2019-01-01" ), "2019-01-01" );
         assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55" ), "2019-01-01T11:55" );
         assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.444Z" ), "2019-01-01T11:55:01.444Z" );
-
-    }
-
-    @Test
-    public void testIsoDateSupport_UnsupportedFormats()
-    {
-        assertNotParsedAsDate( "2019-01-01T11:55:01.4444" );
+        assertParsedAsDate( DateUtils.parseDate( "2019-01-01T11:55:01.4444" ), "2019-01-01T11:55:01.4444" );
+        Date expected = DateUtils.parseDate( "2019-01-01T11:55:01.4444Z" );
+        assertParsedAsDate( expected, "2019-01-01T11:55:01.4444Z" );
+        assertParsedAsDate( expected,
+            DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                .format( expected.toInstant().atZone( systemDefault() ).toLocalDateTime() ) );
     }
 
     @Test
