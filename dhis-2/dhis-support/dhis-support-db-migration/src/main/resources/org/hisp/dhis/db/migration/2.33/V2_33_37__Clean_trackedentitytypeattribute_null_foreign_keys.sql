@@ -1,0 +1,1 @@
+delete from trackedentitytypeattribute where trackedentitytypeattributeid is null or trackedentityattributeid is null;
