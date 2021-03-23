@@ -32,6 +32,7 @@ import java.util.List;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
+import org.hibernate.query.NativeQuery;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
@@ -68,22 +69,22 @@ public class DefaultProgramNotificationTemplateStore
     @Override
     public boolean isProgramLinkedToWebHookNotification( Program program )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        NativeQuery<Long> query = getSession().createNativeQuery(
+            "select programnotificationtemplateid from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
+        query.setParameter( "pid", program.getId() );
+        query.setParameter( "recipient", "WEB_HOOK" );
 
-        return !getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "notificationrecipienttype" ),
-                ProgramNotificationRecipient.WEB_HOOK ) )
-            .addPredicate( root -> builder.equal( root.get( "programid" ), program.getId() ) ) ).isEmpty();
+        return !query.getResultList().isEmpty();
     }
 
     @Override
     public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        NativeQuery<Long> query = getSession().createNativeQuery(
+            "select programnotificationtemplateid from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
+        query.setParameter( "psid", programStage.getId() );
+        query.setParameter( "recipient", "WEB_HOOK" );
 
-        return !getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "notificationrecipienttype" ),
-                ProgramNotificationRecipient.WEB_HOOK ) )
-            .addPredicate( root -> builder.equal( root.get( "programstageid" ), programStage.getId() ) ) ).isEmpty();
+        return !query.getResultList().isEmpty();
     }
 }

@@ -111,7 +111,7 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     @Transactional( readOnly = true )
     public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
     {
-        return programWebHookNotificationCache
+        return programStageWebHookNotificationCache
             .get( programStage.getUid(), uid -> store.isProgramStageLinkedToWebHookNotification( programStage ) )
             .orElse( false );
     }

@@ -100,8 +100,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
             return;
         }
 
-        List<ProgramNotificationTemplate> templates = instance.getProgram().getNotificationTemplates()
-            .stream()
+        List<ProgramNotificationTemplate> templates = instance.getProgram().getNotificationTemplates().stream()
             .filter( t -> ProgramNotificationRecipient.WEB_HOOK == t.getNotificationRecipient() )
             .collect( Collectors.toList() );
 
@@ -123,9 +122,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
             return;
         }
 
-        List<ProgramNotificationTemplate> templates = instance.getProgramStage().getNotificationTemplates()
-            .stream()
-            .filter( t -> t.getNotificationRecipient() == ProgramNotificationRecipient.WEB_HOOK )
+        List<ProgramNotificationTemplate> templates = instance.getProgramStage().getNotificationTemplates().stream()
+            .filter( t -> ProgramNotificationRecipient.WEB_HOOK == t.getNotificationRecipient() )
             .collect( Collectors.toList() );
 
         Map<String, String> payload = new HashMap<>();
