@@ -40,7 +40,6 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -101,6 +100,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
@@ -384,7 +384,7 @@ public class DataAnalysisController
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
             .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
                 periods, DataAnalysisService.MAX_OUTLIERS + 1 ) );
-                // +1 to detect overflow
+        // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
