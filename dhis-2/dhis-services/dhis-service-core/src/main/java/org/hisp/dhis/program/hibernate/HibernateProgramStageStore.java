@@ -84,10 +84,4 @@ public class HibernateProgramStageStore
 
         return getQuery( hql ).setParameter( "dataEntryForm", dataEntryForm ).list();
     }
-
-    @Override
-    public boolean isLinkedToWebHookNotification( ProgramStage programStage )
-    {
-        return false;
-    }
 }

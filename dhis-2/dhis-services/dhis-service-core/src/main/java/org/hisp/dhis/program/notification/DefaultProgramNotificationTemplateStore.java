@@ -33,6 +33,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -61,5 +63,27 @@ public class DefaultProgramNotificationTemplateStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "notificationtrigger" ), trigger ) ) );
+    }
+
+    @Override
+    public boolean isProgramLinkedToWebHookNotification( Program program )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return !getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "notificationrecipienttype" ),
+                ProgramNotificationRecipient.WEB_HOOK ) )
+            .addPredicate( root -> builder.equal( root.get( "programsid" ), program.getId() ) ) ).isEmpty();
+    }
+
+    @Override
+    public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return !getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "notificationrecipienttype" ),
+                ProgramNotificationRecipient.WEB_HOOK ) )
+            .addPredicate( root -> builder.equal( root.get( "programstageid" ), programStage.getId() ) ) ).isEmpty();
     }
 }

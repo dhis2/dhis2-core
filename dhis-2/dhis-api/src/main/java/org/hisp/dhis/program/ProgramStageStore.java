@@ -57,6 +57,4 @@ public interface ProgramStageStore
      * @return a list of ProgramStages.
      */
     List<ProgramStage> getByDataEntryForm( DataEntryForm dataEntryForm );
-
-    boolean isLinkedToWebHookNotification( ProgramStage programStage );
 }

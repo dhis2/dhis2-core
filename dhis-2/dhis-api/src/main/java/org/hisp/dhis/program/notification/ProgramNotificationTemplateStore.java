@@ -30,6 +30,8 @@ package org.hisp.dhis.program.notification;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 
 /**
  * Created by zubair@dhis2.org on 16.11.17.
@@ -40,4 +42,8 @@ public interface ProgramNotificationTemplateStore
     String ID = ProgramNotificationTemplate.class.getName();
 
     List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
+
+    boolean isProgramLinkedToWebHookNotification( Program program );
+
+    boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
 }

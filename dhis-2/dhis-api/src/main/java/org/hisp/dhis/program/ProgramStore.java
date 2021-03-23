@@ -81,6 +81,4 @@ public interface ProgramStore
      * specified {@link Program}
      */
     boolean hasOrgUnit( Program program, OrganisationUnit organisationUnit );
-
-    boolean isLinkedToWebHookNotification( Program program );
 }

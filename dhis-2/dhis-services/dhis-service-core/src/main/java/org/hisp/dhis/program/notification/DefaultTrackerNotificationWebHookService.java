@@ -42,10 +42,8 @@ import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -73,25 +71,22 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     private final ProgramStageInstanceService programStageInstanceService;
 
-    private final ProgramService programService;
-
-    private final ProgramStageService programStageService;
+    private final ProgramNotificationTemplateService templateService;
 
     private final RestTemplate restTemplate;
 
     private final RenderService renderService;
 
     public DefaultTrackerNotificationWebHookService( @NonNull ProgramInstanceService programInstanceService,
-        @NonNull ProgramStageInstanceService programStageInstanceService, ProgramService programService,
+        @NonNull ProgramStageInstanceService programStageInstanceService,
         @Nonnull RestTemplate restTemplate, @Nonnull RenderService renderService,
-        ProgramStageService programStageService )
+        @Nonnull ProgramNotificationTemplateService templateService )
     {
         this.programInstanceService = programInstanceService;
         this.programStageInstanceService = programStageInstanceService;
         this.restTemplate = restTemplate;
         this.renderService = renderService;
-        this.programService = programService;
-        this.programStageService = programStageService;
+        this.templateService = templateService;
     }
 
     @Override
@@ -100,7 +95,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     {
         ProgramInstance instance = programInstanceService.getProgramInstance( pi );
 
-        if ( instance == null || programService.isLinkedToWebHookNotification( instance.getProgram() ) )
+        if ( instance == null || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram() ) )
         {
             return;
         }
@@ -122,7 +117,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     {
         ProgramStageInstance instance = programStageInstanceService.getProgramStageInstance( psi );
 
-        if ( instance == null || programStageService.isLinkedToWebHookNotification( instance.getProgramStage() ) )
+        if ( instance == null
+            || !templateService.isProgramStageLinkedToWebHookNotification( instance.getProgramStage() ) )
         {
             return;
         }

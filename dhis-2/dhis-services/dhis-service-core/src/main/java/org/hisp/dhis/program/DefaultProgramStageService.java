@@ -31,8 +31,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.dataentryform.DataEntryForm;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,13 +48,10 @@ public class DefaultProgramStageService
 
     private final ProgramStageStore programStageStore;
 
-    private final Cache<Boolean> programStageWebHookNotificationCache;
-
-    public DefaultProgramStageService( ProgramStageStore programStageStore, CacheProvider cacheProvider )
+    public DefaultProgramStageService( ProgramStageStore programStageStore )
     {
         checkNotNull( programStageStore );
         this.programStageStore = programStageStore;
-        this.programStageWebHookNotificationCache = cacheProvider.createProgramStageWebHookNotificationTemplateCache();
     }
 
     // -------------------------------------------------------------------------
@@ -104,14 +99,5 @@ public class DefaultProgramStageService
     public void updateProgramStage( ProgramStage programStage )
     {
         programStageStore.update( programStage );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isLinkedToWebHookNotification( ProgramStage programStage )
-    {
-        return programStageWebHookNotificationCache
-            .get( programStage.getUid(), uid -> programStageStore.isLinkedToWebHookNotification( programStage ) )
-            .orElse( false );
     }
 }

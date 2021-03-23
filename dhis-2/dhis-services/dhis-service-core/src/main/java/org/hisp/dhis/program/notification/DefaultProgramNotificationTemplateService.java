@@ -29,6 +29,10 @@ package org.hisp.dhis.program.notification;
 
 import java.util.List;
 
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +45,16 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
 {
     private final ProgramNotificationTemplateStore store;
 
-    public DefaultProgramNotificationTemplateService( ProgramNotificationTemplateStore store )
+    private final Cache<Boolean> programWebHookNotificationCache;
+
+    private final Cache<Boolean> programStageWebHookNotificationCache;
+
+    public DefaultProgramNotificationTemplateService( ProgramNotificationTemplateStore store,
+        CacheProvider cacheProvider )
     {
         this.store = store;
+        this.programWebHookNotificationCache = cacheProvider.createProgramWebHookNotificationTemplateCache();
+        this.programStageWebHookNotificationCache = cacheProvider.createProgramStageWebHookNotificationTemplateCache();
     }
 
     @Override
@@ -86,5 +97,22 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
     public List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger trigger )
     {
         return store.getProgramNotificationByTriggerType( trigger );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isProgramLinkedToWebHookNotification( Program program )
+    {
+        return programWebHookNotificationCache
+            .get( program.getUid(), uid -> store.isProgramLinkedToWebHookNotification( program ) ).orElse( false );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
+    {
+        return programWebHookNotificationCache
+            .get( programStage.getUid(), uid -> store.isProgramStageLinkedToWebHookNotification( programStage ) )
+            .orElse( false );
     }
 }
