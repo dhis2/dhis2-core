@@ -52,6 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
@@ -117,7 +118,7 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
-            .withIndexType( GEOMETRY_INDEX_TYPE ),
+            .withIndexType( IndexType.GIST ),
         // TODO latitude and longitude deprecated in 2.30, remove in 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
@@ -457,7 +458,7 @@ public class JdbcEventAnalyticsTableManager
                 "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                 ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
         }
 
         // Add org unit name column
@@ -483,7 +484,7 @@ public class JdbcEventAnalyticsTableManager
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                 ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( GEOMETRY_INDEX_TYPE ) );
+                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
         }
 
         // Add org unit name column
