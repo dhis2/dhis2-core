@@ -31,7 +31,10 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -49,13 +52,14 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook 
 				.map(o -> (TrackedEntityType) o)
 				.flatMap(trackedEntityType -> Optional.ofNullable(trackedEntityType.getTrackedEntityAttributes()))
 				.ifPresent(teAttrs -> teAttrs.stream().filter(Objects::nonNull).forEach(tea -> {
+					PreheatIdentifier preheatIdentifier = bundle.getPreheatIdentifier();
 
-					if (bundle.getPreheat().get(bundle.getPreheatIdentifier(), tea) == null) {
+					if (bundle.getPreheat().get(preheatIdentifier, tea) == null) {
 						errorReports.add(
 
-								new ErrorReport(TrackedEntityType.class, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-										bundle.getPreheatIdentifier().getIdentifiersWithName(tea))
-												.setErrorProperty("id").setMainId(tea.getUid()));
+								new ErrorReport(TrackedEntityAttribute.class, ErrorCode.E5001, preheatIdentifier,
+										preheatIdentifier.getIdentifiersWithName(tea)).setErrorProperty("id")
+												.setMainId(tea.getUid()));
 					}
 
 				}));
