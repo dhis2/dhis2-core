@@ -103,4 +103,8 @@ public interface JsonObject extends JsonCollection
         return JsonCollection.asMap( getObject( name ), as );
     }
 
+    default <E extends JsonValue> JsonMultiMap<E> getMultiMap( String name, Class<E> as )
+    {
+        return JsonCollection.asMultiMap( getObject( name ), as );
+    }
 }

@@ -25,18 +25,65 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.authority;
+package org.hisp.dhis.common;
 
-import java.util.Collection;
+import java.util.Date;
+import java.util.Set;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.program.ProgramStatus;
 
 /**
- * @author Torgeir Lorange Ostby
- * @version $Id: SystemAuthoritiesProvider.java 3160 2007-03-24 20:15:06Z
- *          torgeilo $
+ * @author Jan Bernitt
  */
-public interface SystemAuthoritiesProvider
+@Data
+@NoArgsConstructor
+public class EnrollmentAnalyticsQueryCriteria
 {
-    String ID = SystemAuthoritiesProvider.class.getName();
+    private Date startDate;
 
-    Collection<String> getSystemAuthorities();
+    private Date endDate;
+
+    private Set<String> dimension;
+
+    private Set<String> filter;
+
+    private OrganisationUnitSelectionMode ouMode;
+
+    private Set<String> asc;
+
+    private Set<String> desc;
+
+    private boolean skipMeta;
+
+    private boolean skipData;
+
+    private boolean completedOnly;
+
+    private boolean hierarchyMeta;
+
+    private boolean coordinatesOnly;
+
+    private boolean includeMetadataDetails;
+
+    private IdScheme dataIdScheme;
+
+    private ProgramStatus programStatus;
+
+    private Integer page;
+
+    private Integer pageSize;
+
+    private DisplayProperty displayProperty;
+
+    private Date relativePeriodDate;
+
+    private String userOrgUnit;
+
+    private String coordinateField;
+
+    private SortOrder sortOrder;
 }

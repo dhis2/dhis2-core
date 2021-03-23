@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+
 import javax.transaction.Transactional;
 
 import org.hisp.dhis.config.DataSourceConfig;
@@ -41,7 +44,18 @@ import org.hisp.dhis.db.migration.config.FlywayConfig;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.scheduling.DefaultJobInstance;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobType;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.config.DhisWebCommonsWebSecurityConfig;
+import org.hisp.dhis.startup.DefaultAdminUserPopulator;
+import org.mockito.Mockito;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.ComponentScan.Filter;
@@ -144,5 +158,43 @@ public class WebTestConfiguration
         defaultAuthenticationEventPublisher.setAdditionalExceptionMappings(
             ImmutableMap.of( OAuth2AuthenticationException.class, AuthenticationFailureBadCredentialsEvent.class ) );
         return defaultAuthenticationEventPublisher;
+    }
+
+    @Bean
+    public SystemAuthoritiesProvider systemAuthoritiesProvider()
+    {
+        return () -> DefaultAdminUserPopulator.ALL_AUTHORITIES;
+    }
+
+    /**
+     * During tests we do not want asynchronous job scheduling.
+     */
+    @Bean
+    @Primary
+    public SchedulingManager synchronousSchedulingManager( MessageService messageService, LeaderManager leaderManager,
+        JobConfigurationService jobConfigurationService, ApplicationContext applicationContext )
+    {
+        SchedulingManager manager = Mockito.mock( SchedulingManager.class );
+        doAnswer( invocation -> {
+            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
+            DefaultJobInstance jobInstance = new DefaultJobInstance( manager, messageService, leaderManager );
+            jobInstance.execute( jobConfiguration );
+            return null;
+        } ).when( manager ).executeJob( any( JobConfiguration.class ) );
+        doAnswer( invocation -> {
+            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
+            return null;
+        } ).when( manager ).jobConfigurationStarted( any() );
+        doAnswer( invocation -> {
+            JobConfiguration jobConfiguration = invocation.getArgument( 0 );
+            jobConfigurationService.updateJobConfiguration( jobConfiguration );
+            return null;
+        } ).when( manager ).jobConfigurationFinished( any() );
+        doAnswer( invocation -> {
+            JobType jobType = invocation.getArgument( 0 );
+            return applicationContext.getBean( jobType.getKey() );
+        } ).when( manager ).getJob( any() );
+        return manager;
     }
 }

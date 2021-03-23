@@ -25,32 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi;
+package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.webapi.utils.WebClientUtils.substitutePlaceholders;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
+import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
+import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Test;
 
 /**
- * The purpose of this interface is to allow mixin style addition of the
- * convenience web API by implementing this interface's essential method
- * {@link #authWebRequest(String,MockHttpServletRequestBuilder)}.
+ * Tests the
+ * {@link org.hisp.dhis.webapi.controller.security.AuthoritiesController}.
  *
- * @author Morten Svanæs
+ * @author Jan Bernitt
  */
-@FunctionalInterface
-public interface AuthenticatedWebClient
+public class AuthoritiesControllerTest extends DhisControllerConvenienceTest
 {
-    WebClient.HttpResponse authWebRequest( String token, MockHttpServletRequestBuilder request );
-
-    default WebClient.HttpResponse GET( String token, String url, Object... args )
+    @Test
+    public void testGetAuthorities()
     {
-        return baseWebRequest( token, get( substitutePlaceholders( url, args ) ), "" );
-    }
-
-    default WebClient.HttpResponse baseWebRequest( String token, MockHttpServletRequestBuilder request, String body )
-    {
-        return authWebRequest( token, request );
+        JsonArray systemAuthorities = GET( "/authorities" ).content().getArray( "systemAuthorities" );
+        assertTrue( systemAuthorities.size() > 10 );
+        JsonObject all = systemAuthorities.getObject( 0 ); // its sorted
+        assertEquals( "ALL", all.getString( "id" ).string() );
+        assertEquals( "ALL", all.getString( "name" ).string() );
     }
 }

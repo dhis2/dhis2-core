@@ -81,6 +81,15 @@ public interface JsonValue
     boolean isNull();
 
     /**
+     * @return true if this JSON node either does not exist at all or is defined
+     *         as JSON {@code null}, otherwise false
+     */
+    default boolean isUndefined()
+    {
+        return !exists() || isNull();
+    }
+
+    /**
      * @return true if the value exists and is a JSON array node (empty or not)
      *         but not JSON {@code null}
      * @throws java.util.NoSuchElementException in case this value does not
@@ -133,6 +142,19 @@ public interface JsonValue
     default <V extends JsonValue> JsonMap<V> asMap( Class<V> valueType )
     {
         return JsonCollection.asMap( as( JsonObject.class ), valueType );
+    }
+
+    /**
+     * This value as map of list value with of uniform elements (view on JSON
+     * object).
+     *
+     * @param valueType assumed map value type
+     * @param <V> type of map values
+     * @return map view of this value (assumes object)
+     */
+    default <V extends JsonValue> JsonMultiMap<V> asMultiMap( Class<V> valueType )
+    {
+        return JsonCollection.asMultiMap( as( JsonObject.class ), valueType );
     }
 
     /**

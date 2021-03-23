@@ -40,6 +40,8 @@ public class Filter
         VALUE_TYPE( "valueType" ),
         NAME( "name" ),
         DISPLAY_NAME( "displayName" ),
+        SHORT_NAME( "shortName" ),
+        DISPLAY_SHORT_NAME( "displayShortName" ),
         PROGRAM_ID( "programId" ),
         ID( "id" );
 
@@ -116,6 +118,8 @@ public class Filter
         VALUE_TYPE_EQUAL( "valueType:eq:" ),
         NAME_ILIKE( "name:ilike:" ),
         DISPLAY_NAME_ILIKE( "displayName:ilike:" ),
+        SHORT_NAME_ILIKE( "shortName:ilike:" ),
+        DISPLAY_SHORT_NAME_ILIKE( "displayShortName:ilike:" ),
         PROGRAM_ID_EQUAL( "programId:eq:" ),
         ID_EQUAL( "id:eq:" ),
         IDENTIFIABLE_TOKEN( "identifiable:token:" );

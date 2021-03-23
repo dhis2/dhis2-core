@@ -29,11 +29,15 @@ package org.hisp.dhis.webapi.utils;
 
 import static org.junit.Assert.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.WebClient.HttpResponse;
+import org.hisp.dhis.webapi.WebClient.RequestComponent;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonError;
@@ -163,9 +167,33 @@ public class WebClientUtils
 
     public static String substitutePlaceholders( String url, Object[] args )
     {
-        return args.length == 0
-            ? url
-            : String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) args );
+        if ( args.length == 0 )
+        {
+            return url;
+        }
+        Object[] urlArgs = Arrays.stream( args ).filter( arg -> !(arg instanceof RequestComponent) ).toArray();
+        return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) urlArgs );
+    }
+
+    public static String objectReferences( String... uids )
+    {
+        StringBuilder str = new StringBuilder();
+        str.append( '[' );
+        for ( String uid : uids )
+        {
+            if ( str.length() > 1 )
+            {
+                str.append( ',' );
+            }
+            str.append( objectReference( uid ) );
+        }
+        str.append( ']' );
+        return str.toString();
+    }
+
+    public static String objectReference( String uid )
+    {
+        return String.format( "{\"id\":\"%s\"}", uid );
     }
 
     public static <T> T failOnException( Callable<T> op )
@@ -178,6 +206,32 @@ public class WebClientUtils
         {
             throw new AssertionError( ex );
         }
+    }
+
+    public static RequestComponent[] requestComponentsIn( Object... args )
+    {
+        List<RequestComponent> components = new ArrayList<>();
+        for ( Object arg : args )
+        {
+            if ( arg instanceof RequestComponent )
+            {
+                components.add( (RequestComponent) arg );
+            }
+        }
+        return components.toArray( new RequestComponent[0] );
+    }
+
+    @SuppressWarnings( "unchecked" )
+    public static <T extends RequestComponent> T getComponent( Class<T> type, RequestComponent[] components )
+    {
+        for ( RequestComponent c : components )
+        {
+            if ( c.getClass() == type )
+            {
+                return (T) c;
+            }
+        }
+        return null;
     }
 
     private WebClientUtils()

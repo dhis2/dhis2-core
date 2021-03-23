@@ -157,7 +157,8 @@ public class ProgramStageDataEntrySMSListener
         List<TrackedEntityInstance> teis = new ArrayList<>();
 
         attributes.parallelStream().map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
-            .forEach( param -> teis.addAll( trackedEntityInstanceService.getTrackedEntityInstances( param, false ) ) );
+            .forEach(
+                param -> teis.addAll( trackedEntityInstanceService.getTrackedEntityInstances( param, false, true ) ) );
 
         return teis;
     }
