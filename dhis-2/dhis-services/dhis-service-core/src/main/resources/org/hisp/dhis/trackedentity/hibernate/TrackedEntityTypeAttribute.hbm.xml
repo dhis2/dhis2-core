@@ -14,7 +14,7 @@
     &identifiableProperties;	
 		
     <many-to-one name="trackedEntityType" class="org.hisp.dhis.trackedentity.TrackedEntityType"
-      column="trackedentitytypeid" foreign-key="fk_trackedentitytypeattribute_trackedentitytypeid" />
+      column="trackedentitytypeid" foreign-key="fk_trackedentitytypeattribute_trackedentitytypeid" not-null="true" />
 
     <many-to-one name="trackedEntityAttribute" class="org.hisp.dhis.trackedentity.TrackedEntityAttribute"
       column="trackedentityattributeid" foreign-key="fk_trackedentitytypeattribute_trackedentityattributeid" not-null="true" />
