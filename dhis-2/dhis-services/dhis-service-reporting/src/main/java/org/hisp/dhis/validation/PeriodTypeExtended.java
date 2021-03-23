@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -80,6 +81,12 @@ public class PeriodTypeExtended
     private boolean slidingWindowsNeeded = false;
 
     private boolean nonSlidingWindowsNeeded = false;
+
+    private Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
+
+    private Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
+
+    private Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap;
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -148,6 +155,25 @@ public class PeriodTypeExtended
         }
     }
 
+    public boolean areSlidingWindowsNeeded()
+    {
+        return slidingWindowsNeeded;
+    }
+
+    public boolean areNonSlidingWindowsNeeded()
+    {
+        return nonSlidingWindowsNeeded;
+    }
+
+    // -------------------------------------------------------------------------
+    // Set methods
+    // -------------------------------------------------------------------------
+
+    public void setDimensionItemMap( Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap )
+    {
+        this.dimensionItemMap = dimensionItemMap;
+    }
+
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
@@ -207,13 +233,18 @@ public class PeriodTypeExtended
         return allowedPeriodTypes;
     }
 
-    public boolean areSlidingWindowsNeeded()
+    public Set<DimensionalItemId> getLeftSideItemIds()
     {
-        return slidingWindowsNeeded;
+        return leftSideItemIds;
     }
 
-    public boolean areNonSlidingWindowsNeeded()
+    public Set<DimensionalItemId> getRightSideItemIds()
     {
-        return nonSlidingWindowsNeeded;
+        return rightSideItemIds;
+    }
+
+    public Map<DimensionalItemId, DimensionalItemObject> getDimensionItemMap()
+    {
+        return dimensionItemMap;
     }
 }

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.expression.ParseType.VALIDATION_RULE_EXPRESSION;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 
 import java.util.ArrayList;
@@ -41,6 +40,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import com.google.common.collect.Lists;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -59,7 +59,6 @@ import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
 import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataanalysis.ValidationRulesAnalysisParams;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataValue;
@@ -250,15 +249,12 @@ public class DataAnalysisController
             }
         }
 
-        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
+        ValidationAnalysisParams params = validationService.newParamsBuilder(
+            Lists.newArrayList( validationRule ), organisationUnit, Lists.newArrayList( period ) )
+            .withAttributeOptionCombo( attributeOptionCombo )
+            .build();
 
-        processLeftSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period,
-            attributeOptionCombo );
-
-        processRightSideDetails( validationRuleExpressionDetails, validationRule, organisationUnit, period,
-            attributeOptionCombo );
-
-        return validationRuleExpressionDetails;
+        return validationService.getValidationRuleExpressionDetails( params );
     }
 
     @RequestMapping( value = "/stdDevOutlier", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )
@@ -387,9 +383,8 @@ public class DataAnalysisController
 
         List<DeflatedDataValue> dataValues = new ArrayList<>( followupAnalysisService
             .getFollowupDataValues( Sets.newHashSet( organisationUnit ), dataElements,
-                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) ); // +1 to
-                                                                   // detect
-                                                                   // overflow
+                periods, DataAnalysisService.MAX_OUTLIERS + 1 ) );
+                // +1 to detect overflow
 
         session.setAttribute( KEY_ANALYSIS_DATA_VALUES, dataValues );
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
@@ -528,40 +523,6 @@ public class DataAnalysisController
                 false );
 
         GridUtils.toCsv( grid, response.getWriter() );
-    }
-
-    private void processLeftSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period,
-        CategoryOptionCombo attributeOptionCombo )
-    {
-        for ( DataElementOperand operand : expressionService
-            .getExpressionOperands( validationRule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
-        {
-            DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(),
-                    attributeOptionCombo );
-
-            String value = dataValue != null ? dataValue.getValue() : null;
-
-            validationRuleExpressionDetails.addLeftSideDetail( operand.getName(), value );
-        }
-    }
-
-    private void processRightSideDetails( ValidationRuleExpressionDetails validationRuleExpressionDetails,
-        ValidationRule validationRule, OrganisationUnit organisationUnit, Period period,
-        CategoryOptionCombo attributeOptionCombo )
-    {
-        for ( DataElementOperand operand : expressionService
-            .getExpressionOperands( validationRule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION ) )
-        {
-            DataValue dataValue = dataValueService
-                .getDataValue( operand.getDataElement(), period, organisationUnit, operand.getCategoryOptionCombo(),
-                    attributeOptionCombo );
-
-            String value = dataValue != null ? dataValue.getValue() : null;
-
-            validationRuleExpressionDetails.addRightSideDetail( operand.getName(), value );
-        }
     }
 
     private Grid generateAnalysisReportGridFromResults( List<DeflatedDataValue> results, OrganisationUnit orgUnit )

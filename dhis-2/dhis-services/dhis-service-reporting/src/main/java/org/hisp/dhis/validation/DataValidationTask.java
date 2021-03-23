@@ -48,6 +48,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -215,28 +216,66 @@ public class DataValidationTask
             return;
         }
 
-        Map<String, Double> leftSideValues = getValuesForExpression( ruleX.getRule().getLeftSide(),
-            ruleX.getLeftSlidingWindow() );
-        Map<String, Double> rightSideValues = getValuesForExpression( ruleX.getRule().getRightSide(),
-            ruleX.getRightSlidingWindow() );
+        MapMap<String, DimensionalItemObject, Double> leftSideValueMap = getValueMap( ruleX.getLeftSlidingWindow() );
+        MapMap<String, DimensionalItemObject, Double> rightSideValueMap = getValueMap( ruleX.getRightSlidingWindow() );
+
+        Map<String, Double> leftSideValues = getExpressionValueMap( ruleX.getRule().getLeftSide(), leftSideValueMap );
+        Map<String, Double> rightSideValues = getExpressionValueMap( ruleX.getRule().getRightSide(),
+            rightSideValueMap );
 
         Set<String> attributeOptionCombos = Sets.union( leftSideValues.keySet(), rightSideValues.keySet() );
 
+        if ( context.isAnalysisComplete() )
+        {
+            return;
+        }
+
         for ( String optionCombo : attributeOptionCombos )
         {
-            if ( context.isAnalysisComplete() )
-            {
-                break;
-            }
-
             if ( NON_AOC.compareTo( optionCombo ) == 0 )
             {
                 continue;
             }
 
-            validateOptionCombo( optionCombo,
-                leftSideValues.get( optionCombo ),
-                rightSideValues.get( optionCombo ) );
+            if ( context.processExpressionDetails() )
+            {
+                setExpressionDetails(
+                    leftSideValueMap.get( optionCombo ),
+                    rightSideValueMap.get( optionCombo ) );
+            }
+            else
+            {
+                validateOptionCombo( optionCombo,
+                    leftSideValues.get( optionCombo ),
+                    rightSideValues.get( optionCombo ) );
+            }
+        }
+    }
+
+    private void setExpressionDetails( Map<DimensionalItemObject, Double> leftSideValues,
+        Map<DimensionalItemObject, Double> rightSideValues )
+    {
+        setExpressionSideDetails( context.getValidationRuleExpressionDetails().getLeftSide(),
+            periodTypeX.getLeftSideItemIds(), leftSideValues );
+
+        setExpressionSideDetails( context.getValidationRuleExpressionDetails().getRightSide(),
+            periodTypeX.getRightSideItemIds(), rightSideValues );
+    }
+
+    private void setExpressionSideDetails( List<Map<String, String>> detailsSide, Set<DimensionalItemId> sideIds,
+        Map<DimensionalItemObject, Double> valueMap )
+    {
+        for ( DimensionalItemId itemId : sideIds )
+        {
+            DimensionalItemObject itemObject = context.getDimensionItemMap().get( itemId );
+
+            Double itemValue = valueMap.get( itemObject );
+
+            String itemValueString = itemValue == null
+                ? null
+                : itemValue.toString();
+
+            ValidationRuleExpressionDetails.addDetailTo( itemObject.getName(), itemValueString, detailsSide );
         }
     }
 
@@ -348,28 +387,11 @@ public class DataValidationTask
         }
     }
 
-    /**
-     * For an expression (left side or right side), finds the values (grouped by
-     * attribute option combo).
-     *
-     * @param expression left or right side expression.
-     * @param slidingWindow whether to use sliding window.
-     * @return the values grouped by attribute option combo.
-     */
-    private Map<String, Double> getValuesForExpression( Expression expression, boolean slidingWindow )
+    private MapMap<String, DimensionalItemObject, Double> getValueMap( boolean slidingWindow )
     {
-        if ( expression == null )
-        {
-            return new HashMap<>();
-        }
-        else if ( slidingWindow )
-        {
-            return getExpressionValueMap( expression, slidingWindowDataMap );
-        }
-        else
-        {
-            return getExpressionValueMap( expression, dataMap );
-        }
+        return slidingWindow
+            ? slidingWindowDataMap.get( orgUnitId )
+            : dataMap.get( orgUnitId );
     }
 
     /**
@@ -452,15 +474,15 @@ public class DataValidationTask
      * @return map of values.
      */
     private Map<String, Double> getExpressionValueMap( Expression expression,
-        MapMapMap<Long, String, DimensionalItemObject, Double> valueMap )
+        MapMap<String, DimensionalItemObject, Double> valueMap )
     {
         Map<String, Double> expressionValueMap = new HashMap<>();
 
-        Map<DimensionalItemObject, Double> nonAocValues = valueMap.get( orgUnitId ) == null
+        Map<DimensionalItemObject, Double> nonAocValues = valueMap == null
             ? null
-            : valueMap.get( orgUnitId ).get( NON_AOC );
+            : valueMap.get( NON_AOC );
 
-        MapMap<String, DimensionalItemObject, Double> aocValues = valueMap.get( orgUnitId );
+        MapMap<String, DimensionalItemObject, Double> aocValues = valueMap;
 
         if ( aocValues == null )
         {
@@ -568,13 +590,11 @@ public class DataValidationTask
         {
             if ( existingPeriodInterval < periodInterval )
             {
-                return; // Do not overwrite the previous value if for a shorter
-                        // interval
+                return; // Don't overwrite previous value if a shorter interval
             }
             else if ( existingPeriodInterval > periodInterval )
             {
-                existingValue = 0.0; // Overwrite previous value if for a longer
-                                     // interval
+                existingValue = 0.0; // Overwrite if for a longer interval
             }
         }
 

@@ -40,6 +40,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataset.DataSet;
@@ -197,6 +198,22 @@ public class DefaultValidationService
     }
 
     @Override
+    public ValidationRuleExpressionDetails getValidationRuleExpressionDetails( ValidationAnalysisParams parameters )
+    {
+        ValidationRunContext context = getValidationContext( parameters );
+
+        ValidationRuleExpressionDetails validationRuleExpressionDetails = new ValidationRuleExpressionDetails();
+
+        context.setValidationRuleExpressionDetails( validationRuleExpressionDetails );
+
+        Validator.validate( context, applicationContext, analyticsService );
+
+        validationRuleExpressionDetails.sortByName();
+
+        return validationRuleExpressionDetails;
+    }
+
+    @Override
     public List<DataElementOperand> validateRequiredComments( DataSet dataSet, Period period,
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo )
     {
@@ -292,7 +309,10 @@ public class DefaultValidationService
         Map<PeriodType, PeriodTypeExtended> periodTypeXMap = new HashMap<>();
 
         addPeriodsToContext( periodTypeXMap, parameters.getPeriods() );
-        addRulesToContext( periodTypeXMap, parameters.getValidationRules() );
+
+        Map<DimensionalItemId, DimensionalItemObject> dimensionItemMap = addRulesToContext( periodTypeXMap,
+            parameters.getValidationRules() );
+
         removeAnyUnneededPeriodTypes( periodTypeXMap );
 
         ValidationRunContext.Builder builder = ValidationRunContext.newBuilder()
@@ -307,6 +327,7 @@ public class DefaultValidationService
             .withPersistResults( parameters.isPersistResults() )
             .withAttributeCombo( parameters.getAttributeOptionCombo() )
             .withDefaultAttributeCombo( categoryService.getDefaultCategoryOptionCombo() )
+            .withDimensionItemMap( dimensionItemMap )
             .withMaxResults( parameters.getMaxResults() );
 
         if ( currentUser != null )
@@ -365,8 +386,10 @@ public class DefaultValidationService
      *
      * @param periodTypeXMap period type map to extended period types.
      * @param rules validation rules to add.
+     * @return the map from DimensionalItemId to DimensionalItemObject.
      */
-    private void addRulesToContext( Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
+    private Map<DimensionalItemId, DimensionalItemObject> addRulesToContext(
+        Map<PeriodType, PeriodTypeExtended> periodTypeXMap,
         Collection<ValidationRule> rules )
     {
         // 1. Find all dimensional object IDs in the expressions of the
@@ -392,15 +415,20 @@ public class DefaultValidationService
             periodX.setSlidingWindows( ruleX.getLeftSlidingWindow() );
             periodX.setSlidingWindows( ruleX.getRightSlidingWindow() );
 
-            Set<DimensionalItemId> itemIds = Sets.union(
-                expressionService.getExpressionDimensionalItemIds( rule.getLeftSide().getExpression(),
-                    VALIDATION_RULE_EXPRESSION ),
-                expressionService.getExpressionDimensionalItemIds( rule.getRightSide().getExpression(),
-                    VALIDATION_RULE_EXPRESSION ) );
+            Set<DimensionalItemId> leftSideItemIds = expressionService.getExpressionDimensionalItemIds(
+                rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
-            periodItemIds.putValues( periodX, itemIds );
+            Set<DimensionalItemId> rightSideItemIds = expressionService.getExpressionDimensionalItemIds(
+                rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
 
-            allItemIds.addAll( itemIds );
+            periodX.getLeftSideItemIds().addAll( leftSideItemIds );
+            periodX.getRightSideItemIds().addAll( rightSideItemIds );
+
+            Set<DimensionalItemId> bothSidesItemIds = Sets.union( leftSideItemIds, rightSideItemIds );
+
+            periodItemIds.putValues( periodX, bothSidesItemIds );
+
+            allItemIds.addAll( bothSidesItemIds );
         }
 
         // 2. Get the dimensional objects from the IDs. (Get them all at once
@@ -444,6 +472,8 @@ public class DefaultValidationService
                 }
             }
         }
+
+        return dimensionItemMap;
     }
 
     /**

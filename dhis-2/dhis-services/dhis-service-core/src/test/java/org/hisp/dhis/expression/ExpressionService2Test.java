@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.expression;
 
-import static org.hamcrest.CoreMatchers.allOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasItems;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
 import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
 import static org.hisp.dhis.expression.ExpressionService.SYMBOL_DAYS;
@@ -59,7 +56,6 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.math3.util.Precision;
-import org.hamcrest.collection.IsIterableContainingInAnyOrder;
 import org.hisp.dhis.DhisSpringTest;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.category.Category;
@@ -528,34 +524,6 @@ public class ExpressionService2Test extends DhisSpringTest
 
         assertThat( dataElements, hasSize( 2 ) );
         assertThat( dataElements, hasItems( deA, deB ) );
-    }
-
-    @Test
-    @SuppressWarnings( "unchecked" )
-    public void testGetExpressionOperands()
-    {
-        when( dataElementService.getDataElement( deA.getUid() ) ).thenReturn( deA );
-        when( dataElementService.getDataElement( deB.getUid() ) ).thenReturn( deB );
-        when( categoryService.getCategoryOptionCombo( coc.getUid() ) ).thenReturn( coc );
-
-        Set<DataElementOperand> operands = target.getExpressionOperands( expressionO, PREDICTOR_EXPRESSION );
-
-        assertEquals( 2, operands.size() );
-
-        assertThat( operands,
-            IsIterableContainingInAnyOrder.containsInAnyOrder(
-                allOf( hasProperty( "dataElement", is( deA ) ),
-                    hasProperty( "categoryOptionCombo", is( coc ) ),
-                    hasProperty( "attributeOptionCombo", is( nullValue() ) ) ),
-                allOf( hasProperty( "dataElement", is( deB ) ),
-                    hasProperty( "categoryOptionCombo", is( coc ) ),
-                    hasProperty( "attributeOptionCombo", is( nullValue() ) ) ) ) );
-    }
-
-    @Test
-    public void testGetExpressionOperandsWhenNull()
-    {
-        assertThat( target.getExpressionOperands( null, INDICATOR_EXPRESSION ), hasSize( 0 ) );
     }
 
     @Test
