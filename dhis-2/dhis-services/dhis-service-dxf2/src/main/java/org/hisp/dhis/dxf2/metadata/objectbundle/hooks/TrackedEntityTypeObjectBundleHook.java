@@ -46,25 +46,20 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook 
 		List<ErrorReport> errorReports = new ArrayList<>();
 
 		Optional.ofNullable(object).filter(o -> o.getClass().isAssignableFrom(TrackedEntityType.class))
-				.map(o -> (TrackedEntityType) o).flatMap(tee -> Optional.ofNullable(tee.getTrackedEntityAttributes()))
+				.map(o -> (TrackedEntityType) o)
+				.flatMap(trackedEntityType -> Optional.ofNullable(trackedEntityType.getTrackedEntityAttributes()))
 				.ifPresent(teAttrs -> teAttrs.stream().filter(Objects::nonNull).forEach(tea -> {
-					if (bundle.getPreheat().get(bundle.getPreheatIdentifier(), tea) == null)
+
+					if (bundle.getPreheat().get(bundle.getPreheatIdentifier(), tea) == null) {
 						errorReports.add(
+
 								new ErrorReport(TrackedEntityType.class, ErrorCode.E5001, bundle.getPreheatIdentifier(),
 										bundle.getPreheatIdentifier().getIdentifiersWithName(tea))
 												.setErrorProperty("id").setMainId(tea.getUid()));
+					}
+
 				}));
 
 		return errorReports;
 	}
-
-	@Override
-	public <T extends IdentifiableObject> void postCreate(T persistedObject, ObjectBundle bundle) {
-
-	}
-
-	@Override
-	public <T extends IdentifiableObject> void postUpdate(T persistedObject, ObjectBundle bundle) {
-	}
-
 }
