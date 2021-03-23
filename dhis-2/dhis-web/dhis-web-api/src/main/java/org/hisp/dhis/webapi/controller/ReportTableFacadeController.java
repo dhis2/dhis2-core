@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.visualization.ConversionHelper.convertToReportTableList;
+import static org.hisp.dhis.visualization.ConversionHelper.convertToVisualization;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 import static org.hisp.dhis.webapi.utils.PaginationUtils.getPaginationData;
-import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -97,7 +98,6 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.reporttable.ReportParams;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -109,7 +109,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.visualization.ReportingParams;
 import org.hisp.dhis.visualization.Visualization;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -118,7 +117,6 @@ import org.hisp.dhis.webapi.service.WebMessageService;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -1216,68 +1214,6 @@ public abstract class ReportTableFacadeController
         }
 
         return null;
-    }
-
-    private Visualization convertToVisualization( final ReportTable reportTable )
-    {
-        final Visualization visualization = new Visualization();
-
-        if ( reportTable != null )
-        {
-            copyProperties( reportTable, visualization );
-            visualization.setType( PIVOT_TABLE );
-
-            // Copy report params
-            if ( reportTable.hasReportParams() )
-            {
-                final ReportingParams reportingParams = new ReportingParams();
-                final ReportParams reportParams = reportTable.getReportParams();
-
-                reportingParams.setGrandParentOrganisationUnit( reportParams.isParamGrandParentOrganisationUnit() );
-                reportingParams.setOrganisationUnit( reportParams.isParamOrganisationUnit() );
-                reportingParams.setParentOrganisationUnit( reportParams.isParamParentOrganisationUnit() );
-                reportingParams.setReportingPeriod( reportParams.isParamReportingMonth() );
-
-                visualization.setReportingParams( reportingParams );
-            }
-        }
-        return visualization;
-    }
-
-    private List<ReportTable> convertToReportTableList( List<Visualization> entities )
-    {
-        List<ReportTable> reportTables = new ArrayList<>();
-
-        if ( CollectionUtils.isNotEmpty( entities ) )
-        {
-            for ( final Visualization visualization : entities )
-            {
-                // Consider only Visualization types of Pivot Table
-                if ( visualization.getType() != null )
-                {
-                    final ReportTable reportTable = new ReportTable();
-                    BeanUtils.copyProperties( visualization, reportTable );
-
-                    // Copy report params
-                    if ( visualization.hasReportingParams() )
-                    {
-                        final ReportingParams reportingParams = visualization.getReportingParams();
-                        final ReportParams reportParams = new ReportParams();
-
-                        reportParams
-                            .setParamGrandParentOrganisationUnit( reportingParams.isGrandParentOrganisationUnit() );
-                        reportParams.setParamOrganisationUnit( reportingParams.isOrganisationUnit() );
-                        reportParams.setParamParentOrganisationUnit( reportingParams.isParentOrganisationUnit() );
-                        reportParams.setParamReportingMonth( reportingParams.isReportingPeriod() );
-
-                        reportTable.setReportParams( reportParams );
-                    }
-
-                    reportTables.add( reportTable );
-                }
-            }
-        }
-        return reportTables;
     }
 
     protected List<Visualization> getEntity( String uid, WebOptions options )
