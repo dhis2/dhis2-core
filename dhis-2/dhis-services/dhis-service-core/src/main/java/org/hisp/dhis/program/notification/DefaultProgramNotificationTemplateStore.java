@@ -73,7 +73,7 @@ public class DefaultProgramNotificationTemplateStore
         return !getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "notificationrecipienttype" ),
                 ProgramNotificationRecipient.WEB_HOOK ) )
-            .addPredicate( root -> builder.equal( root.get( "programsid" ), program.getId() ) ) ).isEmpty();
+            .addPredicate( root -> builder.equal( root.get( "programid" ), program.getId() ) ) ).isEmpty();
     }
 
     @Override
