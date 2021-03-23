@@ -49,7 +49,7 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook 
 		List<ErrorReport> errorReports = new ArrayList<>();
 
 		Optional.ofNullable(object).filter(o -> o.getClass().isAssignableFrom(TrackedEntityType.class))
-				.map(o -> (TrackedEntityType) o)
+				.map(TrackedEntityType.class::cast)
 				.flatMap(trackedEntityType -> Optional.ofNullable(trackedEntityType.getTrackedEntityAttributes()))
 				.ifPresent(teAttrs -> teAttrs.stream().filter(Objects::nonNull).forEach(tea -> {
 					PreheatIdentifier preheatIdentifier = bundle.getPreheatIdentifier();
