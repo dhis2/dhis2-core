@@ -27,11 +27,17 @@
  */
 package org.hisp.dhis.analytics;
 
+/**
+ * Index type.
+ *
+ * @author Lars Helge Overland
+ */
 public enum IndexType
 {
     BTREE( "btree" ),
     GIST( "gist" ),
-    HASH( "hash" );
+    HASH( "hash" ),
+    BLOOM( "bloom" );
 
     private String keyword;
 
