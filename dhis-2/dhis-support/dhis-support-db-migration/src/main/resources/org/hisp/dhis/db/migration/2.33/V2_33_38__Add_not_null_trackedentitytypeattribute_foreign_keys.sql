@@ -1,1 +1,0 @@
-ALTER TABLE trackedentitytypeattribute ALTER COLUMN trackedentityattributeid SET NOT NULL;
