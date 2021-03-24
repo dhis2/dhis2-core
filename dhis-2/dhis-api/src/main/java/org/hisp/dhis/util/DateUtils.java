@@ -84,6 +84,8 @@ public class DateUtils
 
     private static final DateTimeParser[] SUPPORTED_DATE_FORMAT_PARSERS = {
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSSSZ" ).getParser(),
+        DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSSZ" ).getParser(),
+        DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSS" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSSZ" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ss.SSS" ).getParser(),
         DateTimeFormat.forPattern( "yyyy-MM-dd'T'HH:mm:ssZ" ).getParser(),

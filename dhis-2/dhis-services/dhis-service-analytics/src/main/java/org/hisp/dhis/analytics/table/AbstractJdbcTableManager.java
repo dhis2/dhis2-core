@@ -202,11 +202,11 @@ public abstract class AbstractJdbcTableManager
             }
 
             final String indexName = inx.getIndexName( getAnalyticsTableType() );
-            final String indexType = inx.hasType() ? " using " + inx.getType() : "";
             final String indexColumns = StringUtils.join( inx.getColumns(), "," );
 
-            final String sql = "create index " + indexName + " on " + inx.getTable() + indexType + " (" + indexColumns
-                + ")";
+            final String sql = "create index " + indexName + " " +
+                "on " + inx.getTable() + " " +
+                "using " + inx.getType().keyword() + " (" + indexColumns + ");";
 
             log.debug( "Create index: " + indexName + " SQL: " + sql );
 

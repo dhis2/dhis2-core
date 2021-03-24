@@ -33,6 +33,7 @@ import java.util.Date;
 import org.hisp.dhis.util.DateUtils;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
@@ -47,34 +48,42 @@ public class ParseDateStdDeserializer
     public Date deserialize( JsonParser parser, DeserializationContext context )
         throws IOException
     {
-        Date date = null;
-
-        try
+        JsonToken currentToken = parser.getCurrentToken();
+        if ( currentToken == JsonToken.VALUE_STRING )
         {
-            date = DateUtils.parseDate( parser.getValueAsString() );
-        }
-        catch ( Exception ignored )
-        {
-        }
-
-        if ( date == null )
-        {
+            String dateString = parser.getValueAsString();
             try
             {
-                date = new Date( parser.getValueAsLong() );
+                return DateUtils.parseDate( dateString );
             }
             catch ( Exception ignored )
             {
+                if ( dateString.matches( "[0-9]+" ) && dateString.length() > 12 )
+                {
+                    return new Date( parser.getValueAsLong() );
+                }
+                throw createInvalidDateException( parser );
             }
         }
-
-        if ( date == null )
+        if ( currentToken == JsonToken.VALUE_NUMBER_INT )
         {
-            throw new IOException(
-                String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
-                    parser.getValueAsString() ) );
+            try
+            {
+                return new Date( parser.getValueAsLong() );
+            }
+            catch ( Exception ignored )
+            {
+                throw createInvalidDateException( parser );
+            }
         }
+        throw createInvalidDateException( parser );
+    }
 
-        return date;
+    private IOException createInvalidDateException( JsonParser parser )
+        throws IOException
+    {
+        return new IOException(
+            String.format( "Invalid date format '%s', only ISO format or UNIX Epoch timestamp is supported.",
+                parser.getValueAsString() ) );
     }
 }

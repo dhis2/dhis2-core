@@ -25,39 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
-
-import java.util.Set;
+package org.hisp.dhis.analytics;
 
 /**
- * {@link JsonMap}s are a special form of a {@link JsonObject} where all
- * properties have a common uniform value type.
+ * Index type.
  *
- * @author Jan Bernitt
- *
- * @param <E> type of the uniform map values
+ * @author Lars Helge Overland
  */
-public interface JsonMap<E extends JsonValue> extends JsonCollection
+public enum IndexType
 {
-    /**
-     * A typed variant of {@link JsonObject#get(String)}, equivalent to
-     * {@link JsonObject#get(String, Class)} where 2nd parameter is the type
-     * parameter E.
-     *
-     * @param key property to access
-     * @return value at the provided property
-     */
-    E get( String key );
+    BTREE( "btree" ),
+    GIST( "gist" ),
+    HASH( "hash" ),
+    BLOOM( "bloom" );
 
-    /**
-     * @return The keys of this map.
-     * @throws java.util.NoSuchElementException in case this value does not
-     *         exist in the JSON document
-     * @throws UnsupportedOperationException in case this node does exist but is
-     *         not an object node
-     */
-    default Set<String> keys()
+    private String keyword;
+
+    IndexType( String keyword )
     {
-        return node().members().keySet();
+        this.keyword = keyword;
+    }
+
+    public String keyword()
+    {
+        return keyword;
     }
 }
