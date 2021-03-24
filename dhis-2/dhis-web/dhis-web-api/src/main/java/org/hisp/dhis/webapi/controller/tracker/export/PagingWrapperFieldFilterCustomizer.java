@@ -29,13 +29,14 @@
 
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import lombok.Getter;
 import org.hisp.dhis.commons.config.FieldFilterCustomizer;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Component;
 
+import lombok.Getter;
+
 @Component
-@SuppressWarnings("rawtypes")
+@SuppressWarnings( "rawtypes" )
 class PagingWrapperFieldFilterCustomizer implements FieldFilterCustomizer<PagingWrapper>
 {
     @Getter

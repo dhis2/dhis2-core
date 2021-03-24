@@ -47,9 +47,9 @@ public class DhisWebCommonsWebAppInitializer implements WebApplicationInitialize
     {
         context
             .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );;
+            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
 
-        context.addFilter( "SquigglyRequestFilter", SquigglyRequestFilter.class)
-            .addMappingForUrlPatterns(null, true, "/*");
+        context.addFilter( "SquigglyRequestFilter", SquigglyRequestFilter.class )
+            .addMappingForUrlPatterns( null, true, "/*" );
     }
 }
