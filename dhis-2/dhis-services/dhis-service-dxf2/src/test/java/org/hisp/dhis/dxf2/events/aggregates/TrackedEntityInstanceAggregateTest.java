@@ -162,7 +162,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
@@ -171,7 +171,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setLastUpdatedStartDate( Date.from( Instant.now().plus( 1, ChronoUnit.DAYS ) ) );
 
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false, true );
+            .getTrackedEntityInstances( queryParams, params, false );
 
         assertThat( limitedTTrackedEntityInstances, hasSize( 0 ) );
     }
