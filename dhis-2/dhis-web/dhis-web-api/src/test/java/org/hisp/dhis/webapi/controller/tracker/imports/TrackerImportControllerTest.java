@@ -27,20 +27,23 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
+import static java.util.Collections.singletonList;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hisp.dhis.webapi.controller.tracker.imports.TrackerImportController.TRACKER_JOB_ADDED;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.config.JacksonObjectMapperConfig;
@@ -50,8 +53,13 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.tracker.report.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.report.TrackerBundleReport;
+import org.hisp.dhis.tracker.report.TrackerImportReport;
+import org.hisp.dhis.tracker.report.TrackerImportReportFinalizer;
+import org.hisp.dhis.tracker.report.TrackerStatus;
+import org.hisp.dhis.tracker.report.TrackerTimingsStats;
+import org.hisp.dhis.tracker.report.TrackerValidationReport;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
 import org.hisp.dhis.webapi.service.DefaultContextService;
@@ -200,7 +208,7 @@ public class TrackerImportControllerTest
         String uid = CodeGenerator.generateUid();
         // When
         when( notifier.getNotificationsByJobId( JobType.TRACKER_IMPORT_JOB, uid ) )
-            .thenReturn( Collections.singletonList( new Notification() ) );
+            .thenReturn( new LinkedList<>( singletonList( new Notification() ) ) );
 
         // Then
         mockMvc.perform( get( ENDPOINT + "/jobs/" + uid )
