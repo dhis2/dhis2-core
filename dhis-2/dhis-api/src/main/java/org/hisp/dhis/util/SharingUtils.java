@@ -57,19 +57,14 @@ public class SharingUtils
             return dto;
         }
 
-        if ( dto == null )
+        if ( !sharing.hasUserGroupAccesses() )
         {
-            dto = new HashSet<>();
+            return dto;
         }
 
-        if ( sharing.hasUserGroupAccesses() )
-        {
-            dto = new HashSet<>( sharing.getUserGroups().values()
-                .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject )
-                .collect( Collectors.toSet() ) );
-        }
-
-        return dto;
+        return sharing.getUserGroups().values()
+            .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject )
+            .collect( Collectors.toSet() );
     }
 
     public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto,
@@ -80,13 +75,14 @@ public class SharingUtils
             return dto;
         }
 
-        if ( sharing.hasUserAccesses() )
+        if ( !sharing.hasUserAccesses() )
         {
-            dto = new HashSet<>( sharing.getUsers().values()
-                .stream().map( org.hisp.dhis.user.sharing.UserAccess::toDtoObject ).collect( Collectors.toSet() ) );
+            return dto;
         }
 
-        return dto;
+        return sharing.getUsers().values()
+            .stream().map( org.hisp.dhis.user.sharing.UserAccess::toDtoObject )
+            .collect( Collectors.toSet() );
     }
 
     public static String getDtoPublicAccess( String dto, Sharing sharing )
