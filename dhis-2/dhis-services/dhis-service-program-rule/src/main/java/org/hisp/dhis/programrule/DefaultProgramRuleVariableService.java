@@ -59,7 +59,7 @@ public class DefaultProgramRuleVariableService
         checkNotNull( programRuleVariableStore );
 
         this.programRuleVariableStore = programRuleVariableStore;
-        this.programRuleVariablesCache = cacheProvider.createProgramRulesCache();
+        this.programRuleVariablesCache = cacheProvider.createProgramRuleVariablesCache();
     }
 
     // -------------------------------------------------------------------------
