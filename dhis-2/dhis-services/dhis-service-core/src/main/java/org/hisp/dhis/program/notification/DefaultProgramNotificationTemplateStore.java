@@ -50,6 +50,12 @@ public class DefaultProgramNotificationTemplateStore
     extends HibernateIdentifiableObjectStore<ProgramNotificationTemplate>
     implements ProgramNotificationTemplateStore
 {
+    private static final String NOTIFICATION_RECIPIENT = "recipient";
+
+    private static final String PROGRAM_ID = "pid";
+
+    private static final String PROGRAM_STAGE_ID = "psid";
+
     public DefaultProgramNotificationTemplateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
@@ -71,8 +77,8 @@ public class DefaultProgramNotificationTemplateStore
     {
         NativeQuery<Long> query = getSession().createNativeQuery(
             "select programnotificationtemplateid from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
-        query.setParameter( "pid", program.getId() );
-        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+        query.setParameter( PROGRAM_ID, program.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return !query.getResultList().isEmpty();
     }
@@ -82,8 +88,8 @@ public class DefaultProgramNotificationTemplateStore
     {
         NativeQuery<Long> query = getSession().createNativeQuery(
             "select programnotificationtemplateid from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
-        query.setParameter( "psid", programStage.getId() );
-        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+        query.setParameter( PROGRAM_STAGE_ID, programStage.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return !query.getResultList().isEmpty();
     }
@@ -94,8 +100,8 @@ public class DefaultProgramNotificationTemplateStore
         NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
             "select * from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient",
             ProgramNotificationTemplate.class );
-        query.setParameter( "pid", program.getId() );
-        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+        query.setParameter( PROGRAM_ID, program.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return query.getResultList();
     }
@@ -106,8 +112,8 @@ public class DefaultProgramNotificationTemplateStore
         NativeQuery<ProgramNotificationTemplate> query = getSession().createNativeQuery(
             "select * from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient",
             ProgramNotificationTemplate.class );
-        query.setParameter( "psid", programStage.getId() );
-        query.setParameter( "recipient", ProgramNotificationRecipient.WEB_HOOK.name() );
+        query.setParameter( PROGRAM_STAGE_ID, programStage.getId() );
+        query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return query.getResultList();
     }
