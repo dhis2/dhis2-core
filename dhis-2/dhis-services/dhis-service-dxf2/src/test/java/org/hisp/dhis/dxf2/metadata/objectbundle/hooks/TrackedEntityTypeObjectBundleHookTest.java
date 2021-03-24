@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2019, University of Oslo
+ * Copyright (c) 2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,11 +27,11 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Arrays;
-import java.util.Collections;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.*;
+
+import java.util.Arrays;
+import java.util.Collections;
 
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.preheat.Preheat;
@@ -48,82 +48,90 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnit;
 import org.mockito.junit.MockitoRule;
 
-public class TrackedEntityTypeObjectBundleHookTest {
+public class TrackedEntityTypeObjectBundleHookTest
+{
 
-	@Rule
-	public MockitoRule rule = MockitoJUnit.rule();
+    @Rule
+    public MockitoRule rule = MockitoJUnit.rule();
 
-	@InjectMocks
-	private TrackedEntityTypeObjectBundleHook trackedEntityTypeObjectBundleHook;
+    @InjectMocks
+    private TrackedEntityTypeObjectBundleHook trackedEntityTypeObjectBundleHook;
 
-	@Mock
-	private ObjectBundle bundle;
+    @Mock
+    private ObjectBundle bundle;
 
-	@Mock
-	private Preheat preheat;
+    @Mock
+    private Preheat preheat;
 
-	private static TrackedEntityType trackedEntityType;
-	private static TrackedEntityAttribute trackedEntityAttribute;
+    private static TrackedEntityType trackedEntityType;
 
-	@Before
-	public void setUp() {
-		trackedEntityType = new TrackedEntityType();
+    private static TrackedEntityAttribute trackedEntityAttribute;
 
-		when(bundle.getPreheat()).thenReturn(preheat);
-		when(bundle.getPreheatIdentifier()).thenReturn(PreheatIdentifier.UID, PreheatIdentifier.UID);
-	}
+    @Before
+    public void setUp()
+    {
+        trackedEntityType = new TrackedEntityType();
 
-	@Test
-	public void shouldReportNoErrorObjectIsNull() {
+        when( bundle.getPreheat() ).thenReturn( preheat );
+        when( bundle.getPreheatIdentifier() ).thenReturn( PreheatIdentifier.UID, PreheatIdentifier.UID );
+    }
 
-		assertEquals(0, trackedEntityTypeObjectBundleHook.validate(null, bundle).size());
-		verify(bundle, times(0)).getPreheat();
-	}
+    @Test
+    public void shouldReportNoErrorObjectIsNull()
+    {
 
-	@Test
-	public void shouldReportNoErrorDifferentClass() {
+        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( null, bundle ).size() );
+        verify( bundle, times( 0 ) ).getPreheat();
+    }
 
-		assertEquals(0, trackedEntityTypeObjectBundleHook.validate(new User(), bundle).size());
-		verify(bundle, times(0)).getPreheat();
-	}
+    @Test
+    public void shouldReportNoErrorDifferentClass()
+    {
 
-	@Test
-	public void shouldReportNoErrorTetHasNoTeas() {
+        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( new User(), bundle ).size() );
+        verify( bundle, times( 0 ) ).getPreheat();
+    }
 
-		assertEquals(0, trackedEntityTypeObjectBundleHook.validate(trackedEntityType, bundle).size());
-		verify(bundle, times(0)).getPreheat();
-	}
+    @Test
+    public void shouldReportNoErrorTetHasNoTeas()
+    {
 
-	@Test
-	public void shouldReportNoErrorTeaExists() {
+        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( trackedEntityType, bundle ).size() );
+        verify( bundle, times( 0 ) ).getPreheat();
+    }
 
-		when(preheat.get(any(), any())).thenReturn(new TrackedEntityAttribute());
+    @Test
+    public void shouldReportNoErrorTeaExists()
+    {
 
-		TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-		trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
-		trackedEntityTypeAttribute.setTrackedEntityAttribute(new TrackedEntityAttribute());
+        when( preheat.get( any(), any() ) ).thenReturn( new TrackedEntityAttribute() );
 
-		trackedEntityType.setTrackedEntityTypeAttributes(Arrays.asList(trackedEntityTypeAttribute, null));
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+        trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( new TrackedEntityAttribute() );
 
-		assertEquals(0, trackedEntityTypeObjectBundleHook.validate(trackedEntityType, bundle).size());
-		verify(bundle, times(1)).getPreheat();
-	}
+        trackedEntityType.setTrackedEntityTypeAttributes( Arrays.asList( trackedEntityTypeAttribute, null ) );
 
-	@Test
-	public void shouldReportErrorTeaNotExists() {
+        assertEquals( 0, trackedEntityTypeObjectBundleHook.validate( trackedEntityType, bundle ).size() );
+        verify( bundle, times( 1 ) ).getPreheat();
+    }
 
-		trackedEntityAttribute = new TrackedEntityAttribute();
-		trackedEntityAttribute.setUid("teaUid");
+    @Test
+    public void shouldReportErrorTeaNotExists()
+    {
 
-		when(preheat.get(any(), any())).thenReturn(null);
+        trackedEntityAttribute = new TrackedEntityAttribute();
+        trackedEntityAttribute.setUid( "teaUid" );
 
-		TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-		trackedEntityTypeAttribute.setTrackedEntityType(trackedEntityType);
-		trackedEntityTypeAttribute.setTrackedEntityAttribute(new TrackedEntityAttribute());
+        when( preheat.get( any(), any() ) ).thenReturn( null );
 
-		trackedEntityType.setTrackedEntityTypeAttributes(Collections.singletonList(trackedEntityTypeAttribute));
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+        trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( new TrackedEntityAttribute() );
 
-		assertEquals(1, trackedEntityTypeObjectBundleHook.validate(trackedEntityType, bundle).size());
-		verify(bundle, times(1)).getPreheat();
-	}
+        trackedEntityType.setTrackedEntityTypeAttributes( Collections.singletonList( trackedEntityTypeAttribute ) );
+
+        assertEquals( 1, trackedEntityTypeObjectBundleHook.validate( trackedEntityType, bundle ).size() );
+        verify( bundle, times( 1 ) ).getPreheat();
+    }
 }
