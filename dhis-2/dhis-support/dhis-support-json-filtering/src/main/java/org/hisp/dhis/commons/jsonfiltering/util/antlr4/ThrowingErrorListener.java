@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.util.antlr4;
 
-import java.util.EnumSet;
+import org.antlr.v4.runtime.BaseErrorListener;
+import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+public class ThrowingErrorListener extends BaseErrorListener
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private static final ThrowingErrorListener INSTANCE = new ThrowingErrorListener();
 
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    public static <T extends Recognizer<?, ?>> T overwrite( T recognizer )
+    {
+        recognizer.removeErrorListeners();
+        recognizer.addErrorListener( INSTANCE );
+
+        return recognizer;
+    }
+
+    @Override
+    public void syntaxError( Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine,
+        String msg, RecognitionException e )
+    {
+        throw new ParseCancellationException( "line " + line + ":" + charPositionInLine + " " + msg );
     }
 }

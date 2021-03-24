@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,22 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.view;
 
-import java.util.EnumSet;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Convenience annotation that indicates the field belongs to the "full" view.
+ */
+@Target( FIELD )
+@Retention( RUNTIME )
+@Documented
+@PropertyView( PropertyView.FULL_VIEW )
+public @interface FullView
 {
-
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
-    }
 }

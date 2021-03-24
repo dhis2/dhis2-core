@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2021, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.bean;
 
-import java.util.EnumSet;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import lombok.RequiredArgsConstructor;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+@RequiredArgsConstructor
+public class BeanInfo
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private final Map<String, Set<String>> viewNameToPropertiesNames;
 
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    private final Set<String> unwrappedProperties;
+
+    public Set<String> getPropertyNamesForView( String view )
+    {
+        return Optional.ofNullable( viewNameToPropertiesNames.get( view ) )
+            .orElse( Collections.emptySet() );
+    }
+
+    public boolean isUnwrapped( String property )
+    {
+        return unwrappedProperties.contains( property );
     }
 }

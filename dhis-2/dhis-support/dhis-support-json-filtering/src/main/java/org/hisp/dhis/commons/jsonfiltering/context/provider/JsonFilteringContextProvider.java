@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.context.provider;
 
-import java.util.EnumSet;
+import org.hisp.dhis.commons.jsonfiltering.context.JsonFilteringContext;
+import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilter;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Used for supplying a @{@link JsonFilteringPropertyFilter} with a way to
+ * retrieve a context.
+ */
+public interface JsonFilteringContextProvider
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    /**
+     * Get the context.
+     *
+     * @param beanClass the class of the top-level bean being filtered
+     * @return context
+     */
+    JsonFilteringContext getContext( Class beanClass );
 
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
-    }
+    /**
+     * Hook method to enable/disable filtering.
+     *
+     * @return ture if enabled, false if not
+     */
+    boolean isFilteringEnabled();
+
+    // Hook method for custom included serialization
+    void serializeAsIncludedField( Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer )
+        throws Exception;
+
+    // Hook method for custom excluded serialization
+    void serializeAsExcludedField( Object pojo, JsonGenerator jgen, SerializerProvider provider, PropertyWriter writer )
+        throws Exception;
 }

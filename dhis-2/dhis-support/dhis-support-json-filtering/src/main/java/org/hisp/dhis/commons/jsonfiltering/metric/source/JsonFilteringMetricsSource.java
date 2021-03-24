@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,30 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.metric.source;
 
-import java.util.EnumSet;
+import java.util.Map;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Represents a source that can supply metrics. Implementations should be thread
+ * safe.
+ */
+public interface JsonFilteringMetricsSource
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
-    }
+    /**
+     * Apply the source's metrics to the provided map.
+     *
+     * @param map the map to add the metrics to
+     */
+    void applyMetrics( Map<String, Object> map );
 }

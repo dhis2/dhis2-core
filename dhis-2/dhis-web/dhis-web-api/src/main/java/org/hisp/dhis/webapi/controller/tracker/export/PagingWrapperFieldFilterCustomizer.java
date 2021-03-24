@@ -25,30 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.EnumSet;
+import lombok.Getter;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import org.hisp.dhis.commons.config.FieldFilterCustomizer;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.springframework.stereotype.Component;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+@Component
+@SuppressWarnings( "rawtypes" )
+class PagingWrapperFieldFilterCustomizer implements FieldFilterCustomizer<PagingWrapper>
 {
+    @Getter
+    private final Class<PagingWrapper> applicableClass = PagingWrapper.class;
 
     @Override
-    public void onStartup( ServletContext context )
+    public String customize( String filter )
     {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-
-        context.addFilter( "SquigglyRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+        return "instances[" + filter + "]";
     }
+
 }
