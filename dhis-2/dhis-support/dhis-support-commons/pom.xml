@@ -40,6 +40,10 @@
       <artifactId>commons-jexl</artifactId>
     </dependency>
     <dependency>
+      <groupId>com.github.bohnman</groupId>
+      <artifactId>squiggly-filter-jackson</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>

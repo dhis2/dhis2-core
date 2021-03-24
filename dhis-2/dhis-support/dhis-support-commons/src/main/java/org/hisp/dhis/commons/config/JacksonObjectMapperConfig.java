@@ -28,6 +28,7 @@
 package org.hisp.dhis.commons.config;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
@@ -56,6 +57,8 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.datatype.hibernate5.Hibernate5Module;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.github.bohnman.squiggly.Squiggly;
+import com.github.bohnman.squiggly.web.RequestSquigglyContextProvider;
 
 /**
  * Main Jackson Mapper configuration. Any component that requires JSON/XML
@@ -91,10 +94,27 @@ public class JacksonObjectMapperConfig
      */
     public static final CsvMapper csvMapper = configureCsvMapper( new CsvMapper() );
 
+    public static final String FIELDS_FILTER_PARAM_NAME = "fields";
+
+    public static final String INCLUDE_ALL_FIELDS_FILTER = "**";
+
     @Primary
     @Bean( "jsonMapper" )
-    public ObjectMapper jsonMapper()
+    public ObjectMapper jsonMapper( Collection<FieldFilterCustomizer> fieldFilterCustomizers )
     {
+        Squiggly.init( jsonMapper,
+            new RequestSquigglyContextProvider( FIELDS_FILTER_PARAM_NAME, INCLUDE_ALL_FIELDS_FILTER )
+            {
+                @Override
+                protected String customizeFilter( String filter, Class beanClass )
+                {
+                    return fieldFilterCustomizers.stream()
+                        .filter( fieldFilterCustomizer -> fieldFilterCustomizer.isApplicable( beanClass ) )
+                        .findFirst()
+                        .map( fieldFilterCustomizer -> fieldFilterCustomizer.customize( filter ) )
+                        .orElse( INCLUDE_ALL_FIELDS_FILTER );
+                }
+            } );
         return jsonMapper;
     }
 
