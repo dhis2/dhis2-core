@@ -84,7 +84,7 @@ public class JobConfigurationObjectBundleHook
         JobConfiguration jobConfiguration = (JobConfiguration) object;
         List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
-        if ( errorReports.size() == 0 )
+        if ( errorReports.isEmpty() )
         {
             jobConfiguration.setNextExecutionTime( null );
 
