@@ -99,10 +99,10 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.collections.CollectionQuery;
-import org.hisp.dhis.query.collections.CollectionQuery.CollectionQueryBuilder;
-import org.hisp.dhis.query.collections.CollectionQuery.Owner;
-import org.hisp.dhis.query.collections.CollectionQueryService;
+import org.hisp.dhis.query.member.MemberQuery;
+import org.hisp.dhis.query.member.MemberQuery.MemberQueryBuilder;
+import org.hisp.dhis.query.member.MemberQuery.Owner;
+import org.hisp.dhis.query.member.MemberQueryService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -239,7 +239,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected SharingService sharingService;
 
     @Autowired
-    private CollectionQueryService collectionQueryService;
+    private MemberQueryService memberQueryService;
 
     // --------------------------------------------------------------------------
     // GET
@@ -350,21 +350,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     }
 
     @RequestMapping( value = "/{uid}/p/{property}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectCollectionProperty(
+    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyV2(
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property, HttpServletRequest request )
     {
         Property collection = getSchema().getProperty( property );
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        CollectionQueryBuilder<IdentifiableObject> queryBuilder = CollectionQuery.builder()
+        MemberQueryBuilder<IdentifiableObject> queryBuilder = MemberQuery.builder()
             .owner( Owner.builder()
                 .id( uid )
                 .type( getEntityClass() )
                 .collectionProperty( property ).build() )
             .elementType( (Class<IdentifiableObject>) collection.getItemKlass() );
-        CollectionQuery.parse( params, queryBuilder );
-        CollectionQuery<?> query = collectionQueryService.rectifyQuery( queryBuilder.build() );
-        List<Object[]> elements = collectionQueryService.queryElementsFields( query );
+        MemberQuery.parse( params, queryBuilder );
+        MemberQuery<?> query = memberQueryService.rectifyQuery( queryBuilder.build() );
+        List<Object[]> elements = memberQueryService.queryMemberItems( query );
         return ResponseEntity
             .ok( new JsonData( jsonMapper ).skipNullOrEmpty().toArray( query.getFields(), elements ) );
     }

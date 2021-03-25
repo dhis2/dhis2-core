@@ -190,6 +190,13 @@ public class JsonDocumentTest
     }
 
     @Test
+    public void testArray_IndexOutOfBounds()
+    {
+        JsonDocument doc = new JsonDocument( "[]" );
+        assertThrows( JsonPathException.class, () -> doc.get( "$[0]" ) );
+    }
+
+    @Test
     public void testArray_Numbers()
     {
         JsonNode node = new JsonDocument( "[1, 2 ,3]" ).get( "$" );

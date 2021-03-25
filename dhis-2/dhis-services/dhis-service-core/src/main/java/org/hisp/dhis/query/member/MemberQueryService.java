@@ -25,31 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.collections;
+package org.hisp.dhis.query.member;
 
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObject;
 
 /**
+ * Gives convenient access to (potentially large) member collections of an owner
+ * object.
+ *
+ * The preferred method should be to {@link #queryMemberItems(MemberQuery)}
+ * which returns a raw data row for each match only containing the values of the
+ * {@link MemberQuery#getFields()} in form of an {@link Object[]}.
+ *
  * @author Jan Bernitt
  */
-public interface CollectionQueryService
+public interface MemberQueryService
 {
-
-    <T extends IdentifiableObject> CollectionQuery<T> rectifyQuery( CollectionQuery<T> query );
-
     /**
-     * Returns a list of elements of a collection property matching the filters
-     * except when used with {@link CollectionQuery#isInverse()} it returns
-     * element not in the collection property matching the filters.
+     * Before running one of the query methods a {@link MemberQuery} should be
+     * rectified. This gives the service a change to correct the query and set
+     * some defaults.
      *
-     * @param query
-     * @param <T>
-     * @return
+     * The result is exposed again so that the caller can use the modified
+     * {@link MemberQuery} in subsequent processing steps.
+     *
+     * @param query A {@link MemberQuery} as build by the caller
+     * @param <T> type of member collection elements
+     * @return the rectified {@link MemberQuery} that should be used to query
+     *         results. This might be the same instance as the provided one or a
+     *         modified "copy".
      */
-    <T extends IdentifiableObject> List<T> queryElements( CollectionQuery<T> query );
+    <T extends IdentifiableObject> MemberQuery<T> rectifyQuery( MemberQuery<T> query );
 
-    <T extends IdentifiableObject> List<Object[]> queryElementsFields( CollectionQuery<T> query );
+    <T extends IdentifiableObject> List<Object[]> queryMemberItems( MemberQuery<T> query );
 
+    <T extends IdentifiableObject> List<T> queryMemberItemsAsObjects( MemberQuery<T> query );
 }

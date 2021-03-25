@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.collections;
+package org.hisp.dhis.query.member;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -40,26 +41,41 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.query.collections.CollectionQuery.Comparison;
-import org.hisp.dhis.query.collections.CollectionQuery.Filter;
-import org.hisp.dhis.query.collections.CollectionQuery.Owner;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.query.member.MemberQuery.Comparison;
+import org.hisp.dhis.query.member.MemberQuery.Filter;
+import org.hisp.dhis.query.member.MemberQuery.Owner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
-import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Jan Bernitt
  */
 @Service
 @AllArgsConstructor
-public class DefaultCollectionQueryService implements CollectionQueryService
+public class DefaultMemberQueryService implements MemberQueryService
 {
 
     private final SessionFactory sessionFactory;
 
     private final SchemaService schemaService;
+
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    private final IdentifiableObjectManager objectManager;
+
+    private final ObjectMapper jsonMapper;
 
     private Session getSession()
     {
@@ -67,22 +83,28 @@ public class DefaultCollectionQueryService implements CollectionQueryService
     }
 
     @Override
-    public <T extends IdentifiableObject> CollectionQuery<T> rectifyQuery( CollectionQuery<T> query )
+    public <T extends IdentifiableObject> MemberQuery<T> rectifyQuery( MemberQuery<T> query )
     {
         if ( query.getFields().isEmpty() )
         {
-            Schema elementSchema = schemaService.getDynamicSchema( query.getElementType() );
-            return query.toBuilder().fields( elementSchema.getProperties().stream()
-                .filter( p -> p.isPersisted() && !p.isCollection() && p.isSimple() && p.isReadable() )
-                .map( Property::getName )
-                .collect( toList() ) )
-                .build();
+            return query.toBuilder().fields( getDefaultFields( query ) ).build();
         }
         return query;
     }
 
+    private List<String> getDefaultFields( MemberQuery<?> query )
+    {
+        return schemaService.getDynamicSchema( query.getElementType() ).getProperties().stream()
+            .filter( DefaultMemberQueryService::isDefaultField ).map( Property::getName ).collect( toList() );
+    }
+
+    private static boolean isDefaultField( Property p )
+    {
+        return p.isPersisted() && !p.isCollection() && p.isReadable() && (p.isSimple() || p.isEmbeddedObject());
+    }
+
     @Override
-    public <T extends IdentifiableObject> List<T> queryElements( CollectionQuery<T> query )
+    public <T extends IdentifiableObject> List<T> queryMemberItemsAsObjects( MemberQuery<T> query )
     {
         RelativePropertyContext context = createPropertyContext( query );
         validateQuery( query, context );
@@ -91,7 +113,7 @@ public class DefaultCollectionQueryService implements CollectionQueryService
     }
 
     @Override
-    public <T extends IdentifiableObject> List<Object[]> queryElementsFields( CollectionQuery<T> query )
+    public <T extends IdentifiableObject> List<Object[]> queryMemberItems( MemberQuery<T> query )
     {
         RelativePropertyContext context = createPropertyContext( query );
         validateQuery( query, context );
@@ -100,26 +122,25 @@ public class DefaultCollectionQueryService implements CollectionQueryService
             getSession().createQuery( buildHQL( query, context ), Object[].class ) );
     }
 
-    private RelativePropertyContext createPropertyContext( CollectionQuery<?> query )
+    private RelativePropertyContext createPropertyContext( MemberQuery<?> query )
     {
         return new RelativePropertyContext( query.getElementType(), schemaService::getDynamicSchema );
     }
 
-    private <T extends IdentifiableObject> String buildHQL( CollectionQuery<T> query,
+    private <T extends IdentifiableObject> String buildHQL( MemberQuery<T> query,
         RelativePropertyContext context )
     {
         return new HqlBuilder( query, context.switchedTo( query.getElementType() ) ).buildHQL();
     }
 
-    private <T> List<T> listWithParameters( CollectionQuery<?> query, RelativePropertyContext context,
+    private <T> List<T> listWithParameters( MemberQuery<?> query, RelativePropertyContext context,
         Query<T> dbQuery )
     {
-        context = context.switchedTo( query.getElementType() );
         dbQuery.setParameter( "OwnerId", query.getOwner().getId() );
         for ( Filter filter : query.getFilters() )
         {
             Property property = context.resolveMandatory( filter.getProperty() );
-            dbQuery.setParameter( filter.getProperty(), queryValue( property, filter ) );
+            dbQuery.setParameter( HqlBuilder.getVarName( filter.getProperty() ), queryValue( property, filter ) );
         }
         dbQuery.setMaxResults( query.getPageSize() );
         dbQuery.setFirstResult( query.getPageOffset() );
@@ -129,18 +150,63 @@ public class DefaultCollectionQueryService implements CollectionQueryService
 
     private Object queryValue( Property property, Filter filter )
     {
-        // TODO
         String[] value = filter.getValue();
-        return value.length == 0 ? "" : value[0];
+        if ( value.length == 0 )
+        {
+            return "";
+        }
+        if ( value.length == 1 )
+        {
+            return queryTypedValue( property, value[0] );
+        }
+        return stream( value ).map( e -> queryTypedValue( property, e ) ).toArray();
     }
 
-    private void validateQuery( CollectionQuery<?> query, RelativePropertyContext context )
+    private Object queryTypedValue( Property property, String value )
+    {
+        if ( value == null || property.getKlass() == String.class )
+        {
+            return value;
+        }
+        String valueAsJson = value;
+        Class<?> itemType = getSimpleType( property );
+        if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
+        {
+            valueAsJson = '"' + value + '"';
+        }
+        try
+        {
+            return jsonMapper.readValue( valueAsJson, itemType );
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new IllegalArgumentException( String
+                .format( "Property `%s` of type %s is not compatible with provided filter value: `%s`",
+                    property.getName(), itemType, value ) );
+        }
+    }
+
+    private void validateQuery( MemberQuery<?> query, RelativePropertyContext context )
     {
         Owner owner = query.getOwner();
+        validateAccess( owner );
         validateCollection( context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
         query.getFilters().forEach( filter -> validateFilter( context.resolveMandatory( filter.getProperty() ) ) );
         query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getProperty() ) ) );
         query.getFields().forEach( field -> validateField( context.resolveMandatory( field ) ) );
+    }
+
+    private void validateAccess( Owner owner )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( !aclService.canRead( currentUser, owner.getType() ) )
+        {
+            throw createNoReadAccess( owner );
+        }
+        if ( !aclService.canRead( currentUser, objectManager.get( owner.getType(), owner.getId() ) ) )
+        {
+            throw createNoReadAccess( owner );
+        }
     }
 
     private void validateCollection( Property collection )
@@ -148,15 +214,22 @@ public class DefaultCollectionQueryService implements CollectionQueryService
         if ( !collection.isCollection() || !collection.isPersisted()
             || !IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
         {
-            throw createIllegalProperty( collection, "Property `%s` is not a persisted collection." );
+            throw createIllegalProperty( collection, "Property `%s` is not a persisted collection member." );
         }
     }
 
+    @SuppressWarnings( "unchecked" )
     private void validateField( Property field )
     {
         if ( !field.isReadable() )
         {
-            throw createIllegalProperty( field, "Property `%s` is not readable." );
+            throw createNoReadAccess( field );
+        }
+        Class<?> itemType = getSimpleType( field );
+        if ( IdentifiableObject.class.isAssignableFrom( itemType ) && !aclService
+            .canRead( currentUserService.getCurrentUser(), (Class<? extends IdentifiableObject>) itemType ) )
+        {
+            throw createNoReadAccess( field );
         }
     }
 
@@ -181,12 +254,50 @@ public class DefaultCollectionQueryService implements CollectionQueryService
         return new IllegalArgumentException( String.format( message, property.getName() ) );
     }
 
+    private ReadAccessDeniedException createNoReadAccess( Owner owner )
+    {
+        return new ReadAccessDeniedException(
+            String.format( "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId() ) );
+    }
+
+    private ReadAccessDeniedException createNoReadAccess( Property field )
+    {
+        if ( field.isReadable() )
+        {
+            return new ReadAccessDeniedException( String.format( "Property `%s` is not readable.", field.getName() ) );
+        }
+        return new ReadAccessDeniedException(
+            String.format( "Property `%s` is not readable as user is not allowed to view objects of type %s",
+                field.getName(), getSimpleType( field ) ) );
+    }
+
+    private Class<?> getSimpleType( Property p )
+    {
+        return p.isCollection() ? p.getItemKlass() : p.getKlass();
+    }
+
+    /**
+     * Purpose of this helper is to avoid passing around same state while
+     * building the HQL query. Instead this state is shared in form of fields.
+     * <p>
+     * Within the HQL naming conventions are:
+     *
+     * <pre>
+     *   o => owner table
+     *   e => member collection element table
+     * </pre>
+     */
     @AllArgsConstructor
     private static final class HqlBuilder
     {
-        private final CollectionQuery<?> query;
+        private final MemberQuery<?> query;
 
         private final RelativePropertyContext context;
+
+        static String getVarName( String property )
+        {
+            return property.replace( '.', '_' );
+        }
 
         private String getMemberPath( String property )
         {
@@ -208,30 +319,27 @@ public class DefaultCollectionQueryService implements CollectionQueryService
             String collectionName = context.switchedTo( owner.getType() )
                 .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
             return String.format(
-                "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) %s order by %s", fields,
+                "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s order by %s", fields,
                 ownerTable, elementTable, op, collectionName, filterBy, orderBy );
         }
 
         private String createFieldsHQL()
         {
-            // TODO when fields is empty use schema and add all simple persisted
-
-            // TODO when fileds contains a property that is not persisted we
-            // must
-            // use "e" (all)
+            // TODO when fields contains a property that is not persisted we
+            // must use "e" (all)
             return join( query.getFields(), ", ", "e",
                 ( str, field ) -> str.append( "e." ).append( getMemberPath( field ) ) );
         }
 
         private String createFilterByHQL()
         {
-            return join( query.getFilters(), "and ", "",
+            return join( query.getFilters(), "and ", "1=1",
                 ( str, filter ) -> str
                     .append( "e." )
                     .append( getMemberPath( filter.getProperty() ) )
                     .append( " " )
-                    .append( createOperatorLeftSideHQL( filter.getOperator() ) )
-                    .append( " :" ).append( getMemberPath( filter.getProperty() ) )
+                    .append( createOperatorLeftSideHQL( filter.getOperator() ) ).append( " :" )
+                    .append( getVarName( filter.getProperty() ) )
                     .append( createOperatorRightSideHQL( filter.getOperator() ) ) );
         }
 

@@ -43,7 +43,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class CollectionPropertyControllerTest extends DhisControllerConvenienceTest
+public class MemberQueryControllerTest extends DhisControllerConvenienceTest
 {
     @Test
     public void testGetObjectCollectionProperty()
@@ -58,10 +58,11 @@ public class CollectionPropertyControllerTest extends DhisControllerConvenienceT
 
         // TODO previousPasswords
         String fields = "id,userCredentials.username,userCredentials.twoFA";
-        JsonObject users = GET( "/userGroups/{uid}/p/users?fields={fields}", groupX, fields ).content().getObject( 0 );
+        String filter = "userCredentials.created:gt:2021-01-01";
+        JsonObject users = GET( "/userGroups/{uid}/p/users?fields={fields}&filter={filter}", groupX, fields, filter )
+            .content().getObject( 0 );
         assertTrue( users.has( "id", "userCredentials" ) );
         assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
-
         fields = "id,sharing";
         JsonObject groups = GET( "/users/{uid}/p/userGroups?fields={fields}", getSuperuserUid(), fields ).content()
             .getObject( 0 );

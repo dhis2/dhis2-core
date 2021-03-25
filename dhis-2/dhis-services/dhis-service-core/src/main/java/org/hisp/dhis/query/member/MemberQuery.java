@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.collections;
+package org.hisp.dhis.query.member;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
@@ -46,7 +46,7 @@ import org.hisp.dhis.common.NamedParams;
 @Getter
 @Builder( toBuilder = true )
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public final class CollectionQuery<T extends IdentifiableObject>
+public final class MemberQuery<T extends IdentifiableObject>
 {
 
     /**
@@ -110,7 +110,7 @@ public final class CollectionQuery<T extends IdentifiableObject>
     @Builder.Default
     private final List<Order> orders = emptyList();
 
-    public static <T extends IdentifiableObject> void parse( NamedParams params, CollectionQueryBuilder<T> builder )
+    public static <T extends IdentifiableObject> void parse( NamedParams params, MemberQueryBuilder<T> builder )
     {
         int page = params.getInt( "page", 0 );
         int size = params.getInt( "pageSize", 25 );

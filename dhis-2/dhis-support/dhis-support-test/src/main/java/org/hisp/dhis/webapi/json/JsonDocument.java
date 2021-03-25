@@ -645,7 +645,7 @@ public final class JsonDocument implements Serializable
 
     private void checkIndexExists( JsonNode parent, List<JsonNode> array, int index, String path )
     {
-        if ( index > array.size() )
+        if ( index >= array.size() )
         {
             throw new JsonPathException(
                 String.format( "Path `%s` does not exist, array `%s` has only `%d` elements.", path, parent.getPath(),
