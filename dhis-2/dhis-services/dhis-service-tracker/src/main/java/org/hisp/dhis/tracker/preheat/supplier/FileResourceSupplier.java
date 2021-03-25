@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.preheat.supplier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
@@ -37,12 +38,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.domain.Attribute;
+import org.hisp.dhis.tracker.domain.DataValue;
 import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 import org.springframework.stereotype.Component;
 
@@ -66,12 +69,21 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toList() );
 
+        List<DataElement> dataElements = preheat.getAll( DataElement.class );
+
+        List<String> fileResourceDataElements = dataElements.stream()
+            .filter( at -> at.getValueType() == ValueType.FILE_RESOURCE )
+            .map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toList() );
+
         List<String> fileResourceIds = new ArrayList<>();
 
         params.getTrackedEntities()
             .forEach( te -> collectResourceIds( fileResourceAttributes, fileResourceIds, te.getAttributes() ) );
         params.getEnrollments()
             .forEach( en -> collectResourceIds( fileResourceAttributes, fileResourceIds, en.getAttributes() ) );
+        params.getEvents()
+            .forEach( en -> collectResourceIds( fileResourceDataElements, fileResourceIds, en.getDataValues() ) );
 
         List<FileResource> fileResources = fileResourceService.getFileResources( fileResourceIds );
         preheat.put( TrackerIdentifier.UID, fileResources );
@@ -84,6 +96,17 @@ public class FileResourceSupplier extends AbstractPreheatSupplier
             if ( fileResourceAttributes.contains( at.getAttribute() ) && !StringUtils.isEmpty( at.getValue() ) )
             {
                 fileResourceIds.add( at.getValue() );
+            }
+        } );
+    }
+
+    private void collectResourceIds( List<String> fileResourceDataElements, List<String> fileResourceIds,
+        Set<DataValue> dataElements )
+    {
+        dataElements.forEach( de -> {
+            if ( fileResourceDataElements.contains( de.getDataElement() ) && !StringUtils.isEmpty( de.getValue() ) )
+            {
+                fileResourceIds.add( de.getValue() );
             }
         } );
     }
