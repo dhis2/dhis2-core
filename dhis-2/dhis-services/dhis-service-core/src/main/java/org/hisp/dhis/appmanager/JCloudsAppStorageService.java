@@ -373,7 +373,7 @@ public class JCloudsAppStorageService
 
             zip.stream().forEach( (Consumer<ZipEntry>) zipEntry -> {
 
-                log.info( "Uploading zipEntry: " + zipEntry );
+                log.debug( "Uploading zipEntry: " + zipEntry );
 
                 try
                 {
@@ -435,7 +435,7 @@ public class JCloudsAppStorageService
         // Delete all files related to app
         for ( StorageMetadata resource : blobStore.list( config.container, prefix( app.getFolderName() ).recursive() ) )
         {
-            log.info( "Deleting app file: " + resource.getName() );
+            log.debug( "Deleting app file: " + resource.getName() );
 
             blobStore.removeBlob( config.container, resource.getName() );
         }
