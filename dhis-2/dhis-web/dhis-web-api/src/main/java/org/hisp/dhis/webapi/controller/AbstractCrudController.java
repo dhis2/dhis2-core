@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 
 import java.io.IOException;
@@ -40,7 +41,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +55,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
@@ -98,6 +99,10 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
+import org.hisp.dhis.query.collections.CollectionQuery;
+import org.hisp.dhis.query.collections.CollectionQuery.CollectionQueryBuilder;
+import org.hisp.dhis.query.collections.CollectionQuery.Owner;
+import org.hisp.dhis.query.collections.CollectionQueryService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -113,6 +118,7 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.webapi.JsonData;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -126,6 +132,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -134,6 +141,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
@@ -230,6 +238,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected SharingService sharingService;
 
+    @Autowired
+    private CollectionQueryService collectionQueryService;
+
     // --------------------------------------------------------------------------
     // GET
     // --------------------------------------------------------------------------
@@ -274,7 +285,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 entities = entities.stream()
                     .skip( skip )
                     .limit( options.getPageSize() )
-                    .collect( Collectors.toList() );
+                    .collect( toList() );
             }
             else
             {
@@ -336,6 +347,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
 
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
+    }
+
+    @RequestMapping( value = "/{uid}/p/{property}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectCollectionProperty(
+        @PathVariable( "uid" ) String uid,
+        @PathVariable( "property" ) String property, HttpServletRequest request )
+    {
+        Property collection = getSchema().getProperty( property );
+        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        CollectionQueryBuilder<IdentifiableObject> queryBuilder = CollectionQuery.builder()
+            .owner( Owner.builder()
+                .id( uid )
+                .type( getEntityClass() )
+                .collectionProperty( property ).build() )
+            .elementType( (Class<IdentifiableObject>) collection.getItemKlass() );
+        CollectionQuery.parse( params, queryBuilder );
+        CollectionQuery<?> query = collectionQueryService.rectifyQuery( queryBuilder.build() );
+        List<Object[]> elements = collectionQueryService.queryElementsFields( query );
+        return ResponseEntity
+            .ok( new JsonData( jsonMapper ).skipNullOrEmpty().toArray( query.getFields(), elements ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
@@ -1405,7 +1436,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected void handleAttributeValues( List<T> entityList, List<String> fields )
     {
         List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( !hasAttributeValues.isEmpty() )
         {
