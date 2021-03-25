@@ -211,6 +211,7 @@ public class DataElementQuery implements DataItemQuery
         // they are actually specified as filters. Otherwise we should only
         // consider the domainType = 'AGGREGATE'. Very specific to DataElements.
         if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES )
+            && paramsMap.getValue( VALUE_TYPES ) != null
             && !((Set) paramsMap.getValue( VALUE_TYPES )).containsAll( aggregatableTypes ) )
         {
             optionalFilters.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
