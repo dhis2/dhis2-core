@@ -348,6 +348,28 @@ public class DefaultAnalyticsTableService
      */
     private void createIndexes( List<AnalyticsTable> tables )
     {
+        ConcurrentLinkedQueue<AnalyticsIndex> indexes = getIndexes( tables );
+
+        log.info( "No of analytics table indexes: " + indexes.size() );
+
+        List<Future<?>> futures = new ArrayList<>();
+
+        for ( int i = 0; i < getProcessNo(); i++ )
+        {
+            futures.add( tableManager.createIndexesAsync( indexes ) );
+        }
+
+        ConcurrentUtils.waitForCompletion( futures );
+    }
+
+    /**
+     * Returns a queue of analytics table indexes.
+     *
+     * @param tables the list of {@link AnalyticsTable}.
+     * @return a {@link ConcurrentLinkedQueue} of indexes.
+     */
+    private ConcurrentLinkedQueue<AnalyticsIndex> getIndexes( List<AnalyticsTable> tables )
+    {
         List<AnalyticsTablePartition> partitions = PartitionUtils.getTablePartitions( tables );
 
         ConcurrentLinkedQueue<AnalyticsIndex> indexes = new ConcurrentLinkedQueue<>();
@@ -368,16 +390,7 @@ public class DefaultAnalyticsTableService
             }
         }
 
-        log.info( "No of analytics table indexes: " + indexes.size() );
-
-        List<Future<?>> futures = new ArrayList<>();
-
-        for ( int i = 0; i < getProcessNo(); i++ )
-        {
-            futures.add( tableManager.createIndexesAsync( indexes ) );
-        }
-
-        ConcurrentUtils.waitForCompletion( futures );
+        return indexes;
     }
 
     /**

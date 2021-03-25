@@ -32,7 +32,7 @@ import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Deque;
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -139,7 +139,7 @@ public class TrackerImportController
     }
 
     @GetMapping( value = "/jobs/{uid}", produces = APPLICATION_JSON_VALUE )
-    public List<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
+    public Deque<Notification> getJob( @PathVariable String uid, HttpServletResponse response )
         throws HttpStatusCodeException
     {
         setNoStore( response );

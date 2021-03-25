@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,39 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json;
+package org.hisp.dhis.trackedentity;
 
-import java.util.Set;
-
-/**
- * {@link JsonMap}s are a special form of a {@link JsonObject} where all
- * properties have a common uniform value type.
- *
- * @author Jan Bernitt
- *
- * @param <E> type of the uniform map values
- */
-public interface JsonMap<E extends JsonValue> extends JsonCollection
+public class TrackedEntityProgramOwnerIds
 {
-    /**
-     * A typed variant of {@link JsonObject#get(String)}, equivalent to
-     * {@link JsonObject#get(String, Class)} where 2nd parameter is the type
-     * parameter E.
-     *
-     * @param key property to access
-     * @return value at the provided property
-     */
-    E get( String key );
+    private final String trackedEntityInstanceId;
 
-    /**
-     * @return The keys of this map.
-     * @throws java.util.NoSuchElementException in case this value does not
-     *         exist in the JSON document
-     * @throws UnsupportedOperationException in case this node does exist but is
-     *         not an object node
-     */
-    default Set<String> keys()
+    private final String programId;
+
+    private final String orgUnitUid;
+
+    public TrackedEntityProgramOwnerIds( String trackedEntityInstanceId, String programId, String orgUnitUid )
     {
-        return node().members().keySet();
+        this.trackedEntityInstanceId = trackedEntityInstanceId;
+        this.programId = programId;
+        this.orgUnitUid = orgUnitUid;
+    }
+
+    public String getTrackedEntityInstanceId()
+    {
+        return trackedEntityInstanceId;
+    }
+
+    public String getProgramId()
+    {
+        return programId;
+    }
+
+    public String getOrgUnitUid()
+    {
+        return orgUnitUid;
     }
 }

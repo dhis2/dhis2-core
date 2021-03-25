@@ -66,6 +66,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
+import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -76,6 +77,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -789,12 +791,12 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                trackedEntity.append( " TEI.lastupdated >= '" )
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated >= '" )
                     .append( getMediumDateString( params.getLastUpdatedStartDate() ) ).append( SINGLE_QUOTE );
             }
             if ( params.hasLastUpdatedEndDate() )
             {
-                trackedEntity.append( " TEI.lastupdated < '" )
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
                     .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
                     .append( SINGLE_QUOTE );
             }
@@ -1740,7 +1742,48 @@ public class HibernateTrackedEntityInstanceStore
     @Override
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
-        return getList( getCriteriaBuilder(), newJpaParameters().addPredicate( root -> root.get( "uid" ).in( uids ) ) );
+        {
+            List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+
+            List<TrackedEntityInstance> instances = new ArrayList<>();
+            for ( List<String> partition : uidPartitions )
+            {
+                instances.addAll( getList( getCriteriaBuilder(),
+                    newJpaParameters().addPredicate( root -> root.get( "uid" ).in( partition ) ) ) );
+            }
+            return instances;
+        }
+    }
+
+    @Override
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+
+        List<EventContext.TrackedEntityOuInfo> instances = new ArrayList<>();
+
+        String hql = "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntityInstance tei where tei.uid in (:uids)";
+
+        for ( List<String> partition : uidPartitions )
+        {
+            List<Object[]> resultList = getSession()
+                .createQuery( hql, Object[].class )
+                .setParameter( "uids", partition )
+                .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
+                .getResultList();
+
+            instances.addAll( resultList.stream()
+                .map( this::toTrackedEntityOuInfo )
+                .collect( Collectors.toList() ) );
+
+        }
+
+        return instances;
+    }
+
+    private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
+    {
+        return new EventContext.TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
     }
 
     @Override
