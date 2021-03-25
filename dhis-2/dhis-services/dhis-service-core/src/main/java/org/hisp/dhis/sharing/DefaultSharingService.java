@@ -134,7 +134,7 @@ public class DefaultSharingService implements SharingService
 
         if ( aclService.canMakePublic( user, object ) )
         {
-            object.getSharing().setPublicAccess( sharing.getPublicAccess() );
+            object.setPublicAccess( sharing.getPublicAccess() );
         }
 
         if ( !schema.isDataShareable() )

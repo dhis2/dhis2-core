@@ -30,11 +30,9 @@ package org.hisp.dhis.security.acl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
+import org.apache.commons.collections4.*;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -51,7 +49,10 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
+import org.hisp.dhis.util.*;
 import org.springframework.stereotype.Service;
+
+import com.sun.tools.rngom.parse.host.*;
 
 /**
  * Default ACL implementation that uses SchemaDescriptors to get authorities /
@@ -482,16 +483,15 @@ public class DefaultAclService implements AclService
 
         if ( object.getSharing().getOwner() == null )
         {
-            baseIdentifiableObject.getSharing().setOwner( user );
+            baseIdentifiableObject.setOwner( user.getUid() );
         }
 
         if ( canMakePublic( user, object ) && defaultPublic( object ) )
         {
-            baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.READ_WRITE );
+            baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
         }
 
-        object.getSharing().getUsers().clear();
-        object.getSharing().getUserGroups().clear();
+        SharingUtils.resetAccessCollections( baseIdentifiableObject );
     }
 
     @Override
@@ -503,12 +503,10 @@ public class DefaultAclService implements AclService
         }
 
         BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.getSharing().setOwner( user );
-        baseIdentifiableObject.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.getSharing().setExternal( false );
-
-        object.getSharing().resetUserAccesses();
-        object.getSharing().resetUserGroupAccesses();
+        baseIdentifiableObject.setUser( user );
+        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
+        baseIdentifiableObject.setExternalAccess( false );
+        SharingUtils.resetAccessCollections( baseIdentifiableObject );
     }
 
     @Override
