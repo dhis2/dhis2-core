@@ -115,10 +115,19 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
 
         if ( query.isEmpty() )
         {
+            Predicate predicate = builder.conjunction();
+
+            predicate.getExpressions().addAll( store
+                .getSharingPredicates( builder, query.getUser() ).stream().map( t -> t.apply( root ) )
+                .collect( Collectors.toList() ) );
+
+            criteriaQuery.where( predicate );
+
             TypedQuery<T> typedQuery = sessionFactory.getCurrentSession().createQuery( criteriaQuery );
 
             typedQuery.setFirstResult( query.getFirstResult() );
             typedQuery.setMaxResults( query.getMaxResults() );
+
             return typedQuery.getResultList();
         }
 
