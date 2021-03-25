@@ -28,6 +28,7 @@
 package org.hisp.dhis.apphub;
 
 import java.util.List;
+import java.net.URISyntaxException;
 
 import org.hisp.dhis.appmanager.AppStatus;
 
@@ -46,7 +47,7 @@ public interface AppHubService
      *        slashes.
      * @return the App Hub API response as a string.
      */
-    String getAppHubApiResponse( String apiVersion, String query );
+    String getAppHubApiResponse( String apiVersion, String query ) throws URISyntaxException;
 
     List<WebApp> getAppHub();
 
