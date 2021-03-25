@@ -791,12 +791,12 @@ public class HibernateTrackedEntityInstanceStore
         {
             if ( params.hasLastUpdatedStartDate() )
             {
-                trackedEntity.append( " TEI.lastupdated >= '" )
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated >= '" )
                     .append( getMediumDateString( params.getLastUpdatedStartDate() ) ).append( SINGLE_QUOTE );
             }
             if ( params.hasLastUpdatedEndDate() )
             {
-                trackedEntity.append( " TEI.lastupdated < '" )
+                trackedEntity.append( whereAnd.whereAnd() ).append( " TEI.lastupdated < '" )
                     .append( getMediumDateString( getDateAfterAddition( params.getLastUpdatedEndDate(), 1 ) ) )
                     .append( SINGLE_QUOTE );
             }
