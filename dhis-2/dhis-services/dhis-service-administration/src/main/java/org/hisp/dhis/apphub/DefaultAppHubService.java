@@ -84,7 +84,8 @@ public class DefaultAppHubService
     }
 
     @Override
-    public String getAppHubApiResponse( String apiVersion, String query ) throws URISyntaxException
+    public String getAppHubApiResponse( String apiVersion, String query )
+        throws URISyntaxException
     {
         validateApiVersion( apiVersion );
         validateQuery( query );
@@ -101,7 +102,7 @@ public class DefaultAppHubService
 
         log.info( "App Hub proxy request URL: '{}'", url );
 
-        ResponseEntity<String> response = restTemplate.exchange( new URI(url), HttpMethod.GET, getJsonRequestEntity(),
+        ResponseEntity<String> response = restTemplate.exchange( new URI( url ), HttpMethod.GET, getJsonRequestEntity(),
             String.class );
 
         return response.getBody();
