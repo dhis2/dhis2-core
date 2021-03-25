@@ -31,8 +31,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -642,6 +641,43 @@ public class CriteriaQueryEngineTest extends TransactionalIntegrationTest
         List<? extends IdentifiableObject> objects = queryEngine.query( query );
 
         assertEquals( 0, objects.size() );
+    }
+
+    @Test
+    public void testEmptyQueryWithNoAccessPermission()
+    {
+        User userA = createUser( 'A' );
+        userService.addUser( userA );
+        User userB = createUser( 'B' );
+        userService.addUser( userB );
+        DataElement de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        de.setCreatedBy( userB );
+        identifiableObjectManager.save( de, false );
+
+        de = identifiableObjectManager.get( DataElement.class, "deabcdefghA" );
+        assertEquals( AccessStringHelper.DEFAULT, de.getSharing().getPublicAccess() );
+        assertEquals( userB.getUid(), de.getSharing().getOwner() );
+
+        Query query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.setUser( userB );
+        List<? extends IdentifiableObject> objects = queryEngine.query( query );
+
+        // UserB is the owner so DEA is in the result list
+        Optional<? extends IdentifiableObject> notPublicDe = objects.stream()
+            .filter( d -> d.getUid().equalsIgnoreCase( "deabcdefghA" ) ).findFirst();
+
+        assertTrue( notPublicDe.isPresent() );
+
+        query = Query.from( schemaService.getDynamicSchema( DataElement.class ) );
+        query.setUser( userA );
+        objects = queryEngine.query( query );
+
+        // UserA isn't the owner and DEA is not public so it doesn't present in
+        // result list
+        notPublicDe = objects.stream()
+            .filter( d -> d.getUid().equalsIgnoreCase( "deabcdefghA" ) ).findFirst();
+
+        assertTrue( !notPublicDe.isPresent() );
     }
 
     @Test

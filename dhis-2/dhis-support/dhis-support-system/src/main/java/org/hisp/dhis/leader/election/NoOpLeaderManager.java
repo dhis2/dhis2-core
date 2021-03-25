@@ -53,7 +53,7 @@ public class NoOpLeaderManager implements LeaderManager
     {
         this.nodeId = dhisConfigurationProvider.getProperty( ConfigurationKey.NODE_ID );
         this.nodeUuid = UUID.randomUUID().toString();
-        log.info( "Initialized NoOp leader manager with NodeUuid:%s and nodeId:%s", nodeUuid, nodeId );
+        log.info( "Initialized NoOp leader manager with node UUID: '{}' and node ID: '{}'", nodeUuid, nodeId );
     }
 
     @Override
