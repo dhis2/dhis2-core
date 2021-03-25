@@ -215,6 +215,7 @@ public class JobConfigurationObjectBundleHook
         final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
             jobConfiguration, persistedJobConfiguration );
 
+        setDefaultJobParameters( tempJobConfiguration );
         validateJobConfigurationCronOrFixedDelay( errorReports, tempJobConfiguration );
         validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
 
@@ -301,6 +302,12 @@ public class JobConfigurationObjectBundleHook
         }
     }
 
+    /**
+     * Sets default job parameters on the given job configuration if no
+     * parameters exist.
+     *
+     * @param jobConfiguration the {@link JobConfiguration}.
+     */
     private void setDefaultJobParameters( JobConfiguration jobConfiguration )
     {
         if ( !jobConfiguration.isInMemoryJob() && jobConfiguration.getJobParameters() == null )
