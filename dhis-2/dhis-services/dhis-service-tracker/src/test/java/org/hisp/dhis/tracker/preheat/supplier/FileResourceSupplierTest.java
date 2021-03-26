@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.preheat.supplier;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.*;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.DhisConvenienceTest;
@@ -57,6 +57,22 @@ import com.google.common.collect.Sets;
 public class FileResourceSupplierTest
     extends DhisConvenienceTest
 {
+    private static final String NUMERIC_DATA_ELEMENT_UID = "numericDataElement";
+
+    private static final String FILE_RESOURCE_DATA_ELEMENT_UID = "fileResourceDataElement";
+
+    private static final String EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID = "emptyFileResourceDataElement";
+
+    private static final String NULL_FILE_RESOURCE_DATA_ELEMENT_UID = "nullFileResourceDataElement";
+
+    private static final String NUMERIC_ATTRIBUTE_UID = "numericAttribute";
+
+    private static final String FILE_RESOURCE_ATTRIBUTE_UID = "fileResourceAttribute";
+
+    private static final String FILE_RESOURCE_UID = "FileResourceUid";
+
+    private static final String ANOTHER_FILE_RESOURCE_UID = "AnotherFileResourceUid";
+
     private FileResourceSupplier supplierToTest;
 
     private TrackerPreheat preheat = new TrackerPreheat();
@@ -71,21 +87,31 @@ public class FileResourceSupplierTest
     public void setUp()
     {
         DataElement numericDataElement = createDataElement( 'A' );
-        numericDataElement.setUid( "numericDataElement" );
+        numericDataElement.setUid( NUMERIC_DATA_ELEMENT_UID );
         numericDataElement.setValueType( ValueType.NUMBER );
 
         DataElement fileResourceDataElement = createDataElement( 'B' );
-        fileResourceDataElement.setUid( "fileResourceDataElement" );
+        fileResourceDataElement.setUid( FILE_RESOURCE_DATA_ELEMENT_UID );
         fileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
 
-        preheat.put( TrackerIdentifier.UID, Lists.newArrayList( numericDataElement, fileResourceDataElement ) );
+        DataElement emptyFileResourceDataElement = createDataElement( 'C' );
+        emptyFileResourceDataElement.setUid( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID );
+        emptyFileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
+
+        DataElement nullFileResourceDataElement = createDataElement( 'D' );
+        nullFileResourceDataElement.setUid( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
+        nullFileResourceDataElement.setValueType( ValueType.FILE_RESOURCE );
+
+        preheat.put( TrackerIdentifier.UID, Lists
+            .newArrayList( numericDataElement, fileResourceDataElement, emptyFileResourceDataElement,
+                nullFileResourceDataElement ) );
 
         TrackedEntityAttribute numericAttribute = createTrackedEntityAttribute( 'A' );
-        numericAttribute.setUid( "numericAttribute" );
+        numericAttribute.setUid( NUMERIC_ATTRIBUTE_UID );
         numericAttribute.setValueType( ValueType.NUMBER );
 
         TrackedEntityAttribute fileResourceAttribute = createTrackedEntityAttribute( 'A' );
-        fileResourceAttribute.setUid( "fileResourceAttribute" );
+        fileResourceAttribute.setUid( FILE_RESOURCE_ATTRIBUTE_UID );
         fileResourceAttribute.setValueType( ValueType.FILE_RESOURCE );
 
         preheat.put( TrackerIdentifier.UID, Lists.newArrayList( numericAttribute, fileResourceAttribute ) );
@@ -97,12 +123,12 @@ public class FileResourceSupplierTest
     public void verifySupplier()
     {
         FileResource fileResource = createFileResource( 'A', "FileResource".getBytes() );
-        fileResource.setUid( "FileResourceUid" );
+        fileResource.setUid( FILE_RESOURCE_UID );
         FileResource anotherFileResource = createFileResource( 'B', "AnotherFileResource".getBytes() );
-        anotherFileResource.setUid( "AnotherFileResourceUid" );
+        anotherFileResource.setUid( ANOTHER_FILE_RESOURCE_UID );
 
         when( fileResourceService
-            .getFileResources( Lists.newArrayList( "AnotherFileResourceUid", "FileResourceUid" ) ) )
+            .getFileResources( Lists.newArrayList( ANOTHER_FILE_RESOURCE_UID, FILE_RESOURCE_UID ) ) )
                 .thenReturn( Lists.newArrayList( fileResource, anotherFileResource ) );
 
         final TrackerImportParams params = TrackerImportParams
@@ -115,16 +141,16 @@ public class FileResourceSupplierTest
         this.supplierToTest.preheatAdd( params, preheat );
 
         assertThat( preheat.getAll( FileResource.class ), hasSize( 2 ) );
+        assertThat( preheat.getAll( FileResource.class ), containsInAnyOrder( fileResource, anotherFileResource ) );
     }
 
     private TrackedEntity getTrackedEntity()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( "numericAttribute" );
+        attribute.setAttribute( NUMERIC_ATTRIBUTE_UID );
         attribute.setValueType( ValueType.NUMBER );
 
         TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setTrackedEntity( "TrackedEntity" );
         trackedEntity.setAttributes( Lists.newArrayList( attribute ) );
 
         return trackedEntity;
@@ -133,9 +159,9 @@ public class FileResourceSupplierTest
     private Enrollment getEnrollment()
     {
         Attribute attribute = new Attribute();
-        attribute.setAttribute( "fileResourceAttribute" );
+        attribute.setAttribute( FILE_RESOURCE_ATTRIBUTE_UID );
         attribute.setValueType( ValueType.FILE_RESOURCE );
-        attribute.setValue( "AnotherFileResourceUid" );
+        attribute.setValue( ANOTHER_FILE_RESOURCE_UID );
 
         Enrollment enrollment = new Enrollment();
         enrollment.setAttributes( Lists.newArrayList( attribute ) );
@@ -145,12 +171,26 @@ public class FileResourceSupplierTest
 
     private Event getEvent()
     {
-        DataValue dataValue = new DataValue();
-        dataValue.setDataElement( "fileResourceDataElement" );
-        dataValue.setValue( "FileResourceUid" );
+        DataValue fileResourceDataValue = new DataValue();
+        fileResourceDataValue.setDataElement( FILE_RESOURCE_DATA_ELEMENT_UID );
+        fileResourceDataValue.setValue( FILE_RESOURCE_UID );
+
+        DataValue emptyFileResourceDataValue = new DataValue();
+        emptyFileResourceDataValue.setDataElement( EMPTY_FILE_RESOURCE_DATA_ELEMENT_UID );
+        emptyFileResourceDataValue.setValue( "" );
+
+        DataValue nullFileResourceDataValue = new DataValue();
+        nullFileResourceDataValue.setDataElement( NULL_FILE_RESOURCE_DATA_ELEMENT_UID );
+        nullFileResourceDataValue.setValue( null );
+
+        DataValue numericDataValue = new DataValue();
+        numericDataValue.setDataElement( NUMERIC_DATA_ELEMENT_UID );
+        numericDataValue.setValue( "3" );
 
         Event event = new Event();
-        event.setDataValues( Sets.newHashSet( dataValue ) );
+        event.setDataValues(
+            Sets.newHashSet( fileResourceDataValue, emptyFileResourceDataValue, nullFileResourceDataValue,
+                numericDataValue ) );
 
         return event;
     }
