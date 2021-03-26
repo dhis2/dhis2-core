@@ -267,7 +267,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
-        handleSharing( params.getObjects() );
+        handleSharing( params, preheat );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
@@ -279,10 +279,22 @@ public class DefaultPreheatService implements PreheatService
         return preheat;
     }
 
-    private void handleSharing( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
+    private void handleSharing( PreheatParams params, Preheat preheat )
     {
-        objects.forEach( ( klass, list ) -> list.forEach( object -> ((BaseIdentifiableObject) object)
-            .setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) ) ) );
+        params.getObjects().forEach( ( klass, list ) -> list.forEach( object -> {
+
+            Schema schema = schemaService.getDynamicSchema( klass );
+
+            if ( schema == null || !schema.isShareable() )
+            {
+                return;
+            }
+
+            ((BaseIdentifiableObject) object)
+                .setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) );
+
+            preheat.put( params.getPreheatIdentifier(), object );
+        } ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,
