@@ -45,6 +45,6 @@ public class vCreationDate
     {
         return visitor.getStatementBuilder().getProgramIndicatorEventColumnSql(
             null, "created", visitor.getReportingStartDate(),
-            visitor.getReportingStartDate(), visitor.getProgramIndicator() );
+            visitor.getReportingEndDate(), visitor.getProgramIndicator() );
     }
 }
