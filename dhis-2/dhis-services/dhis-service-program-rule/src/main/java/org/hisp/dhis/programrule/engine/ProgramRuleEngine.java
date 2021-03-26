@@ -97,12 +97,19 @@ public class ProgramRuleEngine
     public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
         Set<ProgramStageInstance> events )
     {
+        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
+            Lists.newArrayList() );
+    }
+
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
+        Set<ProgramStageInstance> events, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    {
         if ( programStageInstance == null )
         {
             return Lists.newArrayList();
         }
         return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
-            Lists.newArrayList() );
+            trackedEntityAttributeValues );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
