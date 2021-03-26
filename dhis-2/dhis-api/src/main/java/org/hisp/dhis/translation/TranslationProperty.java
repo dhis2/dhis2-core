@@ -33,14 +33,22 @@ package org.hisp.dhis.translation;
  */
 public enum TranslationProperty
 {
-    NAME ( "name" ),
-    SHORT_NAME ( "shortName" ),
-    DESCRIPTION ("description" ),
-    FORM_NAME ( "formName" ),
-    NUMERATOR_DESCRIPTION ( "numeratorDescription" ),
-    DENOMINATOR_DESCRIPTION ( "denominatorDescription" ),
-    RELATIONSHIP_FROM_TO_NAME ("fromToName" ),
-    RELATIONSHIP_TO_FROM_NAME ("toFromName" );
+    NAME( "name" ),
+    SHORT_NAME( "shortName" ),
+    DESCRIPTION( "description" ),
+    FORM_NAME( "formName" ),
+    NUMERATOR_DESCRIPTION( "numeratorDescription" ),
+    DENOMINATOR_DESCRIPTION( "denominatorDescription" ),
+    RELATIONSHIP_FROM_TO_NAME( "fromToName" ),
+    RELATIONSHIP_TO_FROM_NAME( "toFromName" ),
+    INSTRUCTION( "instruction" ),
+    CONTENT( "content" ),
+    domainAxisLabel( "domainAxisLabel" ),
+    rangeAxisLabel( "rangeAxisLabel" ),
+    targetLineLabel( "targetLineLabel" ),
+    baseLineLabel( "baseLineLabel" ),
+    title( "title" ),
+    subtitle( "subtitle" );
 
     private String name;
 

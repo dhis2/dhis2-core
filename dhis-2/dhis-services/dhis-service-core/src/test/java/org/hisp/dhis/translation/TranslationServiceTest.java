@@ -28,34 +28,22 @@ package org.hisp.dhis.translation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.hisp.dhis.DhisSpringTest;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.UserContext;
-import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramSection;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserService;
-import org.hisp.dhis.user.UserSettingKey;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.hisp.dhis.*;
+import org.hisp.dhis.chart.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.eventchart.*;
+import org.hisp.dhis.option.*;
+import org.hisp.dhis.organisationunit.*;
+import org.hisp.dhis.program.*;
+import org.hisp.dhis.relationship.*;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.user.*;
+import static org.junit.Assert.*;
+import org.junit.*;
+import org.springframework.beans.factory.annotation.*;
 
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Set;
-
-import static org.junit.Assert.assertEquals;
+import java.util.*;
 
 /**
  * @author Viet Nguyen <viet@dhis2.org>
@@ -75,7 +63,7 @@ public class TranslationServiceTest
 
 
     @Override
-    public void setUpTest() 
+    public void setUpTest()
     {
         this.userService = injectUserService;
         user = createUserAndInjectSecurityContext( true );
@@ -234,5 +222,49 @@ public class TranslationServiceTest
 
         assertEquals( fromToNameTranslated, relationshipType.getDisplayFromToName() );
         assertEquals( toFromNameTranslated, relationshipType.getDisplayToFromName() );
+    }
+
+    @Test
+    public void testChartTranslations()
+    {
+        Program prA = createProgram( 'A', null, null );
+        manager.save( prA );
+
+        EventChart ecA = new EventChart( "ecA" );
+        ecA.setProgram( prA );
+        ecA.setType( ChartType.COLUMN );
+        ecA.setBaseLineLabel( "BaseLineLabel" );
+        ecA.setDomainAxisLabel( "DomainAxisLabel" );
+        ecA.setRangeAxisLabel( "RangeAxisLabel" );
+        ecA.setTargetLineLabel( "TargetLineLabel" );
+        ecA.setTitle( "Title" );
+        ecA.setSubtitle( "SubTitle" );
+
+        manager.save( ecA );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.baseLineLabel,
+            "translated BaseLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.domainAxisLabel,
+            "translated DomainAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.rangeAxisLabel,
+            "translated RangeAxisLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.targetLineLabel,
+            "translated TargetLineLabel" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.title,
+            "translated Title" ) );
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.subtitle,
+            "translated SubTitle" ) );
+
+        manager.updateTranslations( ecA, translations );
+
+        EventChart updated = manager.get( EventChart.class, ecA.getUid() );
+
+        assertEquals( "translated BaseLineLabel", updated.getDisplayBaseLineLabel() );
+        assertEquals( "translated DomainAxisLabel", updated.getDisplayDomainAxisLabel() );
+        assertEquals( "translated RangeAxisLabel", updated.getDisplayRangeAxisLabel() );
+        assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
+        assertEquals( "translated Title", updated.getDisplayTitle() );
+        assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
     }
 }

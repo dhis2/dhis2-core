@@ -48,6 +48,18 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -930,7 +942,22 @@ public class DefaultTrackedEntityInstanceService
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
         return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids, user );
     }
 
     @Override

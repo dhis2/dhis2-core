@@ -94,6 +94,8 @@ public interface ProgramService
      */
     List<Program> getAllPrograms();
 
+    Collection<Program> getPrograms( Collection<String> uids );
+
     /**
      * Get all {@link Program} belong to a orgunit
      *

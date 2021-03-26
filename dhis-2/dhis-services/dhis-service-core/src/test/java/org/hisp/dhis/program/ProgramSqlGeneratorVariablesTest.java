@@ -222,7 +222,7 @@ public class ProgramSqlGeneratorVariablesTest
     {
         String sql = (String) subject.visit( mockContext( V_ENROLLMENT_STATUS ) );
 
-        assertThat( sql, is( "enrollmentstatus" ) );
+        assertThat( sql, is( "pistatus" ) );
     }
 
     @Test

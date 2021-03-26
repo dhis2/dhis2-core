@@ -246,6 +246,10 @@ public abstract class AbstractEventService
     @Autowired
     private ProgramRuleVariableService ruleVariableService;
 
+    @Autowired
+    private EventServiceContextBuilder eventServiceContextBuilder;
+
+
     protected static final int FLUSH_FREQUENCY = 100;
 
     // -------------------------------------------------------------------------
@@ -797,11 +801,14 @@ public abstract class AbstractEventService
 
         List<EventRow> eventRowList = eventStore.getEventRows( params, organisationUnits );
 
+        EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
+
         for ( EventRow eventRow : eventRowList )
         {
-            if ( trackerOwnershipAccessManager.hasAccess( user,
-                entityInstanceService.getTrackedEntityInstance( eventRow.getTrackedEntityInstance() ),
-                programService.getProgram( eventRow.getProgram() ) ) )
+            if ( trackerOwnershipAccessManager.hasAccessUsingContext( user,
+                eventRow.getTrackedEntityInstance(),
+                eventRow.getProgram(),
+                eventContext ) )
             {
                 eventRows.getEventRows().add( eventRow );
             }
