@@ -72,7 +72,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -641,5 +641,28 @@ public class MetadataImportServiceTest extends DhisSpringTest
         assertEquals( "1", xpathTest( "count(//d:programStageSection)", outputStream.toString() ) );
         assertEquals( "SEQUENTIAL", xpathTest( "//d:MOBILE/@type", outputStream.toString() ) );
         assertEquals( "LISTING", xpathTest( "//d:DESKTOP/@type", outputStream.toString() ) );
+    }
+
+    @Test
+    public void testImportUser()
+        throws IOException
+    {
+        User userF = createUser( 'F', Lists.newArrayList( "ALL" ) );
+        userService.addUser( userF );
+
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/create_user_without_createdBy.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE_AND_UPDATE );
+        params.setUser( userF );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        User user = manager.get( User.class, "MwhEJUnTHkn" );
+        assertNotNull( user.getUserCredentials().getUser() );
     }
 }

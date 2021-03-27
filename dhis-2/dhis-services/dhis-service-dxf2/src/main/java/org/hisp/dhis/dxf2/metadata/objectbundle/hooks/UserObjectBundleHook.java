@@ -257,6 +257,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
             userCredentials.setUser( (User) userCredentialsReferenceMap.get( "user" ) );
             userCredentials.setUserInfo( user );
 
+            if ( userCredentials.getUser() == null )
+            {
+                userCredentials.setUser( bundle.getUser() );
+            }
+
+            userCredentials.setLastUpdatedBy( bundle.getUser() );
+
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
             preheatService.connectReferences( userCredentials, bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
