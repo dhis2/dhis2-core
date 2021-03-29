@@ -256,6 +256,14 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook
                 (Set<OrganisationUnit>) userReferenceMap.get( "dataViewOrganisationUnits" ) );
             userCredentials
                 .setCreatedBy( (User) userCredentialsReferenceMap.get( BaseIdentifiableObject_.CREATED_BY ) );
+
+            if ( userCredentials.getCreatedBy() == null )
+            {
+                userCredentials.setCreatedBy( bundle.getUser() );
+            }
+
+            userCredentials.setLastUpdatedBy( bundle.getUser() );
+
             userCredentials.setUserInfo( user );
 
             preheatService.connectReferences( user, bundle.getPreheat(), bundle.getPreheatIdentifier() );
