@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
+import java.util.function.Function;
 
 /**
  * Represents a JSON array node.
@@ -75,6 +78,11 @@ public interface JsonArray extends JsonCollection
      */
     List<Boolean> boolValues();
 
+    default <E> List<E> values( Function<String, E> mapper )
+    {
+        return stringValues().stream().map( mapper ).collect( toList() );
+    }
+
     default JsonValue get( int index )
     {
         return get( index, JsonValue.class );
@@ -107,11 +115,16 @@ public interface JsonArray extends JsonCollection
 
     default <E extends JsonValue> JsonList<E> getList( int index, Class<E> as )
     {
-        return asList( getArray( index ), as );
+        return JsonCollection.asList( getArray( index ), as );
     }
 
     default <E extends JsonValue> JsonMap<E> getMap( int index, Class<E> as )
     {
-        return asMap( getObject( index ), as );
+        return JsonCollection.asMap( getObject( index ), as );
+    }
+
+    default <E extends JsonValue> JsonMultiMap<E> getMultiMap( int index, Class<E> as )
+    {
+        return JsonCollection.asMultiMap( getObject( index ), as );
     }
 }

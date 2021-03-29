@@ -27,66 +27,35 @@
  */
 package org.hisp.dhis.preheat;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.stream.*;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.extern.slf4j.*;
 
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.attribute.Attribute;
-import org.hisp.dhis.attribute.AttributeService;
-import org.hisp.dhis.category.CategoryDimension;
-import org.hisp.dhis.common.AnalyticalObject;
-import org.hisp.dhis.common.BaseAnalyticalObject;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionItem;
-import org.hisp.dhis.common.EmbeddedObject;
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.commons.timer.SystemTimer;
+import org.apache.commons.lang3.*;
+import org.hisp.dhis.attribute.*;
+import org.hisp.dhis.category.*;
+import org.hisp.dhis.common.*;
+import org.hisp.dhis.commons.collection.*;
+import org.hisp.dhis.commons.timer.*;
 import org.hisp.dhis.commons.timer.Timer;
-import org.hisp.dhis.dataelement.DataElementOperand;
-import org.hisp.dhis.dataset.DataSetElement;
-import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.period.Period;
-import org.hisp.dhis.period.PeriodService;
-import org.hisp.dhis.period.PeriodStore;
-import org.hisp.dhis.query.Query;
-import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.Restrictions;
-import org.hisp.dhis.schema.MergeParams;
-import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.system.util.ReflectionUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityDataElementDimension;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAuthorityGroup;
-import org.hisp.dhis.user.UserCredentials;
-import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.sharing.UserAccess;
-import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.springframework.context.annotation.Scope;
-import org.springframework.context.annotation.ScopedProxyMode;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.hisp.dhis.dataelement.*;
+import org.hisp.dhis.dataset.*;
+import org.hisp.dhis.hibernate.*;
+import org.hisp.dhis.period.*;
+import org.hisp.dhis.query.*;
+import org.hisp.dhis.schema.*;
+import org.hisp.dhis.system.util.*;
+import org.hisp.dhis.trackedentity.*;
+import org.hisp.dhis.user.*;
+import org.hisp.dhis.util.*;
+import org.springframework.context.annotation.*;
+import org.springframework.stereotype.*;
+import org.springframework.transaction.annotation.*;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.*;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -298,7 +267,7 @@ public class DefaultPreheatService implements PreheatService
         }
 
         handleAttributes( params.getObjects(), preheat );
-        handleSecurity( params.getObjects(), params.getPreheatIdentifier(), preheat );
+        handleSharing( params.getObjects() );
 
         periodStore.getAll().forEach( period -> preheat.getPeriodMap().put( period.getName(), period ) );
         periodStore.getAllPeriodTypes()
@@ -310,38 +279,10 @@ public class DefaultPreheatService implements PreheatService
         return preheat;
     }
 
-    private void handleSecurity( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,
-        PreheatIdentifier identifier, Preheat preheat )
+    private void handleSharing( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects )
     {
-        objects.forEach( ( klass, list ) -> list.forEach( object -> {
-            object.getSharing().setExternal( object.getExternalAccess() );
-            object.getSharing().setOwner( object.getCreatedBy() );
-            object.getSharing().setPublicAccess( object.getPublicAccess() );
-
-            object.getUserAccesses().forEach( ua -> {
-                User user = preheat.get( PreheatIdentifier.UID, User.class, ua.getUserUid() );
-
-                if ( user != null )
-                {
-                    ua.setUser( user );
-                }
-
-                // Copy legacy sharing to new jsonb sharing
-                object.getSharing().getUsers().put( ua.getUid(), new UserAccess( ua ) );
-            } );
-
-            object.getUserGroupAccesses().forEach( uga -> {
-                UserGroup userGroup = preheat.get( PreheatIdentifier.UID, UserGroup.class, uga.getUserGroupUid() );
-
-                if ( userGroup != null )
-                {
-                    uga.setUserGroup( userGroup );
-                }
-
-                // Copy legacy sharing to new jsonb sharing
-                object.getSharing().getUserGroups().put( uga.getUid(), new UserGroupAccess( uga ) );
-            } );
-        } ) );
+        objects.forEach( ( klass, list ) -> list.forEach( object -> ((BaseIdentifiableObject) object)
+            .setSharing( SharingUtils.generateSharingFromIdentifiableObject( object ) ) ) );
     }
 
     private void handleAttributes( Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> objects,

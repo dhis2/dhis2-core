@@ -30,10 +30,8 @@ package org.hisp.dhis.validation.notification;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -55,8 +53,6 @@ import com.google.common.collect.Sets;
  */
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode( callSuper = true )
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationNotificationTemplate
@@ -64,6 +60,23 @@ public class ValidationNotificationTemplate
     implements NotificationTemplate, MetadataObject
 {
     private static final Set<DeliveryChannel> ALL_DELIVERY_CHANNELS = Sets.newHashSet( DeliveryChannel.values() );
+
+    public ValidationNotificationTemplate()
+    {
+    }
+
+    public ValidationNotificationTemplate( String subjectTemplate, String messageTemplate,
+        Set<ValidationRule> validationRules, Boolean notifyUsersInHierarchyOnly,
+        Boolean notifyParentOrganisationUnitOnly, Set<UserGroup> recipientUserGroups, SendStrategy sendStrategy )
+    {
+        this.subjectTemplate = subjectTemplate;
+        this.messageTemplate = messageTemplate;
+        this.validationRules = validationRules;
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+        this.recipientUserGroups = recipientUserGroups;
+        this.sendStrategy = sendStrategy;
+    }
 
     // -------------------------------------------------------------------------
     // Properties

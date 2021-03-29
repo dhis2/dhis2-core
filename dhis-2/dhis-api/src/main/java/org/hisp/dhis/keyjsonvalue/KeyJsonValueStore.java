@@ -81,4 +81,19 @@ public interface KeyJsonValueStore
      * @return the KeyJsonValue retrieved
      */
     KeyJsonValue getKeyJsonValue( String namespace, String key );
+
+    /**
+     * Deletes all values in the provided namespace.
+     *
+     * @param namespace the namespace for which to remove all values
+     */
+    void deleteNamespace( String namespace );
+
+    /**
+     * Counts the entries in a given namespace.
+     *
+     * @param namespace the namespace to count
+     * @return number of entries in the given namespace.
+     */
+    int countKeysInNamespace( String namespace );
 }

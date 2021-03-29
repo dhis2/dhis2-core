@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.emptyMap;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_JSON;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -212,12 +214,9 @@ public class SystemController
     public void getTasksExtendedJson( @PathVariable( "jobType" ) String jobType, HttpServletResponse response )
         throws IOException
     {
-        Map<String, List<Notification>> notifications = new HashMap<>();
-
-        if ( jobType != null )
-        {
-            notifications = notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
-        }
+        Map<String, Deque<Notification>> notifications = jobType == null
+            ? emptyMap()
+            : notifier.getNotificationsByJobType( JobType.valueOf( jobType.toUpperCase() ) );
 
         setNoStore( response );
         response.setContentType( CONTENT_TYPE_JSON );
@@ -231,12 +230,9 @@ public class SystemController
         HttpServletResponse response )
         throws IOException
     {
-        List<Notification> notifications = new ArrayList<>();
-
-        if ( jobType != null )
-        {
-            notifications = notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
-        }
+        Collection<Notification> notifications = jobType == null
+            ? emptyList()
+            : notifier.getNotificationsByJobId( JobType.valueOf( jobType.toUpperCase() ), jobId );
 
         setNoStore( response );
         response.setContentType( CONTENT_TYPE_JSON );

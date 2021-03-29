@@ -83,6 +83,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueMultiPropertiesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UpdateCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationCheck;
@@ -147,6 +148,7 @@ public class ServiceConfig
         SecurityCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
         ReferencesCheck.class );
@@ -158,6 +160,7 @@ public class ServiceConfig
         CreationCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
         ReferencesCheck.class );
@@ -169,6 +172,7 @@ public class ServiceConfig
         UpdateCheck.class,
         SchemaCheck.class,
         UniquenessCheck.class,
+        UniqueMultiPropertiesCheck.class,
         MandatoryAttributesCheck.class,
         UniqueAttributesCheck.class,
         ReferencesCheck.class );

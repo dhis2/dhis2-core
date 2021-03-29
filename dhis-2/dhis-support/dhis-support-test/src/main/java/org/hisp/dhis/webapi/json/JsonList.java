@@ -28,9 +28,17 @@
 package org.hisp.dhis.webapi.json;
 
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
-import javax.validation.constraints.NotNull;
+import javax.annotation.Nonnull;
+
+import com.google.common.collect.Iterators;
 
 /**
  * A {@link JsonList} is nothing else then a {@link JsonArray} with "typed"
@@ -53,7 +61,7 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
     E get( int index );
 
     @Override
-    @NotNull
+    @Nonnull
     default Iterator<E> iterator()
     {
         int size = size();
@@ -78,5 +86,34 @@ public interface JsonList<E extends JsonValue> extends JsonCollection, Iterable<
                 return e;
             }
         };
+    }
+
+    default Iterable<E> filtered( Predicate<? super E> filter )
+    {
+        return () -> Iterators.filter( iterator(), filter::test );
+    }
+
+    /**
+     * @return this list as a {@link Stream}
+     */
+    default Stream<E> stream()
+    {
+        return StreamSupport.stream( spliterator(), false );
+    }
+
+    /**
+     * Map this {@link JsonList} to a plain {@link List}. To map the element
+     * from a {@link JsonValue} to a plain value a mapper {@link Function} is
+     * provided.
+     *
+     * @param mapper maps from {@link JsonValue} to plain value
+     * @param <T> type of result list elements
+     * @return this list mapped to a {@link List} of elements mapped by the
+     *         provided mapper function from the {@link JsonValue}s of this
+     *         {@link JsonList}.
+     */
+    default <T> List<T> toList( Function<E, T> mapper )
+    {
+        return stream().map( mapper ).collect( Collectors.toList() );
     }
 }

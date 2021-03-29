@@ -59,10 +59,11 @@ package org.hisp.dhis.webapi.json;
  * implemented by this class are dynamically created using a
  * {@link java.lang.reflect.Proxy}.</li>
  * </ul>
+ *
+ * @author Jan Bernitt
  */
 public interface JsonValue
 {
-
     /**
      * A property exists when it is part of the JSON response. This means it can
      * be declared JSON {@code null}. Only a path that does not exist returns
@@ -75,15 +76,24 @@ public interface JsonValue
     /**
      * @return true if the value exists and is defined JSON {@code null}
      * @throws java.util.NoSuchElementException in case this value does not
-     *         exist in the content
+     *         exist in the JSON document
      */
     boolean isNull();
+
+    /**
+     * @return true if this JSON node either does not exist at all or is defined
+     *         as JSON {@code null}, otherwise false
+     */
+    default boolean isUndefined()
+    {
+        return !exists() || isNull();
+    }
 
     /**
      * @return true if the value exists and is a JSON array node (empty or not)
      *         but not JSON {@code null}
      * @throws java.util.NoSuchElementException in case this value does not
-     *         exist in the content
+     *         exist in the JSON document
      */
     boolean isArray();
 
@@ -91,7 +101,7 @@ public interface JsonValue
      * @return true if the value exists and is an JSON object node (empty or
      *         not) but not JSON {@code null}
      * @throws java.util.NoSuchElementException in case this value does not
-     *         exist in the content
+     *         exist in the JSON document
      */
     boolean isObject();
 
@@ -109,4 +119,55 @@ public interface JsonValue
      *         wrapped as the provided type or literally cast.
      */
     <T extends JsonValue> T as( Class<T> as );
+
+    /**
+     * This value as a list of uniform elements (view on JSON array).
+     *
+     * @param elementType assumed value element type
+     * @param <E> type of list elements
+     * @return list view of this value (assumes array)
+     */
+    default <E extends JsonValue> JsonList<E> asList( Class<E> elementType )
+    {
+        return JsonCollection.asList( as( JsonArray.class ), elementType );
+    }
+
+    /**
+     * This value as map of uniform values (view on JSON object).
+     *
+     * @param valueType assumed map value type
+     * @param <V> type of map values
+     * @return map view of this value (assumes object)
+     */
+    default <V extends JsonValue> JsonMap<V> asMap( Class<V> valueType )
+    {
+        return JsonCollection.asMap( as( JsonObject.class ), valueType );
+    }
+
+    /**
+     * This value as map of list value with of uniform elements (view on JSON
+     * object).
+     *
+     * @param valueType assumed map value type
+     * @param <V> type of map values
+     * @return map view of this value (assumes object)
+     */
+    default <V extends JsonValue> JsonMultiMap<V> asMultiMap( Class<V> valueType )
+    {
+        return JsonCollection.asMultiMap( as( JsonObject.class ), valueType );
+    }
+
+    /**
+     * Access the node in the JSON document. This can be the low level API that
+     * is concerned with extraction by path.
+     *
+     * This might be useful in test to access the
+     * {@link JsonNode#getDeclaration()} to modify and reuse it.
+     *
+     * @return the underlying {@link JsonNode} in the overall JSON document if
+     *         it exists
+     * @throws java.util.NoSuchElementException in case this value does not
+     *         exist in the JSON document
+     */
+    JsonNode node();
 }

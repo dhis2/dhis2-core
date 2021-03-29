@@ -28,9 +28,11 @@
 package org.hisp.dhis.dataset;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.hisp.dhis.system.deletion.DeletionVeto.ACCEPT;
 
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -41,9 +43,8 @@ import org.springframework.stereotype.Component;
 public class DataInputPeriodDeletionHandler
     extends DeletionHandler
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+
+    private static final DeletionVeto VETO = new DeletionVeto( DataInputPeriod.class );
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -53,21 +54,17 @@ public class DataInputPeriodDeletionHandler
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    // -------------------------------------------------------------------------
-    // DeletionHandler implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public String allowDeletePeriod( Period period )
+    protected void register()
+    {
+        whenVetoing( Period.class, this::allowDeletePeriod );
+    }
+
+    private DeletionVeto allowDeletePeriod( Period period )
     {
         String sql = "SELECT COUNT(*) FROM datainputperiod where periodid=" + period.getId();
 
-        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? null : ERROR;
+        return jdbcTemplate.queryForObject( sql, Integer.class ) == 0 ? ACCEPT : VETO;
     }
 
-    @Override
-    protected String getClassName()
-    {
-        return DataInputPeriod.class.getSimpleName();
-    }
 }

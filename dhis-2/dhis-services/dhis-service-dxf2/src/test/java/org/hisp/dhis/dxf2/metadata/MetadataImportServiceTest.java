@@ -55,6 +55,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -179,6 +180,42 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
+    public void testImportUpdatePublicAccess()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_accesses.json" ).getInputStream(), RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        assertEquals( "rw------", dataSet.getPublicAccess() );
+
+        metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/dataset_with_publicAccess_update.json" ).getInputStream(), RenderFormat.JSON );
+
+        params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.UPDATE );
+        params.setObjects( metadata );
+
+        report = importService.importMetadata( params );
+        assertEquals( Status.OK, report.getStatus() );
+
+        DataSet updatedDataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
+
+        assertEquals( "r-------", updatedDataSet.getPublicAccess() );
+
+    }
+
+    @Test
     public void testImportWithAccessObjects()
         throws IOException
     {
@@ -267,6 +304,26 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         // Should not get to this point.
         fail( "The exception org.hibernate.MappingException was expected." );
+    }
+
+    @Test
+    public void testImportMultiPropertyUniqueness()
+        throws IOException
+    {
+        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
+            new ClassPathResource( "dxf2/favorites/metadata_multi_property_uniqueness.json" ).getInputStream(),
+            RenderFormat.JSON );
+
+        MetadataImportParams params = new MetadataImportParams();
+        params.setImportMode( ObjectBundleMode.COMMIT );
+        params.setImportStrategy( ImportStrategy.CREATE );
+        params.setObjects( metadata );
+
+        ImportReport importReport = importService.importMetadata( params );
+
+        assertTrue( importReport.getTypeReports().stream()
+            .flatMap( typeReport -> typeReport.getErrorReports().stream() )
+            .anyMatch( errorReport -> errorReport.getErrorCode().equals( ErrorCode.E5005 ) ) );
     }
 
     @Test

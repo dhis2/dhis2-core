@@ -37,6 +37,8 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -119,12 +121,13 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
@@ -135,9 +138,42 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
                 .collect( Collectors.toSet() ) );
 
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( limitedTTrackedEntityInstances, hasSize( 2 ) );
+    }
+
+    @Test
+    public void testFetchTrackedEntityInstancesWithLastUpdatedParameter()
+    {
+        doInTransaction( () -> {
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+            this.persistTrackedEntityInstance();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
+        queryParams.setLastUpdatedStartDate( Date.from( Instant.now().minus( 1, ChronoUnit.DAYS ) ) );
+        queryParams.setLastUpdatedEndDate( new Date() );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( trackedEntityInstances, hasSize( 4 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
+
+        // Update last updated start date to today
+        queryParams.setLastUpdatedStartDate( Date.from( Instant.now().plus( 1, ChronoUnit.DAYS ) ) );
+
+        final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances( queryParams, params, false, true );
+
+        assertThat( limitedTTrackedEntityInstances, hasSize( 0 ) );
     }
 
     @Test
@@ -152,13 +188,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeEnrollments( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -181,13 +218,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeEnrollments( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -210,6 +248,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -217,7 +256,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -244,6 +283,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -251,7 +291,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
 
@@ -275,6 +315,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -282,7 +323,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
 
@@ -313,6 +354,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -320,7 +362,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
@@ -365,6 +407,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -372,7 +415,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( false );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
 
@@ -413,6 +456,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -420,7 +464,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
@@ -438,6 +482,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -445,7 +490,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
         Enrollment enrollment = tei.getEnrollments().get( 0 );
         Event event = enrollment.getEvents().get( 0 );
@@ -470,13 +515,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeRelationships( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances.get( 0 ).getRelationships(), hasSize( 1 ) );
         final Relationship relationship = trackedEntityInstances.get( 0 ).getRelationships().get( 0 );
@@ -501,13 +547,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeRelationships( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         // Fetch the TEI which is the vertex of the relationship TEI <-->
         // ENROLLMENT
@@ -552,6 +599,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
@@ -560,7 +608,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         params.setIncludeEvents( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         // Fetch the TEI which is the vertex of the relationship TEI <-->
         // ENROLLMENT
@@ -593,13 +641,14 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
 
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
+        queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
 
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
         params.setIncludeProgramOwners( true );
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances( queryParams, params, false, true );
 
         assertThat( trackedEntityInstances.get( 0 ).getProgramOwners(), hasSize( 1 ) );
         ProgramOwner programOwner = trackedEntityInstances.get( 0 ).getProgramOwners().get( 0 );

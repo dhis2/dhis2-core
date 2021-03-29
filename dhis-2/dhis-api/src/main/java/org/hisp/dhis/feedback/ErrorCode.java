@@ -174,6 +174,7 @@ public enum ErrorCode
     E5002( "Invalid reference {0} on object {1} for association `{2}`." ),
     E5003( "Property `{0}` with value `{1}` on object {2} already exists on object {3}." ),
     E5004( "Id `{0}` for type `{1}` exists on more than 1 object in the payload, removing all but the first found." ),
+    E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Program Instances" ),
@@ -189,17 +190,16 @@ public enum ErrorCode
 
     /* Scheduling */
     E7000(
-        "Failed to add/update job configuration, another job of the same job type is already scheduled with this cron expression: `{0}`" ),
+        "Failed to add/update job configuration, another job of the same type already scheduled with cron expression: `{0}`" ),
     E7002( "Failed to add/update job configuration, UID does not exist" ),
     E7003(
         "Failed to add/update job configuration, only interval can be configured for non configurable job type: `{0}`" ),
     E7004(
         "Failed to add/update job configuration, cron expression must be not null for job with scheduling type CRON: `{0}`" ),
     E7005( "Failed to add/update job configuration, cron expression is invalid: `{0}` " ),
-    E7006( "Failed to execute job `{0}`." ),
-    E7007(
-        "Failed to add/update job configuration - Delay must be not null for jobs with scheduling type FIXED_DELAY: `{0}`" ),
-    E7010( "Failed to validate job runtime - `{0}`" ),
+    E7006( "Failed to execute job: `{0}`." ),
+    E7007( "Failed to add/update job configuration, delay must be not null with scheduling type FIXED_DELAY: `{0}`" ),
+    E7010( "Failed to validate job runtime: `{0}`" ),
 
     /* Aggregate analytics */
     E7100( "Query parameters cannot be null" ),

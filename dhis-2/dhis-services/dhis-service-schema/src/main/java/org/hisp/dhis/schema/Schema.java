@@ -33,6 +33,8 @@ import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,6 +45,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
@@ -205,6 +208,13 @@ public class Schema implements Ordered, Klass
      * @see org.hisp.dhis.schema.Property
      */
     private Map<String, Property> propertyMap = Maps.newHashMap();
+
+    /**
+     * Map defining a way to retieve values from a set of properties. Only make
+     * sense for IdentifiableObjects schemas
+     */
+    private Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> uniqueMultiPropertiesExctractors = Collections
+        .emptyMap();
 
     /**
      * Map of all readable properties, cached on first request.
@@ -517,6 +527,17 @@ public class Schema implements Ordered, Klass
     public List<Property> getProperties()
     {
         return Lists.newArrayList( propertyMap.values() );
+    }
+
+    public Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> getUniqueMultiPropertiesExctractors()
+    {
+        return uniqueMultiPropertiesExctractors;
+    }
+
+    public void setUniqueMultiPropertiesExctractors(
+        Map<Collection<String>, Collection<Function<IdentifiableObject, String>>> uniqueMultiPropertiesExctractors )
+    {
+        this.uniqueMultiPropertiesExctractors = uniqueMultiPropertiesExctractors;
     }
 
     public boolean haveProperty( String propertyName )

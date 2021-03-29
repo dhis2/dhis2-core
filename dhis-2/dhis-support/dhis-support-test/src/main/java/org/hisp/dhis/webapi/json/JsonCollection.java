@@ -66,7 +66,7 @@ public interface JsonCollection extends JsonValue
      */
     int size();
 
-    default <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
+    static <E extends JsonValue> JsonList<E> asList( JsonArray array, Class<E> as )
     {
         class ListView extends CollectionView<JsonArray> implements JsonList<E>
         {
@@ -84,7 +84,7 @@ public interface JsonCollection extends JsonValue
         return new ListView( array );
     }
 
-    default <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
+    static <E extends JsonValue> JsonMap<E> asMap( JsonObject object, Class<E> as )
     {
         class MapView extends CollectionView<JsonObject> implements JsonMap<E>
         {
@@ -102,6 +102,24 @@ public interface JsonCollection extends JsonValue
         return new MapView( object );
     }
 
+    static <E extends JsonValue> JsonMultiMap<E> asMultiMap( JsonObject object, Class<E> as )
+    {
+        class MultiMapView extends CollectionView<JsonObject> implements JsonMultiMap<E>
+        {
+            MultiMapView( JsonObject viewed )
+            {
+                super( viewed );
+            }
+
+            @Override
+            public JsonList<E> get( String key )
+            {
+                return viewed.getList( key, as );
+            }
+        }
+        return new MultiMapView( object );
+    }
+
     abstract class CollectionView<T extends JsonCollection> implements JsonCollection
     {
         protected final T viewed;
@@ -109,6 +127,12 @@ public interface JsonCollection extends JsonValue
         protected CollectionView( T viewed )
         {
             this.viewed = viewed;
+        }
+
+        @Override
+        public final JsonNode node()
+        {
+            return viewed.node();
         }
 
         @Override
@@ -151,6 +175,12 @@ public interface JsonCollection extends JsonValue
         public final <V extends JsonValue> V as( Class<V> as )
         {
             return viewed.as( as );
+        }
+
+        @Override
+        public final String toString()
+        {
+            return viewed.toString();
         }
     }
 }

@@ -30,11 +30,9 @@ package org.hisp.dhis.dataset.notifications;
 import java.util.HashSet;
 import java.util.Set;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
@@ -56,14 +54,34 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * Created by zubair on 26.06.17.
  */
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Builder
 @EqualsAndHashCode( callSuper = true )
 @JacksonXmlRootElement( namespace = DxfNamespaces.DXF_2_0 )
 public class DataSetNotificationTemplate
     extends BaseIdentifiableObject implements NotificationTemplate, MetadataObject
 {
+    public DataSetNotificationTemplate()
+    {
+    }
+
+    public DataSetNotificationTemplate( String messageTemplate, String subjectTemplate, Integer relativeScheduledDays,
+        DataSetNotificationTrigger dataSetNotificationTrigger, DataSetNotificationRecipient notificationRecipient,
+        Set<DeliveryChannel> deliveryChannels, Set<DataSet> dataSets, UserGroup recipientUserGroup,
+        SendStrategy sendStrategy, Boolean notifyUsersInHierarchyOnly, Boolean notifyParentOrganisationUnitOnly )
+    {
+        this.messageTemplate = messageTemplate;
+        this.subjectTemplate = subjectTemplate;
+        this.relativeScheduledDays = relativeScheduledDays;
+        this.dataSetNotificationTrigger = dataSetNotificationTrigger;
+        this.notificationRecipient = notificationRecipient;
+        this.deliveryChannels = deliveryChannels;
+        this.dataSets = dataSets;
+        this.recipientUserGroup = recipientUserGroup;
+        this.sendStrategy = sendStrategy;
+        this.notifyUsersInHierarchyOnly = notifyUsersInHierarchyOnly;
+        this.notifyParentOrganisationUnitOnly = notifyParentOrganisationUnitOnly;
+    }
+
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private String messageTemplate;

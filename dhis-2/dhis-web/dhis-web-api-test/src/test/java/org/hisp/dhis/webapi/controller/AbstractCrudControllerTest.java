@@ -29,17 +29,21 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertError;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.springframework.http.HttpStatus.Series.SUCCESSFUL;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
@@ -47,7 +51,6 @@ import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.hisp.dhis.webapi.snippets.SomeUserId;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatus.Series;
 
 /**
  * Tests the generic operations offered by the {@link AbstractCrudController}
@@ -108,9 +111,8 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         assertTrue( translations.isEmpty() );
 
-        PUT( "/users/" + id + "/translations",
-            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
-                .content( HttpStatus.NO_CONTENT );
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/users/" + id + "/translations",
+            "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" ) );
 
         translations = GET( "/users/{id}/translations", id )
             .content().getArray( "translations" );
@@ -231,6 +233,83 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    public void testPutJsonObject_skipTranslations()
+    {
+        // first the updated entity needs to be created
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
+
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + groupId + "/translations",
+            "{'translations':[{'property':'NAME','locale':'no','value':'norsk test'}," +
+                "{'property':'DESCRIPTION','locale':'no','value':'norsk test beskrivelse'}]}" ) );
+        // verify we have translations
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", groupId )
+            .content().getArray( "translations" ).size() );
+
+        // now put object with skipping translations
+        assertSeries( SUCCESSFUL,
+            PUT( "/userGroups/" + groupId + "?skipTranslation=true", "{'name':'Europa'}" ) );
+        assertEquals( 2, GET( "/userGroups/{uid}/translations", groupId )
+            .content().getArray( "translations" ).size() );
+    }
+
+    @Test
+    public void testPutJsonObject_skipSharing()
+    {
+        String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'My Group'}" ) );
+        JsonObject group = GET( "/userGroups/{id}", groupId ).content();
+
+        String groupWithoutSharing = group.getObject( "sharing" ).node().replaceWith( "null" ).toString();
+        assertStatus( HttpStatus.OK, PUT( "/userGroups/" + groupId + "?skipSharing=true", groupWithoutSharing ) );
+        assertEquals( "rw------", GET( "/userGroups/{id}", groupId )
+            .content().as( JsonGeoMap.class ).getSharing().getPublic().string() );
+    }
+
+    @Test
+    public void testPutJsonObject_accountExpiry()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/users/{id}", userId,
+                Body( user.getUserCredentials().node()
+                    .addMember( "accountExpiry", "null" ).toString() ) ) );
+
+        assertNull( GET( "/users/{id}", userId )
+            .content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
+    }
+
+    @Test
+    public void testPutJsonObject_accountExpiry_PutNoChange()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        assertStatus( HttpStatus.OK,
+            PUT( "/users/{id}", userId, Body( user.toString() ) ) );
+
+        assertNull( GET( "/users/{id}", userId )
+            .content().as( JsonUser.class ).getUserCredentials().getAccountExpiry() );
+    }
+
+    @Test
+    public void testPutJsonObject_accountExpiry_NaN()
+    {
+        String userId = switchToNewUser( "someUser" ).getUid();
+        switchToSuperuser();
+
+        JsonUser user = GET( "/users/{id}", userId ).content().as( JsonUser.class );
+
+        String body = user.getUserCredentials().node().addMember( "accountExpiry", "\"NaN\"" ).toString();
+        assertEquals( "Invalid date format 'NaN', only ISO format or UNIX Epoch timestamp is supported.",
+            PUT( "/users/{id}", userId, Body( body ) ).error().getMessage() );
+    }
+
+    @Test
     public void testDeleteObject()
     {
         // first the deleted entity needs to be created
@@ -247,7 +326,7 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         // first create an object which has a collection
         String groupId = assertStatus( HttpStatus.CREATED, POST( "/userGroups/", "{'name':'testers'}" ) );
         // add an item to the collection
-        assertSeries( Series.SUCCESSFUL, POST( "/userGroups/" + groupId + "/users/" + userId ) );
+        assertSeries( SUCCESSFUL, POST( "/userGroups/" + groupId + "/users/" + userId ) );
 
         assertUserGroupHasOnlyUser( groupId, userId );
     }

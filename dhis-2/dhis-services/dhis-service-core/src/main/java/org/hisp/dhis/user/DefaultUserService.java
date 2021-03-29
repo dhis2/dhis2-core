@@ -48,6 +48,8 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AuditLogUtil;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.filter.FilterUtils;
@@ -100,9 +102,12 @@ public class DefaultUserService
 
     private final SessionRegistry sessionRegistry;
 
+    private final Cache<String> userDisplayNameCache;
+
     public DefaultUserService( UserStore userStore, UserGroupService userGroupService,
         UserCredentialsStore userCredentialsStore, UserAuthorityGroupStore userAuthorityGroupStore,
         CurrentUserService currentUserService, SystemSettingManager systemSettingManager,
+        CacheProvider cacheProvider,
         @Lazy PasswordManager passwordManager, @Lazy SessionRegistry sessionRegistry )
     {
         checkNotNull( userStore );
@@ -121,6 +126,7 @@ public class DefaultUserService
         this.systemSettingManager = systemSettingManager;
         this.passwordManager = passwordManager;
         this.sessionRegistry = sessionRegistry;
+        userDisplayNameCache = cacheProvider.createUserDisplayNameCache();
     }
 
     // -------------------------------------------------------------------------
@@ -808,5 +814,11 @@ public class DefaultUserService
             return 0;
         }
         return userStore.disableUsersInactiveSince( inactiveSince );
+    }
+
+    @Override
+    public String getDisplayName( String userUid )
+    {
+        return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) ).orElse( null );
     }
 }

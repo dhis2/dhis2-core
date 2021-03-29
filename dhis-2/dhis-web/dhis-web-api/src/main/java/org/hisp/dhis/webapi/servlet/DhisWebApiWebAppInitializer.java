@@ -77,9 +77,9 @@ public class DhisWebApiWebAppInitializer implements WebApplicationInitializer
 
         context.addListener( new ContextLoaderListener( annotationConfigWebApplicationContext ) );
 
-        ServletRegistration.Dynamic dispatcher = context
-            .addServlet( "dispatcher", new DispatcherServlet( annotationConfigWebApplicationContext ) );
+        DispatcherServlet servlet = new DispatcherServlet( annotationConfigWebApplicationContext );
 
+        ServletRegistration.Dynamic dispatcher = context.addServlet( "dispatcher", servlet );
         dispatcher.setAsyncSupported( true );
         dispatcher.setLoadOnStartup( 1 );
         dispatcher.addMapping( "/api/*" );
