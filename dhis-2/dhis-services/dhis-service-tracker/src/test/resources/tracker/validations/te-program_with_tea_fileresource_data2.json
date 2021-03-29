@@ -1,7 +1,7 @@
 {
   "trackedEntities": [
     {
-      "trackedEntity": "cNEZTkdAvre",
+      "trackedEntity": "EEFkxTWB55B",
       "created": "2020-02-20T12:09:21.844",
       "orgUnit": "cNEZTkdAvmg",
       "createdAtClient": "2020-02-20T12:09:21.844",
@@ -23,9 +23,11 @@
         {
           "lastUpdated": "2020-02-20T12:09:21.850",
           "storedBy": "admin",
-          "displayName": "Attribute_Image",
+          "displayName": "Attribute_FileResource",
           "created": "2020-02-20T12:09:21.850",
-          "attribute": "ccccc5ttttt"
+          "valueType": "FILE_RESOURCE",
+          "attribute": "zmdwVu2aXj2",
+          "value": "Jzf6hHNP7jx"
         }
       ]
     }
