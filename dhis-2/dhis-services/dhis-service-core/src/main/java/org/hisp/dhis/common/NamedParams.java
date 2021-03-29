@@ -31,6 +31,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -43,6 +44,11 @@ public final class NamedParams
     private final UnaryOperator<String> uni;
 
     private final Function<String, String[]> multi;
+
+    public NamedParams( Map<String, String> params )
+    {
+        this( params::get );
+    }
 
     public NamedParams( UnaryOperator<String> uni )
     {
@@ -78,10 +84,27 @@ public final class NamedParams
         return parsedUni( name, defaultValue, Integer::parseInt );
     }
 
+    public boolean getBoolean( String name, boolean defaultValue )
+    {
+        String value = uni.apply( name );
+        return value == null ? defaultValue : getBoolean( name );
+    }
+
     public boolean getBoolean( String name )
     {
         String value = uni.apply( name );
         return "true".equalsIgnoreCase( value ) || value != null && value.isEmpty();
+    }
+
+    public <E extends Enum<E>> E getEnum( String name, E defaultValue )
+    {
+        return getEnum( name, defaultValue.getDeclaringClass(), defaultValue );
+    }
+
+    public <E extends Enum<E>> E getEnum( String name, Class<E> type, E defaultValue )
+    {
+        return parsedUni( name, defaultValue,
+            constant -> Enum.valueOf( type, constant.toUpperCase().replace( '-', '_' ) ) );
     }
 
     private <T> T parsedUni( String name, T defaultValue, Function<String, T> parser )

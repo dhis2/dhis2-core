@@ -49,6 +49,16 @@ public @interface Property
 
     Access access() default Access.READ_WRITE;
 
+    /**
+     * When used with a single property it is assumed that this is an alias for
+     * the referenced field.
+     *
+     * @return name of the field or member this property is based on. This is
+     *         not resolved from the referenced properties since those might not
+     *         be present in the final schema while the annotated member is.
+     */
+    String[] basedOn() default {};
+
     enum Value
     {
         TRUE,

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -100,7 +101,6 @@ import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.member.MemberQuery;
-import org.hisp.dhis.query.member.MemberQuery.MemberQueryBuilder;
 import org.hisp.dhis.query.member.MemberQuery.Owner;
 import org.hisp.dhis.query.member.MemberQueryService;
 import org.hisp.dhis.render.RenderService;
@@ -129,7 +129,6 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -316,7 +315,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        cachePrivate( response );
 
         return rootNode;
     }
@@ -344,29 +343,37 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             fields.add( ":all" );
         }
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        cachePrivate( response );
 
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
-    @RequestMapping( value = "/{uid}/p/{property}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyV2(
+    @RequestMapping( value = "/{uid}/{property}/items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyItems(
         @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property, HttpServletRequest request )
+        @PathVariable( "property" ) String property,
+        HttpServletRequest request, HttpServletResponse response )
     {
         Property collection = getSchema().getProperty( property );
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        MemberQueryBuilder<IdentifiableObject> queryBuilder = MemberQuery.builder()
+        boolean headless = params.getBoolean( "headless", false );
+        MemberQuery<?> query = memberQueryService.rectifyQuery( MemberQuery.builder()
             .owner( Owner.builder()
                 .id( uid )
                 .type( getEntityClass() )
                 .collectionProperty( property ).build() )
-            .elementType( (Class<IdentifiableObject>) collection.getItemKlass() );
-        MemberQuery.parse( params, queryBuilder );
-        MemberQuery<?> query = memberQueryService.rectifyQuery( queryBuilder.build() );
-        List<Object[]> elements = memberQueryService.queryMemberItems( query );
-        return ResponseEntity
-            .ok( new JsonData( jsonMapper ).skipNullOrEmpty().toArray( query.getFields(), elements ) );
+            .elementType( (Class<IdentifiableObject>) collection.getItemKlass() )
+            .contextRoot( ContextUtils.getRootPath( request ) )
+            .build()
+            .with( params ) );
+        List<?> elements = memberQueryService.queryMemberItems( query );
+        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
+            .toArray( query.getFieldNames(), elements );
+        if ( !headless )
+        {
+            // TODO wrap in pager
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )
@@ -405,8 +412,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
-                CacheControl.noCache().cachePrivate().getHeaderValue() );
+            cachePrivate( response );
 
             return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
                 Lists.newArrayList( pvProperty + fieldFilter ), user );
@@ -415,6 +421,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             UserContext.reset();
         }
+    }
+
+    private void cachePrivate( HttpServletResponse response )
+    {
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
+            noCache().cachePrivate().getHeaderValue() );
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
@@ -1039,8 +1051,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                     WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
-                CacheControl.noCache().cachePrivate().getHeaderValue() );
+            cachePrivate( response );
 
             return rootNode;
         }

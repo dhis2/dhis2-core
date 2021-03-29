@@ -27,28 +27,41 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
-import org.apache.commons.lang3.*;
-import org.hibernate.annotations.*;
-import org.hisp.dhis.attribute.*;
-import org.hisp.dhis.audit.*;
-import org.hisp.dhis.common.annotation.*;
-import org.hisp.dhis.schema.*;
-import org.hisp.dhis.schema.annotation.*;
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.Immutable;
+import org.hisp.dhis.attribute.Attribute;
+import org.hisp.dhis.attribute.AttributeValue;
+import org.hisp.dhis.audit.AuditAttribute;
+import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
-import org.hisp.dhis.schema.annotation.Property.*;
+import org.hisp.dhis.schema.annotation.Property.Value;
+import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.transformer.*;
+import org.hisp.dhis.schema.annotation.Relation;
+import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
-import org.hisp.dhis.translation.*;
-import org.hisp.dhis.user.*;
-import org.hisp.dhis.user.sharing.*;
-import org.hisp.dhis.util.*;
+import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserSettingKey;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.util.SharingUtils;
 
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.annotation.*;
-import com.fasterxml.jackson.dataformat.xml.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Bob Jolliffe
@@ -433,6 +446,8 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Relation( fields = { "id", "firstName", "surname" } )
+    @Property( required = Value.TRUE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )

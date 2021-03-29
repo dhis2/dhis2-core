@@ -496,6 +496,9 @@ public final class JsonDocument implements Serializable
                     case 't':
                         str.append( '\t' );
                         break;
+                    case '"':
+                        str.append( '"' );
+                        break;
                     default:
                         throw new JsonFormatException( json, index, '?' );
                     }

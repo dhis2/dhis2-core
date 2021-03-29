@@ -59,7 +59,7 @@ public interface MemberQueryService
      */
     <T extends IdentifiableObject> MemberQuery<T> rectifyQuery( MemberQuery<T> query );
 
-    <T extends IdentifiableObject> List<Object[]> queryMemberItems( MemberQuery<T> query );
+    List<?> queryMemberItems( MemberQuery<?> query );
 
     <T extends IdentifiableObject> List<T> queryMemberItemsAsObjects( MemberQuery<T> query );
 }

@@ -27,9 +27,15 @@
  */
 package org.hisp.dhis.schema;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableSet;
+
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -71,6 +77,27 @@ public class Property implements Ordered, Klass
      * items inside the collection.
      */
     private PropertyType itemPropertyType;
+
+    /**
+     * In case this is a collection property: optional list of fields that by
+     * default are shown of the collection items in the API.
+     *
+     * An empty list represents no particular preferences and the list will be
+     * determined by program logic evaluating the schema of the item type.
+     */
+    private List<String> relationViewFields = emptyList();
+
+    /**
+     * In case this is a collection property: how *should* it be viewed as part
+     * of its parent/owner object?
+     */
+    private RelationViewType relationViewDisplayAs = RelationViewType.AUTO;
+
+    /**
+     * In case this is a collection property: how *can* it be viewed as part of
+     * its parent/owner object?
+     */
+    private final EnumSet<RelationViewType> relationViewDisplayOptions = EnumSet.allOf( RelationViewType.class );
 
     /**
      * Direct link to getter for this property.
@@ -348,6 +375,48 @@ public class Property implements Ordered, Klass
     public void setItemPropertyType( PropertyType itemPropertyType )
     {
         this.itemPropertyType = itemPropertyType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<String> getRelationViewFields()
+    {
+        return relationViewFields;
+    }
+
+    public void setRelationViewFields( List<String> fields )
+    {
+        this.relationViewFields = fields;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public RelationViewType getRelationViewDisplayAs()
+    {
+        return relationViewDisplayAs;
+    }
+
+    public void setRelationViewDisplayAs( RelationViewType viewType )
+    {
+        this.relationViewDisplayAs = viewType;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Set<RelationViewType> getRelationViewDisplayOptions()
+    {
+        return unmodifiableSet( relationViewDisplayOptions );
+    }
+
+    public void setRelationViewDisplayOptions( RelationViewType... options )
+    {
+        this.relationViewDisplayOptions.clear();
+        this.relationViewDisplayOptions.addAll( Arrays.asList( options ) );
+    }
+
+    public boolean isRelationViewDisplayOption( RelationViewType type )
+    {
+        return relationViewDisplayOptions.contains( type );
     }
 
     public Method getGetterMethod()

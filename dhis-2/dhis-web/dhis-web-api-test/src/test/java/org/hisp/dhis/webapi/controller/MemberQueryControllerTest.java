@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 
@@ -45,28 +48,76 @@ import org.springframework.http.HttpStatus;
  */
 public class MemberQueryControllerTest extends DhisControllerConvenienceTest
 {
-    @Test
-    public void testGetObjectCollectionProperty()
+    private String groupId;
+
+    @Before
+    public void setUp()
     {
-        String groupX = assertStatus( HttpStatus.CREATED,
+        groupId = assertStatus( HttpStatus.CREATED,
             POST( "/userGroups/", "{'name':'groupX', 'users':[{'id':'" + getSuperuserUid() + "'}]}" ) );
 
         assertStatus( HttpStatus.NO_CONTENT,
             PATCH( "/users/{id}/birthday", getSuperuserUid(), Body( "{'birthday': '1980-12-12'}" ) ) );
+    }
 
-        assertEquals( 1, GET( "/userGroups/{uid}", groupX ).content().getArray( "users" ).size() );
+    // TODO previousPasswords
 
-        // TODO previousPasswords
+    @Test
+    public void testGetObjectPropertyItems_CollectionSizeFilter()
+    {
         String fields = "id,userCredentials.username,userCredentials.twoFA";
-        String filter = "userCredentials.created:gt:2021-01-01";
-        JsonObject users = GET( "/userGroups/{uid}/p/users?fields={fields}&filter={filter}", groupX, fields, filter )
-            .content().getObject( 0 );
+        String filter = "userCredentials.created:gt:2021-01-01,userGroups:gt:0";
+        JsonObject users = GET( "/userGroups/{uid}/users/items?fields={fields}&filter={filter}", groupId, fields,
+            filter ).content().getObject( 0 );
+
         assertTrue( users.has( "id", "userCredentials" ) );
         assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
-        fields = "id,sharing";
-        JsonObject groups = GET( "/users/{uid}/p/userGroups?fields={fields}", getSuperuserUid(), fields ).content()
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_EmbeddedObjects()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=id,sharing,users", getSuperuserUid() ).content()
             .getObject( 0 );
+
         assertTrue( groups.has( "id", "sharing" ) );
         assertTrue( groups.getObject( "sharing" ).has( "owner", "external", "users", "userGroups", "public" ) );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_singleField()
+    {
+        JsonArray groupNames = GET( "/users/{uid}/userGroups/items?fields=name", getSuperuserUid() ).content();
+
+        assertEquals( singletonList( "groupX" ), groupNames.stringValues() );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_AliasField()
+    {
+        String unitId = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'unitA', 'shortName':'unitA', 'openingDate':'2021-01-01'}" ) );
+
+        String setId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
+            "{'name':'set1', 'organisationUnits': [{'id':'" + unitId + "'}], 'periodType':'Daily'}" ) );
+        System.out.println( GET( "/dataSets/{id}/organisationUnits/items", setId ).content() );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_RefCount()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=name,users&relations=count", getSuperuserUid() )
+            .content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_RefIds()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=name,users&relations=ids", getSuperuserUid() )
+            .content();
+
+        System.out.println( groups );
     }
 }

@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.schema;
 
+import static java.util.stream.Collectors.joining;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -107,6 +108,7 @@ public class RelativePropertyContextTest extends DhisSpringTest
         List<Property> elements = context.resolvePath( path );
         assertEquals( path.split( "\\." ).length, elements.size() );
         assertSame( property, elements.get( elements.size() - 1 ) );
+        assertEquals( path, elements.stream().map( Property::key ).collect( joining( "." ) ) );
     }
 
     private void assertPropertyDoesNotExist( Class<?> type, String path )

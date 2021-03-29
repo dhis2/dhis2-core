@@ -31,17 +31,20 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.RelationViewType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
 
 @Getter
 @Builder( toBuilder = true )
@@ -88,6 +91,8 @@ public final class MemberQuery<T extends IdentifiableObject>
 
     private final int pageSize;
 
+    private final String contextRoot;
+
     /**
      * When true the result set is not the elements contained in the collection
      * but those not contained (yet).
@@ -98,7 +103,7 @@ public final class MemberQuery<T extends IdentifiableObject>
      * Names of those properties that should be included in the response.
      */
     @Builder.Default
-    private final List<String> fields = emptyList();
+    private final List<Field> fields = emptyList();
 
     /**
      * List of filter property expressions. An expression has the format
@@ -110,14 +115,51 @@ public final class MemberQuery<T extends IdentifiableObject>
     @Builder.Default
     private final List<Order> orders = emptyList();
 
-    public static <T extends IdentifiableObject> void parse( NamedParams params, MemberQueryBuilder<T> builder )
+    public List<String> getFieldNames()
+    {
+        return fields.stream().map( Field::getPropertyPath ).collect( toList() );
+    }
+
+    public MemberQuery<T> with( NamedParams params )
     {
         int page = params.getInt( "page", 0 );
         int size = params.getInt( "pageSize", 25 );
-        builder.pageSize( size ).pageOffset( page * size ).inverse( params.getBoolean( "inverse" ) )
-            .fields( params.getStrings( "fields" ) )
+        RelationViewType relations = params.getEnum( "relations", RelationViewType.AUTO );
+        return toBuilder().pageSize( size ).pageOffset( page * size )
+            .inverse( params.getBoolean( "inverse" ) )
+            .fields(
+                params.getStrings( "fields" ).stream().map( s -> Field.parse( s, relations ) ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
-            .orders( params.getStrings( "sort" ).stream().map( Order::parse ).collect( toList() ) );
+            .orders( params.getStrings( "sort" ).stream().map( Order::parse ).collect( toList() ) )
+            .build();
+    }
+
+    public MemberQuery<T> withFilter( Filter filter )
+    {
+        return withAddedItem( filter, getFilters(), MemberQueryBuilder::filters );
+    }
+
+    public MemberQuery<T> withOrder( Order order )
+    {
+        return withAddedItem( order, getOrders(), MemberQueryBuilder::orders );
+    }
+
+    public MemberQuery<T> withField( Field field )
+    {
+        return withAddedItem( field, getFields(), MemberQueryBuilder::fields );
+    }
+
+    public MemberQuery<T> withFields( List<Field> fields )
+    {
+        return toBuilder().fields( fields ).build();
+    }
+
+    private <E> MemberQuery<T> withAddedItem( E e, List<E> collection,
+        BiFunction<MemberQueryBuilder<T>, List<E>, MemberQueryBuilder<T>> setter )
+    {
+        List<E> plus1 = new ArrayList<>( collection );
+        plus1.add( e );
+        return setter.apply( toBuilder(), plus1 ).build();
     }
 
     public enum Direction
@@ -128,24 +170,28 @@ public final class MemberQuery<T extends IdentifiableObject>
 
     public enum Comparison
     {
+        // identity comparison
+        NULL( "null" ),
+        NOT_NULL( "!null" ),
         EQ( "eq" ),
         NE( "!eq", "ne", "neq" ),
+        // numeric comparison
         LT( "lt" ),
         LE( "le", "lte" ),
         GT( "gt" ),
         GE( "ge", "gte" ),
+        // set operations
+        IN( "in" ),
+        NOT_IN( "!in" ),
+        // string comparison
+        EMPTY( "empty" ),
+        NOT_EMPTY( "!empty" ),
         LIKE( "like" ),
         NOT_LIKE( "!like" ),
         STARTS_WITH( "$like", "startsWith" ),
         NOT_STARTS_WITH( "!$like" ),
         ENDS_WITH( "like$", "endsWith" ),
-        NOT_ENDS_WITH( "!like$" ),
-        IN( "in" ),
-        NOT_IN( "!in" ),
-        NULL( "null" ),
-        NOT_NULL( "!null" ),
-        EMPTY( "empty" ),
-        NOT_EMPTY( "!empty" );
+        NOT_ENDS_WITH( "!like$" );
 
         private final String[] symbols;
 
@@ -166,6 +212,52 @@ public final class MemberQuery<T extends IdentifiableObject>
             }
             throw new IllegalArgumentException( "Not an comparison operator symbol: " + symbol );
         }
+
+        public boolean isIdentityCompare()
+        {
+            return this == NULL || this == NOT_NULL || this == EQ || this == NE;
+        }
+
+        public boolean isOrderCompare()
+        {
+            return this == EQ || this == NE || isNumericCompare();
+        }
+
+        public boolean isNumericCompare()
+        {
+            return this == LT || this == LE || this == GE || this == GT;
+        }
+
+        public boolean isSetCompare()
+        {
+            return this == IN || this == NOT_IN;
+        }
+
+        public boolean isStringCompare()
+        {
+            return ordinal() >= EMPTY.ordinal();
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    public static final class Field
+    {
+        private final String propertyPath;
+
+        private final RelationViewType relations;
+
+        public static Field parse( String field, RelationViewType global )
+        {
+            int endOfPropertyName = field.indexOf( ':' );
+            if ( endOfPropertyName < 0 )
+            {
+                return new Field( field, global );
+            }
+            return new Field( field.substring( 0, endOfPropertyName ),
+                RelationViewType
+                    .valueOf( field.substring( endOfPropertyName + 1 ).toUpperCase().replace( '-', '_' ) ) );
+        }
     }
 
     @Getter
@@ -173,7 +265,7 @@ public final class MemberQuery<T extends IdentifiableObject>
     @AllArgsConstructor
     public static final class Order
     {
-        private final String property;
+        private final String propertyPath;
 
         @Builder.Default
         private final Direction direction = Direction.ASC;
@@ -195,7 +287,7 @@ public final class MemberQuery<T extends IdentifiableObject>
         @Override
         public String toString()
         {
-            return property + " " + direction.name();
+            return propertyPath + " " + direction.name();
         }
     }
 
@@ -203,7 +295,7 @@ public final class MemberQuery<T extends IdentifiableObject>
     @AllArgsConstructor
     public static final class Filter
     {
-        private final String property;
+        private final String propertyPath;
 
         private final Comparison operator;
 
@@ -226,7 +318,7 @@ public final class MemberQuery<T extends IdentifiableObject>
         @Override
         public String toString()
         {
-            return property + " " + operator + " " + Arrays.toString( value );
+            return propertyPath + " " + operator + " " + Arrays.toString( value );
         }
     }
 }

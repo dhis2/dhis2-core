@@ -29,13 +29,20 @@ package org.hisp.dhis.query.member;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import static org.hisp.dhis.query.member.MemberQueryLogic.getDefaultFields;
+import static org.hisp.dhis.query.member.MemberQueryLogic.isIdProperty;
+import static org.hisp.dhis.query.member.MemberQueryLogic.isLocalProperty;
+import static org.hisp.dhis.query.member.MemberQueryLogic.isRelationField;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
-
-import lombok.AllArgsConstructor;
+import java.util.function.Predicate;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -44,9 +51,11 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.query.member.MemberQuery.Comparison;
+import org.hisp.dhis.query.member.MemberQuery.Field;
 import org.hisp.dhis.query.member.MemberQuery.Filter;
 import org.hisp.dhis.query.member.MemberQuery.Owner;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.RelationViewType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
@@ -54,12 +63,20 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jan Bernitt
  */
+@Slf4j
 @Service
 @AllArgsConstructor
 public class DefaultMemberQueryService implements MemberQueryService
@@ -85,22 +102,53 @@ public class DefaultMemberQueryService implements MemberQueryService
     @Override
     public <T extends IdentifiableObject> MemberQuery<T> rectifyQuery( MemberQuery<T> query )
     {
-        if ( query.getFields().isEmpty() )
+        RelativePropertyContext context = createPropertyContext( query );
+        return withFlatObjectFields( context, query.getFields().isEmpty()
+            ? query.withFields( getDefaultFields( context.getHome() ) )
+            : query );
+    }
+
+    private static <T extends IdentifiableObject> MemberQuery<T> withFlatObjectFields( RelativePropertyContext context,
+        MemberQuery<T> query )
+    {
+        List<Field> fields = new ArrayList<>();
+        for ( Field f : query.getFields() )
         {
-            return query.toBuilder().fields( getDefaultFields( query ) ).build();
+            String path = f.getPropertyPath();
+            if ( "*".equals( path ) )
+            {
+                fields.addAll( getDefaultFields( context.getHome() ) );
+                continue;
+            }
+            Property field = context.resolveMandatory( path );
+            if ( isLocalProperty( path ) && isRelationField( field ) && !field.isCollection() )
+            {
+                Class<?> fieldType = field.getKlass();
+                RelativePropertyContext fieldContext = context.switchedTo( fieldType );
+                if ( !field.getRelationViewFields().isEmpty() )
+                {
+                    field.getRelationViewFields().stream()
+                        .map( fieldContext::resolveMandatory )
+                        .forEach( p -> fields.add( nestedField( path, p ) ) );
+                }
+                else
+                {
+                    fieldContext.getHome().getProperties().stream()
+                        .filter( MemberQueryLogic::isNestedField )
+                        .forEach( p -> fields.add( nestedField( path, p ) ) );
+                }
+            }
+            else
+            {
+                fields.add( f );
+            }
         }
-        return query;
+        return query.withFields( fields );
     }
 
-    private List<String> getDefaultFields( MemberQuery<?> query )
+    private static Field nestedField( String parentPath, Property field )
     {
-        return schemaService.getDynamicSchema( query.getElementType() ).getProperties().stream()
-            .filter( DefaultMemberQueryService::isDefaultField ).map( Property::getName ).collect( toList() );
-    }
-
-    private static boolean isDefaultField( Property p )
-    {
-        return p.isPersisted() && !p.isCollection() && p.isReadable() && (p.isSimple() || p.isEmbeddedObject());
+        return new Field( parentPath + "." + field.key(), field.getRelationViewDisplayAs() );
     }
 
     @Override
@@ -109,17 +157,85 @@ public class DefaultMemberQueryService implements MemberQueryService
         RelativePropertyContext context = createPropertyContext( query );
         validateQuery( query, context );
         return listWithParameters( query, context,
-            getSession().createQuery( buildHQL( query, context ), query.getElementType() ) );
+            getSession().createQuery( createHqlBuilder( query, context ).buildHQL(), query.getElementType() ) );
     }
 
     @Override
-    public <T extends IdentifiableObject> List<Object[]> queryMemberItems( MemberQuery<T> query )
+    public List<?> queryMemberItems( MemberQuery<?> query )
     {
         RelativePropertyContext context = createPropertyContext( query );
         validateQuery( query, context );
-        // TODO when only 1 field is queried no array wrapper is used
-        return listWithParameters( query, context,
-            getSession().createQuery( buildHQL( query, context ), Object[].class ) );
+        HqlBuilder hqlBuilder = createHqlBuilder( extendedWithRequiredFields( query, context ), context );
+        return wrapCollectionFields( query, context, hqlBuilder, listWithParameters( query, context,
+            getSession().createQuery( hqlBuilder.buildHQL(), Object[].class ) ) );
+    }
+
+    /**
+     * When a query asks for fields which are collections the query needs to
+     * include UID column so that each match row can be identified as the root
+     * or owner of the collection property.
+     */
+    private <T extends IdentifiableObject> MemberQuery<T> extendedWithRequiredFields( MemberQuery<T> query,
+        RelativePropertyContext context )
+    {
+        // ID column already present?
+        if ( hasLocalField( query, context, MemberQueryLogic::isIdProperty ) )
+        {
+            return query;
+        }
+        // ID column required?
+        if ( hasLocalField( query, context, Property::isCollection ) )
+        {
+            return query.withField( new Field( "id", RelationViewType.AUTO ) );
+        }
+        return query;
+    }
+
+    static boolean hasLocalField( MemberQuery<?> query, RelativePropertyContext context, Predicate<Property> filter )
+    {
+        return query.getFields().stream().anyMatch( f -> isLocalProperty( f.getPropertyPath() )
+            && filter.test( context.resolveMandatory( f.getPropertyPath() ) ) );
+    }
+
+    private List<Object[]> wrapCollectionFields( MemberQuery<?> query, RelativePropertyContext context,
+        HqlBuilder hqlBuilder, List<Object[]> rows )
+    {
+        Map<Integer, RelationViewType> postProcessedFields = hqlBuilder.getPostProcessedColumns();
+        if ( !postProcessedFields.isEmpty() )
+        {
+            Integer idColumnIndex = hqlBuilder.getIdColumnIndex();
+            if ( idColumnIndex == null )
+            {
+                throw new IllegalStateException(
+                    "Query has collection fields but did not include required ID column." );
+            }
+            String endpoint = query.getContextRoot() + context.getHome().getRelativeApiEndpoint();
+            for ( Entry<Integer, RelationViewType> entry : postProcessedFields.entrySet() )
+            {
+                int index = entry.getKey();
+                Field field = query.getFields().get( index );
+                Property property = context.resolveMandatory( field.getPropertyPath() );
+                switch ( entry.getValue() )
+                {
+                case ID_OBJECTS:
+                    rows.forEach( row -> row[index] = stream( (String[]) row[index] ).map( IdObject::new ).toArray() );
+                    break;
+                case REF:
+                case COUNT:
+                    String prop = property.key();
+                    rows.forEach( row -> row[index] = new EndpointDescriptor(
+                        endpoint + '/' + row[idColumnIndex] + '/' + prop + "/items", getCount( row[index] ) ) );
+                    break;
+                default: // NOOP
+                }
+            }
+        }
+        return rows;
+    }
+
+    private static Number getCount( Object value )
+    {
+        return !(value instanceof Number) || ((Number) value).intValue() == -1 ? null : (Number) value;
     }
 
     private RelativePropertyContext createPropertyContext( MemberQuery<?> query )
@@ -127,10 +243,10 @@ public class DefaultMemberQueryService implements MemberQueryService
         return new RelativePropertyContext( query.getElementType(), schemaService::getDynamicSchema );
     }
 
-    private <T extends IdentifiableObject> String buildHQL( MemberQuery<T> query,
+    private <T extends IdentifiableObject> HqlBuilder createHqlBuilder( MemberQuery<T> query,
         RelativePropertyContext context )
     {
-        return new HqlBuilder( query, context.switchedTo( query.getElementType() ) ).buildHQL();
+        return new HqlBuilder( query, context.switchedTo( query.getElementType() ) );
     }
 
     private <T> List<T> listWithParameters( MemberQuery<?> query, RelativePropertyContext context,
@@ -139,8 +255,8 @@ public class DefaultMemberQueryService implements MemberQueryService
         dbQuery.setParameter( "OwnerId", query.getOwner().getId() );
         for ( Filter filter : query.getFilters() )
         {
-            Property property = context.resolveMandatory( filter.getProperty() );
-            dbQuery.setParameter( HqlBuilder.getVarName( filter.getProperty() ), queryValue( property, filter ) );
+            Property property = context.resolveMandatory( filter.getPropertyPath() );
+            dbQuery.setParameter( getVarName( filter.getPropertyPath() ), getParameterValue( property, filter ) );
         }
         dbQuery.setMaxResults( query.getPageSize() );
         dbQuery.setFirstResult( query.getPageOffset() );
@@ -148,7 +264,7 @@ public class DefaultMemberQueryService implements MemberQueryService
         return dbQuery.list();
     }
 
-    private Object queryValue( Property property, Filter filter )
+    private Object getParameterValue( Property property, Filter filter )
     {
         String[] value = filter.getValue();
         if ( value.length == 0 )
@@ -157,19 +273,24 @@ public class DefaultMemberQueryService implements MemberQueryService
         }
         if ( value.length == 1 )
         {
-            return queryTypedValue( property, value[0] );
+            return queryTypedValue( property, filter, value[0] );
         }
-        return stream( value ).map( e -> queryTypedValue( property, e ) ).toArray();
+        return stream( value ).map( e -> queryTypedValue( property, filter, e ) ).toArray();
     }
 
-    private Object queryTypedValue( Property property, String value )
+    private Object queryTypedValue( Property property, Filter filter, String value )
     {
         if ( value == null || property.getKlass() == String.class )
         {
             return value;
         }
+        if ( MemberQueryLogic.isCollectionSizeFilter( filter, property ) )
+        {
+            // TODO parse error handling
+            return Integer.parseInt( value );
+        }
         String valueAsJson = value;
-        Class<?> itemType = getSimpleType( property );
+        Class<?> itemType = MemberQueryLogic.getSimpleField( property );
         if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
         {
             valueAsJson = '"' + value + '"';
@@ -191,9 +312,9 @@ public class DefaultMemberQueryService implements MemberQueryService
         Owner owner = query.getOwner();
         validateAccess( owner );
         validateCollection( context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
-        query.getFilters().forEach( filter -> validateFilter( context.resolveMandatory( filter.getProperty() ) ) );
-        query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getProperty() ) ) );
-        query.getFields().forEach( field -> validateField( context.resolveMandatory( field ) ) );
+        query.getFilters().forEach( filter -> validateFilter( context.resolveMandatory( filter.getPropertyPath() ) ) );
+        query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getPropertyPath() ) ) );
+        query.getFields().forEach( field -> validateField( field, context ) );
     }
 
     private void validateAccess( Owner owner )
@@ -211,25 +332,36 @@ public class DefaultMemberQueryService implements MemberQueryService
 
     private void validateCollection( Property collection )
     {
-        if ( !collection.isCollection() || !collection.isPersisted()
-            || !IdentifiableObject.class.isAssignableFrom( collection.getItemKlass() ) )
+        if ( !collection.isCollection() || !collection.isPersisted() )
         {
             throw createIllegalProperty( collection, "Property `%s` is not a persisted collection member." );
         }
     }
 
     @SuppressWarnings( "unchecked" )
-    private void validateField( Property field )
+    private void validateField( Field f, RelativePropertyContext context )
     {
+        String path = f.getPropertyPath();
+        Property field = context.resolveMandatory( path );
         if ( !field.isReadable() )
         {
             throw createNoReadAccess( field );
         }
-        Class<?> itemType = getSimpleType( field );
+        Class<?> itemType = MemberQueryLogic.getSimpleField( field );
         if ( IdentifiableObject.class.isAssignableFrom( itemType ) && !aclService
             .canRead( currentUserService.getCurrentUser(), (Class<? extends IdentifiableObject>) itemType ) )
         {
             throw createNoReadAccess( field );
+        }
+        if ( !isLocalProperty( path ) )
+        {
+            List<Property> pathElements = context.resolvePath( path );
+            Property head = pathElements.get( 0 );
+            if ( head.isCollection() && head.isPersisted() )
+            {
+                throw createIllegalProperty( field,
+                    "Property `%s` computes to many values and therefore cannot be used as a field." );
+            }
         }
     }
 
@@ -243,7 +375,7 @@ public class DefaultMemberQueryService implements MemberQueryService
 
     private void validateOrder( Property order )
     {
-        if ( !order.isPersisted() || !order.isOrdered() )
+        if ( !order.isPersisted() || !order.isSimple() )
         {
             throw createIllegalProperty( order, "Property `%s` cannot be used as order property." );
         }
@@ -268,12 +400,12 @@ public class DefaultMemberQueryService implements MemberQueryService
         }
         return new ReadAccessDeniedException(
             String.format( "Property `%s` is not readable as user is not allowed to view objects of type %s",
-                field.getName(), getSimpleType( field ) ) );
+                field.getName(), MemberQueryLogic.getSimpleField( field ) ) );
     }
 
-    private Class<?> getSimpleType( Property p )
+    static String getVarName( String property )
     {
-        return p.isCollection() ? p.getItemKlass() : p.getKlass();
+        return property.replace( '.', '_' );
     }
 
     /**
@@ -287,16 +419,45 @@ public class DefaultMemberQueryService implements MemberQueryService
      *   e => member collection element table
      * </pre>
      */
-    @AllArgsConstructor
+    @RequiredArgsConstructor
     private static final class HqlBuilder
     {
         private final MemberQuery<?> query;
 
         private final RelativePropertyContext context;
 
-        static String getVarName( String property )
+        private final Map<Integer, RelationViewType> postProcessedFields = new HashMap<>();
+
+        private Integer idColumnIndex;
+
+        static RelationViewType getEffectiveViewType( Field field, Property property )
         {
-            return property.replace( '.', '_' );
+            RelationViewType targetType = field.getRelations();
+            if ( targetType == RelationViewType.AUTO )
+            {
+                targetType = RelationViewType.COUNT;
+            }
+            if ( !property.isRelationViewDisplayOption( targetType ) )
+            {
+                return property.getRelationViewDisplayAs();
+            }
+            if ( property.isEmbeddedObject() && !property.isIdentifiableObject() )
+            {
+                return targetType == RelationViewType.IDS || targetType == RelationViewType.ID_OBJECTS
+                    ? RelationViewType.COUNT
+                    : targetType;
+            }
+            return targetType;
+        }
+
+        public Map<Integer, RelationViewType> getPostProcessedColumns()
+        {
+            return postProcessedFields;
+        }
+
+        public Integer getIdColumnIndex()
+        {
+            return idColumnIndex;
         }
 
         private String getMemberPath( String property )
@@ -311,8 +472,8 @@ public class DefaultMemberQueryService implements MemberQueryService
         {
             Owner owner = query.getOwner();
             String fields = createFieldsHQL();
-            String filterBy = createFilterByHQL();
-            String orderBy = createOrderByHQL();
+            String filterBy = createFiltersHQL();
+            String orderBy = createOrdersHQL();
             String elementTable = query.getElementType().getSimpleName();
             String ownerTable = owner.getType().getSimpleName();
             String op = query.isInverse() ? "not in" : "in";
@@ -327,28 +488,77 @@ public class DefaultMemberQueryService implements MemberQueryService
         {
             // TODO when fields contains a property that is not persisted we
             // must use "e" (all)
+            AtomicInteger index = new AtomicInteger( 0 );
             return join( query.getFields(), ", ", "e",
-                ( str, field ) -> str.append( "e." ).append( getMemberPath( field ) ) );
+                ( str, field ) -> str.append( createFieldHQL( field, index.getAndIncrement() ) ) );
         }
 
-        private String createFilterByHQL()
+        private String createFieldHQL( Field field, int index )
         {
-            return join( query.getFilters(), "and ", "1=1",
-                ( str, filter ) -> str
-                    .append( "e." )
-                    .append( getMemberPath( filter.getProperty() ) )
-                    .append( " " )
-                    .append( createOperatorLeftSideHQL( filter.getOperator() ) ).append( " :" )
-                    .append( getVarName( filter.getProperty() ) )
-                    .append( createOperatorRightSideHQL( filter.getOperator() ) ) );
+            String property = field.getPropertyPath();
+            if ( isLocalProperty( property ) )
+            {
+                Property p = context.resolveMandatory( property );
+                if ( isIdProperty( p ) )
+                {
+                    idColumnIndex = index;
+                }
+                if ( p.isCollection() )
+                {
+                    RelationViewType type = getEffectiveViewType( field, p );
+                    if ( type != RelationViewType.IDS )
+                    {
+                        postProcessedFields.put( index, type );
+                    }
+                    switch ( type )
+                    {
+                    default:
+                    case REF:
+                        return "-1"; // indicates unknown count
+                    case COUNT:
+                        return "size(e." + getMemberPath( property ) + ")";
+                    case ID_OBJECTS:
+                    case IDS:
+                        String tableName = "t_" + getVarName( property );
+                        return "(select array_agg(" + tableName + ".uid) from "
+                            + p.getItemKlass().getSimpleName() + " " + tableName + " where " + tableName
+                            + " in elements(e." + getMemberPath( property ) + "))";
+                    }
+                }
+            }
+            String memberPath = getMemberPath( property );
+            return "e." + memberPath;
         }
 
-        private String createOrderByHQL()
+        private String createFiltersHQL()
+        {
+            return join( query.getFilters(), " and ", "1=1", this::createFiltersHQL );
+        }
+
+        private void createFiltersHQL( StringBuilder str, Filter filter )
+        {
+            boolean sizeOp = MemberQueryLogic.isCollectionSizeFilter( filter,
+                context.resolveMandatory( filter.getPropertyPath() ) );
+            if ( sizeOp )
+            {
+                str.append( "size(" );
+            }
+            str.append( "e." ).append( getMemberPath( filter.getPropertyPath() ) );
+            if ( sizeOp )
+            {
+                str.append( ")" );
+            }
+            str.append( " " ).append( createOperatorLeftSideHQL( filter.getOperator() ) )
+                .append( " :" ).append( getVarName( filter.getPropertyPath() ) )
+                .append( createOperatorRightSideHQL( filter.getOperator() ) );
+        }
+
+        private String createOrdersHQL()
         {
             return join( query.getOrders(), ",", "e.id asc",
                 ( str, order ) -> str
                     .append( " e." )
-                    .append( getMemberPath( order.getProperty() ) )
+                    .append( getMemberPath( order.getPropertyPath() ) )
                     .append( " " )
                     .append( order.getDirection().name().toLowerCase() ) );
         }
@@ -408,5 +618,25 @@ public class DefaultMemberQueryService implements MemberQueryService
             }
             return str.toString();
         }
+    }
+
+    @AllArgsConstructor
+    public static final class IdObject
+    {
+        @JsonProperty
+        final String id;
+    }
+
+    @AllArgsConstructor
+    @JsonInclude( Include.NON_NULL )
+    public static final class EndpointDescriptor
+    {
+
+        @JsonProperty
+        final String endpoint;
+
+        @JsonProperty
+        final Number count;
+
     }
 }

@@ -73,8 +73,8 @@ public class JsonDocumentTest
     @Test
     public void testStringNode_EscapedChars()
     {
-        JsonNode node = new JsonDocument( "\"\\\\\\/\\t\\r\\n\\f\\b\"" ).get( "$" );
-        assertEquals( "\\/\t\r\n\f\b", node.value() );
+        JsonNode node = new JsonDocument( "\"\\\\\\/\\t\\r\\n\\f\\b\\\"\"" ).get( "$" );
+        assertEquals( "\\/\t\r\n\f\b\"", node.value() );
     }
 
     @Test

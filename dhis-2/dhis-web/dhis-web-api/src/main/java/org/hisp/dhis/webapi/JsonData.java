@@ -27,9 +27,13 @@
  */
 package org.hisp.dhis.webapi;
 
+import static java.util.Arrays.asList;
+
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -102,24 +106,63 @@ public final class JsonData
         return skipNulls().skipEmptyArrays();
     }
 
-    public ArrayNode toArray( List<String> fields, List<Object[]> values )
+    public ArrayNode toArray( List<String> fields, List<?> values )
     {
         ArrayNode arr = jackson.createArrayNode();
-        for ( Object[] e : values )
+        for ( Object e : values )
         {
-            arr.add( toObject( fields, e ) );
+            if ( fields.size() == 1 )
+            {
+                arr.add( toElement( e ) );
+            }
+            else
+            {
+                arr.add( toElement( fields, e ) );
+            }
         }
         return arr;
     }
 
+    private JsonNode toElement( List<String> fields, Object e )
+    {
+        if ( e instanceof Object[] )
+        {
+            return toObject( fields, (Object[]) e );
+        }
+        else if ( e instanceof Collection )
+        {
+            return toObject( fields, (Collection<?>) e );
+        }
+        // assume the element e is already an object with all fields
+        return jackson.valueToTree( e );
+    }
+
+    private JsonNode toElement( Object e )
+    {
+        if ( e instanceof Object[] )
+        {
+            return jackson.valueToTree( cleanValue( ((Object[]) e)[0] ) );
+        }
+        else if ( e instanceof Collection && ((Collection<?>) e).size() == 1 )
+        {
+            return jackson.valueToTree( ((Collection<?>) e).iterator().next() );
+        }
+        return jackson.valueToTree( e );
+    }
+
     public ObjectNode toObject( List<String> fields, Object[] values )
     {
+        return toObject( fields, asList( values ) );
+    }
+
+    public ObjectNode toObject( List<String> fields, Collection<?> values )
+    {
         ObjectNode obj = jackson.createObjectNode();
-        int i = 0;
         Map<String, ObjectNode> memberObjectsByName = new HashMap<>();
+        Iterator<?> iter = values.iterator();
         for ( String field : fields )
         {
-            Object value = values[i++];
+            Object value = iter.hasNext() ? iter.next() : null;
             if ( !skipValue( value ) )
             {
                 JsonNode node = jackson.valueToTree( cleanValue( value ) );
