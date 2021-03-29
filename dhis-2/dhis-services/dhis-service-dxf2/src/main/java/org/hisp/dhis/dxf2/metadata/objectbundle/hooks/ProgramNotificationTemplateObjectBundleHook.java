@@ -52,11 +52,13 @@ public class ProgramNotificationTemplateObjectBundleHook
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
             template -> template.getRecipientProgramAttribute().getValueType() )
         .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
+        .put( ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL )
         .build();
 
     private static final ImmutableMap<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
         .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
         .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+        .put( ValueType.URL, Sets.newHashSet( DeliveryChannel.HTTP ) )
         .build();
 
     @Override
@@ -149,7 +151,7 @@ public class ProgramNotificationTemplateObjectBundleHook
 
         ValueType valueType = null;
 
-        if ( resolver != null && (pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null) )
+        if ( resolver != null && ( pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null ) )
         {
             valueType = resolver.apply( pnt );
         }
