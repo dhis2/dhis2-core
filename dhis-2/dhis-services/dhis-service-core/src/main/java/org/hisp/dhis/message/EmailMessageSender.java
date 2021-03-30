@@ -28,6 +28,7 @@
 package org.hisp.dhis.message;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.singleton;
 
 import java.util.HashMap;
 import java.util.List;
@@ -68,7 +69,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.concurrent.ListenableFuture;
 
 import com.google.common.base.Strings;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
@@ -267,7 +267,7 @@ public class EmailMessageSender
     @Override
     public OutboundMessageResponse sendMessage( String subject, String text, String recipient )
     {
-        return sendMessage( subject, text, Sets.newHashSet( recipient ) );
+        return sendMessage( subject, text, singleton( recipient ) );
     }
 
     @Override

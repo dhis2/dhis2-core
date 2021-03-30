@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -112,6 +113,13 @@ public class DefaultProgramService
     public Program getProgram( long id )
     {
         return programStore.get( id );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Collection<Program> getPrograms( Collection<String> uids )
+    {
+        return programStore.getByUid( uids );
     }
 
     @Override

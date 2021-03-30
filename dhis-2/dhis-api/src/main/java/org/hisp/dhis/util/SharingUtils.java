@@ -27,20 +27,18 @@
  */
 package org.hisp.dhis.util;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
+import java.util.*;
+import java.util.function.*;
+import java.util.stream.*;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import org.apache.commons.collections4.*;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.user.UserGroupAccess;
-import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.*;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import com.google.common.collect.*;
 
 public class SharingUtils
 {
@@ -51,17 +49,60 @@ public class SharingUtils
         throw new UnsupportedOperationException( "utility" );
     }
 
-    public static Set<UserGroupAccess> getDtoUserGroupAccesses( Sharing sharing )
+    public static Set<UserGroupAccess> getDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> dto,
+        Sharing sharing )
     {
-        return sharing.hasUserGroupAccesses() ? sharing.getUserGroups().values()
-            .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject ).collect( Collectors.toSet() )
-            : new HashSet<>();
+        if ( !CollectionUtils.isEmpty( dto ) )
+        {
+            return dto;
+        }
+
+        if ( !sharing.hasUserGroupAccesses() )
+        {
+            return dto;
+        }
+
+        return sharing.getUserGroups().values()
+            .stream().map( org.hisp.dhis.user.sharing.UserGroupAccess::toDtoObject )
+            .collect( Collectors.toSet() );
     }
 
-    public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccess( Sharing sharing )
+    public static Set<org.hisp.dhis.user.UserAccess> getDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto,
+        Sharing sharing )
     {
-        return sharing.hasUserAccesses() ? sharing.getUsers().values()
-            .stream().map( UserAccess::toDtoObject ).collect( Collectors.toSet() ) : new HashSet<>();
+        if ( !CollectionUtils.isEmpty( dto ) )
+        {
+            return dto;
+        }
+
+        if ( !sharing.hasUserAccesses() )
+        {
+            return dto;
+        }
+
+        return sharing.getUsers().values()
+            .stream().map( org.hisp.dhis.user.sharing.UserAccess::toDtoObject )
+            .collect( Collectors.toSet() );
+    }
+
+    public static String getDtoPublicAccess( String dto, Sharing sharing )
+    {
+        if ( dto == null )
+        {
+            dto = sharing.getPublicAccess();
+        }
+
+        return dto;
+    }
+
+    public static boolean getDtoExternalAccess( Boolean dto, Sharing sharing )
+    {
+        if ( dto == null )
+        {
+            dto = sharing.isExternal();
+        }
+
+        return dto;
     }
 
     public static Sharing generateSharingFromIdentifiableObject( IdentifiableObject object )
@@ -73,6 +114,12 @@ public class SharingUtils
         sharing.setDtoUserGroupAccesses( object.getUserGroupAccesses() );
         sharing.setDtoUserAccesses( object.getUserAccesses() );
         return sharing;
+    }
+
+    public static void resetAccessCollections( BaseIdentifiableObject identifiableObject )
+    {
+        identifiableObject.setUserAccesses( Sets.newHashSet() );
+        identifiableObject.setUserGroupAccesses( Sets.newHashSet() );
     }
 
     public static String withAccess( String jsonb, UnaryOperator<String> accessTransformation )

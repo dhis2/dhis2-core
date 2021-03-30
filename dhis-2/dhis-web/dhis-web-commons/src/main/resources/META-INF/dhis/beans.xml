@@ -60,10 +60,6 @@
     </property>
   </bean>
 
-  <bean id="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter" class="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter">
-    <property name="moduleManager" ref="org.hisp.dhis.webportal.module.ModuleManager" />
-  </bean>
-
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor">
     <property name="standardParams">

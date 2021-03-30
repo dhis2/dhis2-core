@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
@@ -44,7 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -83,6 +84,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -396,6 +398,41 @@ public class UserController
         }
     }
 
+    @RequestMapping( value = "/{id}/reset", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void resetToInvite( @PathVariable String id, HttpServletRequest request )
+        throws Exception
+    {
+        User user = userService.getUser( id );
+        if ( user == null )
+        {
+            throw NotFoundException.notFoundUid( id );
+        }
+        String valid = securityService.validateRestore( user.getUserCredentials() );
+        if ( valid != null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+        }
+        User currentUser = currentUserService.getCurrentUser();
+        if ( !aclService.canUpdate( currentUser, user ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
+        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
+        {
+            throw new UpdateAccessDeniedException(
+                "You must have permissions manage at least one user group for the user." );
+        }
+
+        RestoreOptions restoreOptions = securityService.isInviteUsername( user.getUsername() )
+            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
+            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
+
+        securityService.prepareUserForInvite( user );
+        securityService.sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
+            restoreOptions );
+    }
+
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
     @RequestMapping( value = "/{uid}/replica", method = RequestMethod.POST )
@@ -466,7 +503,7 @@ public class UserController
 
         userService.addUser( userReplica );
         userService.addUserCredentials( credentialsReplica );
-        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ),
+        userGroupService.addUserToGroups( userReplica, getUids( existingUser.getGroups() ),
             currentUser );
 
         // ---------------------------------------------------------------------
@@ -582,7 +619,7 @@ public class UserController
         boolean isPasswordChangeAttempt = parsedUserObject.getUserCredentials() != null &&
             parsedUserObject.getUserCredentials().getPassword() != null;
 
-        List<String> groupsUids = IdentifiableObjectUtils.getUids( parsedUserObject.getGroups() );
+        List<String> groupsUids = getUids( parsedUserObject.getGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
@@ -628,7 +665,7 @@ public class UserController
             currentUser = currentUserService.getCurrentUser();
         }
 
-        userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
+        userGroupService.updateUserGroups( user, getUids( parsed.getGroups() ), currentUser );
     }
 
     // -------------------------------------------------------------------------
@@ -641,7 +678,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
@@ -672,7 +709,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
@@ -702,13 +739,13 @@ public class UserController
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
-        List<String> uids = IdentifiableObjectUtils.getUids( user.getGroups() );
+        List<String> uids = getUids( user.getGroups() );
 
         for ( String uid : uids )
         {
@@ -736,7 +773,7 @@ public class UserController
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
-            userGroupService.addUserToGroups( user, IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser );
+            userGroupService.addUserToGroups( user, getUids( user.getGroups() ), currentUser );
         }
 
         return importReport;
@@ -904,7 +941,7 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(

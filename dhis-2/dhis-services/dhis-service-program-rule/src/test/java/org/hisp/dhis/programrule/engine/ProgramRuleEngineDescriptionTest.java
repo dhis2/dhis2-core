@@ -61,6 +61,8 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
 
     private String conditionWithD2HasValue = "d2:hasValue('Program_Rule_Variable_Text_Attr')";
 
+    private String conditionWithD2HasValue2 = "d2:hasValue(A{Program_Rule_Variable_Text_Attr})";
+
     private String conditionNumericAtt = "A{Program_Rule_Variable_Numeric_Attr} == 12 || d2:hasValue(V{current_date})";
 
     private String conditionNumericAttWithOR = "A{Program_Rule_Variable_Numeric_Attr} == 12 or d2:hasValue(V{current_date})";
@@ -212,6 +214,16 @@ public class ProgramRuleEngineDescriptionTest extends DhisSpringTest
     @Test
     public void testProgramRuleWithD2HasValueTrackedEntityAttribute()
     {
+        RuleValidationResult result = validateRuleCondition( programRuleWithD2HasValue.getCondition(), program );
+        assertNotNull( result );
+        assertEquals( "AttributeA", result.getDescription() );
+        assertTrue( result.isValid() );
+    }
+
+    @Test
+    public void testProgramRuleWithD2HasValueTrackedEntityAttribute2()
+    {
+        programRuleWithD2HasValue.setCondition( conditionWithD2HasValue2 );
         RuleValidationResult result = validateRuleCondition( programRuleWithD2HasValue.getCondition(), program );
         assertNotNull( result );
         assertEquals( "AttributeA", result.getDescription() );

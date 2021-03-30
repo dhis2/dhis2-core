@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -48,9 +49,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Chau Thu Tran
  */
 @JacksonXmlRootElement( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityType
-    extends BaseNameableObject implements MetadataObject
+public class TrackedEntityType extends BaseNameableObject implements MetadataObject
 {
+
     private List<TrackedEntityTypeAttribute> trackedEntityTypeAttributes = new ArrayList<>();
 
     private FeatureType featureType = FeatureType.NONE;
@@ -81,7 +82,6 @@ public class TrackedEntityType
 
     public TrackedEntityType()
     {
-
     }
 
     public TrackedEntityType( String name, String description )
@@ -99,8 +99,8 @@ public class TrackedEntityType
      */
     public List<TrackedEntityAttribute> getTrackedEntityAttributes()
     {
-        return trackedEntityTypeAttributes.stream().map( TrackedEntityTypeAttribute::getTrackedEntityAttribute )
-            .collect( Collectors.toList() );
+        return trackedEntityTypeAttributes.stream().filter( Objects::nonNull )
+            .map( TrackedEntityTypeAttribute::getTrackedEntityAttribute ).collect( Collectors.toList() );
     }
 
     // -------------------------------------------------------------------------
