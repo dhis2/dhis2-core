@@ -32,7 +32,6 @@ import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**

@@ -34,7 +34,6 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.user.User;
-
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
