@@ -39,7 +39,7 @@ import org.mapstruct.Mapping;
     InstantMapper.class } )
 public interface EnrollmentMapper extends DomainMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
 {
-    @Mapping( target = "uid", source = "enrollment" )
+    @Mapping( target = "enrollment", source = "enrollment" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
