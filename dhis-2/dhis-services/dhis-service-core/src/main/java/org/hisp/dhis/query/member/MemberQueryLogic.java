@@ -27,7 +27,7 @@ final class MemberQueryLogic
     static boolean isDefaultField( Property p )
     {
         return p.isPersisted()
-            && !p.isCollection()
+            && (!p.isCollection() || p.isEmbeddedObject() && !isRelationField( p ))
             && p.isReadable()
             && p.getFieldName() != null
             && (p.isSimple() || p.isEmbeddedObject())
@@ -55,7 +55,8 @@ final class MemberQueryLogic
 
     static boolean isRelationField( Property p )
     {
-        return p.isPersisted() && (p.isManyToMany() || p.isManyToOne() || p.isOneToOne());
+        return p.isPersisted() && (p.isManyToMany() || p.isManyToOne() || p.isOneToOne() || p.getCascade() != null
+            || p.getInverseRole() != null);
     }
 
     static Class<?> getSimpleField( Property p )

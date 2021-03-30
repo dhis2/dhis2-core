@@ -503,7 +503,7 @@ public class DefaultMemberQueryService implements MemberQueryService
                 {
                     idColumnIndex = index;
                 }
-                if ( p.isCollection() )
+                if ( p.isCollection() && isRelationField( p ) )
                 {
                     RelationViewType type = getEffectiveViewType( field, p );
                     if ( type != RelationViewType.IDS )
@@ -633,7 +633,7 @@ public class DefaultMemberQueryService implements MemberQueryService
     {
 
         @JsonProperty
-        final String endpoint;
+        final String apiEndpoint;
 
         @JsonProperty
         final Number count;
