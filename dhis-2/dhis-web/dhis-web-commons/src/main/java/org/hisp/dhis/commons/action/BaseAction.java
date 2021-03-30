@@ -36,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class BaseAction
+public abstract class BaseAction
 {
     @Autowired
     protected AclService aclService;
@@ -44,7 +44,7 @@ public class BaseAction
     @Autowired
     protected CurrentUserService currentUserService;
 
-    public <T extends IdentifiableObject> void canReadType( Class<T> type )
+    public final <T extends IdentifiableObject> void canReadType( Class<T> type )
     {
         if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
         {
@@ -53,7 +53,7 @@ public class BaseAction
         }
     }
 
-    public void canReadInstance( IdentifiableObject instance )
+    public final void canReadInstance( IdentifiableObject instance )
     {
         if ( !aclService.canRead( currentUserService.getCurrentUser(), instance ) )
         {
