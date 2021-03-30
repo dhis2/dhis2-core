@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -80,6 +81,7 @@ public class AppHubController
     @GetMapping( value = "/{apiVersion}/**", produces = "application/json" )
     public String getAppHubApiResponse(
         @PathVariable String apiVersion, HttpServletRequest request )
+        throws URISyntaxException
     {
         String query = ContextUtils.getWildcardPathValue( request );
 
