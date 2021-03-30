@@ -37,6 +37,8 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.Arrays;
@@ -83,6 +85,7 @@ public class DefaultAppHubService
 
     @Override
     public String getAppHubApiResponse( String apiVersion, String query )
+        throws URISyntaxException
     {
         validateApiVersion( apiVersion );
         validateQuery( query );
@@ -99,7 +102,7 @@ public class DefaultAppHubService
 
         log.info( "App Hub proxy request URL: '{}'", url );
 
-        ResponseEntity<String> response = restTemplate.exchange( url, HttpMethod.GET, getJsonRequestEntity(),
+        ResponseEntity<String> response = restTemplate.exchange( new URI( url ), HttpMethod.GET, getJsonRequestEntity(),
             String.class );
 
         return response.getBody();

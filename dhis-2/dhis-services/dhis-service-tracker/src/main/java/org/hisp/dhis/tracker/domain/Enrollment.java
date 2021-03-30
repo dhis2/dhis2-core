@@ -31,10 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import org.locationtech.jts.geom.Geometry;
 
@@ -49,8 +46,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class Enrollment implements TrackerDto
 {
-    private String uid;
-
     @JsonProperty
     private String enrollment;
 
@@ -123,4 +118,10 @@ public class Enrollment implements TrackerDto
     @JsonProperty
     @Builder.Default
     private List<Note> notes = new ArrayList<>();
+
+    @Override
+    public String getUid()
+    {
+        return this.enrollment;
+    }
 }

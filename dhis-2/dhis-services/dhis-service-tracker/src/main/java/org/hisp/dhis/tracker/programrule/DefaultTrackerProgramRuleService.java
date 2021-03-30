@@ -27,10 +27,7 @@
  */
 package org.hisp.dhis.tracker.programrule;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,9 +133,14 @@ public class DefaultTrackerProgramRuleService
                 }
                 else
                 {
-                    return programRuleEngine.evaluate( enrollment,
-                        programStageInstance,
-                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ) );
+                    List<TrackedEntityAttributeValue> attributeValues = bundle.getEnrollments()
+                        .stream()
+                        .filter( e -> event.getEnrollment().equals( e.getEnrollment() ) )
+                        .findAny()
+                        .map( e -> getAttributes( e, bundle ) )
+                        .orElse( Collections.EMPTY_LIST );
+                    return programRuleEngine.evaluate( enrollment, programStageInstance,
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, events ), attributeValues );
                 }
             } ) );
     }

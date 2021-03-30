@@ -135,7 +135,7 @@ public class EventDataValueTest
         // make sure that the uid property is populated as well - otherwise
         // update will
         // not work
-        trackerImportParams.getEvents().get( 0 ).setUid( trackerImportParams.getEvents().get( 0 ).getEvent() );
+        trackerImportParams.getEvents().get( 0 ).setEvent( trackerImportParams.getEvents().get( 0 ).getEvent() );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );

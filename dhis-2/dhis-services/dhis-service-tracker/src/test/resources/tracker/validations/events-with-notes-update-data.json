@@ -17,15 +17,19 @@
       "dataValues": [],
       "notes": [
         {
+          "note": "noteUid0004",
           "value": "this is the 4th note"
         },
         {
+          "note": "noteUid0005",
           "value": "this is the 5th note"
         },
         {
+          "note": "noteUid0006",
           "value": "this is the 6th note"
         },
         {
+          "note": "noteUid0007",
           "value": ""
         }
 
