@@ -1,0 +1,1 @@
+alter table externalmaplayer add column if not exists translations jsonb default '[]'::jsonb;
