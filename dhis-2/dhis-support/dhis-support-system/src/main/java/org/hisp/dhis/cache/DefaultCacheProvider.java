@@ -57,6 +57,8 @@ public class DefaultCacheProvider
 
     private static final long SIZE_100 = 100;
 
+    private static final long SIZE_500 = 500;
+
     private static final long SIZE_1K = 1_000;
 
     private static final long SIZE_10K = 10_000;
@@ -458,7 +460,7 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
     }
 
     @Override
@@ -469,6 +471,6 @@ public class DefaultCacheProvider
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
-            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_500 ) ) ) );
     }
 }
