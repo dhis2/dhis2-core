@@ -246,7 +246,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEnrollment( uid );
                 setTrackedEntity( allEntities.get( 0 ) );
             }
@@ -255,7 +254,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEnrollment( uid );
                 setTrackedEntity( allEntities.get( 0 ) );
             }
@@ -274,7 +272,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEvent( uid );
                 setEnrollment( allPs.get( 0 ).getEnrollment() );
             }
@@ -283,7 +280,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEvent( uid );
                 setEnrollment( allPs.get( 0 ).getEnrollment() );
             }
@@ -292,7 +288,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEvent( uid );
                 setEnrollment( allPs.get( 1 ).getEnrollment() );
             }
@@ -301,7 +296,6 @@ public class TrackerPreheatTest
         {
             {
                 String uid = CodeGenerator.generateUid();
-                setUid( uid );
                 setEvent( uid );
                 setEnrollment( allPs.get( 1 ).getEnrollment() );
             }

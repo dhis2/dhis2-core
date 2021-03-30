@@ -41,11 +41,4 @@ public interface TrackerPreheatService
      * @param params Params for preheating
      */
     TrackerPreheat preheat( TrackerImportParams params );
-
-    /**
-     * Validate PreheatParams.
-     *
-     * @param params PreheatParams
-     */
-    void validate( TrackerImportParams params );
 }

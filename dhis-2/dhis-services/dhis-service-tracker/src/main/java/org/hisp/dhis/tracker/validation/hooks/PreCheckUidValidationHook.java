@@ -27,17 +27,12 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 
 import java.util.List;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.Note;
-import org.hisp.dhis.tracker.domain.Relationship;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.report.TrackerErrorCode;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 import org.springframework.stereotype.Component;
@@ -46,47 +41,19 @@ import org.springframework.stereotype.Component;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Component
-public class PreCheckValidateAndGenerateUidHook
+public class PreCheckUidValidationHook
     extends AbstractTrackerDtoValidationHook
 {
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
-        String uid = trackedEntity.getTrackedEntity();
-
-        if ( isUidInvalid( uid, reporter, trackedEntity, trackedEntity.getTrackedEntity() ) )
-        {
-            return;
-        }
-
-        if ( uid == null )
-        {
-            trackedEntity.setUid( CodeGenerator.generateUid() );
-        }
-        else
-        {
-            trackedEntity.setUid( uid );
-        }
+        checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity.getTrackedEntity() );
     }
 
     @Override
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
-        final String uid = enrollment.getEnrollment();
-
-        if ( isUidInvalid( uid, reporter, enrollment, enrollment.getEnrollment() ) )
-        {
-            return;
-        }
-
-        if ( uid == null )
-        {
-            enrollment.setUid( CodeGenerator.generateUid() );
-        }
-        else
-        {
-            enrollment.setUid( uid );
-        }
+        checkUidFormat( enrollment.getEnrollment(), reporter, enrollment, enrollment.getEnrollment() );
 
         validateNotesUid( enrollment.getNotes(), reporter );
     }
@@ -94,85 +61,41 @@ public class PreCheckValidateAndGenerateUidHook
     @Override
     public void validateEvent( ValidationErrorReporter reporter, Event event )
     {
-        final String uid = event.getEvent();
+        checkUidFormat( event.getEvent(), reporter, event, event.getEvent() );
 
-        if ( isUidInvalid( uid, reporter, event, event.getEvent() ) )
-        {
-            return;
-        }
-
-        if ( uid == null )
-        {
-            event.setUid( CodeGenerator.generateUid() );
-        }
-        else
-        {
-            event.setUid( uid );
-        }
-
-        // Generate UID for notes
         validateNotesUid( event.getNotes(), reporter );
     }
 
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        final String uid = relationship.getRelationship();
-
-        if ( isUidInvalid( uid, reporter, relationship, relationship.getRelationship() ) )
-        {
-            return;
-        }
-
-        if ( uid == null )
-        {
-            relationship.setRelationship( CodeGenerator.generateUid() );
-        }
-        else
-        {
-            relationship.setRelationship( uid );
-        }
+        checkUidFormat( relationship.getRelationship(), reporter, relationship, relationship.getRelationship() );
     }
 
     private void validateNotesUid( List<Note> notes, ValidationErrorReporter reporter )
     {
-        if ( isNotEmpty( notes ) )
+        for ( Note note : notes )
         {
-            for ( Note note : notes )
-            {
-                if ( isUidInvalid( note.getNote(), reporter, note, note.getNote() ) )
-                {
-                    return;
-                }
-                if ( note.getNote() == null )
-                {
-                    note.setNote( CodeGenerator.generateUid() );
-                }
-            }
+            checkUidFormat( note.getNote(), reporter, note, note.getNote() );
         }
-
     }
 
     /**
-     * Check if the given UID has a valid format. A null UID is considered
-     * valid.
+     * Check if the given UID has a valid format.
      *
-     * @param uid a UID. The UID string can be null.
+     * @param uid a UID
      * @param reporter a {@see ValidationErrorReporter} to which the error is
      *        added
      * @param args list of arguments for the Error report
-     * @return true, if the UID is invalid
      */
-    private boolean isUidInvalid( String uid, ValidationErrorReporter reporter, Object... args )
+    private void checkUidFormat( String uid, ValidationErrorReporter reporter, Object... args )
     {
-        if ( uid != null && !CodeGenerator.isValidUid( uid ) )
+        if ( !CodeGenerator.isValidUid( uid ) )
         {
             reporter.addError( newReport( TrackerErrorCode.E1048 )
                 .addArg( args[0] )
                 .addArg( args[1] ) );
-            return true;
         }
-        return false;
     }
 
     @Override
