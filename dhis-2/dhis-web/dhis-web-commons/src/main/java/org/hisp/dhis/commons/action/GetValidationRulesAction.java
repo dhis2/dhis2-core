@@ -32,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.struts2.ServletActionContext;
+
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -76,7 +78,9 @@ public class GetValidationRulesAction extends BaseAction
         canReadType( ValidationRule.class );
 
         validationRules = new ArrayList<>( validationRuleService.getAllValidationRules() );
-        validationRules.forEach( this::canReadInstance );
+
+        User currentUser = currentUserService.getCurrentUser();
+        validationRules.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
             validationRules );

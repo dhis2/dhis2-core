@@ -81,7 +81,7 @@ public class GetDataElementGroupSetAction extends BaseAction
             dataElementGroupSet = dataElementService.getDataElementGroupSet( id );
         }
 
-        canReadInstance( dataElementGroupSet );
+        canReadInstance( dataElementGroupSet, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

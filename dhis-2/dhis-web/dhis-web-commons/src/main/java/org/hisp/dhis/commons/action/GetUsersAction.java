@@ -86,7 +86,8 @@ public class GetUsersAction
 
         users = new ArrayList<>( userService.getAllUsers() );
 
-        users.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        users.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), users );
 

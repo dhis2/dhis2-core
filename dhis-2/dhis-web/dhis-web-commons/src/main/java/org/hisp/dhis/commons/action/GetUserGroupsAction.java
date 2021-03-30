@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserGroupService;
 
@@ -83,7 +84,8 @@ public class GetUserGroupsAction
 
         userGroups = new ArrayList<>( userGroupService.getAllUserGroups() );
 
-        userGroups.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        userGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( key != null )
         {

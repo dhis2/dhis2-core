@@ -85,7 +85,7 @@ public class GetDataElementAction extends BaseAction
             dataElement = dataElementService.getDataElement( id );
         }
 
-        canReadInstance( dataElement );
+        canReadInstance( dataElement, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

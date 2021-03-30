@@ -34,6 +34,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.user.User;
 
 import com.opensymphony.xwork2.Action;
 
@@ -134,7 +135,8 @@ public class GetCategoryOptionCombosAction extends BaseAction
             }
         }
 
-        categoryOptionCombos.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        categoryOptionCombos.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         return SUCCESS;
     }

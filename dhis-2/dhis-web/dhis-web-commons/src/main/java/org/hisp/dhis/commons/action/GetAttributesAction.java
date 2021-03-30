@@ -34,6 +34,7 @@ import java.util.List;
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 
 import com.opensymphony.xwork2.Action;
@@ -80,7 +81,8 @@ public class GetAttributesAction extends BaseAction
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
             attributes );
 
-        attributes.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        attributes.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( attributes );
 

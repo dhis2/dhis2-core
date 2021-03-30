@@ -32,6 +32,7 @@ import java.util.List;
 
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupService;
+import org.hisp.dhis.user.User;
 
 import com.opensymphony.xwork2.Action;
 
@@ -90,7 +91,8 @@ public class GetOrganisationUnitGroupsByGroupSetAction extends BaseAction
                 .getOrganisationUnitGroupSet( id ).getOrganisationUnitGroups() );
         }
 
-        organisationUnitGroups.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        organisationUnitGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         return SUCCESS;
     }

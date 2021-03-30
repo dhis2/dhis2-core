@@ -89,7 +89,7 @@ public class GetIndicatorGroupAction extends BaseAction
             memberCount = indicatorGroup.getMembers().size();
         }
 
-        canReadInstance( indicatorGroup );
+        canReadInstance( indicatorGroup, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

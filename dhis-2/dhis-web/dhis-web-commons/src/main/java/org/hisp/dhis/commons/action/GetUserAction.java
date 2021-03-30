@@ -95,7 +95,7 @@ public class GetUserAction extends BaseAction
             user = credentials != null ? credentials.getUserInfo() : null;
         }
 
-        canReadInstance( user );
+        canReadInstance( user, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

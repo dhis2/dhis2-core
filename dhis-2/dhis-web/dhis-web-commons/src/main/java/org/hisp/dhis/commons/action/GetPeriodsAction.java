@@ -37,6 +37,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.comparator.DescendingPeriodComparator;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Lars Helge Overland
@@ -110,7 +111,8 @@ public class GetPeriodsAction
             periods = new ArrayList<>( periodService.getPeriodsByPeriodType( periodType ) );
         }
 
-        periods.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        periods.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         for ( Period period : periods )
         {

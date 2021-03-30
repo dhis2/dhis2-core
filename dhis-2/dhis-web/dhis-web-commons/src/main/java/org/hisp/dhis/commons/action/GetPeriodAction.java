@@ -81,7 +81,7 @@ public class GetPeriodAction extends BaseAction
             period = periodService.getPeriod( id );
         }
 
-        canReadInstance( period );
+        canReadInstance( period, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

@@ -89,7 +89,7 @@ public class GetDataElementGroupAction extends BaseAction
             memberCount = dataElementGroup.getMembers().size();
         }
 
-        canReadInstance( dataElementGroup );
+        canReadInstance( dataElementGroup, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

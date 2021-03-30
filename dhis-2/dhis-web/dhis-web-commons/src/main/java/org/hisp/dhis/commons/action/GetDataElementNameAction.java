@@ -100,12 +100,12 @@ public class GetDataElementNameAction extends BaseAction
         {
             DataElement dataElement = dataElementService.getDataElement( dataElementId );
 
-            canReadInstance( dataElement );
+            canReadInstance( dataElement, currentUserService.getCurrentUser() );
 
             CategoryOptionCombo categoryOptionCombo = categoryService
                 .getCategoryOptionCombo( categoryOptionComboId );
 
-            canReadInstance( categoryOptionCombo );
+            canReadInstance( categoryOptionCombo, currentUserService.getCurrentUser() );
 
             name = dataElement.getName() + " " + categoryOptionCombo.getName();
         }

@@ -85,7 +85,7 @@ public class GetIndicatorAction extends BaseAction
             indicator = indicatorService.getIndicator( id );
         }
 
-        canReadInstance( indicator );
+        canReadInstance( indicator, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }

@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserAuthorityGroup;
 import org.hisp.dhis.user.UserService;
 
@@ -77,7 +78,8 @@ public class GetUserRolesAction
 
         userService.canIssueFilter( userRoles );
 
-        userRoles.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        userRoles.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( userRoles );
 

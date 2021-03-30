@@ -194,7 +194,8 @@ public class GetOrganisationUnitTreeAction extends BaseAction
             rootOrganisationUnits = new ArrayList<>( organisationUnitService.getRootOrganisationUnits() );
         }
 
-        rootOrganisationUnits.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        rootOrganisationUnits.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( byName != null )
         {
@@ -272,7 +273,7 @@ public class GetOrganisationUnitTreeAction extends BaseAction
 
         Collections.sort( rootOrganisationUnits );
 
-        organisationUnits.forEach( this::canReadInstance );
+        organisationUnits.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         return SUCCESS;
     }

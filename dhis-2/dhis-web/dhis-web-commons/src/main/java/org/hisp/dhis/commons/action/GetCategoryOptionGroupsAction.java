@@ -33,6 +33,8 @@ import java.util.List;
 
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.user.User;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
@@ -71,7 +73,8 @@ public class GetCategoryOptionGroupsAction extends BaseAction
         categoryOptionGroups = new ArrayList<>(
             dataElementCategoryService.getAllCategoryOptionGroups() );
 
-        categoryOptionGroups.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        categoryOptionGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( categoryOptionGroups );
 

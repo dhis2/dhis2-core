@@ -138,7 +138,8 @@ public class GetDataSetsAction
             }
         }
 
-        dataSets.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        dataSets.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( dataSets );
 

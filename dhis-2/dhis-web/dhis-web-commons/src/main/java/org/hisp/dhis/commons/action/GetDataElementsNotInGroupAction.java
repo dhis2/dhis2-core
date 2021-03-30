@@ -35,6 +35,7 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 
 /**
  * @author mortenoh
@@ -104,7 +105,8 @@ public class GetDataElementsNotInGroupAction
             Collections.sort( groupMembers );
         }
 
-        groupMembers.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        groupMembers.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         // ---------------------------------------------------------------------
         // Get available elements
@@ -116,7 +118,7 @@ public class GetDataElementsNotInGroupAction
 
         Collections.sort( dataElements );
 
-        dataElements.forEach( this::canReadInstance );
+        dataElements.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         if ( usePaging )
         {

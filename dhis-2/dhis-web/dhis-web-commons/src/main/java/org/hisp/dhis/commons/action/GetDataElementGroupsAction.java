@@ -35,6 +35,7 @@ import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Tran Thanh Tri
@@ -89,7 +90,8 @@ public class GetDataElementGroupsAction
             dataElementGroups = IdentifiableObjectUtils.filterNameByKey( dataElementGroups, key, true );
         }
 
-        dataElementGroups.forEach( this::canReadInstance );
+        User currentUser = currentUserService.getCurrentUser();
+        dataElementGroups.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( dataElementGroups );
 
