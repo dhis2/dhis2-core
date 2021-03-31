@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
@@ -49,10 +50,12 @@ import static org.postgresql.util.PSQLState.DIVISION_BY_ZERO;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
@@ -61,6 +64,8 @@ import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -452,13 +457,16 @@ public class JdbcEventAnalyticsManager
         List<DimensionalObject> dynamicDimensions = params.getDimensionsAndFilters(
             Sets.newHashSet( DimensionType.ORGANISATION_UNIT_GROUP_SET, DimensionType.CATEGORY ) );
 
-        // Apply pre-authorized dimensions filtering
-
         for ( DimensionalObject dim : dynamicDimensions )
         {
             String col = quoteAlias( dim.getDimensionName() );
             sql += hlp.whereAnd() + " " + col + OPEN_IN
                 + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+        }
+
+        if ( params.hasProgram() && params.getProgram().hasCategoryCombo() )
+        {
+            sql += filterOutNotAuthorizedCategoryOptionEvents( params );
         }
 
         // ---------------------------------------------------------------------
@@ -578,6 +586,70 @@ public class JdbcEventAnalyticsManager
         }
 
         return sql;
+    }
+
+    /**
+     * This method will generate a sql sentence responsible for filtering out
+     * the given non-authorized CategoryOption's. The list of category options
+     * within this list of categories should contains only non-authorized
+     * category options (it means the category options that cannot be read by
+     * the current user based on sharing settings.
+     *
+     * See:
+     *
+     * {@link org.hisp.dhis.analytics.security.DefaultAnalyticsSecurityManager#extractNonAuthorizedCategoriesOptionsFrom(List)}
+     * and
+     * {@link org.hisp.dhis.analytics.AnalyticsSecurityManager#decideAccess(DataQueryParams)}
+     * to check how the category options of these categories were set.
+     *
+     * @param params query params where the program categories and
+     *        non-authorized categories will be extracted from
+     * @return the sql statement in the format: "and ax."mEXqxV2KIUl" not in
+     *         ('qNqYLugIySD') or ax."r7NDRdgj5zs" not in ('qNqYLugIySD') "
+     */
+    String filterOutNotAuthorizedCategoryOptionEvents( final EventQueryParams params )
+    {
+        boolean andFlag = true;
+        final StringBuilder query = new StringBuilder();
+        final List<Category> programCategories = params.getProgram().getCategoryCombo().getCategories();
+
+        if ( isNotEmpty( programCategories ) && params.hasExclusion() )
+        {
+            final Map<String, List<CategoryOption>> nonAuthorizedCategoryOptions = params.getExclusion()
+                .getNonAuthorizedCategoryOptions();
+
+            for ( final Category category : programCategories )
+            {
+                if ( MapUtils.isNotEmpty( nonAuthorizedCategoryOptions ) )
+                {
+                    query.append( andFlag ? " and " : " or " );
+                    andFlag = false;
+                    query.append(
+                        buildNotInFilterForCategory( category,
+                            nonAuthorizedCategoryOptions.get( category.getUid() ) ) );
+                }
+            }
+        }
+
+        return query.toString();
+    }
+
+    /**
+     * This method generates a "not in" sql statement using the given Category
+     * and CategoryOption's.
+     *
+     * @param category
+     * @param nonAuthorizedCategoryOptions
+     * @return a sql statement in the format: "ax."mEXqxV2KIUl" not in
+     *         ('qNqYLugIySD') "
+     */
+    String buildNotInFilterForCategory( final Category category,
+        final List<CategoryOption> nonAuthorizedCategoryOptions )
+    {
+        final String categoryColumn = quoteAlias( category.getUid() );
+
+        return categoryColumn + " not in ("
+            + getQuotedCommaDelimitedString( getUids( nonAuthorizedCategoryOptions ) ) + ") ";
     }
 
     /**

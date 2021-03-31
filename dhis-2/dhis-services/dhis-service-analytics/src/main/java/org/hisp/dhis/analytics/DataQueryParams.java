@@ -59,6 +59,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.analytics.event.data.QueryExclusion;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
@@ -428,6 +429,11 @@ public class DataQueryParams
     protected transient boolean skipPartitioning;
 
     /**
+     * Holds objects to be excluded at querying time.
+     */
+    protected transient QueryExclusion exclusion;
+
+    /**
      * Applies to reporting rates only. Indicates whether only timely reports
      * should be returned.
      */
@@ -586,6 +592,7 @@ public class DataQueryParams
         params.dataApprovalLevels = new HashMap<>( this.dataApprovalLevels );
         params.skipDataDimensionValidation = this.skipDataDimensionValidation;
         params.userOrgUnitType = this.userOrgUnitType;
+        params.exclusion = this.exclusion;
         return params;
     }
 
@@ -2245,6 +2252,16 @@ public class DataQueryParams
         return skipPartitioning;
     }
 
+    public QueryExclusion getExclusion()
+    {
+        if ( exclusion == null )
+        {
+            exclusion = new QueryExclusion();
+        }
+
+        return exclusion;
+    }
+
     public boolean isTimely()
     {
         return timely;
@@ -2979,6 +2996,12 @@ public class DataQueryParams
         public Builder withDisplayProperty( DisplayProperty displayProperty )
         {
             this.params.displayProperty = displayProperty;
+            return this;
+        }
+
+        public Builder withExclusion( QueryExclusion exclusion )
+        {
+            this.params.exclusion = exclusion;
             return this;
         }
 

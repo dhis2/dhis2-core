@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics.security;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.analytics.util.AnalyticsUtils.throwIllegalQueryEx;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +44,8 @@ import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.QueryParamsBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionType;
@@ -163,6 +167,14 @@ public class DefaultAnalyticsSecurityManager
         if ( params.hasProgram() )
         {
             objects.add( params.getProgram() );
+
+            if ( params.getProgram().hasCategoryCombo() )
+            {
+                final Map<String, List<CategoryOption>> nonAuthorizedCategoriesOptions = extractNonAuthorizedCategoriesOptionsFrom(
+                    params.getProgram().getCategoryCombo().getCategories() );
+
+                params.getExclusion().getNonAuthorizedCategoryOptions().putAll( nonAuthorizedCategoriesOptions );
+            }
         }
 
         if ( params.hasProgramStage() )
@@ -184,16 +196,69 @@ public class DefaultAnalyticsSecurityManager
     public void decideAccessEventQuery( EventQueryParams params )
     {
         decideAccess( params );
-        decideAccessEventAnalyticsAuthority( params );
+        decideAccessEventAnalyticsAuthority();
+    }
+
+    /**
+     * Will extract, from the given "programCategories/Category" list, any
+     * CategoryOption which the current user is authorized to read. The
+     * extracted CategoryOption's will be added to the list of non-authorized
+     * CategoryOption's. See
+     * {@link org.hisp.dhis.analytics.event.data.QueryExclusion#getNonAuthorizedCategoryOptions()}.
+     *
+     * @param programCategories the list of program categories.
+     * @return the map of CategoryOption's not authorized for the current user,
+     *         for each Category.
+     */
+    Map<String, List<CategoryOption>> extractNonAuthorizedCategoriesOptionsFrom(
+        final List<Category> programCategories )
+    {
+        final Map<String, List<CategoryOption>> nonAuthorizedCategoriesOptionsPerCategory = new HashMap<>();
+
+        if ( isNotEmpty( programCategories ) )
+        {
+            for ( final Category category : programCategories )
+            {
+                final List<CategoryOption> categoryOptions = category.getCategoryOptions();
+
+                if ( isNotEmpty( categoryOptions ) )
+                {
+                    final List<CategoryOption> nonAuthorizedCategoriesOptions = new ArrayList<>();
+
+                    for ( final CategoryOption categoryOption : categoryOptions )
+                    {
+                        if ( !hasDataReadPermissionFor( categoryOption ) )
+                        {
+                            // Adding to the list that holds the non-authorized
+                            // program category options.
+                            nonAuthorizedCategoriesOptions.add( categoryOption );
+                        }
+                    }
+
+                    // For each Category, add the list of non-authorized
+                    // CategoryOption's.
+                    if ( isNotEmpty( nonAuthorizedCategoriesOptions ) )
+                    {
+                        nonAuthorizedCategoriesOptionsPerCategory.put( category.getUid(),
+                            nonAuthorizedCategoriesOptions );
+                    }
+                }
+            }
+        }
+
+        return nonAuthorizedCategoriesOptionsPerCategory;
+    }
+
+    private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
+    {
+        return aclService.canDataRead( currentUserService.getCurrentUser(), categoryOption );
     }
 
     /**
      * Checks whether the current user has the {@code F_VIEW_EVENT_ANALYTICS}
      * authority.
-     *
-     * @param params the {@link {@link DataQueryParams}.
      */
-    private void decideAccessEventAnalyticsAuthority( EventQueryParams params )
+    private void decideAccessEventAnalyticsAuthority()
     {
         User user = currentUserService.getCurrentUser();
 

@@ -290,6 +290,7 @@ public class EventQueryParams
         params.dataIdScheme = this.dataIdScheme;
 
         params.periodType = this.periodType;
+        params.exclusion = this.exclusion;
 
         return params;
     }
@@ -675,6 +676,11 @@ public class EventQueryParams
     public boolean hasAnalyticsVariables()
     {
         return hasProgramIndicatorDimension() && getProgramIndicator().hasAnalyticsVariables();
+    }
+
+    public boolean hasExclusion()
+    {
+        return exclusion != null;
     }
 
     public boolean useIndividualQuery()
