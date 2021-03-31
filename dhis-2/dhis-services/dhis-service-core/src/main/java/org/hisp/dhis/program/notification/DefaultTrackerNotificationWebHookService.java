@@ -94,7 +94,8 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     {
         ProgramInstance instance = programInstanceService.getProgramInstance( pi );
 
-        if ( instance == null || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram().getUid() ) )
+        if ( instance == null
+            || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram().getUid() ) )
         {
             return;
         }
