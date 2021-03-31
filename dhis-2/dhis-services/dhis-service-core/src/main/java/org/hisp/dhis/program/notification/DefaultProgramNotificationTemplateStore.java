@@ -80,7 +80,7 @@ public class DefaultProgramNotificationTemplateStore
         query.setParameter( PROGRAM_ID, pUid );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
-        return !query.getResultList().isEmpty();
+        return query.getSingleResult() > 0;
     }
 
     @Override
@@ -91,7 +91,7 @@ public class DefaultProgramNotificationTemplateStore
         query.setParameter( PROGRAM_STAGE_ID, psUid );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
-        return !query.getResultList().isEmpty();
+        return query.getSingleResult() > 0;
     }
 
     @Override
