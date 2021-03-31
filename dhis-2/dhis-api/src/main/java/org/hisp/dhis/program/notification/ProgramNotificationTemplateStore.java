@@ -43,9 +43,9 @@ public interface ProgramNotificationTemplateStore
 
     List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
 
-    boolean isProgramLinkedToWebHookNotification( Program program );
+    boolean isProgramLinkedToWebHookNotification( String pUid );
 
-    boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
+    boolean isProgramStageLinkedToWebHookNotification( String psUid );
 
     List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
 

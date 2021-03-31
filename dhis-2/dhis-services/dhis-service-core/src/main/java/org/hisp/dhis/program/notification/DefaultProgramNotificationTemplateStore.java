@@ -73,22 +73,22 @@ public class DefaultProgramNotificationTemplateStore
     }
 
     @Override
-    public boolean isProgramLinkedToWebHookNotification( Program program )
+    public boolean isProgramLinkedToWebHookNotification( String pUid )
     {
         NativeQuery<Long> query = getSession().createNativeQuery(
-            "select programnotificationtemplateid from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
-        query.setParameter( PROGRAM_ID, program.getId() );
+            "select count(*) from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
+        query.setParameter( PROGRAM_ID, pUid );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return !query.getResultList().isEmpty();
     }
 
     @Override
-    public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
+    public boolean isProgramStageLinkedToWebHookNotification( String psUid )
     {
         NativeQuery<Long> query = getSession().createNativeQuery(
-            "select programnotificationtemplateid from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
-        query.setParameter( PROGRAM_STAGE_ID, programStage.getId() );
+            "select count(*) from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
+        query.setParameter( PROGRAM_STAGE_ID, psUid );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
         return !query.getResultList().isEmpty();

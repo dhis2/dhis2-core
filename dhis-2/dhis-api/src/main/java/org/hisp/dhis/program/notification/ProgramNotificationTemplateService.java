@@ -53,19 +53,19 @@ public interface ProgramNotificationTemplateService
      * Method is used to check if {@link Program} is associated with any web
      * hook notification template.
      *
-     * @param program {@link Program} to check for association.
+     * @param pUid {@link Program} to check for association.
      * @return true if {@link Program} is associated, otherwise false.
      */
-    boolean isProgramLinkedToWebHookNotification( Program program );
+    boolean isProgramLinkedToWebHookNotification( String pUid );
 
     /**
      * Method is used to check if {@link ProgramStage} is associated with any
      * web hook notification template.
      *
-     * @param programStage {@link ProgramStage} to check for association.
+     * @param psUid {@link ProgramStage} to check for association.
      * @return true if {@link ProgramStage} is associated, otherwise false.
      */
-    boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage );
+    boolean isProgramStageLinkedToWebHookNotification( String psUid );
 
     List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
 

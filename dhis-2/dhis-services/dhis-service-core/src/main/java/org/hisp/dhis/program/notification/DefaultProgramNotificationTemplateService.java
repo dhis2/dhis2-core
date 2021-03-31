@@ -101,18 +101,18 @@ public class DefaultProgramNotificationTemplateService implements ProgramNotific
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isProgramLinkedToWebHookNotification( Program program )
+    public boolean isProgramLinkedToWebHookNotification( String pUid )
     {
         return programWebHookNotificationCache
-            .get( program.getUid(), uid -> store.isProgramLinkedToWebHookNotification( program ) ).orElse( false );
+            .get( pUid, uid -> store.isProgramLinkedToWebHookNotification( pUid ) ).orElse( false );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean isProgramStageLinkedToWebHookNotification( ProgramStage programStage )
+    public boolean isProgramStageLinkedToWebHookNotification( String psUid )
     {
         return programStageWebHookNotificationCache
-            .get( programStage.getUid(), uid -> store.isProgramStageLinkedToWebHookNotification( programStage ) )
+            .get( psUid, uid -> store.isProgramStageLinkedToWebHookNotification( psUid ) )
             .orElse( false );
     }
 
