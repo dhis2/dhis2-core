@@ -132,27 +132,15 @@ public class ProgramNotificationTemplateObjectBundleHook
         }
     }
 
-    private void postProcess( ProgramNotificationTemplate template )
+    private void postProcess( ProgramNotificationTemplate pnt )
     {
-        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
-        }
-
-        if ( ProgramNotificationRecipient.DATA_ELEMENT == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.DATA_ELEMENT );
-        }
-    }
-
-    private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
-    {
-        Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
+        ProgramNotificationRecipient pnr = pnt.getNotificationRecipient();
 
         ValueType valueType = null;
 
-        if ( resolver != null && (pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null) )
+        if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
         {
+            Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
             valueType = resolver.apply( pnt );
         }
 
