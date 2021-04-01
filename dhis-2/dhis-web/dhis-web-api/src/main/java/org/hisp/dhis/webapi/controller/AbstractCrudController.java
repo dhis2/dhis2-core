@@ -79,6 +79,12 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.gist.GistQuery;
+import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.gist.GistService;
+import org.hisp.dhis.gist.GistVerbosity;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -100,9 +106,6 @@ import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
-import org.hisp.dhis.query.member.MemberQuery;
-import org.hisp.dhis.query.member.MemberQuery.Owner;
-import org.hisp.dhis.query.member.MemberQueryService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
 import org.hisp.dhis.schema.Property;
@@ -238,7 +241,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected SharingService sharingService;
 
     @Autowired
-    private MemberQueryService memberQueryService;
+    private GistService gistService;
 
     // --------------------------------------------------------------------------
     // GET
@@ -348,8 +351,57 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
 
-    @RequestMapping( value = "/{uid}/{property}/items", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyItems(
+    @RequestMapping( value = "/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
+        HttpServletRequest request, HttpServletResponse response )
+    {
+        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        boolean headless = params.getBoolean( "headless", false );
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+        GistQuery<?> query = gistService.plan( GistQuery.builder()
+            .elementType( (Class<IdentifiableObject>) getEntityClass() )
+            .verbosity( params.getEnum( "form", GistVerbosity.CONCISE ) )
+            .contextRoot( ContextUtils.getRootPath( request ) )
+            .translationLocale( locale )
+            .build()
+            .with( params ) );
+        List<?> elements = gistService.gist( query );
+        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
+            .toArray( query.getFieldNames(), elements );
+        if ( !headless )
+        {
+            // TODO wrap in pager
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
+    }
+
+    @RequestMapping( value = "/{uid}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
+        @PathVariable( "uid" ) String uid,
+        HttpServletRequest request, HttpServletResponse response )
+    {
+        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        boolean headless = params.getBoolean( "headless", false );
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+        GistQuery<?> query = gistService.plan( GistQuery.builder()
+            .elementType( (Class<IdentifiableObject>) getEntityClass() )
+            .verbosity( params.getEnum( "form", GistVerbosity.VERBOSE ) )
+            .contextRoot( ContextUtils.getRootPath( request ) )
+            .translationLocale( locale )
+            .build()
+            .with( params ).withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+        List<?> elements = gistService.gist( query );
+        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
+            .toArray( query.getFieldNames(), elements );
+        if ( !headless )
+        {
+            // TODO wrap in pager
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body.get( 0 ) );
+    }
+
+    @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property,
         HttpServletRequest request, HttpServletResponse response )
@@ -357,16 +409,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         Property collection = getSchema().getProperty( property );
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         boolean headless = params.getBoolean( "headless", false );
-        MemberQuery<?> query = memberQueryService.rectifyQuery( MemberQuery.builder()
+        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
+        GistQuery<?> query = gistService.plan( GistQuery.builder()
             .owner( Owner.builder()
                 .id( uid )
                 .type( getEntityClass() )
                 .collectionProperty( property ).build() )
             .elementType( (Class<IdentifiableObject>) collection.getItemKlass() )
+            .verbosity( params.getEnum( "form", GistVerbosity.BALANCED ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
+            .translationLocale( locale )
             .build()
             .with( params ) );
-        List<?> elements = memberQueryService.queryMemberItems( query );
+        List<?> elements = gistService.gist( query );
         JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
             .toArray( query.getFieldNames(), elements );
         if ( !headless )

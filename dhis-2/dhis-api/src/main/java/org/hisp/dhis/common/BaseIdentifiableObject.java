@@ -40,12 +40,13 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
+import org.hisp.dhis.schema.GistPreferences.Flag;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.annotation.Relation;
 import org.hisp.dhis.schema.transformer.UserPropertyTransformer;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.translation.Translatable;
@@ -368,6 +369,7 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attributeUid );
     }
 
+    @Gist( includeByDefault = Flag.FALSE )
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
@@ -446,7 +448,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Relation( fields = { "id", "firstName", "surname" } )
+    @Gist( includeByDefault = Flag.FALSE )
     @Property( required = Value.TRUE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
@@ -548,6 +550,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Gist( includeByDefault = Flag.FALSE )
     @JsonProperty
     @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
     public Access getAccess()
@@ -585,6 +588,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
+    @Gist( includeByDefault = Flag.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()

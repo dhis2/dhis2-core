@@ -46,7 +46,7 @@ import org.springframework.http.HttpStatus;
  *
  * @author Jan Bernitt
  */
-public class MemberQueryControllerTest extends DhisControllerConvenienceTest
+public class GistQueryControllerTest extends DhisControllerConvenienceTest
 {
     private String groupId;
 
@@ -67,7 +67,7 @@ public class MemberQueryControllerTest extends DhisControllerConvenienceTest
     {
         String fields = "id,userCredentials.username,userCredentials.twoFA";
         String filter = "userCredentials.created:gt:2021-01-01,userGroups:gt:0";
-        JsonObject users = GET( "/userGroups/{uid}/users/items?fields={fields}&filter={filter}", groupId, fields,
+        JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}", groupId, fields,
             filter ).content().getObject( 0 );
 
         assertTrue( users.has( "id", "userCredentials" ) );
@@ -77,7 +77,7 @@ public class MemberQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_EmbeddedObjects()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=id,sharing,users", getSuperuserUid() ).content()
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=id,sharing,users", getSuperuserUid() ).content()
             .getObject( 0 );
 
         assertTrue( groups.has( "id", "sharing" ) );
@@ -87,7 +87,7 @@ public class MemberQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_singleField()
     {
-        JsonArray groupNames = GET( "/users/{uid}/userGroups/items?fields=name", getSuperuserUid() ).content();
+        JsonArray groupNames = GET( "/users/{uid}/userGroups/gist?fields=name", getSuperuserUid() ).content();
 
         assertEquals( singletonList( "groupX" ), groupNames.stringValues() );
     }
@@ -100,13 +100,13 @@ public class MemberQueryControllerTest extends DhisControllerConvenienceTest
 
         String setId = assertStatus( HttpStatus.CREATED, POST( "/dataSets/",
             "{'name':'set1', 'organisationUnits': [{'id':'" + unitId + "'}], 'periodType':'Daily'}" ) );
-        System.out.println( GET( "/dataSets/{id}/organisationUnits/items", setId ).content() );
+        System.out.println( GET( "/dataSets/{id}/organisationUnits/gist", setId ).content() );
     }
 
     @Test
     public void testGetObjectPropertyItems_RefCount()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=name,users&relations=count", getSuperuserUid() )
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&relations=count", getSuperuserUid() )
             .content();
 
         System.out.println( groups );
@@ -115,7 +115,7 @@ public class MemberQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_RefIds()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/items?fields=name,users&relations=ids", getSuperuserUid() )
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&relations=ids", getSuperuserUid() )
             .content();
 
         System.out.println( groups );

@@ -1,0 +1,473 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.gist;
+
+import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
+import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
+import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
+import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
+import static org.hisp.dhis.gist.GistLogic.parentPath;
+import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
+import static org.hisp.dhis.gist.GistLogic.rowCount;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Field;
+import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.schema.GistLinkage;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.RelativePropertyContext;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.translation.Translation;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+/**
+ * Purpose of this helper is to avoid passing around same state while building
+ * the HQL query and to setup post processing of results.
+ *
+ * Usage:
+ * <ol>
+ * <li>Use {@link #buildHQL()} to create the HQL query</li>
+ * <li>Use {@link #transform(List)} on the result rows when querying selected
+ * columns</li>
+ * </ol>
+ * <p>
+ * Within the HQL naming conventions are:
+ *
+ * <pre>
+ *   o => owner table
+ *   e => member collection element table
+ * </pre>
+ *
+ * @author Jan Bernitt
+ */
+@RequiredArgsConstructor
+final class GistBuilder
+{
+
+    private static final String GIST_PATH = "/gist";
+
+    static <T extends IdentifiableObject> GistBuilder createBuilder( GistQuery<T> query,
+        RelativePropertyContext context )
+    {
+        return new GistBuilder( addSupportFields( query, context ), context );
+    }
+
+    private final GistQuery<?> query;
+
+    private final RelativePropertyContext context;
+
+    private final List<Consumer<Object[]>> fieldResultTransformers = new ArrayList<>();
+
+    private final Map<String, Integer> fieldIndexByPath = new HashMap<>();
+
+    /**
+     * Depending on what fields should be listed other fields are needed to
+     * fully compute the requested fields. Such fields are added should they not
+     * be present already. This is done only within the builder. While the
+     * fields are fetched from the database the caller does not include the
+     * added fields as it is still working with the original field list.
+     */
+    private static <T extends IdentifiableObject> GistQuery<T> addSupportFields( GistQuery<T> query,
+        RelativePropertyContext context )
+    {
+        GistQuery<T> extended = query;
+        for ( Field f : query.getFields() )
+        {
+            Property p = context.resolveMandatory( f.getPropertyPath() );
+            // ID column not present but ID column required?
+            if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
+                && !hasSameParentField( extended, f, "id" ) )
+            {
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "id" ) );
+            }
+            // translatable fields? => make sure we have translations
+            if ( p.isTranslatable()
+                && !hasSameParentField( extended, f, "translations" ) )
+            {
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "translations" ) );
+            }
+        }
+        return extended;
+    }
+
+    private static boolean hasSameParentField( GistQuery<?> query, Field field, String property )
+    {
+        String parentPath = parentPath( field.getPropertyPath() );
+        String requiredPath = parentPath.isEmpty() ? property : parentPath + "." + property;
+        return query.getFields().stream().anyMatch( f -> f.getPropertyPath().equals( requiredPath ) );
+    }
+
+    public void transform( List<Object[]> rows )
+    {
+        if ( fieldResultTransformers.isEmpty() )
+        {
+            return;
+        }
+        for ( Object[] row : rows )
+        {
+            for ( Consumer<Object[]> transformer : fieldResultTransformers )
+            {
+                transformer.accept( row );
+            }
+        }
+    }
+
+    private void addTransformer( Consumer<Object[]> transformer )
+    {
+        fieldResultTransformers.add( transformer );
+    }
+
+    private String getMemberPath( String property )
+    {
+        List<Property> path = context.resolvePath( property );
+        return path.size() == 1 ? path.get( 0 ).getFieldName()
+            : path.stream().map( Property::getFieldName ).collect( joining( "." ) );
+    }
+
+    private Object translated( Object value, String property, Object translations )
+    {
+        @SuppressWarnings( "unchecked" )
+        Set<Translation> list = (Set<Translation>) translations;
+        if ( list == null || list.isEmpty() )
+        {
+            return value;
+        }
+        String locale = query.getTranslationLocale().toString();
+        for ( Translation t : list )
+        {
+            if ( t.getLocale().equalsIgnoreCase( locale ) && t.getProperty().equalsIgnoreCase( property )
+                && !t.getValue().isEmpty() )
+                return t.getValue();
+        }
+        String lang = query.getTranslationLocale().getLanguage();
+        for ( Translation t : list )
+        {
+            if ( t.getLocale().startsWith( lang ) && t.getProperty().equalsIgnoreCase( property )
+                && !t.getValue().isEmpty() )
+                return t.getValue();
+        }
+        return value;
+    }
+
+    public String buildHQL()
+    {
+        String fields = createFieldsHQL();
+        String filterBy = createFiltersHQL();
+        String orderBy = createOrdersHQL();
+        String elementTable = query.getElementType().getSimpleName();
+        Owner owner = query.getOwner();
+        if ( owner == null )
+        {
+            return String.format( "select %s from %s e where %s order by %s", fields, elementTable, filterBy, orderBy );
+        }
+        String op = query.isInverse() ? "not in" : "in";
+        String ownerTable = owner.getType().getSimpleName();
+        String collectionName = context.switchedTo( owner.getType() )
+            .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
+        return String.format(
+            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s order by %s", fields,
+            ownerTable, elementTable, op, collectionName, filterBy, orderBy );
+    }
+
+    private String createFieldsHQL()
+    {
+        // TODO when fields contains a property that is not persisted we
+        // must use "e" (all)
+        int i = 0;
+        for ( Field f : query.getFields() )
+        {
+            fieldIndexByPath.put( f.getPropertyPath(), i++ );
+        }
+        return join( query.getFields(), ", ", "e", this::createFieldHQL );
+    }
+
+    private String createFieldHQL( int index, Field field )
+    {
+        String path = field.getPropertyPath();
+        Property property = context.resolveMandatory( path );
+        if ( property.isTranslatable() && query.getTranslationLocale() != null )
+        {
+            int translationsFieldIndex = getSameParentFieldIndex( path, "translations" );
+            addTransformer( row -> row[index] = translated( row[index], property.getTranslationKey(),
+                row[translationsFieldIndex] ) );
+        }
+        else if ( isHrefProperty( property ) )
+        {
+            String endpointRoot = getSameParentEndpointRoot( path );
+            Integer idFieldIndex = getSameParentFieldIndex( path, "id" );
+            if ( idFieldIndex != null )
+            {
+                addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex] ) );
+            }
+            return "''"; // use empty string to mark a non DB value
+        }
+        else if ( isPersistentReferenceField( property ) )
+        {
+            String idProperty = "uid";
+            if ( !property.isIdentifiableObject() )
+            {
+                Schema propertySchema = context.switchedTo( property.getKlass() ).getHome();
+                if ( propertySchema.getRelativeApiEndpoint() == null )
+                {
+                    // TODO for now
+                    return "e." + getMemberPath( path );
+                }
+            }
+            switch ( getFieldLinkage( field ) )
+            {
+            default:
+            case REF:
+            case COUNT:
+            case AUTO:
+                String endpointRoot = getEndpointRoot( property );
+                addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[index] ) );
+                break;
+            case ID_OBJECTS:
+                addTransformer( row -> row[index] = toIdObject( row[index] ) );
+                break;
+            case IDS:
+                // nothing to do
+            }
+            if ( property.isRequired() )
+            {
+                return "e." + getMemberPath( path ) + "." + idProperty;
+            }
+            String tableName = "t_" + index;
+            return "(select " + tableName + "." + idProperty + " from " + property.getKlass().getSimpleName() + " "
+                + tableName
+                + " where " + tableName + " = e." + getMemberPath( path ) + ")";
+        }
+        else if ( isPersistentCollectionField( property ) )
+        {
+            switch ( getFieldLinkage( field ) )
+            {
+            default:
+            case REF:
+                String endpointRoot = getSameParentEndpointRoot( path );
+                int idFieldIndex = getSameParentFieldIndex( path, "id" );
+                addTransformer(
+                    row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex], property ) );
+                return "-1";
+            case AUTO:
+            case COUNT:
+                endpointRoot = getSameParentEndpointRoot( path );
+                idFieldIndex = getSameParentFieldIndex( path, "id" );
+                addTransformer(
+                    row -> row[index] = toEndpoint( endpointRoot, row[idFieldIndex], property, row[index] ) );
+                return "size(e." + getMemberPath( path ) + ")";
+            case ID_OBJECTS:
+                addTransformer( row -> row[index] = toIdObjects( row[index] ) );
+                // intentional fall through
+            case IDS:
+                String tableName = "t_" + index;
+                return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
+                    + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
+            }
+        }
+        String memberPath = getMemberPath( path );
+        return "e." + memberPath;
+    }
+
+    private static EndpointDescriptor toEndpoint( String endpointRoot, Object id, Property property, Object count )
+    {
+        return new EndpointDescriptor( toEndpointURL( endpointRoot, id, property ), rowCount( count ) );
+    }
+
+    private static String toEndpointURL( String endpointRoot, Object id )
+    {
+        return id == null ? null : endpointRoot + '/' + id + GIST_PATH;
+    }
+
+    private static String toEndpointURL( String endpointRoot, Object id, Property property )
+    {
+        return endpointRoot + '/' + id + '/' + property.key() + GIST_PATH;
+    }
+
+    private static IdObject toIdObject( Object id )
+    {
+        return id == null ? null : new IdObject( (String) id );
+    }
+
+    private static Object[] toIdObjects( Object ids )
+    {
+        return ids == null || ((Object[]) ids).length == 0
+            ? null
+            : Arrays.stream( ((String[]) ids) ).map( IdObject::new ).toArray();
+    }
+
+    private GistLinkage getFieldLinkage( Field field )
+    {
+        return !isNonNestedPath( field.getPropertyPath() ) ? GistLinkage.REF : field.getLinkage();
+    }
+
+    private Integer getSameParentFieldIndex( String path, String translations )
+    {
+        return fieldIndexByPath.get( pathOnSameParent( path, translations ) );
+    }
+
+    private String getSameParentEndpointRoot( String path )
+    {
+        return query.getContextRoot()
+            + context.switchedTo( path ).getHome().getRelativeApiEndpoint();
+    }
+
+    private String getEndpointRoot( Property property )
+    {
+        return query.getContextRoot()
+            + context.switchedTo( property.getKlass() ).getHome().getRelativeApiEndpoint();
+    }
+
+    private String createFiltersHQL()
+    {
+        return join( query.getFilters(), " and ", "1=1", this::createFiltersHQL );
+    }
+
+    private String createFiltersHQL( int index, Filter filter )
+    {
+        StringBuilder str = new StringBuilder();
+        boolean sizeOp = GistLogic.isCollectionSizeFilter( filter,
+            context.resolveMandatory( filter.getPropertyPath() ) );
+        if ( sizeOp )
+        {
+            str.append( "size(" );
+        }
+        str.append( "e." ).append( getMemberPath( filter.getPropertyPath() ) );
+        if ( sizeOp )
+        {
+            str.append( ")" );
+        }
+        str.append( " " ).append( createOperatorLeftSideHQL( filter.getOperator() ) )
+            .append( " :f_" + index )
+            .append( createOperatorRightSideHQL( filter.getOperator() ) );
+        return str.toString();
+    }
+
+    private String createOrdersHQL()
+    {
+        return join( query.getOrders(), ",", "e.id asc",
+            ( index, order ) -> " e." + getMemberPath( order.getPropertyPath() ) + " "
+                + order.getDirection().name().toLowerCase() );
+    }
+
+    private String createOperatorLeftSideHQL( Comparison operator )
+    {
+        switch ( operator )
+        {
+        case EQ:
+            return "=";
+        case NE:
+            return "!=";
+        case LT:
+            return "<";
+        case GT:
+            return ">";
+        case LE:
+            return "<=";
+        case GE:
+            return ">=";
+        case IN:
+            return "in (";
+        case NOT_IN:
+            return "not in (";
+        default:
+            return "";
+        }
+    }
+
+    private String createOperatorRightSideHQL( Comparison operator )
+    {
+        switch ( operator )
+        {
+        case NOT_IN:
+        case IN:
+            return ")";
+        default:
+            return "";
+        }
+    }
+
+    private <T> String join( Collection<T> elements, String delimiter, String empty,
+        BiFunction<Integer, T, String> elementFactory )
+    {
+        if ( elements == null || elements.isEmpty() )
+        {
+            return empty;
+        }
+        StringBuilder str = new StringBuilder();
+        int i = 0;
+        for ( T e : elements )
+        {
+            if ( str.length() > 0 )
+            {
+                str.append( delimiter );
+            }
+            str.append( elementFactory.apply( i++, e ) );
+        }
+        return str.toString();
+    }
+
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
+    public static final class IdObject
+    {
+        @JsonProperty
+        final String id;
+    }
+
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
+    @JsonInclude( Include.NON_NULL )
+    public static final class EndpointDescriptor
+    {
+
+        @JsonProperty
+        final String apiEndpoint;
+
+        @JsonProperty
+        final Number count;
+
+    }
+}

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.schema.introspection;
 
-import static java.util.Arrays.asList;
 import static org.hisp.dhis.schema.PropertyType.BOOLEAN;
 import static org.hisp.dhis.schema.PropertyType.CONSTANT;
 import static org.hisp.dhis.schema.PropertyType.DATE;
@@ -49,7 +48,6 @@ import org.hisp.dhis.schema.annotation.Property.Access;
 import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.annotation.PropertyTransformer;
-import org.hisp.dhis.schema.annotation.Relation;
 import org.springframework.util.Assert;
 
 import com.google.common.primitives.Primitives;
@@ -111,7 +109,6 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
             property.setMin( null );
             property.setMax( null );
         }
-        initFromRelationsAnnotation( property );
     }
 
     private static void ensureMinMaxDefaults( Property property )
@@ -210,26 +207,6 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
             {
                 property.setReadable( false );
             }
-            if ( pAnnotation.basedOn().length == 1 && property.getFieldName() == null )
-            {
-                property.setFieldName( pAnnotation.basedOn()[0] );
-            }
-        }
-    }
-
-    private static void initFromRelationsAnnotation( Property property )
-    {
-        Method getter = property.getGetterMethod();
-        Relation relation = getAnnotation( getter, Relation.class );
-        if ( relation == null )
-        {
-            relation = getAnnotation( getter.getDeclaringClass(), Relation.class );
-        }
-        if ( relation != null )
-        {
-            property.setRelationViewDisplayAs( relation.displayAs() );
-            property.setRelationViewDisplayOptions( relation.displayOptions() );
-            property.setRelationViewFields( asList( relation.fields() ) );
         }
     }
 

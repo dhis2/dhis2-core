@@ -97,6 +97,16 @@ public final class RelativePropertyContext
                 home -> new RelativePropertyContext( home, schemaLookup, byHomeType ) );
     }
 
+    public RelativePropertyContext switchedTo( String path )
+    {
+        if ( path.indexOf( '.' ) < 0 )
+        {
+            return this;
+        }
+        List<Property> segments = resolvePath( path );
+        return switchedTo( segments.get( segments.size() - 2 ).getKlass() );
+    }
+
     @Nonnull
     public Property resolveMandatory( String path )
     {

@@ -40,6 +40,7 @@ import org.hibernate.SessionFactory;
 import org.hibernate.boot.spi.MetadataImplementor;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.Column;
+import org.hibernate.mapping.OneToMany;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.metamodel.spi.MetamodelImplementor;
 import org.hibernate.persister.collection.CollectionPersister;
@@ -243,6 +244,10 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
         {
             property.setOneToOne( true );
         }
+        else if ( type instanceof OneToMany )
+        {
+            property.setOneToMany( true );
+        }
         return property;
     }
 
@@ -253,6 +258,7 @@ public class HibernatePropertyIntrospector implements PropertyIntrospector
 
         property.setOwner( !persister.isInverse() );
         property.setManyToMany( persister.isManyToMany() );
+        property.setOneToMany( persister.isOneToMany() );
 
         property.setMin( 0d );
         property.setMax( Double.MAX_VALUE );

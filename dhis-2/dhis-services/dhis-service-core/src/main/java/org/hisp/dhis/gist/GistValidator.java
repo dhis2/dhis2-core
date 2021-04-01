@@ -1,0 +1,164 @@
+/*
+ * Copyright (c) 2004-2021, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.gist;
+
+import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
+
+import java.util.List;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.gist.GistQuery.Field;
+import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.RelativePropertyContext;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.stereotype.Component;
+
+/**
+ * Validates a {@link GistQuery} for consistency and owner and type level
+ * access.
+ *
+ * @author Jan Bernitt
+ */
+@Component
+@AllArgsConstructor
+final class GistValidator
+{
+
+    private final CurrentUserService currentUserService;
+
+    private final AclService aclService;
+
+    private final IdentifiableObjectManager objectManager;
+
+    public void validateQuery( GistQuery<?> query, RelativePropertyContext context )
+    {
+        Owner owner = query.getOwner();
+        if ( owner != null )
+        {
+            validateAccess( owner );
+            validateCollection(
+                context.switchedTo( owner.getType() ).resolveMandatory( owner.getCollectionProperty() ) );
+        }
+        query.getFilters().forEach( filter -> validateFilter( context.resolveMandatory( filter.getPropertyPath() ) ) );
+        query.getOrders().forEach( order -> validateOrder( context.resolveMandatory( order.getPropertyPath() ) ) );
+        query.getFields().forEach( field -> validateField( field, context ) );
+    }
+
+    private void validateAccess( Owner owner )
+    {
+        User currentUser = currentUserService.getCurrentUser();
+        if ( !aclService.canRead( currentUser, owner.getType() ) )
+        {
+            throw createNoReadAccess( owner );
+        }
+        if ( !aclService.canRead( currentUser, objectManager.get( owner.getType(), owner.getId() ) ) )
+        {
+            throw createNoReadAccess( owner );
+        }
+    }
+
+    private void validateCollection( Property collection )
+    {
+        if ( !collection.isCollection() || !collection.isPersisted() )
+        {
+            throw createIllegalProperty( collection, "Property `%s` is not a persisted collection member." );
+        }
+    }
+
+    @SuppressWarnings( "unchecked" )
+    private void validateField( Field f, RelativePropertyContext context )
+    {
+        String path = f.getPropertyPath();
+        Property field = context.resolveMandatory( path );
+        if ( !field.isReadable() )
+        {
+            throw createNoReadAccess( field );
+        }
+        Class<?> itemType = GistLogic.getBaseType( field );
+        if ( IdentifiableObject.class.isAssignableFrom( itemType ) && !aclService
+            .canRead( currentUserService.getCurrentUser(), (Class<? extends IdentifiableObject>) itemType ) )
+        {
+            throw createNoReadAccess( field );
+        }
+        if ( !isNonNestedPath( path ) )
+        {
+            List<Property> pathElements = context.resolvePath( path );
+            Property head = pathElements.get( 0 );
+            if ( head.isCollection() && head.isPersisted() )
+            {
+                throw createIllegalProperty( field,
+                    "Property `%s` computes to many values and therefore cannot be used as a field." );
+            }
+        }
+    }
+
+    private void validateFilter( Property filter )
+    {
+        if ( !filter.isPersisted() )
+        {
+            throw createIllegalProperty( filter, "Property `%s` cannot be used as filter property." );
+        }
+    }
+
+    private void validateOrder( Property order )
+    {
+        if ( !order.isPersisted() || !order.isSimple() )
+        {
+            throw createIllegalProperty( order, "Property `%s` cannot be used as order property." );
+        }
+    }
+
+    private IllegalArgumentException createIllegalProperty( Property property, String message )
+    {
+        return new IllegalArgumentException( String.format( message, property.getName() ) );
+    }
+
+    private ReadAccessDeniedException createNoReadAccess( Owner owner )
+    {
+        return new ReadAccessDeniedException(
+            String.format( "User not allowed to view %s %s", owner.getType().getSimpleName(), owner.getId() ) );
+    }
+
+    private ReadAccessDeniedException createNoReadAccess( Property field )
+    {
+        if ( field.isReadable() )
+        {
+            return new ReadAccessDeniedException( String.format( "Property `%s` is not readable.", field.getName() ) );
+        }
+        return new ReadAccessDeniedException(
+            String.format( "Property `%s` is not readable as user is not allowed to view objects of type %s",
+                field.getName(), GistLogic.getBaseType( field ) ) );
+    }
+}

@@ -25,41 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.member;
+package org.hisp.dhis.gist;
 
-import java.util.List;
+import static java.util.Arrays.asList;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import java.util.EnumSet;
 
-/**
- * Gives convenient access to (potentially large) member collections of an owner
- * object.
- *
- * The preferred method should be to {@link #queryMemberItems(MemberQuery)}
- * which returns a raw data row for each match only containing the values of the
- * {@link MemberQuery#getFields()} in form of an {@link Object[]}.
- *
- * @author Jan Bernitt
- */
-public interface MemberQueryService
+import org.hisp.dhis.schema.GistLinkage;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+
+public enum GistVerbosity
 {
-    /**
-     * Before running one of the query methods a {@link MemberQuery} should be
-     * rectified. This gives the service a change to correct the query and set
-     * some defaults.
-     *
-     * The result is exposed again so that the caller can use the modified
-     * {@link MemberQuery} in subsequent processing steps.
-     *
-     * @param query A {@link MemberQuery} as build by the caller
-     * @param <T> type of member collection elements
-     * @return the rectified {@link MemberQuery} that should be used to query
-     *         results. This might be the same instance as the provided one or a
-     *         modified "copy".
-     */
-    <T extends IdentifiableObject> MemberQuery<T> rectifyQuery( MemberQuery<T> query );
+    VERBOSE( GistLinkage.IDS, PropertyType.PASSWORD ),
+    BALANCED( GistLinkage.COUNT, PropertyType.PASSWORD ),
+    CONCISE( GistLinkage.REF, PropertyType.PASSWORD, PropertyType.COMPLEX );
 
-    List<?> queryMemberItems( MemberQuery<?> query );
+    private final GistLinkage autoLinkage;
 
-    <T extends IdentifiableObject> List<T> queryMemberItemsAsObjects( MemberQuery<T> query );
+    private final EnumSet<PropertyType> excludedByDefault;
+
+    GistVerbosity( GistLinkage autoLinkage, PropertyType... excludedByDefault )
+    {
+        this.autoLinkage = autoLinkage;
+        this.excludedByDefault = EnumSet.copyOf( asList( excludedByDefault ) );
+    }
+
+    public GistLinkage getAutoLinkage()
+    {
+        return autoLinkage;
+    }
+
+    public boolean isIncludedByDefault( Property p )
+    {
+        return !excludedByDefault.contains( p.getPropertyType() )
+            && (!p.isCollection() || !excludedByDefault.contains( p.getItemPropertyType() ));
+    }
 }

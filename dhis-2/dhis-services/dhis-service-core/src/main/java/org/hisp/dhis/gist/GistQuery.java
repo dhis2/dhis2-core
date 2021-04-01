@@ -25,8 +25,9 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.query.member;
+package org.hisp.dhis.gist;
 
+import static java.lang.Math.abs;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
@@ -34,11 +35,8 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.function.BiFunction;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.RelationViewType;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -46,10 +44,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.GistLinkage;
+
 @Getter
 @Builder( toBuilder = true )
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public final class MemberQuery<T extends IdentifiableObject>
+public final class GistQuery<T extends IdentifiableObject>
 {
 
     /**
@@ -93,11 +95,15 @@ public final class MemberQuery<T extends IdentifiableObject>
 
     private final String contextRoot;
 
+    private final Locale translationLocale;
+
     /**
-     * When true the result set is not the elements contained in the collection
-     * but those not contained (yet).
+     * Not the elements contained in the collection but those not contained
+     * (yet).
      */
     private final boolean inverse;
+
+    private final GistVerbosity verbosity;
 
     /**
      * Names of those properties that should be included in the response.
@@ -120,42 +126,45 @@ public final class MemberQuery<T extends IdentifiableObject>
         return fields.stream().map( Field::getPropertyPath ).collect( toList() );
     }
 
-    public MemberQuery<T> with( NamedParams params )
+    public GistLinkage getDefaultLinkage()
     {
-        int page = params.getInt( "page", 0 );
-        int size = params.getInt( "pageSize", 25 );
-        RelationViewType relations = params.getEnum( "relations", RelationViewType.AUTO );
-        return toBuilder().pageSize( size ).pageOffset( page * size )
-            .inverse( params.getBoolean( "inverse" ) )
-            .fields(
-                params.getStrings( "fields" ).stream().map( s -> Field.parse( s, relations ) ).collect( toList() ) )
+        return getVerbosity() == null ? GistLinkage.AUTO : getVerbosity().getAutoLinkage();
+    }
+
+    public GistQuery<T> with( NamedParams params )
+    {
+        int page = abs( params.getInt( "page", 1 ) );
+        int size = abs( params.getInt( "pageSize", 25 ) );
+        return toBuilder().pageSize( size ).pageOffset( Math.max( 0, page - 1 ) * size )
+            .inverse( params.getBoolean( "inverse", false ) )
+            .fields( params.getStrings( "fields" ).stream().map( Field::parse ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
             .orders( params.getStrings( "sort" ).stream().map( Order::parse ).collect( toList() ) )
             .build();
     }
 
-    public MemberQuery<T> withFilter( Filter filter )
+    public GistQuery<T> withFilter( Filter filter )
     {
-        return withAddedItem( filter, getFilters(), MemberQueryBuilder::filters );
+        return withAddedItem( filter, getFilters(), GistQueryBuilder::filters );
     }
 
-    public MemberQuery<T> withOrder( Order order )
+    public GistQuery<T> withOrder( Order order )
     {
-        return withAddedItem( order, getOrders(), MemberQueryBuilder::orders );
+        return withAddedItem( order, getOrders(), GistQueryBuilder::orders );
     }
 
-    public MemberQuery<T> withField( Field field )
+    public GistQuery<T> withField( String path )
     {
-        return withAddedItem( field, getFields(), MemberQueryBuilder::fields );
+        return withAddedItem( new Field( path, getDefaultLinkage() ), getFields(), GistQueryBuilder::fields );
     }
 
-    public MemberQuery<T> withFields( List<Field> fields )
+    public GistQuery<T> withFields( List<Field> fields )
     {
         return toBuilder().fields( fields ).build();
     }
 
-    private <E> MemberQuery<T> withAddedItem( E e, List<E> collection,
-        BiFunction<MemberQueryBuilder<T>, List<E>, MemberQueryBuilder<T>> setter )
+    private <E> GistQuery<T> withAddedItem( E e, List<E> collection,
+        BiFunction<GistQueryBuilder<T>, List<E>, GistQueryBuilder<T>> setter )
     {
         List<E> plus1 = new ArrayList<>( collection );
         plus1.add( e );
@@ -245,18 +254,28 @@ public final class MemberQuery<T extends IdentifiableObject>
     {
         private final String propertyPath;
 
-        private final RelationViewType relations;
+        private final GistLinkage linkage;
 
-        public static Field parse( String field, RelationViewType global )
+        public static Field parse( String field )
         {
             int endOfPropertyName = field.indexOf( ':' );
             if ( endOfPropertyName < 0 )
             {
-                return new Field( field, global );
+                return new Field( field, GistLinkage.AUTO );
             }
             return new Field( field.substring( 0, endOfPropertyName ),
-                RelationViewType
-                    .valueOf( field.substring( endOfPropertyName + 1 ).toUpperCase().replace( '-', '_' ) ) );
+                GistLinkage.valueOf( field.substring( endOfPropertyName + 1 ).toUpperCase().replace( '-', '_' ) ) );
+        }
+
+        @Override
+        public String toString()
+        {
+            return propertyPath + ":" + linkage.name().toLowerCase().replace( '_', '-' );
+        }
+
+        public Field with( GistLinkage linkage )
+        {
+            return this.linkage == linkage ? this : new Field( propertyPath, linkage );
         }
     }
 
@@ -292,7 +311,6 @@ public final class MemberQuery<T extends IdentifiableObject>
     }
 
     @Getter
-    @AllArgsConstructor
     public static final class Filter
     {
         private final String propertyPath;
@@ -301,12 +319,19 @@ public final class MemberQuery<T extends IdentifiableObject>
 
         private final String[] value;
 
+        public Filter( String propertyPath, Comparison operator, String... value )
+        {
+            this.propertyPath = propertyPath;
+            this.operator = operator;
+            this.value = value;
+        }
+
         public static Filter parse( String filter )
         {
             String[] parts = filter.split( ":" );
             if ( parts.length == 2 )
             {
-                return new Filter( parts[0], Comparison.parse( parts[1] ), new String[0] );
+                return new Filter( parts[0], Comparison.parse( parts[1] ) );
             }
             if ( parts.length == 3 )
             {
