@@ -210,7 +210,6 @@ public class SetMandatoryFieldValidatorTest
     private Event getEventWithMandatoryValueSet()
     {
         Event event = new Event();
-        event.setUid( FIRST_EVENT_ID );
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -222,7 +221,6 @@ public class SetMandatoryFieldValidatorTest
     private Event getEventWithMandatoryValueNOTSet()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -233,7 +231,6 @@ public class SetMandatoryFieldValidatorTest
     private Event getEventWithMandatoryValueNOTSetInDifferentProgramStage()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( secondProgramStage.getUid() );
@@ -252,7 +249,6 @@ public class SetMandatoryFieldValidatorTest
     private Enrollment getEnrollmentWithMandatoryAttributeSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( ACTIVE_ENROLLMENT_ID );
         enrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
         enrollment.setTrackedEntity( TEI_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
@@ -264,7 +260,6 @@ public class SetMandatoryFieldValidatorTest
     private Enrollment getEnrollmentWithMandatoryAttributeNOTSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( COMPLETED_ENROLLMENT_ID );
         enrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         enrollment.setTrackedEntity( TEI_ID );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );

@@ -136,7 +136,7 @@ public class TeTaValidationTest
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );
 
-        TrackerValidationReport report = validate( "tracker/validations/te-program_with_tea_fileresource_data.json" );
+        TrackerValidationReport report = validate( "tracker/validations/te-program_with_tea_fileresource_data2.json" );
 
         assertEquals( 1, report.getErrorReports().size() );
 
@@ -265,7 +265,7 @@ public class TeTaValidationTest
 
         trackerBundleService.commit( trackerBundle );
 
-        TrackerValidationReport report = validate( "tracker/validations/te-program_with_tea_unique_data.json" );
+        TrackerValidationReport report = validate( "tracker/validations/te-program_with_tea_unique_data2.json" );
 
         assertEquals( 1, report.getErrorReports().size() );
 
