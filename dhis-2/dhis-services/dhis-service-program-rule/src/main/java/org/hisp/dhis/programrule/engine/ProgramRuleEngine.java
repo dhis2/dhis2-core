@@ -120,7 +120,8 @@ public class ProgramRuleEngine
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() ).orElse( null );
+        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
+            .orElse( null );
 
         List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
 
