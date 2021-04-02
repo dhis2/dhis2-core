@@ -77,7 +77,11 @@ abstract class ImplementableRuleService
 
         List<ProgramRule> programRulesByActionTypes = getProgramRulesByActionTypes( program, programStageUid );
 
-        getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+        if ( programStageUid == null )
+        {
+            getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+        }
+
         return programRulesByActionTypes;
     }
 

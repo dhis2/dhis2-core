@@ -94,8 +94,7 @@ public class HibernateProgramRuleStore
     public List<ProgramRule> getProgramRulesByActionTypes( Program program, Set<ProgramRuleActionType> actionTypes )
     {
         final String hql = "SELECT distinct pr FROM ProgramRule pr JOIN FETCH pr.programRuleActions pra " +
-            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) " +
-            "AND pr.programStage IS NULL";
+            "WHERE pr.program = :program AND pra.programRuleActionType IN ( :actionTypes ) ";
 
         return getQuery( hql )
             .setParameter( "program", program )
