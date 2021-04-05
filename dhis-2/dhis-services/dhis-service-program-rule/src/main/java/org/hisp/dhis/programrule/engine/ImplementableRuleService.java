@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
@@ -80,6 +81,9 @@ abstract class ImplementableRuleService
         if ( programStageUid == null )
         {
             getProgramRulesCache().put( program.getUid(), !programRulesByActionTypes.isEmpty() );
+
+            return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
+                .collect( Collectors.toList() );
         }
 
         return programRulesByActionTypes;
