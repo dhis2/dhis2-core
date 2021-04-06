@@ -156,4 +156,19 @@ public class ValidationUtils
                         .addArgs( args.toArray() ) );
                 } );
     }
+
+    public static boolean trackedEntityInstanceExist( TrackerImportValidationContext context, String teiUid )
+    {
+        return context.getTrackedEntityInstance( teiUid ) != null || context.getReference( teiUid ).isPresent();
+    }
+
+    public static boolean enrollmentExist( TrackerImportValidationContext context, String enrollmentUid )
+    {
+        return context.getProgramInstance( enrollmentUid ) != null || context.getReference( enrollmentUid ).isPresent();
+    }
+
+    public static boolean eventExist( TrackerImportValidationContext context, String eventUid )
+    {
+        return context.getProgramStageInstance( eventUid ) != null || context.getReference( eventUid ).isPresent();
+    }
 }
