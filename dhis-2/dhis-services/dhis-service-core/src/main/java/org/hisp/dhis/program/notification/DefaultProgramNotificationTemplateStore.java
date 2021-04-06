@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program.notification;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -73,25 +74,25 @@ public class DefaultProgramNotificationTemplateStore
     }
 
     @Override
-    public boolean isProgramLinkedToWebHookNotification( String pUid )
+    public boolean isProgramLinkedToWebHookNotification( Long pId )
     {
-        NativeQuery<Long> query = getSession().createNativeQuery(
+        NativeQuery<BigInteger> query = getSession().createNativeQuery(
             "select count(*) from programnotificationtemplate where programid = :pid and notificationrecipienttype = :recipient" );
-        query.setParameter( PROGRAM_ID, pUid );
+        query.setParameter( PROGRAM_ID, pId );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
-        return query.getSingleResult() > 0;
+        return query.getSingleResult().longValue() > 0;
     }
 
     @Override
-    public boolean isProgramStageLinkedToWebHookNotification( String psUid )
+    public boolean isProgramStageLinkedToWebHookNotification( Long psId )
     {
-        NativeQuery<Long> query = getSession().createNativeQuery(
+        NativeQuery<BigInteger> query = getSession().createNativeQuery(
             "select count(*) from programnotificationtemplate where programstageid = :psid and notificationrecipienttype = :recipient" );
-        query.setParameter( PROGRAM_STAGE_ID, psUid );
+        query.setParameter( PROGRAM_STAGE_ID, psId );
         query.setParameter( NOTIFICATION_RECIPIENT, ProgramNotificationRecipient.WEB_HOOK.name() );
 
-        return query.getSingleResult() > 0;
+        return query.getSingleResult().longValue() > 0;
     }
 
     @Override
