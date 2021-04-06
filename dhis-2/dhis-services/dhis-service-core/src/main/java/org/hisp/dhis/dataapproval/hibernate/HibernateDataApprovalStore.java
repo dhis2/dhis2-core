@@ -135,8 +135,6 @@ public class HibernateDataApprovalStore
 
     /**
      * Used only for testing, remove when test is refactored
-     *
-     * @param currentUserService
      */
     @Deprecated
     public void setCurrentUserService( CurrentUserService currentUserService )
@@ -268,10 +266,10 @@ public class HibernateDataApprovalStore
         final String strArrayUserGroups = CollectionUtils.isEmpty( user.getGroups() ) ? null
             : "{" + String.join( ",", user.getGroups().stream().map( group -> group.getUid() ).collect(
                 Collectors.toList() ) ) + "}";
-        final String co_sharing_check_query = strArrayUserGroups != null
-            ? " " + JsonbFunctions.HAS_USER_GROUP_IDS + " co.sharing, " + strArrayUserGroups + ") = false" +
-                JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, {" + strArrayUserGroups + "}, '"
-                + AclService.LIKE_READ_METADATA + "')"
+        final String co_group_sharing_check_query = strArrayUserGroups != null
+            ? " and (not " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '" + strArrayUserGroups + "') or not " +
+                JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '" + AclService.LIKE_READ_METADATA + "', '"
+                + strArrayUserGroups + "') )"
             : "";
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
@@ -585,9 +583,12 @@ public class HibernateDataApprovalStore
             ") " +
             (isSuperUser ? "" : // Filter out COs the user doesn't have
                                 // permission to see.
-                "or ( co.sharing->>'publicaccess' is not null and left(co.sharing->>'publicaccess', 1) != 'r' and co.sharing->>'owner' is not null and co.sharing->>'owner' != '"
-                    + user.getUid() + "' " +
-                    co_sharing_check_query + " ) ")
+                "or ( ( co.sharing->>'public' is null or left(co.sharing->>'public', 1) != 'r' )"
+                    + " and ( co.sharing->>'owner' is null or co.sharing->>'owner' != '" + user.getUid() + "' )" +
+                    " and ( not " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "') or not " +
+                    JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '" + user.getUid() + "', '"
+                    + AclService.LIKE_READ_METADATA + "') )"
+                    + co_group_sharing_check_query + " )")
             +
             ") " +
             ") " +
