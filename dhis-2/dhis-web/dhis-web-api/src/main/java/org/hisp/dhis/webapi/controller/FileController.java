@@ -82,7 +82,10 @@ public class FileController
 
         String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_JS, StringUtils.EMPTY );
 
-        writer.write( content );
+        if ( content != null )
+        {
+            writer.write( content );
+        }
     }
 
     @RequestMapping( value = "/script", method = RequestMethod.POST, consumes = "application/javascript" )
@@ -121,7 +124,10 @@ public class FileController
 
         String content = (String) systemSettingManager.getSystemSetting( SettingKey.CUSTOM_CSS, StringUtils.EMPTY );
 
-        writer.write( content );
+        if ( content != null )
+        {
+            writer.write( content );
+        }
     }
 
     @RequestMapping( value = "/style", method = RequestMethod.POST, consumes = "text/css" )
