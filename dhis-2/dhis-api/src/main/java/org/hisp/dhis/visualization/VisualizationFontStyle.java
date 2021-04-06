@@ -51,19 +51,19 @@ public class VisualizationFontStyle
 
     private FontStyle visualizationSubtitle;
 
-    private FontStyle horizontalAxisTitle;
+    private transient FontStyle horizontalAxisTitle;
 
-    private FontStyle verticalAxisTitle;
+    private transient FontStyle verticalAxisTitle;
 
-    private FontStyle targetLineLabel;
+    private transient FontStyle targetLineLabel;
 
-    private FontStyle baseLineLabel;
+    private transient FontStyle baseLineLabel;
 
-    private FontStyle seriesAxisLabel;
+    private transient FontStyle seriesAxisLabel;
 
-    private FontStyle categoryAxisLabel;
+    private transient FontStyle categoryAxisLabel;
 
-    private FontStyle legend;
+    private transient FontStyle legend;
 
     public VisualizationFontStyle()
     {
