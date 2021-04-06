@@ -53,7 +53,11 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserGroup;
+import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.joda.time.DateTime;
 import org.junit.Rule;
 import org.junit.Test;
@@ -64,6 +68,8 @@ import org.mockito.junit.MockitoRule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.google.common.collect.Sets;
 
 /**
  * DataApprovalStore tests that no longer work in the H2 database but must be
@@ -89,6 +95,9 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private UserGroupService userGroupService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -129,7 +138,21 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
     private DataSet dataSetA;
 
+    private Period periodJan;
+
+    private Period periodFeb;
+
+    private Period periodMay;
+
+    private Period periodJun;
+
     private User userA;
+
+    private User userB;
+
+    private UserGroup userGroupA;
+
+    private UserGroup userGroupB;
 
     private CategoryOption categoryOptionA;
 
@@ -140,6 +163,8 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     private CategoryCombo categoryComboA;
 
     private CategoryOptionCombo categoryOptionCombo;
+
+    private List<DataApprovalLevel> userApprovalLevels;
 
     // -------------------------------------------------------------------------
     // Set up/tear down
@@ -161,6 +186,8 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
         dataApprovalLevelService.addDataApprovalLevel( level1 );
 
+        userApprovalLevels = ListUtils.newList( level1 );
+
         PeriodType periodType = PeriodType.getPeriodTypeByName( "Monthly" );
 
         workflowA = new DataApprovalWorkflow( "workflowA1", periodType, newHashSet( level1 ) );
@@ -179,17 +206,42 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
 
         dataSetService.addDataSet( dataSetA );
 
+        periodJan = createPeriod( "202001" );
+        periodFeb = createPeriod( "202002" );
+        periodMay = createPeriod( "202005" );
+        periodJun = createPeriod( "202006" );
+
+        periodService.addPeriod( periodJan );
+        periodService.addPeriod( periodFeb );
+        periodService.addPeriod( periodMay );
+        periodService.addPeriod( periodJun );
+
         userA = createUser( 'A' );
+        userB = createUser( 'B' );
 
         userA.addOrganisationUnit( sourceA );
+        userB.addOrganisationUnit( sourceA );
 
         userService.addUser( userA );
+        userService.addUser( userB );
+
+        userGroupA = createUserGroup( 'A', Sets.newHashSet( userA ) );
+        userGroupB = createUserGroup( 'B', Sets.newHashSet( userB ) );
+
+        userGroupService.addUserGroup( userGroupA );
+        userGroupService.addUserGroup( userGroupB );
+
+        userA.getGroups().add( userGroupA );
+        userB.getGroups().add( userGroupB );
+
+        userService.updateUser( userA );
+        userService.updateUser( userB );
 
         categoryOptionA = createCategoryOption( 'A' );
         categoryOptionB = createCategoryOption( 'B' );
 
-        categoryOptionA.setPublicAccess( "r-r-----" );
-        categoryOptionB.setPublicAccess( "r-r-----" );
+        categoryOptionA.setPublicAccess( "--------" );
+        categoryOptionB.setPublicAccess( "--------" );
 
         categoryService.addCategoryOption( categoryOptionA );
         categoryService.addCategoryOption( categoryOptionB );
@@ -216,19 +268,15 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     @Test
     public void testGetDataApprovalStatusesWithOpenPeriodsAfterCoEndDate()
     {
-        Period periodJan = createPeriod( "202001" );
-        Period periodFeb = createPeriod( "202002" );
-        Period periodMay = createPeriod( "202005" );
-        Period periodJun = createPeriod( "202006" );
-        List<DataApprovalLevel> userApprovalLevels = ListUtils.newList( level1 );
-
         transactionTemplate.execute( status -> {
-            dataApprovalLevelService.addDataApprovalLevel( level1 );
 
-            periodService.addPeriod( periodJan );
-            periodService.addPeriod( periodFeb );
-            periodService.addPeriod( periodMay );
-            periodService.addPeriod( periodJun );
+            categoryOptionA.setPublicAccess( "r-r-----" );
+            categoryOptionB.setPublicAccess( "r-r-----" );
+
+            categoryService.updateCategoryOption( categoryOptionA );
+            categoryService.updateCategoryOption( categoryOptionB );
+
+            dataApprovalLevelService.addDataApprovalLevel( level1 );
 
             Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
 
@@ -283,5 +331,108 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
         assertEquals( 1, dataApprovalStore
             .getDataApprovalStatuses( workflowA, periodJun, null, 1, categoryComboA, null, userApprovalLevels, null )
             .size() );
+    }
+
+    @Test
+    public void testApprovalStatusWithNoAccess()
+    {
+        transactionTemplate.execute( status -> {
+
+            sharingTest( 0 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithOtherUserAccess()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().setOwner( userB );
+            categoryOptionB.getSharing().setOwner( userB );
+
+            categoryOptionA.getSharing().addUserAccess( new UserAccess( userB, "r-r-----" ) );
+            categoryOptionB.getSharing().addUserAccess( new UserAccess( userB, "r-r-----" ) );
+
+            categoryOptionA.getSharing().addUserGroupAccess( new UserGroupAccess( userGroupB, "r-r-----" ) );
+            categoryOptionB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroupB, "r-r-----" ) );
+
+            sharingTest( 0 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithPublic()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().setPublicAccess( "r-r-----" );
+            categoryOptionB.getSharing().setPublicAccess( "r-r-----" );
+
+            sharingTest( 1 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithOwner()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().setOwner( userA );
+            categoryOptionB.getSharing().setOwner( userA );
+
+            sharingTest( 1 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithUserSharing()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().addUserAccess( new UserAccess( userA, "r-r-----" ) );
+            categoryOptionB.getSharing().addUserAccess( new UserAccess( userA, "r-r-----" ) );
+
+            sharingTest( 1 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithUserGroupSharing()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().addUserGroupAccess( new UserGroupAccess( userGroupA, "r-r-----" ) );
+            categoryOptionB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroupA, "r-r-----" ) );
+
+            sharingTest( 1 );
+
+            return null;
+        } );
+    }
+
+    private void sharingTest( int expectedApprovalCount )
+    {
+        categoryService.updateCategoryOption( categoryOptionA );
+        categoryService.updateCategoryOption( categoryOptionB );
+
+        dataApprovalLevelService.addDataApprovalLevel( level1 );
+
+        Mockito.when( currentUserService.getCurrentUser() ).thenReturn( userA );
+
+        assertEquals( expectedApprovalCount,
+            dataApprovalStore.getDataApprovalStatuses( workflowA, periodFeb, null, 1, categoryComboA,
+                null, userApprovalLevels, null ).size() );
+
+        dbmsManager.clearSession();
     }
 }
