@@ -62,18 +62,15 @@ import org.hisp.dhis.dataapproval.DataApprovalState;
 import org.hisp.dhis.dataapproval.DataApprovalStatus;
 import org.hisp.dhis.dataapproval.DataApprovalStore;
 import org.hisp.dhis.dataapproval.DataApprovalWorkflow;
-import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -131,17 +128,6 @@ public class HibernateDataApprovalStore
         this.systemSettingManager = systemSettingManager;
         this.statementBuilder = statementBuilder;
         this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
-    }
-
-    /**
-     * Used only for testing, remove when test is refactored
-     *
-     * @param currentUserService
-     */
-    @Deprecated
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
     }
 
     // -------------------------------------------------------------------------
@@ -268,10 +254,10 @@ public class HibernateDataApprovalStore
         final String strArrayUserGroups = CollectionUtils.isEmpty( user.getGroups() ) ? null
             : "{" + String.join( ",", user.getGroups().stream().map( group -> group.getUid() ).collect(
                 Collectors.toList() ) ) + "}";
-        final String co_sharing_check_query = strArrayUserGroups != null
-            ? " " + JsonbFunctions.HAS_USER_GROUP_IDS + " co.sharing, " + strArrayUserGroups + ") = false" +
-                JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, {" + strArrayUserGroups + "}, '"
-                + AclService.LIKE_READ_METADATA + "')"
+        final String co_group_sharing_check_query = strArrayUserGroups != null
+            ? " and (not " + JsonbFunctions.HAS_USER_GROUP_IDS + "( co.sharing, '" + strArrayUserGroups + "') or not " +
+                JsonbFunctions.CHECK_USER_GROUPS_ACCESS + "( co.sharing, '" + AclService.LIKE_READ_METADATA + "', '"
+                + strArrayUserGroups + "') )"
             : "";
 
         List<DataApprovalLevel> approvalLevels = workflow.getSortedLevels();
@@ -585,9 +571,13 @@ public class HibernateDataApprovalStore
             ") " +
             (isSuperUser ? "" : // Filter out COs the user doesn't have
                                 // permission to see.
-                "or ( co.sharing->>'publicaccess' is not null and left(co.sharing->>'publicaccess', 1) != 'r' and co.sharing->>'owner' is not null and co.sharing->>'owner' != '"
-                    + user.getUid() + "' " +
-                    co_sharing_check_query + " ) ")
+                "or ( ( co.sharing->>'public' is null or left(co.sharing->>'public', 1) != 'r' )"
+                    + " and ( co.sharing->>'owner' is null or co.sharing->>'owner' != '" + user.getUid() + "' )" +
+                    " and ( not " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "') or not " +
+                    JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '" + user.getUid() + "', '"
+                    + AclService.LIKE_READ_METADATA + "') )"
+                    + co_group_sharing_check_query)
+            + " )"
             +
             ") " +
             ") " +
