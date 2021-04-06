@@ -133,6 +133,15 @@ public class HibernateDataApprovalStore
         this.isApprovedCache = cacheProvider.createIsDataApprovedCache();
     }
 
+    /**
+     * Used only for testing, remove when test is refactored
+     */
+    @Deprecated
+    public void setCurrentUserService( CurrentUserService currentUserService )
+    {
+        this.currentUserService = currentUserService;
+    }
+
     // -------------------------------------------------------------------------
     // DataApproval
     // -------------------------------------------------------------------------
@@ -579,8 +588,7 @@ public class HibernateDataApprovalStore
                     " and ( not " + JsonbFunctions.HAS_USER_ID + "( co.sharing, '" + user.getUid() + "') or not " +
                     JsonbFunctions.CHECK_USER_ACCESS + "( co.sharing, '" + user.getUid() + "', '"
                     + AclService.LIKE_READ_METADATA + "') )"
-                    + co_group_sharing_check_query)
-            + " )"
+                    + co_group_sharing_check_query + " )")
             +
             ") " +
             ") " +

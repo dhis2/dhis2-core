@@ -338,6 +338,17 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
     {
         transactionTemplate.execute( status -> {
 
+            sharingTest( 0 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithOtherUserAccess()
+    {
+        transactionTemplate.execute( status -> {
+
             categoryOptionA.getSharing().setOwner( userB );
             categoryOptionB.getSharing().setOwner( userB );
 
@@ -348,6 +359,20 @@ public class DataApprovalStoreIntegrationTest extends TransactionalIntegrationTe
             categoryOptionB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroupB, "r-r-----" ) );
 
             sharingTest( 0 );
+
+            return null;
+        } );
+    }
+
+    @Test
+    public void testApprovalStatusWithPublic()
+    {
+        transactionTemplate.execute( status -> {
+
+            categoryOptionA.getSharing().setPublicAccess( "r-r-----" );
+            categoryOptionB.getSharing().setPublicAccess( "r-r-----" );
+
+            sharingTest( 1 );
 
             return null;
         } );

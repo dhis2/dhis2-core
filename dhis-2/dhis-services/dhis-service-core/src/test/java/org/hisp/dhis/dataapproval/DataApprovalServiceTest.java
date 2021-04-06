@@ -30,6 +30,7 @@ package org.hisp.dhis.dataapproval;
 import static com.google.common.collect.Lists.newArrayList;
 import static com.google.common.collect.Sets.newHashSet;
 import static java.util.Collections.singleton;
+import static org.hisp.dhis.security.acl.AccessStringHelper.CATEGORY_OPTION_DEFAULT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -493,6 +494,24 @@ public class DataApprovalServiceTest
         categoryService.addCategoryOption( optionF );
         categoryService.addCategoryOption( optionG );
         categoryService.addCategoryOption( optionH );
+
+        optionA.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionB.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionC.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionD.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionE.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionF.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionG.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+        optionH.setPublicAccess( CATEGORY_OPTION_DEFAULT );
+
+        categoryService.updateCategoryOption( optionA );
+        categoryService.updateCategoryOption( optionB );
+        categoryService.updateCategoryOption( optionC );
+        categoryService.updateCategoryOption( optionD );
+        categoryService.updateCategoryOption( optionE );
+        categoryService.updateCategoryOption( optionF );
+        categoryService.updateCategoryOption( optionG );
+        categoryService.updateCategoryOption( optionH );
 
         categoryA = createCategory( 'A', optionA, optionB, optionC, optionD );
         categoryB = createCategory( 'B', optionE, optionF, optionG, optionH );
