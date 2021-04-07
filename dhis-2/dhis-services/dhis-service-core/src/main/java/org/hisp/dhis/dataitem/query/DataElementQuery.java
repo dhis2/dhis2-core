@@ -28,6 +28,7 @@
 package org.hisp.dhis.dataitem.query;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
@@ -35,6 +36,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.StringUtils.trimToNull;
 import static org.hisp.dhis.common.DimensionItemType.DATA_ELEMENT;
 import static org.hisp.dhis.common.ValueType.fromString;
+import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
@@ -54,6 +56,7 @@ import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
+import static org.hisp.dhis.dataitem.query.shared.QueryParam.VALUE_TYPES;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
@@ -61,6 +64,7 @@ import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingCon
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -86,7 +90,7 @@ import org.springframework.stereotype.Component;
 public class DataElementQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "dataelement.uid, dataelement.name, dataelement.valuetype,"
-        + " dataelement.code, dataelement.sharing as dataelement_sharing, dataelement.shortname";
+        + " dataelement.code, dataelement.sharing as dataelement_sharing, dataelement.shortname, dataelement.domaintype";
 
     private static final String ITEM_UID = "dataelement.uid";
 
@@ -185,7 +189,7 @@ public class DataElementQuery implements DataItemQuery
 
         sql.append(
             " group by dataelement.name, " + ITEM_UID + ", dataelement.valuetype, dataelement.code, i18n_name,"
-                + " dataelement_sharing, dataelement.shortname, i18n_shortname" );
+                + " dataelement.domaintype, dataelement_sharing, dataelement.shortname, i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -196,11 +200,23 @@ public class DataElementQuery implements DataItemQuery
 
         // Mandatory filters. They do not respect the root junction filtering.
         sql.append( always( sharingConditions( "t.dataelement_sharing", READ_ACCESS, paramsMap ) ) );
-        sql.append( " and" );
-        sql.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        sql.append( " and " );
+        sql.append( always( "t.domaintype = 'AGGREGATE'" ) ); // ONLY aggregates
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
+        final Set<String> aggregatableTypes = getAggregatables().stream().map( type -> type.name() ).collect( toSet() );
+
+        // This condition is needed to enable value types filtering only when
+        // they are actually specified as filters. Otherwise we should only
+        // consider the domainType = 'AGGREGATE'. Very specific to DataElements.
+        if ( paramsMap != null && paramsMap.hasValue( VALUE_TYPES )
+            && paramsMap.getValue( VALUE_TYPES ) != null
+            && !((Set) paramsMap.getValue( VALUE_TYPES )).containsAll( aggregatableTypes ) )
+        {
+            optionalFilters.append( ifSet( valueTypeFiltering( "t.valuetype", paramsMap ) ) );
+        }
+
         optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_name", paramsMap ) ) );
         optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
