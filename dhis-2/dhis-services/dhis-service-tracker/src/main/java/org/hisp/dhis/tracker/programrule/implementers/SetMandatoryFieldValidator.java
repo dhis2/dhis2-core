@@ -126,7 +126,7 @@ public class SetMandatoryFieldValidator
             Lists.newArrayList( mandatoryDataElementsByActionRule.keySet() ) )
                 .stream()
                 .map( e -> new ProgramRuleIssue( mandatoryDataElementsByActionRule.get( e ).getRuleUid(),
-                    TrackerErrorCode.E1303,
+                    TrackerErrorCode.E1301,
                     Lists.newArrayList( e ), IssueType.ERROR ) )
                 .collect( Collectors.toList() );
     }
