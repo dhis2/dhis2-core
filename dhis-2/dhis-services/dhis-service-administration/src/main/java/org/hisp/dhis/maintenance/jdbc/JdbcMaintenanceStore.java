@@ -177,8 +177,8 @@ public class JdbcMaintenanceStore
         String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
             + piSelect + " )";
 
-        String pmSelect = "(select id from programmessage where programinstanceid in "
-            + piSelect + " )";
+        String pmSelect = "(select id from programmessage where trackedentityinstanceid in "
+            + teiSelect + " )";
 
         /*
          * Delete event values, event audits, event comments, events, enrollment

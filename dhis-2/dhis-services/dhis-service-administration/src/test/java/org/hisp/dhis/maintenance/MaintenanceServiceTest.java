@@ -118,6 +118,8 @@ public class MaintenanceServiceTest
 
     private TrackedEntityInstance entityInstance;
 
+    private TrackedEntityInstance entityInstanceB;
+
     private Collection<Long> orgunitIds;
 
     @Override
@@ -149,6 +151,8 @@ public class MaintenanceServiceTest
 
         entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
+
+        entityInstanceB = createTrackedEntityInstance( organisationUnit );
 
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -234,6 +238,36 @@ public class MaintenanceServiceTest
 
         assertFalse(
             programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstance.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteSoftDeletedTrackedEntityInstanceAProgramMessage()
+    {
+        ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+        programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
+        programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
+        programMessageRecipients.setOrganisationUnit( organisationUnit );
+        programMessageRecipients.setTrackedEntityInstance( entityInstanceB );
+
+        ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
+                .recipients( programMessageRecipients )
+                .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) ).build();
+
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+
+        programMessageService.saveProgramMessage( message );
+
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+
+        entityInstanceService.deleteTrackedEntityInstance( entityInstanceB );
+
+        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+
+        assertTrue( entityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstanceB.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+
+        assertFalse( entityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstanceB.getUid() ) );
     }
 
     @Test
