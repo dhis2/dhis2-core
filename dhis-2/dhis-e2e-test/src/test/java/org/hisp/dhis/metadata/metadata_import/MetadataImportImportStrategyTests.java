@@ -80,4 +80,26 @@ public class MetadataImportImportStrategyTests
             .body( "stats.updated", equalTo( response.extract( "stats.total" ) ) );
     }
 
+    @Test
+    public void shouldCreateMetadataWithCodeIdentifier()
+    {
+        JsonObject object = JsonObjectBuilder.jsonObject( DataGenerator.generateObjectForEndpoint( "/dataElementGroup" ) )
+            .addProperty( "code", "TA_CODE_DATAELEMENT_GROUP" )
+            .addArray( "userGroupAccesses",
+                new JsonObjectBuilder().addProperty( "access", "rw------" )
+                    .addProperty( "code", "TA_USER_GROUP" ).build() )
+            .wrapIntoArray( "dataElementGroups" );
+
+        ApiResponse response = metadataActions.importMetadata( object, "identifier=CODE" );
+
+        response
+            .validate().statusCode( 200 )
+            .body( "stats.created", equalTo( 1 ) );
+
+        response = metadataActions.importMetadata( object, "identifier=CODE" );
+
+        response
+            .validate().statusCode( 200 )
+            .body( "stats.updated", equalTo( 1 ) );
+    }
 }
