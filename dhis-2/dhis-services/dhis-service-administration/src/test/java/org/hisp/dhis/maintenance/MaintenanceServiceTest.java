@@ -250,8 +250,8 @@ public class MaintenanceServiceTest
         programMessageRecipients.setTrackedEntityInstance( entityInstanceB );
 
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
-                .recipients( programMessageRecipients )
-                .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) ).build();
+            .recipients( programMessageRecipients )
+            .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) ).build();
 
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
