@@ -75,7 +75,7 @@
   <bean id="jsonPMessageConverter" class="org.hisp.dhis.webapi.mvc.messageconverter.JsonPMessageConverter" />
 
   <bean id="stringHttpMessageConverter" class="org.springframework.http.converter.StringHttpMessageConverter" >
-    <constructor-arg name="defaultCharset" value="java.nio.charset.StandardCharsets.UTF_8"/>
+    <constructor-arg name="defaultCharset" value="UTF-8"/>
   </bean>
 
   <bean id="byteArrayHttpMessageConverter" class="org.springframework.http.converter.ByteArrayHttpMessageConverter" />
