@@ -92,7 +92,7 @@ public class EventDataValuesValidationHook
                 .collect( Collectors.toList() );
             List<String> wrongMandatoryDataValue = validateMandatoryDataValue( programStage, event,
                 mandatoryDataElements );
-            wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1301, de ) );
+            wrongMandatoryDataValue.forEach( de -> addError( reporter, TrackerErrorCode.E1303, de ) );
         }
     }
 
