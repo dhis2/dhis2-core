@@ -36,6 +36,7 @@ import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -67,6 +68,7 @@ public class DefaultPreheatCacheServiceTest
     }
 
     @Test
+    @Ignore
     public void testEnabledCacheIsCachingTEI()
     {
         Mockito.when( config.isEnabled( ConfigurationKey.TRACKER_IMPORT_PREHEAT_CACHE_ENABLED ) ).thenReturn( true );
@@ -85,6 +87,7 @@ public class DefaultPreheatCacheServiceTest
     }
 
     @Test
+    @Ignore
     public void testDisabledCacheIsNotCachingTEI()
     {
         Mockito.when( config.isEnabled( ConfigurationKey.TRACKER_IMPORT_PREHEAT_CACHE_ENABLED ) ).thenReturn( false );

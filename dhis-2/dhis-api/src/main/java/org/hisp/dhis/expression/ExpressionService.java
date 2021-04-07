@@ -37,7 +37,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -200,17 +199,6 @@ public interface ExpressionService
      * @return a Set of data elements included in the expression string.
      */
     Set<DataElement> getExpressionDataElements( String expression, ParseType parseType );
-
-    /**
-     * Returns, in data element operand format, all data elements and all data
-     * element operands found in an expression. Returns an empty set if the
-     * expression is null.
-     *
-     * @param expression The expression string.
-     * @param parseType the type of expression to parse.
-     * @return A Set of Operands.
-     */
-    Set<DataElementOperand> getExpressionOperands( String expression, ParseType parseType );
 
     /**
      * Returns all CategoryOptionCombo uids in the given expression string that
