@@ -45,6 +45,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hibernate.SessionFactory;
@@ -144,6 +145,43 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
     }
 
     @Test
+    public void testFetchTrackedEntityInstancesWithExplicitUid()
+    {
+        final String[] teiUid = new String[2];
+
+        doInTransaction( () -> {
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
+            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstance();
+            this.persistRelationship( t1, t2 );
+            teiUid[0] = t1.getUid();
+            teiUid[1] = t2.getUid();
+        } );
+
+        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams.getTrackedEntityInstanceUids().add( teiUid[0] );
+
+        TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
+
+        final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertThat( trackedEntityInstances, hasSize( 1 ) );
+        assertThat( trackedEntityInstances.get( 0 ).getTrackedEntityInstance(), is( teiUid[0] ) );
+
+        // Query 2 tei uid explicitly
+        queryParams.getTrackedEntityInstanceUids().add( teiUid[1] );
+
+        final List<TrackedEntityInstance> multiTrackedEntityInstances = trackedEntityInstanceService
+            .getTrackedEntityInstances2( queryParams, params, false );
+
+        assertThat( multiTrackedEntityInstances, hasSize( 2 ) );
+        Set<String> teis = multiTrackedEntityInstances.stream().map( t -> t.getTrackedEntityInstance() )
+            .collect( Collectors.toSet() );
+        assertTrue( teis.contains( teiUid[0] ) );
+        assertTrue( teis.contains( teiUid[1] ) );
+    }
+
+    @Test
     public void testFetchTrackedEntityInstancesWithLastUpdatedParameter()
     {
         doInTransaction( () -> {
@@ -162,7 +200,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         TrackedEntityInstanceParams params = new TrackedEntityInstanceParams();
 
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
@@ -171,7 +209,7 @@ public class TrackedEntityInstanceAggregateTest extends TrackerTest
         queryParams.setLastUpdatedStartDate( Date.from( Instant.now().plus( 1, ChronoUnit.DAYS ) ) );
 
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
-            .getTrackedEntityInstances( queryParams, params, false );
+            .getTrackedEntityInstances2( queryParams, params, false );
 
         assertThat( limitedTTrackedEntityInstances, hasSize( 0 ) );
     }
