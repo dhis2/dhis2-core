@@ -123,7 +123,7 @@ public class EventsDataValueValidationTests
             .body( "bundleReport.typeReportMap.EVENT", nullValue() );
 
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1303" ) );
+            .body( "errorCode", hasItem( "E1301" ) );
     }
 
     @Test
