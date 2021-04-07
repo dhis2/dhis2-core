@@ -31,8 +31,10 @@ import static junit.framework.TestCase.assertFalse;
 import static junit.framework.TestCase.assertTrue;
 import static org.hisp.dhis.analytics.DataQueryParams.VALUE_ID;
 import static org.hisp.dhis.expression.Expression.SEPARATOR;
+import static org.hisp.dhis.expression.Operator.equal_to;
 import static org.hisp.dhis.expression.Operator.not_equal_to;
 import static org.hisp.dhis.expression.ParseType.SIMPLE_TEST;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -55,6 +57,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dataanalysis.ValidationRuleExpressionDetails;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
@@ -87,13 +90,16 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
  * @author Jim Grace
  */
 @Slf4j
-public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
+public class AnalyticsValidationServiceTest
+    extends TransactionalIntegrationTest
 {
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -155,17 +161,19 @@ public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 
     private int dayInPeriod;
 
-    private ValidationRule validationRuleA;
+    private ValidationRule ruleA;
 
-    private ValidationRule validationRuleD;
+    private ValidationRule ruleD;
 
-    private ValidationRule validationRuleI;
+    private ValidationRule ruleI;
 
-    private ValidationRule validationRuleASliding;
+    private ValidationRule ruleASlide;
 
-    private ValidationRule validationRuleDSliding;
+    private ValidationRule ruleDSlide;
 
-    private ValidationRule validationRuleISliding;
+    private ValidationRule ruleISlide;
+
+    private ValidationRule ruleX;
 
     @Override
     public void setUpTest()
@@ -175,18 +183,21 @@ public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         final String PROGRAM_UID = "ProgramABCD";
         final String PROGRAM_INDICATOR_UID = "ProgramIndA";
 
-        final String EXPRESSION_A = "A{" + PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID + "}"; // A
-                                                                                                         // -
-                                                                                                         // ProgramTrackedEntityAttribute
-        final String EXPRESSION_D = "D{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "}"; // D
-                                                                                               // -
-                                                                                               // ProgramDataElement
-        final String EXPRESSION_I = "I{" + PROGRAM_INDICATOR_UID + "}"; // I -
-                                                                        // ProgramIndicator
+        // A - ProgramTrackedEntityAttribute
+        final String EXPRESSION_A = "A{" + PROGRAM_UID + SEPARATOR + TRACKED_ENTITY_ATTRIBUTE_UID + "}";
 
-        final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "} + 4"; // Program
-                                                                                                   // Indicator
-                                                                                                   // expression
+        // D - ProgramDataElement
+        final String EXPRESSION_D = "D{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "}";
+
+        // I - ProgramIndicator
+        final String EXPRESSION_I = "I{" + PROGRAM_INDICATOR_UID + "}";
+
+        // Program Indicator expression
+        final String EX_INDICATOR = "#{" + PROGRAM_UID + SEPARATOR + DATA_ELEMENT_A_UID + "} + 4";
+
+        final String EXPRESSION_AI = EXPRESSION_A + " + " + EXPRESSION_I;
+
+        final String EXPRESSION_DI = EXPRESSION_D + " + " + EXPRESSION_I;
 
         defaultCombo = categoryService.getDefaultCategoryOptionCombo();
 
@@ -271,37 +282,34 @@ public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );
         Expression expressionI = new Expression( EXPRESSION_I, "ProgramIndicator" );
+        Expression expressionAI = new Expression( EXPRESSION_AI, "ProgramTrackedEntityAttribute + ProgramIndicator" );
 
-        Expression expressionASliding = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute Sliding" );
-        Expression expressionDSliding = new Expression( EXPRESSION_D, "ProgramDataElement Sliding" );
-        Expression expressionISliding = new Expression( EXPRESSION_I, "ProgramIndicator Sliding" );
+        Expression expressionASlide = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute Slide" );
+        Expression expressionDSlide = new Expression( EXPRESSION_D, "ProgramDataElement Slide" );
+        Expression expressionISlide = new Expression( EXPRESSION_I, "ProgramIndicator Slide" );
+        Expression expressionDISlide = new Expression( EXPRESSION_DI, "ProgramDataElement + ProgramIndicator Slide" );
 
-        expressionASliding.setSlidingWindow( true );
-        expressionDSliding.setSlidingWindow( true );
-        expressionISliding.setSlidingWindow( true );
+        expressionASlide.setSlidingWindow( true );
+        expressionDSlide.setSlidingWindow( true );
+        expressionISlide.setSlidingWindow( true );
 
-        validationRuleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly ); // A
-                                                                                                                  // -
-                                                                                                                  // ProgramTrackedEntityAttribute
-        validationRuleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly ); // D
-                                                                                                                  // -
-                                                                                                                  // ProgramDataElement
-        validationRuleI = createValidationRule( "I", not_equal_to, expressionI, expressionI, periodTypeMonthly ); // I
-                                                                                                                  // -
-                                                                                                                  // ProgramIndicator
-        validationRuleASliding = createValidationRule( "T", not_equal_to, expressionASliding, expressionASliding,
-            periodTypeMonthly ); // A - ProgramTrackedEntityAttribute (Sliding)
-        validationRuleDSliding = createValidationRule( "U", not_equal_to, expressionDSliding, expressionDSliding,
-            periodTypeMonthly ); // D - ProgramDataElement (Sliding)
-        validationRuleISliding = createValidationRule( "V", not_equal_to, expressionISliding, expressionISliding,
-            periodTypeMonthly ); // I - ProgramIndicator (Sliding)
+        ruleA = createValidationRule( "A", not_equal_to, expressionA, expressionA, periodTypeMonthly );
+        ruleD = createValidationRule( "D", not_equal_to, expressionD, expressionD, periodTypeMonthly );
+        ruleI = createValidationRule( "I", not_equal_to, expressionI, expressionI, periodTypeMonthly );
 
-        validationRuleService.saveValidationRule( validationRuleA );
-        validationRuleService.saveValidationRule( validationRuleD );
-        validationRuleService.saveValidationRule( validationRuleI );
-        validationRuleService.saveValidationRule( validationRuleASliding );
-        validationRuleService.saveValidationRule( validationRuleDSliding );
-        validationRuleService.saveValidationRule( validationRuleISliding );
+        ruleASlide = createValidationRule( "T", not_equal_to, expressionASlide, expressionASlide, periodTypeMonthly );
+        ruleDSlide = createValidationRule( "U", not_equal_to, expressionDSlide, expressionDSlide, periodTypeMonthly );
+        ruleISlide = createValidationRule( "V", not_equal_to, expressionISlide, expressionISlide, periodTypeMonthly );
+
+        ruleX = createValidationRule( "X", equal_to, expressionAI, expressionDISlide, periodTypeMonthly );
+
+        validationRuleService.saveValidationRule( ruleA );
+        validationRuleService.saveValidationRule( ruleD );
+        validationRuleService.saveValidationRule( ruleI );
+        validationRuleService.saveValidationRule( ruleASlide );
+        validationRuleService.saveValidationRule( ruleDSlide );
+        validationRuleService.saveValidationRule( ruleISlide );
+        validationRuleService.saveValidationRule( ruleX );
 
         Map<Date, Grid> dateGridMap = new HashMap<>();
         dateGridMap.put( periodMar.getStartDate(), newGrid( 4, 1, 8, 3 ) );
@@ -456,41 +464,59 @@ public class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     @Test
     public void testAnalyticsValidate()
     {
+        // Just one test, so we don't have to rebuild analytics multiple times.
+
+        // ---------------
+        // Test validation
+        // ---------------
+
         Collection<ValidationResult> reference = new HashSet<>();
 
-        reference
-            .add( new ValidationResult( validationRuleA, periodMar, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
-        reference
-            .add( new ValidationResult( validationRuleA, periodApr, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
-        reference
-            .add( new ValidationResult( validationRuleD, periodMar, orgUnitA, defaultCombo, 4.0, 4.0, dayInPeriod ) );
-        reference
-            .add( new ValidationResult( validationRuleD, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
-        reference
-            .add( new ValidationResult( validationRuleI, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
-        reference
-            .add( new ValidationResult( validationRuleI, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleASliding, periodMar, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleASliding, periodApr, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleDSliding, periodMar, orgUnitA, defaultCombo, 4.0, 4.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleDSliding, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleISliding, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
-        reference.add(
-            new ValidationResult( validationRuleISliding, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleA, periodMar, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleA, periodApr, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleD, periodMar, orgUnitA, defaultCombo, 4.0, 4.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleD, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleI, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleI, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleASlide, periodMar, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleASlide, periodApr, orgUnitA, defaultCombo, 1.0, 1.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleDSlide, periodMar, orgUnitA, defaultCombo, 4.0, 4.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleDSlide, periodApr, orgUnitA, defaultCombo, 5.0, 5.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleISlide, periodMar, orgUnitA, defaultCombo, 8.0, 8.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleISlide, periodApr, orgUnitA, defaultCombo, 9.0, 9.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleX, periodMar, orgUnitA, defaultCombo, 9.0, 12.0, dayInPeriod ) );
+        reference.add( new ValidationResult( ruleX, periodApr, orgUnitA, defaultCombo, 10.0, 14.0, dayInPeriod ) );
 
         Date startDate = getDate( testYear, 3, 1 );
         Date endDate = getDate( testYear, 4, 30 );
 
-        ValidationAnalysisParams params = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate )
+        ValidationAnalysisParams params1 = validationService.newParamsBuilder( null, orgUnitA, startDate, endDate )
             .build();
 
-        Collection<ValidationResult> results = validationService.validationAnalysis( params );
+        Collection<ValidationResult> results = validationService.validationAnalysis( params1 );
 
         assertResultsEquals( reference, results );
+
+        // ---------------------------------------
+        // Test validation rule expression details
+        // ---------------------------------------
+
+        ValidationAnalysisParams params2 = validationService.newParamsBuilder(
+            Lists.newArrayList( ruleX ), orgUnitA, Lists.newArrayList( periodMar ) )
+            .withAttributeOptionCombo( defaultCombo )
+            .build();
+
+        List<Map<String, String>> leftSideExpected = Lists.newArrayList(
+            ImmutableMap.of( "name", "IndicatorA", "value", "8.0" ),
+            ImmutableMap.of( "name", "ProgramA AttributeA", "value", "1.0" ) );
+
+        List<Map<String, String>> rightSideExpected = Lists.newArrayList(
+            ImmutableMap.of( "name", "IndicatorA", "value", "8.0" ),
+            ImmutableMap.of( "name", "ProgramA DataElementA", "value", "4.0" ) );
+
+        ValidationRuleExpressionDetails details = validationService.getValidationRuleExpressionDetails( params2 );
+
+        assertEquals( leftSideExpected, details.getLeftSide() );
+        assertEquals( rightSideExpected, details.getRightSide() );
     }
 }
