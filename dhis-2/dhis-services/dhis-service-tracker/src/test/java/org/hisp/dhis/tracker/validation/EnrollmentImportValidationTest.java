@@ -33,7 +33,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
 import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.UPDATE;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
@@ -133,102 +132,6 @@ public class EnrollmentImportValidationTest
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
-    }
-
-    @Test
-    public void testEnrollmentCreateAlreadyExists()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson( "tracker/validations/enrollments_te_enrollments-data.json" );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
-        assertEquals( 4, trackerBundle.getEnrollments().size() );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 0, report.getErrorReports().size() );
-
-        trackerBundleService.commit( trackerBundle );
-
-        report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
-
-        assertEquals( 4, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1080 ) ) ) );
-
-        // All should be removed
-        assertEquals( 0, trackerBundle.getEnrollments().size() );
-
-        printReport( report );
-    }
-
-    @Test
-    public void testUpdateNotExists()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_enrollments-data.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.UPDATE );
-
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 4, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
-    }
-
-    @Test
-    public void testDeleteNotExists()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_te_enrollments-data.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.DELETE );
-
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 4, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1081 ) ) ) );
-    }
-
-    @SneakyThrows
-    private void testDeletedEnrollmentFails( TrackerImportStrategy importStrategy )
-    {
-
-        // Given -> Creates an enrollment
-        createEnrollment( "tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json" );
-
-        // When -> Soft-delete the enrollment
-        programInstanceService.deleteProgramInstance( programInstanceService.getProgramInstance( "wMNWZ6hnuhS" ) );
-
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/enrollments_te_enrollments-data-soft_deleted_test.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, importStrategy );
-
-        assertEquals( 0, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( 1, report.getErrorReports().size() );
-        assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1113 ) ) ) );
-    }
-
-    @Test
-    public void testUpdateDeletedEnrollmentFails()
-    {
-        testDeletedEnrollmentFails( UPDATE );
-    }
-
-    @Test
-    public void testInserDeletedEnrollmentFails()
-    {
-        testDeletedEnrollmentFails( CREATE_AND_UPDATE );
     }
 
     @SneakyThrows
@@ -381,31 +284,6 @@ public class EnrollmentImportValidationTest
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
         assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
-    }
-
-    // TODO: Empty json geo obj OR (missing field in obj) causes strange json
-    // mapping exception, should we capture this?
-    // com.fasterxml.jackson.databind.JsonMappingException: (was
-    // java.lang.NullPointerException) (through reference chain:
-    // org.hisp.dhis.tracker.bundle.TrackerBundleParams["enrollments"]->java.util.ArrayList[0]->org.hisp.dhis.tracker.domain.Enrollment["geometry"])
-    @Test
-    @Ignore( "Validation not possible yet exception surface before this validation" )
-    public void testBadGeoOnEnrollment()
-        throws IOException
-    {
-        TrackerImportParams params = createBundleFromJson(
-            "tracker/validations/enrollments_bad-geo.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEnrollments().size() );
-
-        TrackerValidationReport validationReport = createAndUpdate.getValidationReport();
-        printReport( validationReport );
-
-        assertEquals( 0, validationReport.getErrorReports().size() );
-
-        assertThat( validationReport.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1019 ) ) ) );
     }
 
     @Test
