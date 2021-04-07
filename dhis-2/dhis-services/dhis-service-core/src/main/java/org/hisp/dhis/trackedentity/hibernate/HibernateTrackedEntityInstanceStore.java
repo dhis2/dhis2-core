@@ -1013,6 +1013,11 @@ public class HibernateTrackedEntityInstanceStore
             .append( "ON OU.organisationunitid = " )
             .append( (params.hasProgram() ? "PO.organisationunitid " : "TEI.organisationunitid ") );
 
+        if ( !params.hasOrganisationUnits() )
+        {
+            return orgUnits.toString();
+        }
+
         if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS ) )
         {
             SqlHelper orHlp = new SqlHelper( true );
