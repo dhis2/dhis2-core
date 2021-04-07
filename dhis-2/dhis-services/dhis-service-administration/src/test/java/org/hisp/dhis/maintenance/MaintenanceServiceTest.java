@@ -106,9 +106,15 @@ public class MaintenanceServiceTest
 
     private Program program;
 
+    private ProgramStage stageA;
+
+    private ProgramStage stageB;
+
     private OrganisationUnit organisationUnit;
 
     private ProgramInstance programInstance;
+
+    private ProgramStageInstance programStageInstance;
 
     private TrackedEntityInstance entityInstance;
 
@@ -127,11 +133,11 @@ public class MaintenanceServiceTest
 
         programService.addProgram( program );
 
-        ProgramStage stageA = createProgramStage( 'A', program );
+        stageA = createProgramStage( 'A', program );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
 
-        ProgramStage stageB = createProgramStage( 'B', program );
+        stageB = createProgramStage( 'B', program );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
 
@@ -158,6 +164,13 @@ public class MaintenanceServiceTest
         programInstance.setOrganisationUnit( organisationUnit );
 
         programInstanceService.addProgramInstance( programInstance );
+
+        programStageInstance = new ProgramStageInstance( programInstance, stageA );
+        programStageInstance.setUid( "PSUID-B" );
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setExecutionDate( new Date() );
+
     }
 
     @Test
@@ -189,6 +202,38 @@ public class MaintenanceServiceTest
         maintenanceService.deleteSoftDeletedProgramInstances();
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteSoftDeletedProgramStageInstanceWithAProgramMessage()
+    {
+        ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+        programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
+        programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
+        programMessageRecipients.setOrganisationUnit( organisationUnit );
+
+        ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
+            .recipients( programMessageRecipients )
+            .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
+            .programStageInstance( programStageInstance ).build();
+
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstance );
+
+        programMessageService.saveProgramMessage( message );
+
+        assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+
+        assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        assertTrue(
+            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstance.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedProgramStageInstances();
+
+        assertFalse(
+            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstance.getUid() ) );
     }
 
     @Test

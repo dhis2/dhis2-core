@@ -95,11 +95,17 @@ public class JdbcMaintenanceStore
     {
         String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
+        String pmSelect = "(select id from programmessage where programstageinstanceid in "
+            + psiSelect + " )";
+
         /*
          * Delete event values, event value audits, event comments, events
          *
          */
         String[] sqlStmts = new String[] {
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
@@ -189,7 +195,7 @@ public class JdbcMaintenanceStore
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
-            "delete from programmessage where  in trackedentityinstanceid " + teiSelect,
+            "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programinstance where programinstanceid in " + piSelect,
