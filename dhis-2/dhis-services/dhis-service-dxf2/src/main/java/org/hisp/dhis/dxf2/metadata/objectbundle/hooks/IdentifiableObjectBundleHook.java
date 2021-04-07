@@ -31,6 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.Iterator;
 
+import org.apache.commons.collections4.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -74,6 +75,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
         Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( identifiableObject ) );
         handleAttributeValues( identifiableObject, bundle, schema );
         handleSkipSharing( identifiableObject, bundle );
+        handleSkipTranslation( identifiableObject, bundle );
     }
 
     @Override
@@ -135,4 +137,13 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook
 
         aclService.clearSharing( identifiableObject, bundle.getUser() );
     }
+
+    private void handleSkipTranslation( IdentifiableObject identifiableObject, ObjectBundle bundle )
+    {
+        if ( bundle.isSkipTranslation() && !CollectionUtils.isEmpty( identifiableObject.getTranslations() ) )
+        {
+            identifiableObject.getTranslations().clear();
+        }
+    }
+
 }
