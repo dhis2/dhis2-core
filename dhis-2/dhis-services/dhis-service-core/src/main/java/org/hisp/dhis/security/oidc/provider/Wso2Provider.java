@@ -84,7 +84,7 @@ public class Wso2Provider extends AbstractOidcProvider
         return DhisOidcClientRegistration.builder()
             .clientRegistration( clientRegistration )
             .mappingClaimKey( config.getProperty( OIDC_PROVIDER_WSO2_MAPPING_CLAIM.getKey() ) )
-            .loginIcon( "../security/wso2-logo.svg" )
+            .loginIcon( "../oidc/wso2-logo.svg" )
             .loginIconPadding( "0px 1px" )
             .loginText( config.getProperty( OIDC_PROVIDER_WSO2_DISPLAY_ALIAS.getKey() ) )
             .build();
