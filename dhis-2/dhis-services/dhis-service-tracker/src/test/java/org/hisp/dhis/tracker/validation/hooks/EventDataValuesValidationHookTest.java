@@ -184,7 +184,7 @@ public class EventDataValuesValidationHookTest
 
         // Then
         assertThat( reporter.getReportList(), hasSize( 1 ) );
-        assertEquals( TrackerErrorCode.E1301, reporter.getReportList().get( 0 ).getErrorCode() );
+        assertEquals( TrackerErrorCode.E1303, reporter.getReportList().get( 0 ).getErrorCode() );
     }
 
     @Test
