@@ -177,13 +177,14 @@ public class DefaultDataStatisticsService
     {
         DataSummary statistics = new DataSummary();
 
-        /* Database object counts */
+        // Database objects
         Map<String, Long> objectCounts = new HashMap<>();
         statisticsProvider.getObjectCounts()
             .forEach( ( object, count ) -> objectCounts.put( object.getValue(), count ) );
+
         statistics.setObjectCounts( objectCounts );
 
-        /* Active users count */
+        // Active users
         Date lastHour = new DateTime().minusHours( 1 ).toDate();
 
         Map<Integer, Integer> activeUsers = new HashMap<>();
@@ -196,7 +197,7 @@ public class DefaultDataStatisticsService
 
         statistics.setActiveUsers( activeUsers );
 
-        /* User invitations count */
+        // User invitations
         Map<String, Integer> userInvitations = new HashMap<>();
 
         UserQueryParams inviteAll = new UserQueryParams();
@@ -209,7 +210,7 @@ public class DefaultDataStatisticsService
 
         statistics.setUserInvitations( userInvitations );
 
-        // Data value count
+        // Data values
         Map<Integer, Integer> dataValueCount = new HashMap<>();
 
         dataValueCount.put( 0, dataValueService.getDataValueCount( 0 ) );
@@ -219,7 +220,7 @@ public class DefaultDataStatisticsService
 
         statistics.setDataValueCount( dataValueCount );
 
-        // Event count
+        // Events
         Map<Integer, Long> eventCount = new HashMap<>();
 
         eventCount.put( 0, programStageInstanceService.getProgramStageInstanceCount( 0 ) );

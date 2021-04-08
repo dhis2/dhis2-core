@@ -67,38 +67,37 @@ public class JdbcStatisticsProvider
     @Override
     public Map<Objects, Long> getObjectCounts()
     {
-        final Map<Objects, Long> objectCounts = new HashMap<>();
+        final Map<Objects, Long> map = new HashMap<>();
 
         // Metadata, use exact counts
 
-        objectCounts.put( Objects.DATAELEMENT, query( "select count(*) from dataelement;" ) );
-        objectCounts.put( Objects.DATAELEMENTGROUP, query( "select count(*) from dataelementgroup;" ) );
-        objectCounts.put( Objects.INDICATORTYPE, query( "select count(*) from indicatortype;" ) );
-        objectCounts.put( Objects.INDICATOR, query( "select count(*) from indicator;" ) );
-        objectCounts.put( Objects.INDICATORGROUP, query( "select count(*) from indicatorgroup;" ) );
-        objectCounts.put( Objects.DATASET, query( "select count(*) from dataset;" ) );
-        objectCounts.put( Objects.ORGANISATIONUNIT, query( "select count(*) from organisationunit;" ) );
-        objectCounts.put( Objects.ORGANISATIONUNITGROUP, query( "select count(*) from orgunitgroup;" ) );
-        objectCounts.put( Objects.VALIDATIONRULE, query( "select count(*) from validationrule;" ) );
-        objectCounts.put( Objects.PROGRAM, query( "select count(*) from program;" ) );
-        objectCounts.put( Objects.PERIOD, query( "select count(*) from period;" ) );
-        objectCounts.put( Objects.USER, query( "select count(*) from users;" ) );
-        objectCounts.put( Objects.USERGROUP, query( "select count(*) from usergroup;" ) );
-        objectCounts.put( Objects.REPORTTABLE,
-            query( "select count(*) from visualization where type = 'PIVOT_TABLE';" ) );
-        objectCounts.put( Objects.VISUALIZATION, query( "select count(*) from visualization;" ) );
-        objectCounts.put( Objects.CHART, query( "select count(*) from visualization where type <> 'PIVOT_TABLE';" ) );
-        objectCounts.put( Objects.MAP, query( "select count(*) from map;" ) );
-        objectCounts.put( Objects.DASHBOARD, query( "select count(*) from dashboard;" ) );
+        map.put( Objects.DATAELEMENT, query( "select count(*) from dataelement;" ) );
+        map.put( Objects.DATAELEMENTGROUP, query( "select count(*) from dataelementgroup;" ) );
+        map.put( Objects.INDICATORTYPE, query( "select count(*) from indicatortype;" ) );
+        map.put( Objects.INDICATOR, query( "select count(*) from indicator;" ) );
+        map.put( Objects.INDICATORGROUP, query( "select count(*) from indicatorgroup;" ) );
+        map.put( Objects.DATASET, query( "select count(*) from dataset;" ) );
+        map.put( Objects.ORGANISATIONUNIT, query( "select count(*) from organisationunit;" ) );
+        map.put( Objects.ORGANISATIONUNITGROUP, query( "select count(*) from orgunitgroup;" ) );
+        map.put( Objects.VALIDATIONRULE, query( "select count(*) from validationrule;" ) );
+        map.put( Objects.PROGRAM, query( "select count(*) from program;" ) );
+        map.put( Objects.PERIOD, query( "select count(*) from period;" ) );
+        map.put( Objects.USER, query( "select count(*) from users;" ) );
+        map.put( Objects.USERGROUP, query( "select count(*) from usergroup;" ) );
+        map.put( Objects.REPORTTABLE, query( "select count(*) from visualization where type = 'PIVOT_TABLE';" ) );
+        map.put( Objects.VISUALIZATION, query( "select count(*) from visualization;" ) );
+        map.put( Objects.CHART, query( "select count(*) from visualization where type <> 'PIVOT_TABLE';" ) );
+        map.put( Objects.MAP, query( "select count(*) from map;" ) );
+        map.put( Objects.DASHBOARD, query( "select count(*) from dashboard;" ) );
 
         // Data, use approximate counts
 
-        objectCounts.put( Objects.DATAVALUE, approximateCount( "datavalue" ) );
-        objectCounts.put( Objects.TRACKEDENTITYINSTANCE, approximateCount( "trackedentityinstance" ) );
-        objectCounts.put( Objects.PROGRAMINSTANCE, approximateCount( "programinstance" ) );
-        objectCounts.put( Objects.PROGRAMSTAGEINSTANCE, approximateCount( "programstageinstance" ) );
+        map.put( Objects.DATAVALUE, approximateCount( "datavalue" ) );
+        map.put( Objects.TRACKEDENTITYINSTANCE, approximateCount( "trackedentityinstance" ) );
+        map.put( Objects.PROGRAMINSTANCE, approximateCount( "programinstance" ) );
+        map.put( Objects.PROGRAMSTAGEINSTANCE, approximateCount( "programstageinstance" ) );
 
-        return objectCounts;
+        return map;
     }
 
     /**
