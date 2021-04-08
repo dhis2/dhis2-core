@@ -31,7 +31,6 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.EmbeddedObject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -43,7 +42,7 @@ import com.google.common.base.MoreObjects;
  */
 @JacksonXmlRootElement( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
 public class Translation
-    implements Serializable, EmbeddedObject
+    implements Serializable
 {
     private String locale;
 

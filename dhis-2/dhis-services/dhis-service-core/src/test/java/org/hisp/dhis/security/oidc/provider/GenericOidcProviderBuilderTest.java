@@ -63,7 +63,7 @@ public class GenericOidcProviderBuilderTest
         p.put( "oidc.provider.idporten.mapping_claim", "helseid://claims/identity/pid" );
         p.put( "oidc.provider.idporten.display_alias", "IdPorten" );
         p.put( "oidc.provider.idporten.enable_logout", "true" );
-        p.put( "oidc.provider.idporten.login_image", "../security/idporten-logo.svg" );
+        p.put( "oidc.provider.idporten.login_image", "../oidc/idporten-logo.svg" );
         p.put( "oidc.provider.idporten.login_image_padding", "0px 0px" );
         p.put( "oidc.provider.idporten.extra_request_parameters", "acr_value 4 , test_param five" );
         p.put( "oidc.provider.idporten.enable_pkce", "true" );
@@ -78,7 +78,7 @@ public class GenericOidcProviderBuilderTest
         assertEquals( registrationId, "idporten" );
 
         assertEquals( "helseid://claims/identity/pid", r.getMappingClaimKey() );
-        assertEquals( "../security/idporten-logo.svg", r.getLoginIcon() );
+        assertEquals( "../oidc/idporten-logo.svg", r.getLoginIcon() );
         assertEquals( "0px 0px", r.getLoginIconPadding() );
         assertEquals( "IdPorten", r.getLoginText() );
         assertEquals( "testClientId", r.getClientRegistration().getClientId() );

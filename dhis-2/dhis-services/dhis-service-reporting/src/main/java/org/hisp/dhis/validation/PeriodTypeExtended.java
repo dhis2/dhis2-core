@@ -34,6 +34,7 @@ import java.util.Set;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
+import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
@@ -55,31 +56,39 @@ import org.hisp.dhis.period.PeriodType;
  */
 public class PeriodTypeExtended
 {
-    private PeriodType periodType;
+    private final PeriodType periodType;
 
-    private Set<Period> periods = new HashSet<>();
+    private final Set<Period> periods = new HashSet<>();
 
-    private Set<ValidationRuleExtended> ruleXs = new HashSet<>();
+    private final Set<ValidationRuleExtended> ruleXs = new HashSet<>();
 
-    private Set<PeriodType> allowedPeriodTypes = new HashSet<>();
+    private final Set<PeriodType> allowedPeriodTypes = new HashSet<>();
 
-    private Set<DimensionalItemObject> eventItems = new HashSet<>();
+    private final Set<DimensionalItemObject> eventItems = new HashSet<>();
 
-    private Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
+    private final Set<DimensionalItemObject> eventItemsWithoutAttributeOptions = new HashSet<>();
 
-    private Set<DimensionalItemObject> indicators = new HashSet<>();
+    private final Set<DimensionalItemObject> indicators = new HashSet<>();
 
-    private Set<DataElement> dataElements = new HashSet<>();
+    private final Set<DataElement> dataElements = new HashSet<>();
 
-    private Set<DataElementOperand> dataElementOperands = new HashSet<>();
+    private final Set<DataElementOperand> dataElementOperands = new HashSet<>();
 
-    private Map<Long, DataElement> dataElementIdMap = new HashMap<>();
+    private final Map<Long, DataElement> dataElementIdMap = new HashMap<>();
 
-    private Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+    private final Map<String, DataElementOperand> dataElementOperandIdMap = new HashMap<>();
+
+    private final Set<DimensionalItemId> leftSideItemIds = new HashSet<>();
+
+    private final Set<DimensionalItemId> rightSideItemIds = new HashSet<>();
 
     private boolean slidingWindowsNeeded = false;
 
     private boolean nonSlidingWindowsNeeded = false;
+
+    // -------------------------------------------------------------------------
+    // Constructor
+    // -------------------------------------------------------------------------
 
     public PeriodTypeExtended( PeriodType periodType )
     {
@@ -148,6 +157,16 @@ public class PeriodTypeExtended
         }
     }
 
+    public boolean areSlidingWindowsNeeded()
+    {
+        return slidingWindowsNeeded;
+    }
+
+    public boolean areNonSlidingWindowsNeeded()
+    {
+        return nonSlidingWindowsNeeded;
+    }
+
     // -------------------------------------------------------------------------
     // Get methods
     // -------------------------------------------------------------------------
@@ -207,13 +226,13 @@ public class PeriodTypeExtended
         return allowedPeriodTypes;
     }
 
-    public boolean areSlidingWindowsNeeded()
+    public Set<DimensionalItemId> getLeftSideItemIds()
     {
-        return slidingWindowsNeeded;
+        return leftSideItemIds;
     }
 
-    public boolean areNonSlidingWindowsNeeded()
+    public Set<DimensionalItemId> getRightSideItemIds()
     {
-        return nonSlidingWindowsNeeded;
+        return rightSideItemIds;
     }
 }
