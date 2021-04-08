@@ -33,10 +33,10 @@ import static java.util.Collections.emptyList;
 import java.util.EnumSet;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 @AllArgsConstructor
 public final class GistPreferences
@@ -65,7 +65,7 @@ public final class GistPreferences
      */
     @Getter
     @JsonProperty
-    private final GistProjection defaultLinkage;
+    private final GistProjection defaultProjection;
 
     /**
      * In case this is a collection property: how *can* it be viewed as part of
@@ -81,7 +81,7 @@ public final class GistPreferences
 
     public GistPreferences withFields( String... fields )
     {
-        return new GistPreferences( includeByDefault, asList( fields ), defaultLinkage, options );
+        return new GistPreferences( includeByDefault, asList( fields ), defaultProjection, options );
     }
 
     public enum Flag

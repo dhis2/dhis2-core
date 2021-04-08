@@ -44,6 +44,9 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
+ * A helper to build jackson {@link ObjectNode} and {@link ArrayNode}s from java
+ * collections and POJO objects.
+ *
  * @author Jan Bernitt
  */
 public final class JsonBuilder

@@ -249,6 +249,87 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     // GET
     // --------------------------------------------------------------------------
 
+    @RequestMapping( value = "/{uid}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
+        @PathVariable( "uid" ) String uid,
+        HttpServletRequest request, HttpServletResponse response )
+        throws NotFoundException
+    {
+        return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAll.L )
+            .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+    }
+
+    @RequestMapping( value = "/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
+        HttpServletRequest request, HttpServletResponse response )
+    {
+        return gistToJsonArrayResponse( request, createGistQuery( request, getEntityClass(), GistAll.S ), getSchema() );
+    }
+
+    @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
+        @PathVariable( "uid" ) String uid,
+        @PathVariable( "property" ) String property,
+        HttpServletRequest request, HttpServletResponse response )
+        throws NotFoundException
+    {
+        Property listed = getSchema().getProperty( property );
+        if ( !listed.isCollection() )
+        {
+            return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAll.L )
+                .withFilter( new Filter( "id", Comparison.EQ, uid ) )
+                .withField( property ) );
+        }
+        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) listed.getItemKlass(), GistAll.M )
+            .withOwner( Owner.builder()
+                .id( uid )
+                .type( getEntityClass() )
+                .collectionProperty( property ).build() );
+        return gistToJsonArrayResponse( request, query,
+            schemaService.getDynamicSchema( listed.getItemKlass() ) );
+    }
+
+    private GistQuery createGistQuery( HttpServletRequest request, Class<? extends IdentifiableObject> elementType,
+        GistAll allDefault )
+    {
+        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        return GistQuery.builder()
+            .elementType( elementType )
+            .all( params.getEnum( "all", allDefault ) )
+            .contextRoot( ContextUtils.getRootPath( request ) )
+            .translationLocale( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            .build()
+            .with( params );
+    }
+
+    private ResponseEntity<JsonNode> gistToJsonObjectResponse( String uid, GistQuery query )
+        throws NotFoundException
+    {
+        query = gistService.plan( query );
+        List<?> elements = gistService.gist( query );
+        JsonNode body = new JsonBuilder( jsonMapper ).skipNullOrEmpty().toArray( query.getFieldNames(), elements );
+        if ( body.isEmpty() )
+        {
+            throw NotFoundException.notFoundUid( uid );
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body.get( 0 ) );
+    }
+
+    private ResponseEntity<JsonNode> gistToJsonArrayResponse( HttpServletRequest request,
+        GistQuery query, Schema dynamicSchema )
+    {
+        query = gistService.plan( query );
+        List<?> elements = gistService.gist( query );
+        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
+        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
+        if ( !query.isHeadless() )
+        {
+            body = responseBuilder.toObject( asList( "pager", dynamicSchema.getPlural() ),
+                gistService.pager( query, elements, request.getParameterMap() ), body );
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
+    }
+
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
@@ -351,89 +432,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         cachePrivate( response );
 
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
-    }
-
-    @RequestMapping( value = "/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        boolean headless = params.getBoolean( "headless", false );
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery query = gistService.plan( GistQuery.builder()
-            .elementType( getEntityClass() )
-            .all( params.getEnum( "all", GistAll.S ) )
-            .contextRoot( ContextUtils.getRootPath( request ) )
-            .translationLocale( locale )
-            .build()
-            .with( params ) );
-        List<?> elements = gistService.gist( query );
-        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
-        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
-        if ( !headless )
-        {
-            body = responseBuilder.toObject(
-                asList( "pager", getSchema().getPlural() ),
-                gistService.pager( query, elements, request.getParameterMap() ), body );
-        }
-        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
-    }
-
-    @RequestMapping( value = "/{uid}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
-        @PathVariable( "uid" ) String uid,
-        HttpServletRequest request, HttpServletResponse response )
-        throws NotFoundException
-    {
-        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery query = gistService.plan( GistQuery.builder()
-            .elementType( getEntityClass() )
-            .all( params.getEnum( "all", GistAll.L ) )
-            .contextRoot( ContextUtils.getRootPath( request ) )
-            .translationLocale( locale )
-            .build()
-            .with( params ).withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
-        List<?> elements = gistService.gist( query );
-        JsonNode body = new JsonBuilder( jsonMapper ).skipNullOrEmpty().toArray( query.getFieldNames(), elements );
-        if ( body.isEmpty() )
-        {
-            throw NotFoundException.notFoundUid( uid );
-        }
-        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body.get( 0 ) );
-    }
-
-    @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
-    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
-        @PathVariable( "uid" ) String uid,
-        @PathVariable( "property" ) String property,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        Property collection = getSchema().getProperty( property );
-        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        boolean headless = params.getBoolean( "headless", false );
-        Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery query = gistService.plan( GistQuery.builder()
-            .owner( Owner.builder()
-                .id( uid )
-                .type( getEntityClass() )
-                .collectionProperty( property ).build() )
-            .elementType( (Class<IdentifiableObject>) collection.getItemKlass() )
-            .all( params.getEnum( "all", GistAll.M ) )
-            .contextRoot( ContextUtils.getRootPath( request ) )
-            .translationLocale( locale )
-            .build()
-            .with( params ) );
-        List<?> elements = gistService.gist( query );
-        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
-        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
-        if ( !headless )
-        {
-            body = responseBuilder.toObject(
-                asList( "pager", schemaService.getDynamicSchema( collection.getItemKlass() ).getPlural() ),
-                gistService.pager( query, elements, request.getParameterMap() ), body );
-        }
-        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = RequestMethod.GET )

@@ -109,7 +109,7 @@ final class GistLogic
     {
         if ( target == GistProjection.AUTO || !property.getGistPreferences().isOptions( target ) )
         {
-            target = property.getGistPreferences().getDefaultLinkage();
+            target = property.getGistPreferences().getDefaultProjection();
         }
         if ( target == GistProjection.AUTO )
         {

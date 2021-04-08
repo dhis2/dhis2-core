@@ -43,8 +43,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -52,6 +50,8 @@ import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
+
+import lombok.AllArgsConstructor;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s
@@ -226,11 +226,12 @@ class GistPlanner
     {
         boolean hasReferences = fields.stream().anyMatch( field -> {
             Property p = context.resolveMandatory( field.getPropertyPath() );
-            return isPersistentReferenceField( p ) || isPersistentCollectionField( p );
+            return isPersistentReferenceField( p ) && p.isIdentifiableObject()
+                || isPersistentCollectionField( p );
         } );
         if ( hasReferences )
         {
-            fields.add( new Field( Field.REFS_PATH, GistProjection.NONE, "apiEndpoints" ) );
+            fields.add( new Field( Field.REFS_PATH, GistProjection.NONE, "apiEndpoints", null ) );
         }
         return fields;
     }

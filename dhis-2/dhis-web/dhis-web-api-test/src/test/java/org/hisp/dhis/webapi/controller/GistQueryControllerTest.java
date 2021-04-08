@@ -85,12 +85,21 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetObjectPropertyItems_singleField()
+    public void testGetObjectPropertyItems_SingleField()
     {
         JsonArray groupNames = GET( "/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid() )
             .content();
 
         assertEquals( singletonList( "groupX" ), groupNames.stringValues() );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_SingleNonCollectionField()
+    {
+        JsonObject surname = GET( "/users/{uid}/surname", getSuperuserUid() ).content();
+
+        assertEquals( "admin", surname.getString( "surname" ) );
+        assertEquals( 1, surname.size() );
     }
 
     @Test
@@ -118,6 +127,42 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&all=L", getSuperuserUid() )
             .content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectProperty_Member()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users::member({uid})",
+            getSuperuserUid(), getSuperuserUid() ).content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectProperty_NotMember()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users::not-member({uid})",
+            getSuperuserUid(), getSuperuserUid() ).content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_Total()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true",
+            getSuperuserUid() ).content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_Absolute()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absolute=true",
+            getSuperuserUid() ).content();
 
         System.out.println( groups );
     }

@@ -46,11 +46,6 @@ import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -64,13 +59,17 @@ import org.hisp.dhis.translation.Translation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
 /**
  * Purpose of this helper is to avoid passing around same state while building
  * the HQL query and to setup post processing of results.
  *
  * Usage:
  * <ol>
- * <li>Use {@link #buildHQL()} to create the HQL query</li>
+ * <li>Use {@link #buildFetchHQL()} to create the HQL query</li>
  * <li>Use {@link #transform(List)} on the result rows when querying selected
  * columns</li>
  * </ol>
@@ -97,10 +96,14 @@ final class GistBuilder
      */
     public static final String HQL_NULL = "cast(null as char)";
 
-    static <T extends IdentifiableObject> GistBuilder createBuilder( GistQuery query,
-        RelativePropertyContext context )
+    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context )
     {
         return new GistBuilder( addSupportFields( query, context ), context );
+    }
+
+    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context )
+    {
+        return new GistBuilder( query, context );
     }
 
     private final GistQuery query;
@@ -204,11 +207,11 @@ final class GistBuilder
         return value;
     }
 
-    public String buildHQL()
+    public String buildFetchHQL()
     {
         String fields = createFieldsHQL();
-        String filterBy = createFiltersHQL();
         String orderBy = createOrdersHQL();
+        String filterBy = createFiltersHQL();
         String elementTable = query.getElementType().getSimpleName();
         Owner owner = query.getOwner();
         if ( owner == null )
@@ -222,6 +225,23 @@ final class GistBuilder
         return String.format(
             "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s order by %s", fields,
             ownerTable, elementTable, op, collectionName, filterBy, orderBy );
+    }
+
+    public String buildCountHQL()
+    {
+        String filterBy = createFiltersHQL();
+        String elementTable = query.getElementType().getSimpleName();
+        Owner owner = query.getOwner();
+        if ( owner == null )
+        {
+            return String.format( "select count(*) from %s where %s", elementTable, filterBy );
+        }
+        String op = query.isInverse() ? "not in" : "in";
+        String ownerTable = owner.getType().getSimpleName();
+        String collectionName = context.switchedTo( owner.getType() )
+            .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
+        return String.format( "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s",
+            ownerTable, elementTable, op, collectionName, filterBy );
     }
 
     private String createFieldsHQL()
@@ -291,9 +311,12 @@ final class GistBuilder
             }
         }
 
-        String endpointRoot = getEndpointRoot( property );
-        int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
-        addTransformer( row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[index] ) ) );
+        if ( property.isIdentifiableObject() )
+        {
+            String endpointRoot = getEndpointRoot( property );
+            int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
+            addTransformer( row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[index] ) ) );
+        }
 
         if ( getFieldProjection( field ) == GistProjection.ID_OBJECTS )
         {
@@ -318,7 +341,9 @@ final class GistBuilder
         int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
         addTransformer(
             row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
-        switch ( getFieldProjection( field ) )
+
+        GistProjection projection = getFieldProjection( field );
+        switch ( projection )
         {
         default:
         case AUTO:
@@ -328,19 +353,44 @@ final class GistBuilder
             return "size(e." + getMemberPath( path ) + ")";
         case IS_EMPTY:
             addTransformer( row -> row[index] = ((Number) row[index]).intValue() == 0 );
-            // TODO use "exists" subquery for performance?
-            return "size(e." + getMemberPath( path ) + ")";
+            return createIsEmptyTransformerHQL( path );
         case IS_NOT_EMPTY:
             addTransformer( row -> row[index] = ((Number) row[index]).intValue() > 0 );
-            return "size(e." + getMemberPath( path ) + ")";
+            return createIsEmptyTransformerHQL( path );
+        case NOT_MEMBER:
+            addTransformer( row -> row[index] = ((Number) row[index]).intValue() == 0 );
+            return createHasMemberTransformerHQL( index, field, property );
+        case MEMBER:
+            addTransformer( row -> row[index] = ((Number) row[index]).intValue() > 0 );
+            return createHasMemberTransformerHQL( index, field, property );
         case ID_OBJECTS:
             addTransformer( row -> row[index] = toIdObjects( row[index] ) );
-            // intentional fall through
+            return createIdsTransformerHQL( index, path, property );
         case IDS:
-            String tableName = "t_" + index;
-            return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
-                + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
+            return createIdsTransformerHQL( index, path, property );
         }
+    }
+
+    private String createIsEmptyTransformerHQL( String path )
+    {
+        // TODO use "exists" subquery for performance?
+        return "size(e." + getMemberPath( path ) + ")";
+    }
+
+    private String createIdsTransformerHQL( int index, String path, Property property )
+    {
+        String tableName = "t_" + index;
+        return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
+            + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
+    }
+
+    private String createHasMemberTransformerHQL( int index, Field field, Property property )
+    {
+        String tableName = "t_" + index;
+        return "(select count(*) from " + property.getItemKlass().getSimpleName() + " " + tableName + " where "
+            + tableName + " in elements(e." + getMemberPath( field.getPropertyPath() ) + ") and " + tableName
+            + ".uid = :p_"
+            + field.getPropertyPath() + ")";
     }
 
     private void addEndpointURL( Object[] row, int refIndex, Field field, String url )
@@ -376,7 +426,7 @@ final class GistBuilder
 
     private GistProjection getFieldProjection( Field field )
     {
-        return !isNonNestedPath( field.getPropertyPath() ) ? GistProjection.REF : field.getProjection();
+        return !isNonNestedPath( field.getPropertyPath() ) ? GistProjection.NONE : field.getProjection();
     }
 
     private Integer getSameParentFieldIndex( String path, String translations )
@@ -386,13 +436,13 @@ final class GistBuilder
 
     private String getSameParentEndpointRoot( String path )
     {
-        return query.getContextRoot()
+        return query.getEndpointRoot()
             + context.switchedTo( path ).getHome().getRelativeApiEndpoint();
     }
 
     private String getEndpointRoot( Property property )
     {
-        return query.getContextRoot()
+        return query.getEndpointRoot()
             + context.switchedTo( property.getKlass() ).getHome().getRelativeApiEndpoint();
     }
 

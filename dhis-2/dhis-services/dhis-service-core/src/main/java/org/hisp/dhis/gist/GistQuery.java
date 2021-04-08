@@ -38,22 +38,21 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.GistProjection;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistProjection;
-
 @Getter
 @Builder( toBuilder = true )
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public final class GistQuery
 {
-
     /**
      * Query properties about the owner of the collection property.
      */
@@ -93,17 +92,36 @@ public final class GistQuery
 
     private final int pageSize;
 
+    /**
+     * Include total match count in pager? default false.
+     */
+    private final boolean total;
+
     private final String contextRoot;
 
     private final Locale translationLocale;
 
     /**
      * Not the elements contained in the collection but those not contained
-     * (yet).
+     * (yet). Default false.
      */
     private final boolean inverse;
 
+    /**
+     * Apply translations to translatable properties? Default true.
+     */
     private final boolean translate;
+
+    /**
+     * Use absolute URLs when referring to other APIs in pager and
+     * {@code apiEndpoints}? Default false.
+     */
+    private final boolean absolute;
+
+    /**
+     * Return plain result list (without pager wrapper). Default false.
+     */
+    private final boolean headless;
 
     private final GistAll all;
 
@@ -133,17 +151,30 @@ public final class GistQuery
         return getAll() == null ? GistProjection.AUTO : getAll().getDefaultProjection();
     }
 
+    public String getEndpointRoot()
+    {
+        return isAbsolute() ? getContextRoot() : "";
+    }
+
     public GistQuery with( NamedParams params )
     {
         int page = abs( params.getInt( "page", 1 ) );
-        int pageSize = Math.min( 1000, abs( params.getInt( "pageSize", 25 ) ) );
+        int pageSize = Math.min( 1000, abs( params.getInt( "pageSize", 50 ) ) );
         return toBuilder().pageSize( pageSize ).pageOffset( Math.max( 0, page - 1 ) * pageSize )
             .translate( params.getBoolean( "translate", true ) )
             .inverse( params.getBoolean( "inverse", false ) )
+            .total( params.getBoolean( "total", false ) )
+            .absolute( params.getBoolean( "absolute", false ) )
+            .headless( params.getBoolean( "headless", false ) )
             .fields( params.getStrings( "fields" ).stream().map( Field::parse ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
             .orders( params.getStrings( "order" ).stream().map( Order::parse ).collect( toList() ) )
             .build();
+    }
+
+    public GistQuery withOwner( Owner owner )
+    {
+        return toBuilder().owner( owner ).build();
     }
 
     public GistQuery withFilter( Filter filter )
@@ -200,10 +231,16 @@ public final class GistQuery
         NOT_EMPTY( "!empty" ),
         LIKE( "like" ),
         NOT_LIKE( "!like" ),
-        STARTS_WITH( "$like", "startsWith" ),
-        NOT_STARTS_WITH( "!$like" ),
-        ENDS_WITH( "like$", "endsWith" ),
-        NOT_ENDS_WITH( "!like$" );
+        STARTS_LIKE( "$like" ),
+        NOT_STARTS_LIKE( "!$like" ),
+        ENDS_LIKE( "like$" ),
+        NOT_ENDS_LIKE( "!like$" ),
+        ILIKE( "ilike" ),
+        NOT_ILIKE( "!ilike" ),
+        STARTS_WITH( "$ilike", "startsWith" ),
+        NOT_STARTS_WITH( "!$ilike" ),
+        ENDS_WITH( "ilike$", "endsWith" ),
+        NOT_ENDS_WITH( "!ilike$" );
 
         private final String[] symbols;
 
@@ -263,9 +300,11 @@ public final class GistQuery
 
         private final String alias;
 
+        private final String projectionArgument;
+
         public Field( String propertyPath, GistProjection projection )
         {
-            this( propertyPath, projection, "" );
+            this( propertyPath, projection, "", null );
         }
 
         String getName()
@@ -282,19 +321,29 @@ public final class GistQuery
             }
             GistProjection projection = GistProjection.AUTO;
             String alias = "";
+            String projectionArgument = null;
             for ( int i = 1; i < parts.length; i++ )
             {
                 String part = parts[i];
                 if ( part.startsWith( "rename" ) )
                 {
-                    alias = part.substring( part.indexOf( '(' ) + 1, part.lastIndexOf( ')' ) );
+                    alias = getArgument( part );
                 }
                 else
                 {
                     projection = GistProjection.parse( part );
+                    if ( part.indexOf( '(' ) >= 0 )
+                    {
+                        projectionArgument = getArgument( part );
+                    }
                 }
             }
-            return new Field( parts[0], projection, alias );
+            return new Field( parts[0], projection, alias, projectionArgument );
+        }
+
+        private static String getArgument( String part )
+        {
+            return part.substring( part.indexOf( '(' ) + 1, part.lastIndexOf( ')' ) );
         }
 
         @Override

@@ -28,7 +28,8 @@
 package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
-import static org.hisp.dhis.gist.GistBuilder.createBuilder;
+import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
+import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -36,12 +37,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.schema.Property;
@@ -52,6 +51,9 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jan Bernitt
@@ -86,9 +88,9 @@ public class DefaultGistService implements GistService
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createBuilder( query, context );
+        GistBuilder queryBuilder = createFetchBuilder( query, context );
         List<Object[]> rows = listWithParameters( query, context,
-            getSession().createQuery( queryBuilder.buildHQL(), Object[].class ) );
+            getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
     }
@@ -100,6 +102,7 @@ public class DefaultGistService implements GistService
         Schema schema = schemaService.getDynamicSchema( query.getElementType() );
         String prev = null;
         String next = null;
+        Integer total = null;
         if ( schema.haveApiEndpoint() )
         {
             String baseURL = computeBaseURL( query, params );
@@ -112,13 +115,20 @@ public class DefaultGistService implements GistService
                 next = baseURL + "page=" + (page + 1);
             }
         }
-        return new GistPager( page, query.getPageSize(), prev, next );
+        if ( query.isTotal() )
+        {
+            RelativePropertyContext context = createPropertyContext( query );
+            GistBuilder countBuilder = createCountBuilder( query, context );
+            total = countWithParameters( query, context,
+                getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
+        }
+        return new GistPager( page, query.getPageSize(), total, prev, next );
     }
 
     private String computeBaseURL( GistQuery query, Map<String, String[]> params )
     {
         StringBuilder url = new StringBuilder();
-        url.append( query.getContextRoot() );
+        url.append( query.getEndpointRoot() );
         Owner owner = query.getOwner();
         if ( owner != null )
         {
@@ -172,6 +182,29 @@ public class DefaultGistService implements GistService
     private <T> List<T> listWithParameters( GistQuery query, RelativePropertyContext context,
         Query<T> dbQuery )
     {
+        addFilterParameters( query, context, dbQuery );
+        for ( Field field : query.getFields() )
+        {
+            if ( field.getProjectionArgument() != null )
+            {
+                dbQuery.setParameter( "p_" + field.getPropertyPath(), field.getProjectionArgument() );
+            }
+        }
+        dbQuery.setMaxResults( query.getPageSize() );
+        dbQuery.setFirstResult( query.getPageOffset() );
+        dbQuery.setCacheable( false );
+        return dbQuery.list();
+    }
+
+    private int countWithParameters( GistQuery query, RelativePropertyContext context, Query<Long> dbQuery )
+    {
+        addFilterParameters( query, context, dbQuery );
+        dbQuery.setCacheable( false );
+        return ((Long) dbQuery.getSingleResult()).intValue();
+    }
+
+    private void addFilterParameters( GistQuery query, RelativePropertyContext context, Query<?> dbQuery )
+    {
         Owner owner = query.getOwner();
         if ( owner != null )
         {
@@ -183,10 +216,6 @@ public class DefaultGistService implements GistService
             Property property = context.resolveMandatory( filter.getPropertyPath() );
             dbQuery.setParameter( "f_" + (i++), getParameterValue( property, filter ) );
         }
-        dbQuery.setMaxResults( query.getPageSize() );
-        dbQuery.setFirstResult( query.getPageOffset() );
-        dbQuery.setCacheable( false );
-        return dbQuery.list();
     }
 
     private Object getParameterValue( Property property, Filter filter )

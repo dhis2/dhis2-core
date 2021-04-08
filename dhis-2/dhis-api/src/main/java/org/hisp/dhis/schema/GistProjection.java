@@ -46,24 +46,32 @@ public enum GistProjection
      */
     AUTO,
 
+    /**
+     * Used to indicate that the property does not need or use a projection.
+     */
     NONE,
 
     /**
-     * The relation is not shown as data but as a endpoint description that
-     * allows to browse the data.
+     * Emptiness of a collection (no item exists)
      */
-    REF,
-
-    SIZE,
-
     IS_EMPTY,
 
+    /**
+     * Non-emptiness of a collection (does exist at least one item)
+     */
     IS_NOT_EMPTY,
 
     /**
-     * The relation is shown as a list of UIDs. In addition an endpoint
-     * description is given that allows to browse the full data objects
-     * represented by the ids.
+     * Size of a collection
+     */
+    SIZE,
+
+    MEMBER,
+
+    NOT_MEMBER,
+
+    /**
+     * Collection shown as a list of item UIDs.
      */
     IDS,
 
@@ -82,10 +90,13 @@ public enum GistProjection
 
     public static GistProjection parse( String projection )
     {
+        int startOfArgument = projection.indexOf( '(' );
+        String name = (startOfArgument < 0 ? projection : projection.substring( 0, startOfArgument ))
+            .replace( "-", "" )
+            .replace( "+", "" );
         for ( GistProjection p : values() )
         {
-            if ( p.name().replace( "_", "" ).equalsIgnoreCase(
-                projection.replace( "-", "" ).replace( "+", "" ) ) )
+            if ( p.name().replace( "_", "" ).equalsIgnoreCase( name ) )
             {
                 return p;
             }

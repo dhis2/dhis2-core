@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.gist;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
+/**
+ * Pager POJO for paging gist lists.
+ *
+ * @author Jan Bernitt
+ */
 @Getter
 @AllArgsConstructor
 public final class GistPager
@@ -43,10 +48,19 @@ public final class GistPager
     private final int pageSize;
 
     @JsonProperty
+    private final Integer total;
+
+    @JsonProperty
     private final String prevPage;
 
     @JsonProperty
     private final String nextPage;
+
+    @JsonProperty
+    public Integer getPageCount()
+    {
+        return total == null ? null : (int) Math.ceil( total / (double) pageSize );
+    }
 
     public String toString()
     {
