@@ -90,8 +90,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.patch.Patch;
-import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
@@ -100,7 +98,6 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -126,6 +123,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -459,9 +457,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
 
-    @RequestMapping( value = "/{uid}", method = RequestMethod.PATCH )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void partialUpdateObject(
+    @ResponseBody
+    @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
+    public WebMessage partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
         throws Exception
@@ -483,76 +481,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        Patch patch = diff( request );
-
         prePatchEntity( persistedObject );
-        patchService.apply( patch, persistedObject );
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
         postPatchEntity( persistedObject );
-    }
 
-    private Patch diff( HttpServletRequest request )
-        throws IOException,
-        WebMessageException
-    {
-        ObjectMapper mapper = isJson( request ) ? jsonMapper : isXml( request ) ? xmlMapper : null;
-        if ( mapper == null )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
-        }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
-    }
-
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PATCH } )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void updateObjectProperty(
-        @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
-        HttpServletRequest request )
-        throws Exception
-    {
-        WebOptions options = new WebOptions( rpParameters );
-
-        List<T> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
-        }
-
-        if ( !getSchema().haveProperty( pvProperty ) )
-        {
-            throw new WebMessageException(
-                WebMessageUtils.notFound( "Property " + pvProperty + " does not exist on " + getEntityName() ) );
-        }
-
-        Property property = getSchema().getProperty( pvProperty );
-        T persistedObject = entities.get( 0 );
-
-        if ( !aclService.canUpdate( currentUserService.getCurrentUser(), persistedObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !property.isWritable() )
-        {
-            throw new UpdateAccessDeniedException( "This property is read-only." );
-        }
-
-        T object = deserialize( request );
-
-        if ( object == null )
-        {
-            throw new WebMessageException( WebMessageUtils.badRequest( "Unknown payload format." ) );
-        }
-
-        prePatchEntity( persistedObject );
-        Object value = property.getGetterMethod().invoke( object );
-        property.getSetterMethod().invoke( persistedObject, value );
-        validateAndThrowErrors( () -> schemaValidator.validateProperty( property, object ) );
-        manager.update( persistedObject );
-        postPatchEntity( persistedObject );
+        return WebMessageUtils.ok( "Patched successfully." );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -1598,5 +1532,4 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return currentUser.getUsername() + "." + getEntityName() + "." + String.join( "|", filters ) + "."
             + options.getRootJunction().name();
     }
-
 }
