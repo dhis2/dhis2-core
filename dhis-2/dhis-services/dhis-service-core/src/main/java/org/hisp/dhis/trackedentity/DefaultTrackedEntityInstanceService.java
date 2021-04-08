@@ -47,6 +47,7 @@ import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACK
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -67,6 +68,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
@@ -156,7 +158,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -172,6 +174,11 @@ public class DefaultTrackedEntityInstanceService
         if ( !skipAccessValidation )
         {
             validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -206,7 +213,7 @@ public class DefaultTrackedEntityInstanceService
     @Override
     @Transactional( readOnly = true )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params,
-        boolean skipAccessValidation )
+        boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
         {
@@ -225,6 +232,11 @@ public class DefaultTrackedEntityInstanceService
         if ( !skipAccessValidation )
         {
             validate( params );
+        }
+
+        if ( !skipSearchScopeValidation )
+        {
+            validateSearchScope( params, false );
         }
 
         User user = currentUserService.getCurrentUser();
@@ -820,7 +832,22 @@ public class DefaultTrackedEntityInstanceService
     @Transactional( readOnly = true )
     public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
         return trackedEntityInstanceStore.getTrackedEntityInstancesByUid( uids, user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids, user );
     }
 
     @Override

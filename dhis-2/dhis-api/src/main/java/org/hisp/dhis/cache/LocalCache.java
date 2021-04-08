@@ -156,7 +156,7 @@ public class LocalCache<V> implements Cache<V>
     @Override
     public void invalidateAll()
     {
-        cache2kInstance.clear();
+        cache2kInstance.removeAll();
     }
 
     @Override

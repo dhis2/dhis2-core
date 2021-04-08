@@ -60,10 +60,6 @@
     </property>
   </bean>
 
-  <bean id="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter" class="org.hisp.dhis.webportal.module.CurrentModuleDetectorFilter">
-    <property name="moduleManager" ref="org.hisp.dhis.webportal.module.ModuleManager" />
-  </bean>
-
   <bean id="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor"
     class="org.hisp.dhis.webportal.interceptor.XWorkPortalParamsInterceptor">
     <property name="standardParams">
@@ -509,20 +505,6 @@
   <bean id="org.hisp.dhis.useraccount.action.ExpiredAccountAction" class="org.hisp.dhis.useraccount.action.ExpiredAccountAction"
     scope="prototype" />
 
-  <bean id="org.hisp.dhis.useraccount.action.GetCurrentUserAction" class="org.hisp.dhis.useraccount.action.GetCurrentUserAction"
-    scope="prototype">
-    <property name="currentUserService" ref="org.hisp.dhis.user.CurrentUserService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.useraccount.action.UpdateUserAccountAction" class="org.hisp.dhis.useraccount.action.UpdateUserAccountAction"
-    scope="prototype">
-    <property name="userService" ref="org.hisp.dhis.user.UserService" />
-    <property name="passwordManager" ref="org.hisp.dhis.security.PasswordManager" />
-  </bean>
-
-  <bean id="org.hisp.dhis.useraccount.action.UpdateUserProfileAction" class="org.hisp.dhis.useraccount.action.UpdateUserProfileAction"
-    scope="prototype" />
-
   <bean id="org.hisp.dhis.useraccount.action.IsSelfRegistrationAllowedAction"
     class="org.hisp.dhis.useraccount.action.IsSelfRegistrationAllowedAction"
     scope="prototype" />
@@ -536,27 +518,6 @@
   <bean id="org.hisp.dhis.useraccount.action.IsAccountRecoveryAllowedAction"
     class="org.hisp.dhis.useraccount.action.IsAccountRecoveryAllowedAction"
     scope="prototype" />
-
-  <!-- User settings -->
-
-  <bean id="org.hisp.dhis.settings.user.action.GetGeneralSettingsAction"
-    class="org.hisp.dhis.settings.user.action.GetGeneralSettingsAction"
-    scope="prototype">
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
-    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
-    <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
-    <property name="i18nLocaleService" ref="org.hisp.dhis.i18n.118nLocaleService" />
-  </bean>
-
-  <bean id="org.hisp.dhis.settings.user.action.SetGeneralSettingsAction"
-    class="org.hisp.dhis.settings.user.action.SetGeneralSettingsAction"
-    scope="prototype">
-    <property name="localeManager" ref="org.hisp.dhis.i18n.locale.LocaleManager" />
-    <property name="userSettingService" ref="org.hisp.dhis.user.UserSettingService" />
-    <property name="styleManager" ref="org.hisp.dhis.setting.StyleManager" />
-  </bean>
-
-  <!-- Others -->
 
   <bean id="org.hisp.dhis.commons.action.GetPingAction" class="org.hisp.dhis.commons.action.GetPingAction" />
 

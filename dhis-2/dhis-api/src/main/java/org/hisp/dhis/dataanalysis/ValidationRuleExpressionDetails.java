@@ -28,6 +28,8 @@
 package org.hisp.dhis.dataanalysis;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,17 +49,7 @@ public class ValidationRuleExpressionDetails
 
     private List<Map<String, String>> rightSide = new ArrayList<>();
 
-    public ValidationRuleExpressionDetails()
-    {
-    }
-
-    public ValidationRuleExpressionDetails( List<Map<String, String>> leftSide, List<Map<String, String>> rightSide )
-    {
-        this.leftSide = leftSide;
-        this.rightSide = rightSide;
-    }
-
-    private void addDetailTo( String name, String value, List<Map<String, String>> side )
+    public static void addDetailTo( String name, String value, List<Map<String, String>> side )
     {
         if ( !Strings.isNullOrEmpty( name ) )
         {
@@ -69,14 +61,14 @@ public class ValidationRuleExpressionDetails
         }
     }
 
-    public void addLeftSideDetail( String name, String value )
-    {
-        addDetailTo( name, value, leftSide );
-    }
+    private Comparator<Map<String, String>> mapComparator = ( m1, m2 ) -> m1.get( "name" )
+        .compareTo( m2.get( "name" ) );
 
-    public void addRightSideDetail( String name, String value )
+    public void sortByName()
     {
-        addDetailTo( name, value, rightSide );
+        Collections.sort( leftSide, mapComparator );
+
+        Collections.sort( rightSide, mapComparator );
     }
 
     @JsonProperty

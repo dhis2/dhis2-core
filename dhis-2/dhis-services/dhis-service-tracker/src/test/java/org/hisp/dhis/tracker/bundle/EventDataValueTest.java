@@ -83,6 +83,16 @@ public class EventDataValueTest
     }
 
     @Test
+    public void successWhenEventHasNoProgramAndHasProgramStage()
+        throws IOException
+    {
+        TrackerImportParams params = fromJson( "tracker/validations/events-with_no_program.json" );
+
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+    }
+
+    @Test
     public void testEventDataValue()
         throws IOException
     {
@@ -125,7 +135,7 @@ public class EventDataValueTest
         // make sure that the uid property is populated as well - otherwise
         // update will
         // not work
-        trackerImportParams.getEvents().get( 0 ).setUid( trackerImportParams.getEvents().get( 0 ).getEvent() );
+        trackerImportParams.getEvents().get( 0 ).setEvent( trackerImportParams.getEvents().get( 0 ).getEvent() );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );

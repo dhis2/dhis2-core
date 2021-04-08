@@ -268,13 +268,11 @@ public class ShowErrorWarningImplementerTest
     private List<Event> getEvents()
     {
         Event activeEvent = new Event();
-        activeEvent.setUid( ACTIVE_EVENT_ID );
         activeEvent.setEvent( ACTIVE_EVENT_ID );
         activeEvent.setStatus( EventStatus.ACTIVE );
         activeEvent.setProgramStage( PROGRAM_STAGE_ID );
 
         Event completedEvent = new Event();
-        completedEvent.setUid( COMPLETED_EVENT_ID );
         completedEvent.setEvent( COMPLETED_EVENT_ID );
         completedEvent.setStatus( EventStatus.COMPLETED );
         completedEvent.setProgramStage( PROGRAM_STAGE_ID );
@@ -285,12 +283,10 @@ public class ShowErrorWarningImplementerTest
     private List<Enrollment> getEnrollments()
     {
         Enrollment activeEnrollment = new Enrollment();
-        activeEnrollment.setUid( ACTIVE_ENROLLMENT_ID );
         activeEnrollment.setEnrollment( ACTIVE_ENROLLMENT_ID );
         activeEnrollment.setStatus( EnrollmentStatus.ACTIVE );
 
         Enrollment completedEnrollment = new Enrollment();
-        completedEnrollment.setUid( COMPLETED_ENROLLMENT_ID );
         completedEnrollment.setEnrollment( COMPLETED_ENROLLMENT_ID );
         completedEnrollment.setStatus( EnrollmentStatus.COMPLETED );
 

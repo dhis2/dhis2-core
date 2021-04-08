@@ -289,21 +289,10 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( d5.getUid(), TEXT, toAlias( aliasD5, d5.getUid() ) ) // ValueType.ORGANISATION_UNIT
             .addColumn( d6.getUid(), BIGINT, toAlias( aliasD6, d6.getUid() ) ) // ValueType.INTEGER
             .addColumn( d7.getUid(), GEOMETRY_POINT, toAlias( aliasD7, d7.getUid() ) ) // ValueType.COORDINATES
-            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), "gist" ) // element
-                                                                                                       // d5
-                                                                                                       // also
-                                                                                                       // creates
-                                                                                                       // a
-                                                                                                       // Geo
-                                                                                                       // column
-            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) ) // element
-                                                                                                      // d5
-                                                                                                      // also
-                                                                                                      // creates
-                                                                                                      // a
-                                                                                                      // Name
-                                                                                                      // column
-
+            // element d5 also creates a Geo column
+            .addColumn( d5.getUid() + "_geom", GEOMETRY, toAlias( aliasD5_geo, d5.getUid() ), IndexType.GIST )
+            // element d5 also creates a Name column
+            .addColumn( d5.getUid() + "_name", TEXT, toAlias( aliasD5_name, d5.getUid() + "_name" ) )
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();
     }
 
@@ -351,7 +340,7 @@ public class JdbcEventAnalyticsTableManagerTest
             .addColumn( tea1.getUid(), TEXT, String.format( aliasTea1, "ou.uid", tea1.getId(), tea1.getUid() ) ) // ValueType.ORGANISATION_UNIT
             // Second Geometry column created from the OU column above
             .addColumn( tea1.getUid() + "_geom", GEOMETRY,
-                String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), "gist" )
+                String.format( aliasTea1, "ou.geometry", tea1.getId(), tea1.getUid() ), IndexType.GIST )
             .addColumn( tea1.getUid() + "_name", TEXT,
                 String.format( aliasTea1, "ou.name", tea1.getId(), tea1.getUid() ) )
             .withDefaultColumns( subject.getFixedColumns() ).build().verify();

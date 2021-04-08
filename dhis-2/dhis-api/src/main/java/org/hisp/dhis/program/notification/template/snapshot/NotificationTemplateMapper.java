@@ -90,6 +90,7 @@ public class NotificationTemplateMapper
             t -> t.setRecipientDataElement(
                 toIdentifiableObjectSnapshot( template.getRecipientDataElement(), IdentifiableObjectSnapshot::new,
                     Collections.emptyList() ) ),
+            t -> t.setSendRepeatable( t.isSendRepeatable() ),
             t -> t.setRecipientUserGroup( toUserGroupSnapshot( template.getRecipientUserGroup() ) ) ) );
     }
 

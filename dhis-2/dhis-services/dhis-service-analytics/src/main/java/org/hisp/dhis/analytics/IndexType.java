@@ -25,58 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.useraccount.action;
-
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-
-import com.opensymphony.xwork2.Action;
+package org.hisp.dhis.analytics;
 
 /**
- * @author Chau Thu Tran
+ * Index type.
+ *
+ * @author Lars Helge Overland
  */
-public class GetCurrentUserAction
-    implements Action
+public enum IndexType
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    BTREE( "btree" ),
+    GIST( "gist" ),
+    HASH( "hash" ),
+    BLOOM( "bloom" );
 
-    private CurrentUserService currentUserService;
+    private String keyword;
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private UserCredentials userCredentials;
-
-    // -------------------------------------------------------------------------
-    // Getters && Setters
-    // -------------------------------------------------------------------------
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    IndexType( String keyword )
     {
-        this.currentUserService = currentUserService;
+        this.keyword = keyword;
     }
 
-    public UserCredentials getUserCredentials()
+    public String keyword()
     {
-        return userCredentials;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        User user = currentUserService.getCurrentUser();
-
-        userCredentials = user.getUserCredentials();
-
-        return SUCCESS;
+        return keyword;
     }
 }

@@ -175,6 +175,27 @@ public class WebClientUtils
         return String.format( url.replaceAll( "\\{[a-zA-Z]+}", "%s" ), (Object[]) urlArgs );
     }
 
+    public static String objectReferences( String... uids )
+    {
+        StringBuilder str = new StringBuilder();
+        str.append( '[' );
+        for ( String uid : uids )
+        {
+            if ( str.length() > 1 )
+            {
+                str.append( ',' );
+            }
+            str.append( objectReference( uid ) );
+        }
+        str.append( ']' );
+        return str.toString();
+    }
+
+    public static String objectReference( String uid )
+    {
+        return String.format( "{\"id\":\"%s\"}", uid );
+    }
+
     public static <T> T failOnException( Callable<T> op )
     {
         try

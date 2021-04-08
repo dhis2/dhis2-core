@@ -149,8 +149,12 @@ public class SizeofTest
     public void testSizeofString()
     {
         // base costs are: 20 + 20 + 8 = 48
-        assertEquals( 64L, sizeof.sizeof( "hello world!" ) );
-        assertEquals( 58L, sizeof.sizeof( "hello!" ) );
+        long sizeofEmpty = sizeof.sizeof( "" );
+        long sizeOfHello = this.sizeof.sizeof( "hello!" );
+        long sizeofHelloWorld = this.sizeof.sizeof( "hello world!" );
+        assertOnTheOrderOf( 52L, sizeofEmpty );
+        assertTrue( sizeOfHello > sizeofEmpty );
+        assertTrue( sizeofHelloWorld > sizeOfHello );
         assertNotFixedSize( String.class );
         assertNotFixedSize( byte[].class );
     }
@@ -213,7 +217,7 @@ public class SizeofTest
     @Test
     public void testSizeofSingletonMapFields()
     {
-        assertEquals( 159L, sizeof.sizeof( new MapBean( singletonMap( "key", 1 ), null ) ) );
+        assertOnTheOrderOf( 159L, sizeof.sizeof( new MapBean( singletonMap( "key", 1 ), null ) ) );
     }
 
     @Test
@@ -222,7 +226,7 @@ public class SizeofTest
         Map<String, Integer> map = new HashMap<>();
         map.put( "a", 1 );
         map.put( "b", 2 );
-        assertEquals( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
+        assertOnTheOrderOf( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
     }
 
     @Test
@@ -231,7 +235,7 @@ public class SizeofTest
         Map<String, Integer> map = new TreeMap<>();
         map.put( "a", 1 );
         map.put( "b", 2 );
-        assertEquals( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
+        assertOnTheOrderOf( 266L, sizeof.sizeof( new MapBean( map, null ) ) );
     }
 
     @Test
@@ -241,7 +245,7 @@ public class SizeofTest
         map.put( "tree", new TreeMap<>() );
         map.put( "singleton", singletonMap( 1, 42L ) );
         map.put( "empty", emptyMap() );
-        assertEquals( 462L, sizeof.sizeof( new MapBean( null, map ) ) );
+        assertOnTheOrderOf( 462L, sizeof.sizeof( new MapBean( null, map ) ) );
     }
 
     @Test
@@ -279,6 +283,19 @@ public class SizeofTest
         // the value of the field
         a.setName( "UnitA" );
         assertEquals( sizeof.sizeof( "UnitA" ), sizeof.sizeof( a ) - blankSize );
+    }
+
+    /**
+     * The issue is that {@link String} has different fields depending on the
+     * JDK used resulting in slightly different numbers. This comparison
+     * accounts for that by allowing +/-10% deviation but at least +/-8.
+     */
+    private void assertOnTheOrderOf( long expected, long actual )
+    {
+        long min = (long) Math.min( expected - 8d, expected * 0.9d );
+        long max = (long) Math.max( expected + 8d, expected * 1.1d );
+        assertTrue( String.format( "expected value between %d and %d but was: %d", min, max, actual ),
+            actual >= min && actual <= max );
     }
 
     private void assertFixedSize( Class<?>... types )
