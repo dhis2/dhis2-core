@@ -43,7 +43,11 @@ import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.scheduling.*;
+import org.hisp.dhis.scheduling.Job;
+import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.scheduling.JobConfigurationService;
+import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.scheduling.SchedulingManager;
 import org.springframework.scheduling.support.CronSequenceGenerator;
 import org.springframework.stereotype.Component;
 
@@ -80,15 +84,15 @@ public class JobConfigurationObjectBundleHook
         JobConfiguration jobConfiguration = (JobConfiguration) object;
         List<ErrorReport> errorReports = new ArrayList<>( validateInternal( jobConfiguration ) );
 
-        if ( errorReports.size() == 0 )
+        if ( errorReports.isEmpty() )
         {
             jobConfiguration.setNextExecutionTime( null );
 
-            log.info( "Validation of '" + jobConfiguration.getName() + "' succeeded" );
+            log.info( "Validation succeeded for job configuration: '{}'", jobConfiguration.getName() );
         }
         else
         {
-            log.info( "Validation of '" + jobConfiguration.getName() + "' failed." );
+            log.info( "Validation failed for job configuration: '{}'", jobConfiguration.getName() );
             log.info( errorReports.toString() );
         }
 
@@ -104,7 +108,8 @@ public class JobConfigurationObjectBundleHook
         }
 
         JobConfiguration jobConfiguration = (JobConfiguration) object;
-        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( jobConfiguration );
+
+        setDefaultJobParameters( jobConfiguration );
     }
 
     @Override
@@ -122,7 +127,7 @@ public class JobConfigurationObjectBundleHook
         newObject.setLastExecutedStatus( persObject.getLastExecutedStatus() );
         newObject.setLastRuntimeExecution( persObject.getLastRuntimeExecution() );
 
-        ensureDefaultJobParametersAreUsedIfNoOtherArePresent( newObject );
+        setDefaultJobParameters( newObject );
 
         schedulingManager.stopJob( (JobConfiguration) persistedObject );
     }
@@ -202,8 +207,7 @@ public class JobConfigurationObjectBundleHook
     {
         List<ErrorReport> errorReports = new ArrayList<>();
 
-        // Check whether jobConfiguration already exists in the system and if so
-        // validate it
+        // Check whether jobConfiguration already exists
 
         JobConfiguration persistedJobConfiguration = jobConfigurationService
             .getJobConfigurationByUid( jobConfiguration.getUid() );
@@ -211,6 +215,7 @@ public class JobConfigurationObjectBundleHook
         final JobConfiguration tempJobConfiguration = validatePersistedAndPrepareTempJobConfiguration( errorReports,
             jobConfiguration, persistedJobConfiguration );
 
+        setDefaultJobParameters( tempJobConfiguration );
         validateJobConfigurationCronOrFixedDelay( errorReports, tempJobConfiguration );
         validateCronExpressionWithinJobType( errorReports, tempJobConfiguration );
 
@@ -297,14 +302,17 @@ public class JobConfigurationObjectBundleHook
         }
     }
 
-    private void ensureDefaultJobParametersAreUsedIfNoOtherArePresent( JobConfiguration jobConfiguration )
+    /**
+     * Sets default job parameters on the given job configuration if no
+     * parameters exist.
+     *
+     * @param jobConfiguration the {@link JobConfiguration}.
+     */
+    private void setDefaultJobParameters( JobConfiguration jobConfiguration )
     {
-        if ( !jobConfiguration.isInMemoryJob() )
+        if ( !jobConfiguration.isInMemoryJob() && jobConfiguration.getJobParameters() == null )
         {
-            if ( jobConfiguration.getJobParameters() == null )
-            {
-                jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
-            }
+            jobConfiguration.setJobParameters( getDefaultJobParameters( jobConfiguration ) );
         }
     }
 
@@ -321,7 +329,7 @@ public class JobConfigurationObjectBundleHook
         }
         catch ( InstantiationException | IllegalAccessException ex )
         {
-            log.error( DebugUtils.getStackTrace( ex ) );
+            log.error( "Failed to instantiate job configuration", DebugUtils.getStackTrace( ex ) );
         }
 
         return null;
