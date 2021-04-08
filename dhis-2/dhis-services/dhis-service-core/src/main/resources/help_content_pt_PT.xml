@@ -810,17 +810,17 @@ when required by the user</para>
 </listitem>
 </itemizedlist>
 <para>The District Health Information Software – Version 2 (DHIS 2) is
-Free and Open Source Software (FOSS) HMIS designed and developed under a
-global research and development initiative (called Health Information
-Systems Project – HISP) originating from the Department of Informatics,
-University of Oslo, Norway. The first version of DHIS application (DHIS
-1.3/1.4) was developed and subsequently upgraded on an ongoing base
-continuously upgraded in South Africa by HISP South Africa since 1997.
-This version was developed on Microsoft Office platform, and distributed
-freely. This application is currently the national standard in South Africa
-and being used in all the health facilities in the country. DHIS1.4
-is being used in many countries in Africa such as Ethiopia,
-Nigeria, Botswana, Tanzania, Zambia, and various other countries.</para>
+    Free and Open Source Software (FOSS) HMIS designed and developed under a
+    global research and development initiative (called Health Information
+    Systems Project – HISP) originating from the Department of Informatics,
+    University of Oslo, Norway. The first version of DHIS application (DHIS
+    1.3/1.4) was developed and subsequently upgraded on an ongoing base
+    continuously upgraded in South Africa by HISP South Africa since 1997.
+    This version was developed on Microsoft Office platform, and distributed
+    freely. This application is currently the national standard in South Africa
+    and being used in all the health facilities in the country. DHIS1.4
+    is being used in many countries in Africa such as Ethiopia,
+    Nigeria, Botswana, Tanzania, Zambia, and various other countries.</para>
 <para>In 2005, based on the various comments and feedback from the field
 level use, the University of Oslo initiated the process of developing
 the second version of DHIS. DHIS 1.4 was used primarily as the basis for the functional
@@ -870,10 +870,11 @@ addition/deletion/modification of data elements etc.</para>
 <para>Functionality to design and modify indicators.</para>
 </listitem>
 <listitem>
-<para>Functionalities of export-import, so that data entered on an
-    offline version can be exported to the district or higher level
-    systems. Export import can also be made in gist to other
-    applications such as Excel and Epi Info.</para>
+    <para>Functionalities of export-import, so that data entered on an
+        offline version can be exported to the district or higher level
+        systems. Export import can also be made in relation to other
+        applications such as Excel and Epi Info.
+    </para>
 </listitem>
 <listitem>
 <para>Integration with other software systems – such as
@@ -883,8 +884,9 @@ addition/deletion/modification of data elements etc.</para>
 <para>Provision of Geographic Information Systems (GIS).</para>
 </listitem>
 <listitem>
-<para>User management
-module for passwords, security, and access control.</para>
+    <para>User management
+        module for passwords, security, and access control.
+    </para>
 </listitem>
 <listitem>
 <para>Further modules can be
@@ -2126,11 +2128,16 @@ details of a particular selected user.</para>
 <section id="mobile_j2me_gprs_client">
 <title>J2ME GPRS/3G Client</title>
 <para>The DHIS2 GPRS/3G mobile module provides a mechanism for remote clients using mobile phones to enter data directly into the DHIS2 system. There are two functions of the client, namely:</para>
-<para>The solution relies on the mobile phone having a data connection available (i.e.
-GPRS, Edge, 3G), over which it communicates with a DHIS2 instance which must be publicly
-available on the internet, as any other web server. The client application on the phone downloads the data entry forms to the phone from the
-server, and the forms can therefore be updated without installing a new application. This is also a crucial feature
-for community reporting, which relies on regularly downloading activity plans from the server.
+<para>The solution relies on the mobile phone having a data connection available
+    (i.e.
+    GPRS, Edge, 3G), over which it communicates with a DHIS2 instance which must
+    be publicly
+    available on the internet, as any other web server. The client application
+    on the phone downloads the data entry forms to the phone from the
+    server, and the forms can therefore be updated without installing a new
+    application. This is also a crucial feature
+    for community reporting, which relies on regularly downloading activity
+    plans from the server.
 </para>
 <itemizedlist>
 <listitem>
@@ -2239,8 +2246,13 @@ In some cases, when sections are not used, a data element might be used in multi
 </section>
 <section>
 <title>Versioning of data sets</title>
-<para>To make it possible to compare and update the data sets on the mobile phone with the
-version on the server, data sets are automatically versioned when you edit the data set structure. Some changes which occur on the DHIS2 server, will cause the mobile client to update its forms with a new version. </para>
+    <para>To make it possible to compare and update the data sets on the mobile
+        phone with the
+        version on the server, data sets are automatically versioned when you
+        edit the data set structure. Some changes which occur on the DHIS2
+        server, will cause the mobile client to update its forms with a new
+        version.
+    </para>
 <itemizedlist>
 <title>Changes that currently trigger a new data set version</title>
 <listitem>
@@ -4157,10 +4169,15 @@ community module reporting. An active GPRS/3G connection is required in order to
 </listitem>
 <listitem>
 <para>SMS based solution</para>
-<para>The SMS based solution is
-requires a custom built J2MER mobile application
-and installation of a GSM modem and some manual
-configuration on the server side. It would be an appropriate solution where GPRS/3G is not available but GSM coverage is available. Updating of forms to the client is not supported at this point in time. This solution is described in <xref linkend="mobile_sms_based_data_entry"/></para>
+    <para>The SMS based solution is
+        requires a custom built J2MER mobile application
+        and installation of a GSM modem and some manual
+        configuration on the server side. It would be an appropriate solution
+        where GPRS/3G is not available but GSM coverage is available. Updating
+        of forms to the client is not supported at this point in time. This
+        solution is described in
+        <xref linkend="mobile_sms_based_data_entry"/>
+    </para>
 </listitem>
 </itemizedlist>
 </section>
@@ -5949,15 +5966,20 @@ For example: the date in which a person enrolls to the system.</para>
             <listitem>
               <para>The number of persons who enrolled the selected program.</para>
             </listitem>
-            <listitem>
-              <para>The number of persons / times that ( Date of enrollment - Date of incident ) is greater then a certain number.</para>
-            </listitem>
-            <listitem>
-              <para>The number of persons who visited the selected program stage OR the number of visits what are registered in the system.</para>
-            </listitem>
-            <listitem>
-              <para>The number of persons  by age at the report-time.</para>
-            </listitem>
+              <listitem>
+                  <para>The number of persons / times that ( Date of enrollment
+                      - Date of incident ) is greater then a certain number.
+                  </para>
+              </listitem>
+              <listitem>
+                  <para>The number of persons who visited the selected program
+                      stage OR the number of visits what are registered in the
+                      system.
+                  </para>
+              </listitem>
+              <listitem>
+                  <para>The number of persons by age at the report-time.</para>
+              </listitem>
           </itemizedlist>
             <para>
                 <emphasis role="bold">
@@ -5971,15 +5993,26 @@ For example: the date in which a person enrolls to the system.</para>
                 - This section contains comparing operations (&lt;, &lt;=, &gt;,
                 &gt;=, =, != ), calculation operation (+), priority operation (
                 ( ) ), boolean values (Yes, No), status operations (=NULL, !=
-                NULL), gist operations (AND, OR). These operations are used for
-                supporting in setting condition for query.
+                NULL), relation operations (AND, OR). These operations are used
+                for supporting in setting condition for query.
             </para>
-          <para><emphasis role="italic">
-              <emphasis role="bold">
-                <emphasis role="underline">Description section</emphasis>
-              </emphasis>
-            </emphasis> - Show description for the condition above. </para>
-          <para>E.g To get number of <emphasis role="italic">girls</emphasis> who got <emphasis role="italic">Vitamin A dose 6</emphasis> enrolled <emphasis role="italic">Child Health program</emphasis> on <emphasis role="italic">January 2012</emphasis>. Then query is created as in the figure below. Note that January 2012 is period parameter which user will select when generate report. It is not set in the query.</para>
+            <para>
+                <emphasis role="italic">
+                    <emphasis role="bold">
+                        <emphasis role="underline">Description section
+                        </emphasis>
+                    </emphasis>
+                </emphasis>
+                - Show description for the condition above.
+            </para>
+            <para>E.g To get number of <emphasis role="italic">girls</emphasis> who
+                got <emphasis role="italic">Vitamin A dose 6</emphasis> enrolled <emphasis
+                        role="italic">Child Health program
+                </emphasis> on <emphasis role="italic">January 2012</emphasis>.
+                Then query is created as in the figure below. Note that January
+                2012 is period parameter which user will select when generate
+                report. It is not set in the query.
+            </para>
         </section>
         <section>
           <title>Sample of person aggregation</title>
@@ -6742,8 +6775,14 @@ It supports to filter events by each person attributes and data elements. The se
             <para>- <emphasis role="italic"> Selected</emphasis>: Individual  data will be aggregated from the selected organisation unit. </para>
           </listitem>
           <listitem>
-            <para>Click on the
-<emphasis role="italic">Aggregate and Save</emphasis> button to execute aggregate function and save data values into database directly. Besides, click Preview button to preview data values and you can check/select any data values you want to input them into database. The <emphasis>Person aggregation result </emphasis>page is shown after running successfully.</para>
+              <para>Click on the
+                  <emphasis role="italic">Aggregate and Save</emphasis>
+                  button to execute aggregate function and save data values into
+                  database directly. Besides, click Preview button to preview
+                  data values and you can check/select any data values you want
+                  to input them into database. The <emphasis>Person aggregation
+                      result</emphasis>page is shown after running successfully.
+              </para>
           </listitem>
         </orderedlist>
         <screenshot>
@@ -6776,8 +6815,15 @@ It supports to filter events by each person attributes and data elements. The se
 <title>Data sources for reporting</title>
 <section>
 <title>Types of data and aggregation</title>
-<para>In the bigger picture of HIS terminology all data in DHIS are usually called aggregated as they are aggregates (e.g. monthly summaries) of medical records or some kind of service registers reported from the health facilities. Aggregation inside DHIS however, which is the topic here, is concerned with how the raw data captured in DHIS (through data entry or import)are further aggregated over time (e.g. from monthly to quarterly values) or up the organisational hierarchy (e.g. from facility to district values).
-</para>
+    <para>In the bigger picture of HIS terminology all data in DHIS are usually
+        called aggregated as they are aggregates (e.g. monthly summaries) of
+        medical records or some kind of service registers reported from the
+        health facilities. Aggregation inside DHIS however, which is the topic
+        here, is concerned with how the raw data captured in DHIS (through data
+        entry or import)are further aggregated over time (e.g. from monthly to
+        quarterly values) or up the organisational hierarchy (e.g. from facility
+        to district values).
+    </para>
 <section>
 <title>Terminology</title>
 <itemizedlist>
@@ -6812,7 +6858,17 @@ It is up to the user/system administrator/designer to make sure that no duplicat
 <para>How data is aggregated depends on the dimension of aggregation (see further down).</para>
 <para>Along the orgunit level dimension data is always summed up, simply added together. Note that raw data is never percentages, and therefore can be summed together. Indicator values that can be percentages are treated differently (re-calculated at each level, never summed up).</para>
 <para>
-Along the time dimension there are several possibilities, the two most common ways to aggregate are sum and average. The user can specify for each data element which method to use by setting the aggregation operator (see further down). Monthly service data are normally summed together over time, e.g. the number of vaccines given in a year is the sum of the vaccines given for each month of that year. For population, equipment, staff and other kind of what is often called semi-permanent data the average method is often the one to use, as, e.g. &apos;number of nurses&apos; working at a facility in a year would not be the sum of the two numbers reported in the six-monthly staffing report, but rather the average of the two numbers. More details further down under &apos;aggregation operators&apos;.
+    Along the time dimension there are several possibilities, the two most
+    common ways to aggregate are sum and average. The user can specify for each
+    data element which method to use by setting the aggregation operator (see
+    further down). Monthly service data are normally summed together over time,
+    e.g. the number of vaccines given in a year is the sum of the vaccines given
+    for each month of that year. For population, equipment, staff and other kind
+    of what is often called semi-permanent data the average method is often the
+    one to use, as, e.g. &apos;number of nurses&apos; working at a facility in a
+    year would not be the sum of the two numbers reported in the six-monthly
+    staffing report, but rather the average of the two numbers. More details
+    further down under &apos;aggregation operators&apos;.
 </para>
 </section>
 </section>
@@ -7068,9 +7124,29 @@ male+&lt;1, male+&gt;1, Female+&lt;1, female+&gt;1, male, female,&lt;1, &gt;1, t
 <para><emphasis role="bold">Using relative periods</emphasis></para>
 <para>The period selection is more advanced as it can in addition to specific periods like Jan-09, Q1-08, 2007 also contain what is called relative periods. As report usually is run routinely over time a specific period like Jan-09 is not very useful in a report. Instead, if you want to design a monthly report, you should use the relative period called Reporting Month. Then you must also include Reporting Month as one of your report parameters to let the system know what exactly is the Reporting Month on the time of report generation. There are many other relative periods available, and they all relate to the report parameter Reporting Month. E.g. the relative period called So far this year refers to the accumulative value for the year incl. the Reporting Month. If you want a trend report with multiple periods in stead of one aggregated period, you can select e.g. &apos;Months this year&apos;, which would give you values for each month so far in the year. You can do a similar report with quarters. The idea is to support as many generic report types as possible using relative periods, so if you have other report needs, please suggest new relative periods on the mailing list, and they might be added to the report table options.</para>
 <para><emphasis role="bold">Cross-tabbing dimensions</emphasis></para>
-<para>Cross tabbing is a very powerful functionality in report design, as the typical DHIS 2 data table with references to period, data element/indicator and orgunit makes more advanced report design very difficult, as you cannot put e.g. specific indicators, periods or orgunits on specific columns. E.g. by cross-tabbing on the indicator dimension in an indicator report table you will get the indicator names on the column headers in your report, in addition to a column referencing orgunit, and another column referencing period. With such a table design you could drag and drop indicator names to specific columns or chart positions in the iReport software. Similarly you can cross tab on orgunits or periods to make their names specifically available to report design. E.g. by cross-tabbing on periods and selecting the two relative periods &apos;Reporting month&apos; and &apos;This year&apos;, you can design reports with both the last month and the accumulative annual value for given month as they will be available as column headers in your report table. It is also possible to combine two dimensions in cross-tabbing, e.g. period and indicator, which makes it possible to e.g. look at three selected indicators for two specific relative periods. This would e.g. make it possible to make a table or chart based report with BCG, DPT3 and Measles coverage, both for the last month and the accumulative coverage so far in the year.
+    <para>Cross tabbing is a very powerful functionality in report design, as
+        the typical DHIS 2 data table with references to period, data
+        element/indicator and orgunit makes more advanced report design very
+        difficult, as you cannot put e.g. specific indicators, periods or
+        orgunits on specific columns. E.g. by cross-tabbing on the indicator
+        dimension in an indicator report table you will get the indicator names
+        on the column headers in your report, in addition to a column
+        referencing orgunit, and another column referencing period. With such a
+        table design you could drag and drop indicator names to specific columns
+        or chart positions in the iReport software. Similarly you can cross tab
+        on orgunits or periods to make their names specifically available to
+        report design. E.g. by cross-tabbing on periods and selecting the two
+        relative periods &apos;Reporting month&apos; and &apos;This year&apos;,
+        you can design reports with both the last month and the accumulative
+        annual value for given month as they will be available as column headers
+        in your report table. It is also possible to combine two dimensions in
+        cross-tabbing, e.g. period and indicator, which makes it possible to
+        e.g. look at three selected indicators for two specific relative
+        periods. This would e.g. make it possible to make a table or chart based
+        report with BCG, DPT3 and Measles coverage, both for the last month and
+        the accumulative coverage so far in the year.
 
-</para>
+    </para>
 <para>All in all, by combining the functionality of cross tabbing, relative periods and report table parameters you should have a tool to support most report scenarios. If not, we would be very happy to receive suggestions to further improvements to report tables. As already mentioned, we have started to look at more fine-grained parameters for the period dimension as the &apos;Reporting month&apos; does not cover enough, or at least is not intuitive enough, when it comes to e.g. quarterly reports.
 </para>
 </section>
@@ -7156,8 +7232,17 @@ Above the table there are six buttons; five download buttons and one Back button
 </section>
 <section>
 <title>Editing the report</title>
-<para>You are now ready to edit the layout of the report. The main iReport window consists of a &quot;Report Inspector&quot; to the left, the report document in the middle, a &quot;Palette&quot; area on the upper right hand side and a &quot;Properties&quot; area on the lower right hand side. The &quot;Report Inspector&quot; are used for selecting and examining the various properties of the report, and when selecting an item in the inspector, the &quot;Properties&quot; panel changes to display properties relating to the selection. The &quot;Palette&quot; is used for adding various elements, e.g. text boxes, images and charts to the document.
-</para>
+    <para>You are now ready to edit the layout of the report. The main iReport
+        window consists of a &quot;Report Inspector&quot; to the left, the
+        report document in the middle, a &quot;Palette&quot; area on the upper
+        right hand side and a &quot;Properties&quot; area on the lower right
+        hand side. The &quot;Report Inspector&quot; are used for selecting and
+        examining the various properties of the report, and when selecting an
+        item in the inspector, the &quot;Properties&quot; panel changes to
+        display properties relating to the selection. The &quot;Palette&quot; is
+        used for adding various elements, e.g. text boxes, images and charts to
+        the document.
+    </para>
 <screenshot>
 <screeninfo>Overview of the main iReport window</screeninfo>
 <mediaobject>
@@ -7167,8 +7252,10 @@ Above the table there are six buttons; five download buttons and one Back button
 </mediaobject>
 </screenshot>
 <para><emphasis>Note: If you cannot see the Palette or Properties sidebar, you can enable them from the menu item called &quot;Window&quot; on the menu bar.</emphasis></para>
-<para>The iReport document is divided into seven main bands, divided by layout separators (the blue lines). These lines are used to decide how big each of the areas should be on the report.
-</para>
+    <para>The iReport document is divided into seven main bands, divided by
+        layout separators (the blue lines). These lines are used to decide how
+        big each of the areas should be on the report.
+    </para>
 <para>The areas all have different purposes:
 </para>
 <itemizedlist>
@@ -7194,12 +7281,16 @@ Above the table there are six buttons; five download buttons and one Back button
 <para>Summary - elements in this area will be placed at the end of the report</para>
 </listitem>
 </itemizedlist>
-<para>By default you will see that only the Title, Column Header and the Detail 1 bands have data.
-For most reports this is OK. The Title band is suitable for a title and e.g. a chart.
-Data fields entered into the Detail 1 area will be iterated over to create a table.
-For example, if a field called &quot;datalementname&quot; is placed in the Detail 1 band,
-all data elements in the report table will be listed here.
-We&apos;ll come back to data fields management just a little below.</para>
+<para>By default you will see that only the Title, Column Header and the Detail
+    1 bands have data.
+    For most reports this is OK. The Title band is suitable for a title and e.g.
+    a chart.
+    Data fields entered into the Detail 1 area will be iterated over to create a
+    table.
+    For example, if a field called &quot;datalementname&quot; is placed in the
+    Detail 1 band,
+    all data elements in the report table will be listed here.
+    We&apos;ll come back to data fields management just a little below.</para>
 <para>The unused bands in the report are shrinked to add more space for your report data. You can
 however increase/decrease the band height as you like. There are two ways to do that. The first way is simply to drag the blue band-line as shown below.</para>
 <screenshot>
@@ -7210,9 +7301,11 @@ however increase/decrease the band height as you like. There are two ways to do 
 </imageobject>
 </mediaobject>
 </screenshot>
-<para>The other way to adjust the band height is to select a band in the
-&quot;Report Inspector&quot;, and then adjust the &quot;Band height&quot; value in the
-&quot;Detail 1 - properties&quot; area in the lower right corner.</para>
+    <para>The other way to adjust the band height is to select a band in the
+        &quot;Report Inspector&quot;, and then adjust the &quot;Band height&quot;
+        value in the
+        &quot;Detail 1 - properties&quot; area in the lower right corner.
+    </para>
 <screenshot>
 <screeninfo>Adjust the size of layout areas by changing the Band height property</screeninfo>
 <mediaobject>
@@ -7854,57 +7947,62 @@ There are two types of text in iReport: «Text labels» and «Text fields» (dat
 </screenshot>
 </section>
 </section>
-<!--Old part on charts
-<section><title>Charts</title><para>The auto-generated report already has a chart. This can however be edited. To do that, right-click on the chart and select &quot;Chart Data&quot;.</para><screenshot>
-<screeninfo>Select Chart Data by right clicking on the chart</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/32_editchart_1.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot><para>Go to the &quot;Details&quot; tab to see what is actually shown in the chart.
-</para><screenshot>
-<screeninfo>Go the Details and Add a Category series</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/33_editchart_2.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot><para>If you select a series and then click the &quot;Modify&quot; button, a new window will appear. There are four fields that we can fill out, where the three first are mandatory and are already automatically filled.
-</para><screenshot>
-<screeninfo>The Category series window</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/34_editchart_3.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot><para>You can edit each field by pressing the edit button on the righ.t</para><screenshot>
-<screeninfo>Edit the category expression</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/35_editchart_4.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot><para>A new window appears with the available fields. A list of available fields to put in the chart will show. If you double-click one of the items, it will be added to the Expression editor.</para><screenshot>
-<screeninfo>Double click on the desired field</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/36_editchart_5.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot><para>To make the chart more informative and better looking, we can select it by clicking on it and use the &quot;Properties&quot; panel on the right hand side to make adjustments. For example, you can add a title to the chart, change the font, rotate the axis labels (as shown below) and so on.</para><screenshot>
-<screeninfo>Edit the chart properties</screeninfo>
-<mediaobject>
-<imageobject>
-<imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/39_editchart_9.jpg" format="JPEG"/>
-</imageobject>
-</mediaobject>
-</screenshot>
-</section>--> <section>
+    <!--Old part on charts
+    <section><title>Charts</title><para>The auto-generated report already has a chart. This can however be edited. To do that, right-click on the chart and select &quot;Chart Data&quot;.</para><screenshot>
+    <screeninfo>Select Chart Data by right clicking on the chart</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/32_editchart_1.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot><para>Go to the &quot;Details&quot; tab to see what is actually shown in the chart.
+    </para><screenshot>
+    <screeninfo>Go the Details and Add a Category series</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/33_editchart_2.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot><para>If you select a series and then click the &quot;Modify&quot; button, a new window will appear. There are four fields that we can fill out, where the three first are mandatory and are already automatically filled.
+    </para><screenshot>
+    <screeninfo>The Category series window</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="50%" fileref="resources/images/dhis2_creating_reporting/ireport/34_editchart_3.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot><para>You can edit each field by pressing the edit button on the righ.t</para><screenshot>
+    <screeninfo>Edit the category expression</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/35_editchart_4.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot><para>A new window appears with the available fields. A list of available fields to put in the chart will show. If you double-click one of the items, it will be added to the Expression editor.</para><screenshot>
+    <screeninfo>Double click on the desired field</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/36_editchart_5.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot><para>To make the chart more informative and better looking, we can select it by clicking on it and use the &quot;Properties&quot; panel on the right hand side to make adjustments. For example, you can add a title to the chart, change the font, rotate the axis labels (as shown below) and so on.</para><screenshot>
+    <screeninfo>Edit the chart properties</screeninfo>
+    <mediaobject>
+    <imageobject>
+    <imagedata width="66%" fileref="resources/images/dhis2_creating_reporting/ireport/39_editchart_9.jpg" format="JPEG"/>
+    </imageobject>
+    </mediaobject>
+    </screenshot>
+    </section>--> <section>
 <title>Adding the Report to DHIS 2</title>
 <para>We can now switch to DHIS 2 and import our report. Go to the Report Module in DHIS 2, and select &quot;Standard Report&quot;. In the &quot;Standard Report&quot; screen, click &quot;Add new&quot;, or edit an existing one.</para>
-<para>In the following screen, there are several actions we need to take. First, enter a name for the new &quot;Standard Report&quot;. Second, for design, click &quot;Choose File&quot; and find the .jrxml-file you have edited in iReport. Then we select the report table that we used as a basis for the report in iReport. Click add, and it should move to the &quot;Selected report tables&quot; area. Finally, click save.
-</para>
+    <para>In the following screen, there are several actions we need to take.
+        First, enter a name for the new &quot;Standard Report&quot;. Second, for
+        design, click &quot;Choose File&quot; and find the .jrxml-file you have
+        edited in iReport. Then we select the report table that we used as a
+        basis for the report in iReport. Click add, and it should move to the
+        &quot;Selected report tables&quot; area. Finally, click save.
+    </para>
 <screenshot>
 <screeninfo>Upload the file and choose the right report table</screeninfo>
 <mediaobject>
