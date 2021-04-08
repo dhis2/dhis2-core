@@ -155,7 +155,7 @@ public class SetMandatoryFieldValidatorTest
             .forEach(
                 e -> {
                     assertEquals( "RULE_DATA_VALUE", e.getRuleUid() );
-                    assertEquals( TrackerErrorCode.E1303, e.getIssueCode() );
+                    assertEquals( TrackerErrorCode.E1301, e.getIssueCode() );
                     assertEquals( IssueType.ERROR, e.getIssueType() );
                     assertEquals( Lists.newArrayList( dataElementA.getUid() ), e.getArgs() );
                 } );
