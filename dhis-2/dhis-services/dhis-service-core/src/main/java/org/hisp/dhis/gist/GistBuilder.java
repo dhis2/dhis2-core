@@ -365,9 +365,11 @@ final class GistBuilder
             return createHasMemberTransformerHQL( index, field, property );
         case ID_OBJECTS:
             addTransformer( row -> row[index] = toIdObjects( row[index] ) );
-            return createIdsTransformerHQL( index, path, property );
+            return createIdsTransformerHQL( index, field, property );
         case IDS:
-            return createIdsTransformerHQL( index, path, property );
+            return createIdsTransformerHQL( index, field, property );
+        case PLUCK:
+            return createPluckTransformerHQL( index, field, property );
         }
     }
 
@@ -377,11 +379,28 @@ final class GistBuilder
         return "size(e." + getMemberPath( path ) + ")";
     }
 
-    private String createIdsTransformerHQL( int index, String path, Property property )
+    private String createIdsTransformerHQL( int index, Field field, Property property )
     {
+        return createPluckTransformerHQL( index, field, property );
+    }
+
+    private String createPluckTransformerHQL( int index, Field field, Property property )
+    {
+        String plucked = "uid";
+        if ( field.getProjectionArgument() != null )
+        {
+            plucked = field.getProjectionArgument();
+            Property pluckedProperty = context.switchedTo( property.getItemKlass() ).resolveMandatory( plucked );
+            if ( !pluckedProperty.getPropertyType().isTextual() )
+            {
+                throw new UnsupportedOperationException( "Only textual properties can be plucked, but " + plucked
+                    + " is a: " + pluckedProperty.getPropertyType() );
+            }
+        }
         String tableName = "t_" + index;
-        return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
-            + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
+        return "(select array_agg(" + tableName + "." + plucked + ") from " + property.getItemKlass().getSimpleName()
+            + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( field.getPropertyPath() )
+            + "))";
     }
 
     private String createHasMemberTransformerHQL( int index, Field field, Property property )

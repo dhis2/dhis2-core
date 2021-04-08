@@ -86,7 +86,13 @@ public enum GistProjection
      *
      * (instead of plain UID)
      */
-    ID_OBJECTS;
+    ID_OBJECTS,
+
+    /**
+     * Without argument same as {@link #IDS}, argument can be used to extract
+     * any other {@link String} field.
+     */
+    PLUCK;
 
     public static GistProjection parse( String projection )
     {

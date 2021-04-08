@@ -98,7 +98,7 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject surname = GET( "/users/{uid}/surname", getSuperuserUid() ).content();
 
-        assertEquals( "admin", surname.getString( "surname" ) );
+        assertEquals( "admin", surname.getString( "surname" ).string() );
         assertEquals( 1, surname.size() );
     }
 
@@ -126,6 +126,15 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     public void testGetObjectPropertyItems_RefIds()
     {
         JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&all=L", getSuperuserUid() )
+            .content();
+
+        System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_Pluck()
+    {
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users::pluck(surname)", getSuperuserUid() )
             .content();
 
         System.out.println( groups );

@@ -307,9 +307,20 @@ public final class GistQuery
             this( propertyPath, projection, "", null );
         }
 
-        String getName()
+        public String getName()
         {
             return alias.isEmpty() ? propertyPath : alias;
+        }
+
+        public Field with( GistProjection projection )
+        {
+            return this.projection == projection ? this : new Field( propertyPath, projection );
+        }
+
+        @Override
+        public String toString()
+        {
+            return propertyPath + "::" + projection.name().toLowerCase().replace( '_', '-' );
         }
 
         public static Field parse( String field )
@@ -327,36 +338,24 @@ public final class GistQuery
                 String part = parts[i];
                 if ( part.startsWith( "rename" ) )
                 {
-                    alias = getArgument( part );
+                    alias = parseArgument( part );
                 }
                 else
                 {
                     projection = GistProjection.parse( part );
                     if ( part.indexOf( '(' ) >= 0 )
                     {
-                        projectionArgument = getArgument( part );
+                        projectionArgument = parseArgument( part );
                     }
                 }
             }
             return new Field( parts[0], projection, alias, projectionArgument );
         }
 
-        private static String getArgument( String part )
+        private static String parseArgument( String part )
         {
             return part.substring( part.indexOf( '(' ) + 1, part.lastIndexOf( ')' ) );
         }
-
-        @Override
-        public String toString()
-        {
-            return propertyPath + "::" + projection.name().toLowerCase().replace( '_', '-' );
-        }
-
-        public Field with( GistProjection projection )
-        {
-            return this.projection == projection ? this : new Field( propertyPath, projection );
-        }
-
     }
 
     @Getter

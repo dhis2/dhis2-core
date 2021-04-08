@@ -61,4 +61,10 @@ public enum PropertyType
             || PASSWORD == this || URL == this
             || DATE == this || PHONENUMBER == this || GEOLOCATION == this || COLOR == this || CONSTANT == this;
     }
+
+    public boolean isTextual()
+    {
+        return IDENTIFIER == this || TEXT == this || EMAIL == this || PASSWORD == this || URL == this
+            || PHONENUMBER == this || COLOR == this || CONSTANT == this;
+    }
 }

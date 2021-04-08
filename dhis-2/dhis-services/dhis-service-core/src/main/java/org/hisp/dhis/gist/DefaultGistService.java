@@ -43,6 +43,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
@@ -185,7 +186,7 @@ public class DefaultGistService implements GistService
         addFilterParameters( query, context, dbQuery );
         for ( Field field : query.getFields() )
         {
-            if ( field.getProjectionArgument() != null )
+            if ( field.getProjectionArgument() != null && field.getProjection() != GistProjection.PLUCK )
             {
                 dbQuery.setParameter( "p_" + field.getPropertyPath(), field.getProjectionArgument() );
             }

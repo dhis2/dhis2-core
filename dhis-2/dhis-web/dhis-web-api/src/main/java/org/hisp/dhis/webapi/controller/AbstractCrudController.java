@@ -289,8 +289,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             schemaService.getDynamicSchema( listed.getItemKlass() ) );
     }
 
-    private GistQuery createGistQuery( HttpServletRequest request, Class<? extends IdentifiableObject> elementType,
-        GistAll allDefault )
+    private static GistQuery createGistQuery( HttpServletRequest request,
+        Class<? extends IdentifiableObject> elementType, GistAll allDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         return GistQuery.builder()
