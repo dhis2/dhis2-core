@@ -46,7 +46,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 /**
  * @author Jan Bernitt
  */
-public final class JsonData
+public final class JsonBuilder
 {
     public enum Preference
     {
@@ -59,18 +59,18 @@ public final class JsonData
 
     private final EnumSet<Preference> preferences = EnumSet.noneOf( Preference.class );
 
-    public JsonData( ObjectMapper jackson )
+    public JsonBuilder( ObjectMapper jackson )
     {
         this.jackson = jackson;
     }
 
-    public JsonData with( Preference preference )
+    public JsonBuilder with( Preference preference )
     {
         preferences.add( preference );
         return this;
     }
 
-    public JsonData not( Preference preference )
+    public JsonBuilder not( Preference preference )
     {
         preferences.remove( preference );
         return this;
@@ -81,27 +81,27 @@ public final class JsonData
         return preferences.contains( preference );
     }
 
-    public JsonData skipNullMembers()
+    public JsonBuilder skipNullMembers()
     {
         return with( Preference.SKIP_NULL_MEMBERS );
     }
 
-    public JsonData skipNullElements()
+    public JsonBuilder skipNullElements()
     {
         return with( Preference.SKIP_NULL_ELEMENTS );
     }
 
-    public JsonData skipNulls()
+    public JsonBuilder skipNulls()
     {
         return skipNullElements().skipNullMembers();
     }
 
-    public JsonData skipEmptyArrays()
+    public JsonBuilder skipEmptyArrays()
     {
         return with( Preference.SKIP_EMPTY_ARRAYS );
     }
 
-    public JsonData skipNullOrEmpty()
+    public JsonBuilder skipNullOrEmpty()
     {
         return skipNulls().skipEmptyArrays();
     }
@@ -150,7 +150,7 @@ public final class JsonData
         return jackson.valueToTree( e );
     }
 
-    public ObjectNode toObject( List<String> fields, Object[] values )
+    public ObjectNode toObject( List<String> fields, Object... values )
     {
         return toObject( fields, asList( values ) );
     }

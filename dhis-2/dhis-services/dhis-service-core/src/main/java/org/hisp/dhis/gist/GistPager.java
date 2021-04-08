@@ -27,38 +27,29 @@
  */
 package org.hisp.dhis.gist;
 
-import static java.util.Arrays.asList;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-import java.util.EnumSet;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import org.hisp.dhis.schema.GistLinkage;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.PropertyType;
-
-public enum GistVerbosity
+@Getter
+@AllArgsConstructor
+public final class GistPager
 {
-    VERBOSE( GistLinkage.IDS, PropertyType.PASSWORD ),
-    BALANCED( GistLinkage.COUNT, PropertyType.PASSWORD ),
-    CONCISE( GistLinkage.REF, PropertyType.PASSWORD, PropertyType.COMPLEX );
+    @JsonProperty
+    private final int page;
 
-    private final GistLinkage autoLinkage;
+    @JsonProperty
+    private final int pageSize;
 
-    private final EnumSet<PropertyType> excludedByDefault;
+    @JsonProperty
+    private final String prevPage;
 
-    GistVerbosity( GistLinkage autoLinkage, PropertyType... excludedByDefault )
+    @JsonProperty
+    private final String nextPage;
+
+    public String toString()
     {
-        this.autoLinkage = autoLinkage;
-        this.excludedByDefault = EnumSet.copyOf( asList( excludedByDefault ) );
-    }
-
-    public GistLinkage getAutoLinkage()
-    {
-        return autoLinkage;
-    }
-
-    public boolean isIncludedByDefault( Property p )
-    {
-        return !excludedByDefault.contains( p.getPropertyType() )
-            && (!p.isCollection() || !excludedByDefault.contains( p.getItemPropertyType() ));
+        return "[Page: " + page + " size: " + pageSize + "]";
     }
 }

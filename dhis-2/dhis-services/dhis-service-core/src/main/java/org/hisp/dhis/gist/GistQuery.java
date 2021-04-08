@@ -46,12 +46,12 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistLinkage;
+import org.hisp.dhis.schema.GistProjection;
 
 @Getter
 @Builder( toBuilder = true )
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
-public final class GistQuery<T extends IdentifiableObject>
+public final class GistQuery
 {
 
     /**
@@ -87,7 +87,7 @@ public final class GistQuery<T extends IdentifiableObject>
 
     private final Owner owner;
 
-    private final Class<T> elementType;
+    private final Class<? extends IdentifiableObject> elementType;
 
     private final int pageOffset;
 
@@ -103,7 +103,9 @@ public final class GistQuery<T extends IdentifiableObject>
      */
     private final boolean inverse;
 
-    private final GistVerbosity verbosity;
+    private final boolean translate;
+
+    private final GistAll all;
 
     /**
      * Names of those properties that should be included in the response.
@@ -123,48 +125,49 @@ public final class GistQuery<T extends IdentifiableObject>
 
     public List<String> getFieldNames()
     {
-        return fields.stream().map( Field::getPropertyPath ).collect( toList() );
+        return fields.stream().map( Field::getName ).collect( toList() );
     }
 
-    public GistLinkage getDefaultLinkage()
+    public GistProjection getDefaultProjection()
     {
-        return getVerbosity() == null ? GistLinkage.AUTO : getVerbosity().getAutoLinkage();
+        return getAll() == null ? GistProjection.AUTO : getAll().getDefaultProjection();
     }
 
-    public GistQuery<T> with( NamedParams params )
+    public GistQuery with( NamedParams params )
     {
         int page = abs( params.getInt( "page", 1 ) );
-        int size = abs( params.getInt( "pageSize", 25 ) );
-        return toBuilder().pageSize( size ).pageOffset( Math.max( 0, page - 1 ) * size )
+        int pageSize = Math.min( 1000, abs( params.getInt( "pageSize", 25 ) ) );
+        return toBuilder().pageSize( pageSize ).pageOffset( Math.max( 0, page - 1 ) * pageSize )
+            .translate( params.getBoolean( "translate", true ) )
             .inverse( params.getBoolean( "inverse", false ) )
             .fields( params.getStrings( "fields" ).stream().map( Field::parse ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
-            .orders( params.getStrings( "sort" ).stream().map( Order::parse ).collect( toList() ) )
+            .orders( params.getStrings( "order" ).stream().map( Order::parse ).collect( toList() ) )
             .build();
     }
 
-    public GistQuery<T> withFilter( Filter filter )
+    public GistQuery withFilter( Filter filter )
     {
         return withAddedItem( filter, getFilters(), GistQueryBuilder::filters );
     }
 
-    public GistQuery<T> withOrder( Order order )
+    public GistQuery withOrder( Order order )
     {
         return withAddedItem( order, getOrders(), GistQueryBuilder::orders );
     }
 
-    public GistQuery<T> withField( String path )
+    public GistQuery withField( String path )
     {
-        return withAddedItem( new Field( path, getDefaultLinkage() ), getFields(), GistQueryBuilder::fields );
+        return withAddedItem( new Field( path, getDefaultProjection() ), getFields(), GistQueryBuilder::fields );
     }
 
-    public GistQuery<T> withFields( List<Field> fields )
+    public GistQuery withFields( List<Field> fields )
     {
         return toBuilder().fields( fields ).build();
     }
 
-    private <E> GistQuery<T> withAddedItem( E e, List<E> collection,
-        BiFunction<GistQueryBuilder<T>, List<E>, GistQueryBuilder<T>> setter )
+    private <E> GistQuery withAddedItem( E e, List<E> collection,
+        BiFunction<GistQueryBuilder, List<E>, GistQueryBuilder> setter )
     {
         List<E> plus1 = new ArrayList<>( collection );
         plus1.add( e );
@@ -252,31 +255,59 @@ public final class GistQuery<T extends IdentifiableObject>
     @AllArgsConstructor
     public static final class Field
     {
+        public static final String REFS_PATH = "__refs__";
+
         private final String propertyPath;
 
-        private final GistLinkage linkage;
+        private final GistProjection projection;
+
+        private final String alias;
+
+        public Field( String propertyPath, GistProjection projection )
+        {
+            this( propertyPath, projection, "" );
+        }
+
+        String getName()
+        {
+            return alias.isEmpty() ? propertyPath : alias;
+        }
 
         public static Field parse( String field )
         {
-            int endOfPropertyName = field.indexOf( ':' );
-            if ( endOfPropertyName < 0 )
+            String[] parts = field.split( "(?:::|~|@)" );
+            if ( parts.length == 1 )
             {
-                return new Field( field, GistLinkage.AUTO );
+                return new Field( field, GistProjection.AUTO );
             }
-            return new Field( field.substring( 0, endOfPropertyName ),
-                GistLinkage.valueOf( field.substring( endOfPropertyName + 1 ).toUpperCase().replace( '-', '_' ) ) );
+            GistProjection projection = GistProjection.AUTO;
+            String alias = "";
+            for ( int i = 1; i < parts.length; i++ )
+            {
+                String part = parts[i];
+                if ( part.startsWith( "rename" ) )
+                {
+                    alias = part.substring( part.indexOf( '(' ) + 1, part.lastIndexOf( ')' ) );
+                }
+                else
+                {
+                    projection = GistProjection.parse( part );
+                }
+            }
+            return new Field( parts[0], projection, alias );
         }
 
         @Override
         public String toString()
         {
-            return propertyPath + ":" + linkage.name().toLowerCase().replace( '_', '-' );
+            return propertyPath + "::" + projection.name().toLowerCase().replace( '_', '-' );
         }
 
-        public Field with( GistLinkage linkage )
+        public Field with( GistProjection projection )
         {
-            return this.linkage == linkage ? this : new Field( propertyPath, linkage );
+            return this.projection == projection ? this : new Field( propertyPath, projection );
         }
+
     }
 
     @Getter
@@ -291,7 +322,7 @@ public final class GistQuery<T extends IdentifiableObject>
 
         public static Order parse( String order )
         {
-            String[] parts = order.split( ":" );
+            String[] parts = order.split( "(?:::|:|~|@)" );
             if ( parts.length == 1 )
             {
                 return new Order( order, Direction.ASC );
@@ -328,7 +359,7 @@ public final class GistQuery<T extends IdentifiableObject>
 
         public static Filter parse( String filter )
         {
-            String[] parts = filter.split( ":" );
+            String[] parts = filter.split( "(?:::|:|~|@)" );
             if ( parts.length == 2 )
             {
                 return new Filter( parts[0], Comparison.parse( parts[1] ) );
@@ -343,7 +374,7 @@ public final class GistQuery<T extends IdentifiableObject>
         @Override
         public String toString()
         {
-            return propertyPath + " " + operator + " " + Arrays.toString( value );
+            return propertyPath + ":" + operator.name().toLowerCase() + ":" + Arrays.toString( value );
         }
     }
 }

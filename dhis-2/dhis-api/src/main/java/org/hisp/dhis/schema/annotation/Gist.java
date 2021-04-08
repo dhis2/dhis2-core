@@ -34,9 +34,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.hisp.dhis.schema.GistLinkage;
 import org.hisp.dhis.schema.GistPreferences;
 import org.hisp.dhis.schema.GistPreferences.Flag;
+import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -67,17 +67,19 @@ public @interface Gist
      * @return the type used in case the user has not specified the type
      *         explicitly.
      */
-    GistLinkage defaultLinkage() default GistLinkage.AUTO;
+    GistProjection defaultLinkage() default GistProjection.AUTO;
 
     /**
      * @return The set of types that can be used (are permitted). If a type is
      *         not included in the set but requested by a request the request is
      *         either denied or a permitted type is chosen instead.
      */
-    GistLinkage[] options() default {
-        GistLinkage.REF,
-        GistLinkage.COUNT,
-        GistLinkage.IDS,
-        GistLinkage.ID_OBJECTS };
+    GistProjection[] options() default {
+        GistProjection.NONE,
+        GistProjection.SIZE,
+        GistProjection.IS_EMPTY,
+        GistProjection.IS_NOT_EMPTY,
+        GistProjection.IDS,
+        GistProjection.ID_OBJECTS };
 
 }

@@ -27,23 +27,30 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Arrays.stream;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
-import static org.hisp.dhis.gist.GistLogic.effectiveLinkage;
+import static org.hisp.dhis.gist.GistLogic.effectiveProjection;
 import static org.hisp.dhis.gist.GistLogic.isDefaultField;
+import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
+import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
+import static org.hisp.dhis.schema.PropertyType.COLLECTION;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.gist.GistQuery.Field;
-import org.hisp.dhis.schema.GistLinkage;
+import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
 
 /**
@@ -51,43 +58,59 @@ import org.hisp.dhis.schema.RelativePropertyContext;
  * following the {@link GistQuery} and {@link Property} preferences.
  *
  * @author Jan Bernitt
- *
- * @param <T> Type of {@link GistQuery} result list item object
  */
 @AllArgsConstructor
-class GistPlanner<T extends IdentifiableObject>
+class GistPlanner
 {
-    private final GistQuery<T> query;
+    private final GistQuery query;
 
     private final RelativePropertyContext context;
 
-    public GistQuery<T> plan()
+    public GistQuery plan()
     {
         List<Field> fields = query.getFields();
         if ( fields.isEmpty() )
         {
-            fields = singletonList( new Field( "*", GistLinkage.AUTO ) );
+            fields = singletonList( new Field( "*", GistProjection.NONE ) );
         }
         fields = withDefaultFields( fields );
         fields = withFlatEmbeddedFields( fields );
-        fields = withEffectiveLinkage( fields );
+        fields = withEffectiveProjection( fields );
+        fields = withEndpointsField( fields );
         return query.withFields( fields );
     }
 
     private static int propertyTypeOrder( Property a, Property b )
     {
-        return a.getPropertyType().compareTo( b.getPropertyType() );
+        if ( a.isCollection() && b.isCollection() )
+        {
+            return modifiedPropertyTypeOrder( a.getItemPropertyType(), b.getItemPropertyType() );
+        }
+        return modifiedPropertyTypeOrder( a.getPropertyType(), b.getPropertyType() );
     }
 
-    private List<Field> withEffectiveLinkage( List<Field> fields )
+    private static int modifiedPropertyTypeOrder( PropertyType a, PropertyType b )
     {
-        return fields.stream().map( this::withEffectiveLinkage ).collect( toList() );
+        if ( a == COLLECTION && b != COLLECTION )
+        {
+            return 1;
+        }
+        if ( b == COLLECTION && a != COLLECTION )
+        {
+            return -1;
+        }
+        return a.compareTo( b );
     }
 
-    private Field withEffectiveLinkage( Field field )
+    private List<Field> withEffectiveProjection( List<Field> fields )
     {
-        return field.with( effectiveLinkage( context.resolveMandatory( field.getPropertyPath() ),
-            query.getDefaultLinkage(), field.getLinkage() ) );
+        return fields.stream().map( this::withEffectiveProjection ).collect( toList() );
+    }
+
+    private Field withEffectiveProjection( Field field )
+    {
+        return field.with( effectiveProjection( context.resolveMandatory( field.getPropertyPath() ),
+            query.getDefaultProjection(), field.getProjection() ) );
     }
 
     private List<Field> withDefaultFields( List<Field> fields )
@@ -96,14 +119,14 @@ class GistPlanner<T extends IdentifiableObject>
         for ( Field f : fields )
         {
             String path = f.getPropertyPath();
-            if ( "*".equals( path ) )
+            if ( isPresetField( path ) )
             {
                 context.getHome().getProperties().stream()
-                    .filter( p -> isDefaultField( p, query.getVerbosity() ) )
+                    .filter( getPresetFilter( path ) )
                     .sorted( GistPlanner::propertyTypeOrder )
-                    .forEach( p -> expanded.add( new Field( p.key(), GistLinkage.AUTO ) ) );
+                    .forEach( p -> expanded.add( new Field( p.key(), GistProjection.AUTO ) ) );
             }
-            else if ( path.startsWith( "-" ) )
+            else if ( isExcludeField( path ) )
             {
                 expanded.removeIf( field -> field.getPropertyPath().equals( path.substring( 1 ) ) );
             }
@@ -113,6 +136,54 @@ class GistPlanner<T extends IdentifiableObject>
             }
         }
         return expanded;
+    }
+
+    private Predicate<Property> getPresetFilter( String path )
+    {
+        if ( isAllField( path ) )
+        {
+            return p -> isDefaultField( p, query.getAll() );
+        }
+        if ( ":identifiable".equals( path ) )
+        {
+            return getPresetFilter( IdentifiableObject.class );
+        }
+        if ( ":nameable".equals( path ) )
+        {
+            return getPresetFilter( NameableObject.class );
+        }
+        if ( ":persisted".equals( path ) )
+        {
+            return Property::isPersisted;
+        }
+        if ( ":owner".equals( path ) )
+        {
+            return p -> p.isPersisted() && p.isOwner();
+        }
+        throw new UnsupportedOperationException();
+    }
+
+    private Predicate<Property> getPresetFilter( Class<?> api )
+    {
+        return p -> stream( api.getMethods() )
+            .anyMatch( m -> m.getName().equals( p.getGetterMethod().getName() )
+                && m.getParameterCount() == 0
+                && p.isPersisted() );
+    }
+
+    private static boolean isPresetField( String path )
+    {
+        return path.startsWith( ":" ) || "*".equals( path );
+    }
+
+    private static boolean isExcludeField( String path )
+    {
+        return path.startsWith( "-" ) || path.startsWith( "!" );
+    }
+
+    private static boolean isAllField( String path )
+    {
+        return "*".equals( path ) || ":*".equals( path ) || ":all".equals( path );
     }
 
     private List<Field> withFlatEmbeddedFields( List<Field> fields )
@@ -138,7 +209,7 @@ class GistPlanner<T extends IdentifiableObject>
                 else
                 {
                     embeddedContext.getHome().getProperties().stream()
-                        .filter( p -> isDefaultField( p, GistVerbosity.CONCISE ) )
+                        .filter( p -> isDefaultField( p, GistAll.S ) )
                         .sorted( GistPlanner::propertyTypeOrder )
                         .forEach( p -> add.accept( createNestedField( path, p ) ) );
                 }
@@ -151,8 +222,21 @@ class GistPlanner<T extends IdentifiableObject>
         return new ArrayList<>( fieldsByPath.values() );
     }
 
+    private List<Field> withEndpointsField( List<Field> fields )
+    {
+        boolean hasReferences = fields.stream().anyMatch( field -> {
+            Property p = context.resolveMandatory( field.getPropertyPath() );
+            return isPersistentReferenceField( p ) || isPersistentCollectionField( p );
+        } );
+        if ( hasReferences )
+        {
+            fields.add( new Field( Field.REFS_PATH, GistProjection.NONE, "apiEndpoints" ) );
+        }
+        return fields;
+    }
+
     private Field createNestedField( String parentPath, Property field )
     {
-        return new Field( parentPath + "." + field.key(), GistVerbosity.CONCISE.getAutoLinkage() );
+        return new Field( parentPath + "." + field.key(), GistAll.S.getDefaultProjection() );
     }
 }

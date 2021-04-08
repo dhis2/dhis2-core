@@ -28,8 +28,8 @@
 package org.hisp.dhis.gist;
 
 import org.hisp.dhis.gist.GistQuery.Filter;
-import org.hisp.dhis.schema.GistLinkage;
 import org.hisp.dhis.schema.GistPreferences.Flag;
+import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -41,7 +41,7 @@ import org.hisp.dhis.schema.Property;
 final class GistLogic
 {
 
-    static boolean isDefaultField( Property p, GistVerbosity verbosity )
+    static boolean isDefaultField( Property p, GistAll all )
     {
         Flag includeByDefault = p.getGistPreferences().getIncludeByDefault();
         if ( includeByDefault == Flag.TRUE )
@@ -53,7 +53,7 @@ final class GistLogic
             return false;
         }
         // AUTO:
-        return verbosity.isIncludedByDefault( p ) && isAutoDefaultField( p );
+        return all.isIncludedByDefault( p ) && isAutoDefaultField( p );
     }
 
     private static boolean isAutoDefaultField( Property p )
@@ -105,17 +105,17 @@ final class GistLogic
             && property.isCollection();
     }
 
-    static GistLinkage effectiveLinkage( Property property, GistLinkage defaultQuery, GistLinkage target )
+    static GistProjection effectiveProjection( Property property, GistProjection defaultQuery, GistProjection target )
     {
-        if ( target == GistLinkage.AUTO || !property.getGistPreferences().isOptions( target ) )
+        if ( target == GistProjection.AUTO || !property.getGistPreferences().isOptions( target ) )
         {
             target = property.getGistPreferences().getDefaultLinkage();
         }
-        if ( target == GistLinkage.AUTO )
+        if ( target == GistProjection.AUTO )
         {
             target = defaultQuery;
         }
-        return target == GistLinkage.AUTO ? GistLinkage.COUNT : target;
+        return target == GistProjection.AUTO ? GistProjection.NONE : target;
     }
 
     static Number rowCount( Object count )

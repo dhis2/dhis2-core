@@ -28,7 +28,7 @@
 package org.hisp.dhis.schema;
 
 /**
- * The {@link GistLinkage} controls how relations between
+ * The {@link GistProjection} controls how relations between
  * {@link org.hisp.dhis.common.IdentifiableObject}s are displayed.
  *
  * The intention is to provide guidance and protection so that request provide
@@ -37,7 +37,7 @@ package org.hisp.dhis.schema;
  *
  * @author Jan Bernitt
  */
-public enum GistLinkage
+public enum GistProjection
 {
     /**
      * No actual type but used to represent the choice that the actual value
@@ -46,19 +46,19 @@ public enum GistLinkage
      */
     AUTO,
 
+    NONE,
+
     /**
      * The relation is not shown as data but as a endpoint description that
      * allows to browse the data.
      */
     REF,
 
-    /**
-     * The relation is not shown as data but as endpoint description that allows
-     * to browse the data. In addition this description contains the number of
-     * referenced elements. This number does not consider access limitations but
-     * represents the raw data as contained in the database.
-     */
-    COUNT,
+    SIZE,
+
+    IS_EMPTY,
+
+    IS_NOT_EMPTY,
 
     /**
      * The relation is shown as a list of UIDs. In addition an endpoint
@@ -78,5 +78,18 @@ public enum GistLinkage
      *
      * (instead of plain UID)
      */
-    ID_OBJECTS
+    ID_OBJECTS;
+
+    public static GistProjection parse( String projection )
+    {
+        for ( GistProjection p : values() )
+        {
+            if ( p.name().replace( "_", "" ).equalsIgnoreCase(
+                projection.replace( "-", "" ).replace( "+", "" ) ) )
+            {
+                return p;
+            }
+        }
+        return AUTO;
+    }
 }

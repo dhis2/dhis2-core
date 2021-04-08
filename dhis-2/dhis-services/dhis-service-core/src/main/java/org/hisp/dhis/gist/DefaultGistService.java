@@ -30,7 +30,11 @@ package org.hisp.dhis.gist;
 import static java.util.Arrays.stream;
 import static org.hisp.dhis.gist.GistBuilder.createBuilder;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,11 +42,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
+import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.springframework.stereotype.Service;
 
@@ -72,23 +76,13 @@ public class DefaultGistService implements GistService
     }
 
     @Override
-    public <T extends IdentifiableObject> GistQuery<T> plan( GistQuery<T> query )
+    public GistQuery plan( GistQuery query )
     {
-        return new GistPlanner<>( query, createPropertyContext( query ) ).plan();
+        return new GistPlanner( query, createPropertyContext( query ) ).plan();
     }
 
     @Override
-    public <T extends IdentifiableObject> List<T> queryMemberItemsAsObjects( GistQuery<T> query )
-    {
-        RelativePropertyContext context = createPropertyContext( query );
-        validator.validateQuery( query, context );
-        return listWithParameters( query, context,
-            getSession().createQuery( createBuilder( query, context ).buildHQL(),
-                query.getElementType() ) );
-    }
-
-    @Override
-    public List<?> gist( GistQuery<?> query )
+    public List<?> gist( GistQuery query )
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
@@ -99,12 +93,83 @@ public class DefaultGistService implements GistService
         return rows;
     }
 
-    private RelativePropertyContext createPropertyContext( GistQuery<?> query )
+    @Override
+    public GistPager pager( GistQuery query, List<?> rows, Map<String, String[]> params )
+    {
+        int page = 1 + (query.getPageOffset() / query.getPageSize());
+        Schema schema = schemaService.getDynamicSchema( query.getElementType() );
+        String prev = null;
+        String next = null;
+        if ( schema.haveApiEndpoint() )
+        {
+            String baseURL = computeBaseURL( query, params );
+            if ( page > 1 )
+            {
+                prev = baseURL + "page=" + (page - 1);
+            }
+            if ( rows.size() == query.getPageSize() )
+            {
+                next = baseURL + "page=" + (page + 1);
+            }
+        }
+        return new GistPager( page, query.getPageSize(), prev, next );
+    }
+
+    private String computeBaseURL( GistQuery query, Map<String, String[]> params )
+    {
+        StringBuilder url = new StringBuilder();
+        url.append( query.getContextRoot() );
+        Owner owner = query.getOwner();
+        if ( owner != null )
+        {
+            Schema o = schemaService.getDynamicSchema( owner.getType() );
+            url.append( o.getRelativeApiEndpoint() ).append( '/' ).append( owner.getId() ).append( '/' );
+            Property p = o.getProperty( owner.getCollectionProperty() );
+            url.append( p.key() ).append( "/gist" );
+        }
+        else
+        {
+            Schema s = schemaService.getDynamicSchema( query.getElementType() );
+            url.append( s.getRelativeApiEndpoint() );
+            url.append( "/gist" );
+        }
+        url.append( '?' );
+        for ( Entry<String, String[]> param : params.entrySet() )
+        {
+            if ( !param.getKey().equals( "page" ) )
+            {
+                for ( String value : param.getValue() )
+                {
+                    if ( url.charAt( url.length() - 1 ) != '?' )
+                    {
+                        url.append( '&' );
+                    }
+                    try
+                    {
+                        url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
+                        url.append( '=' );
+                        url.append( URLEncoder.encode( value, "UTF-8" ) );
+                    }
+                    catch ( UnsupportedEncodingException e )
+                    {
+                        throw new IllegalStateException( e );
+                    }
+                }
+            }
+        }
+        if ( url.charAt( url.length() - 1 ) != '?' )
+        {
+            url.append( '&' );
+        }
+        return url.toString();
+    }
+
+    private RelativePropertyContext createPropertyContext( GistQuery query )
     {
         return new RelativePropertyContext( query.getElementType(), schemaService::getDynamicSchema );
     }
 
-    private <T> List<T> listWithParameters( GistQuery<?> query, RelativePropertyContext context,
+    private <T> List<T> listWithParameters( GistQuery query, RelativePropertyContext context,
         Query<T> dbQuery )
     {
         Owner owner = query.getOwner();

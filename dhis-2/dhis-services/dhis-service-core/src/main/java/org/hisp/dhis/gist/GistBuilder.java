@@ -34,7 +34,6 @@ import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
-import static org.hisp.dhis.gist.GistLogic.rowCount;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,6 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
@@ -55,14 +55,13 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.schema.GistLinkage;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.schema.GistProjection;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.translation.Translation;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -91,13 +90,20 @@ final class GistBuilder
 
     private static final String GIST_PATH = "/gist";
 
-    static <T extends IdentifiableObject> GistBuilder createBuilder( GistQuery<T> query,
+    /**
+     * HQL does not allow plain "null" in select columns list as the type is
+     * unknown. Therefore we just cast it to some simple type. Which is not
+     * important as the value will be {@code null} anyway.
+     */
+    public static final String HQL_NULL = "cast(null as char)";
+
+    static <T extends IdentifiableObject> GistBuilder createBuilder( GistQuery query,
         RelativePropertyContext context )
     {
         return new GistBuilder( addSupportFields( query, context ), context );
     }
 
-    private final GistQuery<?> query;
+    private final GistQuery query;
 
     private final RelativePropertyContext context;
 
@@ -112,12 +118,16 @@ final class GistBuilder
      * fields are fetched from the database the caller does not include the
      * added fields as it is still working with the original field list.
      */
-    private static <T extends IdentifiableObject> GistQuery<T> addSupportFields( GistQuery<T> query,
+    private static GistQuery addSupportFields( GistQuery query,
         RelativePropertyContext context )
     {
-        GistQuery<T> extended = query;
+        GistQuery extended = query;
         for ( Field f : query.getFields() )
         {
+            if ( Field.REFS_PATH.equals( f.getPropertyPath() ) )
+            {
+                continue;
+            }
             Property p = context.resolveMandatory( f.getPropertyPath() );
             // ID column not present but ID column required?
             if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
@@ -126,7 +136,7 @@ final class GistBuilder
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "id" ) );
             }
             // translatable fields? => make sure we have translations
-            if ( p.isTranslatable()
+            if ( query.isTranslate() && p.isTranslatable()
                 && !hasSameParentField( extended, f, "translations" ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "translations" ) );
@@ -135,7 +145,7 @@ final class GistBuilder
         return extended;
     }
 
-    private static boolean hasSameParentField( GistQuery<?> query, Field field, String property )
+    private static boolean hasSameParentField( GistQuery query, Field field, String property )
     {
         String parentPath = parentPath( field.getPropertyPath() );
         String requiredPath = parentPath.isEmpty() ? property : parentPath + "." + property;
@@ -229,14 +239,18 @@ final class GistBuilder
     private String createFieldHQL( int index, Field field )
     {
         String path = field.getPropertyPath();
+        if ( Field.REFS_PATH.equals( path ) )
+        {
+            return HQL_NULL;
+        }
         Property property = context.resolveMandatory( path );
-        if ( property.isTranslatable() && query.getTranslationLocale() != null )
+        if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
             int translationsFieldIndex = getSameParentFieldIndex( path, "translations" );
             addTransformer( row -> row[index] = translated( row[index], property.getTranslationKey(),
                 row[translationsFieldIndex] ) );
         }
-        else if ( isHrefProperty( property ) )
+        if ( isHrefProperty( property ) )
         {
             String endpointRoot = getSameParentEndpointRoot( path );
             Integer idFieldIndex = getSameParentFieldIndex( path, "id" );
@@ -246,76 +260,96 @@ final class GistBuilder
             }
             return "''"; // use empty string to mark a non DB value
         }
-        else if ( isPersistentReferenceField( property ) )
+        if ( isPersistentReferenceField( property ) )
         {
-            String idProperty = "uid";
-            if ( !property.isIdentifiableObject() )
-            {
-                Schema propertySchema = context.switchedTo( property.getKlass() ).getHome();
-                if ( propertySchema.getRelativeApiEndpoint() == null )
-                {
-                    // TODO for now
-                    return "e." + getMemberPath( path );
-                }
-            }
-            switch ( getFieldLinkage( field ) )
-            {
-            default:
-            case REF:
-            case COUNT:
-            case AUTO:
-                String endpointRoot = getEndpointRoot( property );
-                addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[index] ) );
-                break;
-            case ID_OBJECTS:
-                addTransformer( row -> row[index] = toIdObject( row[index] ) );
-                break;
-            case IDS:
-                // nothing to do
-            }
-            if ( property.isRequired() )
-            {
-                return "e." + getMemberPath( path ) + "." + idProperty;
-            }
-            String tableName = "t_" + index;
-            return "(select " + tableName + "." + idProperty + " from " + property.getKlass().getSimpleName() + " "
-                + tableName
-                + " where " + tableName + " = e." + getMemberPath( path ) + ")";
+            return createReferenceFieldHQL( index, field );
         }
-        else if ( isPersistentCollectionField( property ) )
+        if ( isPersistentCollectionField( property ) )
         {
-            switch ( getFieldLinkage( field ) )
-            {
-            default:
-            case REF:
-                String endpointRoot = getSameParentEndpointRoot( path );
-                int idFieldIndex = getSameParentFieldIndex( path, "id" );
-                addTransformer(
-                    row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex], property ) );
-                return "-1";
-            case AUTO:
-            case COUNT:
-                endpointRoot = getSameParentEndpointRoot( path );
-                idFieldIndex = getSameParentFieldIndex( path, "id" );
-                addTransformer(
-                    row -> row[index] = toEndpoint( endpointRoot, row[idFieldIndex], property, row[index] ) );
-                return "size(e." + getMemberPath( path ) + ")";
-            case ID_OBJECTS:
-                addTransformer( row -> row[index] = toIdObjects( row[index] ) );
-                // intentional fall through
-            case IDS:
-                String tableName = "t_" + index;
-                return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
-                    + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
-            }
+            return createCollectionFieldHQL( index, field );
         }
         String memberPath = getMemberPath( path );
         return "e." + memberPath;
     }
 
-    private static EndpointDescriptor toEndpoint( String endpointRoot, Object id, Property property, Object count )
+    private String createReferenceFieldHQL( int index, Field field )
     {
-        return new EndpointDescriptor( toEndpointURL( endpointRoot, id, property ), rowCount( count ) );
+        String path = field.getPropertyPath();
+        Property property = context.resolveMandatory( path );
+        String idProperty = "uid";
+        if ( property.getKlass() == PeriodType.class )
+        {
+            idProperty = "class";
+        }
+        else if ( !property.isIdentifiableObject() )
+        {
+            Schema propertySchema = context.switchedTo( property.getKlass() ).getHome();
+            if ( propertySchema.getRelativeApiEndpoint() == null )
+            {
+                // TODO for now...
+                return "e." + getMemberPath( path );
+            }
+        }
+
+        String endpointRoot = getEndpointRoot( property );
+        int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
+        addTransformer( row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[index] ) ) );
+
+        if ( getFieldProjection( field ) == GistProjection.ID_OBJECTS )
+        {
+            addTransformer( row -> row[index] = toIdObject( row[index] ) );
+        }
+        if ( property.isRequired() )
+        {
+            return "e." + getMemberPath( path ) + "." + idProperty;
+        }
+        String tableName = "t_" + index;
+        return "(select " + tableName + "." + idProperty + " from " + property.getKlass().getSimpleName() + " "
+            + tableName
+            + " where " + tableName + " = e." + getMemberPath( path ) + ")";
+    }
+
+    private String createCollectionFieldHQL( int index, Field field )
+    {
+        String path = field.getPropertyPath();
+        Property property = context.resolveMandatory( path );
+        String endpointRoot = getSameParentEndpointRoot( path );
+        int idFieldIndex = getSameParentFieldIndex( path, "id" );
+        int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
+        addTransformer(
+            row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
+        switch ( getFieldProjection( field ) )
+        {
+        default:
+        case AUTO:
+        case NONE:
+            return HQL_NULL;
+        case SIZE:
+            return "size(e." + getMemberPath( path ) + ")";
+        case IS_EMPTY:
+            addTransformer( row -> row[index] = ((Number) row[index]).intValue() == 0 );
+            // TODO use "exists" subquery for performance?
+            return "size(e." + getMemberPath( path ) + ")";
+        case IS_NOT_EMPTY:
+            addTransformer( row -> row[index] = ((Number) row[index]).intValue() > 0 );
+            return "size(e." + getMemberPath( path ) + ")";
+        case ID_OBJECTS:
+            addTransformer( row -> row[index] = toIdObjects( row[index] ) );
+            // intentional fall through
+        case IDS:
+            String tableName = "t_" + index;
+            return "(select array_agg(" + tableName + ".uid) from " + property.getItemKlass().getSimpleName()
+                + " " + tableName + " where " + tableName + " in elements(e." + getMemberPath( path ) + "))";
+        }
+    }
+
+    private void addEndpointURL( Object[] row, int refIndex, Field field, String url )
+    {
+        if ( row[refIndex] == null )
+        {
+            row[refIndex] = new TreeMap<>();
+        }
+        ((Map<String, String>) row[refIndex]).put( field.getName(), url );
     }
 
     private static String toEndpointURL( String endpointRoot, Object id )
@@ -340,9 +374,9 @@ final class GistBuilder
             : Arrays.stream( ((String[]) ids) ).map( IdObject::new ).toArray();
     }
 
-    private GistLinkage getFieldLinkage( Field field )
+    private GistProjection getFieldProjection( Field field )
     {
-        return !isNonNestedPath( field.getPropertyPath() ) ? GistLinkage.REF : field.getLinkage();
+        return !isNonNestedPath( field.getPropertyPath() ) ? GistProjection.REF : field.getProjection();
     }
 
     private Integer getSameParentFieldIndex( String path, String translations )
@@ -458,16 +492,4 @@ final class GistBuilder
         final String id;
     }
 
-    @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    @JsonInclude( Include.NON_NULL )
-    public static final class EndpointDescriptor
-    {
-
-        @JsonProperty
-        final String apiEndpoint;
-
-        @JsonProperty
-        final Number count;
-
-    }
 }

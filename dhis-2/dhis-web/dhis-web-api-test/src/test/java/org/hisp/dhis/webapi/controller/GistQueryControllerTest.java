@@ -67,8 +67,8 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     {
         String fields = "id,userCredentials.username,userCredentials.twoFA";
         String filter = "userCredentials.created:gt:2021-01-01,userGroups:gt:0";
-        JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}", groupId, fields,
-            filter ).content().getObject( 0 );
+        JsonObject users = GET( "/userGroups/{uid}/users/gist?fields={fields}&filter={filter}&headless=true",
+            groupId, fields, filter ).content().getObject( 0 );
 
         assertTrue( users.has( "id", "userCredentials" ) );
         assertTrue( users.getObject( "userCredentials" ).has( "username", "twoFA" ) );
@@ -77,8 +77,8 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_EmbeddedObjects()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=id,sharing,users", getSuperuserUid() ).content()
-            .getObject( 0 );
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=id,sharing,users&headless=true",
+            getSuperuserUid() ).content().getObject( 0 );
 
         assertTrue( groups.has( "id", "sharing" ) );
         assertTrue( groups.getObject( "sharing" ).has( "owner", "external", "users", "userGroups", "public" ) );
@@ -87,7 +87,8 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_singleField()
     {
-        JsonArray groupNames = GET( "/users/{uid}/userGroups/gist?fields=name", getSuperuserUid() ).content();
+        JsonArray groupNames = GET( "/users/{uid}/userGroups/gist?fields=name&headless=true", getSuperuserUid() )
+            .content();
 
         assertEquals( singletonList( "groupX" ), groupNames.stringValues() );
     }
@@ -106,7 +107,7 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_RefCount()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&relations=count", getSuperuserUid() )
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&all=M", getSuperuserUid() )
             .content();
 
         System.out.println( groups );
@@ -115,7 +116,7 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGetObjectPropertyItems_RefIds()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&relations=ids", getSuperuserUid() )
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&all=L", getSuperuserUid() )
             .content();
 
         System.out.println( groups );

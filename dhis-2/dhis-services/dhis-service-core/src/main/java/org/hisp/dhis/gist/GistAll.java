@@ -27,38 +27,38 @@
  */
 package org.hisp.dhis.gist;
 
-import java.util.List;
-import java.util.Map;
+import static java.util.EnumSet.complementOf;
+import static java.util.EnumSet.of;
 
-/**
- * Gives convenient access to (potentially large) member collections of an owner
- * object.
- *
- * The preferred method should be to {@link #gist(GistQuery)} which returns a
- * raw data row for each match only containing the values of the
- * {@link GistQuery#getFields()} in form of an {@link Object[]}.
- *
- * @author Jan Bernitt
- */
-public interface GistService
+import java.util.EnumSet;
+
+import lombok.AllArgsConstructor;
+
+import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
+
+@AllArgsConstructor
+public enum GistAll
 {
-    /**
-     * Before running {@link #gist(GistQuery)} a {@link GistQuery} should be
-     * planned. This gives the service a change to modify the query with
-     * defaults and auto-corrections.
-     *
-     * The result is exposed again so that the caller can use the modified
-     * {@link GistQuery} in subsequent processing steps like serialising the
-     * result based on the {@link GistQuery#getFields()}.
-     *
-     * @param query A {@link GistQuery} as build by the caller
-     * @return the rectified {@link GistQuery} that should be used to query
-     *         results. This might be the same instance as the provided one or a
-     *         modified "copy".
-     */
-    GistQuery plan( GistQuery query );
+    XL( GistProjection.ID_OBJECTS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    L( GistProjection.IDS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    M( GistProjection.SIZE, complementOf( of( PropertyType.PASSWORD ) ) ),
+    S( GistProjection.NONE, complementOf( of( PropertyType.PASSWORD, PropertyType.COMPLEX ) ) ),
+    XS( GistProjection.NONE, of( PropertyType.IDENTIFIER, PropertyType.TEXT, PropertyType.EMAIL ) );
 
-    List<?> gist( GistQuery query );
+    private final GistProjection defaultProjection;
 
-    GistPager pager( GistQuery query, List<?> rows, Map<String, String[]> params );
+    private final EnumSet<PropertyType> includedByDefault;
+
+    public GistProjection getDefaultProjection()
+    {
+        return defaultProjection;
+    }
+
+    public boolean isIncludedByDefault( Property p )
+    {
+        return includedByDefault.contains( p.getPropertyType() )
+            && (!p.isCollection() || includedByDefault.contains( p.getItemPropertyType() ));
+    }
 }

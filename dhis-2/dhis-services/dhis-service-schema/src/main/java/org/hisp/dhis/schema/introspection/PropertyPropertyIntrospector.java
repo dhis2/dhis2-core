@@ -207,6 +207,10 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
             {
                 property.setReadable( false );
             }
+            if ( pAnnotation.basedOn().length == 1 && property.getFieldName() == null )
+            {
+                property.setFieldName( pAnnotation.basedOn()[0] );
+            }
         }
     }
 

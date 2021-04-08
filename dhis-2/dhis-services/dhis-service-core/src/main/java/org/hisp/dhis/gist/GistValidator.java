@@ -55,14 +55,13 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 final class GistValidator
 {
-
     private final CurrentUserService currentUserService;
 
     private final AclService aclService;
 
     private final IdentifiableObjectManager objectManager;
 
-    public void validateQuery( GistQuery<?> query, RelativePropertyContext context )
+    public void validateQuery( GistQuery query, RelativePropertyContext context )
     {
         Owner owner = query.getOwner();
         if ( owner != null )
@@ -101,6 +100,10 @@ final class GistValidator
     private void validateField( Field f, RelativePropertyContext context )
     {
         String path = f.getPropertyPath();
+        if ( Field.REFS_PATH.equals( path ) )
+        {
+            return;
+        }
         Property field = context.resolveMandatory( path );
         if ( !field.isReadable() )
         {

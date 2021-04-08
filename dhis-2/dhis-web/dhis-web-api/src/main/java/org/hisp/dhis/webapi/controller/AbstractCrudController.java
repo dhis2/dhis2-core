@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
@@ -79,12 +80,12 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.gist.GistAll;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.gist.GistService;
-import org.hisp.dhis.gist.GistVerbosity;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -121,7 +122,8 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.webapi.JsonData;
+import org.hisp.dhis.webapi.JsonBuilder;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -358,19 +360,21 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         boolean headless = params.getBoolean( "headless", false );
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery<?> query = gistService.plan( GistQuery.builder()
-            .elementType( (Class<IdentifiableObject>) getEntityClass() )
-            .verbosity( params.getEnum( "form", GistVerbosity.CONCISE ) )
+        GistQuery query = gistService.plan( GistQuery.builder()
+            .elementType( getEntityClass() )
+            .all( params.getEnum( "all", GistAll.S ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( locale )
             .build()
             .with( params ) );
         List<?> elements = gistService.gist( query );
-        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
-            .toArray( query.getFieldNames(), elements );
+        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
+        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
         if ( !headless )
         {
-            // TODO wrap in pager
+            body = responseBuilder.toObject(
+                asList( "pager", getSchema().getPlural() ),
+                gistService.pager( query, elements, request.getParameterMap() ), body );
         }
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
     }
@@ -379,23 +383,22 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
         @PathVariable( "uid" ) String uid,
         HttpServletRequest request, HttpServletResponse response )
+        throws NotFoundException
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
-        boolean headless = params.getBoolean( "headless", false );
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery<?> query = gistService.plan( GistQuery.builder()
-            .elementType( (Class<IdentifiableObject>) getEntityClass() )
-            .verbosity( params.getEnum( "form", GistVerbosity.VERBOSE ) )
+        GistQuery query = gistService.plan( GistQuery.builder()
+            .elementType( getEntityClass() )
+            .all( params.getEnum( "all", GistAll.L ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( locale )
             .build()
             .with( params ).withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
         List<?> elements = gistService.gist( query );
-        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
-            .toArray( query.getFieldNames(), elements );
-        if ( !headless )
+        JsonNode body = new JsonBuilder( jsonMapper ).skipNullOrEmpty().toArray( query.getFieldNames(), elements );
+        if ( body.isEmpty() )
         {
-            // TODO wrap in pager
+            throw NotFoundException.notFoundUid( uid );
         }
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body.get( 0 ) );
     }
@@ -410,23 +413,25 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         boolean headless = params.getBoolean( "headless", false );
         Locale locale = UserContext.getUserSetting( UserSettingKey.DB_LOCALE );
-        GistQuery<?> query = gistService.plan( GistQuery.builder()
+        GistQuery query = gistService.plan( GistQuery.builder()
             .owner( Owner.builder()
                 .id( uid )
                 .type( getEntityClass() )
                 .collectionProperty( property ).build() )
             .elementType( (Class<IdentifiableObject>) collection.getItemKlass() )
-            .verbosity( params.getEnum( "form", GistVerbosity.BALANCED ) )
+            .all( params.getEnum( "all", GistAll.M ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( locale )
             .build()
             .with( params ) );
         List<?> elements = gistService.gist( query );
-        JsonNode body = new JsonData( jsonMapper ).skipNullOrEmpty()
-            .toArray( query.getFieldNames(), elements );
+        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
+        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
         if ( !headless )
         {
-            // TODO wrap in pager
+            body = responseBuilder.toObject(
+                asList( "pager", schemaService.getDynamicSchema( collection.getItemKlass() ).getPlural() ),
+                gistService.pager( query, elements, request.getParameterMap() ), body );
         }
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
     }

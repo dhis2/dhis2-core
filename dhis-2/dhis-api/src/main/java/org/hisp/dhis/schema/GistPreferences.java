@@ -42,7 +42,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public final class GistPreferences
 {
     public static final GistPreferences DEFAULT = new GistPreferences( Flag.AUTO,
-        emptyList(), GistLinkage.AUTO, EnumSet.allOf( GistLinkage.class ) );
+        emptyList(), GistProjection.AUTO, EnumSet.allOf( GistProjection.class ) );
 
     @Getter
     @JsonProperty
@@ -65,16 +65,16 @@ public final class GistPreferences
      */
     @Getter
     @JsonProperty
-    private final GistLinkage defaultLinkage;
+    private final GistProjection defaultLinkage;
 
     /**
      * In case this is a collection property: how *can* it be viewed as part of
      * its parent/owner object?
      */
     @JsonProperty
-    private final EnumSet<GistLinkage> options;
+    private final EnumSet<GistProjection> options;
 
-    public boolean isOptions( GistLinkage type )
+    public boolean isOptions( GistProjection type )
     {
         return options.contains( type );
     }
