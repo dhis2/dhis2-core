@@ -3512,6 +3512,33 @@
       "userAccesses": [],
       "legendSets": [],
       "aggregationLevels": []
+    },
+    {
+      "lastUpdated": "2019-03-28T12:52:29.860",
+      "id": "Cu25LGNfGEU",
+      "created": "2019-03-28T12:50:47.868",
+      "name": "TA Age",
+      "shortName": "TA Age",
+      "aggregationType": "AVERAGE",
+      "domainType": "AGGREGATE",
+      "publicAccess": "rw------",
+      "valueType": "NUMBER",
+      "zeroIsSignificant": false,
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "translations": [],
+      "userGroupAccesses": [
+        {
+          "access": "rw------",
+          "userGroupUid": "OPVIvvXzNTw",
+          "id": "OPVIvvXzNTw"
+        }
+      ],
+      "attributeValues": [],
+      "userAccesses": [],
+      "legendSets": [],
+      "aggregationLevels": []
     }
   ],
   "programIndicators": [
