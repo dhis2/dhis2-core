@@ -201,14 +201,15 @@ public class DefaultAnalyticsSecurityManager
 
     /**
      * Will extract, from the given "programCategories/Category" list, any
-     * CategoryOption which the current user is authorized to read. The
-     * extracted CategoryOption's will be added to the list of non-authorized
+     * CategoryOption which the current user is not authorized to read. The
+     * extracted CategoryOption's will be add to the list of non-authorized
      * CategoryOption's. See
      * {@link org.hisp.dhis.analytics.event.data.QueryExclusion#getNonAuthorizedCategoryOptions()}.
      *
      * @param programCategories the list of program categories.
      * @return the map of CategoryOption's not authorized for the current user,
-     *         for each Category.
+     *         for each Category in the format [categoryId,
+     *         nonAuthorizedCategoriesOptions]
      */
     Map<String, List<CategoryOption>> extractNonAuthorizedCategoriesOptionsFrom(
         final List<Category> programCategories )
@@ -229,8 +230,8 @@ public class DefaultAnalyticsSecurityManager
                     {
                         if ( !hasDataReadPermissionFor( categoryOption ) )
                         {
-                            // Adding to the list that holds the non-authorized
-                            // program category options.
+                            // Adding to the list of non-authorized category
+                            // options.
                             nonAuthorizedCategoriesOptions.add( categoryOption );
                         }
                     }
