@@ -53,10 +53,7 @@ import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerIdentifierParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.domain.Enrollment;
-import org.hisp.dhis.tracker.domain.Event;
-import org.hisp.dhis.tracker.domain.TrackedEntity;
-import org.hisp.dhis.tracker.domain.TrackerDto;
+import org.hisp.dhis.tracker.domain.*;
 import org.hisp.dhis.tracker.preheat.ReferenceTrackerEntity;
 import org.hisp.dhis.tracker.report.ValidationErrorReporter;
 
@@ -222,6 +219,11 @@ public class TrackerImportValidationContext
     public ProgramStageInstance getProgramStageInstance( String event )
     {
         return bundle.getPreheat().getEvent( bundle.getIdentifier(), event );
+    }
+
+    public org.hisp.dhis.relationship.Relationship getRelationship( Relationship relationship )
+    {
+        return bundle.getPreheat().getRelationship( bundle.getIdentifier(), relationship );
     }
 
     public CategoryOptionCombo getCategoryOptionCombo( String id )

@@ -27,15 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1002;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1030;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1032;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1063;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1080;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1081;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1082;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1113;
-import static org.hisp.dhis.tracker.report.TrackerErrorCode.E1114;
+import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
@@ -184,7 +176,14 @@ public class PreCheckExistenceValidationHook
     @Override
     public void validateRelationship( ValidationErrorReporter reporter, Relationship relationship )
     {
-        // TODO need to add existence check for relationship
+        TrackerImportValidationContext context = reporter.getValidationContext();
+
+        org.hisp.dhis.relationship.Relationship existingRelationship = context.getRelationship( relationship );
+
+        if ( existingRelationship != null )
+        {
+            addWarning( reporter, E4015, relationship.getRelationship() );
+        }
     }
 
     @Override
