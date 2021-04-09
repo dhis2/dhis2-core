@@ -46,10 +46,12 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.reporttable.ReportTable;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -88,6 +90,8 @@ public enum Objects
     DASHBOARD( "dashboard", Dashboard.class ),
     PROGRAM( "program", Program.class ),
     PROGRAMSTAGEINSTANCE( "programStageInstance", ProgramStageInstance.class ),
+    PROGRAMINSTANCE( "programInstance", ProgramInstance.class ),
+    TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntityInstance.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class );
 
     private String value;
