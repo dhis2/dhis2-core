@@ -325,7 +325,7 @@ public class SystemController
     @RequestMapping( value = "/objectCounts", method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectCounts()
     {
-        Map<Objects, Integer> objectCounts = statisticsProvider.getObjectCounts();
+        Map<Objects, Long> objectCounts = statisticsProvider.getObjectCounts();
         RootNode rootNode = NodeUtils.createRootNode( "objectCounts" );
 
         for ( Objects objects : objectCounts.keySet() )
