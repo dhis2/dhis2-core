@@ -431,7 +431,7 @@ public class DataQueryParams
     /**
      * Holds objects to be excluded at querying time.
      */
-    protected transient QueryExclusion exclusion;
+    protected QueryExclusion exclusion;
 
     /**
      * Applies to reporting rates only. Indicates whether only timely reports

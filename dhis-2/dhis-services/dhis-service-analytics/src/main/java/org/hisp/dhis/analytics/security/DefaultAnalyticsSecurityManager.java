@@ -224,17 +224,8 @@ public class DefaultAnalyticsSecurityManager
 
                 if ( isNotEmpty( categoryOptions ) )
                 {
-                    final List<CategoryOption> nonAuthorizedCategoriesOptions = new ArrayList<>();
-
-                    for ( final CategoryOption categoryOption : categoryOptions )
-                    {
-                        if ( !hasDataReadPermissionFor( categoryOption ) )
-                        {
-                            // Adding to the list of non-authorized category
-                            // options.
-                            nonAuthorizedCategoriesOptions.add( categoryOption );
-                        }
-                    }
+                    final List<CategoryOption> nonAuthorizedCategoriesOptions = getNonAuthorizedCategoryOptions(
+                        categoryOptions );
 
                     // For each Category, add the list of non-authorized
                     // CategoryOption's.
@@ -248,6 +239,29 @@ public class DefaultAnalyticsSecurityManager
         }
 
         return nonAuthorizedCategoriesOptionsPerCategory;
+    }
+
+    /**
+     * Based on the given list of category options, this method will return back
+     * a sublist of category options that the current user cannot read.
+     *
+     * @param categoryOptions the list of category options to be checked
+     * @return a list of not authorized (read permission) category options
+     */
+    private List<CategoryOption> getNonAuthorizedCategoryOptions( final List<CategoryOption> categoryOptions )
+    {
+        final List<CategoryOption> nonAuthorizedCategoriesOptions = new ArrayList<>();
+
+        for ( final CategoryOption categoryOption : categoryOptions )
+        {
+            if ( !hasDataReadPermissionFor( categoryOption ) )
+            {
+                // Adding to the list of non-authorized category
+                // options.
+                nonAuthorizedCategoriesOptions.add( categoryOption );
+            }
+        }
+        return nonAuthorizedCategoriesOptions;
     }
 
     private boolean hasDataReadPermissionFor( final CategoryOption categoryOption )
