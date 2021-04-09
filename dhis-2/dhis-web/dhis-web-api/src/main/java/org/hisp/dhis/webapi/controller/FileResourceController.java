@@ -147,7 +147,7 @@ public class FileResourceController
         throws WebMessageException,
         IOException
     {
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
+        FileResource fileResource = fileResourceUtils.saveFileResource( file, domain );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );

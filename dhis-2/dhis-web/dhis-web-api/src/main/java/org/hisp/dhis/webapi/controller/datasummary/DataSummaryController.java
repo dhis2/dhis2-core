@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.datasummary;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
+
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.datastatistics.DataStatisticsService;
 import org.hisp.dhis.datasummary.DataSummary;
@@ -53,7 +55,7 @@ public class DataSummaryController
     @Autowired
     private DataStatisticsService dataStatisticsService;
 
-    @GetMapping
+    @GetMapping( produces = APPLICATION_JSON_VALUE )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     public @ResponseBody DataSummary getStatistics()
     {

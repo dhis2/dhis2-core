@@ -65,12 +65,12 @@ public class TrackerValidationConfig
     public List<Class<? extends TrackerValidationHook>> getValidationOrder()
     {
         return ImmutableList.of(
-            PreCheckValidateAndGenerateUidHook.class,
+            PreCheckUidValidationHook.class,
             PreCheckExistenceValidationHook.class,
             PreCheckMandatoryFieldsValidationHook.class,
             PreCheckMetaValidationHook.class,
-            PreCheckSecurityValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
+            PreCheckSecurityValidationHook.class,
             PreCheckOwnershipValidationHook.class,
 
             TrackedEntityAttributeValidationHook.class,

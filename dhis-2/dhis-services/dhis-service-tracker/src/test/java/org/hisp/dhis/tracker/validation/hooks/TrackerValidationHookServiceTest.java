@@ -60,14 +60,14 @@ public class TrackerValidationHookServiceTest
     public void shouldSortList()
     {
         ReflectionTestUtils.setField( trackerValidationHookService, "validationOrder",
-            Arrays.asList( PreCheckValidateAndGenerateUidHook.class, EnrollmentAttributeValidationHook.class,
+            Arrays.asList( PreCheckUidValidationHook.class, EnrollmentAttributeValidationHook.class,
                 TrackedEntityAttributeValidationHook.class, EventDataValuesValidationHook.class ) );
 
         ReflectionTestUtils.setField( trackerValidationHookService, "validationOrderMap",
             new HashMap<Class<? extends TrackerValidationHook>, Integer>()
             {
                 {
-                    put( PreCheckValidateAndGenerateUidHook.class, 0 );
+                    put( PreCheckUidValidationHook.class, 0 );
                     put( EnrollmentAttributeValidationHook.class, 1 );
                     put( TrackedEntityAttributeValidationHook.class, 2 );
                     put( EventDataValuesValidationHook.class, 3 );
@@ -79,10 +79,10 @@ public class TrackerValidationHookServiceTest
                 Arrays.asList( new EventDataValuesValidationHook(),
                     new TrackedEntityAttributeValidationHook( null, mock( ReservedValueService.class ),
                         mock( DhisConfigurationProvider.class ) ),
-                    new EnrollmentAttributeValidationHook( null ), new PreCheckValidateAndGenerateUidHook() ) );
+                    new EnrollmentAttributeValidationHook( null ), new PreCheckUidValidationHook() ) );
 
         assertEquals( 4, validationHooks.size() );
-        assertThat( validationHooks.get( 0 ), instanceOf( PreCheckValidateAndGenerateUidHook.class ) );
+        assertThat( validationHooks.get( 0 ), instanceOf( PreCheckUidValidationHook.class ) );
         assertThat( validationHooks.get( 1 ), instanceOf( EnrollmentAttributeValidationHook.class ) );
         assertThat( validationHooks.get( 2 ), instanceOf( TrackedEntityAttributeValidationHook.class ) );
         assertThat( validationHooks.get( 3 ), instanceOf( EventDataValuesValidationHook.class ) );

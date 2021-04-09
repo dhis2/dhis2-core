@@ -34,6 +34,7 @@ import java.util.List;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.paging.ActionPagingSupport;
+import org.hisp.dhis.user.User;
 
 /**
  * @author mortenoh
@@ -84,6 +85,8 @@ public class GetDataElementCategoriesAction
     public String execute()
         throws Exception
     {
+        canReadType( Category.class );
+
         if ( type == null )
         {
             dataElementCategories = new ArrayList<>(
@@ -99,6 +102,9 @@ public class GetDataElementCategoriesAction
             dataElementCategories = new ArrayList<>(
                 dataElementCategoryService.getDisaggregationCategories() );
         }
+
+        User currentUser = currentUserService.getCurrentUser();
+        dataElementCategories.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( dataElementCategories );
 

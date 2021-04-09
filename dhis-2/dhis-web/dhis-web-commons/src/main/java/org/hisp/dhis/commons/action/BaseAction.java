@@ -25,58 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.useraccount.action;
+package org.hisp.dhis.commons.action;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserCredentials;
-
-import com.opensymphony.xwork2.Action;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Chau Thu Tran
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetCurrentUserAction
-    implements Action
+public abstract class BaseAction
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Autowired
+    protected AclService aclService;
 
-    private CurrentUserService currentUserService;
+    @Autowired
+    protected CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private UserCredentials userCredentials;
-
-    // -------------------------------------------------------------------------
-    // Getters && Setters
-    // -------------------------------------------------------------------------
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
+    public final <T extends IdentifiableObject> void canReadType( Class<T> type )
     {
-        this.currentUserService = currentUserService;
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
+        }
     }
 
-    public UserCredentials getUserCredentials()
+    public final void canReadInstance( IdentifiableObject instance, User currentUser )
     {
-        return userCredentials;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        User user = currentUserService.getCurrentUser();
-
-        userCredentials = user.getUserCredentials();
-
-        return SUCCESS;
+        if ( !aclService.canRead( currentUser, instance ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read this object instance." );
+        }
     }
 }

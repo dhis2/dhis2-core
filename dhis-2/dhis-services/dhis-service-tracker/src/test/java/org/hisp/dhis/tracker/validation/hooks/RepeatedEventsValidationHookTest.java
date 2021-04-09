@@ -217,7 +217,6 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setUid( uid );
         event.setProgram( PROGRAM_WITHOUT_REGISTRATION );
         event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
         return event;
@@ -227,7 +226,6 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setUid( uid );
         event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
         event.setProgramStage( NOT_REPEATABLE_PROGRAM_STAGE );
@@ -238,7 +236,6 @@ public class RepeatedEventsValidationHookTest
     {
         Event event = new Event();
         event.setEvent( uid );
-        event.setUid( uid );
         event.setProgram( PROGRAM_WITH_REGISTRATION );
         event.setEnrollment( ENROLLMENT_A );
         event.setProgramStage( REPEATABLE_PROGRAM_STAGE );
