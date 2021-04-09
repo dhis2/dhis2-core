@@ -358,9 +358,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             ruleActions = programRuleActions.stream().map( this::toRuleAction ).collect( Collectors.toList() );
 
             rule = Rule.create(
-                    programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
-                    programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName(),
-                    programRule.getUid() );
+                programRule.getProgramStage() != null ? programRule.getProgramStage().getUid() : StringUtils.EMPTY,
+                programRule.getPriority(), programRule.getCondition(), ruleActions, programRule.getName(),
+                programRule.getUid() );
         }
         catch ( Exception e )
         {
