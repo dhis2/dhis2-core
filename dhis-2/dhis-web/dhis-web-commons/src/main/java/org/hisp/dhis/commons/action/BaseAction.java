@@ -27,63 +27,39 @@
  */
 package org.hisp.dhis.commons.action;
 
-import org.hisp.dhis.indicator.IndicatorGroupSet;
-import org.hisp.dhis.indicator.IndicatorService;
-
-import com.opensymphony.xwork2.Action;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Tran Thanh Tri
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class GetIndicatorGroupSetAction extends BaseAction
-    implements Action
+public abstract class BaseAction
 {
+    @Autowired
+    protected AclService aclService;
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    @Autowired
+    protected CurrentUserService currentUserService;
 
-    private IndicatorService indicatorService;
-
-    public void setIndicatorService( IndicatorService indicatorService )
+    public final <T extends IdentifiableObject> void canReadType( Class<T> type )
     {
-        this.indicatorService = indicatorService;
-    }
-
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
-
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private IndicatorGroupSet indicatorGroupSet;
-
-    public IndicatorGroupSet getIndicatorGroupSet()
-    {
-        return indicatorGroupSet;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( IndicatorGroupSet.class );
-
-        if ( id != null )
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
         {
-            indicatorGroupSet = indicatorService.getIndicatorGroupSet( id );
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
         }
+    }
 
-        canReadInstance( indicatorGroupSet, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
+    public final void canReadInstance( IdentifiableObject instance, User currentUser )
+    {
+        if ( !aclService.canRead( currentUser, instance ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read this object instance." );
+        }
     }
 }
