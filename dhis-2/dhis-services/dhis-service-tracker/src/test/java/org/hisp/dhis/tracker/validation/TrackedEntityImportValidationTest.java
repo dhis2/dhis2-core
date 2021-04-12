@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.core.Every.everyItem;
-import static org.hisp.dhis.tracker.TrackerImportStrategy.CREATE_AND_UPDATE;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -273,25 +272,6 @@ public class TrackedEntityImportValidationTest
             everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1006 ) ) ) );
 
         printReport( report );
-    }
-
-    private ValidateAndCommitTestUnit createTrackedEntityInstance( String jsonPayload )
-        throws IOException
-    {
-        // Given
-        TrackerImportParams trackerBundleParams = createBundleFromJson( jsonPayload );
-
-        // When
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams, CREATE_AND_UPDATE );
-
-        // Then
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getTrackedEntities().size() );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
-        assertEquals( 0, report.getErrorReports().size() );
-
-        return createAndUpdate;
     }
 
     @Test

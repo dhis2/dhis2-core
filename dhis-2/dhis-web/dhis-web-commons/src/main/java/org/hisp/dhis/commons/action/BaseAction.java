@@ -25,19 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.statistics;
+package org.hisp.dhis.commons.action;
 
-import java.util.Map;
-
-import org.hisp.dhis.common.Objects;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
- * @author Lars Helge Overland
- * @version $Id$
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface StatisticsProvider
+public abstract class BaseAction
 {
-    String ID = StatisticsProvider.class.getName();
+    @Autowired
+    protected AclService aclService;
 
-    Map<Objects, Long> getObjectCounts();
+    @Autowired
+    protected CurrentUserService currentUserService;
+
+    public final <T extends IdentifiableObject> void canReadType( Class<T> type )
+    {
+        if ( !aclService.canRead( currentUserService.getCurrentUser(), type ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read objects of this type." );
+        }
+    }
+
+    public final void canReadInstance( IdentifiableObject instance, User currentUser )
+    {
+        if ( !aclService.canRead( currentUser, instance ) )
+        {
+            throw new ReadAccessDeniedException(
+                "You don't have the proper permissions to read this object instance." );
+        }
+    }
 }
