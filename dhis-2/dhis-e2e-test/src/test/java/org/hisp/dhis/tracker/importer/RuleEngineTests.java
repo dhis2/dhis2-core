@@ -163,7 +163,7 @@ public class RuleEngineTests
         TrackerApiResponse response = trackerActions.postAndGetJobReport( payload );
 
         response.validateErrorReport()
-            .body( "errorCode", hasItem( "E1303" ) )
+            .body( "errorCode", hasItem( "E1301" ) )
             .body( "message", hasItem( stringContainsInOrder( "Mandatory DataElement", "is not present" ) ) );
     }
 

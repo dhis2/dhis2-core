@@ -21,7 +21,7 @@
           }
         } );
     </script>
-    <script type="text/javascript" src="login.js"></script>
+    <script type="text/javascript" src="../javascripts/login.js"></script>
     <link type="text/css" rel="stylesheet" href="../css/widgets.css">
     <link type="text/css" rel="stylesheet" href="../css/login.css">
     <link type="text/css" rel="stylesheet" href="../../api/files/style/external"/>

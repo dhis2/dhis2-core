@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.struts2.ServletActionContext;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 import org.hisp.dhis.validation.ValidationRule;
 import org.hisp.dhis.validation.ValidationRuleService;
@@ -41,7 +42,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author mortenoh
  */
-public class GetValidationRulesAction
+public class GetValidationRulesAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -73,7 +74,12 @@ public class GetValidationRulesAction
     @Override
     public String execute()
     {
+        canReadType( ValidationRule.class );
+
         validationRules = new ArrayList<>( validationRuleService.getAllValidationRules() );
+
+        User currentUser = currentUserService.getCurrentUser();
+        validationRules.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         ContextUtils.clearIfNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(),
             validationRules );

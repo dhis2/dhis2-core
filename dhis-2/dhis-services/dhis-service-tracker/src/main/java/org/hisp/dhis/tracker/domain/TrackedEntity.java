@@ -49,8 +49,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class TrackedEntity implements TrackerDto
 {
-    private String uid;
-
     @JsonProperty
     private String trackedEntity;
 
@@ -99,4 +97,10 @@ public class TrackedEntity implements TrackerDto
     @JsonProperty
     @Builder.Default
     private List<ProgramOwner> programOwners = new ArrayList<>();
+
+    @Override
+    public String getUid()
+    {
+        return this.trackedEntity;
+    }
 }

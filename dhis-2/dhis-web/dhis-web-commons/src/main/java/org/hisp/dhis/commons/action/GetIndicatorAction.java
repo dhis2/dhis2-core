@@ -35,7 +35,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetIndicatorAction
+public class GetIndicatorAction extends BaseAction
     implements Action
 {
     // -------------------------------------------------------------------------
@@ -78,10 +78,14 @@ public class GetIndicatorAction
     @Override
     public String execute()
     {
+        canReadType( Indicator.class );
+
         if ( id != null )
         {
             indicator = indicatorService.getIndicator( id );
         }
+
+        canReadInstance( indicator, currentUserService.getCurrentUser() );
 
         return SUCCESS;
     }
