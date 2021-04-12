@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.gist;
 
+import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
@@ -44,8 +46,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -59,10 +66,6 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.translation.Translation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -156,6 +159,24 @@ final class GistBuilder
         return query.getFields().stream().anyMatch( f -> f.getPropertyPath().equals( requiredPath ) );
     }
 
+    private String getMemberPath( String property )
+    {
+        List<Property> path = context.resolvePath( property );
+        return path.size() == 1 ? path.get( 0 ).getFieldName()
+            : path.stream().map( Property::getFieldName ).collect( joining( "." ) );
+    }
+
+    /*
+     * SQL response post processing...
+     */
+
+    @AllArgsConstructor( access = AccessLevel.PRIVATE )
+    public static final class IdObject
+    {
+        @JsonProperty
+        final String id;
+    }
+
     public void transform( List<Object[]> rows )
     {
         if ( fieldResultTransformers.isEmpty() )
@@ -174,13 +195,6 @@ final class GistBuilder
     private void addTransformer( Consumer<Object[]> transformer )
     {
         fieldResultTransformers.add( transformer );
-    }
-
-    private String getMemberPath( String property )
-    {
-        List<Property> path = context.resolvePath( property );
-        return path.size() == 1 ? path.get( 0 ).getFieldName()
-            : path.stream().map( Property::getFieldName ).collect( joining( "." ) );
     }
 
     private Object translate( Object value, String property, Object translations )
@@ -207,6 +221,10 @@ final class GistBuilder
         }
         return value;
     }
+
+    /*
+     * HQL query building...
+     */
 
     public String buildFetchHQL()
     {
@@ -583,11 +601,103 @@ final class GistBuilder
         return str.toString();
     }
 
-    @AllArgsConstructor( access = AccessLevel.PRIVATE )
-    public static final class IdObject
+    /*
+     * HQL query parameter mapping...
+     */
+
+    public void addFetchParameters( BiConsumer<String, Object> dest,
+        BiFunction<String, Class<?>, Object> argumentParser )
     {
-        @JsonProperty
-        final String id;
+        for ( Field field : query.getFields() )
+        {
+            if ( field.getTransformationArgument() != null && field.getTransformation() != GistTransform.PLUCK )
+            {
+                dest.accept( "p_" + field.getPropertyPath(), field.getTransformationArgument() );
+            }
+        }
+        addCountParameters( dest, argumentParser );
     }
 
+    public void addCountParameters( BiConsumer<String, Object> dest,
+        BiFunction<String, Class<?>, Object> argumentParser )
+    {
+        Owner owner = query.getOwner();
+        if ( owner != null )
+        {
+            dest.accept( "OwnerId", owner.getId() );
+        }
+        int i = 0;
+        for ( Filter filter : query.getFilters() )
+        {
+            Comparison operator = filter.getOperator();
+            if ( !operator.isUnary() )
+            {
+                Property property = context.resolveMandatory( filter.getPropertyPath() );
+                Object value = getParameterValue( property, filter, argumentParser );
+                dest.accept( "f_" + (i++), operator.isStringCompare()
+                    ? completeLikeExpression( operator, (String) value )
+                    : value );
+            }
+        }
+    }
+
+    private Object getParameterValue( Property property, Filter filter,
+        BiFunction<String, Class<?>, Object> argumentParser )
+    {
+        String[] value = filter.getValue();
+        if ( value.length == 0 )
+        {
+            return "";
+        }
+        if ( value.length == 1 )
+        {
+            return queryTypedValue( property, filter, value[0], argumentParser );
+        }
+        return stream( value ).map( e -> queryTypedValue( property, filter, e, argumentParser ) ).toArray();
+    }
+
+    private Object queryTypedValue( Property property, Filter filter, String value,
+        BiFunction<String, Class<?>, Object> argumentParser )
+    {
+        if ( value == null || property.getKlass() == String.class )
+        {
+            return value;
+        }
+        if ( isCollectionSizeFilter( filter, property ) )
+        {
+            // TODO parse error handling
+            return Integer.parseInt( value );
+        }
+        String valueAsJson = value;
+        Class<?> itemType = getBaseType( property );
+        if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
+        {
+            valueAsJson = '"' + value + '"';
+        }
+        return argumentParser.apply( valueAsJson, itemType );
+    }
+
+    private static Object completeLikeExpression( Comparison operator, String value )
+    {
+        switch ( operator )
+        {
+        case LIKE:
+        case NOT_LIKE:
+            return value.contains( "*" ) || value.contains( "?" )
+                ? value.replace( "*", "%" ).replace( "?", "_" )
+                : "%" + value + "%";
+        case STARTS_LIKE:
+        case STARTS_WITH:
+        case NOT_STARTS_LIKE:
+        case NOT_STARTS_WITH:
+            return "%" + value;
+        case ENDS_LIKE:
+        case ENDS_WITH:
+        case NOT_ENDS_LIKE:
+        case NOT_ENDS_WITH:
+            return value + "%";
+        default:
+            return value;
+        }
+    }
 }

@@ -27,10 +27,20 @@
  */
 package org.hisp.dhis.gist;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.Schema;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Pager POJO for paging gist lists.
@@ -65,5 +75,62 @@ public final class GistPager
     public String toString()
     {
         return "[Page: " + page + " size: " + pageSize + "]";
+    }
+
+    public static String computeBaseURL( GistQuery query, Map<String, String[]> params,
+        Function<Class<?>, Schema> schemaByType )
+    {
+        StringBuilder url = new StringBuilder();
+        url.append( query.getEndpointRoot() );
+        Owner owner = query.getOwner();
+        if ( owner != null )
+        {
+            Schema o = schemaByType.apply( owner.getType() );
+            url.append( o.getRelativeApiEndpoint() ).append( '/' ).append( owner.getId() ).append( '/' );
+            Property p = o.getProperty( owner.getCollectionProperty() );
+            url.append( p.key() ).append( "/gist" );
+        }
+        else
+        {
+            Schema s = schemaByType.apply( query.getElementType() );
+            url.append( s.getRelativeApiEndpoint() );
+            url.append( "/gist" );
+        }
+        url.append( '?' );
+        for ( Entry<String, String[]> param : params.entrySet() )
+        {
+            if ( !param.getKey().equals( "page" ) )
+            {
+                for ( String value : param.getValue() )
+                {
+                    appendNextParameter( url );
+                    appendParameterKeyValue( url, param, value );
+                }
+            }
+        }
+        appendNextParameter( url );
+        return url.toString();
+    }
+
+    private static void appendParameterKeyValue( StringBuilder url, Entry<String, String[]> param, String value )
+    {
+        try
+        {
+            url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
+            url.append( '=' );
+            url.append( URLEncoder.encode( value, "UTF-8" ) );
+        }
+        catch ( UnsupportedEncodingException e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+
+    private static void appendNextParameter( StringBuilder url )
+    {
+        if ( url.charAt( url.length() - 1 ) != '?' )
+        {
+            url.append( '&' );
+        }
     }
 }

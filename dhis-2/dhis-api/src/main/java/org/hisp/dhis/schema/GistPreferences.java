@@ -33,10 +33,10 @@ import static java.util.Collections.emptyList;
 import java.util.EnumSet;
 import java.util.List;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist}

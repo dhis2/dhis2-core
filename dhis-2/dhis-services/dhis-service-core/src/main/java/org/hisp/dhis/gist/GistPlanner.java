@@ -44,6 +44,8 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.gist.GistQuery.Field;
@@ -51,8 +53,6 @@ import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
-
-import lombok.AllArgsConstructor;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s

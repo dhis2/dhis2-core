@@ -27,26 +27,18 @@
  */
 package org.hisp.dhis.gist;
 
-import static java.util.Arrays.stream;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
-import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.gist.GistQuery.Comparison;
-import org.hisp.dhis.gist.GistQuery.Field;
-import org.hisp.dhis.gist.GistQuery.Filter;
-import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.schema.GistTransform;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
@@ -54,9 +46,6 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jan Bernitt
@@ -92,7 +81,7 @@ public class DefaultGistService implements GistService
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
         GistBuilder queryBuilder = createFetchBuilder( query, context );
-        List<Object[]> rows = listWithParameters( query, context,
+        List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
         return rows;
@@ -108,7 +97,7 @@ public class DefaultGistService implements GistService
         Integer total = null;
         if ( schema.haveApiEndpoint() )
         {
-            String baseURL = computeBaseURL( query, params );
+            String baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
             if ( page > 1 )
             {
                 prev = baseURL + "page=" + (page - 1);
@@ -128,67 +117,11 @@ public class DefaultGistService implements GistService
             {
                 RelativePropertyContext context = createPropertyContext( query );
                 GistBuilder countBuilder = createCountBuilder( query, context );
-                total = countWithParameters( query, context,
+                total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }
         }
         return new GistPager( page, query.getPageSize(), total, prev, next );
-    }
-
-    private String computeBaseURL( GistQuery query, Map<String, String[]> params )
-    {
-        StringBuilder url = new StringBuilder();
-        url.append( query.getEndpointRoot() );
-        Owner owner = query.getOwner();
-        if ( owner != null )
-        {
-            Schema o = schemaService.getDynamicSchema( owner.getType() );
-            url.append( o.getRelativeApiEndpoint() ).append( '/' ).append( owner.getId() ).append( '/' );
-            Property p = o.getProperty( owner.getCollectionProperty() );
-            url.append( p.key() ).append( "/gist" );
-        }
-        else
-        {
-            Schema s = schemaService.getDynamicSchema( query.getElementType() );
-            url.append( s.getRelativeApiEndpoint() );
-            url.append( "/gist" );
-        }
-        url.append( '?' );
-        for ( Entry<String, String[]> param : params.entrySet() )
-        {
-            if ( !param.getKey().equals( "page" ) )
-            {
-                for ( String value : param.getValue() )
-                {
-                    appendNextParameter( url );
-                    appendParameterKeyValue( url, param, value );
-                }
-            }
-        }
-        appendNextParameter( url );
-        return url.toString();
-    }
-
-    private void appendParameterKeyValue( StringBuilder url, Entry<String, String[]> param, String value )
-    {
-        try
-        {
-            url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
-            url.append( '=' );
-            url.append( URLEncoder.encode( value, "UTF-8" ) );
-        }
-        catch ( UnsupportedEncodingException e )
-        {
-            throw new IllegalStateException( e );
-        }
-    }
-
-    private void appendNextParameter( StringBuilder url )
-    {
-        if ( url.charAt( url.length() - 1 ) != '?' )
-        {
-            url.append( '&' );
-        }
     }
 
     private RelativePropertyContext createPropertyContext( GistQuery query )
@@ -196,116 +129,32 @@ public class DefaultGistService implements GistService
         return new RelativePropertyContext( query.getElementType(), schemaService::getDynamicSchema );
     }
 
-    private <T> List<T> listWithParameters( GistQuery query, RelativePropertyContext context,
-        Query<T> dbQuery )
+    private <T> List<T> fetchWithParameters( GistQuery gistQuery, GistBuilder builder, Query<T> query )
     {
-        addFilterParameters( query, context, dbQuery );
-        for ( Field field : query.getFields() )
-        {
-            if ( field.getTransformationArgument() != null && field.getTransformation() != GistTransform.PLUCK )
-            {
-                dbQuery.setParameter( "p_" + field.getPropertyPath(), field.getTransformationArgument() );
-            }
-        }
-        dbQuery.setMaxResults( query.getPageSize() );
-        dbQuery.setFirstResult( query.getPageOffset() );
-        dbQuery.setCacheable( false );
-        return dbQuery.list();
+        builder.addFetchParameters( query::setParameter, this::parseFilterArgument );
+        query.setMaxResults( gistQuery.getPageSize() );
+        query.setFirstResult( gistQuery.getPageOffset() );
+        query.setCacheable( false );
+        return query.list();
     }
 
-    private int countWithParameters( GistQuery query, RelativePropertyContext context, Query<Long> dbQuery )
+    private int countWithParameters( GistBuilder builder, Query<Long> query )
     {
-        addFilterParameters( query, context, dbQuery );
-        dbQuery.setCacheable( false );
-        return ((Long) dbQuery.getSingleResult()).intValue();
+        builder.addCountParameters( query::setParameter, this::parseFilterArgument );
+        query.setCacheable( false );
+        return query.getSingleResult().intValue();
     }
 
-    private void addFilterParameters( GistQuery query, RelativePropertyContext context, Query<?> dbQuery )
+    private <T> T parseFilterArgument( String value, Class<T> type )
     {
-        Owner owner = query.getOwner();
-        if ( owner != null )
-        {
-            dbQuery.setParameter( "OwnerId", owner.getId() );
-        }
-        int i = 0;
-        for ( Filter filter : query.getFilters() )
-        {
-            Comparison operator = filter.getOperator();
-            if ( !operator.isUnary() )
-            {
-                Property property = context.resolveMandatory( filter.getPropertyPath() );
-                Object cmpValue = getParameterValue( property, filter );
-                dbQuery.setParameter( "f_" + (i++), operator.isStringCompare()
-                    ? completeLike( operator, (String) cmpValue )
-                    : cmpValue );
-            }
-        }
-    }
-
-    private static Object completeLike( Comparison operator, String cmpValue )
-    {
-        switch ( operator )
-        {
-        case LIKE:
-        case NOT_LIKE:
-            return cmpValue.contains( "*" ) || cmpValue.contains( "?" )
-                ? cmpValue.replace( "*", "%" ).replace( "?", "_" )
-                : "%" + cmpValue + "%";
-        case STARTS_LIKE:
-        case STARTS_WITH:
-        case NOT_STARTS_LIKE:
-        case NOT_STARTS_WITH:
-            return "%" + cmpValue;
-        case ENDS_LIKE:
-        case ENDS_WITH:
-        case NOT_ENDS_LIKE:
-        case NOT_ENDS_WITH:
-            return cmpValue + "%";
-        default:
-            return cmpValue;
-        }
-    }
-
-    private Object getParameterValue( Property property, Filter filter )
-    {
-        String[] value = filter.getValue();
-        if ( value.length == 0 )
-        {
-            return "";
-        }
-        if ( value.length == 1 )
-        {
-            return queryTypedValue( property, filter, value[0] );
-        }
-        return stream( value ).map( e -> queryTypedValue( property, filter, e ) ).toArray();
-    }
-
-    private Object queryTypedValue( Property property, Filter filter, String value )
-    {
-        if ( value == null || property.getKlass() == String.class )
-        {
-            return value;
-        }
-        if ( isCollectionSizeFilter( filter, property ) )
-        {
-            // TODO parse error handling
-            return Integer.parseInt( value );
-        }
-        String valueAsJson = value;
-        Class<?> itemType = GistLogic.getBaseType( property );
-        if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
-        {
-            valueAsJson = '"' + value + '"';
-        }
         try
         {
-            return jsonMapper.readValue( valueAsJson, itemType );
+            return jsonMapper.readValue( value, type );
         }
         catch ( JsonProcessingException e )
         {
-            throw new IllegalArgumentException( String
-                .format( "Property `%s` of type %s is not compatible with provided filter value: `%s`",
-                    property.getName(), itemType, value ) );
+            throw new IllegalArgumentException(
+                String.format( "Type %s is not compatible with provided filter value: `%s`", type, value ) );
         }
     }
 }

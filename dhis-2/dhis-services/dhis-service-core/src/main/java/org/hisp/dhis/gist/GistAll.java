@@ -32,11 +32,11 @@ import static java.util.EnumSet.of;
 
 import java.util.EnumSet;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
-
-import lombok.AllArgsConstructor;
 
 /**
  * Presets to scope what {@code :all} or {@code *} fields do include.

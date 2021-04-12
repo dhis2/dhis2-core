@@ -38,15 +38,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistTransform;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.GistTransform;
 
 /**
  * Description of the gist query that should be run.
