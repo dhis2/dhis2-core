@@ -42,6 +42,7 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -59,6 +60,8 @@ public class DefaultGistService implements GistService
     private final SessionFactory sessionFactory;
 
     private final SchemaService schemaService;
+
+    private final CurrentUserService currentUserService;
 
     private final ObjectMapper jsonMapper;
 
@@ -80,7 +83,7 @@ public class DefaultGistService implements GistService
     {
         RelativePropertyContext context = createPropertyContext( query );
         validator.validateQuery( query, context );
-        GistBuilder queryBuilder = createFetchBuilder( query, context );
+        GistBuilder queryBuilder = createFetchBuilder( query, context, currentUserService.getCurrentUser() );
         List<Object[]> rows = fetchWithParameters( query, queryBuilder,
             getSession().createQuery( queryBuilder.buildFetchHQL(), Object[].class ) );
         queryBuilder.transform( rows );
@@ -116,7 +119,7 @@ public class DefaultGistService implements GistService
             else
             {
                 RelativePropertyContext context = createPropertyContext( query );
-                GistBuilder countBuilder = createCountBuilder( query, context );
+                GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser() );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
             }

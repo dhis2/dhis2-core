@@ -50,22 +50,26 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -104,15 +108,17 @@ final class GistBuilder
 
     private static final String ID_PROPERTY = "id";
 
-    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context )
+    static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context, User user )
     {
-        return new GistBuilder( addSupportFields( query, context ), context );
+        return new GistBuilder( user, addSupportFields( query, context ), context );
     }
 
-    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context )
+    static GistBuilder createCountBuilder( GistQuery query, RelativePropertyContext context, User user )
     {
-        return new GistBuilder( query, context );
+        return new GistBuilder( user, query, context );
     }
+
+    private final User user;
 
     private final GistQuery query;
 
@@ -233,38 +239,56 @@ final class GistBuilder
     public String buildFetchHQL()
     {
         String fields = createFieldsHQL();
+        String access = createAccessHQL();
         String orders = createOrdersHQL();
         String filters = createFiltersHQL();
         String elementTable = query.getElementType().getSimpleName();
         Owner owner = query.getOwner();
         if ( owner == null )
         {
-            return String.format( "select %s from %s e where %s order by %s", fields, elementTable, filters, orders );
+            return String.format( "select %s from %s e where (%s) and (%s) order by %s",
+                fields, elementTable, filters, access, orders );
         }
         String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
         return String.format(
-            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) order by %s",
-            fields, ownerTable, elementTable, op, collectionName, filters, orders );
+            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) and (%s) order by %s",
+            fields, ownerTable, elementTable, op, collectionName, filters, access, orders );
     }
 
     public String buildCountHQL()
     {
         String filters = createFiltersHQL();
+        String access = createAccessHQL();
         String elementTable = query.getElementType().getSimpleName();
         Owner owner = query.getOwner();
         if ( owner == null )
         {
-            return String.format( "select count(*) from %s where %s", elementTable, filters );
+            return String.format( "select count(*) from %s where (%s) and (%s)", elementTable, filters, access );
         }
         String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
-        return String.format( "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s)",
-            ownerTable, elementTable, op, collectionName, filters );
+        return String.format(
+            "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) and (%s)",
+            ownerTable, elementTable, op, collectionName, filters, access );
+    }
+
+    private String createAccessHQL()
+    {
+        Property sharing = context.resolve( "sharing" );
+        if ( sharing == null || !sharing.isPersisted() || user == null || user.isSuper() )
+        {
+            return "1=1";
+        }
+        String access = JpaQueryUtils.generateSQlQueryForSharingCheck( "e.sharing", user,
+            AclService.LIKE_READ_METADATA );
+        // HQL does not allow the ->> syntax so we have to substitute with the
+        // named function: jsonb_extract_path_text
+        return access.replaceAll( "e.sharing->>'([^']+)'", JsonbFunctions.EXTRACT_PATH_TEXT + "(e.sharing, '$1')" );
     }
 
     private String createFieldsHQL()
@@ -654,12 +678,12 @@ final class GistBuilder
         }
         if ( value.length == 1 )
         {
-            return queryTypedValue( property, filter, value[0], argumentParser );
+            return getParameterValue( property, filter, value[0], argumentParser );
         }
-        return stream( value ).map( e -> queryTypedValue( property, filter, e, argumentParser ) ).toArray();
+        return stream( value ).map( e -> getParameterValue( property, filter, e, argumentParser ) ).toArray();
     }
 
-    private Object queryTypedValue( Property property, Filter filter, String value,
+    private Object getParameterValue( Property property, Filter filter, String value,
         BiFunction<String, Class<?>, Object> argumentParser )
     {
         if ( value == null || property.getKlass() == String.class )
