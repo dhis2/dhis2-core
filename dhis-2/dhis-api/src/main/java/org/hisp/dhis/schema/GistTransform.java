@@ -28,8 +28,8 @@
 package org.hisp.dhis.schema;
 
 /**
- * The {@link GistProjection} controls how relations between
- * {@link org.hisp.dhis.common.IdentifiableObject}s are displayed.
+ * The {@link GistTransform} controls what transformation is used to transform a
+ * list or complex value into a simple value that can be included in a gist.
  *
  * The intention is to provide guidance and protection so that request provide
  * useful information units while avoiding overly large responses that are slow
@@ -37,7 +37,7 @@ package org.hisp.dhis.schema;
  *
  * @author Jan Bernitt
  */
-public enum GistProjection
+public enum GistTransform
 {
     /**
      * No actual type but used to represent the choice that the actual value
@@ -66,8 +66,14 @@ public enum GistProjection
      */
     SIZE,
 
+    /**
+     * Has the collection a member X (X supplied as argument)
+     */
     MEMBER,
 
+    /**
+     * Lacks the collection a member X (X supplied as argument)
+     */
     NOT_MEMBER,
 
     /**
@@ -94,13 +100,13 @@ public enum GistProjection
      */
     PLUCK;
 
-    public static GistProjection parse( String projection )
+    public static GistTransform parse( String transform )
     {
-        int startOfArgument = projection.indexOf( '(' );
-        String name = (startOfArgument < 0 ? projection : projection.substring( 0, startOfArgument ))
+        int startOfArgument = transform.indexOf( '(' );
+        String name = (startOfArgument < 0 ? transform : transform.substring( 0, startOfArgument ))
             .replace( "-", "" )
             .replace( "+", "" );
-        for ( GistProjection p : values() )
+        for ( GistTransform p : values() )
         {
             if ( p.name().replace( "_", "" ).equalsIgnoreCase( name ) )
             {

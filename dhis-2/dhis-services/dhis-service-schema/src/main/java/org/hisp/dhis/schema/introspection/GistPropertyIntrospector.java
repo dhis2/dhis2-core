@@ -79,10 +79,10 @@ public class GistPropertyIntrospector implements PropertyIntrospector
                 }
             }
             property.setGistPreferences( new GistPreferences(
-                gist.includeByDefault(),
+                gist.included(),
                 asList( fields ),
-                gist.defaultLinkage(),
-                EnumSet.copyOf( asList( gist.options() ) ) ) );
+                gist.transformation(),
+                EnumSet.copyOf( asList( gist.availableTransformations() ) ) ) );
         }
         else if ( valueTypeGist != null )
         {

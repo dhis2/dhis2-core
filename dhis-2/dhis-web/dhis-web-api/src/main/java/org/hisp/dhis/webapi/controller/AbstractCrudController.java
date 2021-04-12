@@ -123,6 +123,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.JsonBuilder;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
 import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -271,22 +272,26 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         @PathVariable( "uid" ) String uid,
         @PathVariable( "property" ) String property,
         HttpServletRequest request, HttpServletResponse response )
-        throws NotFoundException
+        throws Exception
     {
-        Property listed = getSchema().getProperty( property );
-        if ( !listed.isCollection() )
+        Property objProperty = getSchema().getProperty( property );
+        if ( objProperty == null )
+        {
+            throw new BadRequestException( "No such property: " + property );
+        }
+        if ( !objProperty.isCollection() )
         {
             return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAll.L )
                 .withFilter( new Filter( "id", Comparison.EQ, uid ) )
                 .withField( property ) );
         }
-        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) listed.getItemKlass(), GistAll.M )
+        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(), GistAll.M )
             .withOwner( Owner.builder()
                 .id( uid )
                 .type( getEntityClass() )
                 .collectionProperty( property ).build() );
         return gistToJsonArrayResponse( request, query,
-            schemaService.getDynamicSchema( listed.getItemKlass() ) );
+            schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
 
     private static GistQuery createGistQuery( HttpServletRequest request,

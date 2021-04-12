@@ -71,12 +71,17 @@ public final class NamedParams
 
     public List<String> getStrings( String name )
     {
+        return getStrings( name, "," );
+    }
+
+    public List<String> getStrings( String name, String splitRegex )
+    {
         String[] value = multi.apply( name );
         if ( value == null || value.length == 0 )
         {
             return emptyList();
         }
-        return value.length == 1 ? asList( value[0].split( "," ) ) : asList( value );
+        return value.length == 1 ? asList( value[0].split( splitRegex ) ) : asList( value );
     }
 
     public int getInt( String name, int defaultValue )

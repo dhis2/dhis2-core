@@ -29,7 +29,7 @@ package org.hisp.dhis.gist;
 
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.GistPreferences.Flag;
-import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -41,22 +41,22 @@ import org.hisp.dhis.schema.Property;
 final class GistLogic
 {
 
-    static boolean isDefaultField( Property p, GistAll all )
+    static boolean isIncludedField( Property p, GistAll all )
     {
-        Flag includeByDefault = p.getGistPreferences().getIncludeByDefault();
-        if ( includeByDefault == Flag.TRUE )
+        Flag included = p.getGistPreferences().getIncluded();
+        if ( included == Flag.TRUE )
         {
             return true;
         }
-        if ( includeByDefault == Flag.FALSE )
+        if ( included == Flag.FALSE )
         {
             return false;
         }
         // AUTO:
-        return all.isIncludedByDefault( p ) && isAutoDefaultField( p );
+        return all.isIncluded( p ) && isAutoIncludedField( p );
     }
 
-    private static boolean isAutoDefaultField( Property p )
+    private static boolean isAutoIncludedField( Property p )
     {
         return p.isPersisted()
             && p.isReadable()
@@ -105,17 +105,17 @@ final class GistLogic
             && property.isCollection();
     }
 
-    static GistProjection effectiveProjection( Property property, GistProjection defaultQuery, GistProjection target )
+    static GistTransform effectiveTransform( Property property, GistTransform fallback, GistTransform target )
     {
-        if ( target == GistProjection.AUTO || !property.getGistPreferences().isOptions( target ) )
+        if ( target == GistTransform.AUTO || !property.getGistPreferences().isAvailableTransformation( target ) )
         {
-            target = property.getGistPreferences().getDefaultProjection();
+            target = property.getGistPreferences().getDefaultTransformation();
         }
-        if ( target == GistProjection.AUTO )
+        if ( target == GistTransform.AUTO )
         {
-            target = defaultQuery;
+            target = fallback;
         }
-        return target == GistProjection.AUTO ? GistProjection.NONE : target;
+        return target == GistTransform.AUTO ? GistTransform.NONE : target;
     }
 
     static Number rowCount( Object count )

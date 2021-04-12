@@ -32,7 +32,7 @@ import static java.util.EnumSet.of;
 
 import java.util.EnumSet;
 
-import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 
@@ -46,24 +46,24 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum GistAll
 {
-    XL( GistProjection.ID_OBJECTS, complementOf( of( PropertyType.PASSWORD ) ) ),
-    L( GistProjection.IDS, complementOf( of( PropertyType.PASSWORD ) ) ),
-    M( GistProjection.SIZE, complementOf( of( PropertyType.PASSWORD ) ) ),
-    S( GistProjection.NONE, complementOf( of( PropertyType.PASSWORD, PropertyType.COMPLEX ) ) ),
-    XS( GistProjection.NONE, of( PropertyType.IDENTIFIER, PropertyType.TEXT, PropertyType.EMAIL ) );
+    XL( GistTransform.ID_OBJECTS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    L( GistTransform.IDS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    M( GistTransform.SIZE, complementOf( of( PropertyType.PASSWORD ) ) ),
+    S( GistTransform.NONE, complementOf( of( PropertyType.PASSWORD, PropertyType.COMPLEX ) ) ),
+    XS( GistTransform.NONE, of( PropertyType.IDENTIFIER, PropertyType.TEXT, PropertyType.EMAIL ) );
 
-    private final GistProjection defaultProjection;
+    private final GistTransform defaultTransformation;
 
-    private final EnumSet<PropertyType> includedByDefault;
+    private final EnumSet<PropertyType> includes;
 
-    public GistProjection getDefaultProjection()
+    public GistTransform getDefaultTransformation()
     {
-        return defaultProjection;
+        return defaultTransformation;
     }
 
-    public boolean isIncludedByDefault( Property p )
+    public boolean isIncluded( Property p )
     {
-        return includedByDefault.contains( p.getPropertyType() )
-            && (!p.isCollection() || includedByDefault.contains( p.getItemPropertyType() ));
+        return includes.contains( p.getPropertyType() )
+            && (!p.isCollection() || includes.contains( p.getItemPropertyType() ));
     }
 }

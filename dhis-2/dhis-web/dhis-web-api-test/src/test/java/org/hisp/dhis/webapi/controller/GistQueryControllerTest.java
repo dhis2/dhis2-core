@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
@@ -174,5 +175,30 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
             getSuperuserUid() ).content();
 
         System.out.println( groups );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_SquareBracketsSyntax()
+    {
+        JsonObject user = GET( "/users/{uid}/gist?fields=id,userCredentials[id,username]",
+            getSuperuserUid() ).content();
+
+        assertEquals( 2, user.size() );
+        assertEquals( asList( "id", "username" ), user.getObject( "userCredentials" ).names() );
+    }
+
+    @Test
+    public void testGetObjectPropertyItems_DisplayName()
+    {
+        JsonObject response = GET( "/users/{uid}/userGroups/gist?fields=displayName,id",
+            getSuperuserUid() ).content();
+
+        // TODO set translation for name and verify we got the actual
+        // translation
+
+        JsonArray groups = response.getArray( "userGroups" );
+        assertEquals( 1, groups.size() );
+        JsonObject group = groups.getObject( 0 );
+        assertEquals( asList( "displayName", "id" ), group.names() );
     }
 }

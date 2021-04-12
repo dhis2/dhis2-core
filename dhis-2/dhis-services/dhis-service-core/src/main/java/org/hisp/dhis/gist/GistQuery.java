@@ -40,7 +40,7 @@ import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.GistTransform;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -48,11 +48,30 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+/**
+ * Description of the gist query that should be run.
+ *
+ * There are two essential types of queries:
+ * <ul>
+ * <li>owner property list query ({@link #owner} is non-null)</li>
+ * <li>direct list query ({@link #owner} is null)</li>
+ * </ul>
+ *
+ * @author Jan Bernitt
+ */
 @Getter
 @Builder( toBuilder = true )
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public final class GistQuery
 {
+
+    /**
+     * Fields allow {@code property[sub,sub]} syntax where a comma occurs as
+     * part of the property name. These commas need to be ignored when splitting
+     * a {@code fields} parameter list.
+     */
+    private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\])";
+
     /**
      * Query properties about the owner of the collection property.
      */
@@ -93,7 +112,7 @@ public final class GistQuery
     private final int pageSize;
 
     /**
-     * Include total match count in pager? default false.
+     * Include total match count in pager? Default false.
      */
     private final boolean total;
 
@@ -146,9 +165,9 @@ public final class GistQuery
         return fields.stream().map( Field::getName ).collect( toList() );
     }
 
-    public GistProjection getDefaultProjection()
+    public GistTransform getDefaultTransformation()
     {
-        return getAll() == null ? GistProjection.AUTO : getAll().getDefaultProjection();
+        return getAll() == null ? GistTransform.AUTO : getAll().getDefaultTransformation();
     }
 
     public String getEndpointRoot()
@@ -166,7 +185,8 @@ public final class GistQuery
             .total( params.getBoolean( "total", false ) )
             .absolute( params.getBoolean( "absolute", false ) )
             .headless( params.getBoolean( "headless", false ) )
-            .fields( params.getStrings( "fields" ).stream().map( Field::parse ).collect( toList() ) )
+            .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
+                .map( Field::parse ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
             .orders( params.getStrings( "order" ).stream().map( Order::parse ).collect( toList() ) )
             .build();
@@ -189,7 +209,7 @@ public final class GistQuery
 
     public GistQuery withField( String path )
     {
-        return withAddedItem( new Field( path, getDefaultProjection() ), getFields(), GistQueryBuilder::fields );
+        return withAddedItem( new Field( path, getDefaultTransformation() ), getFields(), GistQueryBuilder::fields );
     }
 
     public GistQuery withFields( List<Field> fields )
@@ -289,6 +309,7 @@ public final class GistQuery
     }
 
     @Getter
+    @Builder( toBuilder = true )
     @AllArgsConstructor
     public static final class Field
     {
@@ -296,15 +317,17 @@ public final class GistQuery
 
         private final String propertyPath;
 
-        private final GistProjection projection;
+        private final GistTransform transformation;
 
         private final String alias;
 
-        private final String projectionArgument;
+        private final String transformationArgument;
 
-        public Field( String propertyPath, GistProjection projection )
+        private final boolean translate;
+
+        public Field( String propertyPath, GistTransform transformation )
         {
-            this( propertyPath, projection, "", null );
+            this( propertyPath, transformation, "", null, false );
         }
 
         public String getName()
@@ -312,15 +335,30 @@ public final class GistQuery
             return alias.isEmpty() ? propertyPath : alias;
         }
 
-        public Field with( GistProjection projection )
+        public Field withTransformation( GistTransform transform )
         {
-            return this.projection == projection ? this : new Field( propertyPath, projection );
+            return toBuilder().transformation( transform ).build();
+        }
+
+        public Field withPropertyPath( String path )
+        {
+            return toBuilder().propertyPath( path ).build();
+        }
+
+        public Field withAlias( String alias )
+        {
+            return toBuilder().alias( alias ).build();
+        }
+
+        public Field withTranslate()
+        {
+            return toBuilder().translate( true ).build();
         }
 
         @Override
         public String toString()
         {
-            return propertyPath + "::" + projection.name().toLowerCase().replace( '_', '-' );
+            return propertyPath + "::" + transformation.name().toLowerCase().replace( '_', '-' );
         }
 
         public static Field parse( String field )
@@ -328,11 +366,11 @@ public final class GistQuery
             String[] parts = field.split( "(?:::|~|@)" );
             if ( parts.length == 1 )
             {
-                return new Field( field, GistProjection.AUTO );
+                return new Field( field, GistTransform.AUTO );
             }
-            GistProjection projection = GistProjection.AUTO;
+            GistTransform transform = GistTransform.AUTO;
             String alias = "";
-            String projectionArgument = null;
+            String arg = null;
             for ( int i = 1; i < parts.length; i++ )
             {
                 String part = parts[i];
@@ -342,14 +380,14 @@ public final class GistQuery
                 }
                 else
                 {
-                    projection = GistProjection.parse( part );
+                    transform = GistTransform.parse( part );
                     if ( part.indexOf( '(' ) >= 0 )
                     {
-                        projectionArgument = parseArgument( part );
+                        arg = parseArgument( part );
                     }
                 }
             }
-            return new Field( parts[0], projection, alias, projectionArgument );
+            return new Field( parts[0], transform, alias, arg, false );
         }
 
         private static String parseArgument( String part )

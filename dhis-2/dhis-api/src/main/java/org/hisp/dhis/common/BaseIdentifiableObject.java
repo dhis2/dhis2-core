@@ -369,7 +369,7 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attributeUid );
     }
 
-    @Gist( includeByDefault = Flag.FALSE )
+    @Gist( included = Flag.FALSE )
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
@@ -448,7 +448,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( includeByDefault = Flag.FALSE )
+    @Gist( included = Flag.FALSE )
     @Property( required = Value.TRUE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
@@ -550,7 +550,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( includeByDefault = Flag.FALSE )
+    @Gist( included = Flag.FALSE )
     @JsonProperty
     @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
     public Access getAccess()
@@ -588,7 +588,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( includeByDefault = Flag.FALSE )
+    @Gist( included = Flag.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()

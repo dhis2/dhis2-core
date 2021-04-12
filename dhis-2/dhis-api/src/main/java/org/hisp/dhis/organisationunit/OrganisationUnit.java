@@ -1068,7 +1068,7 @@ public class OrganisationUnit
         this.categoryOptions = categoryOptions;
     }
 
-    @Gist( includeByDefault = Flag.FALSE )
+    @Gist( included = Flag.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()

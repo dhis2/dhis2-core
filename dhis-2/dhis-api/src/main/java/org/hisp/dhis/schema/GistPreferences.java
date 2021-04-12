@@ -38,15 +38,21 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist}
+ * annotation to be included in {@link Property} metadata.
+ *
+ * @author Jan Bernitt
+ */
 @AllArgsConstructor
 public final class GistPreferences
 {
     public static final GistPreferences DEFAULT = new GistPreferences( Flag.AUTO,
-        emptyList(), GistProjection.AUTO, EnumSet.allOf( GistProjection.class ) );
+        emptyList(), GistTransform.AUTO, EnumSet.allOf( GistTransform.class ) );
 
     @Getter
     @JsonProperty
-    private final Flag includeByDefault;
+    private final Flag included;
 
     /**
      * In case this is a collection property: optional list of fields that by
@@ -65,23 +71,23 @@ public final class GistPreferences
      */
     @Getter
     @JsonProperty
-    private final GistProjection defaultProjection;
+    private final GistTransform defaultTransformation;
 
     /**
      * In case this is a collection property: how *can* it be viewed as part of
      * its parent/owner object?
      */
     @JsonProperty
-    private final EnumSet<GistProjection> options;
+    private final EnumSet<GistTransform> availableTransformations;
 
-    public boolean isOptions( GistProjection type )
+    public boolean isAvailableTransformation( GistTransform transform )
     {
-        return options.contains( type );
+        return availableTransformations.contains( transform );
     }
 
     public GistPreferences withFields( String... fields )
     {
-        return new GistPreferences( includeByDefault, asList( fields ), defaultProjection, options );
+        return new GistPreferences( included, asList( fields ), defaultTransformation, availableTransformations );
     }
 
     public enum Flag

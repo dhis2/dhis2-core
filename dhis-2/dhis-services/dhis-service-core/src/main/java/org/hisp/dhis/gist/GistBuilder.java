@@ -51,7 +51,7 @@ import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.RelativePropertyContext;
 import org.hisp.dhis.schema.Schema;
@@ -139,7 +139,7 @@ final class GistBuilder
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "id" ) );
             }
             // translatable fields? => make sure we have translations
-            if ( query.isTranslate() && p.isTranslatable()
+            if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
                 && !hasSameParentField( extended, f, "translations" ) )
             {
                 extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "translations" ) );
@@ -182,7 +182,7 @@ final class GistBuilder
             : path.stream().map( Property::getFieldName ).collect( joining( "." ) );
     }
 
-    private Object translated( Object value, String property, Object translations )
+    private Object translate( Object value, String property, Object translations )
     {
         @SuppressWarnings( "unchecked" )
         Set<Translation> list = (Set<Translation>) translations;
@@ -223,7 +223,7 @@ final class GistBuilder
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
         return String.format(
-            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s order by %s", fields,
+            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) order by %s", fields,
             ownerTable, elementTable, op, collectionName, filterBy, orderBy );
     }
 
@@ -240,7 +240,7 @@ final class GistBuilder
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
-        return String.format( "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and %s",
+        return String.format( "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s)",
             ownerTable, elementTable, op, collectionName, filterBy );
     }
 
@@ -267,7 +267,7 @@ final class GistBuilder
         if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
             int translationsFieldIndex = getSameParentFieldIndex( path, "translations" );
-            addTransformer( row -> row[index] = translated( row[index], property.getTranslationKey(),
+            addTransformer( row -> row[index] = translate( row[index], property.getTranslationKey(),
                 row[translationsFieldIndex] ) );
         }
         if ( isHrefProperty( property ) )
@@ -318,7 +318,7 @@ final class GistBuilder
             addTransformer( row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[index] ) ) );
         }
 
-        if ( getFieldProjection( field ) == GistProjection.ID_OBJECTS )
+        if ( getFieldTransform( field ) == GistTransform.ID_OBJECTS )
         {
             addTransformer( row -> row[index] = toIdObject( row[index] ) );
         }
@@ -342,8 +342,8 @@ final class GistBuilder
         addTransformer(
             row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
 
-        GistProjection projection = getFieldProjection( field );
-        switch ( projection )
+        GistTransform transform = getFieldTransform( field );
+        switch ( transform )
         {
         default:
         case AUTO:
@@ -387,14 +387,14 @@ final class GistBuilder
     private String createPluckTransformerHQL( int index, Field field, Property property )
     {
         String plucked = "uid";
-        if ( field.getProjectionArgument() != null )
+        if ( field.getTransformationArgument() != null )
         {
-            plucked = field.getProjectionArgument();
+            plucked = field.getTransformationArgument();
             Property pluckedProperty = context.switchedTo( property.getItemKlass() ).resolveMandatory( plucked );
-            if ( !pluckedProperty.getPropertyType().isTextual() )
+            if ( pluckedProperty.getKlass() != String.class )
             {
                 throw new UnsupportedOperationException( "Only textual properties can be plucked, but " + plucked
-                    + " is a: " + pluckedProperty.getPropertyType() );
+                    + " is a: " + pluckedProperty.getKlass() );
             }
         }
         String tableName = "t_" + index;
@@ -443,9 +443,9 @@ final class GistBuilder
             : Arrays.stream( ((String[]) ids) ).map( IdObject::new ).toArray();
     }
 
-    private GistProjection getFieldProjection( Field field )
+    private GistTransform getFieldTransform( Field field )
     {
-        return !isNonNestedPath( field.getPropertyPath() ) ? GistProjection.NONE : field.getProjection();
+        return !isNonNestedPath( field.getPropertyPath() ) ? GistTransform.NONE : field.getTransformation();
     }
 
     private Integer getSameParentFieldIndex( String path, String translations )

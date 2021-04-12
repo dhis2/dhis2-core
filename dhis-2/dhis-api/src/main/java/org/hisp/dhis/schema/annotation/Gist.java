@@ -36,7 +36,7 @@ import java.lang.annotation.Target;
 
 import org.hisp.dhis.schema.GistPreferences;
 import org.hisp.dhis.schema.GistPreferences.Flag;
-import org.hisp.dhis.schema.GistProjection;
+import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -54,7 +54,19 @@ import org.hisp.dhis.schema.Property;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface Gist
 {
-    Flag includeByDefault() default GistPreferences.Flag.AUTO;
+    /**
+     * <ol>
+     * <li>When true the annotated field is always included.</li>
+     * <li>When false the annotated field is only included when requested
+     * explicitly</li>
+     * <li>When auto the annotated field is included based on schema and
+     * logic</li>
+     * </ol>
+     *
+     * @return whether or not the annotated property is included in the set of
+     *         "all" fields.
+     */
+    Flag included() default GistPreferences.Flag.AUTO;
 
     /**
      * @return The list of fields shown when the referenced object is included
@@ -67,19 +79,19 @@ public @interface Gist
      * @return the type used in case the user has not specified the type
      *         explicitly.
      */
-    GistProjection defaultLinkage() default GistProjection.AUTO;
+    GistTransform transformation() default GistTransform.AUTO;
 
     /**
      * @return The set of types that can be used (are permitted). If a type is
      *         not included in the set but requested by a request the request is
      *         either denied or a permitted type is chosen instead.
      */
-    GistProjection[] options() default {
-        GistProjection.NONE,
-        GistProjection.SIZE,
-        GistProjection.IS_EMPTY,
-        GistProjection.IS_NOT_EMPTY,
-        GistProjection.IDS,
-        GistProjection.ID_OBJECTS };
+    GistTransform[] availableTransformations() default {
+        GistTransform.NONE,
+        GistTransform.SIZE,
+        GistTransform.IS_EMPTY,
+        GistTransform.IS_NOT_EMPTY,
+        GistTransform.IDS,
+        GistTransform.ID_OBJECTS };
 
 }
