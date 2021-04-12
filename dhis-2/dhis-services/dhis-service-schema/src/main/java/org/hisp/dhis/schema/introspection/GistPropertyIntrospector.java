@@ -71,12 +71,9 @@ public class GistPropertyIntrospector implements PropertyIntrospector
         if ( gist != null )
         {
             String[] fields = gist.fields();
-            if ( fields.length == 0 )
+            if ( fields.length == 0 && valueTypeGist != null )
             {
-                if ( valueTypeGist != null )
-                {
-                    fields = valueTypeGist.fields();
-                }
+                fields = valueTypeGist.fields();
             }
             property.setGistPreferences( new GistPreferences(
                 gist.included(),

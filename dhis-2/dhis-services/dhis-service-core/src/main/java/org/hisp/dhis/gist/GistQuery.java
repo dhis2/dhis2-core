@@ -38,15 +38,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.GistTransform;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistTransform;
 
 /**
  * Description of the gist query that should be run.
@@ -184,8 +184,8 @@ public final class GistQuery
     public GistQuery with( NamedParams params )
     {
         int page = abs( params.getInt( "page", 1 ) );
-        int pageSize = Math.min( 1000, abs( params.getInt( "pageSize", 50 ) ) );
-        return toBuilder().pageSize( pageSize ).pageOffset( Math.max( 0, page - 1 ) * pageSize )
+        int size = Math.min( 1000, abs( params.getInt( "pageSize", 50 ) ) );
+        return toBuilder().pageSize( size ).pageOffset( Math.max( 0, page - 1 ) * size )
             .translate( params.getBoolean( "translate", true ) )
             .inverse( params.getBoolean( "inverse", false ) )
             .total( params.getBoolean( "total", false ) )

@@ -50,10 +50,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -66,6 +62,10 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.translation.Translation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -98,7 +98,11 @@ final class GistBuilder
      * unknown. Therefore we just cast it to some simple type. Which is not
      * important as the value will be {@code null} anyway.
      */
-    public static final String HQL_NULL = "cast(null as char)";
+    private static final String HQL_NULL = "cast(null as char)";
+
+    private static final String TRANSLATIONS_PROPERTY = "translations";
+
+    private static final String ID_PROPERTY = "id";
 
     static GistBuilder createFetchBuilder( GistQuery query, RelativePropertyContext context )
     {
@@ -138,21 +142,21 @@ final class GistBuilder
             Property p = context.resolveMandatory( f.getPropertyPath() );
             // ID column not present but ID column required?
             if ( (isPersistentCollectionField( p ) || isHrefProperty( p ))
-                && !hasSameParentField( extended, f, "id" ) )
+                && !existsSameParentField( extended, f, ID_PROPERTY ) )
             {
-                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "id" ) );
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), ID_PROPERTY ) );
             }
             // translatable fields? => make sure we have translations
             if ( (query.isTranslate() || f.isTranslate()) && p.isTranslatable()
-                && !hasSameParentField( extended, f, "translations" ) )
+                && !existsSameParentField( extended, f, TRANSLATIONS_PROPERTY ) )
             {
-                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), "translations" ) );
+                extended = extended.withField( pathOnSameParent( f.getPropertyPath(), TRANSLATIONS_PROPERTY ) );
             }
         }
         return extended;
     }
 
-    private static boolean hasSameParentField( GistQuery query, Field field, String property )
+    private static boolean existsSameParentField( GistQuery query, Field field, String property )
     {
         String parentPath = parentPath( field.getPropertyPath() );
         String requiredPath = parentPath.isEmpty() ? property : parentPath + "." + property;
@@ -242,8 +246,8 @@ final class GistBuilder
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
         return String.format(
-            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) order by %s", fields,
-            ownerTable, elementTable, op, collectionName, filters, orders );
+            "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) order by %s",
+            fields, ownerTable, elementTable, op, collectionName, filters, orders );
     }
 
     public String buildCountHQL()
@@ -265,8 +269,6 @@ final class GistBuilder
 
     private String createFieldsHQL()
     {
-        // TODO when fields contains a property that is not persisted we
-        // must use "e" (all)
         int i = 0;
         for ( Field f : query.getFields() )
         {
@@ -285,14 +287,14 @@ final class GistBuilder
         Property property = context.resolveMandatory( path );
         if ( query.isTranslate() && property.isTranslatable() && query.getTranslationLocale() != null )
         {
-            int translationsFieldIndex = getSameParentFieldIndex( path, "translations" );
+            int translationsFieldIndex = getSameParentFieldIndex( path, TRANSLATIONS_PROPERTY );
             addTransformer( row -> row[index] = translate( row[index], property.getTranslationKey(),
                 row[translationsFieldIndex] ) );
         }
         if ( isHrefProperty( property ) )
         {
             String endpointRoot = getSameParentEndpointRoot( path );
-            Integer idFieldIndex = getSameParentFieldIndex( path, "id" );
+            Integer idFieldIndex = getSameParentFieldIndex( path, ID_PROPERTY );
             if ( idFieldIndex != null )
             {
                 addTransformer( row -> row[index] = toEndpointURL( endpointRoot, row[idFieldIndex] ) );
@@ -318,6 +320,7 @@ final class GistBuilder
         String idProperty = "uid";
         if ( property.getKlass() == PeriodType.class )
         {
+            // this is how HQL refers to discriminator property, here name
             idProperty = "class";
         }
         else if ( !property.isIdentifiableObject() )
@@ -356,7 +359,7 @@ final class GistBuilder
         String path = field.getPropertyPath();
         Property property = context.resolveMandatory( path );
         String endpointRoot = getSameParentEndpointRoot( path );
-        int idFieldIndex = getSameParentFieldIndex( path, "id" );
+        int idFieldIndex = getSameParentFieldIndex( path, ID_PROPERTY );
         int refIndex = fieldIndexByPath.get( Field.REFS_PATH );
         addTransformer(
             row -> addEndpointURL( row, refIndex, field, toEndpointURL( endpointRoot, row[idFieldIndex], property ) ) );
@@ -665,8 +668,7 @@ final class GistBuilder
         }
         if ( isCollectionSizeFilter( filter, property ) )
         {
-            // TODO parse error handling
-            return Integer.parseInt( value );
+            return argumentParser.apply( value, Integer.class );
         }
         String valueAsJson = value;
         Class<?> itemType = getBaseType( property );
@@ -683,7 +685,7 @@ final class GistBuilder
         {
         case LIKE:
         case NOT_LIKE:
-            return value.contains( "*" ) || value.contains( "?" )
+            return value != null && (value.contains( "*" ) || value.contains( "?" ))
                 ? value.replace( "*", "%" ).replace( "?", "_" )
                 : "%" + value + "%";
         case STARTS_LIKE:
