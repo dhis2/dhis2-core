@@ -29,6 +29,7 @@ package org.hisp.dhis.security;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.security.oidc.DhisOidcUser;
 import org.hisp.dhis.user.UserCredentials;
 import org.springframework.context.ApplicationListener;
@@ -42,6 +43,7 @@ import org.springframework.security.web.authentication.session.SessionFixationPr
 import org.springframework.util.ClassUtils;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Strings;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
@@ -67,15 +69,16 @@ public class AuthenticationLoggerListener
             return;
         }
 
-        String eventClassName = "Authentication event: " + ClassUtils.getShortName( event.getClass() );
-        String authName = event.getAuthentication().getName();
+        String eventClassName = String.format( "Authentication event: %s; ",
+            ClassUtils.getShortName( event.getClass() ) );
+        String authName = StringUtils.firstNonEmpty( event.getAuthentication().getName(), "" );
         String ipAddress = "";
         String sessionId = "";
         String exceptionMessage = "";
 
         if ( event instanceof AbstractAuthenticationFailureEvent )
         {
-            exceptionMessage = "; exception: "
+            exceptionMessage = "exception: "
                 + ((AbstractAuthenticationFailureEvent) event).getException().getMessage();
         }
 
@@ -85,7 +88,7 @@ public class AuthenticationLoggerListener
             ForwardedIpAwareWebAuthenticationDetails.class.isAssignableFrom( details.getClass() ) )
         {
             ForwardedIpAwareWebAuthenticationDetails authDetails = (ForwardedIpAwareWebAuthenticationDetails) details;
-            ipAddress = "; ip: " + authDetails.getIp();
+            ipAddress = String.format( "ip: %s; ", authDetails.getIp() );
             sessionId = hashSessionId( authDetails.getSessionId() );
         }
         else if ( OAuth2LoginAuthenticationToken.class.isAssignableFrom( event.getAuthentication().getClass() ) )
@@ -102,7 +105,7 @@ public class AuthenticationLoggerListener
             }
 
             WebAuthenticationDetails oauthDetails = (WebAuthenticationDetails) authenticationToken.getDetails();
-            ipAddress = "; ip: " + oauthDetails.getRemoteAddress();
+            ipAddress = String.format( "ip: %s; ", oauthDetails.getRemoteAddress() );
             sessionId = hashSessionId( oauthDetails.getSessionId() );
         }
         else if ( OAuth2AuthenticationToken.class.isAssignableFrom( event.getSource().getClass() ) )
@@ -117,8 +120,9 @@ public class AuthenticationLoggerListener
             }
         }
 
-        log.warn( eventClassName + "; username: " + authName + ipAddress + sessionId + exceptionMessage );
+        String userNamePrefix = Strings.isNullOrEmpty( authName ) ? "" : String.format( "username: %s; ", authName );
 
+        log.warn( eventClassName + userNamePrefix + ipAddress + sessionId + exceptionMessage );
     }
 
     private String hashSessionId( String sessionId )
@@ -127,6 +131,7 @@ public class AuthenticationLoggerListener
         {
             return "";
         }
-        return "; sessionId: " + sessionIdHasher.newHasher().putString( sessionId, Charsets.UTF_8 ).hash().toString();
+        String s = sessionIdHasher.newHasher().putString( sessionId, Charsets.UTF_8 ).hash().toString();
+        return String.format( "sessionId: %s; ", s );
     }
 }
