@@ -725,7 +725,7 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isProgramMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasUniqueFilters() )
+        if ( params.hasUniqueFilter() )
         {
             return false;
         }
@@ -740,7 +740,7 @@ public class DefaultTrackedEntityInstanceService
 
     private boolean isTeTypeMinAttributesViolated( TrackedEntityInstanceQueryParams params )
     {
-        if ( params.hasUniqueFilters() )
+        if ( params.hasUniqueFilter() )
         {
             return false;
         }
