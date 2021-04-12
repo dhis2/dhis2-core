@@ -82,20 +82,6 @@ public class DefaultUserDetailsService
     {
         UserCredentials credentials = userService.getUserCredentialsByUsername( username );
 
-        // ---------------------------------------------------------------------
-        // OpenId
-        // ---------------------------------------------------------------------
-
-        if ( credentials == null )
-        {
-            credentials = userService.getUserCredentialsByOpenId( username );
-
-            if ( credentials == null )
-            {
-                throw new UsernameNotFoundException( "Username does not exist" );
-            }
-        }
-
         boolean enabled = !credentials.isDisabled();
         boolean credentialsNonExpired = userService.credentialsNonExpired( credentials );
         boolean accountNonLocked = !securityService.isLocked( credentials.getUsername() );
