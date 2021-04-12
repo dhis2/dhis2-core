@@ -51,11 +51,6 @@ import org.springframework.stereotype.Service;
 public class JdbcMaintenanceStore
     implements MaintenanceStore
 {
-    private static final String DELETE_DELIVERY_CHANNELS = "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in ";
-
-    private static final String DELETE_EMAIL = "delete from programmessage_emailaddresses where programmessageemailaddressid in ";
-
-    private static final String DELETE_PHONE_NUMBER = "delete from programmessage_phonenumbers where programmessagephonenumberid in ";
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
@@ -108,9 +103,9 @@ public class JdbcMaintenanceStore
          *
          */
         String[] sqlStmts = new String[] {
-            DELETE_DELIVERY_CHANNELS + pmSelect,
-            DELETE_EMAIL + pmSelect,
-            DELETE_PHONE_NUMBER + pmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
@@ -138,9 +133,9 @@ public class JdbcMaintenanceStore
          */
         String[] sqlStmts = new String[] {
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + psiSelect,
-            DELETE_DELIVERY_CHANNELS + pmSelect,
-            DELETE_EMAIL + pmSelect,
-            DELETE_PHONE_NUMBER + pmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
             "delete from programmessage where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid in (select trackedentitycommentid from programstageinstancecomments where programstageinstanceid in "
@@ -196,9 +191,9 @@ public class JdbcMaintenanceStore
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programstageinstance where programinstanceid in " + piSelect,
-            DELETE_DELIVERY_CHANNELS + pmSelect,
-            DELETE_EMAIL + pmSelect,
-            DELETE_PHONE_NUMBER + pmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
             "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
