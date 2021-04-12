@@ -142,6 +142,12 @@ public final class GistQuery
      */
     private final boolean headless;
 
+    /**
+     * Use OR instead of AND between filters so that any match for one of the
+     * filters is a match. Default false.
+     */
+    private final boolean anyFilter;
+
     private final GistAll all;
 
     /**
@@ -185,6 +191,7 @@ public final class GistQuery
             .total( params.getBoolean( "total", false ) )
             .absolute( params.getBoolean( "absolute", false ) )
             .headless( params.getBoolean( "headless", false ) )
+            .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )
             .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
@@ -233,22 +240,25 @@ public final class GistQuery
 
     public enum Comparison
     {
-        // identity comparison
+        // identity/numeric comparison
         NULL( "null" ),
         NOT_NULL( "!null" ),
         EQ( "eq" ),
         NE( "!eq", "ne", "neq" ),
+
         // numeric comparison
         LT( "lt" ),
         LE( "le", "lte" ),
         GT( "gt" ),
         GE( "ge", "gte" ),
-        // set operations
+
+        // collection operations
         IN( "in" ),
         NOT_IN( "!in" ),
-        // string comparison
         EMPTY( "empty" ),
         NOT_EMPTY( "!empty" ),
+
+        // string comparison
         LIKE( "like" ),
         NOT_LIKE( "!like" ),
         STARTS_LIKE( "$like" ),
@@ -282,6 +292,11 @@ public final class GistQuery
             throw new IllegalArgumentException( "Not an comparison operator symbol: " + symbol );
         }
 
+        public boolean isUnary()
+        {
+            return this == NULL || this == NOT_NULL || this == EMPTY || this == NOT_EMPTY;
+        }
+
         public boolean isIdentityCompare()
         {
             return this == NULL || this == NOT_NULL || this == EQ || this == NE;
@@ -297,14 +312,19 @@ public final class GistQuery
             return this == LT || this == LE || this == GE || this == GT;
         }
 
-        public boolean isSetCompare()
+        public boolean isCollectionCompare()
         {
-            return this == IN || this == NOT_IN;
+            return this == IN || this == NOT_IN || isSizeCompare();
+        }
+
+        public boolean isSizeCompare()
+        {
+            return this == EMPTY || this == NOT_EMPTY;
         }
 
         public boolean isStringCompare()
         {
-            return ordinal() >= EMPTY.ordinal();
+            return ordinal() >= LIKE.ordinal();
         }
     }
 

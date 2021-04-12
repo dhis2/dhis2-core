@@ -36,6 +36,14 @@ import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 /**
+ * Meant as a wrapper around query parameters to provide convenient read access
+ * to a mixed map with simple values and lists of simple values as they occur in
+ * a HTTP request.
+ *
+ * Internally it is based on accessor functions so that it can be bound to a
+ * {@link Map} or a HTTP request object methods while allowing to be defined in
+ * a module that is not dependent on web dependencies.
+ *
  * @author Jan Bernitt
  */
 public final class NamedParams
@@ -67,6 +75,12 @@ public final class NamedParams
     public String getString( String name )
     {
         return uni.apply( name );
+    }
+
+    public String getString( String name, String defaultValue )
+    {
+        String value = getString( name );
+        return value == null ? defaultValue : value;
     }
 
     public List<String> getStrings( String name )

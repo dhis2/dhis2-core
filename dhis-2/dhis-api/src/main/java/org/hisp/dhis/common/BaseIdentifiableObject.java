@@ -449,7 +449,6 @@ public class BaseIdentifiableObject
 
     @Override
     @Gist( included = Flag.FALSE )
-    @Property( required = Value.TRUE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )

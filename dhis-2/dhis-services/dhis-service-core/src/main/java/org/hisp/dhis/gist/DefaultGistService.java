@@ -30,6 +30,7 @@ package org.hisp.dhis.gist;
 import static java.util.Arrays.stream;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
+import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -40,6 +41,7 @@ import java.util.Map.Entry;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
+import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
@@ -118,10 +120,17 @@ public class DefaultGistService implements GistService
         }
         if ( query.isTotal() )
         {
-            RelativePropertyContext context = createPropertyContext( query );
-            GistBuilder countBuilder = createCountBuilder( query, context );
-            total = countWithParameters( query, context,
-                getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
+            if ( rows.size() < query.getPageSize() )
+            {
+                total = query.getPageOffset() + rows.size();
+            }
+            else
+            {
+                RelativePropertyContext context = createPropertyContext( query );
+                GistBuilder countBuilder = createCountBuilder( query, context );
+                total = countWithParameters( query, context,
+                    getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
+            }
         }
         return new GistPager( page, query.getPageSize(), total, prev, next );
     }
@@ -151,28 +160,35 @@ public class DefaultGistService implements GistService
             {
                 for ( String value : param.getValue() )
                 {
-                    if ( url.charAt( url.length() - 1 ) != '?' )
-                    {
-                        url.append( '&' );
-                    }
-                    try
-                    {
-                        url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
-                        url.append( '=' );
-                        url.append( URLEncoder.encode( value, "UTF-8" ) );
-                    }
-                    catch ( UnsupportedEncodingException e )
-                    {
-                        throw new IllegalStateException( e );
-                    }
+                    appendNextParameter( url );
+                    appendParameterKeyValue( url, param, value );
                 }
             }
         }
+        appendNextParameter( url );
+        return url.toString();
+    }
+
+    private void appendParameterKeyValue( StringBuilder url, Entry<String, String[]> param, String value )
+    {
+        try
+        {
+            url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
+            url.append( '=' );
+            url.append( URLEncoder.encode( value, "UTF-8" ) );
+        }
+        catch ( UnsupportedEncodingException e )
+        {
+            throw new IllegalStateException( e );
+        }
+    }
+
+    private void appendNextParameter( StringBuilder url )
+    {
         if ( url.charAt( url.length() - 1 ) != '?' )
         {
             url.append( '&' );
         }
-        return url.toString();
     }
 
     private RelativePropertyContext createPropertyContext( GistQuery query )
@@ -214,8 +230,39 @@ public class DefaultGistService implements GistService
         int i = 0;
         for ( Filter filter : query.getFilters() )
         {
-            Property property = context.resolveMandatory( filter.getPropertyPath() );
-            dbQuery.setParameter( "f_" + (i++), getParameterValue( property, filter ) );
+            Comparison operator = filter.getOperator();
+            if ( !operator.isUnary() )
+            {
+                Property property = context.resolveMandatory( filter.getPropertyPath() );
+                Object cmpValue = getParameterValue( property, filter );
+                dbQuery.setParameter( "f_" + (i++), operator.isStringCompare()
+                    ? completeLike( operator, (String) cmpValue )
+                    : cmpValue );
+            }
+        }
+    }
+
+    private static Object completeLike( Comparison operator, String cmpValue )
+    {
+        switch ( operator )
+        {
+        case LIKE:
+        case NOT_LIKE:
+            return cmpValue.contains( "*" ) || cmpValue.contains( "?" )
+                ? cmpValue.replace( "*", "%" ).replace( "?", "_" )
+                : "%" + cmpValue + "%";
+        case STARTS_LIKE:
+        case STARTS_WITH:
+        case NOT_STARTS_LIKE:
+        case NOT_STARTS_WITH:
+            return "%" + cmpValue;
+        case ENDS_LIKE:
+        case ENDS_WITH:
+        case NOT_ENDS_LIKE:
+        case NOT_ENDS_WITH:
+            return cmpValue + "%";
+        default:
+            return cmpValue;
         }
     }
 
@@ -239,7 +286,7 @@ public class DefaultGistService implements GistService
         {
             return value;
         }
-        if ( GistLogic.isCollectionSizeFilter( filter, property ) )
+        if ( isCollectionSizeFilter( filter, property ) )
         {
             // TODO parse error handling
             return Integer.parseInt( value );

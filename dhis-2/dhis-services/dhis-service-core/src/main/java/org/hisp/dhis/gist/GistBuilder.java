@@ -28,6 +28,7 @@
 package org.hisp.dhis.gist;
 
 import static java.util.stream.Collectors.joining;
+import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
@@ -210,13 +211,13 @@ final class GistBuilder
     public String buildFetchHQL()
     {
         String fields = createFieldsHQL();
-        String orderBy = createOrdersHQL();
-        String filterBy = createFiltersHQL();
+        String orders = createOrdersHQL();
+        String filters = createFiltersHQL();
         String elementTable = query.getElementType().getSimpleName();
         Owner owner = query.getOwner();
         if ( owner == null )
         {
-            return String.format( "select %s from %s e where %s order by %s", fields, elementTable, filterBy, orderBy );
+            return String.format( "select %s from %s e where %s order by %s", fields, elementTable, filters, orders );
         }
         String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
@@ -224,24 +225,24 @@ final class GistBuilder
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
         return String.format(
             "select %s from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s) order by %s", fields,
-            ownerTable, elementTable, op, collectionName, filterBy, orderBy );
+            ownerTable, elementTable, op, collectionName, filters, orders );
     }
 
     public String buildCountHQL()
     {
-        String filterBy = createFiltersHQL();
+        String filters = createFiltersHQL();
         String elementTable = query.getElementType().getSimpleName();
         Owner owner = query.getOwner();
         if ( owner == null )
         {
-            return String.format( "select count(*) from %s where %s", elementTable, filterBy );
+            return String.format( "select count(*) from %s where %s", elementTable, filters );
         }
         String op = query.isInverse() ? "not in" : "in";
         String ownerTable = owner.getType().getSimpleName();
         String collectionName = context.switchedTo( owner.getType() )
             .resolveMandatory( owner.getCollectionProperty() ).getFieldName();
         return String.format( "select count(*) from %s o, %s e where o.uid = :OwnerId and e %s elements(o.%s) and (%s)",
-            ownerTable, elementTable, op, collectionName, filterBy );
+            ownerTable, elementTable, op, collectionName, filters );
     }
 
     private String createFieldsHQL()
@@ -467,13 +468,14 @@ final class GistBuilder
 
     private String createFiltersHQL()
     {
-        return join( query.getFilters(), " and ", "1=1", this::createFiltersHQL );
+        String rootJunction = query.isAnyFilter() ? " or " : " and ";
+        return join( query.getFilters(), rootJunction, "1=1", this::createFiltersHQL );
     }
 
     private String createFiltersHQL( int index, Filter filter )
     {
         StringBuilder str = new StringBuilder();
-        boolean sizeOp = GistLogic.isCollectionSizeFilter( filter,
+        boolean sizeOp = isCollectionSizeFilter( filter,
             context.resolveMandatory( filter.getPropertyPath() ) );
         if ( sizeOp )
         {
@@ -484,9 +486,12 @@ final class GistBuilder
         {
             str.append( ")" );
         }
-        str.append( " " ).append( createOperatorLeftSideHQL( filter.getOperator() ) )
-            .append( " :f_" + index )
-            .append( createOperatorRightSideHQL( filter.getOperator() ) );
+        Comparison operator = filter.getOperator();
+        str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
+        if ( !operator.isUnary() )
+        {
+            str.append( " :f_" + index ).append( createOperatorRightSideHQL( operator ) );
+        }
         return str.toString();
     }
 
@@ -501,6 +506,10 @@ final class GistBuilder
     {
         switch ( operator )
         {
+        case NULL:
+            return "is null";
+        case NOT_NULL:
+            return "is not null";
         case EQ:
             return "=";
         case NE:
@@ -517,6 +526,26 @@ final class GistBuilder
             return "in (";
         case NOT_IN:
             return "not in (";
+        case EMPTY:
+            return "== 0";
+        case NOT_EMPTY:
+            return "> 0";
+        case LIKE:
+        case STARTS_LIKE:
+        case ENDS_LIKE:
+            return "like";
+        case NOT_LIKE:
+        case NOT_STARTS_LIKE:
+        case NOT_ENDS_LIKE:
+            return "not like";
+        case ILIKE:
+        case STARTS_WITH:
+        case ENDS_WITH:
+            return "ilike";
+        case NOT_ILIKE:
+        case NOT_STARTS_WITH:
+        case NOT_ENDS_WITH:
+            return "not ilike";
         default:
             return "";
         }
