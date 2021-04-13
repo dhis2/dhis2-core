@@ -30,9 +30,11 @@ package org.hisp.dhis.security.acl;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.springframework.util.CollectionUtils.containsAny;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
-import org.apache.commons.collections4.*;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -49,10 +51,8 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.util.*;
+import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Service;
-
-import com.sun.tools.rngom.parse.host.*;
 
 /**
  * Default ACL implementation that uses SchemaDescriptors to get authorities /
@@ -138,8 +138,7 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.READ );
             }
 
-            if ( !schema.isShareable() || object.getPublicAccess() == null || checkUser( user, object )
-                || checkSharingPermission( user, object, Permission.READ ) )
+            if ( !schema.isShareable() || object.getPublicAccess() == null || canReadShareable( user, object ) )
             {
                 return true;
             }
@@ -150,6 +149,11 @@ public class DefaultAclService implements AclService
         }
 
         return false;
+    }
+
+    public static boolean canReadShareable( User user, IdentifiableObject object )
+    {
+        return checkUser( user, object ) || checkSharingPermission( user, object, Permission.READ );
     }
 
     @Override
@@ -645,7 +649,7 @@ public class DefaultAclService implements AclService
      * @param object Object to check against
      * @return true/false depending on if access should be allowed
      */
-    private boolean checkUser( User user, IdentifiableObject object )
+    private static boolean checkUser( User user, IdentifiableObject object )
     {
         return user == null || object.getSharing().getOwner() == null ||
             user.getUid().equals( object.getSharing().getOwner() );
@@ -698,7 +702,7 @@ public class DefaultAclService implements AclService
      * @param permission Permission to check against
      * @return true if user can access object, false otherwise
      */
-    private boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
+    private static boolean checkSharingPermission( User user, IdentifiableObject object, Permission permission )
     {
         if ( AccessStringHelper.isEnabled( object.getSharing().getPublicAccess(), permission ) )
         {
@@ -780,7 +784,7 @@ public class DefaultAclService implements AclService
             (checkUser( user, object ) || checkSharingPermission( user, object, Permission.WRITE ));
     }
 
-    private boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
+    private static boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )
     {
         for ( UserGroup group : userGroups )
         {

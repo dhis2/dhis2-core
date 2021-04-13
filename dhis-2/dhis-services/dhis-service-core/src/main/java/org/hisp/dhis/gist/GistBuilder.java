@@ -37,6 +37,7 @@ import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
+import static org.hisp.dhis.security.acl.DefaultAclService.canReadShareable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,11 +50,13 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -232,6 +235,13 @@ final class GistBuilder
         return value;
     }
 
+    private Collection<AttributeValue> accessFiltered( Collection<AttributeValue> attributeValues )
+    {
+        return attributeValues.stream()
+            .filter( attributeValue -> canReadShareable( user, attributeValue.getAttribute() ) )
+            .collect( Collectors.toList() );
+    }
+
     /*
      * HQL query building...
      */
@@ -314,6 +324,11 @@ final class GistBuilder
             int translationsFieldIndex = getSameParentFieldIndex( path, TRANSLATIONS_PROPERTY );
             addTransformer( row -> row[index] = translate( row[index], property.getTranslationKey(),
                 row[translationsFieldIndex] ) );
+        }
+        if ( property.isCollection() && property.getItemKlass() == AttributeValue.class && user != null
+            && !user.isSuper() )
+        {
+            addTransformer( row -> row[index] = accessFiltered( (Collection<AttributeValue>) row[index] ) );
         }
         if ( isHrefProperty( property ) )
         {
