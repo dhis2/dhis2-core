@@ -108,7 +108,7 @@ public class DefaultCacheProvider
         analyticsSql,
         dataElementCache,
         propertyTransformerCache,
-        programRulesCache,
+        programHasRulesCache,
         programRuleVariablesCache,
         userGroupNameCache,
         userDisplayNameCache
@@ -398,10 +398,10 @@ public class DefaultCacheProvider
     }
 
     @Override
-    public <V> Cache<V> createProgramRulesCache()
+    public <V> Cache<V> createProgramHasRulesCache()
     {
         return registerCache( this.<V> newBuilder()
-            .forRegion( Region.programRulesCache.name() )
+            .forRegion( Region.programHasRulesCache.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()

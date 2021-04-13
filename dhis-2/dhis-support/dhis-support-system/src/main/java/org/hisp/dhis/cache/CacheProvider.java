@@ -93,7 +93,7 @@ public interface CacheProvider
 
     <V> Cache<V> createPropertyTransformerCache();
 
-    <V> Cache<V> createProgramRulesCache();
+    <V> Cache<V> createProgramHasRulesCache();
 
     <V> Cache<V> createProgramRuleVariablesCache();
 
