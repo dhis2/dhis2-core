@@ -177,8 +177,9 @@ public class JdbcMaintenanceStore
         String psiSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
             + piSelect + " )";
 
-        String pmSelect = "(select id from programmessage where trackedentityinstanceid in "
-            + teiSelect + " )";
+        String teiPmSelect = "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";
+        String piPmSelect = "(select id from programmessage where programinstanceid in " + piSelect + " )";
+        String psiPmSelect = "(select id from programmessage where programstageinstanceid in " + psiSelect + " )";
 
         /*
          * Delete event values, event audits, event comments, events, enrollment
@@ -191,9 +192,15 @@ public class JdbcMaintenanceStore
             "delete from programstageinstancecomments where programstageinstanceid in " + psiSelect,
             "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
             "delete from programstageinstance where programinstanceid in " + piSelect,
-            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + pmSelect,
-            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
-            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + teiPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + teiPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + teiPmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + piPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + piPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + piPmSelect,
+            "delete from programmessage_deliverychannels where programmessagedeliverychannelsid in " + psiPmSelect,
+            "delete from programmessage_emailaddresses where programmessageemailaddressid in " + psiPmSelect,
+            "delete from programmessage_phonenumbers where programmessagephonenumberid in " + psiPmSelect,
             "delete from programmessage where programinstanceid in " + piSelect,
             "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from programinstancecomments where programinstanceid in " + piSelect,
