@@ -739,24 +739,36 @@ public class TrackedEntityInstanceQueryParams
     }
 
     /**
-     * Indicates whether filters are unique attributes.
+     * Checks if there is atleast one unique filter in the params. In attributes
+     * or filters.
+     *
+     * @return true if there is exist atlesast one unique filter in
+     *         filters/attributes, false otherwise.
      */
-    public boolean hasUniqueFilters()
+    public boolean hasUniqueFilter()
     {
-        if ( !hasFilters() )
+        if ( !hasFilters() && !hasAttributes() )
         {
             return false;
         }
 
         for ( QueryItem filter : filters )
         {
-            if ( !filter.isUnique() )
+            if ( filter.isUnique() )
             {
-                return false;
+                return true;
             }
         }
 
-        return true;
+        for ( QueryItem attribute : attributes )
+        {
+            if ( attribute.isUnique() && attribute.hasFilter() )
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

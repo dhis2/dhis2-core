@@ -27,8 +27,16 @@
  */
 package org.hisp.dhis.trackedentityinstance;
 
+import static org.junit.Assert.assertEquals;
+
 import org.hisp.dhis.DhisSpringTest;
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -52,5 +60,39 @@ public class TrackedEntityInstanceQueryTest
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         instanceService.validate( params );
+    }
+
+    @Test
+    public void testIfUniqueFiltersArePresentInAttributesOrFilters()
+    {
+        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        QueryItem nonUniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
+            null, false );
+        QueryItem nonUniq2 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
+            null, false );
+        QueryItem uniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE, null,
+            true );
+
+        QueryFilter qf = new QueryFilter( QueryOperator.EQ, "test" );
+        nonUniq1.getFilters().add( qf );
+        nonUniq2.getFilters().add( qf );
+        params.addAttribute( nonUniq1 );
+        params.addAttribute( nonUniq2 );
+        params.addAttribute( uniq1 );
+
+        assertEquals( params.hasUniqueFilter(), false );
+
+        uniq1.getFilters().add( qf );
+        assertEquals( params.hasUniqueFilter(), true );
+
+        params.getAttributes().clear();
+
+        params.addFilter( nonUniq1 );
+        params.addFilter( nonUniq2 );
+
+        assertEquals( params.hasUniqueFilter(), false );
+        params.addFilter( uniq1 );
+        assertEquals( params.hasUniqueFilter(), true );
+
     }
 }
