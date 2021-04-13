@@ -36,10 +36,8 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.BaseLinkableObject;
 import org.hisp.dhis.event.EventStatus;
 import org.locationtech.jts.geom.Geometry;
 
@@ -51,11 +49,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Data
 @Builder
-@EqualsAndHashCode( callSuper = true )
 @NoArgsConstructor
 @AllArgsConstructor
 public class Event
-    extends BaseLinkableObject
     implements TrackerDto
 {
     @JsonProperty
@@ -73,9 +69,6 @@ public class Event
 
     @JsonProperty
     private String enrollment;
-
-    @JsonProperty
-    private EnrollmentStatus enrollmentStatus;
 
     @JsonProperty
     private String orgUnit;
