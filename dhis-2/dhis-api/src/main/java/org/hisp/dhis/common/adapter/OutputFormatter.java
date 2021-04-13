@@ -97,31 +97,35 @@ class OutputFormatter
         // million as the default representation will be the expected one.
         if ( doubleValue >= TEN_MILLION )
         {
-            // We need to pass a String to the constructor, otherwise we
-            // loose precision.
-            final String value = new BigDecimal( (doubleValue).toString() ).toPlainString();
-            final boolean hasDecimalDigit = value.contains( "." );
+            // Needs to pass a String to the constructor, otherwise precision
+            // is lost.
+            final String numericValue = new BigDecimal( (doubleValue).toString() ).toPlainString();
 
-            // Here, we ensure a ".0" at the end when there is no decimal
-            // digit. This is needed for two reasons:
-            // 1) Because toPlainString() does not print an extra ".0" for
-            // numbers that do not have decimal digits. It's corner case
-            // scenario.
-            // 2) We have to keep it backward compatible respecting the
-            // current behaviour.
-            if ( !hasDecimalDigit )
-            {
-                return addZeroDecimal( value );
-            }
-
-            return value;
+            // Because toPlainString() does not print an extra ".0"
+            // when the decimal digit is zero or absent.
+            return handleDecimalDigit( handleDecimalDigit( numericValue ) );
         }
 
         return doubleValue.toString();
     }
 
-    private static String addZeroDecimal( final String value )
+    /**
+     * This method appends a ".0" at the end of the value when it has not
+     * decimal digit. We use this method to keep backward compatibility with the
+     * current behaviour.
+     *
+     * @param numericValue
+     * @return the given numericValue + ".0"
+     */
+    private static String handleDecimalDigit( final String numericValue )
     {
-        return value + ".0";
+        final boolean hasDecimalDigit = numericValue.contains( "." );
+
+        if ( !hasDecimalDigit )
+        {
+            return numericValue + ".0";
+        }
+
+        return numericValue;
     }
 }
