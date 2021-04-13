@@ -27,14 +27,10 @@
  */
 package org.hisp.dhis.schema;
 
-import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
-
-import java.util.EnumSet;
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import org.hisp.dhis.schema.annotation.Gist;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -44,56 +40,22 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Jan Bernitt
  */
+@Getter
 @AllArgsConstructor
 public final class GistPreferences
 {
-    public static final GistPreferences DEFAULT = new GistPreferences( Flag.AUTO,
-        emptyList(), GistTransform.AUTO, EnumSet.allOf( GistTransform.class ) );
-
-    @Getter
-    @JsonProperty
-    private final Flag included;
+    public static final GistPreferences DEFAULT = new GistPreferences( Gist.Included.AUTO, Gist.Transform.AUTO );
 
     /**
-     * In case this is a collection property: optional list of fields that by
-     * default are shown of the collection items in the API.
-     *
-     * An empty list represents no particular preferences and the list will be
-     * determined by program logic evaluating the schema of the item type.
+     * @see Gist#included()
      */
-    @Getter
     @JsonProperty
-    private final List<String> fields;
+    private final Gist.Included included;
 
     /**
-     * In case this is a collection property: how *should* it be viewed as part
-     * of its parent/owner object?
-     */
-    @Getter
-    @JsonProperty
-    private final GistTransform defaultTransformation;
-
-    /**
-     * In case this is a collection property: how *can* it be viewed as part of
-     * its parent/owner object?
+     * @see Gist#transformation()
      */
     @JsonProperty
-    private final EnumSet<GistTransform> availableTransformations;
+    private final Gist.Transform transformation;
 
-    public boolean isAvailableTransformation( GistTransform transform )
-    {
-        return availableTransformations.contains( transform );
-    }
-
-    public GistPreferences withFields( String... fields )
-    {
-        return new GistPreferences( included, asList( fields ), defaultTransformation, availableTransformations );
-    }
-
-    public enum Flag
-    {
-        FALSE,
-        TRUE,
-        AUTO
-    }
 }

@@ -80,7 +80,7 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
-import org.hisp.dhis.gist.GistAll;
+import org.hisp.dhis.gist.GistAutoType;
 import org.hisp.dhis.gist.GistQuery;
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -256,7 +256,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         HttpServletRequest request, HttpServletResponse response )
         throws NotFoundException
     {
-        return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAll.L )
+        return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
             .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
     }
 
@@ -264,7 +264,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         HttpServletRequest request, HttpServletResponse response )
     {
-        return gistToJsonArrayResponse( request, createGistQuery( request, getEntityClass(), GistAll.S ), getSchema() );
+        return gistToJsonArrayResponse( request, createGistQuery( request, getEntityClass(), GistAutoType.S ),
+            getSchema() );
     }
 
     @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
@@ -281,26 +282,27 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
         if ( !objProperty.isCollection() )
         {
-            return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAll.L )
+            return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
                 .withFilter( new Filter( "id", Comparison.EQ, uid ) )
                 .withField( property ) );
         }
-        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(), GistAll.M )
-            .withOwner( Owner.builder()
-                .id( uid )
-                .type( getEntityClass() )
-                .collectionProperty( property ).build() );
+        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(),
+            GistAutoType.M )
+                .withOwner( Owner.builder()
+                    .id( uid )
+                    .type( getEntityClass() )
+                    .collectionProperty( property ).build() );
         return gistToJsonArrayResponse( request, query,
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
 
     private static GistQuery createGistQuery( HttpServletRequest request,
-        Class<? extends IdentifiableObject> elementType, GistAll allDefault )
+        Class<? extends IdentifiableObject> elementType, GistAutoType autoDefault )
     {
         NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
         return GistQuery.builder()
             .elementType( elementType )
-            .all( params.getEnum( "all", allDefault ) )
+            .autoType( params.getEnum( "auto", autoDefault ) )
             .contextRoot( ContextUtils.getRootPath( request ) )
             .translationLocale( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ) )
             .build()

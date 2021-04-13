@@ -43,7 +43,6 @@ import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.security.Authorities;
@@ -57,7 +56,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Nguyen Hong Duc
  */
-@Gist( fields = { "id", "firstName", "surname" } )
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
 public class User
     extends BaseIdentifiableObject implements MetadataObject

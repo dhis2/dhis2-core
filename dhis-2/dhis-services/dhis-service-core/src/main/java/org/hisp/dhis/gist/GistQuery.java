@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.GistTransform;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * Description of the gist query that should be run.
@@ -148,7 +148,7 @@ public final class GistQuery
      */
     private final boolean anyFilter;
 
-    private final GistAll all;
+    private final GistAutoType autoType;
 
     /**
      * Names of those properties that should be included in the response.
@@ -171,9 +171,9 @@ public final class GistQuery
         return fields.stream().map( Field::getName ).collect( toList() );
     }
 
-    public GistTransform getDefaultTransformation()
+    public Transform getDefaultTransformation()
     {
-        return getAll() == null ? GistTransform.AUTO : getAll().getDefaultTransformation();
+        return getAutoType() == null ? Transform.AUTO : getAutoType().getDefaultTransformation();
     }
 
     public String getEndpointRoot()
@@ -337,7 +337,7 @@ public final class GistQuery
 
         private final String propertyPath;
 
-        private final GistTransform transformation;
+        private final Transform transformation;
 
         private final String alias;
 
@@ -345,7 +345,7 @@ public final class GistQuery
 
         private final boolean translate;
 
-        public Field( String propertyPath, GistTransform transformation )
+        public Field( String propertyPath, Transform transformation )
         {
             this( propertyPath, transformation, "", null, false );
         }
@@ -355,7 +355,7 @@ public final class GistQuery
             return alias.isEmpty() ? propertyPath : alias;
         }
 
-        public Field withTransformation( GistTransform transform )
+        public Field withTransformation( Transform transform )
         {
             return toBuilder().transformation( transform ).build();
         }
@@ -383,12 +383,12 @@ public final class GistQuery
 
         public static Field parse( String field )
         {
-            String[] parts = field.split( "(?:::|~|@)" );
+            String[] parts = field.split( "(?:::|~|@)(?![^\\[\\]]*\\])" );
             if ( parts.length == 1 )
             {
-                return new Field( field, GistTransform.AUTO );
+                return new Field( field, Transform.AUTO );
             }
-            GistTransform transform = GistTransform.AUTO;
+            Transform transform = Transform.AUTO;
             String alias = "";
             String arg = null;
             for ( int i = 1; i < parts.length; i++ )
@@ -400,7 +400,7 @@ public final class GistQuery
                 }
                 else
                 {
-                    transform = GistTransform.parse( part );
+                    transform = Transform.parse( part );
                     if ( part.indexOf( '(' ) >= 0 )
                     {
                         arg = parseArgument( part );

@@ -32,6 +32,7 @@ import static java.util.Collections.singletonList;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -151,30 +152,31 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    public void testGetObjectProperty_NotMember()
+    public void testGistPropertyList_TransformerNotMember()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users::not-member({uid})",
+        JsonObject response = GET( "/users/{uid}/userGroups/gist?fields=name,users::not-member({uid})",
             getSuperuserUid(), getSuperuserUid() ).content();
 
-        System.out.println( groups );
+        assertFalse( response.getArray( "userGroups" ).getObject( 0 ).getBoolean( "users" ).booleanValue() );
     }
 
     @Test
-    public void testGetObjectPropertyItems_Total()
+    public void testGistPropertyList_PagerWithTotal()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true",
+        JsonObject response = GET( "/users/{uid}/userGroups/gist?fields=name,users&total=true",
             getSuperuserUid() ).content();
 
-        System.out.println( groups );
+        assertEquals( 1, response.getObject( "pager" ).getNumber( "total" ).intValue() );
     }
 
     @Test
-    public void testGetObjectPropertyItems_Absolute()
+    public void testGistPropertyList_EndpointsWithAbsoluteURLs()
     {
         JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absolute=true",
             getSuperuserUid() ).content();
 
-        System.out.println( groups );
+        assertTrue( groups.getArray( "userGroups" ).getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" )
+            .string().startsWith( "http://" ) );
     }
 
     @Test

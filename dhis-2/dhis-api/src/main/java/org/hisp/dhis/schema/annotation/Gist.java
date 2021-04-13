@@ -34,9 +34,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.hisp.dhis.schema.GistPreferences;
-import org.hisp.dhis.schema.GistPreferences.Flag;
-import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 
 /**
@@ -66,32 +63,110 @@ public @interface Gist
      * @return whether or not the annotated property is included in the set of
      *         "all" fields.
      */
-    Flag included() default GistPreferences.Flag.AUTO;
-
-    /**
-     * @return The list of fields shown when the referenced object is included
-     *         in a view. The empty list applies automatic selection based on
-     *         schema.
-     */
-    String[] fields() default {};
+    Included included() default Included.AUTO;
 
     /**
      * @return the type used in case the user has not specified the type
      *         explicitly.
      */
-    GistTransform transformation() default GistTransform.AUTO;
+    Transform transformation() default Transform.AUTO;
+
+    enum Included
+    {
+        FALSE,
+        TRUE,
+        AUTO
+    }
 
     /**
-     * @return The set of types that can be used (are permitted). If a type is
-     *         not included in the set but requested by a request the request is
-     *         either denied or a permitted type is chosen instead.
+     * The {@link Transform} controls what transformation is used to transform a
+     * list or complex value into a simple value that can be included in a gist.
+     *
+     * The intention is to provide guidance and protection so that request
+     * provide useful information units while avoiding overly large responses
+     * that are slow and resource intensive.
+     *
+     * @author Jan Bernitt
      */
-    GistTransform[] availableTransformations() default {
-        GistTransform.NONE,
-        GistTransform.SIZE,
-        GistTransform.IS_EMPTY,
-        GistTransform.IS_NOT_EMPTY,
-        GistTransform.IDS,
-        GistTransform.ID_OBJECTS };
+    enum Transform
+    {
+        /**
+         * No actual type but used to represent the choice that the actual value
+         * should be determined by program logic considering other relevant
+         * metadata.
+         */
+        AUTO,
+
+        /**
+         * Used to indicate that the property does not need or use a projection.
+         */
+        NONE,
+
+        /**
+         * Emptiness of a collection (no item exists)
+         */
+        IS_EMPTY,
+
+        /**
+         * Non-emptiness of a collection (does exist at least one item)
+         */
+        IS_NOT_EMPTY,
+
+        /**
+         * Size of a collection
+         */
+        SIZE,
+
+        /**
+         * Has the collection a member X (X supplied as argument)
+         */
+        MEMBER,
+
+        /**
+         * Lacks the collection a member X (X supplied as argument)
+         */
+        NOT_MEMBER,
+
+        /**
+         * Collection shown as a list of item UIDs.
+         */
+        IDS,
+
+        /**
+         * Identical to {@link #IDS} except that each entry is still represented
+         * as object with a single property {@code id}. This is mostly for
+         * easier transition from existing APIs that usually return this type of
+         * ID lists.
+         *
+         * <pre>
+         * { "id": UID }
+         * </pre>
+         *
+         * (instead of plain UID)
+         */
+        ID_OBJECTS,
+
+        /**
+         * Without argument same as {@link #IDS}, argument can be used to
+         * extract any other {@link String} field.
+         */
+        PLUCK;
+
+        public static Transform parse( String transform )
+        {
+            int startOfArgument = transform.indexOf( '(' );
+            String name = (startOfArgument < 0 ? transform : transform.substring( 0, startOfArgument ))
+                .replace( "-", "" )
+                .replace( "+", "" );
+            for ( Transform p : Transform.values() )
+            {
+                if ( p.name().replace( "_", "" ).equalsIgnoreCase( name ) )
+                {
+                    return p;
+                }
+            }
+            return AUTO;
+        }
+    }
 
 }

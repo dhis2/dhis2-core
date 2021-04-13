@@ -40,7 +40,6 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.common.annotation.Description;
-import org.hisp.dhis.schema.GistPreferences.Flag;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Property;
@@ -369,7 +368,7 @@ public class BaseIdentifiableObject
         return cacheAttributeValues.get( attributeUid );
     }
 
-    @Gist( included = Flag.FALSE )
+    @Gist( included = Gist.Included.FALSE )
     @Override
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "translations", namespace = DxfNamespaces.DXF_2_0 )
@@ -448,7 +447,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( included = Flag.FALSE )
+    @Gist( included = Gist.Included.FALSE )
     @JsonProperty
     @JsonSerialize( using = UserPropertyTransformer.JacksonSerialize.class )
     @JsonDeserialize( using = UserPropertyTransformer.JacksonDeserialize.class )
@@ -549,7 +548,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( included = Flag.FALSE )
+    @Gist( included = Gist.Included.FALSE )
     @JsonProperty
     @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
     public Access getAccess()
@@ -587,7 +586,7 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @Gist( included = Flag.FALSE )
+    @Gist( included = Gist.Included.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()

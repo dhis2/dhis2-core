@@ -34,9 +34,9 @@ import java.util.EnumSet;
 
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * Presets to scope what {@code :all} or {@code *} fields do include.
@@ -44,19 +44,19 @@ import org.hisp.dhis.schema.PropertyType;
  * @author Jan Bernitt
  */
 @AllArgsConstructor
-public enum GistAll
+public enum GistAutoType
 {
-    XL( GistTransform.ID_OBJECTS, complementOf( of( PropertyType.PASSWORD ) ) ),
-    L( GistTransform.IDS, complementOf( of( PropertyType.PASSWORD ) ) ),
-    M( GistTransform.SIZE, complementOf( of( PropertyType.PASSWORD ) ) ),
-    S( GistTransform.NONE, complementOf( of( PropertyType.PASSWORD, PropertyType.COMPLEX ) ) ),
-    XS( GistTransform.NONE, of( PropertyType.IDENTIFIER, PropertyType.TEXT, PropertyType.EMAIL ) );
+    XL( Transform.ID_OBJECTS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    L( Transform.IDS, complementOf( of( PropertyType.PASSWORD ) ) ),
+    M( Transform.SIZE, complementOf( of( PropertyType.PASSWORD ) ) ),
+    S( Transform.NONE, complementOf( of( PropertyType.PASSWORD, PropertyType.COMPLEX ) ) ),
+    XS( Transform.NONE, of( PropertyType.IDENTIFIER, PropertyType.TEXT, PropertyType.EMAIL ) );
 
-    private final GistTransform defaultTransformation;
+    private final Transform defaultTransformation;
 
     private final EnumSet<PropertyType> includes;
 
-    public GistTransform getDefaultTransformation()
+    public Transform getDefaultTransformation()
     {
         return defaultTransformation;
     }

@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.schema.introspection;
 
-import static java.util.Arrays.asList;
 import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 
 import java.lang.reflect.Method;
-import java.util.EnumSet;
 import java.util.Map;
 
 import org.hisp.dhis.schema.GistPreferences;
@@ -54,36 +52,20 @@ public class GistPropertyIntrospector implements PropertyIntrospector
         {
             if ( property.getKlass() != null )
             {
-                initFromGistAnnotation( klass, property );
+                initFromGistAnnotation( property );
             }
         }
     }
 
-    private void initFromGistAnnotation( Class<?> klass, Property property )
+    private void initFromGistAnnotation( Property property )
     {
         Method getter = property.getGetterMethod();
         Gist gist = getAnnotation( getter, Gist.class );
-        if ( gist == null )
-        {
-            gist = getAnnotation( klass, Gist.class );
-        }
-        Gist valueTypeGist = getAnnotation( getter.getReturnType(), Gist.class );
         if ( gist != null )
         {
-            String[] fields = gist.fields();
-            if ( fields.length == 0 && valueTypeGist != null )
-            {
-                fields = valueTypeGist.fields();
-            }
             property.setGistPreferences( new GistPreferences(
                 gist.included(),
-                asList( fields ),
-                gist.transformation(),
-                EnumSet.copyOf( asList( gist.availableTransformations() ) ) ) );
-        }
-        else if ( valueTypeGist != null )
-        {
-            property.setGistPreferences( property.getGistPreferences().withFields( valueTypeGist.fields() ) );
+                gist.transformation() ) );
         }
     }
 }

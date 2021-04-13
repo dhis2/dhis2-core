@@ -28,9 +28,10 @@
 package org.hisp.dhis.gist;
 
 import org.hisp.dhis.gist.GistQuery.Filter;
-import org.hisp.dhis.schema.GistPreferences.Flag;
-import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Included;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * Contains the "business logic" aspects of building and running a
@@ -41,14 +42,14 @@ import org.hisp.dhis.schema.Property;
 final class GistLogic
 {
 
-    static boolean isIncludedField( Property p, GistAll all )
+    static boolean isIncludedField( Property p, GistAutoType all )
     {
-        Flag included = p.getGistPreferences().getIncluded();
-        if ( included == Flag.TRUE )
+        Included included = p.getGistPreferences().getIncluded();
+        if ( included == Gist.Included.TRUE )
         {
             return true;
         }
-        if ( included == Flag.FALSE )
+        if ( included == Gist.Included.FALSE )
         {
             return false;
         }
@@ -105,22 +106,22 @@ final class GistLogic
                 (filter.getOperator().isOrderCompare() && property.isCollection()));
     }
 
-    static GistTransform effectiveTransform( Property property, GistTransform fallback, GistTransform target )
+    static Transform effectiveTransform( Property property, Transform fallback, Transform target )
     {
-        if ( target == GistTransform.AUTO || !property.getGistPreferences().isAvailableTransformation( target ) )
-        {
-            target = property.getGistPreferences().getDefaultTransformation();
-        }
-        if ( target == GistTransform.AUTO )
+        if ( target == Transform.AUTO )
         {
             target = fallback;
         }
-        return target == GistTransform.AUTO ? GistTransform.NONE : target;
-    }
-
-    static Number rowCount( Object count )
-    {
-        return !(count instanceof Number) || ((Number) count).intValue() == -1 ? null : (Number) count;
+        if ( target == Transform.AUTO )
+        {
+            target = property.getGistPreferences().getTransformation();
+        }
+        if ( (target == Transform.IDS || target == Transform.ID_OBJECTS) && property.isEmbeddedObject()
+            && isPersistentCollectionField( property ) )
+        {
+            return Transform.SIZE;
+        }
+        return target == Transform.AUTO ? Transform.NONE : target;
     }
 
     private GistLogic()

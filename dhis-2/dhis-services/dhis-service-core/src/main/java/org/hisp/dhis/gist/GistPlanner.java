@@ -41,7 +41,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 import lombok.AllArgsConstructor;
@@ -49,10 +48,10 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.NameableObject;
 import org.hisp.dhis.gist.GistQuery.Field;
-import org.hisp.dhis.schema.GistTransform;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.RelativePropertyContext;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * The {@link GistPlanner} is responsible to expand the list of {@link Field}s
@@ -72,12 +71,12 @@ class GistPlanner
         List<Field> fields = query.getFields();
         if ( fields.isEmpty() )
         {
-            fields = singletonList( new Field( "*", GistTransform.NONE ) );
+            fields = singletonList( new Field( "*", Transform.NONE ) );
         }
         fields = withDefaultFields( fields );
         fields = withDisplayAsTranslatedFields( fields );
         fields = withInnerAsMultipleFields( fields );
-        fields = withEmbeddedAsMultipleFields( fields );
+        fields = withUniqueFields( fields );
         fields = withEffectiveTransformation( fields );
         fields = withEndpointsField( fields );
         return query.withFields( fields );
@@ -127,7 +126,7 @@ class GistPlanner
                 context.getHome().getProperties().stream()
                     .filter( getPresetFilter( path ) )
                     .sorted( GistPlanner::propertyTypeOrder )
-                    .forEach( p -> expanded.add( new Field( p.key(), GistTransform.AUTO ) ) );
+                    .forEach( p -> expanded.add( new Field( p.key(), Transform.AUTO ) ) );
             }
             else if ( isExcludeField( path ) )
             {
@@ -177,7 +176,10 @@ class GistPlanner
                 String innerList = path.substring( path.indexOf( '[' ) + 1, path.lastIndexOf( ']' ) );
                 for ( String innerPath : innerList.split( "," ) )
                 {
-                    expanded.add( f.withPropertyPath( outerPath + "." + innerPath ) );
+                    Field child = Field.parse( innerPath );
+                    expanded.add( child
+                        .withPropertyPath( outerPath + "." + child.getPropertyPath() )
+                        .withAlias( (f.getAlias().isEmpty() ? outerPath : f.getAlias()) + "." + child.getName() ) );
                 }
             }
             else
@@ -192,7 +194,7 @@ class GistPlanner
     {
         if ( isAllField( path ) )
         {
-            return p -> isIncludedField( p, query.getAll() );
+            return p -> isIncludedField( p, query.getAutoType() );
         }
         if ( ":identifiable".equals( path ) )
         {
@@ -236,37 +238,13 @@ class GistPlanner
         return "*".equals( path ) || ":*".equals( path ) || ":all".equals( path );
     }
 
-    private List<Field> withEmbeddedAsMultipleFields( List<Field> fields )
+    private List<Field> withUniqueFields( List<Field> fields )
     {
         // OBS! We use a map to not get duplicate fields, last wins
         Map<String, Field> fieldsByPath = new LinkedHashMap<>();
-        Consumer<Field> add = field -> fieldsByPath.put( field.getPropertyPath(), field );
         for ( Field f : fields )
         {
-            String path = f.getPropertyPath();
-            Property field = context.resolveMandatory( path );
-            if ( field.isEmbeddedObject() && !field.isCollection() && field.isOneToMany() )
-            {
-                Class<?> embeddedType = field.getKlass();
-                RelativePropertyContext embeddedContext = context.switchedTo( embeddedType );
-                List<String> annotatedDefaultFields = field.getGistPreferences().getFields();
-                if ( !annotatedDefaultFields.isEmpty() )
-                {
-                    annotatedDefaultFields.stream()
-                        .map( embeddedContext::resolveMandatory )
-                        .forEach( p -> add.accept( createNestedField( path, p ) ) );
-                }
-                else
-                {
-                    embeddedContext.getHome().getProperties().stream().filter( p -> isIncludedField( p, GistAll.S ) )
-                        .sorted( GistPlanner::propertyTypeOrder )
-                        .forEach( p -> add.accept( createNestedField( path, p ) ) );
-                }
-            }
-            else
-            {
-                add.accept( f );
-            }
+            fieldsByPath.put( f.getPropertyPath(), f );
         }
         return new ArrayList<>( fieldsByPath.values() );
     }
@@ -280,13 +258,8 @@ class GistPlanner
         } );
         if ( hasReferences )
         {
-            fields.add( new Field( Field.REFS_PATH, GistTransform.NONE, "apiEndpoints", null, false ) );
+            fields.add( new Field( Field.REFS_PATH, Transform.NONE, "apiEndpoints", null, false ) );
         }
         return fields;
-    }
-
-    private Field createNestedField( String parentPath, Property field )
-    {
-        return new Field( parentPath + "." + field.key(), GistAll.S.getDefaultTransformation() );
     }
 }
