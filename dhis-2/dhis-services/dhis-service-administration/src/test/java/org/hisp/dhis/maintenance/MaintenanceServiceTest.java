@@ -234,14 +234,16 @@ public class MaintenanceServiceTest
         programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
         programMessageRecipients.setOrganisationUnit( organisationUnit );
 
-        ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
-            .recipients( programMessageRecipients )
-            .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
-            .programStageInstance( programStageInstance ).build();
+        ProgramMessage pm = new ProgramMessage();
+        pm.setSubject( "subject" );
+        pm.setText( "text" );
+        pm.setRecipients( programMessageRecipients );
+        pm.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
+        pm.setProgramStageInstance( programStageInstance );
 
         long idA = programStageInstanceService.addProgramStageInstance( programStageInstance );
 
-        programMessageService.saveProgramMessage( message );
+        programMessageService.saveProgramMessage( pm );
 
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
 
@@ -267,13 +269,15 @@ public class MaintenanceServiceTest
         programMessageRecipients.setOrganisationUnit( organisationUnit );
         programMessageRecipients.setTrackedEntityInstance( entityInstanceB );
 
-        ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
-            .recipients( programMessageRecipients )
-            .deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) ).build();
+        ProgramMessage pm = new ProgramMessage();
+        pm.setSubject( "subject" );
+        pm.setText( "text" );
+        pm.setRecipients( programMessageRecipients );
+        pm.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
 
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceB );
 
-        programMessageService.saveProgramMessage( message );
+        programMessageService.saveProgramMessage( pm );
 
         assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
 
