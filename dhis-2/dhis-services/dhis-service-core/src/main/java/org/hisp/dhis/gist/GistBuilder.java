@@ -341,7 +341,7 @@ final class GistBuilder
         {
             return createCollectionFieldHQL( index, field );
         }
-        if ( property.isCollection() && property.getItemPropertyType().isSimple() )
+        if ( property.isCollection() && property.getOwningRole() != null )
         {
             return "size(e." + getMemberPath( path ) + ")";
         }

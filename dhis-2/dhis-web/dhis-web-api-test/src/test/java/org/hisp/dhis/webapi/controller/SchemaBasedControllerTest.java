@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller;
 
 import static java.util.Arrays.asList;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.HashSet;
@@ -37,7 +39,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
+import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.domain.JsonGenerator;
 import org.hisp.dhis.webapi.json.domain.JsonSchema;
 import org.junit.Test;
@@ -78,6 +82,15 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             "Predictor" // NPE in preheat when creating objects
         ) );
 
+    /**
+     * A list of endpoints that do not support the {@code /gist} API because
+     * their controller does not extend the base class that implements it.
+     */
+    private static final Set<String> IGNORED_GIST_ENDPOINTS = new HashSet<>( asList(
+        "reportTable", // no /gist API
+        "chart" // no /gist API
+    ) );
+
     @Test
     public void testCreateAndDeleteSchemaObjects()
     {
@@ -104,6 +117,10 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
                     endpoint = entry.getKey();
                     id = assertStatus( HttpStatus.CREATED, POST( endpoint, entry.getValue() ) );
                 }
+
+                // run other tests that depend upon having an existing object
+                testWithSchema( schema, id );
+
                 // delete the last created object
                 // (the one belonging to the tested schema)
                 assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + id ) );
@@ -111,6 +128,29 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
             }
         }
         assertTrue( "make sure we actually test schemas", testedSchemas >= 60 );
+    }
+
+    /**
+     * Uses the created instance to test the {@code /gist} endpoint list.
+     */
+    private void testWithSchema( JsonSchema schema, String id )
+    {
+        String endpoint = schema.getRelativeApiEndpoint();
+        if ( endpoint == null || IGNORED_GIST_ENDPOINTS.contains( schema.getName() ) )
+        {
+            return;
+        }
+        // test gist list of object for the schema
+        JsonObject gist = GET( endpoint + "/gist" ).content();
+        System.out.println( gist );
+        assertTrue( gist.getObject( "pager" ).exists() );
+        JsonArray list = gist.getArray( schema.getPlural() );
+        assertFalse( list.isEmpty() );
+        // only if there is only one we are sure its the one we created
+        if ( list.size() == 1 )
+        {
+            assertEquals( id, list.getObject( 0 ).getString( "id" ).string() );
+        }
     }
 
     private boolean isExcludedFromTest( JsonSchema schema )

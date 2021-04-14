@@ -29,6 +29,7 @@ package org.hisp.dhis.gist;
 
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
+import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Included;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
@@ -71,7 +72,8 @@ final class GistLogic
 
     static boolean isPersistentReferenceField( Property p )
     {
-        return p.isPersisted() && (p.isOneToOne() || p.isManyToOne());
+        return p.isPersisted() && (p.isOneToOne() || p.isManyToOne()
+            || p.getPropertyType() == PropertyType.REFERENCE && p.isIdentifiableObject());
     }
 
     static Class<?> getBaseType( Property p )
