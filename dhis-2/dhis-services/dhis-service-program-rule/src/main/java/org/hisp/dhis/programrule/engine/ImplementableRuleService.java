@@ -32,12 +32,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
+
+import com.google.common.collect.ImmutableList;
 
 abstract class ImplementableRuleService
 {
