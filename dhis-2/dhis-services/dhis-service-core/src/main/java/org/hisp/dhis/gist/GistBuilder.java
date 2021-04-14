@@ -59,6 +59,7 @@ import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
+import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.schema.Property;
@@ -351,26 +352,21 @@ final class GistBuilder
 
     private String createReferenceFieldHQL( int index, Field field )
     {
+        String tableName = "t_" + index;
         String path = field.getPropertyPath();
         Property property = context.resolveMandatory( path );
-        String propertyName = "uid";
-        if ( field.getTransformation() == Transform.PLUCK && field.getTransformationArgument() != null )
+        RelativePropertyContext fieldContext = context.switchedTo( property.getKlass() );
+        String propertyName = determineReferenceProperty( field, fieldContext, false );
+        Schema propertySchema = fieldContext.getHome();
+        if ( propertyName == null || propertySchema.getRelativeApiEndpoint() == null )
         {
-            propertyName = getPluckPropertyName( field, property.getKlass(), false );
-        }
-        if ( property.getKlass() == PeriodType.class )
-        {
-            // this is how HQL refers to discriminator property, here name
-            propertyName = "class";
-        }
-        else if ( !property.isIdentifiableObject() )
-        {
-            Schema propertySchema = context.switchedTo( property.getKlass() ).getHome();
-            if ( propertySchema.getRelativeApiEndpoint() == null )
+            // embed the object directly
+            if ( !property.isRequired() )
             {
-                // embed the object directly
-                return "e." + getMemberPath( path );
+                return String.format( "(select %1$s from %2$s %1$s where %1$s = e.%3$s)",
+                    tableName, property.getKlass().getSimpleName(), getMemberPath( path ) );
             }
+            return "e." + getMemberPath( path );
         }
 
         if ( property.isIdentifiableObject() )
@@ -392,7 +388,6 @@ final class GistBuilder
         {
             return "e." + getMemberPath( path ) + "." + propertyName;
         }
-        String tableName = "t_" + index;
         return String.format( "(select %1$s.%2$s from %3$s %1$s where %1$s = e.%4$s)",
             tableName, propertyName, property.getKlass().getSimpleName(), getMemberPath( path ) );
     }
@@ -462,15 +457,50 @@ final class GistBuilder
     private String createPluckTransformerHQL( int index, Field field, Property property )
     {
         String tableName = "t_" + index;
-        String propertyName = "uid";
-        if ( field.getTransformationArgument() != null )
+        RelativePropertyContext itemContext = context.switchedTo( property.getItemKlass() );
+        String propertyName = determineReferenceProperty( field, itemContext, true );
+        if ( propertyName == null || property.getItemKlass() == Period.class )
         {
-            propertyName = getPluckPropertyName( field, property.getItemKlass(), true );
+            // give up
+            return createSizeTransformerHQL( index, field, property, "" );
         }
-        String accessFilter = createAccessFilterHQL( context.switchedTo( property.getItemKlass() ), tableName );
+        String accessFilter = createAccessFilterHQL( itemContext, tableName );
         return String.format( "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
             tableName, propertyName, property.getItemKlass().getSimpleName(),
             getMemberPath( field.getPropertyPath() ), accessFilter );
+    }
+
+    private String determineReferenceProperty( Field field, RelativePropertyContext fieldContext, boolean forceTextual )
+    {
+        Class<?> fieldType = fieldContext.getHome().getKlass();
+        if ( field.getTransformationArgument() != null )
+        {
+            return getPluckPropertyName( field, fieldType, forceTextual );
+        }
+        if ( fieldType == PeriodType.class )
+        {
+            // this is how HQL refers to discriminator property, here "name"
+            return "class";
+        }
+        if ( existsAsReference( fieldContext, "id" ) )
+        {
+            return fieldContext.resolveMandatory( "id" ).getFieldName();
+        }
+        if ( existsAsReference( fieldContext, "code" ) )
+        {
+            return fieldContext.resolveMandatory( "code" ).getFieldName();
+        }
+        if ( existsAsReference( fieldContext, "name" ) )
+        {
+            return fieldContext.resolveMandatory( "name" ).getFieldName();
+        }
+        return null;
+    }
+
+    private boolean existsAsReference( RelativePropertyContext fieldContext, String id )
+    {
+        Property p = fieldContext.resolve( id );
+        return p != null && p.isPersisted();
     }
 
     private String getPluckPropertyName( Field field, Class<?> ownerType, boolean forceTextual )

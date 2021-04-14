@@ -140,9 +140,9 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         {
             return;
         }
+
         // test gist list of object for the schema
         JsonObject gist = GET( endpoint + "/gist" ).content();
-        System.out.println( gist );
         assertTrue( gist.getObject( "pager" ).exists() );
         JsonArray list = gist.getArray( schema.getPlural() );
         assertFalse( list.isEmpty() );
@@ -151,6 +151,11 @@ public class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         {
             assertEquals( id, list.getObject( 0 ).getString( "id" ).string() );
         }
+
+        // test the single object gist as well
+        JsonObject object = GET( endpoint + "/" + id + "/gist" ).content();
+        assertTrue( object.exists() );
+        assertEquals( id, object.getString( "id" ).string() );
     }
 
     private boolean isExcludedFromTest( JsonSchema schema )
