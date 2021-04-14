@@ -49,10 +49,6 @@ import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
@@ -69,6 +65,10 @@ import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Purpose of this helper is to avoid passing around same state while building
@@ -287,8 +287,9 @@ final class GistBuilder
             AclService.LIKE_READ_METADATA );
         // HQL does not allow the ->> syntax so we have to substitute with the
         // named function: jsonb_extract_path_text
-        return access.replaceAll( tableName + "\\.sharing->>'([^']+)'",
+        access = access.replaceAll( tableName + "\\.sharing->>'([^']+)'",
             JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')" );
+        return "(" + access + ")";
     }
 
     private boolean isFilterBySharing( RelativePropertyContext context )
@@ -416,19 +417,15 @@ final class GistBuilder
         case NONE:
             return HQL_NULL;
         case SIZE:
-            return createSizeTransformerHQL( index, field, property );
+            return createSizeTransformerHQL( index, field, property, "" );
         case IS_EMPTY:
-            addTransformer( row -> row[index] = ((Number) row[index]).intValue() == 0 );
-            return createSizeTransformerHQL( index, field, property );
+            return createSizeTransformerHQL( index, field, property, "=0" );
         case IS_NOT_EMPTY:
-            addTransformer( row -> row[index] = ((Number) row[index]).intValue() > 0 );
-            return createSizeTransformerHQL( index, field, property );
+            return createSizeTransformerHQL( index, field, property, ">0" );
         case NOT_MEMBER:
-            addTransformer( row -> row[index] = ((Number) row[index]).intValue() == 0 );
-            return createHasMemberTransformerHQL( index, field, property );
+            return createHasMemberTransformerHQL( index, field, property, "=0" );
         case MEMBER:
-            addTransformer( row -> row[index] = ((Number) row[index]).intValue() > 0 );
-            return createHasMemberTransformerHQL( index, field, property );
+            return createHasMemberTransformerHQL( index, field, property, ">0" );
         case ID_OBJECTS:
             addTransformer( row -> row[index] = toIdObjects( row[index] ) );
             return createIdsTransformerHQL( index, field, property );
@@ -439,15 +436,21 @@ final class GistBuilder
         }
     }
 
-    private String createSizeTransformerHQL( int index, Field field, Property property )
+    private String createSizeTransformerHQL( int index, Field field, Property property, String compare )
     {
         String tableName = "t_" + index;
         RelativePropertyContext fieldContext = context.switchedTo( property.getItemKlass() );
+        String memberPath = getMemberPath( field.getPropertyPath() );
+
+        if ( !isFilterBySharing( fieldContext ) )
+        {
+            // generates better SQL in case no access control is needed
+            return String.format( "size(%s) %s", memberPath, compare );
+        }
         String accessFilter = createAccessFilterHQL( fieldContext, tableName );
         return String.format(
-            "(select count(*) from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
-            tableName, property.getItemKlass().getSimpleName(),
-            getMemberPath( field.getPropertyPath() ), accessFilter );
+            "(select count(*) %5$s from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
+            tableName, property.getItemKlass().getSimpleName(), memberPath, accessFilter, compare );
     }
 
     private String createIdsTransformerHQL( int index, Field field, Property property )
@@ -481,14 +484,14 @@ final class GistBuilder
         return propertyName;
     }
 
-    private String createHasMemberTransformerHQL( int index, Field field, Property property )
+    private String createHasMemberTransformerHQL( int index, Field field, Property property, String compare )
     {
         String tableName = "t_" + index;
         String accessFilter = createAccessFilterHQL( context.switchedTo( property.getItemKlass() ), tableName );
         return String.format(
-            "(select count(*) from %2$s %1$s where %1$s in elements(e.%3$s) and %1$s.uid = :p_%4$s and %5$s)",
+            "(select count(*) %6$s from %2$s %1$s where %1$s in elements(e.%3$s) and %1$s.uid = :p_%4$s and %5$s)",
             tableName, property.getItemKlass().getSimpleName(),
-            getMemberPath( field.getPropertyPath() ), field.getPropertyPath(), accessFilter );
+            getMemberPath( field.getPropertyPath() ), field.getPropertyPath(), accessFilter, compare );
     }
 
     private void addEndpointURL( Object[] row, int refIndex, Field field, String url )
@@ -500,14 +503,19 @@ final class GistBuilder
         ((Map<String, String>) row[refIndex]).put( field.getName(), url );
     }
 
-    private static String toEndpointURL( String endpointRoot, Object id )
+    private String toEndpointURL( String endpointRoot, Object id )
     {
-        return id == null ? null : endpointRoot + '/' + id + GIST_PATH;
+        return id == null ? null : endpointRoot + '/' + id + GIST_PATH + getEndpointUrlParams();
     }
 
-    private static String toEndpointURL( String endpointRoot, Object id, Property property )
+    private String toEndpointURL( String endpointRoot, Object id, Property property )
     {
-        return endpointRoot + '/' + id + '/' + property.key() + GIST_PATH;
+        return endpointRoot + '/' + id + '/' + property.key() + GIST_PATH + getEndpointUrlParams();
+    }
+
+    private String getEndpointUrlParams()
+    {
+        return query.isAbsolute() ? "?absolute=true" : "";
     }
 
     private static IdObject toIdObject( Object id )
