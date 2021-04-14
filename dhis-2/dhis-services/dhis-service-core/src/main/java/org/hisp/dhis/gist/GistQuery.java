@@ -194,7 +194,7 @@ public final class GistQuery
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()
                 .map( Field::parse ).collect( toList() ) )
-            .filters( params.getStrings( "filter" ).stream().map( Filter::parse ).collect( toList() ) )
+            .filters( params.getStrings( "filter", FIELD_SPLIT ).stream().map( Filter::parse ).collect( toList() ) )
             .orders( params.getStrings( "order" ).stream().map( Order::parse ).collect( toList() ) )
             .build();
     }
@@ -267,9 +267,9 @@ public final class GistQuery
         NOT_ENDS_LIKE( "!like$" ),
         ILIKE( "ilike" ),
         NOT_ILIKE( "!ilike" ),
-        STARTS_WITH( "$ilike", "startsWith" ),
+        STARTS_WITH( "$ilike", "startswith" ),
         NOT_STARTS_WITH( "!$ilike" ),
-        ENDS_WITH( "ilike$", "endsWith" ),
+        ENDS_WITH( "ilike$", "endswith" ),
         NOT_ENDS_WITH( "!ilike$" );
 
         private final String[] symbols;
@@ -472,7 +472,13 @@ public final class GistQuery
             }
             if ( parts.length == 3 )
             {
-                return new Filter( parts[0], Comparison.parse( parts[1] ), parts[2].split( "," ) );
+                String value = parts[2];
+                if ( value.startsWith( "[" ) && value.endsWith( "]" ) )
+                {
+                    return new Filter( parts[0], Comparison.parse( parts[1] ),
+                        value.substring( 1, value.length() - 1 ).split( "," ) );
+                }
+                return new Filter( parts[0], Comparison.parse( parts[1] ), value );
             }
             throw new IllegalArgumentException( "Not a valid filter expression: " + filter );
         }

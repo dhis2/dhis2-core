@@ -29,6 +29,7 @@ package org.hisp.dhis.gist;
 
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
@@ -622,19 +623,17 @@ final class GistBuilder
         case LIKE:
         case STARTS_LIKE:
         case ENDS_LIKE:
+        case ILIKE:
+        case STARTS_WITH:
+        case ENDS_WITH:
             return "like";
         case NOT_LIKE:
         case NOT_STARTS_LIKE:
         case NOT_ENDS_LIKE:
-            return "not like";
-        case ILIKE:
-        case STARTS_WITH:
-        case ENDS_WITH:
-            return "ilike";
         case NOT_ILIKE:
         case NOT_STARTS_WITH:
         case NOT_ENDS_WITH:
-            return "not ilike";
+            return "not like";
         default:
             return "";
         }
@@ -724,7 +723,7 @@ final class GistBuilder
         {
             return getParameterValue( property, filter, value[0], argumentParser );
         }
-        return stream( value ).map( e -> getParameterValue( property, filter, e, argumentParser ) ).toArray();
+        return stream( value ).map( e -> getParameterValue( property, filter, e, argumentParser ) ).collect( toList() );
     }
 
     private Object getParameterValue( Property property, Filter filter, String value,
@@ -760,12 +759,12 @@ final class GistBuilder
         case STARTS_WITH:
         case NOT_STARTS_LIKE:
         case NOT_STARTS_WITH:
-            return "%" + value;
+            return value + "%";
         case ENDS_LIKE:
         case ENDS_WITH:
         case NOT_ENDS_LIKE:
         case NOT_ENDS_WITH:
-            return value + "%";
+            return "%" + value;
         default:
             return value;
         }

@@ -103,8 +103,11 @@ public final class GistPager
             {
                 for ( String value : param.getValue() )
                 {
-                    appendNextParameter( url );
-                    appendParameterKeyValue( url, param, value );
+                    if ( value != null )
+                    {
+                        appendNextParameter( url );
+                        appendParameterKeyValue( url, param, value );
+                    }
                 }
             }
         }
