@@ -445,7 +445,7 @@ final class GistBuilder
         if ( !isFilterBySharing( fieldContext ) )
         {
             // generates better SQL in case no access control is needed
-            return String.format( "size(%s) %s", memberPath, compare );
+            return String.format( "size(e.%s) %s", memberPath, compare );
         }
         String accessFilter = createAccessFilterHQL( fieldContext, tableName );
         return String.format(
@@ -496,6 +496,10 @@ final class GistBuilder
 
     private void addEndpointURL( Object[] row, int refIndex, Field field, String url )
     {
+        if ( url == null || url.isEmpty() )
+        {
+            return;
+        }
         if ( row[refIndex] == null )
         {
             row[refIndex] = new TreeMap<>();
