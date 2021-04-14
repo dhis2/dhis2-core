@@ -660,7 +660,7 @@ public class OrganisationUnit
         return set;
     }
 
-    @Property( basedOn = "hierarchyLevel" )
+    @Property( persistedAs = "hierarchyLevel" )
     @JsonProperty( value = "level", access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( localName = "level", isAttribute = true )
     public int getLevel()

@@ -169,7 +169,6 @@ public class User
      * Returns the concatenated first name and surname.
      */
     @Override
-    @Property( basedOn = { "firstName", "surname" } )
     public String getName()
     {
         return firstName + " " + surname;

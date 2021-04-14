@@ -50,14 +50,15 @@ public @interface Property
     Access access() default Access.READ_WRITE;
 
     /**
-     * When used with a single property it is assumed that this is an alias for
-     * the referenced field.
+     * This is essentially a manual override to specify the
+     * {@link org.hisp.dhis.schema.Property#getFieldName()} of the annotated
+     * member.
      *
-     * @return name of the field or member this property is based on. This is
-     *         not resolved from the referenced properties since those might not
-     *         be present in the final schema while the annotated member is.
+     * @return Name of the field this property is persisted as in case this is a
+     *         non persistent property which has a corresponding persistent
+     *         member.
      */
-    String[] basedOn() default {};
+    String persistedAs() default "";
 
     enum Value
     {
