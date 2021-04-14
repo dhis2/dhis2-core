@@ -194,7 +194,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserOuHierarchy.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
@@ -205,7 +205,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserSearchOuHierarchy.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
@@ -216,7 +216,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userCaptureOuCountThreshold.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
@@ -431,7 +431,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userGroupNameCache.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
@@ -442,7 +442,7 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userDisplayNameCache.name() )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( 20 ) )
             .forceInMemory()
             .withMaximumSize( orZeroInTestRun( SIZE_10K ) ) );
