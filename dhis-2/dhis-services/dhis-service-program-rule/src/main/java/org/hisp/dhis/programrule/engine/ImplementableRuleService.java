@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.google.common.collect.ImmutableList;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.common.event.ApplicationCacheClearedEvent;
 import org.hisp.dhis.program.Program;
@@ -41,6 +39,8 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
 import org.springframework.context.event.EventListener;
+
+import com.google.common.collect.ImmutableList;
 
 abstract class ImplementableRuleService
 {
@@ -88,7 +88,7 @@ abstract class ImplementableRuleService
             // At enrollment, only those rules should be selected for execution
             // which are not associated with any ProgramStage.
             return programRulesByActionTypes.stream().filter( rule -> rule.getProgramStage() == null )
-                    .collect( Collectors.toList() );
+                .collect( Collectors.toList() );
         }
         return programRulesByActionTypes;
     }
