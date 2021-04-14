@@ -57,6 +57,8 @@ public interface CacheProvider
 
     <V> Cache<V> createInUserOrgUnitHierarchyCache();
 
+    <V> Cache<V> createInUserViewOrgUnitHierarchyCache();
+
     <V> Cache<V> createInUserSearchOrgUnitHierarchyCache();
 
     <V> Cache<V> createUserCaptureOrgUnitThresholdCache();

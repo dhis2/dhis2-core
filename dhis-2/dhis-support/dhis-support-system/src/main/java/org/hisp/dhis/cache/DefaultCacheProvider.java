@@ -89,6 +89,7 @@ public class DefaultCacheProvider
         isDataApproved,
         allConstantsCache,
         inUserOuHierarchy,
+        isUserViewOuHierHierarchy,
         inUserSearchOuHierarchy,
         userCaptureOuCountThreshold,
         periodIdCache,
@@ -194,6 +195,17 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.inUserOuHierarchy.name() )
+            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_10K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createInUserViewOrgUnitHierarchyCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.isUserViewOuHierHierarchy.name() )
             .expireAfterWrite( 3, TimeUnit.HOURS )
             .withInitialCapacity( (int) getActualSize( SIZE_1K ) )
             .forceInMemory()

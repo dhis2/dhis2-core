@@ -428,7 +428,7 @@ public class DefaultDataValueSetService
 
         for ( OrganisationUnit unit : params.getOrganisationUnits() )
         {
-            if ( !organisationUnitService.isInUserHierarchy( unit ) )
+            if ( !organisationUnitService.isInUserViewHierarchy( unit ) )
             {
                 throw new IllegalQueryException( new ErrorMessage( ErrorCode.E2012, unit.getUid() ) );
             }
