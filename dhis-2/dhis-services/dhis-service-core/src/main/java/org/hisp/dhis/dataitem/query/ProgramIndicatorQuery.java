@@ -84,9 +84,8 @@ import org.springframework.stereotype.Component;
 public class ProgramIndicatorQuery implements DataItemQuery
 {
     private static final String COMMON_COLUMNS = "programindicator.name, programindicator.uid, programindicator.code,"
-        + " program.name as program_name, program.uid as program_uid, program.publicaccess as program_publicaccess,"
-        + " programindicator.programindicatorid as id, programindicator.publicaccess as programindicator_publicaccess,"
-        + " programindicator.shortname, program.shortname as program_shortname";
+        + " program.uid as program_uid, program.publicaccess as program_publicaccess, programindicator.programindicatorid as id,"
+        + " programindicator.publicaccess as programindicator_publicaccess, programindicator.shortname";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 
@@ -189,10 +188,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by program.name, program.shortname, programindicator.name, " + COMMON_UIDS
-                + ", programindicator.code, p_i18n_name, i18n_name, program.publicaccess,"
+            " group by programindicator.name, " + COMMON_UIDS
+                + ", programindicator.code, i18n_name, program.publicaccess,"
                 + " programindicator.programindicatorid, programindicator.publicaccess, programindicator.shortname,"
-                + " i18n_shortname, p_i18n_shortname" );
+                + " i18n_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -248,8 +247,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", program.name as p_i18n_name, programindicator.name as i18n_name," +
-                " program.shortname as p_i18n_shortname, programindicator.shortname as i18n_shortname" )
+            .append( ", programindicator.name as i18n_name, programindicator.shortname as i18n_shortname" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }
