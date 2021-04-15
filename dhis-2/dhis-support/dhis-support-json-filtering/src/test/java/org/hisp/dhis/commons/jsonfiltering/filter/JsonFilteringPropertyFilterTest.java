@@ -64,7 +64,7 @@ import com.google.common.base.Charsets;
 public class JsonFilteringPropertyFilterTest
 {
 
-    public static final String BASE_PATH = "com/github/bohnman/squiggly/SquigglyPropertyFilterTest";
+    public static final String BASE_PATH = "org/hisp/dhis/commons/jsonfiltering";
 
     private Issue issue;
 
