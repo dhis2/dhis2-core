@@ -27,46 +27,23 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.List;
+import org.springframework.context.ApplicationEvent;
 
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
-
-@Component
-public class NotificationImplementableRuleService
-    extends ImplementableRuleService
+/**
+ * @author Zubair Asghar
+ */
+public class TrackerEnrollmentWebHookEvent extends ApplicationEvent
 {
-    private final Cache<Boolean> programHasRulesCache;
+    private final String programInstance;
 
-    public NotificationImplementableRuleService( ProgramRuleService programRuleService,
-        final CacheProvider cacheProvider )
+    public TrackerEnrollmentWebHookEvent( Object source, String programInstance )
     {
-        super( programRuleService );
-        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
+        super( source );
+        this.programInstance = programInstance;
     }
 
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
+    public String getProgramInstance()
     {
-        List<ProgramRule> permittedRules = getProgramRulesByActionTypes( program,
-            ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid );
-
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return getProgramRulesByActionTypes( program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid );
-    }
-
-    @Override
-    Cache<Boolean> getProgramHasRulesCache()
-    {
-        return this.programHasRulesCache;
+        return programInstance;
     }
 }
