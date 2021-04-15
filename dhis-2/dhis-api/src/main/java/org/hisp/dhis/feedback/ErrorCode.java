@@ -151,6 +151,7 @@ public enum ErrorCode
     E4030( "Object could not be deleted because it is associated with another object: {0}" ),
 
     E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
+    E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
