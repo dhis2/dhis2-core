@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,51 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-public class IssueAction extends BaseEntity
+public class BaseEntity
 {
 
-    private String type;
+    private String id;
 
-    private String text;
-
-    private User user;
-
-    public IssueAction( String type, String text, User user )
+    public String getId()
     {
-        this.text = text;
-        this.type = type;
-        this.user = user;
+        return id;
     }
 
-    public String getText()
+    public void setId( String id )
     {
-        return text;
-    }
-
-    public void setText( String text )
-    {
-        this.text = text;
-    }
-
-    public String getType()
-    {
-        return type;
-    }
-
-    public void setType( String type )
-    {
-        this.type = type;
-    }
-
-    public User getUser()
-    {
-        return user;
-    }
-
-    public void setUser( User user )
-    {
-        this.user = user;
+        this.id = id;
     }
 }

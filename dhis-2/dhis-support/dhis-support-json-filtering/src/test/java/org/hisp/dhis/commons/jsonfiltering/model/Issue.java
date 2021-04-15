@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,86 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-public class Inner
+import java.util.List;
+import java.util.Map;
+
+import org.hisp.dhis.commons.jsonfiltering.view.PropertyView;
+
+public class Issue extends BaseEntity
 {
 
-    private String innerText;
+    private String issueSummary;
 
-    public Inner()
+    private String issueDetails;
+
+    private User reporter;
+
+    private User assignee;
+
+    private List<IssueAction> actions;
+
+    @PropertyView( "view1" )
+    private Map<String, Object> properties;
+
+    public String getIssueSummary()
     {
+        return issueSummary;
     }
 
-    public Inner( String innerText )
+    public void setIssueSummary( String issueSummary )
     {
-        this.innerText = innerText;
+        this.issueSummary = issueSummary;
     }
 
-    public String getInnerText()
+    public String getIssueDetails()
     {
-        return innerText;
+        return issueDetails;
     }
 
-    public void setInnerText( String innerText )
+    public void setIssueDetails( String issueDetails )
     {
-        this.innerText = innerText;
+        this.issueDetails = issueDetails;
+    }
+
+    public User getReporter()
+    {
+        return reporter;
+    }
+
+    public void setReporter( User reporter )
+    {
+        this.reporter = reporter;
+    }
+
+    public User getAssignee()
+    {
+        return assignee;
+    }
+
+    public void setAssignee( User assignee )
+    {
+        this.assignee = assignee;
+    }
+
+    public List<IssueAction> getActions()
+    {
+        return actions;
+    }
+
+    public void setActions( List<IssueAction> actions )
+    {
+        this.actions = actions;
+    }
+
+    public Map<String, Object> getProperties()
+    {
+        return properties;
+    }
+
+    public void setProperties( Map<String, Object> properties )
+    {
+        this.properties = properties;
     }
 }

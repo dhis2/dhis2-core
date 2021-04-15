@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,20 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-public class BaseEntity
+public class Inner
 {
 
-    private String id;
+    private String innerText;
 
-    public String getId()
+    public Inner()
     {
-        return id;
     }
 
-    public void setId( String id )
+    public Inner( String innerText )
     {
-        this.id = id;
+        this.innerText = innerText;
+    }
+
+    public String getInnerText()
+    {
+        return innerText;
+    }
+
+    public void setInnerText( String innerText )
+    {
+        this.innerText = innerText;
     }
 }

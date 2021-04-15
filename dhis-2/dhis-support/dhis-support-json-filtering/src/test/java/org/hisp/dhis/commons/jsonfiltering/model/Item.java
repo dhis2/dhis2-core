@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,59 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import java.util.Collections;
+import java.util.List;
 
-public class Outer
+public class Item
 {
 
-    private String outerText;
+    private final String id;
 
-    private Inner inner;
+    private final String name;
 
-    public Outer()
+    private final List<Item> items;
+
+    public Item( String id, String name )
     {
+        this( id, name, Collections.<Item> emptyList() );
     }
 
-    public Outer( String outerText, String inner )
+    public Item( String id, String name, Item item )
     {
-        this.outerText = outerText;
-        this.inner = new Inner( inner );
+        this( id, name, Collections.singletonList( item ) );
     }
 
-    public String getOuterText()
+    public Item( String id, String name, List<Item> items )
     {
-        return outerText;
+        this.id = id;
+        this.name = name;
+        this.items = items;
     }
 
-    public void setOuterText( String outerText )
+    public String getId()
     {
-        this.outerText = outerText;
+        return id;
     }
 
-    public Inner getInner()
+    public String getName()
     {
-        return inner;
+        return name;
     }
 
-    @JsonUnwrapped
-    public void setInner( Inner inner )
+    public List<Item> getItems()
     {
-        this.inner = inner;
+        return items;
+    }
+
+    public static Item testItem()
+    {
+        Item item5 = new Item( "ITEM-5", "Binoculars" );
+        Item item4 = new Item( "ITEM-4", "Hoverboard", item5 );
+        Item item3 = new Item( "ITEM-3", "Milkshake", item4 );
+        Item item2 = new Item( "ITEM-2", "Life Preserver", item3 );
+
+        return new Item( "ITEM-1", "Nike Shoes", item2 );
     }
 }

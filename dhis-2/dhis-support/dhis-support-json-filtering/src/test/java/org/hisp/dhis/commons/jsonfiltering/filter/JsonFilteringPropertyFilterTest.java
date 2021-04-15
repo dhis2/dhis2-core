@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.filter;
+package org.hisp.dhis.commons.jsonfiltering.filter;
 
 import static org.junit.Assert.assertEquals;
 
@@ -44,17 +44,14 @@ import java.util.regex.Pattern;
 
 import org.hisp.dhis.commons.jsonfiltering.config.JsonFilteringConfig;
 import org.hisp.dhis.commons.jsonfiltering.context.provider.JsonFilteringContextProvider;
-import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilter;
-import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilterMixin;
+import org.hisp.dhis.commons.jsonfiltering.model.Issue;
+import org.hisp.dhis.commons.jsonfiltering.model.IssueAction;
+import org.hisp.dhis.commons.jsonfiltering.model.Item;
+import org.hisp.dhis.commons.jsonfiltering.model.Outer;
+import org.hisp.dhis.commons.jsonfiltering.model.User;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 import org.junit.Before;
 import org.junit.Test;
-
-import squiggly.model.Issue;
-import squiggly.model.IssueAction;
-import squiggly.model.Item;
-import squiggly.model.Outer;
-import squiggly.model.User;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -82,6 +79,18 @@ public class JsonFilteringPropertyFilterTest
     public JsonFilteringPropertyFilterTest()
     {
         rawObjectMapper.configure( SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true );
+    }
+
+    private static String stringify( ObjectMapper mapper, Object object )
+    {
+        try
+        {
+            return mapper.writeValueAsString( object );
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new IllegalArgumentException( e );
+        }
     }
 
     @Before
@@ -478,18 +487,6 @@ public class JsonFilteringPropertyFilterTest
     private String stringify( Object object )
     {
         return stringify( objectMapper, object );
-    }
-
-    private static String stringify( ObjectMapper mapper, Object object )
-    {
-        try
-        {
-            return mapper.writeValueAsString( object );
-        }
-        catch ( JsonProcessingException e )
-        {
-            throw new IllegalArgumentException( e );
-        }
     }
 
     private String stringifyRaw()

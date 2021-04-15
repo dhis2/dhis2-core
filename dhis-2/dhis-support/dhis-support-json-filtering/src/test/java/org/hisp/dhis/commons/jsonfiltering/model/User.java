@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,59 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-import java.util.Collections;
-import java.util.List;
-
-public class Item
+public class User
 {
 
-    private final String id;
+    private String firstName;
 
-    private final String name;
+    private String lastName;
 
-    private final List<Item> items;
+    private String entityType = "User";
 
-    public Item( String id, String name )
+    public User()
     {
-        this( id, name, Collections.<Item> emptyList() );
     }
 
-    public Item( String id, String name, Item item )
+    public User( String firstName, String lastName )
     {
-        this( id, name, Collections.singletonList( item ) );
+        this.firstName = firstName;
+        this.lastName = lastName;
     }
 
-    public Item( String id, String name, List<Item> items )
+    public String getFirstName()
     {
-        this.id = id;
-        this.name = name;
-        this.items = items;
+        return firstName;
     }
 
-    public String getId()
+    public void setFirstName( String firstName )
     {
-        return id;
+        this.firstName = firstName;
     }
 
-    public String getName()
+    public String getLastName()
     {
-        return name;
+        return lastName;
     }
 
-    public List<Item> getItems()
+    public void setLastName( String lastName )
     {
-        return items;
+        this.lastName = lastName;
     }
 
-    public static Item testItem()
+    public String getEntityType()
     {
-        Item item5 = new Item( "ITEM-5", "Binoculars" );
-        Item item4 = new Item( "ITEM-4", "Hoverboard", item5 );
-        Item item3 = new Item( "ITEM-3", "Milkshake", item4 );
-        Item item2 = new Item( "ITEM-2", "Life Preserver", item3 );
+        return entityType;
+    }
 
-        return new Item( "ITEM-1", "Nike Shoes", item2 );
+    public void setEntityType( String entityType )
+    {
+        this.entityType = entityType;
     }
 }

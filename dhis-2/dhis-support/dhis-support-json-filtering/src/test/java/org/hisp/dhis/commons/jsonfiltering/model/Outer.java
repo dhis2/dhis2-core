@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,86 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-import java.util.List;
-import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
-import org.hisp.dhis.commons.jsonfiltering.view.PropertyView;
-
-public class Issue extends BaseEntity
+public class Outer
 {
 
-    private String issueSummary;
+    private String outerText;
 
-    private String issueDetails;
+    private Inner inner;
 
-    private User reporter;
-
-    private User assignee;
-
-    private List<IssueAction> actions;
-
-    @PropertyView( "view1" )
-    private Map<String, Object> properties;
-
-    public String getIssueSummary()
+    public Outer()
     {
-        return issueSummary;
     }
 
-    public void setIssueSummary( String issueSummary )
+    public Outer( String outerText, String inner )
     {
-        this.issueSummary = issueSummary;
+        this.outerText = outerText;
+        this.inner = new Inner( inner );
     }
 
-    public String getIssueDetails()
+    public String getOuterText()
     {
-        return issueDetails;
+        return outerText;
     }
 
-    public void setIssueDetails( String issueDetails )
+    public void setOuterText( String outerText )
     {
-        this.issueDetails = issueDetails;
+        this.outerText = outerText;
     }
 
-    public User getReporter()
+    public Inner getInner()
     {
-        return reporter;
+        return inner;
     }
 
-    public void setReporter( User reporter )
+    @JsonUnwrapped
+    public void setInner( Inner inner )
     {
-        this.reporter = reporter;
-    }
-
-    public User getAssignee()
-    {
-        return assignee;
-    }
-
-    public void setAssignee( User assignee )
-    {
-        this.assignee = assignee;
-    }
-
-    public List<IssueAction> getActions()
-    {
-        return actions;
-    }
-
-    public void setActions( List<IssueAction> actions )
-    {
-        this.actions = actions;
-    }
-
-    public Map<String, Object> getProperties()
-    {
-        return properties;
-    }
-
-    public void setProperties( Map<String, Object> properties )
-    {
-        this.properties = properties;
+        this.inner = inner;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2021, University of Oslo
+ * Copyright (c) 2004-2004-2020, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package squiggly.model;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-public class User
+public class IssueAction extends BaseEntity
 {
 
-    private String firstName;
+    private String type;
 
-    private String lastName;
+    private String text;
 
-    private String entityType = "User";
+    private User user;
 
-    public User()
+    public IssueAction( String type, String text, User user )
     {
+        this.text = text;
+        this.type = type;
+        this.user = user;
     }
 
-    public User( String firstName, String lastName )
+    public String getText()
     {
-        this.firstName = firstName;
-        this.lastName = lastName;
+        return text;
     }
 
-    public String getFirstName()
+    public void setText( String text )
     {
-        return firstName;
+        this.text = text;
     }
 
-    public void setFirstName( String firstName )
+    public String getType()
     {
-        this.firstName = firstName;
+        return type;
     }
 
-    public String getLastName()
+    public void setType( String type )
     {
-        return lastName;
+        this.type = type;
     }
 
-    public void setLastName( String lastName )
+    public User getUser()
     {
-        this.lastName = lastName;
+        return user;
     }
 
-    public String getEntityType()
+    public void setUser( User user )
     {
-        return entityType;
-    }
-
-    public void setEntityType( String entityType )
-    {
-        this.entityType = entityType;
+        this.user = user;
     }
 }
