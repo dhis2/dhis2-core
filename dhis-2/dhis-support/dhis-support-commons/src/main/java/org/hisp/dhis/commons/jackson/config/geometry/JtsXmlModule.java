@@ -25,32 +25,39 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.config.geometry;
 
-import java.io.IOException;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
 
-import org.springframework.util.StringUtils;
-
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometryDeserializer;
+import com.bedatadriven.jackson.datatype.jts.serialization.GeometrySerializer;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * @author Enrico Colasante
  */
-public class EmptyStringToNullStdDeserializer extends JsonDeserializer<String>
+public class JtsXmlModule
+    extends SimpleModule
 {
-    @Override
-    public String deserialize( JsonParser parser, DeserializationContext context )
-        throws IOException
+    public JtsXmlModule()
     {
-        String result = parser.getValueAsString();
+        this( new GeometryFactory() );
+    }
 
-        if ( StringUtils.isEmpty( result ) )
-        {
-            return null;
-        }
+    @SuppressWarnings( { "rawtypes", "unchecked" } )
+    public JtsXmlModule( GeometryFactory geometryFactory )
+    {
+        super( "JtsXmlModule", new Version( 1, 0, 0, (String) null, "org.dhis", "dhis-service-node" ) );
+        this.addSerializer( Geometry.class, new GeometrySerializer() );
+        XmlGenericGeometryParser genericGeometryParser = new XmlGenericGeometryParser( geometryFactory );
+        this.addDeserializer( Geometry.class, new GeometryDeserializer( genericGeometryParser ) );
+    }
 
-        return result;
+    @Override
+    public void setupModule( SetupContext context )
+    {
+        super.setupModule( context );
     }
 }

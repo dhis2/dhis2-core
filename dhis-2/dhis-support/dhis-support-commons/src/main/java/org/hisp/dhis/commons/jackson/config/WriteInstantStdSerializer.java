@@ -25,26 +25,28 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.io.IOException;
-import java.util.Date;
+import java.time.Instant;
 
 import org.hisp.dhis.util.DateUtils;
 
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class WriteDateStdSerializer extends JsonSerializer<Date>
+public class WriteInstantStdSerializer extends StdSerializer<Instant>
 {
+    public WriteInstantStdSerializer()
+    {
+        super( Instant.class );
+    }
+
     @Override
-    public void serialize( Date date, JsonGenerator generator, SerializerProvider provider )
+    public void serialize( Instant value, JsonGenerator gen, SerializerProvider provider )
         throws IOException
     {
-        generator.writeString( DateUtils.getIso8601NoTz( date ) );
+        gen.writeString( DateUtils.getIso8601NoTz( DateUtils.fromInstant( value ) ) );
     }
 }

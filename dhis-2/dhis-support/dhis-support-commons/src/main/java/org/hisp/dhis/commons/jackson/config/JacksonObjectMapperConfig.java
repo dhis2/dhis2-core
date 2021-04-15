@@ -25,18 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config;
+package org.hisp.dhis.commons.jackson.config;
 
 import java.time.Instant;
 import java.util.Date;
 
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.commons.config.jackson.EmptyStringToNullStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseDateStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.ParseInstantStdDeserializer;
-import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
-import org.hisp.dhis.commons.config.jackson.WriteInstantStdSerializer;
-import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
+import org.hisp.dhis.commons.jackson.config.geometry.JtsXmlModule;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
 import org.springframework.context.annotation.Bean;

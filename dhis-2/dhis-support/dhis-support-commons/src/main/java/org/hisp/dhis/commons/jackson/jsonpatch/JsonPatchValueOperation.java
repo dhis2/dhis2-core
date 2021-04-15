@@ -25,43 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config.jackson.geometry;
+package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.io.ParseException;
-import org.locationtech.jts.io.WKTReader;
-
-import com.bedatadriven.jackson.datatype.jts.parsers.BaseParser;
-import com.bedatadriven.jackson.datatype.jts.parsers.GeometryParser;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Enrico Colasante
+ * @author Morten Olav Hansen
  */
-@Slf4j
-public class XmlGenericGeometryParser
-    extends BaseParser
-    implements GeometryParser<Geometry>
+@Getter
+public abstract class JsonPatchValueOperation extends JsonPatchOperation
 {
-    public XmlGenericGeometryParser( GeometryFactory geometryFactory )
-    {
-        super( geometryFactory );
-    }
+    protected final JsonNode value;
 
-    public Geometry geometryFromJson( JsonNode node )
+    @JsonCreator
+    public JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
     {
-        WKTReader wktR = new WKTReader();
-        try
-        {
-            return wktR.read( node.asText() );
-        }
-        catch ( ParseException e )
-        {
-            log.error( "Error reading WKT of geometry", e );
-            return null;
-        }
+        super( op, path );
+        this.value = value;
     }
 }

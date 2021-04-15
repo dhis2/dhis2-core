@@ -25,37 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.system.util;
+package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.util.List;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import lombok.Getter;
 
-import com.fasterxml.jackson.databind.ObjectWriter;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
- * @author Lars Helge Overland
+ * @author Morten Olav Hansen
  */
-public class JacksonCsvUtils
+@Getter
+public class JsonPatch
+    implements Patch
 {
-    /**
-     * Writes the given response to the given output stream as CSV using
-     * {@link CsvMapper}. The schema is inferred from the given type using
-     * {@CsvSchema}. A header line is included.
-     *
-     * @param value the value to write.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IOException if the write operation fails.
-     */
-    public static void toCsv( Object value, Class<?> type, OutputStream out )
-        throws IOException
+    private final List<JsonPatchOperation> operations;
+
+    @JsonCreator
+    public JsonPatch( List<JsonPatchOperation> operations )
     {
-        CsvMapper csvMapper = JacksonObjectMapperConfig.csvMapper;
-        CsvSchema schema = csvMapper.schemaFor( type ).withHeader();
-        ObjectWriter writer = csvMapper.writer( schema );
-        writer.writeValue( out, value );
+        this.operations = operations;
+    }
+
+    @Override
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
+    {
+        JsonNode patched = node;
+
+        for ( JsonPatchOperation op : operations )
+        {
+            patched = op.apply( patched );
+        }
+
+        return patched;
     }
 }
