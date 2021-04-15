@@ -41,6 +41,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ScheduledFuture;
+import java.util.function.BiFunction;
 
 import javax.annotation.PostConstruct;
 
@@ -172,52 +173,48 @@ public class DefaultSchedulingManager
     @Override
     public void scheduleJob( JobConfiguration jobConfiguration )
     {
-        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
-        {
-            JobInstance jobInstance = new DefaultJobInstance( this, messageService, leaderManager );
+        scheduleJob( jobConfiguration, this::scheduleCronOrDelayJob );
+    }
 
-            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
-            {
-                log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
-
-                ScheduledFuture<?> future = null;
-
-                if ( jobConfiguration.getJobType().isCronSchedulingType() )
-                {
-                    future = jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
-                        new CronTrigger( jobConfiguration.getCronExpression() ) );
-                }
-                else if ( jobConfiguration.getJobType().isFixedDelaySchedulingType() )
-                {
-                    future = jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
-                        Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
-                        Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
-                }
-
-                futures.put( jobConfiguration.getUid(), future );
-
-                log.info( String.format( "Scheduled job: %s", jobConfiguration ) );
-            }
-        }
+    private ScheduledFuture<?> scheduleCronOrDelayJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+        log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
+        SchedulingType type = jobConfiguration.getJobType().getSchedulingType();
+        ScheduledFuture<?> future = type == SchedulingType.CRON
+            ? jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
+                new CronTrigger( jobConfiguration.getCronExpression() ) )
+            : jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
+                Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
+                Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
+        log.info( String.format( "Scheduled job: %s", jobConfiguration ) );
+        return future;
     }
 
     @Override
     public void scheduleJobWithStartTime( JobConfiguration jobConfiguration, Date startTime )
     {
-        if ( ifJobInSystemStop( jobConfiguration.getUid() ) )
+        scheduleJob( jobConfiguration,
+            ( configuration, jobInstance ) -> scheduleJobWithStartTime( configuration, jobInstance, startTime ) );
+    }
+
+    private ScheduledFuture<?> scheduleJobWithStartTime( JobConfiguration jobConfiguration, JobInstance jobInstance,
+        Date startTime )
+    {
+        ScheduledFuture<?> future = jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ), startTime );
+
+        log.info( String.format( "Scheduled job: %s with start time: %s", jobConfiguration,
+            getMediumDateString( startTime ) ) );
+        return future;
+    }
+
+    private void scheduleJob( JobConfiguration jobConfiguration,
+        BiFunction<JobConfiguration, JobInstance, ScheduledFuture<?>> task )
+    {
+        String uid = jobConfiguration.getUid();
+        if ( ifJobInSystemStop( uid ) && uid != null )
         {
-            JobInstance jobInstance = new DefaultJobInstance( this, messageService, leaderManager );
-
-            if ( jobConfiguration.getUid() != null && !futures.containsKey( jobConfiguration.getUid() ) )
-            {
-                ScheduledFuture<?> future = jobScheduler.schedule(
-                    () -> jobInstance.execute( jobConfiguration ), startTime );
-
-                futures.put( jobConfiguration.getUid(), future );
-
-                log.info( String.format( "Scheduled job: %s with start time: %s", jobConfiguration,
-                    getMediumDateString( startTime ) ) );
-            }
+            futures.computeIfAbsent( uid,
+                key -> task.apply( jobConfiguration, new DefaultJobInstance( this, messageService, leaderManager ) ) );
         }
     }
 
