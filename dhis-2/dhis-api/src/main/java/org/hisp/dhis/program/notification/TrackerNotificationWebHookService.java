@@ -27,27 +27,28 @@
  */
 package org.hisp.dhis.program.notification;
 
-import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
-
 /**
- * Created by zubair@dhis2.org on 16.11.17.
+ * Defines methods for handling of tracker web hook notifications associated
+ * with {@link org.hisp.dhis.program.ProgramInstance} and
+ * {@link org.hisp.dhis.program.ProgramStageInstance}
+ *
+ * @author Zubair Asghar
  */
-public interface ProgramNotificationTemplateStore
-    extends IdentifiableObjectStore<ProgramNotificationTemplate>
+public interface TrackerNotificationWebHookService
 {
-    String ID = ProgramNotificationTemplate.class.getName();
+    /**
+     * Sends web hook notifications linked to
+     * {@link org.hisp.dhis.program.ProgramInstance}
+     *
+     * @param programInstance to handle
+     */
+    void handleEnrollment( String programInstance );
 
-    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
-
-    boolean isProgramLinkedToWebHookNotification( Long pId );
-
-    boolean isProgramStageLinkedToWebHookNotification( Long psId );
-
-    List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
-
-    List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
+    /**
+     * Sends web hook notifications linked to
+     * {@link org.hisp.dhis.program.ProgramStageInstance}
+     *
+     * @param programStageInstance to handle
+     */
+    void handleEvent( String programStageInstance );
 }

@@ -37,5 +37,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public enum DeliveryChannel
 {
     SMS,
-    EMAIL
+    EMAIL,
+    HTTP
 }

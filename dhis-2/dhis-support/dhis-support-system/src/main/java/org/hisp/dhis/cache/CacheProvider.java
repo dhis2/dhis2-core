@@ -104,4 +104,8 @@ public interface CacheProvider
     <V> Cache<V> createUserDisplayNameCache();
 
     void handleApplicationCachesCleared( ApplicationCacheClearedEvent event );
+
+    <V> Cache<V> createProgramWebHookNotificationTemplateCache();
+
+    <V> Cache<V> createProgramStageWebHookNotificationTemplateCache();
 }

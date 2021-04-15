@@ -25,29 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.notification;
+package org.hisp.dhis.programrule.engine;
 
-import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.springframework.context.ApplicationEvent;
 
 /**
- * Created by zubair@dhis2.org on 16.11.17.
+ * @author Zubair Asghar
  */
-public interface ProgramNotificationTemplateStore
-    extends IdentifiableObjectStore<ProgramNotificationTemplate>
+public class TrackerEventWebHookEvent extends ApplicationEvent
 {
-    String ID = ProgramNotificationTemplate.class.getName();
+    private final String programStageInstance;
 
-    List<ProgramNotificationTemplate> getProgramNotificationByTriggerType( NotificationTrigger triggers );
+    public TrackerEventWebHookEvent( Object source, String programStageInstance )
+    {
+        super( source );
+        this.programStageInstance = programStageInstance;
+    }
 
-    boolean isProgramLinkedToWebHookNotification( Long pId );
-
-    boolean isProgramStageLinkedToWebHookNotification( Long psId );
-
-    List<ProgramNotificationTemplate> getProgramLinkedToWebHookNotifications( Program program );
-
-    List<ProgramNotificationTemplate> getProgramStageLinkedToWebHookNotifications( ProgramStage programStage );
+    public String getProgramStageInstance()
+    {
+        return programStageInstance;
+    }
 }

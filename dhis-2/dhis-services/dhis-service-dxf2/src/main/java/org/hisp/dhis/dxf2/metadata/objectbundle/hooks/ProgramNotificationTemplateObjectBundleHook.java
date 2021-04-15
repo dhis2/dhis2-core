@@ -52,11 +52,13 @@ public class ProgramNotificationTemplateObjectBundleHook
         .put( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE,
             template -> template.getRecipientProgramAttribute().getValueType() )
         .put( ProgramNotificationRecipient.DATA_ELEMENT, template -> template.getRecipientDataElement().getValueType() )
+        .put( ProgramNotificationRecipient.WEB_HOOK, template -> ValueType.URL )
         .build();
 
     private static final ImmutableMap<ValueType, Set<DeliveryChannel>> CHANNEL_MAPPER = new ImmutableMap.Builder<ValueType, Set<DeliveryChannel>>()
         .put( ValueType.PHONE_NUMBER, Sets.newHashSet( DeliveryChannel.SMS ) )
         .put( ValueType.EMAIL, Sets.newHashSet( DeliveryChannel.EMAIL ) )
+        .put( ValueType.URL, Sets.newHashSet( DeliveryChannel.HTTP ) )
         .build();
 
     @Override
@@ -130,27 +132,15 @@ public class ProgramNotificationTemplateObjectBundleHook
         }
     }
 
-    private void postProcess( ProgramNotificationTemplate template )
+    private void postProcess( ProgramNotificationTemplate pnt )
     {
-        if ( ProgramNotificationRecipient.PROGRAM_ATTRIBUTE == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.PROGRAM_ATTRIBUTE );
-        }
-
-        if ( ProgramNotificationRecipient.DATA_ELEMENT == template.getNotificationRecipient() )
-        {
-            resolveTemplateRecipients( template, ProgramNotificationRecipient.DATA_ELEMENT );
-        }
-    }
-
-    private void resolveTemplateRecipients( ProgramNotificationTemplate pnt, ProgramNotificationRecipient pnr )
-    {
-        Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
+        ProgramNotificationRecipient pnr = pnt.getNotificationRecipient();
 
         ValueType valueType = null;
 
-        if ( resolver != null && (pnt.getRecipientProgramAttribute() != null || pnt.getRecipientDataElement() != null) )
+        if ( RECIPIENT_TO_VALUETYPE_RESOLVER.containsKey( pnr ) )
         {
+            Function<ProgramNotificationTemplate, ValueType> resolver = RECIPIENT_TO_VALUETYPE_RESOLVER.get( pnr );
             valueType = resolver.apply( pnt );
         }
 
