@@ -29,32 +29,28 @@ package org.hisp.dhis.commons.jsonfiltering.context;
 
 import java.util.List;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 
 /**
  * Squiggly context that loads the parsed nodes on demand.
  */
+@RequiredArgsConstructor
 public class LazyJsonFilteringContext implements JsonFilteringContext
 {
 
-    private final Class beanClass;
-
-    private final String filter;
+    private final Class<?> beanClass;
 
     private final JsonFilteringParser parser;
 
+    private final String filter;
+
     private List<JsonFilteringNode> nodes;
 
-    public LazyJsonFilteringContext( Class beanClass, JsonFilteringParser parser, String filter )
-    {
-        this.beanClass = beanClass;
-        this.parser = parser;
-        this.filter = filter;
-    }
-
     @Override
-    public Class getBeanClass()
+    public Class<?> getBeanClass()
     {
         return beanClass;
     }

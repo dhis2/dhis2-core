@@ -25,14 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.config;
+package org.hisp.dhis.commons.jsonfiltering.web;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public interface FieldFilterCustomizer<T>
 {
-    default boolean isApplicable( Class beanClass )
+    default boolean isApplicable( String requestUri, Class beanClass )
     {
-        return getApplicableClass().isAssignableFrom( beanClass );
+        if ( isUriSupported( requestUri ) )
+        {
+            return getApplicableClass().isAssignableFrom( beanClass );
+        }
+        return false;
     }
+
+    default boolean isUriSupported( String requestUri )
+    {
+        return Optional.ofNullable( getSupportedUriPatterns() )
+            .orElse( Collections.emptyList() )
+            .stream()
+            .map( pattern -> pattern.matcher( requestUri ) )
+            .anyMatch( Matcher::matches );
+    }
+
+    Collection<Pattern> getSupportedUriPatterns();
 
     Class<T> getApplicableClass();
 

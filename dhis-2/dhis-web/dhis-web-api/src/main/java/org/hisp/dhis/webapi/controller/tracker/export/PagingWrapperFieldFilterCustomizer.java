@@ -29,9 +29,13 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import lombok.Getter;
 
-import org.hisp.dhis.commons.config.FieldFilterCustomizer;
+import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.regex.Pattern;
 
 @Component
 @SuppressWarnings( "rawtypes" )
@@ -39,6 +43,8 @@ class PagingWrapperFieldFilterCustomizer implements FieldFilterCustomizer<Paging
 {
     @Getter
     private final Class<PagingWrapper> applicableClass = PagingWrapper.class;
+    @Getter
+    private final Collection<Pattern> supportedUriPatterns = Collections.singleton(Pattern.compile("tracker"));
 
     @Override
     public String customize( String filter )

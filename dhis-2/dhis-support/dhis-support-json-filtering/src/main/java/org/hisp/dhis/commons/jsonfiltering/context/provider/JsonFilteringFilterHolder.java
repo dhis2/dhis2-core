@@ -44,8 +44,4 @@ public class JsonFilteringFilterHolder
         HOLDER.set( filter );
     }
 
-    public static void removeFilter()
-    {
-        HOLDER.remove();
-    }
 }

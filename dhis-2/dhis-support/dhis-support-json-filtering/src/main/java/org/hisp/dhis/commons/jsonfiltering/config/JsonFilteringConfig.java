@@ -34,6 +34,9 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.SortedMap;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.commons.jsonfiltering.bean.BeanInfoIntrospector;
 import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilter;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
@@ -50,6 +53,7 @@ import com.google.common.collect.Maps;
  * Users can override the default configuration by putting a
  * json-filtering.properties in their classpath.
  */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class JsonFilteringConfig
 {
 
@@ -82,22 +86,18 @@ public class JsonFilteringConfig
         PROPS_MAP = ImmutableSortedMap.copyOf( propsMap );
         SOURCE_MAP = ImmutableSortedMap.copyOf( sourceMap );
 
-        filterImplicitlyIncludeBaseFields = getBool( PROPS_MAP, "filter.implicitlyIncludeBaseFields" );
-        filterImplicitlyIncludeBaseFieldsInView = getBool( PROPS_MAP, "filter.implicitlyIncludeBaseFieldsInView" );
-        filterPathCacheSpec = getCacheSpec( PROPS_MAP, "filter.pathCache.spec" );
-        filterPropagateViewToNestedFilters = getBool( PROPS_MAP, "filter.propagateViewToNestedFilters" );
-        parserNodeCacheSpec = getCacheSpec( PROPS_MAP, "parser.nodeCache.spec" );
-        propertyAddNonAnnotatedFieldsToBaseView = getBool( PROPS_MAP, "property.addNonAnnotatedFieldsToBaseView" );
-        propertyDescriptorCacheSpec = getCacheSpec( PROPS_MAP, "property.descriptorCache.spec" );
+        filterImplicitlyIncludeBaseFields = getBool( "filter.implicitlyIncludeBaseFields" );
+        filterImplicitlyIncludeBaseFieldsInView = getBool( "filter.implicitlyIncludeBaseFieldsInView" );
+        filterPathCacheSpec = getCacheSpec( "filter.pathCache.spec" );
+        filterPropagateViewToNestedFilters = getBool( "filter.propagateViewToNestedFilters" );
+        parserNodeCacheSpec = getCacheSpec( "parser.nodeCache.spec" );
+        propertyAddNonAnnotatedFieldsToBaseView = getBool( "property.addNonAnnotatedFieldsToBaseView" );
+        propertyDescriptorCacheSpec = getCacheSpec( "property.descriptorCache.spec" );
     }
 
-    private JsonFilteringConfig()
+    private static CacheBuilderSpec getCacheSpec( String key )
     {
-    }
-
-    private static CacheBuilderSpec getCacheSpec( Map<String, String> props, String key )
-    {
-        String value = props.get( key );
+        String value = JsonFilteringConfig.PROPS_MAP.get( key );
 
         if ( value == null )
         {
@@ -107,21 +107,9 @@ public class JsonFilteringConfig
         return CacheBuilderSpec.parse( value );
     }
 
-    private static boolean getBool( Map<String, String> props, String key )
+    private static boolean getBool( String key )
     {
-        return "true".equals( props.get( key ) );
-    }
-
-    private static int getInt( Map<String, String> props, String key )
-    {
-        try
-        {
-            return Integer.parseInt( props.get( key ) );
-        }
-        catch ( NumberFormatException e )
-        {
-            throw new RuntimeException( "Unable to convert " + props.get( key ) + " to int for key " + key );
-        }
+        return "true".equals( JsonFilteringConfig.PROPS_MAP.get( key ) );
     }
 
     private static void loadProps( Map<String, String> propsMap, Map<String, String> sourceMap, String file )
@@ -135,30 +123,14 @@ public class JsonFilteringConfig
         }
 
         Properties fileProps = new Properties();
-        InputStream inputStream = null;
 
-        try
+        try ( InputStream inputStream = url.openStream() )
         {
-            inputStream = url.openStream();
             fileProps.load( inputStream );
         }
         catch ( IOException e )
         {
             throw new RuntimeException( "Unable to load properties from classpath resource " + file, e );
-        }
-        finally
-        {
-            try
-            {
-                if ( inputStream != null )
-                {
-                    inputStream.close();
-                }
-            }
-            catch ( Exception eat )
-            {
-                // ignore
-            }
         }
 
         for ( Map.Entry<Object, Object> entry : fileProps.entrySet() )

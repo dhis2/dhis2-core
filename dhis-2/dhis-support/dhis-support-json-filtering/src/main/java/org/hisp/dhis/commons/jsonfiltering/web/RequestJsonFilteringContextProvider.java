@@ -63,7 +63,7 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
     }
 
     @Override
-    protected String getFilter( Class beanClass )
+    protected String getFilter( Class<?> beanClass )
     {
         HttpServletRequest request = getRequest();
 
@@ -154,12 +154,17 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
         return JsonFilteringResponseHolder.getResponse();
     }
 
-    protected String customizeFilter( String filter, HttpServletRequest request, Class beanClass )
+    protected String customizeFilter( String filter, HttpServletRequest request, Class<?> beanClass )
+    {
+        return customizeFilter( filter, request.getRequestURI(), beanClass );
+    }
+
+    protected String customizeFilter( String filter, String requestUri, Class<?> beanClass )
     {
         return customizeFilter( filter, beanClass );
     }
 
-    protected String customizeFilter( String filter, Class beanClass )
+    protected String customizeFilter( String filter, Class<?> beanClass )
     {
         return filter;
     }

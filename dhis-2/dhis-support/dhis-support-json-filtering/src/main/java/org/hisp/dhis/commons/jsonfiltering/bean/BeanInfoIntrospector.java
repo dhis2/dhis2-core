@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.commons.jsonfiltering.bean;
 
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.annotation.Annotation;
@@ -36,6 +35,8 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+
+import lombok.SneakyThrows;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
@@ -63,18 +64,17 @@ public class BeanInfoIntrospector
     /**
      * Caches bean class to a map of views to property views.
      */
-    private static final LoadingCache<Class, BeanInfo> CACHE;
+    private static final LoadingCache<Class<?>, BeanInfo> CACHE;
 
     private static final GuavaCacheJsonFilteringMetricsSource METRICS_SOURCE;
 
     static
     {
         CACHE = CacheBuilder.from( JsonFilteringConfig.getPropertyDescriptorCacheSpec() )
-            .build( new CacheLoader<Class, BeanInfo>()
+            .build( new CacheLoader<Class<?>, BeanInfo>()
             {
                 @Override
-                public BeanInfo load( Class key )
-                    throws Exception
+                public BeanInfo load( Class<?> key )
                 {
                     return introspectClass( key );
                 }
@@ -82,7 +82,7 @@ public class BeanInfoIntrospector
         METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.property.descriptorCache.", CACHE );
     }
 
-    private static BeanInfo introspectClass( Class beanClass )
+    private static BeanInfo introspectClass( Class<?> beanClass )
     {
 
         Map<String, Set<String>> viewToPropertyNames = Maps.newHashMap();
@@ -109,15 +109,8 @@ public class BeanInfoIntrospector
 
             for ( String view : views )
             {
-                Set<String> fieldNames = viewToPropertyNames.get( view );
-
-                if ( fieldNames == null )
-                {
-                    fieldNames = Sets.newHashSet();
-                    viewToPropertyNames.put( view, fieldNames );
-                }
-
-                fieldNames.add( propertyName );
+                viewToPropertyNames.computeIfAbsent( view, k -> Sets.newHashSet() )
+                    .add( propertyName );
             }
         }
 
@@ -218,24 +211,15 @@ public class BeanInfoIntrospector
 
     private static Map<String, Set<String>> makeUnmodifiable( Map<String, Set<String>> map )
     {
-        for ( String key : map.keySet() )
-        {
-            map.put( key, Collections.unmodifiableSet( map.get( key ) ) );
-        }
+        map.replaceAll( ( k, v ) -> Collections.unmodifiableSet( map.get( k ) ) );
 
         return Collections.unmodifiableMap( map );
     }
 
-    private static PropertyDescriptor[] getPropertyDescriptors( Class beanClass )
+    @SneakyThrows
+    private static PropertyDescriptor[] getPropertyDescriptors( Class<?> beanClass )
     {
-        try
-        {
-            return Introspector.getBeanInfo( beanClass ).getPropertyDescriptors();
-        }
-        catch ( IntrospectionException e )
-        {
-            throw new RuntimeException( "Unable to introspect " + beanClass.getName(), e );
-        }
+        return Introspector.getBeanInfo( beanClass ).getPropertyDescriptors();
     }
 
     // apply the base fields to other views if configured to do so.
@@ -331,7 +315,7 @@ public class BeanInfoIntrospector
         return METRICS_SOURCE;
     }
 
-    public BeanInfo introspect( Class beanClass )
+    public BeanInfo introspect( Class<?> beanClass )
     {
         return CACHE.getUnchecked( beanClass );
     }

@@ -39,6 +39,7 @@ import org.hisp.dhis.commons.config.jackson.WriteDateStdSerializer;
 import org.hisp.dhis.commons.config.jackson.WriteInstantStdSerializer;
 import org.hisp.dhis.commons.config.jackson.geometry.JtsXmlModule;
 import org.hisp.dhis.commons.jsonfiltering.JsonFiltering;
+import org.hisp.dhis.commons.jsonfiltering.web.FieldFilterCustomizer;
 import org.hisp.dhis.commons.jsonfiltering.web.RequestJsonFilteringContextProvider;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.PrecisionModel;
@@ -106,10 +107,10 @@ public class JacksonObjectMapperConfig
             new RequestJsonFilteringContextProvider( FIELDS_FILTER_PARAM_NAME, INCLUDE_ALL_FIELDS_FILTER )
             {
                 @Override
-                protected String customizeFilter( String filter, Class beanClass )
+                protected String customizeFilter( String filter, String requestUri, Class beanClass )
                 {
                     return fieldFilterCustomizers.stream()
-                        .filter( fieldFilterCustomizer -> fieldFilterCustomizer.isApplicable( beanClass ) )
+                        .filter( fieldFilterCustomizer -> fieldFilterCustomizer.isApplicable( requestUri, beanClass ) )
                         .findFirst()
                         .map( fieldFilterCustomizer -> fieldFilterCustomizer.customize( filter ) )
                         .orElse( INCLUDE_ALL_FIELDS_FILTER );

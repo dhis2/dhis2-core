@@ -44,7 +44,7 @@ public interface JsonFilteringContext
      *
      * @return bean class
      */
-    Class getBeanClass();
+    Class<?> getBeanClass();
 
     /**
      * Get the parsed nodes.

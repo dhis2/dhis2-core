@@ -47,7 +47,7 @@ public interface JsonFilteringContextProvider
      * @param beanClass the class of the top-level bean being filtered
      * @return context
      */
-    JsonFilteringContext getContext( Class beanClass );
+    JsonFilteringContext getContext( Class<?> beanClass );
 
     /**
      * Hook method to enable/disable filtering.

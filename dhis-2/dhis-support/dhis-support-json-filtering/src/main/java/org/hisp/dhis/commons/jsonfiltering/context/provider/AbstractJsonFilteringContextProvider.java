@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.commons.jsonfiltering.context.provider;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.commons.jsonfiltering.context.JsonFilteringContext;
 import org.hisp.dhis.commons.jsonfiltering.context.LazyJsonFilteringContext;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
@@ -38,23 +40,14 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 /**
  * Base implemention of a provider that implements base functionality.
  */
+@RequiredArgsConstructor
 public abstract class AbstractJsonFilteringContextProvider implements JsonFilteringContextProvider
 {
 
     private final JsonFilteringParser parser;
 
-    public AbstractJsonFilteringContextProvider()
-    {
-        this( new JsonFilteringParser() );
-    }
-
-    public AbstractJsonFilteringContextProvider( JsonFilteringParser parser )
-    {
-        this.parser = parser;
-    }
-
     @Override
-    public JsonFilteringContext getContext( Class beanClass )
+    public JsonFilteringContext getContext( Class<?> beanClass )
     {
         return new LazyJsonFilteringContext( beanClass, parser, getFilter( beanClass ) );
     }
@@ -71,7 +64,7 @@ public abstract class AbstractJsonFilteringContextProvider implements JsonFilter
      * @param beanClass class of the top-level bean being filtered
      * @return filter expression
      */
-    protected abstract String getFilter( Class beanClass );
+    protected abstract String getFilter( Class<?> beanClass );
 
     @Override
     public void serializeAsIncludedField( Object pojo, JsonGenerator jgen, SerializerProvider provider,
