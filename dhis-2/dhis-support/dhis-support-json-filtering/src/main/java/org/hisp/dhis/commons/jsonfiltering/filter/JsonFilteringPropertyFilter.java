@@ -113,7 +113,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
 
     static
     {
-        MATCH_CACHE = CacheBuilder.from( JsonFilteringConfig.getFilterPathCacheSpec() ).build();
+        MATCH_CACHE = CacheBuilder.from( JsonFilteringConfig.getFILTER_PATH_CACHE_SPEC() ).build();
         METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.filter.pathCache.", MATCH_CACHE );
     }
 
@@ -305,7 +305,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
                 nodes = match.getChildren();
 
                 if ( i < lastIdx && nodes.isEmpty() && !match.isEmptyNested()
-                    && JsonFilteringConfig.isFilterImplicitlyIncludeBaseFields() )
+                    && JsonFilteringConfig.isFILTER_IMPLICITLY_INCLUDE_BASE_FIELDS() )
                 {
                     nodes = BASE_VIEW_NODES;
                 }
@@ -334,7 +334,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
         {
             Set<String> names = getPropertyNames( element, viewName );
 
-            if ( names.isEmpty() && JsonFilteringConfig.isFilterImplicitlyIncludeBaseFields() )
+            if ( names.isEmpty() && JsonFilteringConfig.isFILTER_IMPLICITLY_INCLUDE_BASE_FIELDS() )
             {
                 names = getPropertyNames( element, PropertyView.BASE_VIEW );
             }
@@ -401,7 +401,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
 
     private Set<String> addToViewStack( Set<String> viewStack, JsonFilteringNode viewNode )
     {
-        if ( !JsonFilteringConfig.isFilterPropagateViewToNestedFilters() )
+        if ( !JsonFilteringConfig.isFILTER_PROPAGATE_VIEW_TO_NESTED_FILTERS() )
         {
             return null;
         }

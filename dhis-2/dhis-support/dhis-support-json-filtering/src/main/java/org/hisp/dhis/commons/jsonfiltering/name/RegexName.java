@@ -75,12 +75,6 @@ public class RegexName implements JsonFilteringName
     }
 
     @Override
-    public String getRawName()
-    {
-        return rawName;
-    }
-
-    @Override
     public int match( String name )
     {
         if ( pattern.matcher( name ).matches() )

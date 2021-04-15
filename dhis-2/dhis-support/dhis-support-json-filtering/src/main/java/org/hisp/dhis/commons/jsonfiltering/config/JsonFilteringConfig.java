@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.commons.jsonfiltering.config;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.Map;
@@ -36,6 +35,7 @@ import java.util.SortedMap;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 
 import org.hisp.dhis.commons.jsonfiltering.bean.BeanInfoIntrospector;
 import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilter;
@@ -61,19 +61,19 @@ public class JsonFilteringConfig
 
     private static final SortedMap<String, String> SOURCE_MAP;
 
-    private static final boolean filterImplicitlyIncludeBaseFields;
+    private static final boolean FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS;
 
-    private static final boolean filterImplicitlyIncludeBaseFieldsInView;
+    private static final boolean FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW;
 
-    private static final CacheBuilderSpec filterPathCacheSpec;
+    private static final CacheBuilderSpec FILTER_PATH_CACHE_SPEC;
 
-    private static final boolean filterPropagateViewToNestedFilters;
+    private static final boolean FILTER_PROPAGATE_VIEW_TO_NESTED_FILTERS;
 
-    private static final CacheBuilderSpec parserNodeCacheSpec;
+    private static final CacheBuilderSpec PARSER_NODE_CACHE_SPEC;
 
-    private static final CacheBuilderSpec propertyDescriptorCacheSpec;
+    private static final CacheBuilderSpec PROPERTY_DESCRIPTOR_CACHE_SPEC;
 
-    private static final boolean propertyAddNonAnnotatedFieldsToBaseView;
+    private static final boolean PROPERTY_ADD_NON_ANNOTATED_FIELDS_TO_BASE_VIEW;
 
     static
     {
@@ -86,13 +86,13 @@ public class JsonFilteringConfig
         PROPS_MAP = ImmutableSortedMap.copyOf( propsMap );
         SOURCE_MAP = ImmutableSortedMap.copyOf( sourceMap );
 
-        filterImplicitlyIncludeBaseFields = getBool( "filter.implicitlyIncludeBaseFields" );
-        filterImplicitlyIncludeBaseFieldsInView = getBool( "filter.implicitlyIncludeBaseFieldsInView" );
-        filterPathCacheSpec = getCacheSpec( "filter.pathCache.spec" );
-        filterPropagateViewToNestedFilters = getBool( "filter.propagateViewToNestedFilters" );
-        parserNodeCacheSpec = getCacheSpec( "parser.nodeCache.spec" );
-        propertyAddNonAnnotatedFieldsToBaseView = getBool( "property.addNonAnnotatedFieldsToBaseView" );
-        propertyDescriptorCacheSpec = getCacheSpec( "property.descriptorCache.spec" );
+        FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS = getBool( "filter.implicitlyIncludeBaseFields" );
+        FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW = getBool( "filter.implicitlyIncludeBaseFieldsInView" );
+        FILTER_PATH_CACHE_SPEC = getCacheSpec( "filter.pathCache.spec" );
+        FILTER_PROPAGATE_VIEW_TO_NESTED_FILTERS = getBool( "filter.propagateViewToNestedFilters" );
+        PARSER_NODE_CACHE_SPEC = getCacheSpec( "parser.nodeCache.spec" );
+        PROPERTY_ADD_NON_ANNOTATED_FIELDS_TO_BASE_VIEW = getBool( "property.addNonAnnotatedFieldsToBaseView" );
+        PROPERTY_DESCRIPTOR_CACHE_SPEC = getCacheSpec( "property.descriptorCache.spec" );
     }
 
     private static CacheBuilderSpec getCacheSpec( String key )
@@ -112,6 +112,7 @@ public class JsonFilteringConfig
         return "true".equals( JsonFilteringConfig.PROPS_MAP.get( key ) );
     }
 
+    @SneakyThrows
     private static void loadProps( Map<String, String> propsMap, Map<String, String> sourceMap, String file )
     {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -128,10 +129,6 @@ public class JsonFilteringConfig
         {
             fileProps.load( inputStream );
         }
-        catch ( IOException e )
-        {
-            throw new RuntimeException( "Unable to load properties from classpath resource " + file, e );
-        }
 
         for ( Map.Entry<Object, Object> entry : fileProps.entrySet() )
         {
@@ -146,9 +143,9 @@ public class JsonFilteringConfig
      * @return true if includes, false if not
      * @see PropertyView
      */
-    public static boolean isFilterImplicitlyIncludeBaseFields()
+    public static boolean isFILTER_IMPLICITLY_INCLUDE_BASE_FIELDS()
     {
-        return filterImplicitlyIncludeBaseFields;
+        return FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS;
     }
 
     /**
@@ -157,9 +154,9 @@ public class JsonFilteringConfig
      *
      * @return true if includes, false if not
      */
-    public static boolean isFilterImplicitlyIncludeBaseFieldsInView()
+    public static boolean isFILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW()
     {
-        return filterImplicitlyIncludeBaseFieldsInView;
+        return FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW;
     }
 
     /**
@@ -169,9 +166,9 @@ public class JsonFilteringConfig
      * @return spec
      * @see JsonFilteringPropertyFilter
      */
-    public static CacheBuilderSpec getFilterPathCacheSpec()
+    public static CacheBuilderSpec getFILTER_PATH_CACHE_SPEC()
     {
-        return filterPathCacheSpec;
+        return FILTER_PATH_CACHE_SPEC;
     }
 
     /**
@@ -183,9 +180,9 @@ public class JsonFilteringConfig
      *
      * @return true if includes, false if not
      */
-    public static boolean isFilterPropagateViewToNestedFilters()
+    public static boolean isFILTER_PROPAGATE_VIEW_TO_NESTED_FILTERS()
     {
-        return filterPropagateViewToNestedFilters;
+        return FILTER_PROPAGATE_VIEW_TO_NESTED_FILTERS;
     }
 
     /**
@@ -195,9 +192,9 @@ public class JsonFilteringConfig
      * @return spec
      * @see JsonFilteringParser
      */
-    public static CacheBuilderSpec getParserNodeCacheSpec()
+    public static CacheBuilderSpec getPARSER_NODE_CACHE_SPEC()
     {
-        return parserNodeCacheSpec;
+        return PARSER_NODE_CACHE_SPEC;
     }
 
     /**
@@ -207,9 +204,9 @@ public class JsonFilteringConfig
      * @return true/false
      * @see BeanInfoIntrospector
      */
-    public static boolean isPropertyAddNonAnnotatedFieldsToBaseView()
+    public static boolean isPROPERTY_ADD_NON_ANNOTATED_FIELDS_TO_BASE_VIEW()
     {
-        return propertyAddNonAnnotatedFieldsToBaseView;
+        return PROPERTY_ADD_NON_ANNOTATED_FIELDS_TO_BASE_VIEW;
     }
 
     /**
@@ -219,34 +216,9 @@ public class JsonFilteringConfig
      * @return spec
      * @see BeanInfoIntrospector
      */
-    public static CacheBuilderSpec getPropertyDescriptorCacheSpec()
+    public static CacheBuilderSpec getPROPERTY_DESCRIPTOR_CACHE_SPEC()
     {
-        return propertyDescriptorCacheSpec;
+        return PROPERTY_DESCRIPTOR_CACHE_SPEC;
     }
 
-    /**
-     * Gets all the config as a map.
-     *
-     * @return map
-     */
-    public static SortedMap<String, String> asMap()
-    {
-        return PROPS_MAP;
-    }
-
-    /**
-     * Gets a map of all the config keys and whose values are the location where
-     * that key was read from.
-     *
-     * @return source map
-     */
-    public static SortedMap<String, String> asSourceMap()
-    {
-        return SOURCE_MAP;
-    }
-
-    public static void main( String[] args )
-    {
-        System.out.println( JsonFilteringConfig.asMap() );
-    }
 }

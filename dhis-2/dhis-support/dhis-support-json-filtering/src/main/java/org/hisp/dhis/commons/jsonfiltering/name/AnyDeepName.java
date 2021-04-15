@@ -46,12 +46,6 @@ public class AnyDeepName implements JsonFilteringName
     }
 
     @Override
-    public String getRawName()
-    {
-        return ID;
-    }
-
-    @Override
     public int match( String name )
     {
         return 0;

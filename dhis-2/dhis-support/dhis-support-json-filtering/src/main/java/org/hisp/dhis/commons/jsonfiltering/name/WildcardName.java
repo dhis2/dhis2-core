@@ -62,12 +62,6 @@ public class WildcardName implements JsonFilteringName
     }
 
     @Override
-    public String getRawName()
-    {
-        return name;
-    }
-
-    @Override
     public int match( String name )
     {
         if ( pattern.matcher( name ).matches() )

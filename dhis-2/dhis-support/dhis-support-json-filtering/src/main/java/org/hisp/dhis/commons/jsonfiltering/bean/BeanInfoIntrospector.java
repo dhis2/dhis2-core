@@ -70,7 +70,7 @@ public class BeanInfoIntrospector
 
     static
     {
-        CACHE = CacheBuilder.from( JsonFilteringConfig.getPropertyDescriptorCacheSpec() )
+        CACHE = CacheBuilder.from( JsonFilteringConfig.getPROPERTY_DESCRIPTOR_CACHE_SPEC() )
             .build( new CacheLoader<Class<?>, BeanInfo>()
             {
                 @Override
@@ -233,7 +233,7 @@ public class BeanInfoIntrospector
             baseProps = ImmutableSet.of();
         }
 
-        if ( !JsonFilteringConfig.isFilterImplicitlyIncludeBaseFieldsInView() )
+        if ( !JsonFilteringConfig.isFILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW() )
         {
 
             // make an exception for full view
@@ -283,7 +283,7 @@ public class BeanInfoIntrospector
             applyPropertyViews( views, field.getAnnotations() );
         }
 
-        if ( views.isEmpty() && JsonFilteringConfig.isPropertyAddNonAnnotatedFieldsToBaseView() )
+        if ( views.isEmpty() && JsonFilteringConfig.isPROPERTY_ADD_NON_ANNOTATED_FIELDS_TO_BASE_VIEW() )
         {
             return Collections.singleton( PropertyView.BASE_VIEW );
         }

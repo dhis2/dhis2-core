@@ -69,7 +69,7 @@ public class JsonFilteringParser
 
     static
     {
-        CACHE = CacheBuilder.from( JsonFilteringConfig.getParserNodeCacheSpec() ).build();
+        CACHE = CacheBuilder.from( JsonFilteringConfig.getPARSER_NODE_CACHE_SPEC() ).build();
         METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.parser.nodeCache.", CACHE );
     }
 
@@ -321,8 +321,6 @@ public class JsonFilteringParser
 
         private boolean dotPathed;
 
-        private MutableNode parent;
-
         MutableNode( JsonFilteringName name )
         {
             this.name = name;
@@ -384,7 +382,6 @@ public class JsonFilteringParser
 
             if ( existingChild == null )
             {
-                childToAdd.parent = this;
                 children.put( name, childToAdd );
             }
             else

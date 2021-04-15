@@ -29,9 +29,13 @@ package org.hisp.dhis.commons.jsonfiltering.web;
 
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
 /**
  * Provides a thread-local for holding a servlet response.
  */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
 public class JsonFilteringResponseHolder
 {
     private static final ThreadLocal<HttpServletResponse> HOLDER = new ThreadLocal<>();

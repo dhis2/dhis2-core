@@ -29,10 +29,7 @@ package org.hisp.dhis.commons.jsonfiltering.name;
 
 public interface JsonFilteringName
 {
-
     String getName();
-
-    String getRawName();
 
     int match( String name );
 }

@@ -44,12 +44,6 @@ public class ExactName implements JsonFilteringName
     }
 
     @Override
-    public String getRawName()
-    {
-        return name;
-    }
-
-    @Override
     public int match( String name )
     {
         if ( this.name.equals( name ) )

@@ -48,6 +48,7 @@ public class JsonFilteringRequestFilter implements Filter
     @Override
     public void init( FilterConfig filterConfig )
     {
+        // no init is needed
     }
 
     @Override
@@ -79,5 +80,6 @@ public class JsonFilteringRequestFilter implements Filter
     @Override
     public void destroy()
     {
+        // no destroy is needed
     }
 }
