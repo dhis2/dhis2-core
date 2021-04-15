@@ -57,7 +57,7 @@ public class JsonFilteringNode
      * @param name name of the node
      * @param children child nodes
      * @param negated whether or not the node has been negated
-     * @param jsonFiltering whether or not a node is squiggly
+     * @param jsonFiltering whether or not a node is JsonFiltering
      * @param emptyNested whether of not filter specified {}
      * @see #isJsonFiltering()
      */
@@ -105,14 +105,14 @@ public class JsonFilteringNode
     }
 
     /**
-     * A node is considered squiggly if it is comes right before a nested
+     * A node is considered JsonFiltering if it is comes right before a nested
      * expression.
      * <p>
      * For example, given the filter expression:
      * </p>
      * <code>id,foo{bar}</code>
      * <p>
-     * The foo node is squiggly, but the bar node is not.
+     * The foo node is JsonFiltering, but the bar node is not.
      * </p>
      *
      * @return true/false

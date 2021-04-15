@@ -47,8 +47,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 
 /**
- * Provides access to various configuration values that the Squiggly library
- * uses.
+ * Provides access to various configuration values that the JsonFiltering
+ * library uses.
  * <p>
  * Users can override the default configuration by putting a
  * json-filtering.properties in their classpath.

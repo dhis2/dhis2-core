@@ -35,7 +35,7 @@ import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 
 /**
- * Squiggly context that loads the parsed nodes on demand.
+ * JsonFiltering context that loads the parsed nodes on demand.
  */
 @RequiredArgsConstructor
 public class LazyJsonFilteringContext implements JsonFilteringContext
