@@ -69,7 +69,6 @@
                 <groupId>org.antlr</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
                 <configuration>
-                    <outputDirectory>${project.build.directory}/generated-antlr</outputDirectory>
                     <visitor>true</visitor>
                 </configuration>
                 <executions>
