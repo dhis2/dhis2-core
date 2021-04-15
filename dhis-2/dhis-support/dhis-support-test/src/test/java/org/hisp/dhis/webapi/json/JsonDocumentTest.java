@@ -73,8 +73,8 @@ public class JsonDocumentTest
     @Test
     public void testStringNode_EscapedChars()
     {
-        JsonNode node = new JsonDocument( "\"\\\\\\/\\t\\r\\n\\f\\b\"" ).get( "$" );
-        assertEquals( "\\/\t\r\n\f\b", node.value() );
+        JsonNode node = new JsonDocument( "\"\\\\\\/\\t\\r\\n\\f\\b\\\"\"" ).get( "$" );
+        assertEquals( "\\/\t\r\n\f\b\"", node.value() );
     }
 
     @Test
@@ -187,6 +187,13 @@ public class JsonDocumentTest
         assertEquals( "NULL node has no elements property.", ex.getMessage() );
         ex = assertThrows( UnsupportedOperationException.class, node::members );
         assertEquals( "NULL node has no members property.", ex.getMessage() );
+    }
+
+    @Test
+    public void testArray_IndexOutOfBounds()
+    {
+        JsonDocument doc = new JsonDocument( "[]" );
+        assertThrows( JsonPathException.class, () -> doc.get( "$[0]" ) );
     }
 
     @Test
