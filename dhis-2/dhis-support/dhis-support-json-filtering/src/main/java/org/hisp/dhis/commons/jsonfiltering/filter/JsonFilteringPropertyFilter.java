@@ -31,6 +31,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -39,8 +40,6 @@ import org.hisp.dhis.commons.jsonfiltering.bean.BeanInfoIntrospector;
 import org.hisp.dhis.commons.jsonfiltering.config.JsonFilteringConfig;
 import org.hisp.dhis.commons.jsonfiltering.context.JsonFilteringContext;
 import org.hisp.dhis.commons.jsonfiltering.context.provider.JsonFilteringContextProvider;
-import org.hisp.dhis.commons.jsonfiltering.metric.source.GuavaCacheJsonFilteringMetricsSource;
-import org.hisp.dhis.commons.jsonfiltering.metric.source.JsonFilteringMetricsSource;
 import org.hisp.dhis.commons.jsonfiltering.name.AnyDeepName;
 import org.hisp.dhis.commons.jsonfiltering.name.ExactName;
 import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
@@ -96,17 +95,16 @@ import com.google.common.collect.Sets;
  *    hardware
  * </pre>
  */
+@SuppressWarnings( "rawtypes" )
 public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
 {
 
     public static final String FILTER_ID = "jsonFilteringFilter";
 
     /**
-     * Cache that stores previous evalulated matches.
+     * Cache that stores previous evaluated matches.
      */
     private static final Cache<Pair<Path, String>, Boolean> MATCH_CACHE;
-
-    private static final JsonFilteringMetricsSource METRICS_SOURCE;
 
     private static final List<JsonFilteringNode> BASE_VIEW_NODES = Collections.singletonList(
         new JsonFilteringNode( new ExactName( PropertyView.BASE_VIEW ), Collections.emptyList(), false, true, false ) );
@@ -114,7 +112,6 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
     static
     {
         MATCH_CACHE = CacheBuilder.from( JsonFilteringConfig.getFILTER_PATH_CACHE_SPEC() ).build();
-        METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.filter.pathCache.", MATCH_CACHE );
     }
 
     private final BeanInfoIntrospector beanInfoIntrospector;
@@ -144,15 +141,10 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
         this.beanInfoIntrospector = beanInfoIntrospector;
     }
 
-    public static JsonFilteringMetricsSource getMetricsSource()
-    {
-        return METRICS_SOURCE;
-    }
-
     // create a path structure representing the object graph
     private Path getPath( PropertyWriter writer, JsonStreamContext sc )
     {
-        LinkedList<PathElement> elements = new LinkedList<PathElement>();
+        LinkedList<PathElement> elements = new LinkedList<>();
 
         if ( sc != null )
         {
@@ -212,7 +204,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
             return true;
         }
 
-        if ( path.isCachable() )
+        if ( path.isCacheable() )
         {
             // cache the match result using the path and filter expression
             Pair<Path, String> pair = Pair.of( path, filter );
@@ -444,7 +436,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
     }
 
     /*
-     * Represents the path structuore in the object graph
+     * Represents the path structure in the object graph
      */
     private static class Path
     {
@@ -473,11 +465,6 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
             this.elements = elements;
         }
 
-        public String getId()
-        {
-            return id;
-        }
-
         public List<PathElement> getElements()
         {
             return elements;
@@ -500,8 +487,8 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
             return getLast().getBeanClass();
         }
 
-        // maps aren't cachable
-        public boolean isCachable()
+        // maps aren't cacheable
+        public boolean isCacheable()
         {
             Class beanClass = getBeanClass();
             return beanClass != null && !Map.class.isAssignableFrom( beanClass );
@@ -521,7 +508,7 @@ public class JsonFilteringPropertyFilter extends SimpleBeanPropertyFilter
 
             if ( !id.equals( path.id ) )
                 return false;
-            return beanClass != null ? beanClass.equals( oBeanClass ) : oBeanClass == null;
+            return Objects.equals( beanClass, oBeanClass );
         }
 
         @Override

@@ -59,8 +59,6 @@ public class JsonFilteringConfig
 
     private static final SortedMap<String, String> PROPS_MAP;
 
-    private static final SortedMap<String, String> SOURCE_MAP;
-
     private static final boolean FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS;
 
     private static final boolean FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW;
@@ -84,7 +82,6 @@ public class JsonFilteringConfig
         loadProps( propsMap, sourceMap, "json-filtering.properties" );
 
         PROPS_MAP = ImmutableSortedMap.copyOf( propsMap );
-        SOURCE_MAP = ImmutableSortedMap.copyOf( sourceMap );
 
         FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS = getBool( "filter.implicitlyIncludeBaseFields" );
         FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW = getBool( "filter.implicitlyIncludeBaseFieldsInView" );
@@ -172,8 +169,8 @@ public class JsonFilteringConfig
     }
 
     /**
-     * Determines whether or not filters that specify a view also propagtes that
-     * view to nested filters.
+     * Determines whether or not filters that specify a view also propagates
+     * that view to nested filters.
      * <p>
      * For example, given a view called "full", does the full view also apply to
      * the nested objects or does the nested object only include base fields.

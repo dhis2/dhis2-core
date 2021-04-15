@@ -39,11 +39,13 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 import org.hisp.dhis.commons.jsonfiltering.config.JsonFilteringConfig;
 import org.hisp.dhis.commons.jsonfiltering.context.provider.JsonFilteringContextProvider;
+import org.hisp.dhis.commons.jsonfiltering.model.Inner;
 import org.hisp.dhis.commons.jsonfiltering.model.Issue;
 import org.hisp.dhis.commons.jsonfiltering.model.IssueAction;
 import org.hisp.dhis.commons.jsonfiltering.model.Item;
@@ -60,7 +62,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import com.google.common.base.Charsets;
 
-@SuppressWarnings( "Duplicates" )
 public class JsonFilteringPropertyFilterTest
 {
 
@@ -74,7 +75,7 @@ public class JsonFilteringPropertyFilterTest
 
     private boolean init = false;
 
-    private ObjectMapper rawObjectMapper = new ObjectMapper();
+    private final ObjectMapper rawObjectMapper = new ObjectMapper();
 
     public JsonFilteringPropertyFilterTest()
     {
@@ -352,17 +353,17 @@ public class JsonFilteringPropertyFilterTest
     @Test
     public void testFilterExcludesBaseFieldsInView()
     {
-        String fieldName = "filterImplicitlyIncludeBaseFieldsInView";
+        String fieldName = "FILTER_IMPLICITLY_INCLUDE_BASE_FIELDS_IN_VIEW";
 
         try
         {
-            setFieldValue( JsonFilteringConfig.class, fieldName, false );
+            setFieldValue( fieldName, false );
             filter( "view1" );
             assertEquals( "{\"properties\":" + stringifyRaw( issue.getProperties() ) + "}", stringify() );
         }
         finally
         {
-            setFieldValue( JsonFilteringConfig.class, fieldName, true );
+            setFieldValue( fieldName, true );
         }
     }
 
@@ -399,7 +400,8 @@ public class JsonFilteringPropertyFilterTest
     public void testJsonUnwrapped()
     {
         filter( "innerText" );
-        assertEquals( "{\"innerText\":\"innerValue\"}", stringify( new Outer( "outerValue", "innerValue" ) ) );
+        assertEquals( "{\"innerText\":\"innerValue\"}",
+            stringify( new Outer( "outerValue", new Inner( "innerValue" ) ) ) );
     }
 
     @Test
@@ -409,9 +411,9 @@ public class JsonFilteringPropertyFilterTest
         assertEquals( "{\"full-name\":\"Fred Flintstone\"}", stringify( new DashObject( "ID-1", "Fred Flintstone" ) ) );
     }
 
-    private void setFieldValue( Class<?> ownerClass, String fieldName, boolean value )
+    private void setFieldValue( String fieldName, boolean value )
     {
-        Field field = getField( ownerClass, fieldName );
+        Field field = getField( fieldName );
         try
         {
             field.setBoolean( null, value );
@@ -436,11 +438,11 @@ public class JsonFilteringPropertyFilterTest
         }
     }
 
-    private Field getField( Class<?> ownerClass, String fieldName )
+    private Field getField( String fieldName )
     {
         try
         {
-            Field field = ownerClass.getDeclaredField( fieldName );
+            Field field = JsonFilteringConfig.class.getDeclaredField( fieldName );
             field.setAccessible( true );
             removeFinalModifier( field );
             return field;
@@ -449,25 +451,6 @@ public class JsonFilteringPropertyFilterTest
         {
             throw new RuntimeException( e );
         }
-    }
-
-    private String regexRemove( String input, String regex )
-    {
-        Matcher matcher = regex( input, regex );
-        StringBuffer sb = new StringBuffer();
-
-        while ( matcher.find() )
-        {
-            matcher.appendReplacement( sb, "" );
-        }
-        matcher.appendTail( sb );
-        return sb.toString();
-    }
-
-    private Matcher regex( String input, String regex )
-    {
-        Pattern pattern = Pattern.compile( regex );
-        return pattern.matcher( input );
     }
 
     @SuppressWarnings( "UnusedReturnValue" )
@@ -558,32 +541,13 @@ public class JsonFilteringPropertyFilterTest
         return builder.toString();
     }
 
+    @Getter
+    @AllArgsConstructor
     private static class DashObject
     {
-
-        private String id;
+        private final String id;
 
         @JsonProperty( "full-name" )
-        private String fullName;
-
-        public DashObject()
-        {
-        }
-
-        public DashObject( String id, String fullName )
-        {
-            this.id = id;
-            this.fullName = fullName;
-        }
-
-        public String getId()
-        {
-            return id;
-        }
-
-        public String getFullName()
-        {
-            return fullName;
-        }
+        private final String fullName;
     }
 }

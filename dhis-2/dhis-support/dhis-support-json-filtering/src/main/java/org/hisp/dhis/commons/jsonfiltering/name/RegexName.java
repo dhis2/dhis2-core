@@ -54,12 +54,12 @@ public class RegexName implements JsonFilteringName
         {
             for ( String flag : flags )
             {
-                switch ( flag )
+                if ( "i".equals( flag ) )
                 {
-                case "i":
                     flagMask |= Pattern.CASE_INSENSITIVE;
-                    break;
-                default:
+                }
+                else
+                {
                     throw new IllegalArgumentException( "Unrecognized flag " + flag + " for pattern " + name );
                 }
             }

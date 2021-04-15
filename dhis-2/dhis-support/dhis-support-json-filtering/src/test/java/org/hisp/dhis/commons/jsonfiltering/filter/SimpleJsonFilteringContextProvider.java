@@ -34,6 +34,7 @@ import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 /**
  * Provider implementation that just takes a fixed filter expression.
  */
+@SuppressWarnings( "rawtypes" )
 public class SimpleJsonFilteringContextProvider extends AbstractJsonFilteringContextProvider
 {
 

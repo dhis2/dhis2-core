@@ -102,7 +102,7 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
 
     protected boolean isFilteringEnabled( HttpServletRequest request, HttpServletResponse response )
     {
-        int status = getResponseStatusCode( request, response );
+        int status = getResponseStatusCode( response );
 
         if ( !isSuccessStatusCode( status ) )
         {
@@ -129,7 +129,7 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
         return defaultFilter != null;
     }
 
-    protected int getResponseStatusCode( HttpServletRequest request, HttpServletResponse response )
+    protected int getResponseStatusCode( HttpServletResponse response )
     {
         return response.getStatus();
     }
@@ -161,14 +161,15 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
 
     protected String customizeFilter( String filter, String requestUri, Class<?> beanClass )
     {
-        return customizeFilter( filter, beanClass );
+        return customizeFilter( filter );
     }
 
-    protected String customizeFilter( String filter, Class<?> beanClass )
+    protected String customizeFilter( String filter )
     {
         return filter;
     }
 
+    @SuppressWarnings( "rawtypes" )
     private static class FilterCache
     {
         public static final String REQUEST_KEY = FilterCache.class.getName();
@@ -212,16 +213,6 @@ public class RequestJsonFilteringContextProvider extends AbstractJsonFilteringCo
             }
 
             map.put( key, value );
-        }
-
-        public void remove( Class key )
-        {
-            map.remove( key );
-        }
-
-        public void clear()
-        {
-            map.clear();
         }
 
     }

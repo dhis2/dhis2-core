@@ -35,7 +35,7 @@ import java.util.regex.Pattern;
 
 public interface FieldFilterCustomizer<T>
 {
-    default boolean isApplicable( String requestUri, Class beanClass )
+    default boolean isApplicable( String requestUri, Class<?> beanClass )
     {
         if ( isUriSupported( requestUri ) )
         {

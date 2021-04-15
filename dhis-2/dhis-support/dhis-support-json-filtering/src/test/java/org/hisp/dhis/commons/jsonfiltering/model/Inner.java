@@ -27,27 +27,12 @@
  */
 package org.hisp.dhis.commons.jsonfiltering.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class Inner
 {
-
     private String innerText;
-
-    public Inner()
-    {
-    }
-
-    public Inner( String innerText )
-    {
-        this.innerText = innerText;
-    }
-
-    public String getInnerText()
-    {
-        return innerText;
-    }
-
-    public void setInnerText( String innerText )
-    {
-        this.innerText = innerText;
-    }
 }

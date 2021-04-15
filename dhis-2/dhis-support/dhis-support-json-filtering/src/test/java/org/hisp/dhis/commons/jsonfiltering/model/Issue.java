@@ -30,11 +30,15 @@ package org.hisp.dhis.commons.jsonfiltering.model;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.commons.jsonfiltering.view.PropertyView;
 
+@Getter
+@Setter
 public class Issue extends BaseEntity
 {
-
     private String issueSummary;
 
     private String issueDetails;
@@ -48,63 +52,4 @@ public class Issue extends BaseEntity
     @PropertyView( "view1" )
     private Map<String, Object> properties;
 
-    public String getIssueSummary()
-    {
-        return issueSummary;
-    }
-
-    public void setIssueSummary( String issueSummary )
-    {
-        this.issueSummary = issueSummary;
-    }
-
-    public String getIssueDetails()
-    {
-        return issueDetails;
-    }
-
-    public void setIssueDetails( String issueDetails )
-    {
-        this.issueDetails = issueDetails;
-    }
-
-    public User getReporter()
-    {
-        return reporter;
-    }
-
-    public void setReporter( User reporter )
-    {
-        this.reporter = reporter;
-    }
-
-    public User getAssignee()
-    {
-        return assignee;
-    }
-
-    public void setAssignee( User assignee )
-    {
-        this.assignee = assignee;
-    }
-
-    public List<IssueAction> getActions()
-    {
-        return actions;
-    }
-
-    public void setActions( List<IssueAction> actions )
-    {
-        this.actions = actions;
-    }
-
-    public Map<String, Object> getProperties()
-    {
-        return properties;
-    }
-
-    public void setProperties( Map<String, Object> properties )
-    {
-        this.properties = properties;
-    }
 }

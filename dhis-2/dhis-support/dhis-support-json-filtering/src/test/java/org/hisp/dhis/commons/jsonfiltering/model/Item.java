@@ -30,6 +30,11 @@ package org.hisp.dhis.commons.jsonfiltering.model;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
+@Data
+@AllArgsConstructor
 public class Item
 {
 
@@ -41,34 +46,12 @@ public class Item
 
     public Item( String id, String name )
     {
-        this( id, name, Collections.<Item> emptyList() );
+        this( id, name, Collections.emptyList() );
     }
 
     public Item( String id, String name, Item item )
     {
         this( id, name, Collections.singletonList( item ) );
-    }
-
-    public Item( String id, String name, List<Item> items )
-    {
-        this.id = id;
-        this.name = name;
-        this.items = items;
-    }
-
-    public String getId()
-    {
-        return id;
-    }
-
-    public String getName()
-    {
-        return name;
-    }
-
-    public List<Item> getItems()
-    {
-        return items;
     }
 
     public static Item testItem()

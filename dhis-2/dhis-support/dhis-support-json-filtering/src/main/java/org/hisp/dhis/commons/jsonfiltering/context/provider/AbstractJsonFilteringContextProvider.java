@@ -38,7 +38,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 
 /**
- * Base implemention of a provider that implements base functionality.
+ * Base implementation of a provider that implements base functionality.
  */
 @RequiredArgsConstructor
 public abstract class AbstractJsonFilteringContextProvider implements JsonFilteringContextProvider
@@ -49,7 +49,7 @@ public abstract class AbstractJsonFilteringContextProvider implements JsonFilter
     @Override
     public JsonFilteringContext getContext( Class<?> beanClass )
     {
-        return new LazyJsonFilteringContext( beanClass, parser, getFilter( beanClass ) );
+        return new LazyJsonFilteringContext( parser, getFilter( beanClass ) );
     }
 
     @Override

@@ -40,8 +40,6 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.commons.jsonfiltering.config.JsonFilteringConfig;
-import org.hisp.dhis.commons.jsonfiltering.metric.source.GuavaCacheJsonFilteringMetricsSource;
-import org.hisp.dhis.commons.jsonfiltering.metric.source.JsonFilteringMetricsSource;
 import org.hisp.dhis.commons.jsonfiltering.name.AnyDeepName;
 import org.hisp.dhis.commons.jsonfiltering.name.AnyShallowName;
 import org.hisp.dhis.commons.jsonfiltering.name.ExactName;
@@ -65,17 +63,9 @@ public class JsonFilteringParser
     // Caches parsed filter expressions
     private static final Cache<String, List<JsonFilteringNode>> CACHE;
 
-    private static final JsonFilteringMetricsSource METRICS_SOURCE;
-
     static
     {
         CACHE = CacheBuilder.from( JsonFilteringConfig.getPARSER_NODE_CACHE_SPEC() ).build();
-        METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.parser.nodeCache.", CACHE );
-    }
-
-    public static JsonFilteringMetricsSource getMetricsSource()
-    {
-        return METRICS_SOURCE;
     }
 
     /**
@@ -143,7 +133,7 @@ public class JsonFilteringParser
 
             if ( allNegated )
             {
-                nodesToAdd.put( node, new MutableNode( newBaseViewName() ).dotPathed( node.dotPathed ) );
+                nodesToAdd.put( node, new MutableNode( newBaseViewName() ).pathDotted( node.pathDotted ) );
             }
 
             for ( MutableNode child : node.children.values() )
@@ -165,7 +155,7 @@ public class JsonFilteringParser
         @Override
         public List<JsonFilteringNode> visitParse( JsonFilteringExpressionParser.ParseContext ctx )
         {
-            MutableNode root = new MutableNode( new ExactName( "root" ) ).dotPathed( true );
+            MutableNode root = new MutableNode( new ExactName( "root" ) ).pathDotted( true );
             handleExpressionList( ctx.expression_list(), root );
             MutableNode analyzedRoot = analyze( root );
             return analyzedRoot.toJsonFilteringNode().getChildren();
@@ -202,7 +192,7 @@ public class JsonFilteringParser
                 for ( int i = 0; i < ctx.dot_path().field().size() - 1; i++ )
                 {
                     parent = parent
-                        .addChild( new MutableNode( createName( ctx.dot_path().field( i ) ) ).dotPathed( true ) );
+                        .addChild( new MutableNode( createName( ctx.dot_path().field( i ) ) ).pathDotted( true ) );
                     parent.jsonFilter = true;
                 }
                 names = Collections
@@ -295,7 +285,7 @@ public class JsonFilteringParser
                     MutableNode mutableNode = new MutableNode( createName( fieldContext ) );
                     mutableNode.negativeParent = true;
 
-                    parent = parent.addChild( mutableNode.dotPathed( true ) );
+                    parent = parent.addChild( mutableNode.pathDotted( true ) );
                 }
 
                 parent.negated( true );
@@ -305,7 +295,7 @@ public class JsonFilteringParser
 
     }
 
-    private class MutableNode
+    private static class MutableNode
     {
         public boolean negativeParent;
 
@@ -319,7 +309,7 @@ public class JsonFilteringParser
 
         private Map<String, MutableNode> children;
 
-        private boolean dotPathed;
+        private boolean pathDotted;
 
         MutableNode( JsonFilteringName name )
         {
@@ -358,9 +348,9 @@ public class JsonFilteringParser
             return new JsonFilteringNode( name, childNodes, negated, jsonFilter, emptyNested );
         }
 
-        public MutableNode dotPathed( boolean dotPathed )
+        public MutableNode pathDotted( boolean pathDotted )
         {
-            this.dotPathed = dotPathed;
+            this.pathDotted = pathDotted;
             return this;
         }
 
@@ -401,14 +391,14 @@ public class JsonFilteringParser
 
                 existingChild.jsonFilter = existingChild.jsonFilter || childToAdd.jsonFilter;
                 existingChild.emptyNested = existingChild.emptyNested && childToAdd.emptyNested;
-                existingChild.dotPathed = existingChild.dotPathed && childToAdd.dotPathed;
+                existingChild.pathDotted = existingChild.pathDotted && childToAdd.pathDotted;
                 existingChild.negativeParent = existingChild.negativeParent && childToAdd.negativeParent;
                 childToAdd = existingChild;
             }
 
-            if ( !childToAdd.dotPathed && dotPathed )
+            if ( !childToAdd.pathDotted && pathDotted )
             {
-                dotPathed = false;
+                pathDotted = false;
             }
 
             return childToAdd;

@@ -38,14 +38,6 @@ import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
  */
 public interface JsonFilteringContext
 {
-
-    /**
-     * Get the top-level bean class being filtered.
-     *
-     * @return bean class
-     */
-    Class<?> getBeanClass();
-
     /**
      * Get the parsed nodes.
      *

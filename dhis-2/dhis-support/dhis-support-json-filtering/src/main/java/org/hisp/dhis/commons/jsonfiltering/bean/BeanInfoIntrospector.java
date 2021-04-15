@@ -36,12 +36,12 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.NonNull;
 import lombok.SneakyThrows;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.reflect.FieldUtils;
 import org.hisp.dhis.commons.jsonfiltering.config.JsonFilteringConfig;
-import org.hisp.dhis.commons.jsonfiltering.metric.source.GuavaCacheJsonFilteringMetricsSource;
 import org.hisp.dhis.commons.jsonfiltering.view.PropertyView;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -66,20 +66,17 @@ public class BeanInfoIntrospector
      */
     private static final LoadingCache<Class<?>, BeanInfo> CACHE;
 
-    private static final GuavaCacheJsonFilteringMetricsSource METRICS_SOURCE;
-
     static
     {
         CACHE = CacheBuilder.from( JsonFilteringConfig.getPROPERTY_DESCRIPTOR_CACHE_SPEC() )
             .build( new CacheLoader<Class<?>, BeanInfo>()
             {
                 @Override
-                public BeanInfo load( Class<?> key )
+                public BeanInfo load( @NonNull Class<?> key )
                 {
                     return introspectClass( key );
                 }
             } );
-        METRICS_SOURCE = new GuavaCacheJsonFilteringMetricsSource( "json-filtering.property.descriptorCache.", CACHE );
     }
 
     private static BeanInfo introspectClass( Class<?> beanClass )
@@ -308,11 +305,6 @@ public class BeanInfoIntrospector
                 }
             }
         }
-    }
-
-    public static GuavaCacheJsonFilteringMetricsSource getMetricsSource()
-    {
-        return METRICS_SOURCE;
     }
 
     public BeanInfo introspect( Class<?> beanClass )

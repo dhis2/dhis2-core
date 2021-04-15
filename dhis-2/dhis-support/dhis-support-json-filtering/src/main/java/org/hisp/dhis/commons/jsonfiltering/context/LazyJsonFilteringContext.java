@@ -40,20 +40,11 @@ import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 @RequiredArgsConstructor
 public class LazyJsonFilteringContext implements JsonFilteringContext
 {
-
-    private final Class<?> beanClass;
-
     private final JsonFilteringParser parser;
 
     private final String filter;
 
     private List<JsonFilteringNode> nodes;
-
-    @Override
-    public Class<?> getBeanClass()
-    {
-        return beanClass;
-    }
 
     @Override
     public List<JsonFilteringNode> getNodes()

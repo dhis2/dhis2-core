@@ -62,19 +62,6 @@ public class JsonFiltering
     }
 
     /**
-     * Initialize a @{@link JsonFilteringPropertyFilter} with a specific context
-     * provider.
-     *
-     * @param mappers the Jackson Object Mappers to init
-     * @param contextProvider the context provider to use
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static void init( Iterable<ObjectMapper> mappers, JsonFilteringContextProvider contextProvider )
-    {
-        init( mappers, new JsonFilteringPropertyFilter( contextProvider ) );
-    }
-
-    /**
      * Initialize a @{@link JsonFilteringPropertyFilter} with a specific
      * property filter.
      *
@@ -110,22 +97,6 @@ public class JsonFiltering
         mapper.addMixIn( Object.class, JsonFilteringPropertyFilterMixin.class );
 
         return mapper;
-    }
-
-    /**
-     * Initialize a @{@link JsonFilteringPropertyFilter} with a specific
-     * property filter.
-     *
-     * @param mappers the Jackson Object Mappers to init
-     * @param filter the property filter
-     * @throws IllegalStateException if the filter was unable to be registered
-     */
-    public static void init( Iterable<ObjectMapper> mappers, JsonFilteringPropertyFilter filter )
-    {
-        for ( ObjectMapper mapper : mappers )
-        {
-            init( mapper, filter );
-        }
     }
 
 }
