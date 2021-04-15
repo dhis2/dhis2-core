@@ -36,6 +36,7 @@ import org.hisp.dhis.chart.*;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.dataelement.*;
 import org.hisp.dhis.eventchart.*;
+import org.hisp.dhis.mapping.*;
 import org.hisp.dhis.option.*;
 import org.hisp.dhis.organisationunit.*;
 import org.hisp.dhis.program.*;
@@ -313,5 +314,27 @@ public class TranslationServiceTest
         assertEquals( "translated TargetLineLabel", updated.getDisplayTargetLineLabel() );
         assertEquals( "translated Title", updated.getDisplayTitle() );
         assertEquals( "translated SubTitle", updated.getDisplaySubtitle() );
+    }
+
+    @Test
+    public void testExternalMapLayerTranslations()
+    {
+        ExternalMapLayer map = new ExternalMapLayer();
+        map.setName( "Name" );
+        map.setUrl( "URL" );
+        map.setMapLayerPosition( MapLayerPosition.BASEMAP );
+        map.setImageFormat( ImageFormat.JPG );
+        map.setMapService( MapService.TMS );
+        manager.save( map );
+
+        Set<Translation> translations = new HashSet<>();
+        translations.add( new Translation( locale.getLanguage(), TranslationProperty.NAME,
+            "translated Name" ) );
+
+        manager.updateTranslations( map, translations );
+
+        ExternalMapLayer updatedMap = manager.get( ExternalMapLayer.class, map.getUid() );
+        assertEquals( "translated Name", updatedMap.getDisplayName() );
+
     }
 }
