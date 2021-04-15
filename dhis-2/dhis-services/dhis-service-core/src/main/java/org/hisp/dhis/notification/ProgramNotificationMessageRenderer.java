@@ -50,7 +50,7 @@ import com.google.common.collect.Maps;
 public class ProgramNotificationMessageRenderer
     extends BaseNotificationMessageRenderer<ProgramInstance>
 {
-    private static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
+    public static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
         .put( ProgramTemplateVariable.PROGRAM_NAME, pi -> pi.getProgram().getDisplayName() )
         .put( ProgramTemplateVariable.ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getDisplayName() )
         .put( ProgramTemplateVariable.CURRENT_DATE, pi -> formatDate( new Date() ) )

@@ -25,48 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.engine;
+package org.hisp.dhis.program.notification;
 
-import java.util.List;
-
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleService;
-import org.springframework.stereotype.Component;
-
-@Component
-public class NotificationImplementableRuleService
-    extends ImplementableRuleService
+/**
+ * Defines methods for handling of tracker web hook notifications associated
+ * with {@link org.hisp.dhis.program.ProgramInstance} and
+ * {@link org.hisp.dhis.program.ProgramStageInstance}
+ *
+ * @author Zubair Asghar
+ */
+public interface TrackerNotificationWebHookService
 {
-    private final Cache<Boolean> programHasRulesCache;
+    /**
+     * Sends web hook notifications linked to
+     * {@link org.hisp.dhis.program.ProgramInstance}
+     *
+     * @param programInstance to handle
+     */
+    void handleEnrollment( String programInstance );
 
-    public NotificationImplementableRuleService( ProgramRuleService programRuleService,
-        final CacheProvider cacheProvider )
-    {
-        super( programRuleService );
-        this.programHasRulesCache = cacheProvider.createProgramHasRulesCache();
-    }
-
-    @Override
-    public List<ProgramRule> getProgramRulesByActionTypes( Program program, String programStageUid )
-    {
-        List<ProgramRule> permittedRules = getProgramRulesByActionTypes( program,
-            ProgramRuleActionType.NOTIFICATION_LINKED_TYPES, programStageUid );
-
-        if ( permittedRules.isEmpty() )
-        {
-            return permittedRules;
-        }
-
-        return getProgramRulesByActionTypes( program, ProgramRuleActionType.IMPLEMENTED_ACTIONS, programStageUid );
-    }
-
-    @Override
-    Cache<Boolean> getProgramHasRulesCache()
-    {
-        return this.programHasRulesCache;
-    }
+    /**
+     * Sends web hook notifications linked to
+     * {@link org.hisp.dhis.program.ProgramStageInstance}
+     *
+     * @param programStageInstance to handle
+     */
+    void handleEvent( String programStageInstance );
 }
