@@ -44,7 +44,7 @@ class PagingWrapperFieldFilterCustomizer implements FieldFilterCustomizer<Paging
     @Getter
     private final Class<PagingWrapper> applicableClass = PagingWrapper.class;
     @Getter
-    private final Collection<Pattern> supportedUriPatterns = Collections.singleton(Pattern.compile("tracker"));
+    private final Collection<Pattern> supportedUriPatterns = Collections.singleton(Pattern.compile(".*/api/tracker.*"));
 
     @Override
     public String customize( String filter )
