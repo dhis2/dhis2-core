@@ -56,7 +56,7 @@ public class ReportRatesHelperTest
         final List<DimensionalItemObject> theFilterPeriods = asList( stubPeriod() );
         final PeriodType theDailyPeriodType = DailyPeriodType.getByNameIgnoreCase( "Daily" );
 
-        // Relates to "aDailyDataRow" objects
+        // Relates to "aDailyDataPeriodRow" objects
         final int anyPositivePeriodInDimensionIndex = 1;
         final List<String> aDailyDataPeriodRow = asList( "TuL8IOPzpHh", "20210415" );
 
