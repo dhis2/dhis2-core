@@ -91,6 +91,9 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationHooksCheck;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.ProgramRuleActionValidator;
+import org.hisp.dhis.programrule.SendMessageProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -310,5 +313,11 @@ public class ServiceConfig
     {
         return ImmutableMap.of( DELETE, newArrayList(
             EventDeleteAuditPostProcessor.class ) );
+    }
+
+    @Bean
+    public Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> programRuleActionValidatorMap()
+    {
+        return ImmutableMap.of( ProgramRuleActionType.SCHEDULEMESSAGE, SendMessageProgramRuleActionValidator.class );
     }
 }

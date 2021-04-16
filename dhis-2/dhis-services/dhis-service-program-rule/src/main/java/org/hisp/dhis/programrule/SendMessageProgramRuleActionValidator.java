@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
+package org.hisp.dhis.programrule;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -55,83 +55,18 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.List;
-import java.util.Map;
-
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
-import org.hisp.dhis.programrule.ProgramRuleActionValidator;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Zubair Asghar
  */
 
-@Component( "programRuleActionObjectBundle" )
 @Slf4j
-public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
+public class SendMessageProgramRuleActionValidator implements ProgramRuleActionValidator
 {
-    @NonNull
-    @Qualifier( "programRuleActionValidatorMap" )
-    private final Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap;
-
-    public ProgramRuleActionObjectBundleHook(
-        @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap )
-    {
-        this.validatorMap = validatorMap;
-    }
-
     @Override
-    public <T extends IdentifiableObject> List<ErrorReport> validate( T object, ObjectBundle bundle )
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction )
     {
-        if ( !ProgramRuleAction.class.isInstance( object ) )
-        {
-            return ImmutableList.of();
-        }
-
-        ProgramRuleAction programRuleAction = (ProgramRuleAction) object;
-
-        ProgramRuleActionValidationResult validationResult = isRuleActionValid( programRuleAction );
-
-        if ( !validationResult.isValid() )
-        {
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleAction.class, validationResult.getErrorCode(),
-                    programRuleAction.getProgramRuleActionType().name(),
-                    programRuleAction.getProgramRule().getName() ) );
-        }
-
-        return ImmutableList.of();
-    }
-
-    private ProgramRuleActionValidationResult isRuleActionValid( ProgramRuleAction ruleAction )
-    {
-        ProgramRuleActionValidationResult validationResult;
-
-        try
-        {
-            ProgramRuleActionValidator validator = validatorMap.get( ruleAction.getProgramRuleActionType() )
-                .newInstance();
-
-            validationResult = validator.validate( ruleAction );
-
-            return validationResult;
-        }
-        catch ( InstantiationException | IllegalAccessException e )
-        {
-            log.error( "An error occurred during program rule action validation", e );
-        }
-
-        return ProgramRuleActionValidationResult.builder().valid( false ).build();
+        return null;
     }
 }

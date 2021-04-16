@@ -129,11 +129,4 @@ public class DefaultProgramRuleActionService
     {
         return programRuleActionStore.getMalFormedRuleActionsByType( ProgramRuleActionType.HIDEPROGRAMSTAGE );
     }
-
-    @Override
-    @Transactional( readOnly = true )
-    public boolean isRuleActionValid( ProgramRuleAction ruleAction )
-    {
-        return false;
-    }
 }

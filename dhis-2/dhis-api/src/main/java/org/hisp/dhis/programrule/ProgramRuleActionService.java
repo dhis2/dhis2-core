@@ -87,12 +87,4 @@ public interface ProgramRuleActionService
     List<ProgramRuleAction> getProgramRuleActionsWithNoSectionId();
 
     List<ProgramRuleAction> getProgramRuleActionsWithNoStageId();
-
-    /**
-     * Validates {@link ProgramRuleAction} data model.
-     *
-     * @param ruleAction program rule action to validate.
-     * @return true if program rule action is valid, otherwise false.
-     */
-    boolean isRuleActionValid( ProgramRuleAction ruleAction );
 }
