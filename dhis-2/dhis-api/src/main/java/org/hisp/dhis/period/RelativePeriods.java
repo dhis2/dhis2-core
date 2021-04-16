@@ -144,6 +144,12 @@ public class RelativePeriods
         streamToStringArray( IntStream.rangeClosed( 1, 4 ).map( i -> 4 - i + 1 ).boxed(), "year_minus_", "" ),
         Collections.singletonList( "year_this" ).toArray() );
 
+    // Generates an array containing "year_minus_9" -> "year_minus_1" +
+    // "year_this"
+    public static final String[] LAST_10_YEARS = (String[]) ArrayUtils.addAll(
+            streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "year_minus_", "" ),
+            Collections.singletonList( "year_this" ).toArray() );
+
     // Generates an array containing "financial_year_minus_4" ->
     // "financial_year_minus_1" + "financial_year_this"
     public static final String[] LAST_5_FINANCIAL_YEARS = (String[]) ArrayUtils.addAll(
@@ -216,6 +222,8 @@ public class RelativePeriods
     private boolean lastYear = false;
 
     private boolean last5Years = false;
+
+    private boolean last10Years = false;
 
     private boolean last12Months = false;
 
@@ -656,6 +664,12 @@ public class RelativePeriods
                 getRollingRelativePeriodList( new YearlyPeriodType(), LAST_5_YEARS, date, dynamicNames, format ) );
         }
 
+        if ( isLast10Years() )
+        {
+            periods.addAll(
+                    getRollingRelativePeriodList( new DecadePeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+        }
+
         return periods;
     }
 
@@ -832,6 +846,7 @@ public class RelativePeriods
         map.put( RelativePeriodEnum.QUARTERS_LAST_YEAR, new RelativePeriods().setQuartersLastYear( true ) );
         map.put( RelativePeriodEnum.LAST_YEAR, new RelativePeriods().setLastYear( true ) );
         map.put( RelativePeriodEnum.LAST_5_YEARS, new RelativePeriods().setLast5Years( true ) );
+        map.put( RelativePeriodEnum.LAST_10_YEARS, new RelativePeriods().setLast10Years( true ) );
         map.put( RelativePeriodEnum.LAST_12_MONTHS, new RelativePeriods().setLast12Months( true ) );
         map.put( RelativePeriodEnum.LAST_6_MONTHS, new RelativePeriods().setLast6Months( true ) );
         map.put( RelativePeriodEnum.LAST_3_MONTHS, new RelativePeriods().setLast3Months( true ) );
@@ -1314,6 +1329,19 @@ public class RelativePeriods
     public RelativePeriods setLast5Years( boolean last5Years )
     {
         this.last5Years = last5Years;
+        return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isLast10Years()
+    {
+        return last10Years;
+    }
+
+    public RelativePeriods setLast10Years( boolean last10Years )
+    {
+        this.last10Years = last10Years;
         return this;
     }
 

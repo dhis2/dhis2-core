@@ -37,7 +37,10 @@ import javax.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.AnalyticsTableType;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.common.AggregateAnalyticsQueryCriteria;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -75,18 +78,9 @@ public class AnalyticsController
     @NonNull
     private final ContextUtils contextUtils;
 
-    @NonNull
-    private final HealthCheckService healthCheckService;
-
     // -------------------------------------------------------------------------
     // Resources
     // -------------------------------------------------------------------------
-
-    @GetMapping ( value = RESOURCE_PATH + "/alive", produces = { "text/plain"})
-    public @ResponseBody String alive()
-    {
-        return healthCheckService.alive();
-    }
 
     @GetMapping( value = RESOURCE_PATH, produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     public @ResponseBody Grid getJson( // JSON, JSONP

@@ -244,7 +244,7 @@ public class SixMonthlyNovemberPeriodTest
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );
 
-        List<Period> periods = periodType.generateLast5Years( testDate.toDate() );
+        List<Period> periods = periodType.generateLastYears( testDate.toDate() );
 
         assertEquals( 10, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime( 2004, 11, 1, 0, 0 ).toDate() ), periods.get( 0 ) );

@@ -43,7 +43,10 @@ import java.io.InputStream;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.hisp.dhis.analytics.*;
+import org.hisp.dhis.analytics.AnalyticsSecurityManager;
+import org.hisp.dhis.analytics.AnalyticsService;
+import org.hisp.dhis.analytics.DataQueryParams;
+import org.hisp.dhis.analytics.DataQueryService;
 import org.hisp.dhis.analytics.data.DefaultDataQueryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.Grid;
@@ -82,8 +85,6 @@ public class AnalyticsControllerTest
     private AnalyticsService analyticsService;
 
     @Mock
-    private HealthCheckService healthCheckService;
-    @Mock
     private ContextUtils contextUtils;
 
     @Mock
@@ -104,7 +105,7 @@ public class AnalyticsControllerTest
 
         // Controller under test
         final AnalyticsController controller = new AnalyticsController( dataQueryService, analyticsService,
-            contextUtils, healthCheckService );
+            contextUtils );
 
         mockMvc = MockMvcBuilders.standaloneSetup( controller ).build();
 
