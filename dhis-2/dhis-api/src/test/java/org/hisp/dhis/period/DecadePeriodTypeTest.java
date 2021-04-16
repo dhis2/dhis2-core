@@ -50,7 +50,9 @@ public class DecadePeriodTypeTest
     }
 
     @Test
-    public void testCreatePeriod() {
+    public void should_create_period_with_right_dates_when_called()
+    {
+        //arrange
         testDate = new DateTime(2020, 8, 15, 0, 0);
 
         DateTime startDate = new DateTime(2020, 1, 1, 0, 0);
@@ -63,18 +65,24 @@ public class DecadePeriodTypeTest
 
         testDate = new DateTime(2020, 4, 15, 0, 0);
 
+        //act
         period = periodType.createPeriod(testDate.toDate());
 
+        //assert
         assertEquals(startDate.toDate(), period.getStartDate());
         assertEquals(endDate.toDate(), period.getEndDate());
     }
 
     @Test
-    public void testGenerateLastDecade() {
+    public void should_generate_last_10_years_when_called()
+    {
+        // arrange
         testDate = new DateTime(2020, 4, 15, 0, 0);
 
+        // act
         List<Period> periods = new DecadePeriodType().generateLastYears(testDate.toDate());
 
+        //assert
         assertEquals(10, periods.size());
         assertEquals(periodType.createPeriod(new DateTime(2011, 1, 1, 0, 0).toDate()), periods.get(0));
         assertEquals(periodType.createPeriod(new DateTime(2012, 1, 1, 0, 0).toDate()), periods.get(1));
