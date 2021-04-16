@@ -90,6 +90,7 @@ public interface ProgramRuleActionService
 
     /**
      * Validates {@link ProgramRuleAction} data model.
+     *
      * @param ruleAction program rule action to validate.
      * @return true if program rule action is valid, otherwise false.
      */
