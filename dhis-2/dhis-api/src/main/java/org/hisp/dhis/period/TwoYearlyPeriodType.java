@@ -151,17 +151,16 @@ public class TwoYearlyPeriodType
     @Override
     public List<Period> generateRollingPeriods( Date date )
     {
-        return generateLast5Years( date );
+        return generateLastYears( date );
     }
 
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, org.hisp.dhis.calendar.Calendar calendar )
     {
-        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
+        return generateLastYears( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
-    @Override
-    public List<Period> generateLast5Years( Date date )
+    public List<Period> generateLastYears( Date date )
     {
         // TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );

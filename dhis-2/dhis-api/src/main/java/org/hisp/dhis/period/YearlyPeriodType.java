@@ -140,21 +140,20 @@ public class YearlyPeriodType
     @Override
     public List<Period> generateRollingPeriods( Date date )
     {
-        return generateLast5Years( date );
+        return generateLastYears( date );
     }
 
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
+        return generateLastYears( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
     /**
      * Generates the last 5 years where the last one is the year which the given
      * date is inside.
      */
-    @Override
-    public List<Period> generateLast5Years( Date date )
+    public List<Period> generateLastYears( Date date )
     {
         Calendar calendar = getCalendar();
 
