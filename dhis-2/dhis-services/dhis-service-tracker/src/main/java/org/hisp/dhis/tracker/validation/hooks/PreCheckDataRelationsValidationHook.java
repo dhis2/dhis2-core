@@ -116,12 +116,6 @@ public class PreCheckDataRelationsValidationHook
 
         if ( program.isRegistration() )
         {
-            if ( context.getTrackedEntityInstance( event.getTrackedEntity() ) == null &&
-                !context.getReference( event.getTrackedEntity() ).isPresent() )
-            {
-                addError( reporter, E1036, event );
-            }
-
             if ( strategy.isCreate() )
             {
                 validateNotMultipleEvents( reporter, event );

@@ -99,11 +99,6 @@ public class EventTrackerConverterService
             Event event = new Event();
             event.setEvent( psi.getUid() );
 
-            if ( psi.getProgramInstance().getEntityInstance() != null )
-            {
-                event.setTrackedEntity( psi.getProgramInstance().getEntityInstance().getUid() );
-            }
-
             event.setFollowup( BooleanUtils.toBoolean( psi.getProgramInstance().getFollowup() ) );
             event.setStatus( psi.getStatus() );
             event.setOccurredAt( DateUtils.instantFromDate( psi.getExecutionDate() ) );

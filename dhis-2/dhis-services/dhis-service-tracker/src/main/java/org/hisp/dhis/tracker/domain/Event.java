@@ -77,9 +77,6 @@ public class Event
     private String orgUnitName;
 
     @JsonProperty
-    private String trackedEntity;
-
-    @JsonProperty
     @Builder.Default
     private List<Relationship> relationships = new ArrayList<>();
 
