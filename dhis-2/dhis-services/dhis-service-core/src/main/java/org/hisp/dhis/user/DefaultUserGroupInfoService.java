@@ -61,7 +61,7 @@ public class DefaultUserGroupInfoService
     {
         IS_USER_GROUP_MEMBER = cacheProvider.newCacheBuilder( Boolean.class )
             .forRegion( "isUserGroupMember" )
-            .expireAfterWrite( 3, TimeUnit.HOURS )
+            .expireAfterWrite( 1, TimeUnit.HOURS )
             .withInitialCapacity( 1000 )
             .forceInMemory()
             .withMaximumSize( SystemUtils.isTestRun( env.getActiveProfiles() ) ? 0 : 1000000 ).build();
