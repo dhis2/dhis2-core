@@ -100,9 +100,9 @@ public class AssignValueImplementerTest
     @Autowired
     private AssignValueImplementer implementerToTest;
 
-    private final static String DATA_ELEMENT_NEW_VALUE = "23.0";
+    private final static String DATA_ELEMENT_NEW_VALUE = "23";
 
-    private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
+    private final static String TEI_ATTRIBUTE_NEW_VALUE = "24";
 
     @Override
     protected void setUpTest()

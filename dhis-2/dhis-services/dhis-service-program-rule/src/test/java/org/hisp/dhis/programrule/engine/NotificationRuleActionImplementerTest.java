@@ -269,7 +269,7 @@ public class NotificationRuleActionImplementerTest extends DhisConvenienceTest
             }
         };
 
-        ruleEffectWithActionSendMessage = RuleEffect.create( ruleActionSendMessage );
+        ruleEffectWithActionSendMessage = RuleEffect.create( "", ruleActionSendMessage );
 
         setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
 
