@@ -50,7 +50,7 @@ public class DecadePeriodTypeTest
     }
 
     @Test
-    public void should_create_period_with_right_dates_when_called()
+    public void should_create_period_with_correct_dates_when_called()
     {
         //arrange
         testDate = new DateTime(2020, 8, 15, 0, 0);
