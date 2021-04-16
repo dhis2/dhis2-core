@@ -687,34 +687,39 @@ public class DataHandler
             {
                 final Period period = PeriodType.getPeriodFromIsoString( dataRow.get( periodIndex ) );
 
-                target = target * period.getDaysInPeriod() * timeUnits;
+                target = consolidateTarget( timeUnits, target, period.getDaysInPeriod() );
             }
             else
             {
                 // If we reach here, it means that we should have a "pe"
-                // dimension in the filter
-                // parameter.
+                // dimension as filter parameter.
                 final List<DimensionalItemObject> periods = filterPeriods;
 
                 if ( isNotEmpty( periods ) )
                 {
-                    int totalOfDayInPeriod = 0;
+                    int totalOfDaysInPeriod = 0;
 
                     for ( final DimensionalItemObject itemObject : periods )
                     {
                         final Period period = (Period) itemObject;
-                        totalOfDayInPeriod += period.getDaysInPeriod();
+                        totalOfDaysInPeriod += period.getDaysInPeriod();
                     }
 
-                    target += target * totalOfDayInPeriod;
+                    target = consolidateTarget( timeUnits, target, totalOfDaysInPeriod );
                 }
             }
         }
         else
         {
-            target = target * queryPt.getPeriodSpan( dataSetPt ) * timeUnits;
+            target = consolidateTarget( timeUnits, target, queryPt.getPeriodSpan( dataSetPt ) );
         }
+
         return target;
+    }
+
+    private double consolidateTarget( final int timeUnits, final double target, final int daysInPeriod )
+    {
+        return target * daysInPeriod * timeUnits;
     }
 
     private Double getReportRate( ReportingRateMetric metric, Double target, Double actual )
