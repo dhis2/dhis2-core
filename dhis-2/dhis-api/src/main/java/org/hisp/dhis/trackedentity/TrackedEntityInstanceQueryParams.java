@@ -1160,17 +1160,6 @@ public class TrackedEntityInstanceQueryParams
         return skipPaging;
     }
 
-    public int getMaxTeiLimit()
-    {
-        return maxTeiLimit;
-    }
-
-    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
-    {
-        this.maxTeiLimit = maxTeiLimit;
-        return this;
-    }
-
     public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
