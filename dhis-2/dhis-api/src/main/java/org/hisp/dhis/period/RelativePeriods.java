@@ -147,8 +147,8 @@ public class RelativePeriods
     // Generates an array containing "year_minus_9" -> "year_minus_1" +
     // "year_this"
     public static final String[] LAST_10_YEARS = (String[]) ArrayUtils.addAll(
-            streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "year_minus_", "" ),
-            Collections.singletonList( "year_this" ).toArray() );
+        streamToStringArray( IntStream.rangeClosed( 1, 9 ).map( i -> 9 - i + 1 ).boxed(), "year_minus_", "" ),
+        Collections.singletonList( "year_this" ).toArray() );
 
     // Generates an array containing "financial_year_minus_4" ->
     // "financial_year_minus_1" + "financial_year_this"
@@ -667,7 +667,7 @@ public class RelativePeriods
         if ( isLast10Years() )
         {
             periods.addAll(
-                    getRollingRelativePeriodList( new DecadePeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+                getRollingRelativePeriodList( new DecadePeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
         }
 
         return periods;

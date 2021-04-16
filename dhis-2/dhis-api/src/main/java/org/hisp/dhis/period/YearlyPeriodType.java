@@ -153,7 +153,7 @@ public class YearlyPeriodType
      * Generates the last 5 years where the last one is the year which the given
      * date is inside.
      */
-    public List<Period> generateLastYears(Date date )
+    public List<Period> generateLastYears( Date date )
     {
         Calendar calendar = getCalendar();
 

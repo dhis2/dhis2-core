@@ -160,7 +160,7 @@ public class TwoYearlyPeriodType
         return generateLastYears( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
-    public List<Period> generateLastYears(Date date )
+    public List<Period> generateLastYears( Date date )
     {
         // TODO: use local calendar instead of hard coded Gregorian
         Calendar cal = createCalendarInstance( date );

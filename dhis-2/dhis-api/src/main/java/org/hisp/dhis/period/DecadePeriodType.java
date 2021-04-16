@@ -25,15 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.hisp.dhis.period;
-
-import com.google.common.collect.Lists;
-import org.hisp.dhis.calendar.Calendar;
-import org.hisp.dhis.calendar.DateTimeUnit;
 
 import java.util.Date;
 import java.util.List;
+
+import org.hisp.dhis.calendar.Calendar;
+import org.hisp.dhis.calendar.DateTimeUnit;
+
+import com.google.common.collect.Lists;
 
 /**
  * YearlyPeriodType for the decade period.
@@ -41,14 +41,15 @@ import java.util.List;
  * @author Dusan Bernat
  */
 
-public class DecadePeriodType extends YearlyPeriodType{
+public class DecadePeriodType extends YearlyPeriodType
+{
 
     /**
-     * Generates the last 10 years where the last one is the year which the given
-     * date is inside.
+     * Generates the last 10 years where the last one is the year which the
+     * given date is inside.
      */
     @Override
-    public List<Period> generateLastYears(Date date )
+    public List<Period> generateLastYears( Date date )
     {
         Calendar calendar = getCalendar();
 

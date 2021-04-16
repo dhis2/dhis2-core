@@ -103,7 +103,7 @@ public abstract class CalendarPeriodType
      * @param date the date which touches the time span to generate Periods for.
      * @return a list of Periods for a defined time span.
      */
-    public List<Period> generateLastYears(Date date )
+    public List<Period> generateLastYears( Date date )
     {
         DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
         dateTimeUnit = getCalendar().minusYears( dateTimeUnit, 4 );

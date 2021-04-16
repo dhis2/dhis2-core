@@ -148,7 +148,7 @@ public abstract class FinancialPeriodType
         return generateLastYears( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
-    public List<Period> generateLastYears(Date date )
+    public List<Period> generateLastYears( Date date )
     {
         Calendar cal = getCalendar();
 

@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.period;
 
-import org.joda.time.DateTime;
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
+import org.joda.time.DateTime;
+import org.junit.Before;
+import org.junit.Test;
 
 /**
  * @author Dusan Bernat
@@ -45,55 +45,56 @@ public class DecadePeriodTypeTest
     private DateTime testDate;
 
     @Before
-    public void before() {
+    public void before()
+    {
         periodType = new YearlyPeriodType();
     }
 
     @Test
     public void should_create_period_with_correct_dates_when_called()
     {
-        //arrange
-        testDate = new DateTime(2020, 8, 15, 0, 0);
+        // arrange
+        testDate = new DateTime( 2020, 8, 15, 0, 0 );
 
-        DateTime startDate = new DateTime(2020, 1, 1, 0, 0);
-        DateTime endDate = new DateTime(2020, 12, 31, 0, 0);
+        DateTime startDate = new DateTime( 2020, 1, 1, 0, 0 );
+        DateTime endDate = new DateTime( 2020, 12, 31, 0, 0 );
 
-        Period period = periodType.createPeriod(testDate.toDate());
+        Period period = periodType.createPeriod( testDate.toDate() );
 
-        assertEquals(startDate.toDate(), period.getStartDate());
-        assertEquals(endDate.toDate(), period.getEndDate());
+        assertEquals( startDate.toDate(), period.getStartDate() );
+        assertEquals( endDate.toDate(), period.getEndDate() );
 
-        testDate = new DateTime(2020, 4, 15, 0, 0);
+        testDate = new DateTime( 2020, 4, 15, 0, 0 );
 
-        //act
-        period = periodType.createPeriod(testDate.toDate());
+        // act
+        period = periodType.createPeriod( testDate.toDate() );
 
-        //assert
-        assertEquals(startDate.toDate(), period.getStartDate());
-        assertEquals(endDate.toDate(), period.getEndDate());
+        // assert
+        assertEquals( startDate.toDate(), period.getStartDate() );
+        assertEquals( endDate.toDate(), period.getEndDate() );
     }
 
     @Test
     public void should_generate_last_10_years_when_called()
     {
         // arrange
-        testDate = new DateTime(2020, 4, 15, 0, 0);
+        testDate = new DateTime( 2020, 4, 15, 0, 0 );
 
         // act
-        List<Period> periods = new DecadePeriodType().generateLastYears(testDate.toDate());
+        List<Period> periods = new DecadePeriodType().generateLastYears( testDate.toDate() );
 
-        //assert
-        assertEquals(10, periods.size());
-        assertEquals(periodType.createPeriod(new DateTime(2011, 1, 1, 0, 0).toDate()), periods.get(0));
-        assertEquals(periodType.createPeriod(new DateTime(2012, 1, 1, 0, 0).toDate()), periods.get(1));
-        assertEquals(periodType.createPeriod(new DateTime(2013, 1, 1, 0, 0).toDate()), periods.get(2));
-        assertEquals(periodType.createPeriod(new DateTime(2014, 1, 1, 0, 0).toDate()), periods.get(3));
-        assertEquals(periodType.createPeriod(new DateTime(2015, 1, 1, 0, 0).toDate()), periods.get(4));
-        assertEquals(periodType.createPeriod(new DateTime(2016, 1, 1, 0, 0).toDate()), periods.get(5));
-        assertEquals(periodType.createPeriod(new DateTime(2017, 1, 1, 0, 0).toDate()), periods.get(6));
-        assertEquals(periodType.createPeriod(new DateTime(2018, 1, 1, 0, 0).toDate()), periods.get(7));
-        assertEquals(periodType.createPeriod(new DateTime(2019, 1, 1, 0, 0).toDate()), periods.get(8));
-        assertEquals(periodType.createPeriod(new DateTime(2020, 1, 1, 0, 0).toDate()), periods.get(9));
+        // assert
+        assertEquals( 10, periods.size() );
+        assertEquals( periodType.createPeriod( new DateTime( 2011, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2012, 1, 1, 0, 0 ).toDate() ), periods.get( 1 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2013, 1, 1, 0, 0 ).toDate() ), periods.get( 2 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2014, 1, 1, 0, 0 ).toDate() ), periods.get( 3 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2015, 1, 1, 0, 0 ).toDate() ), periods.get( 4 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2016, 1, 1, 0, 0 ).toDate() ), periods.get( 5 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2017, 1, 1, 0, 0 ).toDate() ), periods.get( 6 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2018, 1, 1, 0, 0 ).toDate() ), periods.get( 7 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2019, 1, 1, 0, 0 ).toDate() ), periods.get( 8 ) );
+        assertEquals( periodType.createPeriod( new DateTime( 2020, 1, 1, 0, 0 ).toDate() ), periods.get( 9 ) );
 
     }
 }
