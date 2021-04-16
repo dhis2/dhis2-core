@@ -34,6 +34,7 @@ import org.hisp.dhis.ouwt.manager.DefaultOrganisationUnitSelectionManager;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.SpringSecurityActionAccessResolver;
+import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.action.RestrictOrganisationUnitsAction;
 import org.hisp.dhis.security.authority.AppsSystemAuthoritiesProvider;
 import org.hisp.dhis.security.authority.CachingSystemAuthoritiesProvider;
@@ -44,7 +45,6 @@ import org.hisp.dhis.security.authority.ModuleSystemAuthoritiesProvider;
 import org.hisp.dhis.security.authority.RequiredAuthoritiesProvider;
 import org.hisp.dhis.security.authority.SchemaAuthoritiesProvider;
 import org.hisp.dhis.security.authority.SimpleSystemAuthoritiesProvider;
-import org.hisp.dhis.security.authority.SystemAuthoritiesProvider;
 import org.hisp.dhis.security.intercept.LoginInterceptor;
 import org.hisp.dhis.security.intercept.XWorkSecurityInterceptor;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
@@ -55,6 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 
@@ -96,7 +97,8 @@ public class AuthoritiesProviderConfig
     @Qualifier( "org.hisp.dhis.organisationunit.OrganisationUnitService" )
     public OrganisationUnitService organisationUnitService;
 
-    @Bean( "org.hisp.dhis.security.authority.SystemAuthoritiesProvider" )
+    @Primary
+    @Bean( "org.hisp.dhis.security.SystemAuthoritiesProvider" )
     public SystemAuthoritiesProvider systemAuthoritiesProvider()
     {
         SchemaAuthoritiesProvider schemaAuthoritiesProvider = new SchemaAuthoritiesProvider( schemaService );

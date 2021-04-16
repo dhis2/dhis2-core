@@ -392,7 +392,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueSet()
     {
         Event event = new Event();
-        event.setUid( FIRST_EVENT_ID );
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -404,7 +403,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueSetSameValue()
     {
         Event event = new Event();
-        event.setUid( FIRST_EVENT_ID );
         event.setEvent( FIRST_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -416,7 +414,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueNOTSet()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
@@ -427,7 +424,6 @@ public class AssignValueImplementerTest
     private Event getEventWithDataValueNOTSetInDifferentProgramStage()
     {
         Event event = new Event();
-        event.setUid( SECOND_EVENT_ID );
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( secondProgramStage.getUid() );
@@ -454,7 +450,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( FIRST_ENROLLMENT_ID );
         enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
         enrollment.setAttributes( getAttributes() );
@@ -465,7 +460,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeSetSameValue()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( FIRST_ENROLLMENT_ID );
         enrollment.setEnrollment( FIRST_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.ACTIVE );
         enrollment.setAttributes( getAttributesSameValue() );
@@ -476,7 +470,6 @@ public class AssignValueImplementerTest
     private TrackedEntity getTrackedEntitiesWithAttributeSet()
     {
         TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TRACKED_ENTITY_ID );
         trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
         trackedEntity.setAttributes( getAttributes() );
 
@@ -486,7 +479,6 @@ public class AssignValueImplementerTest
     private TrackedEntity getTrackedEntitiesWithAttributeNOTSet()
     {
         TrackedEntity trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( TRACKED_ENTITY_ID );
         trackedEntity.setTrackedEntity( TRACKED_ENTITY_ID );
 
         return trackedEntity;
@@ -495,7 +487,6 @@ public class AssignValueImplementerTest
     private Enrollment getEnrollmentWithAttributeNOTSet()
     {
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( SECOND_ENROLLMENT_ID );
         enrollment.setEnrollment( SECOND_ENROLLMENT_ID );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         enrollment.setTrackedEntity( TRACKED_ENTITY_ID );

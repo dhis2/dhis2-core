@@ -50,6 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Component( "org.hisp.dhis.programrule.engine.RuleActionAssignValueImplementer" )
+@Transactional
 public class RuleActionAssignValueImplementer implements RuleActionImplementer
 {
     private static final String REGEX = "[a-zA-Z0-9]+(?:[\\w -._]*[a-zA-Z0-9]+)*";

@@ -419,7 +419,8 @@ public class DefaultFieldFilterService implements FieldFilterService
         if ( UserGroupAccess.class.isAssignableFrom( object.getClass() ) )
         {
             UserGroupAccess userGroupAccess = (UserGroupAccess) object;
-            userGroupAccess.setDisplayName( userGroupService.getDisplayName( userGroupAccess.getUserGroupUid() ) );
+            userGroupAccess
+                .setDisplayName( userGroupService.getDisplayName( userGroupAccess.getUserGroupUid() ) );
         }
 
         if ( UserAccess.class.isAssignableFrom( object.getClass() ) )

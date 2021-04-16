@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.security;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
+import static org.hisp.dhis.webapi.WebClient.JwtToken;
 import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
@@ -172,18 +173,15 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, "email", "openiduser@oidc.org" )
             .getTokenValue();
 
-        JsonUser as = GET( tokenValue, "/me?fields=settings,id" ).content().as( JsonUser.class );
-        assertEquals( openIDUser.getUid(), as.getId() );
+        JsonUser user = GET( "/me?fields=settings,id", JwtToken( tokenValue ) ).content().as( JsonUser.class );
+        assertEquals( openIDUser.getUid(), user.getId() );
     }
 
     @Test
     public void testMalformedToken()
     {
-        JsonError error = GET( "NOT_A_JWT_TOKEN", "/me" ).error( HttpStatus.UNAUTHORIZED );
-
-        assertEquals( "invalid_token", error.getMessage() );
-        assertEquals( "Invalid JWT serialization: Missing dot delimiter(s)",
-            error.getDevMessage() );
+        assertInvalidTokenError( "Invalid JWT serialization: Missing dot delimiter(s)",
+            GET( "/me", JwtToken( "NOT_A_JWT_TOKEN" ) ) );
     }
 
     @Test
@@ -193,12 +191,9 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 
         setupGoogleProvider( GOOGLE_CLIENT_ID );
 
-        JsonError error = GET( EXPIRED_GOOGLE_JWT_TOKEN, "/me" ).error( HttpStatus.UNAUTHORIZED );
-
-        assertEquals( "invalid_token", error.getMessage() );
-        assertEquals(
+        assertInvalidTokenError(
             "An error occurred while attempting to decode the Jwt: Signed JWT rejected: Another algorithm expected, or no matching key(s) found",
-            error.getDevMessage() );
+            GET( "/me", JwtToken( EXPIRED_GOOGLE_JWT_TOKEN ) ) );
     }
 
     @Test
@@ -209,11 +204,9 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
         String tokenValue = createJwt( TEST_PROVIDER_ONE_URI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL )
             .getTokenValue();
 
-        JsonError error = GET( tokenValue, "/me" ).error( HttpStatus.UNAUTHORIZED );
-
-        assertEquals( "invalid_token", error.getMessage() );
-        assertEquals( "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
-            error.getDevMessage() );
+        assertInvalidTokenError(
+            "Found no matching DHIS2 user for the mapping claim:'email' with the value:'admin@dhis2.org'",
+            GET( "/me", JwtToken( tokenValue ) ) );
     }
 
     @Test
@@ -225,10 +218,15 @@ public class JwtBearerTokenTest extends DhisControllerWithJwtTokenAuthTest
 
         String tokenValue = createJwt( providerURI, CLIENT_ID_1, DEFAULT_MAPPING_CLAIM, DEFAULT_EMAIL ).getTokenValue();
 
-        JsonError error = GET( tokenValue, "/me" ).error( HttpStatus.UNAUTHORIZED );
+        assertInvalidTokenError( "Invalid audience",
+            GET( "/me", JwtToken( tokenValue ) ) );
+    }
 
+    private void assertInvalidTokenError( String expected, HttpResponse response )
+    {
+        JsonError error = response.error( HttpStatus.UNAUTHORIZED );
         assertEquals( "invalid_token", error.getMessage() );
-        assertEquals( "Invalid audience", error.getDevMessage() );
+        assertEquals( expected, error.getDevMessage() );
     }
 
     private void setupGoogleProvider( String clientId )

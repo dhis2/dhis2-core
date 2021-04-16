@@ -60,6 +60,7 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -118,6 +119,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ObjectBundle create( ObjectBundleParams params )
     {
         PreheatParams preheatParams = params.getPreheatParams();
@@ -140,6 +142,7 @@ public class DefaultObjectBundleService implements ObjectBundleService
     }
 
     @Override
+    @Transactional
     public ObjectBundleCommitReport commit( ObjectBundle bundle )
     {
         Map<Class<?>, TypeReport> typeReports = new HashMap<>();
@@ -312,8 +315,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
-                mergeService.merge( new MergeParams<>( object, persistedObject ).setMergeMode( bundle.getMergeMode() )
-                    .setSkipSharing( bundle.isSkipSharing() ) );
+                mergeService.merge( new MergeParams<>( object, persistedObject )
+                    .setMergeMode( bundle.getMergeMode() )
+                    .setSkipSharing( bundle.isSkipSharing() )
+                    .setSkipTranslation( bundle.isSkipTranslation() ) );
             }
 
             if ( bundle.getOverrideUser() != null )

@@ -58,8 +58,6 @@ public class Event
     extends BaseLinkableObject
     implements TrackerDto
 {
-    private String uid;
-
     @JsonProperty
     private String event;
 
@@ -149,5 +147,11 @@ public class Event
     public boolean isCreatableInSearchScope()
     {
         return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
+    }
+
+    @Override
+    public String getUid()
+    {
+        return this.event;
     }
 }

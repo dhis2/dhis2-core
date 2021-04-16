@@ -188,8 +188,6 @@ public class TrackerPreheatServiceTest
         assertTrue( params.getEnrollments().isEmpty() );
         assertFalse( params.getEvents().isEmpty() );
 
-        trackerPreheatService.validate( params );
-
         TrackerPreheat preheat = trackerPreheatService.preheat( params );
 
         assertNotNull( preheat );

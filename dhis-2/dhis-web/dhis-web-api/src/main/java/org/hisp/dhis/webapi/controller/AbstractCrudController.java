@@ -455,7 +455,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.updateTranslations( persistedObject, object.getTranslations() );
-        manager.update( persistedObject );
 
         response.setStatus( HttpServletResponse.SC_NO_CONTENT );
     }
@@ -505,7 +504,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
     }
 
-    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
+    @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PATCH } )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void updateObjectProperty(
         @PathVariable( "uid" ) String pvUid, @PathVariable( "property" ) String pvProperty,
@@ -625,48 +624,17 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = currentUserService.getCurrentUser();
-
-        if ( !aclService.canCreate( user, getEntityClass() ) )
-        {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
-        }
-
-        T parsed = deserializeJsonEntity( request, response );
-        parsed.getTranslations().clear();
-
-        preCreateEntity( parsed );
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
-            .setImportStrategy( ImportStrategy.CREATE )
-            .addObject( parsed );
-
-        ImportReport importReport = importService.importMetadata( params );
-        ObjectReport objectReport = getObjectReport( importReport );
-        WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
-
-        if ( objectReport != null && webMessage.getStatus() == Status.OK )
-        {
-            String location = contextService.getApiPath() + getSchema().getRelativeApiEndpoint() + "/"
-                + objectReport.getUid();
-
-            webMessage.setHttpStatus( HttpStatus.CREATED );
-            response.setHeader( ContextUtils.HEADER_LOCATION, location );
-            T entity = manager.get( getEntityClass(), objectReport.getUid() );
-            postCreateEntity( entity );
-        }
-        else
-        {
-            webMessage.setStatus( Status.ERROR );
-        }
-
-        webMessageService.send( webMessage, response, request );
+        postObject( request, response, deserializeJsonEntity( request, response ) );
     }
 
     @RequestMapping( method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        postObject( request, response, deserializeXmlEntity( request ) );
+    }
+
+    private void postObject( HttpServletRequest request, HttpServletResponse response, T parsed )
         throws Exception
     {
         User user = currentUserService.getCurrentUser();
@@ -676,19 +644,20 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        T parsed = deserializeXmlEntity( request );
         parsed.getTranslations().clear();
 
         preCreateEntity( parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
-            .setImportStrategy( ImportStrategy.CREATE )
+            .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
             .addObject( parsed );
 
-        ImportReport importReport = importService.importMetadata( params );
-        ObjectReport objectReport = getObjectReport( importReport );
+        postObject( request, response, getObjectReport( importService.importMetadata( params ) ) );
+    }
+
+    protected final void postObject( HttpServletRequest request, HttpServletResponse response,
+        ObjectReport objectReport )
+    {
         WebMessage webMessage = WebMessageUtils.objectReport( objectReport );
 
         if ( objectReport != null && webMessage.getStatus() == Status.OK )

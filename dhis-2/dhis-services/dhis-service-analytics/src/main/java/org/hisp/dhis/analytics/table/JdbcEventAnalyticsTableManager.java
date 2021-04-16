@@ -52,6 +52,7 @@ import org.hisp.dhis.analytics.AnalyticsTablePartition;
 import org.hisp.dhis.analytics.AnalyticsTableType;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
 import org.hisp.dhis.analytics.ColumnDataType;
+import org.hisp.dhis.analytics.IndexType;
 import org.hisp.dhis.analytics.partition.PartitionManager;
 import org.hisp.dhis.calendar.Calendar;
 import org.hisp.dhis.category.Category;
@@ -76,7 +77,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 /**
@@ -87,9 +87,6 @@ import com.google.common.collect.Lists;
 public class JdbcEventAnalyticsTableManager
     extends AbstractEventJdbcTableManager
 {
-    private static final ImmutableSet<ValueType> NO_INDEX_VAL_TYPES = ImmutableSet.of( ValueType.TEXT,
-        ValueType.LONG_TEXT );
-
     public static final String OU_NAME_COL_SUFFIX = "_name";
 
     public static final String OU_GEOMETRY_COL_SUFFIX = "_geom";
@@ -121,9 +118,8 @@ public class JdbcEventAnalyticsTableManager
         new AnalyticsTableColumn( quote( "pistatus" ), CHARACTER_50, "pi.status" ),
         new AnalyticsTableColumn( quote( "psistatus" ), CHARACTER_50, "psi.status" ),
         new AnalyticsTableColumn( quote( "psigeometry" ), GEOMETRY, "psi.geometry" )
-            .withIndexType( GEOMETRY_INDEX_TYPE ),
-        // TODO latitude and longitude deprecated in 2.30, should be removed
-        // after 2.33
+            .withIndexType( IndexType.GIST ),
+        // TODO latitude and longitude deprecated in 2.30, remove in 2.33
         new AnalyticsTableColumn( quote( "longitude" ), DOUBLE,
             "CASE WHEN 'POINT' = GeometryType(psi.geometry) THEN ST_X(psi.geometry) ELSE null END" ),
         new AnalyticsTableColumn( quote( "latitude" ), DOUBLE,
@@ -231,9 +227,9 @@ public class JdbcEventAnalyticsTableManager
             }
             else
             {
-                log.info(
-                    String.format( "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
-                        program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
+                log.info( String.format(
+                    "No updated latest event data found for program: '%s' with start: '%s' and end: '%s",
+                    program.getUid(), getLongDateString( lastAnyTableUpdate ), getLongDateString( endDate ) ) );
             }
         }
 
@@ -317,8 +313,8 @@ public class JdbcEventAnalyticsTableManager
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
             "inner join categoryoptioncombo ao on psi.attributeoptioncomboid=ao.categoryoptioncomboid " +
-            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid and tei.deleted is false "
-            +
+            "left join trackedentityinstance tei on pi.trackedentityinstanceid=tei.trackedentityinstanceid " +
+            "and tei.deleted is false " +
             "inner join organisationunit ou on psi.organisationunitid=ou.organisationunitid " +
             "left join _orgunitstructure ous on psi.organisationunitid=ous.organisationunitid " +
             "left join _organisationunitgroupsetstructure ougs on psi.organisationunitid=ougs.organisationunitid " +
@@ -370,11 +366,11 @@ public class JdbcEventAnalyticsTableManager
             .collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributes().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, false ) )
+            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), false ) )
             .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
         columns.addAll( program.getNonConfidentialTrackedEntityAttributesWithLegendSet().stream()
-            .map( tea -> getColumnFromTrackedEntityAttribute( tea, numericClause, dateClause, true ) )
+            .map( tea -> getColumnFromTrackedEntityAttribute( tea, getNumericClause(), getDateClause(), true ) )
             .flatMap( Collection::stream ).collect( Collectors.toList() ) );
 
         columns.addAll( getFixedColumns() );
@@ -396,27 +392,16 @@ public class JdbcEventAnalyticsTableManager
         ColumnDataType dataType = getColumnType( attribute.getValueType(), databaseInfo.isSpatialSupport() );
         String dataClause = attribute.isNumericType() ? numericClause : attribute.isDateType() ? dateClause : "";
         String select = getSelectClause( attribute.getValueType(), "value" );
-        boolean skipIndex = NO_INDEX_VAL_TYPES.contains( attribute.getValueType() ) && !attribute.hasOptionSet();
+        String sql = selectForInsert( attribute, select, dataClause );
+        boolean skipIndex = skipIndex( attribute.getValueType(), attribute.hasOptionSet() );
 
         if ( attribute.getValueType().isOrganisationUnit() )
         {
-            if ( databaseInfo.isSpatialSupport() )
-            {
-                final String geoSql = selectForInsert( attribute,
-                    "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
-                columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                    ColumnDataType.GEOMETRY, geoSql ).withSkipIndex( skipIndex ).withIndexType( GEOMETRY_INDEX_TYPE ) );
-            }
-            // add the OU name for this Tracked Entity Attribute
-            final String ouNameSql = selectForInsert( attribute,
-                "ou.name from organisationunit ou where ou.uid = (select value", dataClause );
-
-            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-                .withSkipIndex( skipIndex ) );
+            columns.addAll( getColumnsFromOrgUnitTrackedEntityAttribute( attribute, dataClause ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType,
-            selectForInsert( attribute, select, dataClause ) ).withSkipIndex( skipIndex ) );
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() ), dataType, sql )
+            .withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromTrackedEntityAttributeWithLegendSet( attribute, numericClause ) : columns;
     }
@@ -444,40 +429,72 @@ public class JdbcEventAnalyticsTableManager
     {
         List<AnalyticsTableColumn> columns = new ArrayList<>();
 
-        // Assemble a regex dataClause with using jsonb #>> operator
+        ColumnDataType dataType = getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() );
         String dataClause = getDataClause( dataElement.getUid(), dataElement.getValueType() );
-
         String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
-
         String select = getSelectClause( dataElement.getValueType(), columnName );
-
         String sql = selectForInsert( dataElement, select, dataClause );
+        boolean skipIndex = skipIndex( dataElement.getValueType(), dataElement.hasOptionSet() );
 
         if ( dataElement.getValueType().isOrganisationUnit() )
         {
-            if ( databaseInfo.isSpatialSupport() )
-            {
-                String geoSql = selectForInsert( dataElement,
-                    "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
-
-                columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
-                    ColumnDataType.GEOMETRY, geoSql )
-                        .withSkipIndex( true ).withIndexType( GEOMETRY_INDEX_TYPE ) );
-            }
-
-            // Add org unit name for data value
-            String ouNameSql = selectForInsert( dataElement,
-                "ou.name from organisationunit ou where ou.uid = (select " + columnName, dataClause );
-
-            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
-                .withSkipIndex( true ) );
+            columns.addAll( getColumnFromOrgUnitDataElement( dataElement, dataClause ) );
         }
 
-        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ),
-            getColumnType( dataElement.getValueType(), databaseInfo.isSpatialSupport() ), sql ).withSkipIndex(
-                NO_INDEX_VAL_TYPES.contains( dataElement.getValueType() ) && !dataElement.hasOptionSet() ) );
+        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() ), dataType, sql )
+            .withSkipIndex( skipIndex ) );
 
         return withLegendSet ? getColumnFromDataElementWithLegendSet( dataElement, select, dataClause ) : columns;
+    }
+
+    private List<AnalyticsTableColumn> getColumnsFromOrgUnitTrackedEntityAttribute( TrackedEntityAttribute attribute,
+        String dataClause )
+    {
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        if ( databaseInfo.isSpatialSupport() )
+        {
+            final String geoSql = selectForInsert( attribute,
+                "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
+            columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
+                ColumnDataType.GEOMETRY, geoSql )
+                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
+        }
+
+        // Add org unit name column
+        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select value";
+        final String ouNameSql = selectForInsert( attribute, fromTypeSql, dataClause );
+
+        columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
+            .withSkipIndex( true ) );
+
+        return columns;
+    }
+
+    private List<AnalyticsTableColumn> getColumnFromOrgUnitDataElement( DataElement dataElement, String dataClause )
+    {
+        List<AnalyticsTableColumn> columns = new ArrayList<>();
+
+        String columnName = "eventdatavalues #>> '{" + dataElement.getUid() + ", value}'";
+
+        if ( databaseInfo.isSpatialSupport() )
+        {
+            String geoSql = selectForInsert( dataElement,
+                "ou.geometry from organisationunit ou where ou.uid = (select " + columnName, dataClause );
+
+            columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
+                ColumnDataType.GEOMETRY, geoSql )
+                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
+        }
+
+        // Add org unit name column
+        final String fromTypeSql = "ou.name from organisationunit ou where ou.uid = (select " + columnName;
+        final String ouNameSql = selectForInsert( dataElement, fromTypeSql, dataClause );
+
+        columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_NAME_COL_SUFFIX ), TEXT, ouNameSql )
+            .withSkipIndex( true ) );
+
+        return columns;
     }
 
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )

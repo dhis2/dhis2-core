@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
+import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashSet;
@@ -44,7 +46,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -83,6 +84,7 @@ import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -281,18 +283,7 @@ public class UserController
     public void postXmlObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
     }
 
     @Override
@@ -300,36 +291,41 @@ public class UserController
     public void postJsonObject( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postObject( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    private void postObject( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), createUser( user, currentUser ) );
+        postObject( request, response, getObjectReport( createUser( user, currentUser ) ) );
     }
 
     @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
     public void postJsonInvite( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        User user = renderService.fromJson( request.getInputStream(), getEntityClass() );
+        postInvite( request, response, renderService.fromJson( request.getInputStream(), getEntityClass() ) );
+    }
 
+    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
+    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        postInvite( request, response, renderService.fromXml( request.getInputStream(), getEntityClass() ) );
+    }
+
+    private void postInvite( HttpServletRequest request, HttpServletResponse response, User user )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
+        validateInviteUser( user, currentUser );
 
-        response.setContentType( "application/json" );
-
-        renderService.toJson( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postObject( request, response, inviteUser( user, currentUser, request ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = "application/json" )
@@ -337,40 +333,7 @@ public class UserController
     public void postJsonInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromJson( request.getInputStream(), Users.class );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        for ( User user : users.getUsers() )
-        {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
-        }
-
-        for ( User user : users.getUsers() )
-        {
-            inviteUser( user, currentUser, request );
-        }
-    }
-
-    @RequestMapping( value = INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml", "text/xml" } )
-    public void postXmlInvite( HttpServletRequest request, HttpServletResponse response )
-        throws Exception
-    {
-        User user = renderService.fromXml( request.getInputStream(), getEntityClass() );
-
-        User currentUser = currentUserService.getCurrentUser();
-
-        if ( !validateInviteUser( user, currentUser ) )
-        {
-            return;
-        }
-
-        response.setContentType( "application/xml" );
-
-        renderService.toXml( response.getOutputStream(), inviteUser( user, currentUser, request ) );
+        postInvites( request, renderService.fromJson( request.getInputStream(), Users.class ) );
     }
 
     @RequestMapping( value = BULK_INVITE_PATH, method = RequestMethod.POST, consumes = { "application/xml",
@@ -379,16 +342,17 @@ public class UserController
     public void postXmlInvites( HttpServletRequest request, HttpServletResponse response )
         throws Exception
     {
-        Users users = renderService.fromXml( request.getInputStream(), Users.class );
+        postInvites( request, renderService.fromXml( request.getInputStream(), Users.class ) );
+    }
 
+    private void postInvites( HttpServletRequest request, Users users )
+        throws WebMessageException
+    {
         User currentUser = currentUserService.getCurrentUser();
 
         for ( User user : users.getUsers() )
         {
-            if ( !validateInviteUser( user, currentUser ) )
-            {
-                return;
-            }
+            validateInviteUser( user, currentUser );
         }
 
         for ( User user : users.getUsers() )
@@ -434,6 +398,41 @@ public class UserController
         }
     }
 
+    @RequestMapping( value = "/{id}/reset", method = RequestMethod.POST )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void resetToInvite( @PathVariable String id, HttpServletRequest request )
+        throws Exception
+    {
+        User user = userService.getUser( id );
+        if ( user == null )
+        {
+            throw NotFoundException.notFoundUid( id );
+        }
+        String valid = securityService.validateRestore( user.getUserCredentials() );
+        if ( valid != null )
+        {
+            throw new WebMessageException( WebMessageUtils.conflict( valid ) );
+        }
+        User currentUser = currentUserService.getCurrentUser();
+        if ( !aclService.canUpdate( currentUser, user ) )
+        {
+            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this user." );
+        }
+        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
+        {
+            throw new UpdateAccessDeniedException(
+                "You must have permissions manage at least one user group for the user." );
+        }
+
+        RestoreOptions restoreOptions = securityService.isInviteUsername( user.getUsername() )
+            ? RestoreOptions.INVITE_WITH_USERNAME_CHOICE
+            : RestoreOptions.INVITE_WITH_DEFINED_USERNAME;
+
+        securityService.prepareUserForInvite( user );
+        securityService.sendRestoreOrInviteMessage( user.getUserCredentials(), ContextUtils.getContextPath( request ),
+            restoreOptions );
+    }
+
     @SuppressWarnings( "unchecked" )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_REPLICATE_USER')" )
     @RequestMapping( value = "/{uid}/replica", method = RequestMethod.POST )
@@ -451,10 +450,7 @@ public class UserController
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !validateCreateUser( existingUser, currentUser ) )
-        {
-            return;
-        }
+        validateCreateUser( existingUser, currentUser );
 
         Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
 
@@ -507,7 +503,7 @@ public class UserController
 
         userService.addUser( userReplica );
         userService.addUserCredentials( credentialsReplica );
-        userGroupService.addUserToGroups( userReplica, IdentifiableObjectUtils.getUids( existingUser.getGroups() ),
+        userGroupService.addUserToGroups( userReplica, getUids( existingUser.getGroups() ),
             currentUser );
 
         // ---------------------------------------------------------------------
@@ -623,7 +619,7 @@ public class UserController
         boolean isPasswordChangeAttempt = parsedUserObject.getUserCredentials() != null &&
             parsedUserObject.getUserCredentials().getPassword() != null;
 
-        List<String> groupsUids = IdentifiableObjectUtils.getUids( parsedUserObject.getGroups() );
+        List<String> groupsUids = getUids( parsedUserObject.getGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
             || !currentUser.getUserCredentials().canModifyUser( users.get( 0 ).getUserCredentials() ) )
@@ -669,7 +665,7 @@ public class UserController
             currentUser = currentUserService.getCurrentUser();
         }
 
-        userGroupService.updateUserGroups( user, IdentifiableObjectUtils.getUids( parsed.getGroups() ), currentUser );
+        userGroupService.updateUserGroups( user, getUids( parsed.getGroups() ), currentUser );
     }
 
     // -------------------------------------------------------------------------
@@ -682,7 +678,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
@@ -713,7 +709,7 @@ public class UserController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( entity.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( entity.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( entity.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
@@ -735,7 +731,7 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateCreateUser( User user, User currentUser )
+    private void validateCreateUser( User user, User currentUser )
         throws WebMessageException
     {
         if ( !aclService.canCreate( currentUser, getEntityClass() ) )
@@ -743,13 +739,13 @@ public class UserController
             throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser ) )
+        if ( !userService.canAddOrUpdateUser( getUids( user.getGroups() ), currentUser ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(
                 "You must have permissions to create user, or ability to manage at least one user group for the user." ) );
         }
 
-        List<String> uids = IdentifiableObjectUtils.getUids( user.getGroups() );
+        List<String> uids = getUids( user.getGroups() );
 
         for ( String uid : uids )
         {
@@ -759,8 +755,6 @@ public class UserController
                     WebMessageUtils.conflict( "You don't have permissions to add user to user group: " + uid ) );
             }
         }
-
-        return true;
     }
 
     /**
@@ -779,7 +773,7 @@ public class UserController
 
         if ( importReport.getStatus() == Status.OK && importReport.getStats().getCreated() == 1 )
         {
-            userGroupService.addUserToGroups( user, IdentifiableObjectUtils.getUids( user.getGroups() ), currentUser );
+            userGroupService.addUserToGroups( user, getUids( user.getGroups() ), currentUser );
         }
 
         return importReport;
@@ -790,13 +784,10 @@ public class UserController
      *
      * @param user the user.
      */
-    private boolean validateInviteUser( User user, User currentUser )
+    private void validateInviteUser( User user, User currentUser )
         throws WebMessageException
     {
-        if ( !validateCreateUser( user, currentUser ) )
-        {
-            return false;
-        }
+        validateCreateUser( user, currentUser );
 
         UserCredentials credentials = user.getUserCredentials();
 
@@ -813,8 +804,6 @@ public class UserController
         {
             throw new WebMessageException( WebMessageUtils.conflict( validateMessage ) );
         }
-
-        return true;
     }
 
     /**
@@ -952,7 +941,7 @@ public class UserController
             throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
         }
 
-        if ( !userService.canAddOrUpdateUser( IdentifiableObjectUtils.getUids( userToModify.getGroups() ), currentUser )
+        if ( !userService.canAddOrUpdateUser( getUids( userToModify.getGroups() ), currentUser )
             || !currentUser.getUserCredentials().canModifyUser( userToModify.getUserCredentials() ) )
         {
             throw new WebMessageException( WebMessageUtils.conflict(

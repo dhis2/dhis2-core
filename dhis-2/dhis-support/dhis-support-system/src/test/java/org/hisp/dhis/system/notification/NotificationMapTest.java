@@ -38,7 +38,7 @@ import org.junit.Test;
 
 public class NotificationMapTest
 {
-    private NotificationMap mapToTest = new NotificationMap();
+    private final NotificationMap mapToTest = new NotificationMap();
 
     @Test
     public void testFirstSummaryToBeCreatedIsTheFirstOneToBeRemoved()

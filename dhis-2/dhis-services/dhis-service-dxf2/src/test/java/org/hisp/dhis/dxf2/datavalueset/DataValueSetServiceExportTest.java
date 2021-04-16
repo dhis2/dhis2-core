@@ -48,6 +48,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -60,6 +61,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.user.CurrentUserService;
@@ -90,6 +92,9 @@ public class DataValueSetServiceExportTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
+    private DataElementService dataElementService;
+
+    @Autowired
     private DataValueSetService dataValueSetService;
 
     @Autowired
@@ -97,6 +102,9 @@ public class DataValueSetServiceExportTest
 
     @Autowired
     private AttributeService attributeService;
+
+    @Autowired
+    private PeriodService periodService;
 
     @Autowired
     private UserService _userService;
@@ -144,17 +152,29 @@ public class DataValueSetServiceExportTest
 
     private User user;
 
+    private String peAUid;
+
     @Override
     public void setUpTest()
     {
         userService = _userService;
+
+        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 3, 1 ),
+            getDate( 2016, 3, 31 ) );
+        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 4, 1 ),
+            getDate( 2016, 4, 30 ) );
+        periodService.addPeriod( peA );
+        periodService.addPeriod( peB );
+
+        peAUid = peA.getUid();
+
         deA = createDataElement( 'A' );
         deB = createDataElement( 'B' );
         deC = createDataElement( 'C' );
 
-        idObjectManager.save( deA );
-        idObjectManager.save( deB );
-        idObjectManager.save( deC );
+        dataElementService.addDataElement( deA );
+        dataElementService.addDataElement( deB );
+        dataElementService.addDataElement( deC );
 
         ccA = createCategoryCombo( 'A' );
 
@@ -186,17 +206,13 @@ public class DataValueSetServiceExportTest
         dataSetService.addDataSet( dsA );
         dataSetService.addDataSet( dsB );
 
-        peA = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 3, 1 ),
-            getDate( 2016, 3, 31 ) );
-        peB = createPeriod( PeriodType.getByNameIgnoreCase( MonthlyPeriodType.NAME ), getDate( 2016, 4, 1 ),
-            getDate( 2016, 4, 30 ) );
-
         ouA = createOrganisationUnit( 'A' );
         ouB = createOrganisationUnit( 'B', ouA );
         ouC = createOrganisationUnit( 'C' ); // Not in hierarchy of A
 
         organisationUnitService.addOrganisationUnit( ouA );
         organisationUnitService.addOrganisationUnit( ouB );
+        organisationUnitService.addOrganisationUnit( ouC );
 
         ogA = createOrganisationUnitGroup( 'A' );
 
@@ -274,7 +290,7 @@ public class DataValueSetServiceExportTest
         {
             assertNotNull( dv );
             assertEquals( ouA.getUid(), dv.getOrgUnit() );
-            assertEquals( peA.getUid(), dv.getPeriod() );
+            assertEquals( peAUid, dv.getPeriod() );
         }
     }
 
@@ -302,7 +318,7 @@ public class DataValueSetServiceExportTest
         {
             assertNotNull( dv );
             assertEquals( ouB.getUid(), dv.getOrgUnit() );
-            assertEquals( peA.getUid(), dv.getPeriod() );
+            assertEquals( peAUid, dv.getPeriod() );
         }
     }
 
@@ -330,7 +346,7 @@ public class DataValueSetServiceExportTest
         for ( org.hisp.dhis.dxf2.datavalue.DataValue dv : dvs.getDataValues() )
         {
             assertNotNull( dv );
-            assertEquals( peA.getUid(), dv.getPeriod() );
+            assertEquals( peAUid, dv.getPeriod() );
         }
     }
 

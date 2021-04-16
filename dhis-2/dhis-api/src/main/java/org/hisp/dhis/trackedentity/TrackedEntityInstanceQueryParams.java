@@ -1177,6 +1177,17 @@ public class TrackedEntityInstanceQueryParams
         return this;
     }
 
+    public int getMaxTeiLimit()
+    {
+        return maxTeiLimit;
+    }
+
+    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    {
+        this.maxTeiLimit = maxTeiLimit;
+        return this;
+    }
+
     public boolean isIncludeDeleted()
     {
         return includeDeleted;

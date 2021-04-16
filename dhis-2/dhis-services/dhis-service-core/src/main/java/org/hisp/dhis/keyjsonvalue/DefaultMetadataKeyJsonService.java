@@ -31,7 +31,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
 
-import org.hisp.dhis.metadata.version.MetadataVersionService;
+import org.hisp.dhis.keyjsonvalue.KeyJsonNamespaceProtection.ProtectionType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,42 +41,56 @@ import org.springframework.transaction.annotation.Transactional;
 @Service( "org.hisp.dhis.keyjsonvalue.MetaDataKeyJsonService" )
 public class DefaultMetadataKeyJsonService implements MetadataKeyJsonService
 {
-    private final KeyJsonValueStore keyJsonValueStore;
+    private final KeyJsonValueStore store;
 
-    public DefaultMetadataKeyJsonService(
-        KeyJsonValueStore keyJsonValueStore )
+    public DefaultMetadataKeyJsonService( KeyJsonValueStore store, KeyJsonValueService service )
     {
-        checkNotNull( keyJsonValueStore );
+        checkNotNull( store );
 
-        this.keyJsonValueStore = keyJsonValueStore;
+        this.store = store;
+        if ( service != null )
+        {
+            service.addProtection( new KeyJsonNamespaceProtection( MetadataKeyJsonService.METADATA_STORE_NS,
+                ProtectionType.HIDDEN, false, MetadataKeyJsonService.METADATA_SYNC_AUTHORITY ) );
+        }
     }
 
     @Override
     @Transactional( readOnly = true )
     public KeyJsonValue getMetaDataVersion( String key )
     {
-        return keyJsonValueStore.getKeyJsonValue( MetadataVersionService.METADATASTORE, key );
+        return store.getKeyJsonValue( MetadataKeyJsonService.METADATA_STORE_NS, key );
     }
 
     @Override
     @Transactional
-    public void deleteMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    public void deleteMetaDataKeyJsonValue( KeyJsonValue entry )
     {
-        keyJsonValueStore.delete( keyJsonValue );
+        validateNamespace( entry );
+        store.delete( entry );
     }
 
     @Override
     @Transactional
-    public long addMetaDataKeyJsonValue( KeyJsonValue keyJsonValue )
+    public long addMetaDataKeyJsonValue( KeyJsonValue entry )
     {
-        keyJsonValueStore.save( keyJsonValue );
+        validateNamespace( entry );
+        store.save( entry );
 
-        return keyJsonValue.getId();
+        return entry.getId();
     }
 
     @Override
     public List<String> getAllVersions()
     {
-        return keyJsonValueStore.getKeysInNamespace( MetadataVersionService.METADATASTORE );
+        return store.getKeysInNamespace( MetadataKeyJsonService.METADATA_STORE_NS );
+    }
+
+    private void validateNamespace( KeyJsonValue entry )
+    {
+        if ( !MetadataKeyJsonService.METADATA_STORE_NS.equals( entry.getNamespace() ) )
+        {
+            throw new IllegalArgumentException( "Entry is not in metadata namespace but: " + entry.getNamespace() );
+        }
     }
 }

@@ -86,7 +86,7 @@ public class GoogleProvider extends AbstractOidcProvider
                 StringUtils.firstNonBlank(
                     config.getProperty( OIDC_PROVIDER_GOOGLE_MAPPING_CLAIM.getKey() ),
                     "email" ) )
-            .loginIcon( "../security/btn_google_light_normal_ios.svg" )
+            .loginIcon( "../oidc/btn_google_light_normal_ios.svg" )
             .loginIconPadding( "0px 0px" )
             .loginText( "login_with_google" )
             .externalClients( externalClientConfigs )

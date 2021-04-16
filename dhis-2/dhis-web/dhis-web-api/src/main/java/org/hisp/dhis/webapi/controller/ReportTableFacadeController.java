@@ -250,7 +250,10 @@ public abstract class ReportTableFacadeController
                 "You don't have the proper permissions to read objects of this type." );
         }
 
-        // Force the load of Visualizations of type PIVOT_TABLE only.
+        // Force the load of Visualizations of Chart types only.
+        // The only non-chart type, currently, is PIVOT_TABLE. So we only
+        // exclude this
+        // type.
         filters.add( "type:eq:" + PIVOT_TABLE );
 
         List<Visualization> entities = getEntityList( metadata, options, filters, orders );

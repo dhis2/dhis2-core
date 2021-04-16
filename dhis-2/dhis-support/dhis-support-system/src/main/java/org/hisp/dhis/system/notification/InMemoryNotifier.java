@@ -28,14 +28,14 @@
 package org.hisp.dhis.system.notification;
 
 import java.util.Date;
-import java.util.List;
+import java.util.Deque;
 import java.util.Map;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Lars Helge Overland
@@ -43,9 +43,7 @@ import org.springframework.util.StringUtils;
 @Slf4j
 public class InMemoryNotifier implements Notifier
 {
-    private NotificationMap notificationMap = new NotificationMap();
-
-    private NotificationLoggerUtil notificationLogger;
+    private final NotificationMap notificationMap = new NotificationMap();
 
     // -------------------------------------------------------------------------
     // Notifier implementation
@@ -113,19 +111,19 @@ public class InMemoryNotifier implements Notifier
     }
 
     @Override
-    public Map<JobType, Map<String, List<Notification>>> getNotifications()
+    public Map<JobType, Map<String, Deque<Notification>>> getNotifications()
     {
         return notificationMap.getNotifications();
     }
 
     @Override
-    public List<Notification> getNotificationsByJobId( JobType jobType, String jobId )
+    public Deque<Notification> getNotificationsByJobId( JobType jobType, String jobId )
     {
         return notificationMap.getNotificationsByJobId( jobType, jobId );
     }
 
     @Override
-    public Map<String, List<Notification>> getNotificationsByJobType( JobType jobType )
+    public Map<String, Deque<Notification>> getNotificationsByJobType( JobType jobType )
     {
         return notificationMap.getNotificationsWithType( jobType );
     }

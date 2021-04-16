@@ -72,11 +72,6 @@ public class RelationshipsValidationHook
 
         TrackerBundle bundle = context.getBundle();
 
-        if ( bundle.getImportStrategy().isDelete() )
-        {
-            return;
-        }
-
         boolean isValid = validateMandatoryData( reporter, relationship,
             bundle.getPreheat().getAll( RelationshipType.class ) );
 

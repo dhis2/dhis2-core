@@ -31,8 +31,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
-import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
-import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.*;
 import static org.hisp.dhis.tracker.report.ValidationErrorReporter.newReport;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.when;
@@ -245,6 +244,34 @@ public class RelationshipsValidationHookTest
         assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4010 ) );
         assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
             is( "Relationship Type `to` constraint requires a trackedEntity but a enrollment was found." ) );
+    }
+
+    @Test
+    public void verifyValidationFailsOnInvalidToConstraintOfTypeProgramStage()
+    {
+        RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, PROGRAM_STAGE_INSTANCE );
+
+        Relationship relationship = Relationship.builder()
+            .relationship( CodeGenerator.generateUid() )
+            .from( RelationshipItem.builder()
+                .trackedEntity( CodeGenerator.generateUid() )
+                .build() )
+            .to( RelationshipItem.builder()
+                .enrollment( CodeGenerator.generateUid() )
+                .build() )
+            .relationshipType( relType.getUid() )
+            .build();
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relType ) );
+
+        reporter = new ValidationErrorReporter( ctx, relationship );
+        validationHook.validateRelationship( reporter, relationship );
+
+        assertTrue( reporter.hasErrors() );
+        assertThat( reporter.getReportList().get( 0 ).getErrorCode(), is( TrackerErrorCode.E4010 ) );
+        assertThat( reporter.getReportList().get( 0 ).getErrorMessage(),
+            is( "Relationship Type `to` constraint requires a event but a enrollment was found." ) );
     }
 
     @Test

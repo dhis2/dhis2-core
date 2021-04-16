@@ -61,6 +61,23 @@ public class ListMapTest
     }
 
     @Test
+    public void testPutValues()
+    {
+        ListMap<String, Integer> map = new ListMap<>();
+
+        map.putValues( "A", Lists.newArrayList( 1, 4 ) );
+        map.putValues( "B", Lists.newArrayList( 2, 4, 8 ) );
+        map.putValues( "A", Lists.newArrayList( 3, 6 ) );
+        map.putValues( "B", Lists.newArrayList( 5 ) );
+        map.putValues( "C", Lists.newArrayList( 7 ) );
+
+        assertEquals( Lists.newArrayList( 1, 4, 3, 6 ), map.get( "A" ) );
+        assertEquals( Lists.newArrayList( 2, 4, 8, 5 ), map.get( "B" ) );
+        assertEquals( Lists.newArrayList( 7 ), map.get( "C" ) );
+        assertNull( map.get( "Z" ) );
+    }
+
+    @Test
     public void testGetListMapValueMapper()
     {
         DataElementGroupSet groupSetA = new DataElementGroupSet( "GroupSetA" );

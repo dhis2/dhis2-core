@@ -84,6 +84,37 @@ public class EnrollmentAttrValidationTest
 
         TrackerBundleReport bundleReport = trackerBundleService.commit( trackerBundle );
         assertEquals( TrackerStatus.OK, bundleReport.getStatus() );
+
+        manager.flush();
+    }
+
+    @Test
+    public void failValidationWhenTrackedEntityAttributeHasWrongOptionValue()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_with_invalid_option_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 1, report.getErrorReports().size() );
+
+        assertThat( report.getErrorReports(),
+            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1125 ) ) ) );
+    }
+
+    @Test
+    public void successValidationWhenTrackedEntityAttributeHasValidOptionValue()
+        throws IOException
+    {
+        TrackerImportParams params = createBundleFromJson(
+            "tracker/validations/enrollments_te_with_valid_option_value.json" );
+
+        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
+        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        printReport( report );
+        assertEquals( 0, report.getErrorReports().size() );
     }
 
     @Test

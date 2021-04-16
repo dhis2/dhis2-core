@@ -119,8 +119,6 @@ import com.google.common.collect.Lists;
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController
 {
-    public static final int TEI_COUNT_THRESHOLD_FOR_USE_LEGACY = 500;
-
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;

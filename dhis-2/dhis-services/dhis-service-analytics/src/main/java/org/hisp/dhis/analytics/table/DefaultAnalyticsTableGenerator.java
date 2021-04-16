@@ -111,10 +111,10 @@ public class DefaultAnalyticsTableGenerator
             .withLastSuccessfulUpdate( lastSuccessfulUpdate )
             .build();
 
-        log.info( String.format( "Found %d analytics table types: %s", availableTypes.size(), availableTypes ) );
-        log.info( String.format( "Analytics table update: %s", params ) );
-        log.info( String.format( "Last successful analytics table update: '%s'",
-            getLongDateString( lastSuccessfulUpdate ) ) );
+        log.info( "Found {} analytics table types: {}", availableTypes.size(), availableTypes );
+        log.info( "Analytics table update: {}", params );
+        log.info( "Last successful analytics table update: '{}'",
+            getLongDateString( lastSuccessfulUpdate ) );
 
         try
         {
@@ -165,7 +165,7 @@ public class DefaultAnalyticsTableGenerator
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_UPDATE,
                 params.getStartTime() );
             systemSettingManager.saveSystemSetting( SettingKey.LAST_SUCCESSFUL_ANALYTICS_TABLES_RUNTIME,
-                clock.time() );
+                clock.getTime() );
         }
     }
 

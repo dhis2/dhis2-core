@@ -1032,7 +1032,7 @@
                 {
                     name: "about_dhis2",
                     namespace: "/dhis-web-commons-about",
-                    defaultAction: "../dhis-web-commons-about/about.action",
+                    defaultAction: "../dhis-web-user-profile/#/aboutPage",
                     icon: "../icons/function-about-dhis2.png",
                     description: ""
                 }

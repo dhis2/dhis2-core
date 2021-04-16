@@ -77,6 +77,12 @@ public class TrackerTrackedEntitiesExportController
 
         if ( queryParams.isSkipPaging() )
         {
+            /*
+             * TODO: Find a way to not use legacy at all. If result set is huge,
+             * our refactored mechanism fails due to appending the huge list of
+             * ids in sql. To be safe, we switch to legacy mechanism if paging
+             * is explicitly skipped.
+             */
             queryParams.setUseLegacy( true );
         }
 

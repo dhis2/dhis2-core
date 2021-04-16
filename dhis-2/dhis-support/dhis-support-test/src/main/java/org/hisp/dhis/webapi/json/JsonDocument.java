@@ -31,6 +31,7 @@ import static java.lang.Character.toChars;
 import static java.lang.Integer.parseInt;
 import static java.lang.Math.max;
 import static java.lang.Math.min;
+import static java.util.Objects.requireNonNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -39,6 +40,9 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
+
+import javax.annotation.Nonnull;
 
 /**
  * {@link JsonDocument} is a JSON parser specifically designed as a verifying
@@ -187,6 +191,21 @@ public final class JsonDocument implements Serializable
         }
 
         @Override
+        public final void visit( JsonNodeType type, Consumer<JsonNode> visitor )
+        {
+            if ( type == getType() )
+            {
+                visitor.accept( this );
+            }
+            visitChildren( type, visitor );
+        }
+
+        void visitChildren( JsonNodeType type, Consumer<JsonNode> visitor )
+        {
+            // by default node has no children
+        }
+
+        @Override
         public final String toString()
         {
             return getDeclaration();
@@ -200,18 +219,31 @@ public final class JsonDocument implements Serializable
         @Override
         public final JsonNode replaceWith( String json )
         {
-            int end = endIndex();
+            int endIndex = endIndex();
             StringBuilder newJson = new StringBuilder();
             if ( start > 0 )
             {
                 newJson.append( this.json, 0, start );
             }
             newJson.append( json );
-            if ( end < this.json.length )
+            if ( endIndex < this.json.length )
             {
-                newJson.append( this.json, end, this.json.length - end );
+                newJson.append( this.json, endIndex, this.json.length - endIndex );
             }
             return new JsonDocument( newJson.toString() ).get( "$" );
+        }
+
+        @Override
+        public JsonNode addMember( String name, String value )
+        {
+            if ( getType() != JsonNodeType.OBJECT )
+            {
+                throw new IllegalStateException( "`add` only allowed for objects but was: " + getType() );
+            }
+            int endIndex = endIndex() - 1;
+            return new JsonDocument(
+                String.valueOf( json, 0, endIndex ) + ", \"" + name + "\":" + value
+                    + String.valueOf( json, endIndex, json.length - endIndex ) ).get( "$" );
         }
 
         static JsonNode autoDetect( String path, char[] json, int atIndex, Map<String, JsonNode> nodesByPath )
@@ -258,9 +290,10 @@ public final class JsonDocument implements Serializable
 
         @SuppressWarnings( "unchecked" )
         @Override
+        @Nonnull
         public Map<String, JsonNode> members()
         {
-            return (Map<String, JsonNode>) value();
+            return (Map<String, JsonNode>) requireNonNull( value() );
         }
 
         @Override
@@ -275,6 +308,12 @@ public final class JsonDocument implements Serializable
         {
             // only compute value when needed
             return isEmpty() ? 0 : members().size();
+        }
+
+        @Override
+        void visitChildren( JsonNodeType type, Consumer<JsonNode> visitor )
+        {
+            members().values().forEach( node -> node.visit( type, visitor ) );
         }
 
         @Override
@@ -319,9 +358,10 @@ public final class JsonDocument implements Serializable
 
         @SuppressWarnings( "unchecked" )
         @Override
+        @Nonnull
         public List<JsonNode> elements()
         {
-            return (List<JsonNode>) value();
+            return (List<JsonNode>) requireNonNull( value() );
         }
 
         @Override
@@ -336,6 +376,12 @@ public final class JsonDocument implements Serializable
         {
             // only compute value when needed
             return isEmpty() ? 0 : elements().size();
+        }
+
+        @Override
+        void visitChildren( JsonNodeType type, Consumer<JsonNode> visitor )
+        {
+            elements().forEach( node -> node.visit( type, visitor ) );
         }
 
         @Override
@@ -713,7 +759,9 @@ public final class JsonDocument implements Serializable
     private static int skipSeparator( char[] json, int index, char separator )
     {
         index = skipWhitespace( json, index );
-        return json[index] == separator ? skipWhitespace( json, index + 1 ) : index;
+        return index >= json.length
+            ? index
+            : json[index] == separator ? skipWhitespace( json, index + 1 ) : index;
     }
 
     private static int skipBoolean( char[] json, int fromIndex )
