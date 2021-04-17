@@ -48,8 +48,6 @@ import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.PostConstruct;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
@@ -93,6 +91,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -437,10 +437,7 @@ public class DefaultFieldFilterService implements FieldFilterService
 
             if ( property == null || !property.isReadable() )
             {
-                // throw new FieldFilterException( fieldKey, schema );
-                log.debug( "Unknown field property `" + fieldKey + "`, available fields are "
-                    + schema.getPropertyMap().keySet() );
-                continue;
+                throw new FieldFilterException( fieldKey, schema );
             }
 
             Object returnValue = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
