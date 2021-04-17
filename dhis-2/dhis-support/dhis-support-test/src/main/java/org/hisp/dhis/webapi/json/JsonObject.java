@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.json;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Represents a JSON object node.
  *
@@ -62,6 +65,20 @@ public interface JsonObject extends JsonCollection
      *         object
      */
     boolean has( String... names );
+
+    /**
+     * Lists JSON object member names in order of declaration.
+     *
+     * @return The list of member names in the order they were defined.
+     * @throws UnsupportedOperationException in case this value is not an JSON
+     *         object
+     * @throws java.util.NoSuchElementException in case this value does not
+     *         exist in the JSON document
+     */
+    default List<String> names()
+    {
+        return new ArrayList<>( node().members().keySet() );
+    }
 
     default JsonValue get( String name )
     {
