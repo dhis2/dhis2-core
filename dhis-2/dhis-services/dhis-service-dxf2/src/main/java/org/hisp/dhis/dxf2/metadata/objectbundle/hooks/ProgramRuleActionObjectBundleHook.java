@@ -35,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
@@ -49,8 +50,8 @@ import com.google.common.collect.ImmutableList;
  * @author Zubair Asghar
  */
 
-@Component( "programRuleActionObjectBundle" )
 @Slf4j
+@Component( "programRuleActionObjectBundle" )
 public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 {
     @NonNull
@@ -77,10 +78,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 
         if ( !validationResult.isValid() )
         {
-            return ImmutableList.of(
-                new ErrorReport( ProgramRuleAction.class, validationResult.getErrorCode(),
-                    programRuleAction.getProgramRuleActionType().name(),
-                    programRuleAction.getProgramRule().getName() ) );
+            return ImmutableList.of( validationResult.getErrorReport() );
         }
 
         return ImmutableList.of();
@@ -104,6 +102,10 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
             log.error( "An error occurred during program rule action validation", e );
         }
 
-        return ProgramRuleActionValidationResult.builder().valid( false ).build();
+        return ProgramRuleActionValidationResult.builder().valid( false )
+            .errorReport(
+                new ErrorReport( ProgramRuleAction.class, ErrorCode.E4033, ruleAction.getProgramRuleActionType().name(),
+                    ruleAction.getProgramRule().getName() ) )
+            .build();
     }
 }

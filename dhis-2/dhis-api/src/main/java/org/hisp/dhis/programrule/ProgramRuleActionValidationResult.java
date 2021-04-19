@@ -30,7 +30,7 @@ package org.hisp.dhis.programrule;
 import lombok.Builder;
 import lombok.Data;
 
-import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
 
 /**
  * @author Zubair Asghar
@@ -44,5 +44,5 @@ public class ProgramRuleActionValidationResult
 
     private boolean valid;
 
-    private ErrorCode errorCode;
+    private ErrorReport errorReport;
 }
