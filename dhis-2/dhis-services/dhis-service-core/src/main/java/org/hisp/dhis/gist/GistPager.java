@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.gist;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
+import java.net.URI;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.function.Function;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -77,63 +76,23 @@ public final class GistPager
         return "[Page: " + page + " size: " + pageSize + "]";
     }
 
-    public static String computeBaseURL( GistQuery query, Map<String, String[]> params,
+    public static URI computeBaseURL( GistQuery query, Map<String, String[]> params,
         Function<Class<?>, Schema> schemaByType )
     {
-        StringBuilder url = new StringBuilder();
-        url.append( query.getEndpointRoot() );
+        UriBuilder url = UriComponentsBuilder.fromUriString( query.getEndpointRoot() );
         Owner owner = query.getOwner();
         if ( owner != null )
         {
             Schema o = schemaByType.apply( owner.getType() );
-            url.append( o.getRelativeApiEndpoint() ).append( '/' ).append( owner.getId() ).append( '/' );
-            Property p = o.getProperty( owner.getCollectionProperty() );
-            url.append( p.key() ).append( "/gist" );
+            url.pathSegment( o.getRelativeApiEndpoint().substring( 1 ), owner.getId(),
+                o.getProperty( owner.getCollectionProperty() ).key(), "gist" );
         }
         else
         {
             Schema s = schemaByType.apply( query.getElementType() );
-            url.append( s.getRelativeApiEndpoint() );
-            url.append( "/gist" );
+            url.pathSegment( s.getRelativeApiEndpoint().substring( 1 ), "gist" );
         }
-        url.append( '?' );
-        for ( Entry<String, String[]> param : params.entrySet() )
-        {
-            if ( !param.getKey().equals( "page" ) )
-            {
-                for ( String value : param.getValue() )
-                {
-                    if ( value != null )
-                    {
-                        appendNextParameter( url );
-                        appendParameterKeyValue( url, param, value );
-                    }
-                }
-            }
-        }
-        appendNextParameter( url );
-        return url.toString();
-    }
-
-    private static void appendParameterKeyValue( StringBuilder url, Entry<String, String[]> param, String value )
-    {
-        try
-        {
-            url.append( URLEncoder.encode( param.getKey(), "UTF-8" ) );
-            url.append( '=' );
-            url.append( URLEncoder.encode( value, "UTF-8" ) );
-        }
-        catch ( UnsupportedEncodingException e )
-        {
-            throw new IllegalStateException( e );
-        }
-    }
-
-    private static void appendNextParameter( StringBuilder url )
-    {
-        if ( url.charAt( url.length() - 1 ) != '?' )
-        {
-            url.append( '&' );
-        }
+        params.forEach( url::queryParam );
+        return url.build();
     }
 }

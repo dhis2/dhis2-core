@@ -30,8 +30,12 @@ package org.hisp.dhis.gist;
 import static org.hisp.dhis.gist.GistBuilder.createCountBuilder;
 import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -41,12 +45,10 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jan Bernitt
@@ -98,18 +100,6 @@ public class DefaultGistService implements GistService
         String prev = null;
         String next = null;
         Integer total = null;
-        if ( schema.haveApiEndpoint() )
-        {
-            String baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
-            if ( page > 1 )
-            {
-                prev = String.format( "%spage=%s", baseURL, (page - 1) );
-            }
-            if ( rows.size() == query.getPageSize() )
-            {
-                next = String.format( "%spage=%s", baseURL, (page + 1) );
-            }
-        }
         if ( query.isTotal() )
         {
             if ( rows.size() < query.getPageSize() )
@@ -122,6 +112,19 @@ public class DefaultGistService implements GistService
                 GistBuilder countBuilder = createCountBuilder( query, context, currentUserService.getCurrentUser() );
                 total = countWithParameters( countBuilder,
                     getSession().createQuery( countBuilder.buildCountHQL(), Long.class ) );
+            }
+        }
+        if ( schema.haveApiEndpoint() )
+        {
+            URI baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
+            if ( page > 1 )
+            {
+                prev = UriComponentsBuilder.fromUri( baseURL ).replaceQueryParam( "page", page - 1 ).build().toString();
+            }
+            if ( total != null && query.getPageOffset() + rows.size() < total
+                || total == null && query.getPageSize() == rows.size() )
+            {
+                next = UriComponentsBuilder.fromUri( baseURL ).replaceQueryParam( "page", page + 1 ).build().toString();
             }
         }
         return new GistPager( page, query.getPageSize(), total, prev, next );

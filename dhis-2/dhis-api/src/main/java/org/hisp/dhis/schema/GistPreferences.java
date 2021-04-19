@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.schema;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
 import org.hisp.dhis.schema.annotation.Gist;
 import org.hisp.dhis.schema.annotation.Gist.Include;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 /**
  * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist}

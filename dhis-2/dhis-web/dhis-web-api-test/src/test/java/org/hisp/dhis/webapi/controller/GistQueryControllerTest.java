@@ -227,11 +227,11 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         gist = GET( url + "&page=2", orgUnitId ).content();
         assertHasPager( gist, 2, 3, 10 );
         assertEquals(
-            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name%3AstartsWith%3Aextra&page=1"
+            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=1"
                 .replace( "{id}", orgUnitId ),
             gist.getObject( "pager" ).getString( "prevPage" ).string() );
         assertEquals(
-            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name%3AstartsWith%3Aextra&page=3"
+            "/organisationUnits/{id}/dataSets/gist?total=true&pageSize=3&order=name&filter=name:startsWith:extra&page=3"
                 .replace( "{id}", orgUnitId ),
             gist.getObject( "pager" ).getString( "nextPage" ).string() );
         JsonArray dataSets = gist.getArray( "dataSets" );

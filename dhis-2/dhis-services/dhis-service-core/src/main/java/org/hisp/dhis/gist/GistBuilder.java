@@ -550,7 +550,7 @@ final class GistBuilder
 
     private String getEndpointUrlParams()
     {
-        return query.isAbsolute() ? "?absolute=true" : "";
+        return query.isAbsolute() ? "?absoluteUrls=true" : "";
     }
 
     private static IdObject toIdObject( Object id )

@@ -32,11 +32,11 @@ import static java.util.EnumSet.of;
 
 import java.util.EnumSet;
 
+import lombok.AllArgsConstructor;
+
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
-
-import lombok.AllArgsConstructor;
 
 /**
  * {@link GistAutoType}s is a gist configuration that control which fields the
