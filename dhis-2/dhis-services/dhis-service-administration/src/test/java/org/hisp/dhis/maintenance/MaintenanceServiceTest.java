@@ -106,11 +106,19 @@ public class MaintenanceServiceTest
 
     private Program program;
 
+    private ProgramStage stageA;
+
+    private ProgramStage stageB;
+
     private OrganisationUnit organisationUnit;
 
     private ProgramInstance programInstance;
 
+    private ProgramStageInstance programStageInstance;
+
     private TrackedEntityInstance entityInstance;
+
+    private TrackedEntityInstance entityInstanceB;
 
     private Collection<Long> orgunitIds;
 
@@ -133,11 +141,11 @@ public class MaintenanceServiceTest
 
         programService.addProgram( program );
 
-        ProgramStage stageA = createProgramStage( 'A', program );
+        stageA = createProgramStage( 'A', program );
         stageA.setSortOrder( 1 );
         programStageService.saveProgramStage( stageA );
 
-        ProgramStage stageB = createProgramStage( 'B', program );
+        stageB = createProgramStage( 'B', program );
         stageB.setSortOrder( 2 );
         programStageService.saveProgramStage( stageB );
 
@@ -149,6 +157,8 @@ public class MaintenanceServiceTest
 
         entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
+
+        entityInstanceB = createTrackedEntityInstance( organisationUnit );
 
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -164,6 +174,13 @@ public class MaintenanceServiceTest
         programInstance.setOrganisationUnit( organisationUnit );
 
         programInstanceService.addProgramInstance( programInstance );
+
+        programStageInstance = new ProgramStageInstance( programInstance, stageA );
+        programStageInstance.setUid( "PSUID-B" );
+        programStageInstance.setOrganisationUnit( organisationUnit );
+        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setExecutionDate( new Date() );
+
     }
 
     @Test
@@ -194,6 +211,72 @@ public class MaintenanceServiceTest
         maintenanceService.deleteSoftDeletedProgramInstances();
 
         assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( programInstance.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteSoftDeletedProgramStageInstanceWithAProgramMessage()
+    {
+        ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+        programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
+        programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
+        programMessageRecipients.setOrganisationUnit( organisationUnit );
+
+        ProgramMessage pm = new ProgramMessage();
+        pm.setSubject( "subject" );
+        pm.setText( "text" );
+        pm.setRecipients( programMessageRecipients );
+        pm.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
+        pm.setProgramStageInstance( programStageInstance );
+
+        long idA = programStageInstanceService.addProgramStageInstance( programStageInstance );
+
+        programMessageService.saveProgramMessage( pm );
+
+        assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+
+        assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
+
+        assertTrue(
+            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstance.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedProgramStageInstances();
+
+        assertFalse(
+            programStageInstanceService.programStageInstanceExistsIncludingDeleted( programStageInstance.getUid() ) );
+    }
+
+    @Test
+    public void testDeleteSoftDeletedTrackedEntityInstanceAProgramMessage()
+    {
+        ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
+        programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
+        programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
+        programMessageRecipients.setOrganisationUnit( organisationUnit );
+        programMessageRecipients.setTrackedEntityInstance( entityInstanceB );
+
+        ProgramMessage pm = new ProgramMessage();
+        pm.setSubject( "subject" );
+        pm.setText( "text" );
+        pm.setRecipients( programMessageRecipients );
+        pm.setDeliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) );
+
+        long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+
+        programMessageService.saveProgramMessage( pm );
+
+        assertNotNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+
+        entityInstanceService.deleteTrackedEntityInstance( entityInstanceB );
+
+        assertNull( entityInstanceService.getTrackedEntityInstance( idA ) );
+
+        assertTrue( entityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstanceB.getUid() ) );
+
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+
+        assertFalse( entityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstanceB.getUid() ) );
     }
 
     @Test
