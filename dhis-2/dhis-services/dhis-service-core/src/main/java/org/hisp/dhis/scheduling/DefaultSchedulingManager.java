@@ -179,15 +179,26 @@ public class DefaultSchedulingManager
     private ScheduledFuture<?> scheduleCronOrDelayJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
     {
         log.info( String.format( "Scheduling job: %s", jobConfiguration ) );
-        SchedulingType type = jobConfiguration.getJobType().getSchedulingType();
-        ScheduledFuture<?> future = type == SchedulingType.CRON
-            ? jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
-                new CronTrigger( jobConfiguration.getCronExpression() ) )
-            : jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
-                Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
-                Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
+
+        ScheduledFuture<?> future = jobConfiguration.getJobType().getSchedulingType() == SchedulingType.CRON
+            ? createCronJob( jobConfiguration, jobInstance )
+            : createDelayJob( jobConfiguration, jobInstance );
+
         log.info( String.format( "Scheduled job: %s", jobConfiguration ) );
         return future;
+    }
+
+    private ScheduledFuture<?> createDelayJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+        return jobScheduler.scheduleWithFixedDelay( () -> jobInstance.execute( jobConfiguration ),
+            Instant.now().plusSeconds( DEFAULT_INITIAL_DELAY_S ),
+            Duration.of( jobConfiguration.getDelay(), ChronoUnit.SECONDS ) );
+    }
+
+    private ScheduledFuture<?> createCronJob( JobConfiguration jobConfiguration, JobInstance jobInstance )
+    {
+        return jobScheduler.schedule( () -> jobInstance.execute( jobConfiguration ),
+            new CronTrigger( jobConfiguration.getCronExpression() ) );
     }
 
     @Override
