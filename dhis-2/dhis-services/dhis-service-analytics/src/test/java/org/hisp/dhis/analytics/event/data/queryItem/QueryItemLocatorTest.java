@@ -165,7 +165,7 @@ public class QueryItemLocatorTest
     @Test
     public void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
     {
-        // arrange
+        // Arrange
         DataElement iBelongDataElement = createDataElement( 'A' );
         ProgramStage programStageA = createProgramStage( 'A', programA );
         programStageA.setProgramStageDataElements(
@@ -175,8 +175,8 @@ public class QueryItemLocatorTest
         DataElement iDontBelongDataElement = createDataElement( 'B' );
         when( dataElementService.getDataElement( dimension ) ).thenReturn( iDontBelongDataElement );
 
-        // act
-        // assert
+        // Act
+        // Assert
         assertThrows( IllegalQueryException.class,
             () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.EVENT ) );
     }
