@@ -34,7 +34,9 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Set;
+import java.util.function.Function;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
@@ -71,7 +73,9 @@ public enum ValueType
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
+    FILE_RESOURCE( String.class,
+        ( aggregationType ) -> aggregationType == AggregationType.COUNT,
+        FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
@@ -101,7 +105,7 @@ public enum ValueType
     @Deprecated
     private final Class<?> javaClass;
 
-    private boolean aggregateable;
+    private Function<AggregationType, Boolean> aggregateable;
 
     private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
 
@@ -113,11 +117,25 @@ public enum ValueType
     ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
+        this.aggregateable = ( aggregated ) -> aggregateable;
+        this.valueTypeOptionsClass = null;
+    }
+
+    ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable )
+    {
+        this.javaClass = javaClass;
         this.aggregateable = aggregateable;
         this.valueTypeOptionsClass = null;
     }
 
     ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    {
+        this( javaClass, aggregateable );
+        this.valueTypeOptionsClass = valueTypeOptionsClass;
+    }
+
+    ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable,
+        Class<? extends ValueTypeOptions> valueTypeOptionsClass )
     {
         this( javaClass, aggregateable );
         this.valueTypeOptionsClass = valueTypeOptionsClass;
@@ -176,9 +194,9 @@ public enum ValueType
         return NUMERIC_TYPES.contains( this );
     }
 
-    public boolean isAggregateable()
+    public boolean isAggregateable( AggregationType aggregationType )
     {
-        return aggregateable;
+        return aggregateable.apply( aggregationType );
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
@@ -237,8 +255,9 @@ public enum ValueType
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
     }
 
-    public static Set<ValueType> getAggregatables()
+    public static Set<ValueType> getAggregateables( AggregationType aggregationType )
     {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
+        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable.apply( aggregationType ) )
+            .collect( toSet() );
     }
 }

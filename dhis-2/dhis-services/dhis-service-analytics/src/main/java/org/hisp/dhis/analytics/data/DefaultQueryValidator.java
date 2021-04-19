@@ -55,7 +55,7 @@ import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
+import org.hisp.dhis.system.filter.AggregateableDataElementFilter;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.Lists;
@@ -111,7 +111,7 @@ public class DefaultQueryValidator
         params.getProgramDataElements()
             .forEach( pde -> dataElements.add( ((ProgramDataElementDimensionItem) pde).getDataElement() ) );
         final List<DataElement> nonAggDataElements = FilterUtils.inverseFilter( asTypedList( dataElements ),
-            AggregatableDataElementFilter.INSTANCE );
+            AggregateableDataElementFilter.INSTANCE );
 
         if ( !params.isSkipDataDimensionValidation() )
         {
