@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.engine;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -118,7 +119,8 @@ public class ProgramRuleEngine
     {
         List<RuleEffect> ruleEffects = new ArrayList<>();
 
-        String programStageUid = programStageInstance != null ? programStageInstance.getProgramStage().getUid() : null;
+        String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
+            .orElse( null );
 
         List<ProgramRule> programRules = implementableRuleService.getProgramRules( program, programStageUid );
 
