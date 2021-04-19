@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule.action.validation;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -55,21 +55,41 @@ package org.hisp.dhis.programrule.action.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import lombok.Builder;
-import lombok.Getter;
+import java.util.function.Supplier;
+
+import javax.annotation.Nonnull;
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
 
-@Getter
-@Builder
-public class ProgramRuleActionValidationDelegator
+@Component( "programRuleActionValidatorSupplier" )
+public class ProgramRuleActionValidationServiceSupplier implements Supplier<ProgramRuleActionValidationService>
 {
+    @Nonnull
     private final DataElementService dataElementService;
 
+    @Nonnull
     private final TrackedEntityAttributeService attributeService;
+
+    public ProgramRuleActionValidationServiceSupplier( @Nonnull DataElementService dataElementService,
+        @Nonnull TrackedEntityAttributeService attributeService )
+    {
+        this.dataElementService = dataElementService;
+        this.attributeService = attributeService;
+    }
+
+    @Override
+    public ProgramRuleActionValidationService get()
+    {
+        return ProgramRuleActionValidationService.builder()
+            .dataElementService( dataElementService )
+            .attributeService( attributeService )
+            .build();
+    }
 }

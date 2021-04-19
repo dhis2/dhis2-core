@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
-import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidatorSupplier;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidationServiceSupplier;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
@@ -62,14 +62,14 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     private final Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap;
 
     @Nonnull
-    private final ProgramRuleActionValidatorSupplier programRuleActionValidatorSupplier;
+    private final ProgramRuleActionValidationServiceSupplier programRuleActionValidationServiceSupplier;
 
     public ProgramRuleActionObjectBundleHook(
         @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap,
-        @Nonnull ProgramRuleActionValidatorSupplier programRuleActionValidatorSupplier )
+        @Nonnull ProgramRuleActionValidationServiceSupplier programRuleActionValidatorSupplier )
     {
         this.validatorMap = validatorMap;
-        this.programRuleActionValidatorSupplier = programRuleActionValidatorSupplier;
+        this.programRuleActionValidationServiceSupplier = programRuleActionValidatorSupplier;
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
             ProgramRuleActionValidator validator = validatorMap.get( ruleAction.getProgramRuleActionType() )
                 .newInstance();
 
-            validationResult = validator.validate( ruleAction, programRuleActionValidatorSupplier.get() );
+            validationResult = validator.validate( ruleAction, programRuleActionValidationServiceSupplier.get() );
 
             return validationResult;
         }

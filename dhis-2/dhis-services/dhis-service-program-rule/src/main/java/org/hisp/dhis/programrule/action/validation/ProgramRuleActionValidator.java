@@ -36,5 +36,5 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 public interface ProgramRuleActionValidator
 {
     ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationDelegator validationDelegator );
+        ProgramRuleActionValidationService validationService );
 }

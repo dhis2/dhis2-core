@@ -37,7 +37,7 @@ public class ShowWarningProgramRuleActionValidator implements ProgramRuleActionV
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationDelegator validationDelegator )
+        ProgramRuleActionValidationService validationService )
     {
         return null;
     }

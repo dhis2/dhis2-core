@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.programrule.action.validation;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
@@ -55,41 +55,21 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.function.Supplier;
-
-import javax.annotation.Nonnull;
+import lombok.Builder;
+import lombok.Getter;
 
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationDelegator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.springframework.stereotype.Component;
 
 /**
  * @author Zubair Asghar
  */
 
-@Component( "programRuleActionValidatorSupplier" )
-public class ProgramRuleActionValidatorSupplier implements Supplier<ProgramRuleActionValidationDelegator>
+@Getter
+@Builder
+public class ProgramRuleActionValidationService
 {
-    @Nonnull
     private final DataElementService dataElementService;
 
-    @Nonnull
     private final TrackedEntityAttributeService attributeService;
-
-    public ProgramRuleActionValidatorSupplier( @Nonnull DataElementService dataElementService,
-        @Nonnull TrackedEntityAttributeService attributeService )
-    {
-        this.dataElementService = dataElementService;
-        this.attributeService = attributeService;
-    }
-
-    @Override
-    public ProgramRuleActionValidationDelegator get()
-    {
-        return ProgramRuleActionValidationDelegator.builder()
-            .dataElementService( dataElementService )
-            .attributeService( attributeService )
-            .build();
-    }
 }
