@@ -25,9 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programrule;
+package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 
 import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
 /**
  * @author Zubair Asghar
@@ -37,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 public class SendMessageProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction )
+    public ProgramRuleActionValidationResult validate(ProgramRuleAction programRuleAction, ProgramRuleActionValidationDelegator validationDelegator )
     {
         return null;
     }

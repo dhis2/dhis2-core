@@ -92,8 +92,8 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
-import org.hisp.dhis.programrule.ProgramRuleActionValidator;
-import org.hisp.dhis.programrule.SendMessageProgramRuleActionValidator;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidator;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SendMessageProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -318,6 +318,13 @@ public class ServiceConfig
     @Bean
     public Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> programRuleActionValidatorMap()
     {
-        return ImmutableMap.of( ProgramRuleActionType.SCHEDULEMESSAGE, SendMessageProgramRuleActionValidator.class );
+        Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap = new HashMap<>();
+
+        validatorMap.put( ProgramRuleActionType.SCHEDULEMESSAGE, SendMessageProgramRuleActionValidator.class );
+        validatorMap.put( ProgramRuleActionType.SENDMESSAGE, SendMessageProgramRuleActionValidator.class );
+        validatorMap.put( ProgramRuleActionType.SHOWERROR, SendMessageProgramRuleActionValidator.class );
+        validatorMap.put( ProgramRuleActionType.SHOWWARNING, SendMessageProgramRuleActionValidator.class );
+
+        return validatorMap;
     }
 }

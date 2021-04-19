@@ -34,17 +34,20 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidatorSupplier;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
-import org.hisp.dhis.programrule.ProgramRuleActionValidator;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.google.common.collect.ImmutableList;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Zubair Asghar
@@ -58,10 +61,13 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     @Qualifier( "programRuleActionValidatorMap" )
     private final Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap;
 
-    public ProgramRuleActionObjectBundleHook(
-        @NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap )
-    {
+    @Nonnull
+    private final ProgramRuleActionValidatorSupplier programRuleActionValidatorSupplier;
+
+    public ProgramRuleActionObjectBundleHook(@NonNull Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap,
+                                             @Nonnull ProgramRuleActionValidatorSupplier programRuleActionValidatorSupplier) {
         this.validatorMap = validatorMap;
+        this.programRuleActionValidatorSupplier = programRuleActionValidatorSupplier;
     }
 
     @Override
@@ -93,7 +99,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
             ProgramRuleActionValidator validator = validatorMap.get( ruleAction.getProgramRuleActionType() )
                 .newInstance();
 
-            validationResult = validator.validate( ruleAction );
+            validationResult = validator.validate( ruleAction, programRuleActionValidatorSupplier.get() );
 
             return validationResult;
         }
