@@ -118,6 +118,9 @@ public enum TrackerErrorCode
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),
     E1125( "Value {0} is not a valid option for {1} {2} in option set {3}" ),
+    E1126( "Not allowed to update Tracked Entity property: {0}." ),
+    E1127( "Not allowed to update Enrollment property: {0}." ),
+    E1128( "Not allowed to update Event property: {0}." ),
 
     // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),

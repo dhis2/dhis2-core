@@ -47,7 +47,6 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerIdentifier;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
@@ -81,7 +80,6 @@ public class PreCheckDataRelationsValidationHook
     public void validateEnrollment( ValidationErrorReporter reporter, Enrollment enrollment )
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
-        TrackerImportStrategy strategy = context.getStrategy( enrollment );
 
         Program program = context.getProgram( enrollment.getProgram() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( enrollment.getOrgUnit() );
@@ -91,16 +89,6 @@ public class PreCheckDataRelationsValidationHook
         if ( !programHasOrgUnit( program, organisationUnit, context.getProgramWithOrgUnitsMap() ) )
         {
             addError( reporter, E1041, organisationUnit, program );
-        }
-
-        if ( strategy.isUpdate() )
-        {
-            ProgramInstance pi = context.getProgramInstance( enrollment.getEnrollment() );
-            Program existingProgram = pi.getProgram();
-            if ( !existingProgram.getUid().equals( program.getUid() ) )
-            {
-                addError( reporter, E1094, pi, existingProgram );
-            }
         }
 
         if ( program.getTrackedEntityType() != null
@@ -124,11 +112,6 @@ public class PreCheckDataRelationsValidationHook
         if ( !program.getUid().equals( programStage.getProgram().getUid() ) )
         {
             addError( reporter, E1089, event, programStage, program );
-        }
-
-        if ( strategy.isUpdate() )
-        {
-            validateNotChangingProgram( reporter, event, context, program );
         }
 
         if ( program.isRegistration() )
@@ -365,20 +348,6 @@ public class PreCheckDataRelationsValidationHook
     {
         return programAndOrgUnitsMap.containsKey( program.getId() )
             && programAndOrgUnitsMap.get( program.getId() ).contains( orgUnit.getId() );
-    }
-
-    private void validateNotChangingProgram( ValidationErrorReporter reporter, Event event,
-        TrackerImportValidationContext context, Program program )
-    {
-        ProgramStageInstance psi = context.getProgramStageInstance( event.getEvent() );
-        Program existingProgram = psi.getProgramStage().getProgram();
-
-        if ( !existingProgram.getUid().equals( program.getUid() ) )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1110 )
-                .addArg( psi )
-                .addArg( existingProgram ) );
-        }
     }
 
     @Override
