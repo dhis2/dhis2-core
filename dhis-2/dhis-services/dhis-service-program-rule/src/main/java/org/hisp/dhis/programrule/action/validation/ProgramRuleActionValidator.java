@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.programrule.action.validation;
 
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;

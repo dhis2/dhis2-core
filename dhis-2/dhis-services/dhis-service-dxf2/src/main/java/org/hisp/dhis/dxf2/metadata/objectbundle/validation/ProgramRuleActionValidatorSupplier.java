@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
  */
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationDelegator;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
 

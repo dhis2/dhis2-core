@@ -1,4 +1,4 @@
-package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
+package org.hisp.dhis.programrule.action.validation;
 
 /*
  * Copyright (c) 2004-2021, University of Oslo
