@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,6 +60,8 @@ public class EventDataValuesValidationHook
     {
         TrackerImportValidationContext context = reporter.getValidationContext();
 
+        ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
+
         for ( DataValue dataValue : event.getDataValues() )
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
@@ -71,12 +74,12 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue );
+            validateDataElement( reporter, dataElement, dataValue, programStage );
             validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
         validateMandatoryDataValues( event, context, reporter );
-        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event );
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event, programStage );
     }
 
     private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
@@ -97,28 +100,44 @@ public class EventDataValuesValidationHook
     }
 
     private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        DataValue dataValue )
+        DataValue dataValue, ProgramStage programStage )
     {
 
-        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
-
-        if ( status != null )
+        if ( dataValue.getValue() == null || dataValue.getValue().trim().isEmpty() )
         {
-            addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
+            Optional<ProgramStageDataElement> optionalPsde = Optional.ofNullable( programStage )
+                .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
+                    .filter(
+                        psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
+                    .findFirst() );
+
+            if ( optionalPsde.isPresent() )
+                addError( reporter, E1076, DataElement.class.getSimpleName(),
+                    dataElement.getUid() );
+
         }
         else
         {
-            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
+
+            final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
+
+            if ( status != null )
+            {
+                addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
+            }
+            else
+            {
+                validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
+            }
         }
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
-        TrackerImportValidationContext ctx, Event event )
+        TrackerImportValidationContext ctx, Event event, ProgramStage programStage )
     {
-        if ( StringUtils.isEmpty( event.getProgramStage() ) )
-            return;
 
-        ProgramStage programStage = ctx.getProgramStage( event.getProgramStage() );
+        if ( null == programStage )
+            return;
 
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
