@@ -27,17 +27,13 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
 /**
  * @author Zubair Asghar
  */
-
-@Slf4j
-public class SendMessageProgramRuleActionValidator implements ProgramRuleActionValidator
+public class ShowWarningProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
