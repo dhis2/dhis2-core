@@ -25,30 +25,61 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.web;
 
-import java.util.EnumSet;
+import java.io.IOException;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Servlet filter that sets the request on the
+ * {@link JsonFilteringRequestHolder}.
+ */
+public class JsonFilteringRequestFilter implements Filter
 {
 
     @Override
-    public void onStartup( ServletContext context )
+    public void init( FilterConfig filterConfig )
     {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+        // no init is needed
+    }
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    @Override
+    public void doFilter( ServletRequest request, ServletResponse response, FilterChain filterChain )
+        throws IOException,
+        ServletException
+    {
+
+        if ( !(request instanceof HttpServletRequest) || !(response instanceof HttpServletResponse) )
+        {
+            filterChain.doFilter( request, response );
+            return;
+        }
+
+        JsonFilteringRequestHolder.setRequest( (HttpServletRequest) request );
+        JsonFilteringResponseHolder.setResponse( (HttpServletResponse) response );
+
+        try
+        {
+            filterChain.doFilter( request, response );
+        }
+        finally
+        {
+            JsonFilteringRequestHolder.removeRequest();
+            JsonFilteringResponseHolder.removeResponse();
+        }
+    }
+
+    @Override
+    public void destroy()
+    {
+        // no destroy is needed
     }
 }

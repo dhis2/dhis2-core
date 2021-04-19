@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-import java.util.EnumSet;
+import java.util.Collections;
+import java.util.List;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+@Data
+@AllArgsConstructor
+public class Item
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private final String id;
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    private final String name;
+
+    private final List<Item> items;
+
+    public Item( String id, String name )
+    {
+        this( id, name, Collections.emptyList() );
+    }
+
+    public Item( String id, String name, Item item )
+    {
+        this( id, name, Collections.singletonList( item ) );
+    }
+
+    public static Item testItem()
+    {
+        Item item5 = new Item( "ITEM-5", "Binoculars" );
+        Item item4 = new Item( "ITEM-4", "Hoverboard", item5 );
+        Item item3 = new Item( "ITEM-3", "Milkshake", item4 );
+        Item item2 = new Item( "ITEM-2", "Life Preserver", item3 );
+
+        return new Item( "ITEM-1", "Nike Shoes", item2 );
     }
 }

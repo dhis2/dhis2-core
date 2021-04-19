@@ -25,30 +25,63 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.name;
 
-import java.util.EnumSet;
+import java.util.Set;
+import java.util.regex.Pattern;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+public class RegexName implements JsonFilteringName
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private final String name;
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    private final String rawName;
+
+    private final Pattern pattern;
+
+    public RegexName( String name, Set<String> flags )
+    {
+        this.name = name;
+        this.rawName = name;
+        this.pattern = buildPattern( name, flags );
+    }
+
+    private Pattern buildPattern( String name, Set<String> flags )
+    {
+        int flagMask = 0;
+
+        if ( flags != null && !flags.isEmpty() )
+        {
+            for ( String flag : flags )
+            {
+                if ( "i".equals( flag ) )
+                {
+                    flagMask |= Pattern.CASE_INSENSITIVE;
+                }
+                else
+                {
+                    throw new IllegalArgumentException( "Unrecognized flag " + flag + " for pattern " + name );
+                }
+            }
+        }
+
+        return Pattern.compile( name, flagMask );
+    }
+
+    @Override
+    public String getName()
+    {
+        return name;
+    }
+
+    @Override
+    public int match( String name )
+    {
+        if ( pattern.matcher( name ).matches() )
+        {
+            return rawName.length() + 2;
+        }
+
+        return -1;
     }
 }

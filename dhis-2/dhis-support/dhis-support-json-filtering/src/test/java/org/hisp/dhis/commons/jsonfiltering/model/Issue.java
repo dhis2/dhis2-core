@@ -25,30 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.model;
 
-import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
+import org.hisp.dhis.commons.jsonfiltering.view.PropertyView;
 
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+@Getter
+@Setter
+public class Issue extends BaseEntity
 {
+    private String issueSummary;
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private String issueDetails;
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
-    }
+    private User reporter;
+
+    private User assignee;
+
+    private List<IssueAction> actions;
+
+    @PropertyView( "view1" )
+    private Map<String, Object> properties;
+
 }

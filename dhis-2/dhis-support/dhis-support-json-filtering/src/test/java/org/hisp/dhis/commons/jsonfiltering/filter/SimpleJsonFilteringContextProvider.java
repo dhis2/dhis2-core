@@ -25,30 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.filter;
 
-import java.util.EnumSet;
+import org.hisp.dhis.commons.jsonfiltering.context.provider.AbstractJsonFilteringContextProvider;
+import org.hisp.dhis.commons.jsonfiltering.name.AnyDeepName;
+import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
-
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Provider implementation that just takes a fixed filter expression.
+ */
+@SuppressWarnings( "rawtypes" )
+public class SimpleJsonFilteringContextProvider extends AbstractJsonFilteringContextProvider
 {
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+    private final String filter;
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    public SimpleJsonFilteringContextProvider( JsonFilteringParser parser, String filter )
+    {
+        super( parser );
+        this.filter = filter;
+    }
+
+    @Override
+    public boolean isFilteringEnabled()
+    {
+        return filter != null && !AnyDeepName.ID.equals( filter );
+    }
+
+    @Override
+    protected String getFilter( Class beanClass )
+    {
+        return filter;
     }
 }

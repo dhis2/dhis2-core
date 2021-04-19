@@ -25,30 +25,33 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.web;
 
-import java.util.EnumSet;
+import javax.servlet.http.HttpServletResponse;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * Provides a thread-local for holding a servlet response.
+ */
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+public class JsonFilteringResponseHolder
 {
+    private static final ThreadLocal<HttpServletResponse> HOLDER = new ThreadLocal<>();
 
-    @Override
-    public void onStartup( ServletContext context )
+    public static HttpServletResponse getResponse()
     {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+        return HOLDER.get();
+    }
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+    public static void setResponse( HttpServletResponse response )
+    {
+        HOLDER.set( response );
+    }
+
+    public static void removeResponse()
+    {
+        HOLDER.remove();
     }
 }

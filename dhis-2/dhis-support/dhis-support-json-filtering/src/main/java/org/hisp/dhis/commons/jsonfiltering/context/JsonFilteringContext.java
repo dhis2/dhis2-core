@@ -25,30 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.context;
 
-import java.util.EnumSet;
+import java.util.List;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import org.hisp.dhis.commons.jsonfiltering.filter.JsonFilteringPropertyFilter;
+import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
-
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * A json-filtering context provides parsing and filtering information to the
+ * {@link JsonFilteringPropertyFilter}. Contexts are usually not thread safe.
+ */
+public interface JsonFilteringContext
 {
+    /**
+     * Get the parsed nodes.
+     *
+     * @return nodes
+     */
+    List<JsonFilteringNode> getNodes();
 
-    @Override
-    public void onStartup( ServletContext context )
-    {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
-
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
-    }
+    /**
+     * Get the filter expression.
+     *
+     * @return filter expression
+     */
+    String getFilter();
 }

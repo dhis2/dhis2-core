@@ -25,30 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.servlet;
+package org.hisp.dhis.commons.jsonfiltering.context;
 
-import java.util.EnumSet;
+import java.util.List;
 
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletContext;
+import lombok.RequiredArgsConstructor;
 
-import org.apache.struts2.dispatcher.filter.StrutsPrepareAndExecuteFilter;
-import org.hisp.dhis.commons.jsonfiltering.web.JsonFilteringRequestFilter;
-import org.springframework.core.annotation.Order;
-import org.springframework.web.WebApplicationInitializer;
+import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringNode;
+import org.hisp.dhis.commons.jsonfiltering.parser.JsonFilteringParser;
 
-@Order( 12 )
-public class DhisWebCommonsWebAppInitializer implements WebApplicationInitializer
+/**
+ * JsonFiltering context that loads the parsed nodes on demand.
+ */
+@RequiredArgsConstructor
+public class LazyJsonFilteringContext implements JsonFilteringContext
 {
+    private final JsonFilteringParser parser;
+
+    private final String filter;
+
+    private List<JsonFilteringNode> nodes;
 
     @Override
-    public void onStartup( ServletContext context )
+    public List<JsonFilteringNode> getNodes()
     {
-        context
-            .addFilter( "StrutsDispatcher", new StrutsPrepareAndExecuteFilter() )
-            .addMappingForUrlPatterns( EnumSet.of( DispatcherType.REQUEST ), true, "*.action" );
+        if ( nodes == null )
+        {
+            nodes = parser.parse( filter );
+        }
 
-        context.addFilter( "JsonFilteringRequestFilter", JsonFilteringRequestFilter.class )
-            .addMappingForUrlPatterns( null, true, "/*" );
+        return nodes;
+    }
+
+    @Override
+    public String getFilter()
+    {
+        return filter;
     }
 }
