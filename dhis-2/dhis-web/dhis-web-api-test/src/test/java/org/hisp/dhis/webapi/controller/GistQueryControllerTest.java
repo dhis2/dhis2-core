@@ -255,7 +255,7 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
     @Test
     public void testGistPropertyList_EndpointsWithAbsoluteURLs()
     {
-        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absolute=true",
+        JsonObject groups = GET( "/users/{uid}/userGroups/gist?fields=name,users&absoluteUrls=true",
             getSuperuserUid() ).content();
 
         assertTrue( groups.getArray( "userGroups" ).getObject( 0 ).getObject( "apiEndpoints" ).getString( "users" )

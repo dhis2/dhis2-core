@@ -30,8 +30,7 @@ package org.hisp.dhis.gist;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
-import org.hisp.dhis.schema.annotation.Gist;
-import org.hisp.dhis.schema.annotation.Gist.Included;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
@@ -45,12 +44,12 @@ final class GistLogic
 
     static boolean isIncludedField( Property p, GistAutoType all )
     {
-        Included included = p.getGistPreferences().getIncluded();
-        if ( included == Gist.Included.TRUE )
+        Include included = p.getGistPreferences().getIncluded();
+        if ( included == Include.TRUE )
         {
             return true;
         }
-        if ( included == Gist.Included.FALSE )
+        if ( included == Include.FALSE )
         {
             return false;
         }

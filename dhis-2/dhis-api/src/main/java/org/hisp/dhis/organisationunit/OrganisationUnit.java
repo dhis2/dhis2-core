@@ -59,6 +59,7 @@ import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayShortNam
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
@@ -1067,7 +1068,7 @@ public class OrganisationUnit
         this.categoryOptions = categoryOptions;
     }
 
-    @Gist( included = Gist.Included.FALSE )
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()

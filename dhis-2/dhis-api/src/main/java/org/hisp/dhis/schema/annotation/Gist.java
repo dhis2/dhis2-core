@@ -37,17 +37,20 @@ import java.lang.annotation.Target;
 import org.hisp.dhis.schema.Property;
 
 /**
- * {@link Gist} is used to set {@link org.hisp.dhis.schema.GistPreferences} in
- * {@link Property}.
+ * {@link Gist} can be used to annotate getters to preselect whether or not the
+ * annotated property is {@link #included()} in a gist item and for collection
+ * properties which {@link #transformation()} should be used by default.
  *
- * Type level annotations apply to all getters. Annotations on getter overwrite
- * those on type.
+ * This can be used to fine tune gist appearance.
+ *
+ * The annotation data becomes the {@link org.hisp.dhis.schema.GistPreferences}
+ * in {@link Property}.
  *
  * @author Jan Bernitt
  */
 @Documented
 @Inherited
-@Target( { ElementType.METHOD, ElementType.TYPE } )
+@Target( { ElementType.METHOD } )
 @Retention( RetentionPolicy.RUNTIME )
 public @interface Gist
 {
@@ -63,7 +66,7 @@ public @interface Gist
      * @return whether or not the annotated property is included in the set of
      *         "all" fields.
      */
-    Included included() default Included.AUTO;
+    Include included() default Include.AUTO;
 
     /**
      * @return the type used in case the user has not specified the type
@@ -71,7 +74,7 @@ public @interface Gist
      */
     Transform transformation() default Transform.AUTO;
 
-    enum Included
+    enum Include
     {
         FALSE,
         TRUE,

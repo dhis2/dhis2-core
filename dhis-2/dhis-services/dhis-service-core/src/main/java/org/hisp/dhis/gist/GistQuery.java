@@ -38,15 +38,15 @@ import java.util.List;
 import java.util.Locale;
 import java.util.function.BiFunction;
 
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.NamedParams;
+import org.hisp.dhis.schema.annotation.Gist.Transform;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.common.NamedParams;
-import org.hisp.dhis.schema.annotation.Gist.Transform;
 
 /**
  * Description of the gist query that should be run.
@@ -189,7 +189,7 @@ public final class GistQuery
             .translate( params.getBoolean( "translate", true ) )
             .inverse( params.getBoolean( "inverse", false ) )
             .total( params.getBoolean( "total", false ) )
-            .absolute( params.getBoolean( "absolute", false ) )
+            .absolute( params.getBoolean( "absoluteUrls", false ) )
             .headless( params.getBoolean( "headless", false ) )
             .anyFilter( params.getString( "rootJunction", "AND" ).equalsIgnoreCase( "OR" ) )
             .fields( params.getStrings( "fields", FIELD_SPLIT ).stream()

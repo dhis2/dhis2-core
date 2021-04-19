@@ -33,9 +33,6 @@ import static org.hisp.dhis.gist.GistBuilder.createFetchBuilder;
 import java.util.List;
 import java.util.Map;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
@@ -47,6 +44,9 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Jan Bernitt
@@ -103,11 +103,11 @@ public class DefaultGistService implements GistService
             String baseURL = GistPager.computeBaseURL( query, params, schemaService::getDynamicSchema );
             if ( page > 1 )
             {
-                prev = baseURL + "page=" + (page - 1);
+                prev = String.format( "%spage=%s", baseURL, (page - 1) );
             }
             if ( rows.size() == query.getPageSize() )
             {
-                next = baseURL + "page=" + (page + 1);
+                next = String.format( "%spage=%s", baseURL, (page + 1) );
             }
         }
         if ( query.isTotal() )

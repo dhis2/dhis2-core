@@ -32,14 +32,34 @@ import static java.util.EnumSet.of;
 
 import java.util.EnumSet;
 
-import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Gist.Transform;
 
+import lombok.AllArgsConstructor;
+
 /**
- * Presets to scope what {@code :all} or {@code *} fields do include.
+ * {@link GistAutoType}s is a gist configuration that control which fields the
+ * {@code :all} / {@code *} preset will include and which {@link Transform} is
+ * used by default on included collection fields.
+ *
+ * The default {@link GistAutoType} depends on the endpoint different used:
+ * <ul>
+ * <li>{@code /api/{object-type}/gist} uses {@link GistAutoType#S}</li>
+ * <li>{@code /api/{object-type}/{uid}/gist} uses {@link GistAutoType#L}</li>
+ * <li>{@code /api/{object-type}/{uid}/{property}/gist} uses
+ * {@link GistAutoType#M}</li>
+ * </ul>
+ *
+ * Users can override this default using the {@code auto} parameter.
+ *
+ * This can be understood as the user's "master-switch" to control how short the
+ * gist should be.
+ *
+ * The reason to use different settings depending on the endpoint is to scale
+ * the size of the resulting list items to match the purpose of the list/view
+ * better. Main list are shortest, property lists a bit more detailed and a
+ * single object view is most detailed.
  *
  * @author Jan Bernitt
  */
