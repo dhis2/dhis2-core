@@ -279,7 +279,7 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenFileResourceIsNullAndDataElementIsNotCompulsory()
+    public void failValidationWhenFileResourceIsNull()
     {
         // Given
         DataValue validDataValue = validDataValue();
@@ -303,11 +303,11 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void successValidationWhenFileResourceIsNullAndDataElementIsNotCompulsory()
+    public void successValidationWhenFileResourceValueIsNullAndDataElementIsNotCompulsory()
     {
         // Given
         DataValue validDataValue = validDataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
+        validDataValue.setValue( null );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setUid( validDataValue.getDataElement() );
@@ -332,11 +332,41 @@ public class EventDataValuesValidationHookTest
     }
 
     @Test
-    public void failValidationWhenDataElementIsNullAndDataElementIsCompulsory()
+    public void failValidationWhenFileResourceValueIsNullAndDataElementIsCompulsory()
     {
         // Given
         DataValue validDataValue = validDataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
+        validDataValue.setValue( null );
+
+        DataElement validDataElement = new DataElement();
+        validDataElement.setUid( validDataValue.getDataElement() );
+        validDataElement.setValueType( ValueType.FILE_RESOURCE );
+
+        String programStageUid = "programStageUid";
+
+        ProgramStage programStage = getProgramStage( validDataElement, programStageUid, true );
+
+        when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
+        when( event.getProgramStage() ).thenReturn( programStageUid );
+        when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
+        when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
+        when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
+
+        // When
+        ValidationErrorReporter reporter = new ValidationErrorReporter( validationContext, event );
+        hookToTest.validateEvent( reporter, event );
+
+        // Then
+        assertThat( reporter.getReportList(), hasSize( 1 ) );
+        assertEquals( TrackerErrorCode.E1076, reporter.getReportList().get( 0 ).getErrorCode() );
+    }
+
+    @Test
+    public void failValidationWhenDataElementValueIsNullAndDataElementIsCompulsory()
+    {
+        // Given
+        DataValue validDataValue = validDataValue();
+        validDataValue.setValue( null );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setUid( validDataValue.getDataElement() );
@@ -349,7 +379,6 @@ public class EventDataValuesValidationHookTest
         when( event.getDataValues() ).thenReturn( Sets.newHashSet( validDataValue ) );
         when( event.getProgramStage() ).thenReturn( programStageUid );
         when( validationContext.getDataElement( validDataValue.getDataElement() ) ).thenReturn( validDataElement );
-        when( validationContext.getFileResource( validDataValue.getDataElement() ) ).thenReturn( null );
         when( validationContext.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         when( event.getStatus() ).thenReturn( EventStatus.COMPLETED );
 
@@ -367,7 +396,7 @@ public class EventDataValuesValidationHookTest
     {
         // Given
         DataValue validDataValue = validDataValue();
-        validDataValue.setValue( "QX4LpiTZmUH" );
+        validDataValue.setValue( null );
 
         DataElement validDataElement = new DataElement();
         validDataElement.setUid( validDataValue.getDataElement() );
