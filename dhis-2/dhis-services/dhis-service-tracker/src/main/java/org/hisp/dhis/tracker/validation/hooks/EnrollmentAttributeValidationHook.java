@@ -87,7 +87,7 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
 
         for ( Attribute attribute : enrollment.getAttributes() )
         {
-            validateRequiredProperties( reporter, attribute );
+            validateRequiredProperties( reporter, attribute, program );
 
             if ( attribute.getAttribute() != null && attribute.getValue() != null )
             {
@@ -116,10 +116,17 @@ public class EnrollmentAttributeValidationHook extends AttributeValidationHook
         validateMandatoryAttributes( reporter, program, enrollment );
     }
 
-    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute )
+    protected void validateRequiredProperties( ValidationErrorReporter reporter, Attribute attribute, Program program )
     {
         addErrorIfNull( attribute.getAttribute(), reporter, E1075, attribute );
-        addErrorIfNull( attribute.getValue(), reporter, E1076, attribute );
+
+        Optional<ProgramTrackedEntityAttribute> optionalTrackedAttr = program.getProgramAttributes().stream()
+            .filter( pa -> pa.getAttribute().getUid().equals( attribute.getAttribute() ) && pa.isMandatory() )
+            .findFirst();
+
+        if ( optionalTrackedAttr.isPresent() )
+            addError( reporter, E1076, Attribute.class.getSimpleName(),
+                attribute.getAttribute() );
 
         if ( attribute.getAttribute() != null )
         {
