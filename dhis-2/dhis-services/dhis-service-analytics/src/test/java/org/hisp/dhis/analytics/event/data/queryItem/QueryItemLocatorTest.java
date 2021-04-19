@@ -163,6 +163,25 @@ public class QueryItemLocatorTest
     }
 
     @Test
+    public void getQueryItemFromDimensionThrowsRightExceptionWhenElementDoesNotBelongToProgram()
+    {
+        // arrange
+        DataElement iBelongDataElement = createDataElement( 'A' );
+        ProgramStage programStageA = createProgramStage( 'A', programA );
+        programStageA.setProgramStageDataElements(
+            Sets.newHashSet( createProgramStageDataElement( programStageA, iBelongDataElement, 1 ) ) );
+        programA.setProgramStages( Sets.newHashSet( programStageA ) );
+
+        DataElement iDontBelongDataElement = createDataElement( 'B' );
+        when( dataElementService.getDataElement( dimension ) ).thenReturn( iDontBelongDataElement );
+
+        // act
+        // assert
+        assertThrows( IllegalQueryException.class,
+            () -> subject.getQueryItemFromDimension( dimension, programA, EventOutputType.EVENT ) );
+    }
+
+    @Test
     public void verifyDimensionFailsWhenProgramStageIsMissingForEnrollmentQuery()
     {
         DataElement dataElementA = createDataElement( 'A' );
@@ -206,7 +225,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendsetReturnsDataElement()
+    public void verifyDimensionWithLegendSetReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
@@ -235,7 +254,7 @@ public class QueryItemLocatorTest
     }
 
     @Test
-    public void verifyDimensionWithLegendsetAndProgramStageReturnsDataElement()
+    public void verifyDimensionWithLegendSetAndProgramStageReturnsDataElement()
     {
         String legendSetUid = CodeGenerator.generateUid();
 
