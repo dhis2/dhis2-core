@@ -782,9 +782,7 @@ final class GistBuilder
         {
         case LIKE:
         case NOT_LIKE:
-            return value != null && (value.contains( "*" ) || value.contains( "?" ))
-                ? value.replace( "*", "%" ).replace( "?", "_" )
-                : "%" + value + "%";
+            return sqlLikeExpressionOf( value );
         case STARTS_LIKE:
         case STARTS_WITH:
         case NOT_STARTS_LIKE:
@@ -798,5 +796,26 @@ final class GistBuilder
         default:
             return value;
         }
+    }
+
+    /**
+     * Converts the user input of a like pattern matching to the SQL like
+     * expression.
+     *
+     * Like (pattern matching) allows for two modes:
+     *
+     * 1. providing a pattern with wild-card placeholders (* is any string, ?
+     * any character)
+     *
+     * 2. providing a string without placeholders to match anywhere
+     *
+     * @param value user input for like {@link Filter}
+     * @return The SQL like expression
+     */
+    private static String sqlLikeExpressionOf( String value )
+    {
+        return value != null && (value.contains( "*" ) || value.contains( "?" ))
+            ? value.replace( "*", "%" ).replace( "?", "_" )
+            : "%" + value + "%";
     }
 }

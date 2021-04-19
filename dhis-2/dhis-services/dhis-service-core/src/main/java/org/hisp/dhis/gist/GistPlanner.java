@@ -71,7 +71,7 @@ class GistPlanner
         List<Field> fields = query.getFields();
         if ( fields.isEmpty() )
         {
-            fields = singletonList( new Field( "*", Transform.NONE ) );
+            fields = singletonList( Field.ALL );
         }
         fields = withDefaultFields( fields );
         fields = withDisplayAsTranslatedFields( fields );
@@ -225,7 +225,7 @@ class GistPlanner
 
     private static boolean isPresetField( String path )
     {
-        return path.startsWith( ":" ) || "*".equals( path );
+        return path.startsWith( ":" ) || Field.ALL_PATH.equals( path );
     }
 
     private static boolean isExcludeField( String path )
@@ -235,7 +235,7 @@ class GistPlanner
 
     private static boolean isAllField( String path )
     {
-        return "*".equals( path ) || ":*".equals( path ) || ":all".equals( path );
+        return Field.ALL_PATH.equals( path ) || ":*".equals( path ) || ":all".equals( path );
     }
 
     private List<Field> withUniqueFields( List<Field> fields )

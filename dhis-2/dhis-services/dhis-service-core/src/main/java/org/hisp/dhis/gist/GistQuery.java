@@ -335,6 +335,10 @@ public final class GistQuery
     {
         public static final String REFS_PATH = "__refs__";
 
+        public static final String ALL_PATH = "*";
+
+        public static final Field ALL = new Field( ALL_PATH, Transform.NONE );
+
         private final String propertyPath;
 
         private final Transform transformation;
