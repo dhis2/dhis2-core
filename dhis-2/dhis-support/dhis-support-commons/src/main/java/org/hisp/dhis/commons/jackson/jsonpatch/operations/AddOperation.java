@@ -35,12 +35,16 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
  */
 public class AddOperation extends JsonPatchValueOperation
 {
+    public static final String END_OF_ARRAY = "-";
+
     @JsonCreator
     public AddOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
@@ -51,6 +55,68 @@ public class AddOperation extends JsonPatchValueOperation
     public JsonNode apply( JsonNode node )
         throws JsonPatchException
     {
-        return null;
+        if ( path == JsonPointer.empty() )
+        {
+            return value;
+        }
+
+        final JsonNode parent = node.at( path.head() );
+        final String rawToken = path.last().getMatchingProperty();
+
+        if ( parent.isMissingNode() )
+        {
+            throw new JsonPatchException( "isMissingNode" );
+        }
+
+        if ( !parent.isContainerNode() )
+        {
+            throw new JsonPatchException( "isContainerNode" );
+        }
+
+        if ( parent.isObject() )
+        {
+            ((ObjectNode) parent).set( rawToken, value );
+        }
+        else if ( parent.isArray() )
+        {
+            final ArrayNode target = (ArrayNode) node.at( path.head() );
+
+            // If the "-" character is used to index the end of the array (see
+            // RFC6901),this has the effect of appending the value to the
+            // array.
+            if ( rawToken.equals( END_OF_ARRAY ) )
+            {
+                target.add( value );
+                return node;
+            }
+
+            final int index = getArrayIndex( rawToken, target.size() );
+            target.insert( index, value );
+        }
+
+        return node;
+    }
+
+    private int getArrayIndex( String rawToken, int size )
+        throws JsonPatchException
+    {
+        final int index;
+
+        try
+        {
+            index = Integer.parseInt( rawToken );
+        }
+        catch ( NumberFormatException ignored )
+        {
+            throw new JsonPatchException( "not an index: " + rawToken + " (expected: a non-negative integer)" );
+        }
+
+        if ( index < 0 || index > size )
+        {
+            throw new JsonPatchException( "index out of bounds: " + index +
+                " (expected: >= 0 && <= " + size + ')' );
+        }
+
+        return index;
     }
 }

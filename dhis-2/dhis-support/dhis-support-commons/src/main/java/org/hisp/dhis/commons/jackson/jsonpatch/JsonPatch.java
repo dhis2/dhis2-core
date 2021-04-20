@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -48,7 +46,7 @@ public class JsonPatch
     @JsonCreator
     public JsonPatch( List<JsonPatchOperation> operations )
     {
-        this.operations = Collections.unmodifiableList(new ArrayList<>(operations) );
+        this.operations = operations;
     }
 
     @Override
