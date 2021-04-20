@@ -234,7 +234,7 @@ public class TrackerBundleParamsConverter
     private List<Event> extractEvents( Enrollment enrollment )
     {
         List<Event> events = enrollment.getEvents().stream()
-            .peek( event -> updateEventReferences( event, enrollment.getTrackedEntity(), enrollment.getEnrollment() ) )
+            .peek( event -> updateEventReferences( event, enrollment.getEnrollment() ) )
             .collect( Collectors.toList() );
 
         enrollment.setEvents( new ArrayList<>() );
