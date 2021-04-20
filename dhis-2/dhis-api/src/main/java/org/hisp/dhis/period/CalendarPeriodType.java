@@ -96,14 +96,14 @@ public abstract class CalendarPeriodType
     public abstract List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar );
 
     /**
-     * Generates a list of Periods for the last X years. Must be overridden by
+     * Generates a list of Periods for the last 5 years. Must be overridden by
      * CalendarPeriodTypes which do not generate periods for the current year
      * only in their implementation of generatePeriods( Date ).
      *
      * @param date the date which touches the time span to generate Periods for.
      * @return a list of Periods for a defined time span.
      */
-    public List<Period> generateLastYears( Date date )
+    public List<Period> generateLast5Years( Date date )
     {
         DateTimeUnit dateTimeUnit = createLocalDateUnitInstance( date );
         dateTimeUnit = getCalendar().minusYears( dateTimeUnit, 4 );

@@ -139,16 +139,16 @@ public abstract class FinancialPeriodType
     @Override
     public List<Period> generateRollingPeriods( Date date )
     {
-        return generateLastYears( date );
+        return generateLast5Years( date );
     }
 
     @Override
     public List<Period> generateRollingPeriods( DateTimeUnit dateTimeUnit, Calendar calendar )
     {
-        return generateLastYears( calendar.toIso( dateTimeUnit ).toJdkDate() );
+        return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
-    public List<Period> generateLastYears( Date date )
+    public List<Period> generateLast5Years( Date date )
     {
         Calendar cal = getCalendar();
 
