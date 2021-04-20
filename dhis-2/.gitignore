@@ -18,6 +18,7 @@
 /dhis-services/dhis-service-validation/target/
 /dhis-services/dhis-service-audit-consumer/target
 /dhis-support/dhis-support-commons/target/
+/dhis-support/dhis-support-json-filtering/target/
 /dhis-support/dhis-support-expression-parser/target/
 /dhis-support/dhis-support-external/target/
 /dhis-support/dhis-support-hibernate/target/
