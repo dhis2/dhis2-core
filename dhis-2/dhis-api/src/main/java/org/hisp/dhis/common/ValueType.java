@@ -31,9 +31,7 @@ import static java.util.stream.Collectors.toSet;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 
 import org.hisp.dhis.analytics.AggregationType;
@@ -268,9 +266,11 @@ public enum ValueType
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
     }
 
-    public static Set<ValueType> getAggregateables( AggregationType aggregationType )
+    public static Set<ValueType> getAggregateables()
     {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable.apply( aggregationType ) )
+        return Arrays.stream( ValueType.values() )
+            .filter( v -> Arrays.stream( AggregationType.values() )
+                .anyMatch( a -> a.isAggregateable() && v.aggregateable.apply( a ) ) )
             .collect( toSet() );
     }
 }
