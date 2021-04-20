@@ -160,6 +160,7 @@ public class TwoYearlyPeriodType
         return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
+    @Override
     public List<Period> generateLast5Years( Date date )
     {
         // TODO: use local calendar instead of hard coded Gregorian
