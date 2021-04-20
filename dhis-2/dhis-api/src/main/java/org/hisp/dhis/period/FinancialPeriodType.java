@@ -148,6 +148,7 @@ public abstract class FinancialPeriodType
         return generateLast5Years( calendar.toIso( dateTimeUnit ).toJdkDate() );
     }
 
+    @Override
     public List<Period> generateLast5Years( Date date )
     {
         Calendar cal = getCalendar();
