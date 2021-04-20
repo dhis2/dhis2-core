@@ -38,7 +38,6 @@ import org.mapstruct.Mapping;
     InstantMapper.class } )
 public interface EventMapper extends DomainMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "occurredAt", source = "eventDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
     @Mapping( target = "createdAt", source = "created" )
