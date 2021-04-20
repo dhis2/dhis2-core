@@ -33,15 +33,14 @@ import org.hisp.dhis.dataelement.DataElement;
 /**
  * @author Lars Helge Overland
  */
-public class AggregatableDataElementFilter
+public class AggregateableDataElementFilter
     implements Filter<DataElement>
 {
-    public static final AggregatableDataElementFilter INSTANCE = new AggregatableDataElementFilter();
+    public static final AggregateableDataElementFilter INSTANCE = new AggregateableDataElementFilter();
 
     @Override
     public boolean retain( DataElement object )
     {
-        return object != null && object.getValueType().isAggregateable()
-            && object.getAggregationType().isAggregateable();
+        return object.getValueType().isAggregateable( object.getAggregationType() );
     }
 }

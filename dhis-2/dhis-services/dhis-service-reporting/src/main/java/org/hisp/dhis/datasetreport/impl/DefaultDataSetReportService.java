@@ -65,7 +65,7 @@ import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
+import org.hisp.dhis.system.filter.AggregateableDataElementFilter;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.springframework.stereotype.Component;
@@ -233,7 +233,7 @@ public class DefaultDataSetReportService
                 List<DataElement> dataElements = new ArrayList<>(
                     section.getDataElementsByCategoryCombo( categoryCombo ) );
 
-                FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
+                FilterUtils.filter( dataElements, AggregateableDataElementFilter.INSTANCE );
 
                 for ( DataElement dataElement : dataElements )
                 {
