@@ -110,17 +110,13 @@ public class EventDataValuesValidationHook
         }
         else
         {
-            if ( !validateCompulsoryDataElement( reporter, dataElement, programStage ) )
-            {
-                return;
-            }
-
+            validateCompulsoryDataElement( reporter, dataElement, programStage, dataValue );
             validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
-    private boolean validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
-        ProgramStage programStage )
+    private void validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+        ProgramStage programStage, DataValue dataValue )
     {
         Optional<ProgramStageDataElement> optionalPsde = Optional.ofNullable( programStage )
             .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
@@ -128,15 +124,12 @@ public class EventDataValuesValidationHook
                     psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
                 .findFirst() );
 
-        if ( optionalPsde.isPresent() )
+        if ( optionalPsde.isPresent() && dataValue.getValue() == null )
         {
             addError( reporter, E1076, DataElement.class.getSimpleName(),
                 dataElement.getUid() );
-
-            return false;
         }
 
-        return true;
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
