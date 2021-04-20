@@ -33,7 +33,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -58,7 +57,7 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
-                        programRuleAction.getProgramRule().getUid() ) )
+                    programRuleAction.getProgramRule().getUid() ) )
                 .build();
         }
 
