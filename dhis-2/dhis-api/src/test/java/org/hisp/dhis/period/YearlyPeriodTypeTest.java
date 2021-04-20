@@ -133,7 +133,7 @@ public class YearlyPeriodTypeTest
     {
         testDate = new DateTime( 2009, 8, 15, 0, 0 );
 
-        List<Period> periods = new YearlyPeriodType().generateLastYears( testDate.toDate() );
+        List<Period> periods = new YearlyPeriodType().generateLast5Years( testDate.toDate() );
 
         assertEquals( 5, periods.size() );
         assertEquals( periodType.createPeriod( new DateTime( 2005, 1, 1, 0, 0 ).toDate() ), periods.get( 0 ) );

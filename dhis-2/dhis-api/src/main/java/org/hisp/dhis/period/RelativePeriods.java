@@ -37,6 +37,8 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
+import org.hisp.dhis.calendar.DateTimeUnit;
+import org.hisp.dhis.calendar.impl.Iso8601Calendar;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.joda.time.DateTime;
@@ -667,7 +669,11 @@ public class RelativePeriods
         if ( isLast10Years() )
         {
             periods.addAll(
-                getRollingRelativePeriodList( new DecadePeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+            periods.addAll(
+                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS,
+                    Iso8601Calendar.getInstance().minusYears( DateTimeUnit.fromJdkDate( date ), 5 ).toJdkDate(),
+                    dynamicNames, format ) );
         }
 
         return periods;
