@@ -25,28 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+package org.hisp.dhis.commons.jackson;
 
-import lombok.Getter;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.junit.Test;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-public abstract class JsonPatchValueOperation extends JsonPatchOperation
+public class JsonPatchTest
 {
-    @JsonSerialize
-    protected final JsonNode value;
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @JsonCreator
-    public JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
+    @Test
+    public void testJsonPatchDeserializeEmpty()
+        throws JsonProcessingException
     {
-        super( op, path );
-        this.value = value.deepCopy();
+        JsonPatch patch = jsonMapper.readValue( "[]", JsonPatch.class );
+        assertNotNull( patch );
+        assertTrue( patch.getOperations().isEmpty() );
+    }
+
+    @Test
+    public void testJsonPatchDeserializeWithOps()
+        throws JsonProcessingException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
+            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+        assertEquals( 3, patch.getOperations().size() );
     }
 }

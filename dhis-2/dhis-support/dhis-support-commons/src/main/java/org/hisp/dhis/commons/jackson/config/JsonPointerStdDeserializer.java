@@ -25,28 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
+package org.hisp.dhis.commons.jackson.config;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import lombok.Getter;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-public abstract class JsonPatchValueOperation extends JsonPatchOperation
+public class JsonPointerStdDeserializer extends JsonDeserializer<JsonPointer>
 {
-    @JsonSerialize
-    protected final JsonNode value;
-
-    @JsonCreator
-    public JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
+    @Override
+    public JsonPointer deserialize( JsonParser parser, DeserializationContext context )
+        throws IOException
     {
-        super( op, path );
-        this.value = value.deepCopy();
+        return JsonPointer.valueOf( parser.getValueAsString() );
     }
 }

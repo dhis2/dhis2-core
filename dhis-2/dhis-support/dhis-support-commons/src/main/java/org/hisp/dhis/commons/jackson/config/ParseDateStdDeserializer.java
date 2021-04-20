@@ -41,8 +41,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public class ParseDateStdDeserializer
-    extends
-    JsonDeserializer<Date>
+    extends JsonDeserializer<Date>
 {
     @Override
     public Date deserialize( JsonParser parser, DeserializationContext context )

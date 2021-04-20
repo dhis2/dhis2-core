@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Primary;
 
 import com.bedatadriven.jackson.datatype.jts.JtsModule;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -150,6 +151,7 @@ public class JacksonObjectMapperConfig
         SimpleModule module = new SimpleModule();
         module.addDeserializer( String.class, new EmptyStringToNullStdDeserializer() );
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
+        module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
 
         // Registering a custom Instant serializer/deserializer for DTOs using
@@ -172,10 +174,12 @@ public class JacksonObjectMapperConfig
 
         objectMapper.disable( MapperFeature.AUTO_DETECT_FIELDS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_CREATORS );
+
         if ( !autoDetectGetters )
         {
             objectMapper.disable( MapperFeature.AUTO_DETECT_GETTERS );
         }
+
         objectMapper.disable( MapperFeature.AUTO_DETECT_SETTERS );
         objectMapper.disable( MapperFeature.AUTO_DETECT_IS_GETTERS );
 

@@ -25,28 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
+
+package org.hisp.dhis.commons.jackson.jsonpatch.operations;
+
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-public abstract class JsonPatchValueOperation extends JsonPatchOperation
+public class AddOperation extends JsonPatchValueOperation
 {
-    @JsonSerialize
-    protected final JsonNode value;
-
     @JsonCreator
-    public JsonPatchValueOperation( String op, JsonPointer path, JsonNode value )
+    public AddOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        super( op, path );
-        this.value = value.deepCopy();
+        super( "add", path, value );
+    }
+
+    @Override
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
+    {
+        return null;
     }
 }
