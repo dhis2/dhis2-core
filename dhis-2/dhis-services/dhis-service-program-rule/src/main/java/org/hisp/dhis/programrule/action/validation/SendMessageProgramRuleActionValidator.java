@@ -48,7 +48,6 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
         ProgramRuleActionValidationService validationService )
     {
         ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
-dd
         if ( !programRuleAction.hasNotification() )
         {
             return ProgramRuleActionValidationResult.builder()

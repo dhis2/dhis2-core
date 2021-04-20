@@ -32,6 +32,10 @@ import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
@@ -49,11 +53,29 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
     @Nonnull
     private final TrackedEntityAttributeService attributeService;
 
+    @Nonnull
+    private final ProgramStageService programStageService;
+
+    @Nonnull
+    private final ProgramStageSectionService sectionService;
+
+    @Nonnull
+    private final ProgramNotificationTemplateService templateService;
+
+    @Nonnull
+    private final OptionService optionService;
+
     public ProgramRuleActionValidationServiceSupplier( @Nonnull DataElementService dataElementService,
-        @Nonnull TrackedEntityAttributeService attributeService )
+        @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService,
+        @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService,
+        @Nonnull OptionService optionService )
     {
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
+        this.programStageService = programStageService;
+        this.sectionService = sectionService;
+        this.templateService = templateService;
+        this.optionService = optionService;
     }
 
     @Override
@@ -62,6 +84,10 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
         return ProgramRuleActionValidationService.builder()
             .dataElementService( dataElementService )
             .attributeService( attributeService )
+            .notificationTemplateService( templateService )
+            .programStageService( programStageService )
+            .stageSectionService( sectionService )
+            .optionService( optionService )
             .build();
     }
 }
