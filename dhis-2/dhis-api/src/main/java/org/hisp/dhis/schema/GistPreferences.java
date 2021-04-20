@@ -25,62 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.annotation;
+package org.hisp.dhis.schema;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * Information as extracted from {@link org.hisp.dhis.schema.annotation.Gist}
+ * annotation to be included in {@link Property} metadata.
+ *
+ * @author Jan Bernitt
  */
-@Target( { ElementType.FIELD, ElementType.METHOD } )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface Property
+@Getter
+@AllArgsConstructor
+public final class GistPreferences
 {
-    org.hisp.dhis.schema.PropertyType value() default org.hisp.dhis.schema.PropertyType.TEXT;
-
-    Value required() default Value.DEFAULT;
-
-    Value persisted() default Value.DEFAULT;
-
-    Value owner() default Value.DEFAULT;
-
-    Access access() default Access.READ_WRITE;
+    public static final GistPreferences DEFAULT = new GistPreferences( Include.AUTO, Gist.Transform.AUTO );
 
     /**
-     * This is essentially a manual override to specify the
-     * {@link org.hisp.dhis.schema.Property#getFieldName()} of the annotated
-     * member.
-     *
-     * @return Name of the field this property is persisted as in case this is a
-     *         non persistent property which has a corresponding persistent
-     *         member.
+     * @see Gist#included()
      */
-    String persistedAs() default "";
+    @JsonProperty
+    private final Include included;
 
-    enum Value
-    {
-        TRUE,
-        FALSE,
-        DEFAULT
-    }
+    /**
+     * @see Gist#transformation()
+     */
+    @JsonProperty
+    private final Gist.Transform transformation;
 
-    enum Access
-    {
-        READ_ONLY,
-        WRITE_ONLY,
-        READ_WRITE;
-
-        public boolean isReadable()
-        {
-            return READ_ONLY == this || READ_WRITE == this;
-        }
-
-        public boolean isWritable()
-        {
-            return WRITE_ONLY == this || READ_WRITE == this;
-        }
-    }
 }

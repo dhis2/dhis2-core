@@ -25,64 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.util;
+package org.hisp.dhis.schema.introspection;
 
-import static org.hisp.dhis.system.util.ReflectionUtils.getProperty;
+import static org.hisp.dhis.system.util.AnnotationUtils.getAnnotation;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
+import java.lang.reflect.Method;
 import java.util.Map;
-import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.schema.GistPreferences;
 import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.translation.Translation;
+import org.hisp.dhis.schema.annotation.Gist;
 
 /**
- * @author Viet Nguyen <viet@dhis2.org>
+ * A {@link PropertyIntrospector} that adds information to existing
+ * {@link Property} values if they are annotated with
+ * {@link org.hisp.dhis.schema.annotation.Gist}.
+ *
+ * @author Jan Bernitt
  */
-public class TranslationUtils
+public class GistPropertyIntrospector implements PropertyIntrospector
 {
-    public static Map<String, String> getObjectPropertyValues( Schema schema, Object object )
+    @Override
+    public void introspect( Class<?> klass, Map<String, Property> properties )
     {
-        if ( object == null )
+        for ( Property property : properties.values() )
         {
-            return null;
-        }
-
-        List<Property> properties = schema.getTranslatableProperties();
-
-        Map<String, String> translations = new HashMap<>();
-
-        for ( Property property : properties )
-        {
-            translations.put( property.getName(), getProperty( object, property.getName() ) );
-        }
-
-        return translations;
-    }
-
-    public static Map<String, String> convertTranslations( Set<Translation> translations, Locale locale )
-    {
-
-        if ( !ObjectUtils.allNonNull( translations, locale ) )
-        {
-            return null;
-        }
-
-        Map<String, String> translationMap = new HashMap<>();
-
-        for ( Translation translation : translations )
-        {
-            if ( StringUtils.isNotEmpty( translation.getValue() )
-                && translation.getLocale().equalsIgnoreCase( locale.toString() ) )
+            if ( property.getKlass() != null )
             {
-                translationMap.put( translation.getProperty(), translation.getValue() );
+                initFromGistAnnotation( property );
             }
         }
+    }
 
-        return translationMap;
+    private void initFromGistAnnotation( Property property )
+    {
+        Method getter = property.getGetterMethod();
+        Gist gist = getAnnotation( getter, Gist.class );
+        if ( gist != null )
+        {
+            property.setGistPreferences( new GistPreferences(
+                gist.included(),
+                gist.transformation() ) );
+        }
     }
 }
