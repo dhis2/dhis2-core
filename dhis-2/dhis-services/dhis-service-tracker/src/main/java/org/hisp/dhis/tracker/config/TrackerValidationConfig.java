@@ -69,8 +69,9 @@ public class TrackerValidationConfig
             PreCheckExistenceValidationHook.class,
             PreCheckMandatoryFieldsValidationHook.class,
             PreCheckMetaValidationHook.class,
-            PreCheckSecurityValidationHook.class,
+            PreCheckUpdatableFieldsValidationHook.class,
             PreCheckDataRelationsValidationHook.class,
+            PreCheckSecurityValidationHook.class,
             PreCheckOwnershipValidationHook.class,
 
             TrackedEntityAttributeValidationHook.class,

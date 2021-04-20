@@ -87,7 +87,6 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -98,7 +97,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.constant.Constant;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.expression.dataitem.DimItemDataElementAndOperand;
 import org.hisp.dhis.expression.dataitem.DimItemIndicator;
@@ -156,8 +154,6 @@ public class DefaultExpressionService
     private final DataElementService dataElementService;
 
     private final ConstantService constantService;
-
-    private final CategoryService categoryService;
 
     private final OrganisationUnitGroupService organisationUnitGroupService;
 
@@ -244,14 +240,13 @@ public class DefaultExpressionService
 
     public DefaultExpressionService(
         @Qualifier( "org.hisp.dhis.expression.ExpressionStore" ) HibernateGenericStore<Expression> expressionStore,
-        DataElementService dataElementService, ConstantService constantService, CategoryService categoryService,
+        DataElementService dataElementService, ConstantService constantService,
         OrganisationUnitGroupService organisationUnitGroupService, DimensionService dimensionService,
         IdentifiableObjectManager idObjectManager, CacheProvider cacheProvider )
     {
         checkNotNull( expressionStore );
         checkNotNull( dataElementService );
         checkNotNull( constantService );
-        checkNotNull( categoryService );
         checkNotNull( organisationUnitGroupService );
         checkNotNull( dimensionService );
         checkNotNull( cacheProvider );
@@ -259,7 +254,6 @@ public class DefaultExpressionService
         this.expressionStore = expressionStore;
         this.dataElementService = dataElementService;
         this.constantService = constantService;
-        this.categoryService = categoryService;
         this.organisationUnitGroupService = organisationUnitGroupService;
         this.dimensionService = dimensionService;
         this.idObjectManager = idObjectManager;
@@ -483,17 +477,6 @@ public class DefaultExpressionService
         return getExpressionDimensionalItemIds( expression, parseType ).stream()
             .filter( DimensionalItemId::isDataElementOrOperand )
             .map( i -> dataElementService.getDataElement( i.getId0() ) )
-            .collect( Collectors.toSet() );
-    }
-
-    @Override
-    @Transactional
-    public Set<DataElementOperand> getExpressionOperands( String expression, ParseType parseType )
-    {
-        return getExpressionDimensionalItemIds( expression, parseType ).stream()
-            .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> new DataElementOperand( dataElementService.getDataElement( i.getId0() ),
-                i.getId1() == null ? null : categoryService.getCategoryOptionCombo( i.getId1() ) ) )
             .collect( Collectors.toSet() );
     }
 

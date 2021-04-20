@@ -33,6 +33,7 @@ import java.util.List;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.opensymphony.xwork2.Action;
@@ -40,7 +41,7 @@ import com.opensymphony.xwork2.Action;
 /**
  * @author Lars Helge Overland
  */
-public class GetCategoryOptionsAction
+public class GetCategoryOptionsAction extends BaseAction
     implements Action
 {
     @Autowired
@@ -64,7 +65,12 @@ public class GetCategoryOptionsAction
     @Override
     public String execute()
     {
+        canReadType( CategoryOption.class );
+
         categoryOptions = new ArrayList<>( categoryService.getAllCategoryOptions() );
+
+        User currentUser = currentUserService.getCurrentUser();
+        categoryOptions.forEach( instance -> canReadInstance( instance, currentUser ) );
 
         Collections.sort( categoryOptions );
 

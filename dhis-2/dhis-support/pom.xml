@@ -24,6 +24,7 @@
     <module>dhis-support-jdbc</module>
     <module>dhis-support-expression-parser</module>
     <module>dhis-support-artemis</module>
+    <module>dhis-support-json-filtering</module>
   </modules>
 
   <properties>

@@ -112,16 +112,16 @@ public class TrackedEntityTrackerConverterService
             tei = new TrackedEntityInstance();
             tei.setUid( te.getTrackedEntity() );
             tei.setCreated( now );
-            tei.setStoredBy( te.getStoredBy() );
         }
 
+        tei.setStoredBy( te.getStoredBy() );
         tei.setLastUpdated( now );
+        tei.setDeleted( false );
         tei.setCreatedAtClient( DateUtils.fromInstant( te.getCreatedAtClient() ) );
         tei.setLastUpdatedAtClient( DateUtils.fromInstant( te.getUpdatedAtClient() ) );
         tei.setOrganisationUnit( organisationUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.setInactive( te.isInactive() );
-        tei.setDeleted( te.isDeleted() );
         tei.setGeometry( te.getGeometry() );
 
         return tei;

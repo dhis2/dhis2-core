@@ -141,7 +141,7 @@ public class TrackerBundleParamsConverter
 
         // Set UID for all events and notes
         dataBundle.getEvents().stream()
-            .peek( event -> updateEventReferences( event, event.getTrackedEntity(), event.getEnrollment() ) )
+            .peek( event -> updateEventReferences( event, event.getEnrollment() ) )
             .forEach( event -> eventHashMap.put( event.getEvent(), event ) );
 
         // Extract all relationships
@@ -234,7 +234,7 @@ public class TrackerBundleParamsConverter
     private List<Event> extractEvents( Enrollment enrollment )
     {
         List<Event> events = enrollment.getEvents().stream()
-            .peek( event -> updateEventReferences( event, enrollment.getTrackedEntity(), enrollment.getEnrollment() ) )
+            .peek( event -> updateEventReferences( event, enrollment.getEnrollment() ) )
             .collect( Collectors.toList() );
 
         enrollment.setEvents( new ArrayList<>() );
@@ -286,15 +286,13 @@ public class TrackerBundleParamsConverter
      * Updates uid of references in an event
      *
      * @param event the event to check and update references for
-     * @param trackedEntity the parent trackedEntity uid
      * @param enrollment the parent enrollment uid
      */
-    private void updateEventReferences( Event event, String trackedEntity, String enrollment )
+    private void updateEventReferences( Event event, String enrollment )
     {
         event.setEvent( updateReference( event.getEvent() ) );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
         event.setEnrollment( StringUtils.isEmpty( enrollment ) ? null : enrollment );
-        event.setTrackedEntity( StringUtils.isEmpty( trackedEntity ) ? null : trackedEntity );
     }
 
     /**

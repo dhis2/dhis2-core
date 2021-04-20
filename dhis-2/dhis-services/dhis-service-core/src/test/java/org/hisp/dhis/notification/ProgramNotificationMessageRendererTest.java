@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.notification;
 
+import static org.hisp.dhis.notification.BaseNotificationMessageRenderer.formatDate;
 import static org.junit.Assert.assertEquals;
 
 import java.util.Arrays;
@@ -356,5 +357,20 @@ public class ProgramNotificationMessageRendererTest extends DhisSpringTest
             programNotificationTemplate );
         assertEquals( "message is " + trackedEntityInstanceA.getUid(), notificationMessage.getMessage() );
         assertEquals( "subject is " + trackedEntityInstanceA.getUid(), notificationMessage.getSubject() );
+    }
+
+    @Test
+    public void testRendererForMessageWithEventDate()
+    {
+        programNotificationTemplate.setMessageTemplate( "message is V{event_date}" );
+        programNotificationTemplate.setSubjectTemplate( "subject is V{event_date}" );
+        programNotificationTemplateStore.update( programNotificationTemplate );
+
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+            programNotificationTemplate );
+        assertEquals( "message is " + formatDate( programStageInstanceA.getExecutionDate() ),
+            notificationMessage.getMessage() );
+        assertEquals( "subject is " + formatDate( programStageInstanceA.getExecutionDate() ),
+            notificationMessage.getSubject() );
     }
 }

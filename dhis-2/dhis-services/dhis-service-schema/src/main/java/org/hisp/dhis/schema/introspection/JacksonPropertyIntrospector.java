@@ -244,6 +244,7 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
         property.setCascade( persisted.getCascade() );
         property.setOwner( persisted.isOwner() );
         property.setManyToMany( persisted.isManyToMany() );
+        property.setOneToMany( persisted.isOneToMany() );
         property.setOneToOne( persisted.isOneToOne() );
         property.setManyToOne( persisted.isManyToOne() );
         property.setOwningRole( persisted.getOwningRole() );

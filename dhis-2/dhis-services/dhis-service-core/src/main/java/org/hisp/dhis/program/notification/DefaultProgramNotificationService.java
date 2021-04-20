@@ -87,7 +87,6 @@ import com.google.common.collect.Sets;
 public class DefaultProgramNotificationService
     implements ProgramNotificationService
 {
-
     private static final Predicate<NotificationInstanceWithTemplate> IS_SCHEDULED_BY_PROGRAM_RULE = (
         iwt ) -> Objects.nonNull( iwt.getProgramNotificationInstance() ) &&
             PROGRAM_RULE.equals( iwt.getProgramNotificationTemplate().getNotificationTrigger() ) &&
@@ -129,8 +128,8 @@ public class DefaultProgramNotificationService
     // ProgramStageNotificationService implementation
     // -------------------------------------------------------------------------
 
-    @Transactional
     @Override
+    @Transactional
     public void sendScheduledNotificationsForDay( Date notificationDate )
     {
         Clock clock = new Clock( log ).startClock()
@@ -151,8 +150,8 @@ public class DefaultProgramNotificationService
         clock.logTime( String.format( "Created and sent %d messages in %s", totalMessageCount, clock.time() ) );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendScheduledNotifications()
     {
         Clock clock = new Clock( log ).startClock()
@@ -255,30 +254,30 @@ public class DefaultProgramNotificationService
         return null;
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendEventCompletionNotifications( long programStageInstance )
     {
         sendProgramStageInstanceNotifications( programStageInstanceStore.get( programStageInstance ),
             NotificationTrigger.COMPLETION );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendEnrollmentCompletionNotifications( long programInstance )
     {
         sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.COMPLETION );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendEnrollmentNotifications( long programInstance )
     {
         sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.ENROLLMENT );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendProgramRuleTriggeredNotifications( long pnt, long programInstance )
     {
         MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
@@ -286,8 +285,8 @@ public class DefaultProgramNotificationService
         sendAll( messageBatch );
     }
 
-    @Transactional
     @Override
+    @Transactional
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
