@@ -27,54 +27,10 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
-
 /**
  * @author Zubair Asghar
  */
 
-@Slf4j
-public class SendMessageProgramRuleActionValidator implements ProgramRuleActionValidator
+public class SendMessageProgramRuleActionValidator extends AbstractMessageProgramRuleActionValidator
 {
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
-    {
-        ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
-
-        if ( !programRuleAction.hasNotification() )
-        {
-            log.debug( String.format( "ProgramNotificationTemplate cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
-                    programRuleAction.getProgramRule().getUid() ) )
-                .build();
-        }
-
-        ProgramNotificationTemplate pnt = templateService.getByUid( programRuleAction.getTemplateUid() );
-
-        if ( pnt != null )
-        {
-            return ProgramRuleActionValidationResult.builder().valid( true ).build();
-        }
-
-        log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-            programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) );
-
-        return ProgramRuleActionValidationResult.builder()
-            .valid( false )
-            .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
-                programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) )
-            .build();
-    }
 }

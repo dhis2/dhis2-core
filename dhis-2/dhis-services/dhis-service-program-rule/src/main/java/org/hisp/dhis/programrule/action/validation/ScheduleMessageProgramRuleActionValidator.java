@@ -27,18 +27,9 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-import org.hisp.dhis.programrule.ProgramRuleAction;
-import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
-
 /**
  * @author Zubair Asghar
  */
-public class ScheduleMessageProgramRuleActionValidator implements ProgramRuleActionValidator
+public class ScheduleMessageProgramRuleActionValidator extends AbstractMessageProgramRuleActionValidator
 {
-    @Override
-    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
-    {
-        return null;
-    }
 }
