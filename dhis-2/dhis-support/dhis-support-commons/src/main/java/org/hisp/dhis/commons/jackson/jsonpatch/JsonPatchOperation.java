@@ -30,6 +30,7 @@ package org.hisp.dhis.commons.jackson.jsonpatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
+import org.hisp.dhis.commons.jackson.jsonpatch.operations.TestOperation;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
@@ -45,8 +46,9 @@ import lombok.Getter;
     @JsonSubTypes.Type( name = "add", value = AddOperation.class ),
     @JsonSubTypes.Type( name = "remove", value = RemoveOperation.class ),
     @JsonSubTypes.Type( name = "replace", value = ReplaceOperation.class ),
+    @JsonSubTypes.Type( name = "test", value = TestOperation.class ),
 } )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "op" )
+@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "op" )
 public abstract class JsonPatchOperation
     implements Patch
 {
@@ -54,7 +56,7 @@ public abstract class JsonPatchOperation
 
     protected final JsonPointer path;
 
-    public JsonPatchOperation( String op, JsonPointer path )
+    public JsonPatchOperation( final String op, final JsonPointer path )
     {
         this.op = op;
         this.path = path;

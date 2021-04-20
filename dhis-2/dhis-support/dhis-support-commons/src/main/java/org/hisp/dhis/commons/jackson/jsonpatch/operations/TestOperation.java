@@ -26,47 +26,31 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.commons.jackson;
+package org.hisp.dhis.commons.jackson.jsonpatch.operations;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
 
-import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
-import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 
 /**
  * @author Morten Olav Hansen
  */
-public class JsonPatchTest
+public class TestOperation extends JsonPatchValueOperation
 {
-    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
-
-    @Test
-    public void testJsonPatchDeserializeEmpty()
-        throws JsonProcessingException
+    @JsonCreator
+    public TestOperation(@JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
-        JsonPatch patch = jsonMapper.readValue( "[]", JsonPatch.class );
-        assertNotNull( patch );
-        assertTrue( patch.getOperations().isEmpty() );
+        super( "test", path, value );
     }
 
-    @Test
-    public void testJsonPatchDeserializeWithOps()
-        throws JsonProcessingException
+    @Override
+    public JsonNode apply( JsonNode node )
+        throws JsonPatchException
     {
-        JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
-            "{\"op\": \"replace\", \"path\": \"/aaa\", \"value\": \"bbb\"}," +
-            "{\"op\": \"test\", \"path\": \"/aaa\", \"value\": \"ccc\"}," +
-            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
-            "]", JsonPatch.class );
-
-        assertNotNull( patch );
-        assertEquals( 3, patch.getOperations().size() );
+        return null;
     }
 }
