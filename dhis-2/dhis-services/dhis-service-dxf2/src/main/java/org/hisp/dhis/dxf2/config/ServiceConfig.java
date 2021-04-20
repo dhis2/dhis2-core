@@ -321,13 +321,11 @@ public class ServiceConfig
     @Bean
     public Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> programRuleActionValidatorMap()
     {
-        Map<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>> validatorMap = new HashMap<>();
-
-        validatorMap.put( ProgramRuleActionType.SENDMESSAGE, SendMessageProgramRuleActionValidator.class );
-        validatorMap.put( ProgramRuleActionType.SCHEDULEMESSAGE, ScheduleMessageProgramRuleActionValidator.class );
-        validatorMap.put( ProgramRuleActionType.SHOWERROR, ShowErrorProgramRuleActionValidator.class );
-        validatorMap.put( ProgramRuleActionType.SHOWWARNING, ShowWarningProgramRuleActionValidator.class );
-
-        return validatorMap;
+        return new ImmutableMap.Builder<ProgramRuleActionType, Class<? extends ProgramRuleActionValidator>>()
+            .put( ProgramRuleActionType.SENDMESSAGE, SendMessageProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SCHEDULEMESSAGE, ScheduleMessageProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWERROR, ShowErrorProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWWARNING, ShowWarningProgramRuleActionValidator.class )
+            .build();
     }
 }
