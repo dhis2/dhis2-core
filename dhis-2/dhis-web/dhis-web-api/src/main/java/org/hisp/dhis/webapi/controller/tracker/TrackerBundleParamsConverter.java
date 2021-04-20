@@ -285,7 +285,7 @@ public class TrackerBundleParamsConverter
     /**
      * Updates uid of references in an event
      *
-     * @param event      the event to check and update references for
+     * @param event the event to check and update references for
      * @param enrollment the parent enrollment uid
      */
     private void updateEventReferences( Event event, String enrollment )
