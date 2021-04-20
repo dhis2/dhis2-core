@@ -484,6 +484,11 @@ public class ValidationUtils
      */
     public static String dataValueIsValid( String value, ValueType valueType )
     {
+        if ( value == null || value.trim().isEmpty() )
+        {
+            return null;
+        }
+
         if ( valueType == null )
         {
             return "data_element_or_type_null_or_empty";

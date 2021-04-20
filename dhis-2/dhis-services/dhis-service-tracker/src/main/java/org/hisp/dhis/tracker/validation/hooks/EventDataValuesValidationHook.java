@@ -74,7 +74,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateDataElement( reporter, dataElement, dataValue, programStage );
+            validateCompulsoryDataElement( reporter, dataElement, dataValue, programStage );
             validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
@@ -99,37 +99,44 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage )
     {
+        final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
 
-        if ( dataValue.getValue() == null || dataValue.getValue().trim().isEmpty() )
+        if ( status != null )
         {
-            Optional<ProgramStageDataElement> optionalPsde = Optional.ofNullable( programStage )
-                .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
-                    .filter(
-                        psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
-                    .findFirst() );
-
-            if ( optionalPsde.isPresent() )
-                addError( reporter, E1076, DataElement.class.getSimpleName(),
-                    dataElement.getUid() );
-
+            addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
         }
         else
         {
-
-            final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
-
-            if ( status != null )
+            if ( !validateCompulsoryDataElement( reporter, dataElement, programStage ) )
             {
-                addError( reporter, TrackerErrorCode.E1302, dataElement.getUid(), status );
+                return;
             }
-            else
-            {
-                validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
-            }
+
+            validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
+    }
+
+    private boolean validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+        ProgramStage programStage )
+    {
+        Optional<ProgramStageDataElement> optionalPsde = Optional.ofNullable( programStage )
+            .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
+                .filter(
+                    psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
+                .findFirst() );
+
+        if ( optionalPsde.isPresent() )
+        {
+            addError( reporter, E1076, DataElement.class.getSimpleName(),
+                dataElement.getUid() );
+
+            return false;
+        }
+
+        return true;
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
@@ -160,6 +167,11 @@ public class EventDataValuesValidationHook
     private void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter, DataValue dataValue,
         DataElement dataElement )
     {
+        if ( dataValue == null || dataValue.getValue() == null )
+        {
+            return;
+        }
+
         boolean isFile = dataElement.getValueType() != null && dataElement.getValueType().isFile();
         if ( !isFile )
         {
