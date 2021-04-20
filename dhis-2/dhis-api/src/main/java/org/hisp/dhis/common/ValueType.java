@@ -32,7 +32,6 @@ import static java.util.stream.Collectors.toSet;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.function.Function;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -48,45 +47,30 @@ import com.google.common.collect.ImmutableSet;
 @JacksonXmlRootElement( localName = "valueType", namespace = DxfNamespaces.DXF_2_0 )
 public enum ValueType
 {
-    TEXT( String.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
-    LONG_TEXT( String.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
-    LETTER( String.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
+    TEXT( String.class, true ),
+    LONG_TEXT( String.class, true ),
+    LETTER( String.class, true ),
     PHONE_NUMBER( String.class, false ),
     EMAIL( String.class, false ),
-    BOOLEAN( Boolean.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    TRUE_ONLY( Boolean.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    BOOLEAN( Boolean.class, true ),
+    TRUE_ONLY( Boolean.class, true ),
     DATE( LocalDate.class, false ),
     DATETIME( LocalDateTime.class, false ),
     TIME( String.class, false ),
-    NUMBER( Double.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    UNIT_INTERVAL( Double.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    PERCENTAGE( Double.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    INTEGER( Integer.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    INTEGER_POSITIVE( Integer.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    INTEGER_NEGATIVE( Integer.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
-    INTEGER_ZERO_OR_POSITIVE( Integer.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    NUMBER( Double.class, true ),
+    UNIT_INTERVAL( Double.class, true ),
+    PERCENTAGE( Double.class, true ),
+    INTEGER( Integer.class, true ),
+    INTEGER_POSITIVE( Integer.class, true ),
+    INTEGER_NEGATIVE( Integer.class, true ),
+    INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
     USERNAME( String.class, false ),
-    COORDINATE( Point.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class,
-        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.COUNT,
-        FileTypeValueOptions.class ),
+    FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
@@ -116,7 +100,7 @@ public enum ValueType
     @Deprecated
     private final Class<?> javaClass;
 
-    private Function<AggregationType, Boolean> aggregateable;
+    private boolean aggregateable;
 
     private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
 
@@ -128,25 +112,11 @@ public enum ValueType
     ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
-        this.aggregateable = ( aggregated ) -> aggregateable;
-        this.valueTypeOptionsClass = null;
-    }
-
-    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
-    {
-        this( javaClass, aggregateable );
-        this.valueTypeOptionsClass = valueTypeOptionsClass;
-    }
-
-    ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable )
-    {
-        this.javaClass = javaClass;
         this.aggregateable = aggregateable;
         this.valueTypeOptionsClass = null;
     }
 
-    ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable,
-        Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
     {
         this( javaClass, aggregateable );
         this.valueTypeOptionsClass = valueTypeOptionsClass;
@@ -205,9 +175,31 @@ public enum ValueType
         return NUMERIC_TYPES.contains( this );
     }
 
+    public boolean isAggregateable()
+    {
+        return aggregateable;
+    }
+
     public boolean isAggregateable( AggregationType aggregationType )
     {
-        return aggregateable.apply( aggregationType );
+        if ( !aggregationType.isAggregateable() || !isAggregateable() )
+        {
+            return false;
+        }
+
+        if ( this == FILE_RESOURCE && aggregationType != AggregationType.COUNT )
+        {
+            return false;
+        }
+
+        if ( (this == TEXT || this == LONG_TEXT || this == LETTER) )
+        {
+            return aggregationType == AggregationType.NONE;
+        }
+        else
+        {
+            return aggregationType != AggregationType.NONE;
+        }
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
@@ -269,8 +261,7 @@ public enum ValueType
     public static Set<ValueType> getAggregateables()
     {
         return Arrays.stream( ValueType.values() )
-            .filter( v -> Arrays.stream( AggregationType.values() )
-                .anyMatch( a -> a.isAggregateable() && v.aggregateable.apply( a ) ) )
-            .collect( toSet() );
+            .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregateable ) ).collect( toSet() );
     }
+
 }
