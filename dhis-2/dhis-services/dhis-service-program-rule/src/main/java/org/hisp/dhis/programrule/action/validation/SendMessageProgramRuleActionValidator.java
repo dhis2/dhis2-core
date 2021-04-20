@@ -50,18 +50,15 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
     {
         ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
 
-        ProgramRule programRule = validationService.getProgramRuleService()
-            .getProgramRule( programRuleAction.getProgramRule().getUid() );
-
         if ( !programRuleAction.hasNotification() )
         {
             log.debug( String.format( "ProgramNotificationTemplate cannot be null for program rule: %s ",
-                programRule.getName() ) );
+                programRuleAction.getProgramRule().getUid() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
-                    programRule.getName() ) )
+                        programRuleAction.getProgramRule().getUid() ) )
                 .build();
         }
 
@@ -73,12 +70,12 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
         }
 
         log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-            programRuleAction.getTemplateUid(), programRule.getName() ) );
+            programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) );
 
         return ProgramRuleActionValidationResult.builder()
             .valid( false )
             .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
-                programRuleAction.getTemplateUid(), programRule.getName() ) )
+                programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) )
             .build();
     }
 }
