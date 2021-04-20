@@ -79,7 +79,7 @@ public class EventDataValuesValidationHook
         }
 
         validateMandatoryDataValues( event, context, reporter );
-        validateDataValueDataElementIsConnectedToProgramStage( reporter, context, event, programStage );
+        validateDataValueDataElementIsConnectedToProgramStage( reporter, event, programStage );
     }
 
     private void validateMandatoryDataValues( Event event, TrackerImportValidationContext context,
@@ -139,8 +139,8 @@ public class EventDataValuesValidationHook
         return true;
     }
 
-    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter,
-        TrackerImportValidationContext ctx, Event event, ProgramStage programStage )
+    private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
+        ProgramStage programStage )
     {
 
         if ( null == programStage )
