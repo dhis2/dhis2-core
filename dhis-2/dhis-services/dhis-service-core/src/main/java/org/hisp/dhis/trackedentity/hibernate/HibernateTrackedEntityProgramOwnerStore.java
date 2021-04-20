@@ -89,7 +89,6 @@ public class HibernateTrackedEntityProgramOwnerStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId )
     {
         List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );

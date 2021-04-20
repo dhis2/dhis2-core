@@ -29,6 +29,7 @@ package org.hisp.dhis.keyjsonvalue;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 import org.hisp.dhis.DhisSpringTest;
@@ -56,8 +57,8 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
     @Test
     public void testAddKeyJsonValuesAndGetNamespaces()
     {
-        KeyJsonValue entryA = addKeyJsonValue( "A", "1" );
-        KeyJsonValue entryB = addKeyJsonValue( "B", "1" );
+        addKeyJsonValue( "A", "1" );
+        addKeyJsonValue( "B", "1" );
 
         assertContainsOnly( store.getNamespaces(), "A", "B" );
     }
@@ -65,9 +66,9 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
     @Test
     public void testAddKeyJsonValuesAndGetKeysFromNamespace()
     {
-        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
-        KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
-        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
+        addKeyJsonValue( "A", "1" );
+        addKeyJsonValue( "A", "2" );
+        addKeyJsonValue( "B", "1" );
 
         assertContainsOnly( store.getKeysInNamespace( "A" ), "1", "2" );
     }
@@ -89,15 +90,16 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
         KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
 
         assertContainsOnly( store.getKeyJsonValueByNamespace( "A" ), entryA1, entryA2, entryA3 );
+        assertFalse( store.getKeyJsonValueByNamespace( "A" ).contains( entryB1 ) );
     }
 
     @Test
     public void testCountKeysInNamespace()
     {
-        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
-        KeyJsonValue entryA2 = addKeyJsonValue( "A", "2" );
-        KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
-        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
+        addKeyJsonValue( "A", "1" );
+        addKeyJsonValue( "A", "2" );
+        addKeyJsonValue( "A", "3" );
+        addKeyJsonValue( "B", "1" );
 
         assertEquals( 3, store.countKeysInNamespace( "A" ) );
         assertEquals( 1, store.countKeysInNamespace( "B" ) );
@@ -107,10 +109,10 @@ public class KeyJsonValueStoreTest extends DhisSpringTest
     @Test
     public void deleteNamespace()
     {
-        KeyJsonValue entryA1 = addKeyJsonValue( "A", "1" );
-        KeyJsonValue entryA3 = addKeyJsonValue( "A", "3" );
-        KeyJsonValue entryB1 = addKeyJsonValue( "B", "1" );
-        KeyJsonValue entryC1 = addKeyJsonValue( "C", "1" );
+        addKeyJsonValue( "A", "1" );
+        addKeyJsonValue( "A", "3" );
+        addKeyJsonValue( "B", "1" );
+        addKeyJsonValue( "C", "1" );
 
         store.deleteNamespace( "A" );
 
