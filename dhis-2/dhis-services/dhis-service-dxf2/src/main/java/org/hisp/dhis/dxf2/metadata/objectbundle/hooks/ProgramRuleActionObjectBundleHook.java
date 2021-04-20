@@ -82,7 +82,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 
         ProgramRuleAction programRuleAction = (ProgramRuleAction) object;
 
-        ProgramRuleActionValidationResult validationResult = isRuleActionValid( programRuleAction );
+        ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction );
 
         if ( !validationResult.isValid() )
         {
@@ -92,7 +92,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         return ImmutableList.of();
     }
 
-    private ProgramRuleActionValidationResult isRuleActionValid( ProgramRuleAction ruleAction )
+    private ProgramRuleActionValidationResult validateProgramRuleAction( ProgramRuleAction ruleAction )
     {
         ProgramRuleActionValidationResult validationResult;
 
