@@ -33,6 +33,7 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -48,12 +49,19 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
         ProgramRuleActionValidationService validationService )
     {
         ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
+
+        ProgramRule programRule = validationService.getProgramRuleService()
+            .getProgramRule( programRuleAction.getProgramRule().getUid() );
+
         if ( !programRuleAction.hasNotification() )
         {
+            log.debug( String.format( "ProgramNotificationTemplate cannot be null for program rule: %s ",
+                programRule.getName() ) );
+
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
-                    programRuleAction.getProgramRule().getName() ) )
+                    programRule.getName() ) )
                 .build();
         }
 
@@ -64,10 +72,13 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
             return ProgramRuleActionValidationResult.builder().valid( true ).build();
         }
 
+        log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
+            programRuleAction.getTemplateUid(), programRule.getName() ) );
+
         return ProgramRuleActionValidationResult.builder()
             .valid( false )
             .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
-                programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getName() ) )
+                programRuleAction.getTemplateUid(), programRule.getName() ) )
             .build();
     }
 }

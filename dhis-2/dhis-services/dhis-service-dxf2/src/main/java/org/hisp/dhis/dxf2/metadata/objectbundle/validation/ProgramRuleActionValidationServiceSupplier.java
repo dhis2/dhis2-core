@@ -36,6 +36,7 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.springframework.stereotype.Component;
@@ -63,18 +64,22 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
     private final ProgramNotificationTemplateService templateService;
 
     @Nonnull
+    private final ProgramRuleService programRuleService;
+
+    @Nonnull
     private final OptionService optionService;
 
     public ProgramRuleActionValidationServiceSupplier( @Nonnull DataElementService dataElementService,
         @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService,
         @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService,
-        @Nonnull OptionService optionService )
+        @Nonnull ProgramRuleService programRuleService, @Nonnull OptionService optionService )
     {
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
         this.programStageService = programStageService;
         this.sectionService = sectionService;
         this.templateService = templateService;
+        this.programRuleService = programRuleService;
         this.optionService = optionService;
     }
 
@@ -88,6 +93,7 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
             .programStageService( programStageService )
             .stageSectionService( sectionService )
             .optionService( optionService )
+            .programRuleService( programRuleService )
             .build();
     }
 }

@@ -36,6 +36,7 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRuleService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -46,6 +47,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 @Builder
 public class ProgramRuleActionValidationService
 {
+    private final ProgramRuleService programRuleService;
+
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService attributeService;
