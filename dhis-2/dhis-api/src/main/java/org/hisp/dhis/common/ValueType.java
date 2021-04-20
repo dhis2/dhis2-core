@@ -50,31 +50,44 @@ import com.google.common.collect.ImmutableSet;
 @JacksonXmlRootElement( localName = "valueType", namespace = DxfNamespaces.DXF_2_0 )
 public enum ValueType
 {
-    TEXT( String.class, true ),
-    LONG_TEXT( String.class, true ),
-    LETTER( String.class, true ),
+    TEXT( String.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
+    LONG_TEXT( String.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
+    LETTER( String.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.NONE ),
     PHONE_NUMBER( String.class, false ),
     EMAIL( String.class, false ),
-    BOOLEAN( Boolean.class, true ),
-    TRUE_ONLY( Boolean.class, true ),
+    BOOLEAN( Boolean.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    TRUE_ONLY( Boolean.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
     DATE( LocalDate.class, false ),
     DATETIME( LocalDateTime.class, false ),
     TIME( String.class, false ),
-    NUMBER( Double.class, true ),
-    UNIT_INTERVAL( Double.class, true ),
-    PERCENTAGE( Double.class, true ),
-    INTEGER( Integer.class, true ),
-    INTEGER_POSITIVE( Integer.class, true ),
-    INTEGER_NEGATIVE( Integer.class, true ),
-    INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
+    NUMBER( Double.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    UNIT_INTERVAL( Double.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    PERCENTAGE( Double.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    INTEGER( Integer.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    INTEGER_POSITIVE( Integer.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    INTEGER_NEGATIVE( Integer.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
+    INTEGER_ZERO_OR_POSITIVE( Integer.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
     USERNAME( String.class, false ),
-    COORDINATE( Point.class, true ),
+    COORDINATE( Point.class,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType != AggregationType.NONE ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
     FILE_RESOURCE( String.class,
-        ( aggregationType ) -> aggregationType == AggregationType.COUNT,
+        ( aggregationType ) -> aggregationType.isAggregateable() && aggregationType == AggregationType.COUNT,
         FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
@@ -121,17 +134,17 @@ public enum ValueType
         this.valueTypeOptionsClass = null;
     }
 
+    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    {
+        this( javaClass, aggregateable );
+        this.valueTypeOptionsClass = valueTypeOptionsClass;
+    }
+
     ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable )
     {
         this.javaClass = javaClass;
         this.aggregateable = aggregateable;
         this.valueTypeOptionsClass = null;
-    }
-
-    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
-    {
-        this( javaClass, aggregateable );
-        this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
     ValueType( Class<?> javaClass, Function<AggregationType, Boolean> aggregateable,
