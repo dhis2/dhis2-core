@@ -152,6 +152,8 @@ public enum ErrorCode
 
     E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
+    E4034( "A program notification template `{0}` associated with program rule name `{1}` does not exist" ),
+    E4035( "A program notification template associated with program rule name `{0}` is null" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

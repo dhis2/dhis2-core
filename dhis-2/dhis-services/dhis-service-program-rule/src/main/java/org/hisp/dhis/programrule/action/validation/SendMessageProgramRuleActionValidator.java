@@ -29,6 +29,10 @@ package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -43,6 +47,28 @@ public class SendMessageProgramRuleActionValidator implements ProgramRuleActionV
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
         ProgramRuleActionValidationService validationService )
     {
-        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+        ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
+dd
+        if ( !programRuleAction.hasNotification() )
+        {
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
+                    programRuleAction.getProgramRule().getName() ) )
+                .build();
+        }
+
+        ProgramNotificationTemplate pnt = templateService.getByUid( programRuleAction.getTemplateUid() );
+
+        if ( pnt != null )
+        {
+            return ProgramRuleActionValidationResult.builder().valid( true ).build();
+        }
+
+        return ProgramRuleActionValidationResult.builder()
+            .valid( false )
+            .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
+                programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getName() ) )
+            .build();
     }
 }

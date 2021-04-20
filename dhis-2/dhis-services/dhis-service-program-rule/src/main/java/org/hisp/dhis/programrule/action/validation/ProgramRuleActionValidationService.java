@@ -31,6 +31,11 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.option.OptionGroupStore;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
@@ -44,4 +49,14 @@ public class ProgramRuleActionValidationService
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService attributeService;
+
+    private final ProgramNotificationTemplateService notificationTemplateService;
+
+    private final ProgramStageSectionService stageSectionService;
+
+    private final OptionService optionService;
+
+    private final OptionGroupStore optionGroupStore;
+
+    private final ProgramStageService programStageService;
 }
