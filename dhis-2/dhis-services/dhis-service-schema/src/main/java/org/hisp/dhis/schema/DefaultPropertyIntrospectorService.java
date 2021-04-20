@@ -37,6 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.schema.introspection.GistPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.HibernatePropertyIntrospector;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyIntrospector;
@@ -65,7 +66,8 @@ public class DefaultPropertyIntrospectorService implements PropertyIntrospectorS
         this( new HibernatePropertyIntrospector( sessionFactory )
             .then( new JacksonPropertyIntrospector() )
             .then( new TranslatablePropertyIntrospector() )
-            .then( new PropertyPropertyIntrospector() ) );
+            .then( new PropertyPropertyIntrospector() )
+            .then( new GistPropertyIntrospector() ) );
     }
 
     public DefaultPropertyIntrospectorService( PropertyIntrospector introspector )

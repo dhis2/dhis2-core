@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.scheduling;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 
 import java.util.Map;
 
@@ -151,7 +152,15 @@ public class JobConfigurationController
     @Override
     protected void postPatchEntity( JobConfiguration jobConfiguration )
     {
+        if ( !jobConfiguration.isEnabled() )
+        {
+            schedulingManager.stopJob( jobConfiguration );
+        }
         jobConfigurationService.refreshScheduling( jobConfiguration );
+        if ( jobConfiguration.getJobStatus() != DISABLED )
+        {
+            schedulingManager.scheduleJob( jobConfiguration );
+        }
     }
 
     private void checkConfigurable( JobConfiguration configuration, HttpStatus status, String message )

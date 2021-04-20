@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.association.IdentifiableObjectAssociations;
 import org.hisp.dhis.dataelement.DataElement;
@@ -51,7 +50,6 @@ import com.google.common.collect.Lists;
 /**
  * @author Abyot Asalefew
  */
-@RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramService" )
 public class DefaultProgramService
     implements ProgramService
@@ -68,6 +66,14 @@ public class DefaultProgramService
 
     @NonNull
     private final JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore;
+
+    public DefaultProgramService( @NonNull ProgramStore programStore, @NonNull CurrentUserService currentUserService,
+        @NonNull JdbcProgramOrgUnitAssociationsStore jdbcProgramOrgUnitAssociationsStore )
+    {
+        this.programStore = programStore;
+        this.currentUserService = currentUserService;
+        this.jdbcProgramOrgUnitAssociationsStore = jdbcProgramOrgUnitAssociationsStore;
+    }
 
     // -------------------------------------------------------------------------
     // Implementation methods
