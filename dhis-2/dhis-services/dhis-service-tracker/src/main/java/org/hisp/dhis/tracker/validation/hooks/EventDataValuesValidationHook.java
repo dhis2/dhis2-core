@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.validation.hooks;
 
+import static com.google.api.client.util.Preconditions.checkNotNull;
 import static org.hisp.dhis.tracker.report.TrackerErrorCode.*;
 import static org.hisp.dhis.tracker.validation.hooks.ValidationUtils.validateMandatoryDataValue;
 
@@ -62,6 +63,8 @@ public class EventDataValuesValidationHook
 
         ProgramStage programStage = context.getProgramStage( event.getProgramStage() );
 
+        checkNotNull( programStage, TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL );
+
         for ( DataValue dataValue : event.getDataValues() )
         {
             // event dates (createdAt, updatedAt) are ignored and set by the
@@ -74,7 +77,7 @@ public class EventDataValuesValidationHook
                 continue;
             }
 
-            validateCompulsoryDataElement( reporter, dataElement, dataValue, programStage );
+            validateDataElement( reporter, dataElement, dataValue, programStage );
             validateOptionSet( reporter, dataElement, dataValue.getValue() );
         }
 
@@ -99,7 +102,7 @@ public class EventDataValuesValidationHook
         }
     }
 
-    private void validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
         DataValue dataValue, ProgramStage programStage )
     {
         final String status = ValidationUtils.dataValueIsValid( dataValue.getValue(), dataElement );
@@ -110,15 +113,15 @@ public class EventDataValuesValidationHook
         }
         else
         {
-            validateCompulsoryDataElement( reporter, dataElement, programStage, dataValue );
+            validateDataElement( reporter, dataElement, programStage, dataValue );
             validateFileNotAlreadyAssigned( reporter, dataValue, dataElement );
         }
     }
 
-    private void validateCompulsoryDataElement( ValidationErrorReporter reporter, DataElement dataElement,
+    private void validateDataElement( ValidationErrorReporter reporter, DataElement dataElement,
         ProgramStage programStage, DataValue dataValue )
     {
-        Optional<ProgramStageDataElement> optionalPsde = Optional.ofNullable( programStage )
+        Optional<ProgramStageDataElement> optionalPsde = Optional.of( programStage )
             .map( ps -> ps.getProgramStageDataElements().stream() ).flatMap( psdes -> psdes
                 .filter(
                     psde -> psde.getDataElement().getUid().equals( dataElement.getUid() ) && psde.isCompulsory() )
@@ -129,16 +132,11 @@ public class EventDataValuesValidationHook
             addError( reporter, E1076, DataElement.class.getSimpleName(),
                 dataElement.getUid() );
         }
-
     }
 
     private void validateDataValueDataElementIsConnectedToProgramStage( ValidationErrorReporter reporter, Event event,
         ProgramStage programStage )
     {
-
-        if ( null == programStage )
-            return;
-
         final Set<String> dataElements = programStage.getProgramStageDataElements()
             .stream()
             .map( de -> de.getDataElement().getUid() )
