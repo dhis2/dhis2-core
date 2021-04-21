@@ -130,24 +130,40 @@ public class NameTranslationStatement
 
         if ( isNotBlank( table ) )
         {
-            columns
-                .append(
-                    ", (case when " + table + "_displayname.value is not null then " + table
-                        + "_displayname.value else "
-                        + table + ".name end) as i18n_name" )
-                .append(
-                    ", (case when " + table + "_displayshortname.value is not null then " + table
-                        + "_displayshortname.value else " + table + ".shortname end) as i18n_shortname" );
-
             if ( includeProgram )
             {
                 columns
                     .append(
-                        ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as p_i18n_name" )
+                        ", (case when p_displayname.value is not null then p_displayname.value else program.name end) as i18n_first_name" )
                     .append(
-                        ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as p_i18n_shortname" );
+                        ", (case when p_displayshortname.value is not null then p_displayshortname.value else program.shortname end) as i18n_first_shortname" )
+                    .append( translationNamesColumnsForItem( table, "i18n_second" ) );
+            }
+            else
+            {
+                columns
+                    .append( translationNamesColumnsForItem( table, "i18n_first" ) )
+                    .append( ", cast (null as text) as i18n_second_name" )
+                    .append( ", cast (null as text) as i18n_second_shortname" );
             }
         }
+
+        return columns.toString();
+    }
+
+    private static String translationNamesColumnsForItem( final String table, final String i18nColumnPrefix )
+    {
+        final StringBuilder columns = new StringBuilder();
+
+        columns
+            .append(
+                ", (case when " + table + "_displayname.value is not null then " + table
+                    + "_displayname.value else "
+                    + table + ".name end) as " + i18nColumnPrefix + "_name" )
+            .append(
+                ", (case when " + table + "_displayshortname.value is not null then " + table
+                    + "_displayshortname.value else " + table + ".shortname end) as " + i18nColumnPrefix
+                    + "_shortname" );
 
         return columns.toString();
     }

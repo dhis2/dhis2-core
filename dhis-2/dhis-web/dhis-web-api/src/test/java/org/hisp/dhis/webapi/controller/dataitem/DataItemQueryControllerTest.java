@@ -125,7 +125,7 @@ public class DataItemQueryControllerTest
         assertThat( actualResponse, is( not( nullValue() ) ) );
         assertThat( actualResponse.getStatusCode(), is( OK ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any( RootNode.class ), anyList(), anySet() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anyList(), any(), any(),
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any( RootNode.class ), anySet(), any(), any(),
             anySet() );
     }
 
@@ -153,7 +153,7 @@ public class DataItemQueryControllerTest
         assertThat( actualResponse, is( not( nullValue() ) ) );
         assertThat( actualResponse.getStatusCode(), is( OK ) );
         verify( responseHandler, times( 1 ) ).addResultsToNode( any(), anyList(), anySet() );
-        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anyList(), any(), any(), anySet() );
+        verify( responseHandler, times( 1 ) ).addPaginationToNode( any(), anySet(), any(), any(), anySet() );
     }
 
     @Test

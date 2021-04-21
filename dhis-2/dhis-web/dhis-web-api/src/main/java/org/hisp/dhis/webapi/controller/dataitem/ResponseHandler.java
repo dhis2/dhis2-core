@@ -30,20 +30,15 @@ package org.hisp.dhis.webapi.controller.dataitem;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.collect.Lists.newArrayList;
 import static java.lang.String.join;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
-import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
-import static org.hisp.dhis.dataitem.query.shared.QueryParam.USER_ID;
 import static org.hisp.dhis.node.NodeUtils.createPager;
 import static org.hisp.dhis.webapi.controller.dataitem.DataItemQueryController.API_RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
 
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.annotation.PostConstruct;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
@@ -59,7 +54,6 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.LinkService;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
@@ -79,34 +73,26 @@ import org.springframework.stereotype.Component;
 @Component
 class ResponseHandler
 {
-    private final String CACHE_DATA_ITEMS_PAGINATION = "dataItemsPagination";
-
     private final QueryExecutor queryExecutor;
 
     private final LinkService linkService;
 
     private final FieldFilterService fieldFilterService;
 
-    private final Environment environment;
-
-    private final CacheProvider cacheProvider;
-
-    private Cache<Integer> PAGE_COUNTING_CACHE;
+    private final Cache<Long> pageCountingCache;
 
     ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
-        final FieldFilterService fieldFilterService, final Environment environment, final CacheProvider cacheProvider )
+        final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )
     {
-        checkNotNull( queryExecutor );
+        checkNotNull(queryExecutor);
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
-        checkNotNull( environment );
         checkNotNull( cacheProvider );
 
         this.queryExecutor = queryExecutor;
         this.linkService = linkService;
         this.fieldFilterService = fieldFilterService;
-        this.environment = environment;
-        this.cacheProvider = cacheProvider;
+        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
     }
 
     /**
@@ -138,27 +124,24 @@ class ResponseHandler
      * @param filters the query filters used in the count query
      */
     void addPaginationToNode( final RootNode rootNode,
-        final List<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final User currentUser,
         final WebOptions options, final Set<String> filters )
     {
         if ( options.hasPaging() && isNotEmpty( targetEntities ) )
         {
             // Defining query params map and setting common params.
             final MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( QueryParam.USER_UID,
-                currentUser.getUid() ).addValue( USER_ID, currentUser.getId() );
+                currentUser.getUid() );
 
             setFilteringParams( filters, options, paramsMap, currentUser );
 
-            final AtomicInteger count = new AtomicInteger();
+            final AtomicLong count = new AtomicLong();
 
             // Counting and summing up the results for each entity.
-            for ( final Class<? extends BaseIdentifiableObject> entity : targetEntities )
-            {
-                count.addAndGet( PAGE_COUNTING_CACHE.get(
-                    createPageCountingCacheKey( currentUser, entity, filters, options ),
-                    p -> countEntityRowsTotal( entity, options, paramsMap ) ).orElse( 0 ) );
-            }
-
+             count.addAndGet( pageCountingCache.get(
+                    createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
+                    p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ).orElse( 0L ) );
+   
             final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
 
             linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
@@ -166,9 +149,9 @@ class ResponseHandler
             rootNode.addChild( createPager( pager ) );
         }
     }
-
-    private int countEntityRowsTotal( final Class<? extends BaseIdentifiableObject> entity, final WebOptions options,
-        final MapSqlParameterSource paramsMap )
+    
+    private long countEntityRowsTotal( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+        final WebOptions options, final MapSqlParameterSource paramsMap )
     {
         // Calculate pagination.
         if ( options.hasPaging() )
@@ -177,27 +160,14 @@ class ResponseHandler
             paramsMap.addValue( QueryParam.MAX_LIMIT, maxLimit );
         }
 
-        return queryExecutor.count( entity, paramsMap );
+        return new Long( queryExecutor.count( targetEntities, paramsMap ) );
     }
 
     private String createPageCountingCacheKey( final User currentUser,
-        final Class<? extends BaseIdentifiableObject> entity, final Set<String> filters, final WebOptions options )
+        final Set<Class<? extends BaseIdentifiableObject>> targetEntities, final Set<String> filters,
+        final WebOptions options )
     {
-        return currentUser.getUsername() + "." + entity + "." + join( "|", filters ) + "."
+        return currentUser.getUsername() + "." + targetEntities + "." + join( "|", filters ) + "."
             + options.getRootJunction().name();
-    }
-
-    @PostConstruct
-    void init()
-    {
-        // formatter:off
-        PAGE_COUNTING_CACHE = cacheProvider.newCacheBuilder( Integer.class )
-            .forRegion( CACHE_DATA_ITEMS_PAGINATION )
-            .expireAfterWrite( 5, MINUTES )
-            .withInitialCapacity( 1000 )
-            .forceInMemory()
-            .withMaximumSize( isTestRun( environment.getActiveProfiles() ) ? 0 : 20000 )
-            .build();
-        // formatter:on
     }
 }

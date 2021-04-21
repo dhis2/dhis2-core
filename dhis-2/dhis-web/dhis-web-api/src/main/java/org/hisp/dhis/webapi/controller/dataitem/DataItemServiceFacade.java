@@ -37,7 +37,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.ex
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.extractEntityFromEqualFilter;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.setFilteringParams;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.setOrderingParams;
-import static org.hisp.dhis.webapi.controller.dataitem.helper.OrderingHelper.sort;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.paginate;
 import static org.hisp.dhis.webapi.controller.dataitem.helper.PaginationHelper.setMaxResultsWhenPaging;
 import static org.hisp.dhis.webapi.controller.dataitem.validator.FilterValidator.containsFilterWithAnyOfPrefixes;
@@ -48,19 +47,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class is tight to the controller layer and is responsible to encapsulate
@@ -77,8 +75,6 @@ import org.springframework.stereotype.Component;
 public class DataItemServiceFacade
 {
     private final CurrentUserService currentUserService;
-
-    private final AclService aclService;
 
     private final QueryExecutor queryExecutor;
 
@@ -113,17 +109,7 @@ public class DataItemServiceFacade
 
             setMaxResultsWhenPaging( options, paramsMap );
 
-            // Retrieving all items for each entity type.
-            for ( final Class<? extends BaseIdentifiableObject> entity : targetEntities )
-            {
-                if ( aclService.canRead( currentUser, entity ) )
-                {
-                    dataItems.addAll( queryExecutor.find( entity, paramsMap ) );
-                }
-            }
-
-            // In memory sorting.
-            sort( dataItems, orderParams );
+            dataItems.addAll( queryExecutor.find( targetEntities, paramsMap ) );
 
             // In memory pagination.
             return paginate( options, dataItems );
