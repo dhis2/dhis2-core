@@ -95,6 +95,9 @@
             <div id="loginMessage">
                 $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}
             </div>
+            <div id="lockedMessage" style="display: none">
+                $!{request.getSession().getAttribute("LOGIN_FAILED_MESSAGE")}
+            </div>
         #end
         #if ( $keyApplicationNotification )
             <div id="notificationArea">
