@@ -237,6 +237,11 @@ public class Property implements Ordered, Klass
     private boolean manyToOne;
 
     /**
+     * Is property one-to-many.
+     */
+    private boolean oneToMany;
+
+    /**
      * The hibernate role of the owning side.
      */
     private String owningRole;
@@ -281,6 +286,8 @@ public class Property implements Ordered, Klass
     private boolean translatable;
 
     private String translationKey;
+
+    private GistPreferences gistPreferences = GistPreferences.DEFAULT;
 
     public Property()
     {
@@ -696,6 +703,18 @@ public class Property implements Ordered, Klass
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public boolean isOneToMany()
+    {
+        return oneToMany;
+    }
+
+    public void setOneToMany( boolean oneToMany )
+    {
+        this.oneToMany = oneToMany;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getOwningRole()
     {
         return owningRole;
@@ -825,6 +844,18 @@ public class Property implements Ordered, Klass
     public void setTranslatable( boolean translatable )
     {
         this.translatable = translatable;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public GistPreferences getGistPreferences()
+    {
+        return gistPreferences;
+    }
+
+    public void setGistPreferences( GistPreferences gistPreferences )
+    {
+        this.gistPreferences = gistPreferences == null ? GistPreferences.DEFAULT : gistPreferences;
     }
 
     public String key()

@@ -191,7 +191,6 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    @SuppressWarnings( "unchecked" )
     public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
     {
         String sql = getQuery( params, false );

@@ -28,7 +28,6 @@
 package org.hisp.dhis.predictor;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -212,83 +211,6 @@ public class PredictionDataValueFetcherTest
     // Tests
     // -------------------------------------------------------------------------
 
-    @Test
-    public void testGetDataValuesWithFastDb()
-        throws InterruptedException
-    {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
-        when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> fastDb() );
-
-        fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
-
-        List<DataValue> dataValues;
-
-        waitForTheOtherThread(); // Wait until fast db has loaded orgUnitB.
-
-        dataValues = fetcher.getDataValues( orgUnitA );
-        assertEquals( 0, dataValues.size() );
-
-        dataValues = fetcher.getDataValues( orgUnitB );
-        assertEquals( 1, dataValues.size() );
-        assertTrue( dataValues.contains( dataValueA ) );
-
-        waitForTheOtherThread(); // Wait until fast db has loaded orgUnitD.
-
-        dataValues = fetcher.getDataValues( orgUnitC );
-        assertEquals( 0, dataValues.size() );
-
-        dataValues = fetcher.getDataValues( orgUnitD );
-        assertEquals( 2, dataValues.size() );
-        assertTrue( dataValues.contains( dataValueB ) );
-        assertTrue( dataValues.contains( dataValueC ) );
-
-        dataValues = fetcher.getDataValues( orgUnitE );
-        assertEquals( 0, dataValues.size() );
-    }
-
-    @Test
-    public void testGetDataValuesWithSlowDb()
-    {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
-        when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> slowDb() );
-
-        fetcher.init( new HashSet<>(), 1, orgUnits, periods, dataElements, dataElementOperands );
-
-        List<DataValue> dataValues;
-
-        semaphore.release(); // About to request first data and wait for slow
-                             // db.
-
-        dataValues = fetcher.getDataValues( orgUnitA );
-        assertEquals( 0, dataValues.size() );
-
-        dataValues = fetcher.getDataValues( orgUnitB );
-        assertEquals( 1, dataValues.size() );
-        assertTrue( dataValues.contains( dataValueA ) );
-
-        semaphore.release(); // About to request first data after orgUnitB and
-                             // wait for slow db.
-
-        dataValues = fetcher.getDataValues( orgUnitC );
-        assertEquals( 0, dataValues.size() );
-
-        dataValues = fetcher.getDataValues( orgUnitD );
-        assertEquals( 2, dataValues.size() );
-        assertTrue( dataValues.contains( dataValueB ) );
-        assertTrue( dataValues.contains( dataValueC ) );
-
-        dataValues = fetcher.getDataValues( orgUnitE );
-        assertEquals( 0, dataValues.size() );
-    }
-
     @Test( expected = RuntimeException.class )
     public void testOrgUnitsOutOfOrder()
     {
@@ -382,57 +304,6 @@ public class PredictionDataValueFetcherTest
     // -------------------------------------------------------------------------
 
     /**
-     * In cooperation with testGetDataValuesWithFastDb, simulates a "fast"
-     * database, where the values are provided to the PredictionDataValueFetcher
-     * callback routine (handle) before they are requested with the
-     * getDataValues method.
-     *
-     * @return null (return value is not needed when callback is used)
-     */
-    private List<DeflatedDataValue> fastDb()
-    {
-        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
-
-        semaphore.release(); // orgUnitB data is about to be complete.
-
-        // Returning orgUnitD values causes orgUnitB values to be complete.
-        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
-
-        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
-
-        // Exiting causes orgUnitD values to be complete.
-        semaphore.release();
-
-        return null;
-    }
-
-    /**
-     * In cooperation with testGetDataValuesWithSlowDb, simulates a "slow"
-     * database, where the values are provided to the PredictionDataValueFetcher
-     * callback routine (handle) after they are requested with the getDataValues
-     * method.
-     *
-     * @return null (return value is not needed when callback is used)
-     */
-    private List<DeflatedDataValue> slowDb()
-        throws InterruptedException
-    {
-        waitForTheOtherThread(); // Wait until data values are requested.
-
-        fetcher.consume( makeDeflatedDataValue( dataValueA ) );
-
-        // orgUnitD data causes orgUnitB values to be complete.
-        fetcher.consume( makeDeflatedDataValue( dataValueB ) );
-
-        // Wait until values after orgUnitB are requested.
-        waitForTheOtherThread();
-
-        fetcher.consume( makeDeflatedDataValue( dataValueC ) );
-
-        return null;
-    }
-
-    /**
      * Returns the database values without trying to synchronize with the test
      * routine.
      *
@@ -464,36 +335,5 @@ public class PredictionDataValueFetcherTest
     private List<DeflatedDataValue> emptyDb()
     {
         return null;
-    }
-
-    /**
-     * Waits for the other thread to enter PredictionDataValueFetcher.
-     * <p>
-     * This is used to delay either the data producer thread (producing data) or
-     * the data consumer thread (consuming data) so that the other one can be
-     * ready first. However the other thread will release the semaphore just
-     * before it makes a call that will be blocked.
-     * <p>
-     * So we need to wait until the semaphore is released, and then wait just a
-     * little more to allow the other thread to make the call that will block
-     * it. This "little more" wait must be long enough so the other thread has
-     * time to make the call (at least on a test systems that is fast enough),
-     * but short enough that the test still finishes very quickly.
-     * <p>
-     * Also, we have a much longer timeout waiting for the semaphore, in case
-     * something goes very wrong in the test, so we won't wait forever for the
-     * semaphore and block all subsequent tests.
-     *
-     * @throws InterruptedException
-     */
-    private void waitForTheOtherThread()
-        throws InterruptedException
-    {
-        if ( !semaphore.tryAcquire( 2, TimeUnit.MINUTES ) )
-        {
-            throw new RuntimeException( "Could not acquire semaphore." );
-        }
-
-        Thread.sleep( 200 ); // Milliseconds.
     }
 }

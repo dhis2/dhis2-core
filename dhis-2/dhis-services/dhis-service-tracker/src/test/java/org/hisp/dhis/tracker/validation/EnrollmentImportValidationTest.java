@@ -40,7 +40,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.tracker.TrackerImportParams;
 import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.bundle.TrackerBundleService;
 import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
@@ -197,17 +196,23 @@ public class EnrollmentImportValidationTest
     public void testDeleteCascadeProgramInstances()
         throws IOException
     {
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit(
-            "tracker/validations/enrollments_te_attr-data.json",
-            TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportParams params = renderService
+            .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
+                TrackerImportParams.class );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+        TrackerValidationReport report = trackerImportReport.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
+
+        manager.flush();
 
         importProgramStageInstances();
 
-        TrackerImportParams params = renderService
+        manager.flush();
+
+        params = renderService
             .fromJson( new ClassPathResource( "tracker/validations/enrollments_te_attr-data.json" ).getInputStream(),
                 TrackerImportParams.class );
 
@@ -215,17 +220,13 @@ public class EnrollmentImportValidationTest
         params.setUser( user2 );
         params.setImportStrategy( TrackerImportStrategy.DELETE );
 
-        TrackerBundle trackerBundle = trackerBundleService.create( params );
-        assertEquals( 1, trackerBundle.getEnrollments().size() );
+        TrackerImportReport trackerImportDeleteReport = trackerImportService.importTracker( params );
+        assertEquals( 2, trackerImportDeleteReport.getValidationReport().getErrorReports().size() );
 
-        report = trackerValidationService.validate( trackerBundle );
-        printReport( report );
-        assertEquals( 2, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportDeleteReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1103 ) ) ) );
 
-        assertThat( report.getErrorReports(),
+        assertThat( trackerImportDeleteReport.getValidationReport().getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1091 ) ) ) );
     }
 
@@ -233,12 +234,14 @@ public class EnrollmentImportValidationTest
         throws IOException
     {
         TrackerImportParams params = createBundleFromJson( "tracker/validations/events-data.json" );
+        params.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( params, TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( params );
+
+        TrackerValidationReport report = trackerImportReport.getValidationReport();
         printReport( report );
         assertEquals( 0, report.getErrorReports().size() );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
     }
 
     @Test
