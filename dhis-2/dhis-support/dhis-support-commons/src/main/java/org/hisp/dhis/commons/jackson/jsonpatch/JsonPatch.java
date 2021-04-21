@@ -29,10 +29,10 @@ package org.hisp.dhis.commons.jackson.jsonpatch;
 
 import java.util.List;
 
+import lombok.Getter;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.JsonNode;
-
-import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen
