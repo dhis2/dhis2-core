@@ -411,18 +411,18 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
      * @param organisationUnit the organisation unit.
      * @return true if the given organisation unit is part of the hierarchy.
      */
-    boolean isInUserViewHierarchy( OrganisationUnit organisationUnit );
+    boolean isInUserDataViewHierarchy( OrganisationUnit organisationUnit );
 
     /**
      * Equal to
-     * {@link OrganisationUnitService#isInUserViewHierarchy(OrganisationUnit)}
+     * {@link OrganisationUnitService#isInUserDataViewHierarchy(OrganisationUnit)}
      * except adds a caching layer on top. Use this method when performance is
      * imperative and the risk of a stale result is tolerable.
      *
      * @param organisationUnit the organisation unit.
      * @return true if the given organisation unit is part of the hierarchy.
      */
-    boolean isInUserViewHierarchyCached( OrganisationUnit organisationUnit );
+    boolean isInUserDataViewHierarchyCached( OrganisationUnit organisationUnit );
 
     /**
      * Indicates whether the given organisation unit is part of the hierarchy of
@@ -433,11 +433,11 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
      * @return true if the given organisation unit is part of the data view
      *         hierarchy.
      */
-    boolean isInUserViewHierarchy( User user, OrganisationUnit organisationUnit );
+    boolean isInUserDataViewHierarchy( User user, OrganisationUnit organisationUnit );
 
     /**
      * Equal to
-     * {@link OrganisationUnitService#isInUserViewHierarchy(User,OrganisationUnit)}
+     * {@link OrganisationUnitService#isInUserDataViewHierarchy(User,OrganisationUnit)}
      * except adds a caching layer on top. Use this method when performance is
      * imperative and the risk of a stale result is tolerable.
      *
@@ -446,7 +446,7 @@ public interface OrganisationUnitService extends OrganisationUnitDataIntegrityPr
      * @return true if the given organisation unit is part of the data view
      *         hierarchy.
      */
-    boolean isInUserViewHierarchyCached( User user, OrganisationUnit organisationUnit );
+    boolean isInUserDataViewHierarchyCached( User user, OrganisationUnit organisationUnit );
 
     /**
      * Indicates whether the given organisation unit is part of the search
