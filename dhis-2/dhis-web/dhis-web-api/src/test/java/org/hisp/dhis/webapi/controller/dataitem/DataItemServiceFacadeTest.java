@@ -42,6 +42,7 @@ import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGE_SIZE;
 import static org.hisp.dhis.webapi.webdomain.WebOptions.PAGING;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.Mockito.when;
 import static org.mockito.junit.MockitoJUnit.rule;
 
@@ -58,7 +59,6 @@ import org.hisp.dhis.dataitem.query.QueryExecutor;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -80,9 +80,6 @@ public class DataItemServiceFacadeTest
     private CurrentUserService currentUserService;
 
     @Mock
-    private AclService aclService;
-
-    @Mock
     private QueryExecutor queryExecutor;
 
     @Rule
@@ -93,7 +90,7 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, aclService, queryExecutor );
+        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, queryExecutor);
     }
 
     @Test
@@ -112,8 +109,7 @@ public class DataItemServiceFacadeTest
 
         // When
         when( currentUserService.getCurrentUser() ).thenReturn( currentUser );
-        when( aclService.canRead( currentUser, targetEntity ) ).thenReturn( true );
-        when( queryExecutor.find( any( Class.class ), any( MapSqlParameterSource.class ) ) )
+        when( queryExecutor.find( anySet(), any( MapSqlParameterSource.class ) ) )
             .thenReturn( expectedItemsFound );
         final List<DataItem> actualDimensionalItems = dataItemServiceFacade
             .retrieveDataItemEntities( anyTargetEntities, anyFilters, anyWebOptions, anyOrderParams );
