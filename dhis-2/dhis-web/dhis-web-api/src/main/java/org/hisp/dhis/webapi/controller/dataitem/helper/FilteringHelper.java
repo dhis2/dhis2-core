@@ -44,7 +44,7 @@ import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.apache.commons.lang3.StringUtils.wrap;
 import static org.hisp.dhis.common.UserContext.getUserSetting;
 import static org.hisp.dhis.common.ValueType.fromString;
-import static org.hisp.dhis.common.ValueType.getAggregateables;
+import static org.hisp.dhis.common.ValueType.getAggregatables;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.DISPLAY_SHORT_NAME;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.IDENTIFIABLE_TOKEN_COMPARISON;
@@ -359,7 +359,7 @@ public class FilteringHelper
         {
             // Includes all value types.
             paramsMap.addValue( VALUE_TYPES,
-                getAggregateables().stream().map( type -> type.name() ).collect( toSet() ) );
+                getAggregatables().stream().map( type -> type.name() ).collect( toSet() ) );
         }
 
         final String programId = extractValueFromFilter( filters, PROGRAM_ID_EQUAL, true );
@@ -394,15 +394,14 @@ public class FilteringHelper
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {
-            final List<String> aggregatableTypes = getAggregateables().stream().map( v -> v.name() )
-                .collect( toList() );
+            final List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() ).collect( toList() );
 
             for ( final String valueType : valueTypeNames )
             {
                 if ( !aggregatableTypes.contains( valueType ) )
                 {
                     throw new IllegalQueryException(
-                        new ErrorMessage( E2016, valueType, filters, ValueType.getAggregateables() ) );
+                        new ErrorMessage( E2016, valueType, filters, ValueType.getAggregatables() ) );
                 }
             }
         }
@@ -488,7 +487,7 @@ public class FilteringHelper
         catch ( IllegalArgumentException e )
         {
             throw new IllegalQueryException(
-                new ErrorMessage( E2016, valueType, "valueType", ValueType.getAggregateables() ) );
+                new ErrorMessage( E2016, valueType, "valueType", ValueType.getAggregatables() ) );
         }
     }
 

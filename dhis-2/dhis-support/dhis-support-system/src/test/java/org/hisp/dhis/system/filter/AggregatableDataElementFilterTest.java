@@ -66,7 +66,7 @@ public class AggregatableDataElementFilterTest
 
         Set<DataElement> reference = Sets.newHashSet( elA, elB, elD, elE );
 
-        FilterUtils.filter( set, AggregateableDataElementFilter.INSTANCE );
+        FilterUtils.filter( set, AggregatableDataElementFilter.INSTANCE );
 
         assertEquals( reference.size(), set.size() );
         assertEquals( reference, set );
@@ -75,7 +75,7 @@ public class AggregatableDataElementFilterTest
 
         Set<DataElement> inverseReference = Sets.newHashSet( elC, elF );
 
-        FilterUtils.inverseFilter( set, AggregateableDataElementFilter.INSTANCE );
+        FilterUtils.inverseFilter( set, AggregatableDataElementFilter.INSTANCE );
 
         assertEquals( inverseReference.size(), set.size() );
         assertEquals( inverseReference, set );

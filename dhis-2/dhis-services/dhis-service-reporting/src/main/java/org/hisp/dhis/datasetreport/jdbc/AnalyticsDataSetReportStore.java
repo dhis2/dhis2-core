@@ -48,7 +48,7 @@ import org.hisp.dhis.datasetreport.DataSetReportStore;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
-import org.hisp.dhis.system.filter.AggregateableDataElementFilter;
+import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Lists;
@@ -83,7 +83,7 @@ public class AnalyticsDataSetReportStore
     {
         List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
 
-        FilterUtils.filter( dataElements, AggregateableDataElementFilter.INSTANCE );
+        FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
 
         if ( dataElements.isEmpty() )
         {
@@ -131,7 +131,7 @@ public class AnalyticsDataSetReportStore
                 categories.addAll( categoryCombo.getCategories() );
             }
 
-            FilterUtils.filter( dataElements, AggregateableDataElementFilter.INSTANCE );
+            FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
 
             if ( dataElements.isEmpty() || categories == null || categories.isEmpty() )
             {
@@ -183,7 +183,7 @@ public class AnalyticsDataSetReportStore
     {
         List<DataElement> dataElements = new ArrayList<>( dataSet.getDataElements() );
 
-        FilterUtils.filter( dataElements, AggregateableDataElementFilter.INSTANCE );
+        FilterUtils.filter( dataElements, AggregatableDataElementFilter.INSTANCE );
 
         if ( dataElements.isEmpty() )
         {

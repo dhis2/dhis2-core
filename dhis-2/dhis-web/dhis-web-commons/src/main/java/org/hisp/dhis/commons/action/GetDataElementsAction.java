@@ -45,7 +45,7 @@ import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
-import org.hisp.dhis.system.filter.AggregateableDataElementFilter;
+import org.hisp.dhis.system.filter.AggregatableDataElementFilter;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ContextUtils;
 
@@ -231,7 +231,7 @@ public class GetDataElementsAction
 
         if ( aggregate )
         {
-            FilterUtils.filter( dataElements, new AggregateableDataElementFilter() );
+            FilterUtils.filter( dataElements, new AggregatableDataElementFilter() );
         }
 
         User currentUser = currentUserService.getCurrentUser();

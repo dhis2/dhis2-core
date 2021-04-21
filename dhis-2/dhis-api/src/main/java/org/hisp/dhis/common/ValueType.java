@@ -31,9 +31,10 @@ import static java.util.stream.Collectors.toSet;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.Set;
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
@@ -70,7 +71,7 @@ public enum ValueType
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
+    FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
@@ -180,28 +181,6 @@ public enum ValueType
         return aggregateable;
     }
 
-    public boolean isAggregateable( AggregationType aggregationType )
-    {
-        if ( !aggregationType.isAggregateable() || !isAggregateable() )
-        {
-            return false;
-        }
-
-        if ( this == FILE_RESOURCE && aggregationType != AggregationType.COUNT )
-        {
-            return false;
-        }
-
-        if ( (this == TEXT || this == LONG_TEXT || this == LETTER) )
-        {
-            return aggregationType == AggregationType.NONE;
-        }
-        else
-        {
-            return aggregationType != AggregationType.NONE;
-        }
-    }
-
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
     {
         return this.valueTypeOptionsClass;
@@ -258,10 +237,8 @@ public enum ValueType
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
     }
 
-    public static Set<ValueType> getAggregateables()
+    public static Set<ValueType> getAggregatables()
     {
-        return Arrays.stream( ValueType.values() )
-            .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregateable ) ).collect( toSet() );
+        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
     }
-
 }
