@@ -90,13 +90,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
+        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
-
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
         validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
         validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
@@ -129,6 +129,7 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         TrackedEntityType trackedEntityType )
     {
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
         Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )
@@ -149,18 +150,13 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 continue;
             }
 
-            // if ( StringUtils.isEmpty( attribute.getValue() ) )
             if ( attribute.getValue() == null )
             {
-                // continue; ??? Just continue on empty and null?
-                // TODO: Is this really correct? This check was not here
-                // originally
-                // Enrollment attr check fails on null so why not here too?
-                Optional<TrackedEntityTypeAttribute> optionalTea = Optional.ofNullable( trackedEntityType )
+                Optional<TrackedEntityTypeAttribute> optionalTea = Optional.of( trackedEntityType )
                     .map( tet -> tet.getTrackedEntityTypeAttributes().stream() )
                     .flatMap( tetAtts -> tetAtts.filter(
                         teaAtt -> teaAtt.getTrackedEntityAttribute().getUid().equals( attribute.getAttribute() )
-                            && teaAtt.isMandatory() )
+                            && teaAtt.isMandatory() != null && teaAtt.isMandatory() )
                         .findFirst() );
 
                 if ( optionalTea.isPresent() )

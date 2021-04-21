@@ -97,10 +97,12 @@ public class TrackedEntityAttributeValidationHookTest
         trackedEntityAttribute.setValueType( ValueType.TEXT );
 
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "value" ).build() ) )
+            .trackedEntityType( "trackedEntityType" )
             .build();
 
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
@@ -158,6 +160,8 @@ public class TrackedEntityAttributeValidationHookTest
                 Attribute.builder().attribute( "bbbbb" ).build() ) )
             .trackedEntityType( "tet" )
             .build();
+
+        when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
         trackedEntityAttributeValidationHook.validateTrackedEntity( validationErrorReporter,
@@ -271,10 +275,12 @@ public class TrackedEntityAttributeValidationHookTest
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( "uid" ).value( "wrongCode" ).build() ) )
+            .trackedEntityType( "trackedEntityType" )
             .build();
 
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
@@ -293,10 +299,12 @@ public class TrackedEntityAttributeValidationHookTest
         TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithOptionSet();
 
         when( validationContext.getTrackedEntityAttribute( anyString() ) ).thenReturn( trackedEntityAttribute );
+        when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( new TrackedEntityType() );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( "trackedEntity" ).value( "code" ).build() ) )
+            .trackedEntityType( "trackedEntityType" )
             .build();
 
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
@@ -322,10 +330,12 @@ public class TrackedEntityAttributeValidationHookTest
 
         when( validationContext.getTrackedEntityAttribute( "trackedEntityAttribute" ) )
             .thenReturn( trackedEntityAttribute );
+        when( validationContext.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
 
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( "trackedEntityAttribute" ).build() ) )
+            .trackedEntityType( "trackedEntityType" )
             .build();
 
         ValidationErrorReporter validationErrorReporter = new ValidationErrorReporter( validationContext );
