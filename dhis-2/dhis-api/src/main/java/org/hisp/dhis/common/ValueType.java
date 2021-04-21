@@ -100,7 +100,7 @@ public enum ValueType
     @Deprecated
     private final Class<?> javaClass;
 
-    private boolean aggregateable;
+    private boolean aggregatable;
 
     private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
 
@@ -112,7 +112,7 @@ public enum ValueType
     ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
-        this.aggregateable = aggregateable;
+        this.aggregatable = aggregateable;
         this.valueTypeOptionsClass = null;
     }
 
@@ -175,14 +175,14 @@ public enum ValueType
         return NUMERIC_TYPES.contains( this );
     }
 
-    public boolean isAggregateable()
+    public boolean isAggregatable()
     {
-        return aggregateable;
+        return aggregatable;
     }
 
-    public boolean isAggregateable( AggregationType aggregationType )
+    public boolean isAggregatable( AggregationType aggregationType )
     {
-        if ( !aggregationType.isAggregateable() || !isAggregateable() )
+        if ( !aggregationType.isAggregatable() || !isAggregatable() )
         {
             return false;
         }
@@ -258,10 +258,10 @@ public enum ValueType
             .orElseThrow( () -> new IllegalArgumentException( "unknown value: " + valueType ) );
     }
 
-    public static Set<ValueType> getAggregateables()
+    public static Set<ValueType> getAggregatables()
     {
         return Arrays.stream( ValueType.values() )
-            .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregateable ) ).collect( toSet() );
+            .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregatable ) ).collect( toSet() );
     }
 
 }
