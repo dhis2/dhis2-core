@@ -26,31 +26,26 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.hisp.dhis.commons.jackson.jsonpatch.operations;
+package org.hisp.dhis.commons.jackson;
 
+import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
-import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchValueOperation;
+import org.junit.Test;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonPointer;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
  */
-public class TestOperation extends JsonPatchValueOperation
+public class TestOperationTest
 {
-    @JsonCreator
-    public TestOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
-    {
-        super( "test", path, value );
-    }
+    private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Override
-    public JsonNode apply( JsonNode node )
-        throws JsonPatchException
+    @Test
+    public void testTestIfPathExists()
+        throws JsonProcessingException,
+        JsonPatchException
     {
-        return null;
     }
 }
