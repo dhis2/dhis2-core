@@ -116,9 +116,9 @@ public enum ValueType
         this.valueTypeOptionsClass = null;
     }
 
-    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    ValueType( Class<?> javaClass, boolean aggregatable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
     {
-        this( javaClass, aggregateable );
+        this( javaClass, aggregatable );
         this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
