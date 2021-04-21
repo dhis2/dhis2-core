@@ -1,0 +1,17 @@
+taskIds,
+taskData,
+-taskData.taskColor,
+-taskData.taskBill,
+-taskData.taskWeight,
+-taskData.taskIdentities.taskIdentityType
+
+#taskIds,
+#taskData {
+#    base,
+#    -taskColor,
+#    -taskBill,
+#    -taskWeight,
+#    taskIdentities {
+#        -taskIdentityType
+#    }
+#}

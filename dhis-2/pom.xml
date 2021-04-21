@@ -81,6 +81,7 @@
     <!--DBMS -->
     <flyway-core.version>7.0.4</flyway-core.version>
     <hibernate.version>5.4.28.Final</hibernate.version>
+    <hibernate-types.version>2.10.4</hibernate-types.version>
     <!-- Keep in sync with Hibernate! -->
     <byte-buddy.version>1.10.18</byte-buddy.version>
     <!-- Keep in sync with Hibernate! -->
@@ -821,6 +822,11 @@
       <dependency>
         <groupId>org.hisp.dhis</groupId>
         <artifactId>dhis-support-commons</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.hisp.dhis</groupId>
+        <artifactId>dhis-support-json-filtering</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

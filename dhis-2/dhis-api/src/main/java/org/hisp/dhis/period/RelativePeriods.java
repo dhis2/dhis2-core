@@ -639,9 +639,8 @@ public class RelativePeriods
                 new DateTime( date ).minusWeeks( 1 ).toDate(), dynamicNames, format ) );
         }
 
-        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate(); // Rewind
-                                                                            // one
-                                                                            // year
+        // Rewind one year
+        date = new DateTime( date ).minusMonths( MONTHS_IN_YEAR ).toDate();
 
         if ( isMonthsLastYear() )
         {
