@@ -84,7 +84,7 @@ class ResponseHandler
     ResponseHandler( final QueryExecutor queryExecutor, final LinkService linkService,
         final FieldFilterService fieldFilterService, final CacheProvider cacheProvider )
     {
-        checkNotNull(queryExecutor);
+        checkNotNull( queryExecutor );
         checkNotNull( linkService );
         checkNotNull( fieldFilterService );
         checkNotNull( cacheProvider );
@@ -138,10 +138,10 @@ class ResponseHandler
             final AtomicLong count = new AtomicLong();
 
             // Counting and summing up the results for each entity.
-             count.addAndGet( pageCountingCache.get(
-                    createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
-                    p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ).orElse( 0L ) );
-   
+            count.addAndGet( pageCountingCache.get(
+                createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
+                p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ).orElse( 0L ) );
+
             final Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
 
             linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
@@ -149,7 +149,7 @@ class ResponseHandler
             rootNode.addChild( createPager( pager ) );
         }
     }
-    
+
     private long countEntityRowsTotal( final Set<Class<? extends BaseIdentifiableObject>> targetEntities,
         final WebOptions options, final MapSqlParameterSource paramsMap )
     {

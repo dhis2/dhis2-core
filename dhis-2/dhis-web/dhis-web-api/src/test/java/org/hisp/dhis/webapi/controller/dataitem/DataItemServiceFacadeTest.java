@@ -90,7 +90,7 @@ public class DataItemServiceFacadeTest
     @Before
     public void setUp()
     {
-        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, queryExecutor);
+        dataItemServiceFacade = new DataItemServiceFacade( currentUserService, queryExecutor );
     }
 
     @Test
