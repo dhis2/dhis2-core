@@ -129,6 +129,12 @@ public class SharingUtils
         return FROM_AND_TO_JSON.writeValueAsString( value.withAccess( accessTransformation ) );
     }
 
+    public static boolean isUseLegacySharing( BaseIdentifiableObject object )
+    {
+        return !CollectionUtils.isEmpty( object.getUserAccesses() )
+            || !CollectionUtils.isEmpty( object.getUserGroupAccesses() );
+    }
+
     private static ObjectMapper createMapper()
     {
         ObjectMapper mapper = new ObjectMapper();

@@ -158,7 +158,6 @@ public class DefaultEventQueryValidator
         else if ( (params.hasBbox() || params.hasClusterSize()) && params.getCoordinateField() == null )
         {
             error = new ErrorMessage( ErrorCode.E7214 );
-            ;
         }
 
         for ( QueryItem item : params.getItemsAndItemFilters() )

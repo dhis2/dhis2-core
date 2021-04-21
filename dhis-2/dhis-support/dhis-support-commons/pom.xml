@@ -40,6 +40,10 @@
       <artifactId>commons-jexl</artifactId>
     </dependency>
     <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-json-filtering</artifactId>
+    </dependency>
+    <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
@@ -55,7 +59,7 @@
 
   </dependencies>
 
-  <!-- 
+  <!--
   <build>
     <plugins>
       <plugin>

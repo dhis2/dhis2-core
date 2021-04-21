@@ -65,7 +65,6 @@ public enum TrackerErrorCode
     E1032( "Event: `{0}`, do not exist." ),
     E1033( "Event: `{0}`, Enrollment value is NULL." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
-    E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
     E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1042( "Event: `{0}`, needs to have completed date." ),
@@ -118,6 +117,9 @@ public enum TrackerErrorCode
     E1123( "Missing required event property: `{0}`." ),
     E1124( "Missing required relationship property: `{0}`." ),
     E1125( "Value {0} is not a valid option for {1} {2} in option set {3}" ),
+    E1126( "Not allowed to update Tracked Entity property: {0}." ),
+    E1127( "Not allowed to update Enrollment property: {0}." ),
+    E1128( "Not allowed to update Event property: {0}." ),
 
     // TODO: See TODO on error usage
     E1017( "Attribute: `{0}`, does not exist." ),

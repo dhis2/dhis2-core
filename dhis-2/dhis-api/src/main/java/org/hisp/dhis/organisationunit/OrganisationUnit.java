@@ -58,6 +58,8 @@ import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayNameComp
 import org.hisp.dhis.organisationunit.comparator.OrganisationUnitDisplayShortNameComparator;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.schema.PropertyType;
+import org.hisp.dhis.schema.annotation.Gist;
+import org.hisp.dhis.schema.annotation.Gist.Include;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.user.User;
 import org.locationtech.jts.geom.Geometry;
@@ -659,6 +661,7 @@ public class OrganisationUnit
         return set;
     }
 
+    @Property( persistedAs = "hierarchyLevel" )
     @JsonProperty( value = "level", access = JsonProperty.Access.READ_ONLY )
     @JacksonXmlProperty( localName = "level", isAttribute = true )
     public int getLevel()
@@ -1065,6 +1068,7 @@ public class OrganisationUnit
         this.categoryOptions = categoryOptions;
     }
 
+    @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()

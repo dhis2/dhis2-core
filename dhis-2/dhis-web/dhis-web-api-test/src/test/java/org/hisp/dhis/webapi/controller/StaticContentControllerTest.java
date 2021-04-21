@@ -42,7 +42,7 @@ import static org.hisp.dhis.fileresource.FileResourceKeyUtil.makeKey;
 import static org.hisp.dhis.setting.SettingKey.USE_CUSTOM_LOGO_BANNER;
 import static org.hisp.dhis.webapi.controller.StaticContentController.LOGO_BANNER;
 import static org.hisp.dhis.webapi.controller.StaticContentController.RESOURCE_PATH;
-import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JSON_UTF8;
+import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.utils.FileResourceUtils.build;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.TEXT_HTML_VALUE;
