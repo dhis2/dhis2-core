@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
+import static org.springframework.http.CacheControl.noCache;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
@@ -40,7 +43,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -55,6 +57,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableObjects;
+import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
@@ -77,6 +80,12 @@ import org.hisp.dhis.feedback.TypeReport;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
+import org.hisp.dhis.gist.GistAutoType;
+import org.hisp.dhis.gist.GistQuery;
+import org.hisp.dhis.gist.GistQuery.Comparison;
+import org.hisp.dhis.gist.GistQuery.Filter;
+import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.gist.GistService;
 import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -98,6 +107,7 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
+import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.schema.validation.SchemaValidator;
@@ -110,6 +120,9 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.webapi.JsonBuilder;
+import org.hisp.dhis.webapi.controller.exception.BadRequestException;
+import org.hisp.dhis.webapi.controller.exception.NotFoundException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.service.LinkService;
@@ -120,9 +133,9 @@ import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -132,6 +145,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Enums;
 import com.google.common.base.Joiner;
@@ -228,9 +242,103 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     @Autowired
     protected SharingService sharingService;
 
+    @Autowired
+    private GistService gistService;
+
     // --------------------------------------------------------------------------
     // GET
     // --------------------------------------------------------------------------
+
+    @RequestMapping( value = "/{uid}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectGist(
+        @PathVariable( "uid" ) String uid,
+        HttpServletRequest request, HttpServletResponse response )
+        throws NotFoundException
+    {
+        return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
+            .withFilter( new Filter( "id", Comparison.EQ, uid ) ) );
+    }
+
+    @RequestMapping( value = "/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
+        HttpServletRequest request, HttpServletResponse response )
+    {
+        return gistToJsonArrayResponse( request, createGistQuery( request, getEntityClass(), GistAutoType.S ),
+            getSchema() );
+    }
+
+    @RequestMapping( value = "/{uid}/{property}/gist", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    public @ResponseBody ResponseEntity<JsonNode> getObjectPropertyGist(
+        @PathVariable( "uid" ) String uid,
+        @PathVariable( "property" ) String property,
+        HttpServletRequest request, HttpServletResponse response )
+        throws Exception
+    {
+        Property objProperty = getSchema().getProperty( property );
+
+        if ( objProperty == null )
+        {
+            throw new BadRequestException( "No such property: " + property );
+        }
+
+        if ( !objProperty.isCollection() )
+        {
+            return gistToJsonObjectResponse( uid, createGistQuery( request, getEntityClass(), GistAutoType.L )
+                .withFilter( new Filter( "id", Comparison.EQ, uid ) )
+                .withField( property ) );
+        }
+
+        GistQuery query = createGistQuery( request, (Class<IdentifiableObject>) objProperty.getItemKlass(),
+            GistAutoType.M )
+                .withOwner( Owner.builder()
+                    .id( uid )
+                    .type( getEntityClass() )
+                    .collectionProperty( property ).build() );
+
+        return gistToJsonArrayResponse( request, query,
+            schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
+    }
+
+    private static GistQuery createGistQuery( HttpServletRequest request,
+        Class<? extends IdentifiableObject> elementType, GistAutoType autoDefault )
+    {
+        NamedParams params = new NamedParams( request::getParameter, request::getParameterValues );
+        return GistQuery.builder()
+            .elementType( elementType )
+            .autoType( params.getEnum( "auto", autoDefault ) )
+            .contextRoot( ContextUtils.getRootPath( request ) )
+            .translationLocale( UserContext.getUserSetting( UserSettingKey.DB_LOCALE ) )
+            .build()
+            .with( params );
+    }
+
+    private ResponseEntity<JsonNode> gistToJsonObjectResponse( String uid, GistQuery query )
+        throws NotFoundException
+    {
+        query = gistService.plan( query );
+        List<?> elements = gistService.gist( query );
+        JsonNode body = new JsonBuilder( jsonMapper ).skipNullOrEmpty().toArray( query.getFieldNames(), elements );
+        if ( body.isEmpty() )
+        {
+            throw NotFoundException.notFoundUid( uid );
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body.get( 0 ) );
+    }
+
+    private ResponseEntity<JsonNode> gistToJsonArrayResponse( HttpServletRequest request,
+        GistQuery query, Schema dynamicSchema )
+    {
+        query = gistService.plan( query );
+        List<?> elements = gistService.gist( query );
+        JsonBuilder responseBuilder = new JsonBuilder( jsonMapper );
+        JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
+        if ( !query.isHeadless() )
+        {
+            body = responseBuilder.toObject( asList( "pager", dynamicSchema.getPlural() ),
+                gistService.pager( query, elements, request.getParameterMap() ), body );
+        }
+        return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
+    }
 
     @RequestMapping( method = RequestMethod.GET )
     public @ResponseBody RootNode getObjectList(
@@ -272,7 +380,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                 entities = entities.stream()
                     .skip( skip )
                     .limit( options.getPageSize() )
-                    .collect( Collectors.toList() );
+                    .collect( toList() );
             }
             else
             {
@@ -303,7 +411,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         rootNode.addChild( fieldFilterService.toCollectionNode( getEntityClass(),
             new FieldFilterParams( entities, fields, Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) ) ) );
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        cachePrivate( response );
 
         return rootNode;
     }
@@ -331,7 +439,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             fields.add( ":all" );
         }
 
-        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL, CacheControl.noCache().cachePrivate().getHeaderValue() );
+        cachePrivate( response );
 
         return getObjectInternal( pvUid, rpParameters, filters, fields, user );
     }
@@ -372,8 +480,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
             String fieldFilter = "[" + Joiner.on( ',' ).join( fields ) + "]";
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
-                CacheControl.noCache().cachePrivate().getHeaderValue() );
+            cachePrivate( response );
 
             return getObjectInternal( pvUid, rpParameters, Lists.newArrayList(),
                 Lists.newArrayList( pvProperty + fieldFilter ), user );
@@ -382,6 +489,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         {
             UserContext.reset();
         }
+    }
+
+    private void cachePrivate( HttpServletResponse response )
+    {
+        response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
+            noCache().cachePrivate().getHeaderValue() );
     }
 
     @RequestMapping( value = "/{uid}/translations", method = RequestMethod.PUT )
@@ -942,8 +1055,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
                     WebMessageUtils.notFound( pvProperty + " with ID " + pvItemId + " could not be found." ) );
             }
 
-            response.setHeader( ContextUtils.HEADER_CACHE_CONTROL,
-                CacheControl.noCache().cachePrivate().getHeaderValue() );
+            cachePrivate( response );
 
             return rootNode;
         }
@@ -1339,7 +1451,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected void handleAttributeValues( List<T> entityList, List<String> fields )
     {
         List<String> hasAttributeValues = fields.stream().filter( field -> field.contains( "attributeValues" ) )
-            .collect( Collectors.toList() );
+            .collect( toList() );
 
         if ( !hasAttributeValues.isEmpty() )
         {

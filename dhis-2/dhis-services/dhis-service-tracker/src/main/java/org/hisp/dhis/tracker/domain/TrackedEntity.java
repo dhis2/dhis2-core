@@ -31,10 +31,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import org.locationtech.jts.geom.Geometry;
 
@@ -47,7 +44,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class TrackedEntity implements TrackerDto
+public class TrackedEntity
+    implements TrackerDto
 {
     @JsonProperty
     private String trackedEntity;

@@ -66,14 +66,11 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerImportParams;
+import org.hisp.dhis.tracker.TrackerImportService;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.TrackerType;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.report.TrackerBundleReport;
-import org.hisp.dhis.tracker.report.TrackerErrorCode;
-import org.hisp.dhis.tracker.report.TrackerStatus;
-import org.hisp.dhis.tracker.report.TrackerTypeReport;
-import org.hisp.dhis.tracker.report.TrackerValidationReport;
+import org.hisp.dhis.tracker.report.*;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.Test;
@@ -97,6 +94,9 @@ public class EventImportValidationTest
 
     @Autowired
     private ProgramStageInstanceService programStageServiceInstance;
+
+    @Autowired
+    protected TrackerImportService trackerImportService;
 
     @Override
     public boolean emptyDatabaseAfterTest()
@@ -194,13 +194,12 @@ public class EventImportValidationTest
         throws IOException
     {
         TrackerImportParams trackerBundleParams = createBundleFromJson( "tracker/validations/events-data.json" );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
-        assertEquals( 1, createAndUpdate.getTrackerBundle().getEvents().size() );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerValidationReport report = trackerImportReport.getValidationReport();
         printReport( report );
-        assertEquals( TrackerStatus.OK, createAndUpdate.getCommitReport().getStatus() );
+        assertEquals( TrackerStatus.OK, trackerImportReport.getStatus() );
 
         assertEquals( 0, report.getErrorReports().size() );
 
@@ -262,34 +261,16 @@ public class EventImportValidationTest
 
         User user = userService.getUser( USER_2 );
         trackerBundleParams.setUser( user );
+        trackerBundleParams.setImportStrategy( TrackerImportStrategy.CREATE );
 
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
+        TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerBundleParams );
+        TrackerValidationReport report = trackerImportReport.getValidationReport();
         printReport( report );
 
         assertEquals( 1, report.getErrorReports().size() );
 
         assertThat( report.getErrorReports(),
             hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1000 ) ) ) );
-    }
-
-    @Test
-    public void testMissingTei()
-        throws IOException
-    {
-        TrackerImportParams trackerBundleParams = createBundleFromJson(
-            "tracker/validations/events_error-missing-tei.json" );
-
-        ValidateAndCommitTestUnit createAndUpdate = validateAndCommit( trackerBundleParams,
-            TrackerImportStrategy.CREATE );
-        TrackerValidationReport report = createAndUpdate.getValidationReport();
-        printReport( report );
-
-        assertEquals( 1, report.getErrorReports().size() );
-
-        assertThat( report.getErrorReports(),
-            hasItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1036 ) ) ) );
     }
 
     @Test
