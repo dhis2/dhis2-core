@@ -27,15 +27,8 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToEmpty;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayShortNameFiltering;
@@ -46,32 +39,24 @@ import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.nameFilteri
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.programIdFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.rootJunction;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.shortNameFiltering;
-import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.skipValueType;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.uidFiltering;
 import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasValueTypePresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
@@ -84,9 +69,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class ProgramIndicatorQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "programindicator.name, programindicator.uid, programindicator.code,"
-        + " program.uid as program_uid, program.sharing as program_sharing, programindicator.sharing as programindicator_sharing,"
-        + " programindicator.shortname";
+    private static final String COMMON_COLUMNS = "cast (null as text) as program_name, program.uid as program_uid,"
+        + " cast (null as text) as program_shortname, programindicator.uid as item_uid, programindicator.name as item_name,"
+        + " programindicator.shortname as item_shortname, cast (null as text) as item_valuetype, programindicator.code as item_code,"
+        + " programindicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 
@@ -94,90 +80,17 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
     private static final String SPACED_FROM_PROGRAM_INDICATOR = " from programindicator ";
 
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    public ProgramIndicatorQuery( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
-
-    public List<DataItem> find( final MapSqlParameterSource paramsMap )
-    {
-        final List<DataItem> dataItems = new ArrayList<>();
-
-        // Very specific case, for Indicator objects, needed to handle filter by
-        // value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not
-        // execute this query.
-        // It returns an empty instead.
-        if ( skipValueType( NUMBER, paramsMap ) )
-        {
-            return dataItems;
-        }
-
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getProgramIndicatorQuery( paramsMap ), paramsMap );
-
-        while ( rowSet.next() )
-        {
-            final String name = trimToEmpty( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToEmpty( rowSet.getString( "i18n_name" ) ),
-                name );
-            final String shortName = trimToNull( rowSet.getString( "shortname" ) );
-            final String displayShortName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_shortname" ) ),
-                shortName );
-
-            // Specific case where we have to force a vale type. Program
-            // Indicators don't have a value type but they always evaluate to
-            // numbers.
-            dataItems.add( builder().name( name ).displayName( displayName ).id( rowSet.getString( "uid" ) )
-                .shortName( shortName ).displayShortName( displayShortName )
-                .code( rowSet.getString( "code" ) ).dimensionItemType( PROGRAM_INDICATOR )
-                .programId( rowSet.getString( "program_uid" ) ).valueType( NUMBER ).build() );
-        }
-
-        return dataItems;
-    }
-
     @Override
-    public int count( final MapSqlParameterSource paramsMap )
+    public String getStatement( final MapSqlParameterSource paramsMap )
     {
-        // Very specific case, for Indicator objects, needed to handle filter by
-        // value type NUMBER.
-        // When the value type filter does not have a NUMBER type, we should not
-        // execute this query.
-        // It returns ZERO.
-        if ( skipValueType( NUMBER, paramsMap ) )
-        {
-            return 0;
-        }
-
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "count(*) from (" )
-            .append( getProgramIndicatorQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
-            .append( ") t" );
-
-        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
-    }
-
-    @Override
-    public Class<? extends BaseIdentifiableObject> getRootEntity()
-    {
-        return QueryableDataItem.PROGRAM_INDICATOR.getEntity();
-    }
-
-    private String getProgramIndicatorQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
+        sql.append( "(" );
 
         // Creating a temp translated table to be queried.
-        sql.append( SPACED_SELECT + "* from (" );
+        sql.append( SPACED_SELECT + "distinct * from (" );
 
-        if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
+        if ( hasNonBlankStringPresence( paramsMap, LOCALE ) )
         {
             // Selecting translated names.
             sql.append( selectRowsContainingTranslatedName() );
@@ -189,9 +102,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by programindicator.name, " + COMMON_UIDS
-                + ", programindicator.code, i18n_name, program_sharing, programindicator_sharing, programindicator.shortname,"
-                + " i18n_shortname" );
+            " group by item_name, " + COMMON_UIDS
+                + ", item_code, item_sharing, item_shortname,"
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -201,21 +114,20 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.program_sharing",
-            "t.programindicator_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
-        optionalFilters.append( ifSet( shortNameFiltering( "t.shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_first_shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.item_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( shortNameFiltering( "t.item_shortname", paramsMap ) ) );
         optionalFilters.append( ifSet( programIdFiltering( "t.program_uid", paramsMap ) ) );
-        optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
-            null, paramsMap );
+        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+            "t.i18n_first_name", null, paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
         {
@@ -223,9 +135,11 @@ public class ProgramIndicatorQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.i18n_name, t.uid",
-            "t.name, t.uid", "t.i18n_shortname, t.uid", "t.shortname, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.i18n_first_name, t.item_uid",
+            "t.item_name, t.item_uid", "t.i18n_first_shortname, t.item_uid",
+            " t.item_shortname, t.item_uid", paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
+        sql.append( ")" );
 
         final String fullStatement = sql.toString();
 
@@ -234,21 +148,43 @@ public class ProgramIndicatorQuery implements DataItemQuery
         return fullStatement;
     }
 
+    /**
+     * Very specific case, for Program Indicator objects, needed to handle
+     * filter by value type NUMBER. When the value type filter does not have a
+     * NUMBER type, we should not execute this query.
+     *
+     * @param paramsMap
+     * @return true if rules are matched.
+     */
+    @Override
+    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    {
+        return hasValueTypePresence( paramsMap, NUMBER );
+    }
+
+    @Override
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
+    {
+        return QueryableDataItem.PROGRAM_INDICATOR.getEntity();
+    }
+
     private String selectRowsContainingTranslatedName()
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "programindicator", true ) )
+            .append( translationNamesColumnsFor( "programindicator", false ) )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
-            .append( translationNamesJoinsOn( "programindicator", true ) ).toString();
+            .append( translationNamesJoinsOn( "programindicator", false ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", programindicator.name as i18n_name, programindicator.shortname as i18n_shortname" )
+            .append( ", programindicator.name as i18n_first_name, cast (null as text) as i18n_second_name" )
+            .append(
+                ", programindicator.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS ).toString();
     }
