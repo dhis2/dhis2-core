@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi;
 
-import static org.hisp.dhis.webapi.documentation.common.TestUtils.APPLICATION_JSON_UTF8;
+import static org.hisp.dhis.webapi.utils.TestUtils.APPLICATION_JSON_UTF8;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertSeries;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.failOnException;

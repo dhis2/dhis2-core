@@ -65,7 +65,6 @@ public enum TrackerErrorCode
     E1032( "Event: `{0}`, do not exist." ),
     E1033( "Event: `{0}`, Enrollment value is NULL." ),
     E1035( "Event: `{0}`, ProgramStage value is NULL." ),
-    E1036( "Event: `{0}`, TrackedEntityInstance does not point to a existing object." ),
     E1039( "ProgramStage: `{0}`, is not repeatable and an event already exists." ),
     E1041( "Enrollment OrganisationUnit: `{0}`, and Program: `{1}`, don't match." ),
     E1042( "Event: `{0}`, needs to have completed date." ),

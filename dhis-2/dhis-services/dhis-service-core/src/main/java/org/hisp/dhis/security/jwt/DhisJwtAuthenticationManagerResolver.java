@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.security.oidc.DhisOidcClientRegistration;
 import org.hisp.dhis.security.oidc.DhisOidcProviderRepository;
 import org.hisp.dhis.user.UserCredentials;
@@ -70,7 +68,6 @@ import com.nimbusds.jwt.JWTParser;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
 @Component
 public class DhisJwtAuthenticationManagerResolver implements AuthenticationManagerResolver<HttpServletRequest>
 {
