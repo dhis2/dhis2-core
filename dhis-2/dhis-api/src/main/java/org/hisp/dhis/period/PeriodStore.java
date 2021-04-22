@@ -136,6 +136,25 @@ public interface PeriodStore
     List<Period> getPeriodsByPeriodType( PeriodType periodType );
 
     /**
+     * Returns all {@link Period} matching the given ISO expressions that
+     * actually exist in the database.
+     *
+     * It tries to provide an efficient way to get fully initialised
+     * {@link Period} instances for a given set of ISO expressions.
+     *
+     * In contrast to {@link PeriodType#getPeriodsFromIsoStrings(List)} the
+     * {@link Period}s returned by this method are persistent entities and as
+     * such usable as arguments to queries or as part of other persistent
+     * objects.
+     *
+     * @param isoPeriods The ISO expressions to find {@link Period}s for
+     * @return a list of matching {@link Period} not necessarily in the order of
+     *         ISO expressions nor necessarily having all items of the ISO
+     *         expressions.
+     */
+    List<Period> getPeriodsFromIsoStrings( List<String> isoPeriods );
+
+    /**
      * Checks if the given period is associated with the current session and
      * loads it if not. Null is returned if the period does not exist.
      *

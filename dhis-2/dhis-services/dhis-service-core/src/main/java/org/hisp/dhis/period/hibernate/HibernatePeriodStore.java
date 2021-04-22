@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.period.hibernate;
 
+import static java.util.stream.Collectors.joining;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-
-import lombok.extern.slf4j.Slf4j;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -55,6 +56,8 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implements the PeriodStore interface.
@@ -178,6 +181,29 @@ public class HibernatePeriodStore
             .setParameter( "endDate", endDate )
             .setParameter( "periodType", reloadPeriodType( periodType ).getId() );
         return getSingleResult( typedQuery );
+    }
+
+    @Override
+    public List<Period> getPeriodsFromIsoStrings( List<String> isoPeriods )
+    {
+        List<Period> transientInstances = PeriodType.getPeriodsFromIsoStrings( isoPeriods );
+        String hql = "from Period p where " +
+            IntStream.range( 0, transientInstances.size() )
+                .mapToObj( i -> String.format(
+                    "(p.periodType.class = :periodType%1$d and p.startDate = :startDate%1$d and p.endDate = :endDate%1$d)",
+                    i ) )
+                .collect( joining( " or " ) );
+
+        Query<Period> query = getQuery( hql );
+
+        for ( int i = 0; i < transientInstances.size(); i++ )
+        {
+            Period p = transientInstances.get( i );
+            query.setParameter( "periodType" + i, p.getPeriodType().getName() );
+            query.setParameter( "startDate" + i, p.getStartDate() );
+            query.setParameter( "endDate" + i, p.getEndDate() );
+        }
+        return query.list();
     }
 
     @Override
