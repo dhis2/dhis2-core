@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+
 /**
  * @author Zubair Asghar
  */
-public class HideOptionGroupProgramRuleActionValidator extends AbstractProgramRuleActionValidator
+public class HideOptionGroupProgramRuleActionValidator extends AbstractOptionGroupProgramRuleActionValidator
 {
 }

@@ -28,11 +28,11 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -44,34 +44,36 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 public class HideSectionProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
     @Override
-    public ProgramRuleActionValidationResult validate(ProgramRuleAction programRuleAction, ProgramRuleActionValidationService validationService)
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationService validationService )
     {
-        ProgramStageSection stageSection = programRuleAction.getProgramStageSection();
-
-        if ( stageSection == null )
+        if ( !programRuleAction.hasProgramStageSection() )
         {
             log.debug( String.format( "ProgramStageSection cannot be null for program rule: %s ",
-                    programRuleAction.getProgramRule().getUid() ) );
+                programRuleAction.getProgramRule().getUid() ) );
 
             return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4036,
-                            programRuleAction.getProgramRule().getUid() ) )
-                    .build();
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4036,
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
         }
+
+        ProgramStageSection stageSection = programRuleAction.getProgramStageSection();
 
         IdentifiableObjectManager manager = validationService.getManager();
 
         if ( manager.get( ProgramStageSection.class, stageSection.getUid() ) == null )
         {
-            log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist", stageSection.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) );
+            log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist",
+                stageSection.getUid(),
+                programRuleAction.getProgramRule().getUid() ) );
 
             return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037, stageSection.getUid(),
-                            programRuleAction.getProgramRule().getUid() ) )
-                    .build();
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037, stageSection.getUid(),
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
         }
 
         return ProgramRuleActionValidationResult.builder().valid( true ).build();

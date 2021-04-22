@@ -30,6 +30,6 @@ package org.hisp.dhis.programrule.action.validation;
 /**
  * @author Zubair Asghar
  */
-public class ShowOptionGroupProgramRuleActionValidator extends AbstractProgramRuleActionValidator
+public class ShowOptionGroupProgramRuleActionValidator extends AbstractOptionGroupProgramRuleActionValidator
 {
 }

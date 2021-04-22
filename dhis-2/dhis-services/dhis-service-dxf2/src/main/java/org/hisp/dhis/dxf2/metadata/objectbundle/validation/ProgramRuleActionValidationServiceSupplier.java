@@ -73,7 +73,12 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
     @Nonnull
     private final IdentifiableObjectManager manager;
 
-    public ProgramRuleActionValidationServiceSupplier(@Nonnull DataElementService dataElementService, @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService, @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService, @Nonnull ProgramRuleService programRuleService, @Nonnull OptionService optionService, @Nonnull IdentifiableObjectManager manager) {
+    public ProgramRuleActionValidationServiceSupplier( @Nonnull DataElementService dataElementService,
+        @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService,
+        @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService,
+        @Nonnull ProgramRuleService programRuleService, @Nonnull OptionService optionService,
+        @Nonnull IdentifiableObjectManager manager )
+    {
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
         this.programStageService = programStageService;

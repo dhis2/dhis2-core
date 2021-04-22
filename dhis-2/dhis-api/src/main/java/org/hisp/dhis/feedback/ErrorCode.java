@@ -156,6 +156,14 @@ public enum ErrorCode
     E4035( "A program notification template associated with program rule name `{0}` is null" ),
     E4036( "ProgramStageSection cannot be null for program rule: `{0}`" ),
     E4037( "ProgramStageSection `{0}`associated with program rule: `{1}` does not exist" ),
+    E4038( "ProgramStage cannot be null for program rule: `{0}`" ),
+    E4039( "ProgramStage `{0}`associated with program rule: `{1}` does not exist" ),
+
+    E4040( "Option cannot be null for program rule: `{0}`" ),
+    E4041( "Option `{0}`associated with program rule: `{1}` does not exist" ),
+
+    E4042( "OptionGroup cannot be null for program rule: `{0}`" ),
+    E4043( "OptionGroup `{0}`associated with program rule: `{1}` does not exist" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),

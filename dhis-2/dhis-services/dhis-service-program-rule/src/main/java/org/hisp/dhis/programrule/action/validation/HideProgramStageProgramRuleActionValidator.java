@@ -27,9 +27,55 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+
 /**
  * @author Zubair Asghar
  */
+
+@Slf4j
 public class HideProgramStageProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
+    @Override
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationService validationService )
+    {
+        if ( !programRuleAction.hasProgramStage() )
+        {
+            log.debug( String.format( "ProgramStage cannot be null for program rule: %s ",
+                programRuleAction.getProgramRule().getUid() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramStage.class, ErrorCode.E4038,
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
+        }
+
+        ProgramStage programStage = programRuleAction.getProgramStage();
+
+        ProgramStageService stageService = validationService.getProgramStageService();
+
+        if ( stageService.getProgramStage( programStage.getUid() ) == null )
+        {
+            log.debug( String.format( "ProgramStage: %s associated with program rule: %s does not exist",
+                programStage.getUid(),
+                programRuleAction.getProgramRule().getUid() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( ProgramStage.class, ErrorCode.E4039, programStage.getUid(),
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
+        }
+
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    }
 }
