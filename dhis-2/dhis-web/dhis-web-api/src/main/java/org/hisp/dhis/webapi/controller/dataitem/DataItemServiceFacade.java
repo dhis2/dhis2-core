@@ -142,7 +142,7 @@ public class DataItemServiceFacade
     }
 
     private void addFilteredTargetEntities( final Set<String> filters,
-                                            final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
+        final Set<Class<? extends BaseIdentifiableObject>> targetedEntities )
     {
         final Iterator<String> iterator = filters.iterator();
 
