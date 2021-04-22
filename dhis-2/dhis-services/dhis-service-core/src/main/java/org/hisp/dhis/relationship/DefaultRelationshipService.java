@@ -119,7 +119,7 @@ public class DefaultRelationshipService
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByTrackedEntityInstance( tei );
+        return relationshipStore.getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter );
     }
 
     @Override
@@ -128,7 +128,7 @@ public class DefaultRelationshipService
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByProgramInstance( pi );
+        return relationshipStore.getByProgramInstance( pi, pagingAndSortingCriteriaAdapter );
     }
 
     @Override
@@ -137,7 +137,7 @@ public class DefaultRelationshipService
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByProgramStageInstance( psi );
+        return relationshipStore.getByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter );
     }
 
     @Override

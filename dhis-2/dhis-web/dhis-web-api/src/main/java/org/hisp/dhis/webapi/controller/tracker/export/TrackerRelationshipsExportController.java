@@ -99,19 +99,23 @@ public class TrackerRelationshipsExportController
             .put( ProgramStageInstanceService.class, programStageInstanceService::getProgramStageInstance )
             .build();
 
-        relationshipRetrievers = ImmutableMap.<Class<?>, BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>> builder()
+        relationshipRetrievers = ImmutableMap
+            .<Class<?>, BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>> builder()
             .put( TrackedEntityInstance.class,
-                    (o, criteria) -> relationshipService.getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria, false ) )
+                ( o, criteria ) -> relationshipService
+                    .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria, false ) )
             .put( ProgramStage.class,
-                    (o, criteria) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o, criteria,false ) )
+                ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o, criteria,
+                    false ) )
             .put( ProgramStageInstance.class,
-                    (o, criteria) -> relationshipService.getRelationshipsByProgramStageInstance( (ProgramStageInstance) o, criteria,false ) )
+                ( o, criteria ) -> relationshipService.getRelationshipsByProgramStageInstance( (ProgramStageInstance) o,
+                    criteria, false ) )
             .build();
     }
 
     @GetMapping
     PagingWrapper<org.hisp.dhis.tracker.domain.Relationship> getInstances(
-            TrackerRelationshipCriteria criteria)
+        TrackerRelationshipCriteria criteria )
         throws WebMessageException
     {
 
@@ -149,10 +153,10 @@ public class TrackerRelationshipsExportController
         if ( criteria.isPagingRequest() )
         {
             relationshipPagingWrapper = relationshipPagingWrapper.withPager(
-                    PagingWrapper.Pager.builder()
-                            .page( criteria.getPage() )
-                            .pageSize( criteria.getPageSize() )
-                            .build() );
+                PagingWrapper.Pager.builder()
+                    .page( criteria.getPage() )
+                    .pageSize( criteria.getPageSize() )
+                    .build() );
         }
 
         return relationshipPagingWrapper.withInstances( relationships );
@@ -171,17 +175,18 @@ public class TrackerRelationshipsExportController
 
     @SneakyThrows
     private List<org.hisp.dhis.tracker.domain.Relationship> tryGetRelationshipFrom(
-            String identifier,
-            Class<?> type,
-            Supplier<WebMessage> notFoundMessageSupplier,
-            PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
+        String identifier,
+        Class<?> type,
+        Supplier<WebMessage> notFoundMessageSupplier,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
     {
         if ( identifier != null )
         {
             Object object = getObjectRetriever( type ).apply( identifier );
             if ( object != null )
             {
-                return RELATIONSHIP_MAPPER.fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
+                return RELATIONSHIP_MAPPER
+                    .fromCollection( getRelationshipRetriever( type ).apply( object, pagingAndSortingCriteria ) );
             }
             else
             {
@@ -191,7 +196,8 @@ public class TrackerRelationshipsExportController
         return null;
     }
 
-    private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever( Class<?> type )
+    private BiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipRetriever(
+        Class<?> type )
     {
         return Optional.ofNullable( type )
             .map( relationshipRetrievers::get )
