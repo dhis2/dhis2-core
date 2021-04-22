@@ -50,7 +50,6 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -70,17 +69,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class TrackedEntityAttributeValidationHook extends AttributeValidationHook
 {
-    private final ReservedValueService reservedValueService;
-
     private final DhisConfigurationProvider dhisConfigurationProvider;
 
     public TrackedEntityAttributeValidationHook( TrackedAttributeValidationService teAttrService,
-        ReservedValueService reservedValueService, DhisConfigurationProvider dhisConfigurationProvider )
+        DhisConfigurationProvider dhisConfigurationProvider )
     {
         super( teAttrService );
-        checkNotNull( reservedValueService );
         checkNotNull( dhisConfigurationProvider );
-        this.reservedValueService = reservedValueService;
         this.dhisConfigurationProvider = dhisConfigurationProvider;
     }
 

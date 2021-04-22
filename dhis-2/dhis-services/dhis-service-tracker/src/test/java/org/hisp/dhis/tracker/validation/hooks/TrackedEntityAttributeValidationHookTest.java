@@ -39,7 +39,6 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -71,9 +70,6 @@ public class TrackedEntityAttributeValidationHookTest
 
     @Mock
     private TrackerImportValidationContext validationContext;
-
-    @Mock
-    private ReservedValueService reservedValueService;
 
     @Mock
     private DhisConfigurationProvider dhisConfigurationProvider;
