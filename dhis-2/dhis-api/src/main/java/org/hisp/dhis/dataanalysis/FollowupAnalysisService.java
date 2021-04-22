@@ -40,6 +40,12 @@ import org.hisp.dhis.period.Period;
  */
 public interface FollowupAnalysisService
 {
+    /**
+     * @deprecated Use {@link #getFollowupDataValues(FollowupAnalysisParams)}
+     */
+    @Deprecated
     List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
         Collection<DataElement> dataElements, Collection<Period> periods, int limit );
+
+    List<FollowupValue> getFollowupDataValues( FollowupAnalysisParams params );
 }

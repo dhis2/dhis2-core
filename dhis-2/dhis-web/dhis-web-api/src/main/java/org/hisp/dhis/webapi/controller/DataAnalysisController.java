@@ -50,8 +50,10 @@ import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
+import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
 import org.hisp.dhis.dataanalysis.FollowupAnalysisService;
 import org.hisp.dhis.dataanalysis.FollowupParams;
+import org.hisp.dhis.dataanalysis.FollowupValue;
 import org.hisp.dhis.dataanalysis.MinMaxOutlierAnalysisService;
 import org.hisp.dhis.dataanalysis.StdDevOutlierAnalysisService;
 import org.hisp.dhis.dataanalysis.UpdateFollowUpForDataValuesRequest;
@@ -386,6 +388,13 @@ public class DataAnalysisController
         session.setAttribute( KEY_ORG_UNIT, organisationUnit );
 
         return deflatedValuesListToResponse( dataValues );
+    }
+
+    @RequestMapping( value = "/followup", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE )
+    @ResponseStatus( HttpStatus.OK )
+    public @ResponseBody List<FollowupValue> performFollowupAnalysis( FollowupAnalysisParams params )
+    {
+        return followupAnalysisService.getFollowupDataValues( params );
     }
 
     @RequestMapping( value = "/followup/mark", method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE )

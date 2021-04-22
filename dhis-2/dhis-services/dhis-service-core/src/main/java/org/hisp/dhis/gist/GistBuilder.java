@@ -58,7 +58,6 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
-import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -285,13 +284,7 @@ final class GistBuilder
         {
             return "1=1";
         }
-        String access = JpaQueryUtils.generateSQlQueryForSharingCheck( tableName + ".sharing", user,
-            AclService.LIKE_READ_METADATA );
-        // HQL does not allow the ->> syntax so we have to substitute with the
-        // named function: jsonb_extract_path_text
-        access = access.replaceAll( tableName + "\\.sharing->>'([^']+)'",
-            JsonbFunctions.EXTRACT_PATH_TEXT + "(" + tableName + ".sharing, '$1')" );
-        return "(" + access + ")";
+        return JpaQueryUtils.generateHqlQueryForSharingCheck( tableName, user, AclService.LIKE_READ_METADATA );
     }
 
     private boolean isFilterBySharing( RelativePropertyContext context )

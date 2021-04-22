@@ -27,56 +27,52 @@
  */
 package org.hisp.dhis.dataanalysis;
 
-import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Collections.emptyList;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Halvdan Hoem Grelland
  */
 @Slf4j
 @Service( "org.hisp.dhis.dataanalysis.FollowupAnalysisService" )
+@AllArgsConstructor
 public class DefaultFollowupAnalysisService
     implements FollowupAnalysisService
 {
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
 
     private final DataAnalysisStore dataAnalysisStore;
 
-    public DefaultFollowupAnalysisService( DataAnalysisStore dataAnalysisStore )
-    {
-        checkNotNull( dataAnalysisStore );
-        this.dataAnalysisStore = dataAnalysisStore;
-    }
-
-    // -------------------------------------------------------------------------
-    // FollowupAnalysisService implementation
-    // -------------------------------------------------------------------------
+    private final CurrentUserService currentUserService;
 
     @Override
+    @Transactional( readOnly = true )
     public List<DeflatedDataValue> getFollowupDataValues( Collection<OrganisationUnit> parents,
         Collection<DataElement> dataElements, Collection<Period> periods, int limit )
     {
-        if ( parents == null || parents.size() == 0 || limit < 1 )
+        if ( parents == null || parents.isEmpty() || limit < 1 )
         {
-            return new ArrayList<>();
+            return emptyList();
         }
 
         Set<DataElement> elements = dataElements.stream()
-            .filter( de -> ValueType.NUMERIC_TYPES.contains( de.getValueType() ) )
+            .filter( de -> de.getValueType().isNumeric() )
             .collect( Collectors.toSet() );
 
         Set<CategoryOptionCombo> categoryOptionCombos = new HashSet<>();
@@ -90,5 +86,12 @@ public class DefaultFollowupAnalysisService
             + parents.size() );
 
         return dataAnalysisStore.getFollowupDataValues( elements, categoryOptionCombos, periods, parents, limit );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<FollowupValue> getFollowupDataValues( FollowupAnalysisParams params )
+    {
+        return dataAnalysisStore.getFollowupDataValues( currentUserService.getCurrentUser(), params );
     }
 }
