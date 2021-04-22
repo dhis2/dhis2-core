@@ -314,7 +314,7 @@ public final class GistQuery
 
         public boolean isCollectionCompare()
         {
-            return this == IN || this == NOT_IN || isSizeCompare();
+            return isContainsCompare() || isSizeCompare();
         }
 
         public boolean isSizeCompare()
@@ -325,6 +325,11 @@ public final class GistQuery
         public boolean isStringCompare()
         {
             return ordinal() >= LIKE.ordinal();
+        }
+
+        public boolean isContainsCompare()
+        {
+            return this == IN || this == NOT_IN;
         }
     }
 

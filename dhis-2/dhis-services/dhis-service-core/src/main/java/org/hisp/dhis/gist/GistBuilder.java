@@ -33,6 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.gist.GistLogic.getBaseType;
 import static org.hisp.dhis.gist.GistLogic.isCollectionSizeFilter;
 import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
+import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
@@ -589,10 +590,32 @@ final class GistBuilder
     private String createFiltersHQL()
     {
         String rootJunction = query.isAnyFilter() ? " or " : " and ";
-        return join( query.getFilters(), rootJunction, "1=1", this::createFiltersHQL );
+        return join( query.getFilters(), rootJunction, "1=1", this::createFilterHQL );
     }
 
-    private String createFiltersHQL( int index, Filter filter )
+    private String createFilterHQL( int index, Filter filter )
+    {
+        if ( !isNonNestedPath( filter.getPropertyPath() ) )
+        {
+            List<Property> path = context.resolvePath( filter.getPropertyPath() );
+            Property path0 = path.get( 0 );
+            if ( path.size() > 2 )
+            {
+                // we are not magicians...
+                throw new UnsupportedOperationException( "Path to deep: " + filter.getPropertyPath() );
+            }
+            if ( isPersistentCollectionField( path0 ) )
+            {
+                String tableName = "ft_" + index;
+                return String.format( "exists (select 1 from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
+                    tableName, path0.getItemKlass().getSimpleName(), path0.getFieldName(),
+                    createFilterHQL( index, filter, tableName + "." + path.get( 1 ).getFieldName() ) );
+            }
+        }
+        return createFilterHQL( index, filter, "e." + getMemberPath( filter.getPropertyPath() ) );
+    }
+
+    private String createFilterHQL( int index, Filter filter, String field )
     {
         StringBuilder str = new StringBuilder();
         boolean sizeOp = isCollectionSizeFilter( filter,
@@ -601,7 +624,7 @@ final class GistBuilder
         {
             str.append( "size(" );
         }
-        str.append( "e." ).append( getMemberPath( filter.getPropertyPath() ) );
+        str.append( field );
         if ( sizeOp )
         {
             str.append( ")" );

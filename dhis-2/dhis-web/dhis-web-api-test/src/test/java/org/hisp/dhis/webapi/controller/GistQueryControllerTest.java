@@ -35,9 +35,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.List;
+
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -250,6 +253,45 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         JsonObject gist = GET( url, orgUnitId ).content();
 
         assertEquals( asList( "plus3", "plus5" ), gist.getArray( "dataSets" ).stringValues() );
+    }
+
+    @Test
+    public void testGistPropertyList_FilterByInUid()
+    {
+        // create some items we can filter
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        List<String> dsUids = GET( "/dataSets/gist?fields=id&filter=name:in:[plus2,plus6]&headless=true" )
+            .content().stringValues();
+        assertEquals( 2, dsUids.size() );
+
+        String url = "/organisationUnits/{id}/dataSets/gist?filter=id:in:[{ds}]&fields=name&order=name";
+        JsonObject gist = GET( url, orgUnitId, String.join( ",", dsUids ) ).content();
+
+        assertEquals( asList( "plus2", "plus6" ), gist.getArray( "dataSets" ).stringValues() );
+    }
+
+    @Test
+    public void testGistList_FilterByPropertyInUid()
+    {
+        // create some items we can filter
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        String url = "/dataSets/gist?filter=organisationUnits.id:in:[{id}]&fields=name&filter=name:startsWith:plus&headless=true";
+        JsonResponse gist = GET( url, orgUnitId ).content();
+        assertEquals( 10, gist.size() );
+    }
+
+    @Test
+    public void testGistList_FilterByPropertyLikeName()
+    {
+        // create some items we can filter
+        createDataSetsForOrganisationUnit( 10, orgUnitId, "plus" );
+
+        String orgUnitName = GET( "/organisationUnits/{id}/name/gist", orgUnitId ).content().string();
+        String url = "/dataSets/gist?filter=organisationUnits.name:like:{name}&fields=name&filter=name:startsWith:plus&headless=true";
+        JsonResponse gist = GET( url, orgUnitName ).content();
+        assertEquals( 10, gist.size() );
     }
 
     @Test
