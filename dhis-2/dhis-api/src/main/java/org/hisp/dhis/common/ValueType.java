@@ -31,10 +31,9 @@ import static java.util.stream.Collectors.toSet;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Set;
+import java.util.*;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.opengis.geometry.primitive.Point;
@@ -71,7 +70,7 @@ public enum ValueType
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     AGE( Date.class, false ),
     URL( String.class, false ),
-    FILE_RESOURCE( String.class, false, FileTypeValueOptions.class ),
+    FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class );
 
     public static final Set<ValueType> INTEGER_TYPES = ImmutableSet.of(
@@ -101,7 +100,7 @@ public enum ValueType
     @Deprecated
     private final Class<?> javaClass;
 
-    private boolean aggregateable;
+    private boolean aggregatable;
 
     private Class<? extends ValueTypeOptions> valueTypeOptionsClass;
 
@@ -113,13 +112,13 @@ public enum ValueType
     ValueType( Class<?> javaClass, boolean aggregateable )
     {
         this.javaClass = javaClass;
-        this.aggregateable = aggregateable;
+        this.aggregatable = aggregateable;
         this.valueTypeOptionsClass = null;
     }
 
-    ValueType( Class<?> javaClass, boolean aggregateable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
+    ValueType( Class<?> javaClass, boolean aggregatable, Class<? extends ValueTypeOptions> valueTypeOptionsClass )
     {
-        this( javaClass, aggregateable );
+        this( javaClass, aggregatable );
         this.valueTypeOptionsClass = valueTypeOptionsClass;
     }
 
@@ -176,9 +175,31 @@ public enum ValueType
         return NUMERIC_TYPES.contains( this );
     }
 
-    public boolean isAggregateable()
+    public boolean isAggregatable()
     {
-        return aggregateable;
+        return aggregatable;
+    }
+
+    public boolean isAggregatable( AggregationType aggregationType )
+    {
+        if ( !aggregationType.isAggregatable() || !isAggregatable() )
+        {
+            return false;
+        }
+
+        if ( this == FILE_RESOURCE && aggregationType != AggregationType.COUNT )
+        {
+            return false;
+        }
+
+        if ( this == TEXT || this == LONG_TEXT || this == LETTER )
+        {
+            return aggregationType == AggregationType.NONE;
+        }
+        else
+        {
+            return aggregationType != AggregationType.NONE;
+        }
     }
 
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
@@ -239,6 +260,8 @@ public enum ValueType
 
     public static Set<ValueType> getAggregatables()
     {
-        return Arrays.stream( ValueType.values() ).filter( v -> v.aggregateable ).collect( toSet() );
+        return Arrays.stream( ValueType.values() )
+            .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregatable ) ).collect( toSet() );
     }
+
 }
