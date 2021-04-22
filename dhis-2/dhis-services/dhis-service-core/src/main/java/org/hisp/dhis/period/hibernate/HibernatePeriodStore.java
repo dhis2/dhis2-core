@@ -37,6 +37,8 @@ import java.util.stream.IntStream;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.StatelessSession;
@@ -56,8 +58,6 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implements the PeriodStore interface.
