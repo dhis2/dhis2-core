@@ -27,12 +27,12 @@
  */
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen
@@ -40,7 +40,7 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 @Getter
 public abstract class JsonPatchValueOperation extends JsonPatchOperation
 {
-    @JsonSerialize
+    @JsonProperty
     protected final JsonNode value;
 
     @JsonCreator

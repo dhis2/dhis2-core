@@ -29,10 +29,11 @@ package org.hisp.dhis.commons.jackson.jsonpatch;
 
 import java.util.List;
 
-import lombok.Getter;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
+
+import lombok.Getter;
 
 /**
  * @author Morten Olav Hansen
@@ -41,6 +42,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class JsonPatch
     implements Patch
 {
+    @JsonProperty
     private final List<JsonPatchOperation> operations;
 
     @JsonCreator

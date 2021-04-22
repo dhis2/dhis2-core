@@ -25,43 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.TestOperation;
+package org.hisp.dhis.commons.jackson.config;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import java.io.IOException;
+
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonPointer;
-
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonSerializer;
+import com.fasterxml.jackson.databind.SerializerProvider;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@JsonSubTypes( {
-    @JsonSubTypes.Type( name = "add", value = AddOperation.class ),
-    @JsonSubTypes.Type( name = "remove", value = RemoveOperation.class ),
-    @JsonSubTypes.Type( name = "replace", value = ReplaceOperation.class ),
-    @JsonSubTypes.Type( name = "test", value = TestOperation.class ),
-} )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "op" )
-public abstract class JsonPatchOperation
-    implements Patch
+public class JsonPointerStdSerializer extends JsonSerializer<JsonPointer>
 {
-    @JsonProperty
-    protected final String op;
-
-    @JsonProperty
-    protected final JsonPointer path;
-
-    public JsonPatchOperation( final String op, final JsonPointer path )
+    @Override
+    public void serialize( JsonPointer value, JsonGenerator gen, SerializerProvider serializers )
+        throws IOException
     {
-        this.op = op;
-        this.path = path;
+        gen.writeString( value.toString() );
     }
 }

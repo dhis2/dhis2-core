@@ -61,6 +61,8 @@ import org.hisp.dhis.common.NamedParams;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SubscribableObject;
 import org.hisp.dhis.common.UserContext;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchManager;
 import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportService;
@@ -99,7 +101,6 @@ import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.ComplexNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.node.types.SimpleNode;
-import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.query.Order;
 import org.hisp.dhis.query.Pagination;
 import org.hisp.dhis.query.Query;
@@ -224,7 +225,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
     protected MergeService mergeService;
 
     @Autowired
-    protected PatchService patchService;
+    protected JsonPatchManager jsonPatchManager;
 
     @Autowired
     protected AttributeService attributeService;
@@ -595,8 +596,12 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
         }
 
         prePatchEntity( persistedObject );
+
+        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        jsonPatchManager.apply( patch, persistedObject );
         validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
         manager.update( persistedObject );
+
         postPatchEntity( persistedObject );
 
         return WebMessageUtils.ok( "Patched successfully." );

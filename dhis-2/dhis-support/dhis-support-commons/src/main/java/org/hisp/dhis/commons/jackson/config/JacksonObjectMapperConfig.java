@@ -174,6 +174,7 @@ public class JacksonObjectMapperConfig
         module.addDeserializer( Date.class, new ParseDateStdDeserializer() );
         module.addDeserializer( JsonPointer.class, new JsonPointerStdDeserializer() );
         module.addSerializer( Date.class, new WriteDateStdSerializer() );
+        module.addSerializer( JsonPointer.class, new JsonPointerStdSerializer() );
 
         // Registering a custom Instant serializer/deserializer for DTOs using
         // Instant

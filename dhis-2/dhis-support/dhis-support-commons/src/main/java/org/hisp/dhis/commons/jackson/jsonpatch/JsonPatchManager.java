@@ -25,43 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.TestOperation;
+import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.core.JsonPointer;
-
-import lombok.Getter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Olav Hansen
  */
-@Getter
-@JsonSubTypes( {
-    @JsonSubTypes.Type( name = "add", value = AddOperation.class ),
-    @JsonSubTypes.Type( name = "remove", value = RemoveOperation.class ),
-    @JsonSubTypes.Type( name = "replace", value = ReplaceOperation.class ),
-    @JsonSubTypes.Type( name = "test", value = TestOperation.class ),
-} )
-@JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "op" )
-public abstract class JsonPatchOperation
-    implements Patch
+@Service
+public class JsonPatchManager
 {
-    @JsonProperty
-    protected final String op;
+    private final ObjectMapper jsonMapper;
 
-    @JsonProperty
-    protected final JsonPointer path;
-
-    public JsonPatchOperation( final String op, final JsonPointer path )
+    public JsonPatchManager( ObjectMapper jsonMapper )
     {
-        this.op = op;
-        this.path = path;
+        this.jsonMapper = jsonMapper;
+    }
+
+    public void apply( JsonPatch patch, Object object )
+        throws JsonPatchException
+    {
+        if ( patch == null || object == null )
+        {
+            return;
+        }
+
+        JsonNode node = jsonMapper.valueToTree( object );
+        node = patch.apply( node );
     }
 }
