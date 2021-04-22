@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 
 import javax.annotation.Nonnull;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.program.ProgramStageSectionService;
@@ -69,11 +70,10 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
     @Nonnull
     private final OptionService optionService;
 
-    public ProgramRuleActionValidationServiceSupplier( @Nonnull DataElementService dataElementService,
-        @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService,
-        @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService,
-        @Nonnull ProgramRuleService programRuleService, @Nonnull OptionService optionService )
-    {
+    @Nonnull
+    private final IdentifiableObjectManager manager;
+
+    public ProgramRuleActionValidationServiceSupplier(@Nonnull DataElementService dataElementService, @Nonnull TrackedEntityAttributeService attributeService, @Nonnull ProgramStageService programStageService, @Nonnull ProgramStageSectionService sectionService, @Nonnull ProgramNotificationTemplateService templateService, @Nonnull ProgramRuleService programRuleService, @Nonnull OptionService optionService, @Nonnull IdentifiableObjectManager manager) {
         this.dataElementService = dataElementService;
         this.attributeService = attributeService;
         this.programStageService = programStageService;
@@ -81,6 +81,7 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
         this.templateService = templateService;
         this.programRuleService = programRuleService;
         this.optionService = optionService;
+        this.manager = manager;
     }
 
     @Override
@@ -94,6 +95,7 @@ public class ProgramRuleActionValidationServiceSupplier implements Supplier<Prog
             .stageSectionService( sectionService )
             .optionService( optionService )
             .programRuleService( programRuleService )
+            .manager( manager )
             .build();
     }
 }

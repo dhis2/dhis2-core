@@ -27,9 +27,53 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
+import lombok.extern.slf4j.Slf4j;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
+
 /**
  * @author Zubair Asghar
  */
+
+@Slf4j
 public class HideSectionProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
+    @Override
+    public ProgramRuleActionValidationResult validate(ProgramRuleAction programRuleAction, ProgramRuleActionValidationService validationService)
+    {
+        ProgramStageSection stageSection = programRuleAction.getProgramStageSection();
+
+        if ( stageSection == null )
+        {
+            log.debug( String.format( "ProgramStageSection cannot be null for program rule: %s ",
+                    programRuleAction.getProgramRule().getUid() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                    .valid( false )
+                    .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4036,
+                            programRuleAction.getProgramRule().getUid() ) )
+                    .build();
+        }
+
+        IdentifiableObjectManager manager = validationService.getManager();
+
+        if ( manager.get( ProgramStageSection.class, stageSection.getUid() ) == null )
+        {
+            log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist", stageSection.getUid(),
+                    programRuleAction.getProgramRule().getUid() ) );
+
+            return ProgramRuleActionValidationResult.builder()
+                    .valid( false )
+                    .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037, stageSection.getUid(),
+                            programRuleAction.getProgramRule().getUid() ) )
+                    .build();
+        }
+
+        return ProgramRuleActionValidationResult.builder().valid( true ).build();
+    }
 }

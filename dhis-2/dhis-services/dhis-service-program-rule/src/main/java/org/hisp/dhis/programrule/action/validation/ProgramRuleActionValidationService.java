@@ -30,6 +30,7 @@ package org.hisp.dhis.programrule.action.validation;
 import lombok.Builder;
 import lombok.Getter;
 
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.option.OptionGroupStore;
 import org.hisp.dhis.option.OptionService;
@@ -62,4 +63,6 @@ public class ProgramRuleActionValidationService
     private final OptionGroupStore optionGroupStore;
 
     private final ProgramStageService programStageService;
+
+    private final IdentifiableObjectManager manager;
 }

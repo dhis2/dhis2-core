@@ -154,6 +154,8 @@ public enum ErrorCode
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
     E4034( "A program notification template `{0}` associated with program rule name `{1}` does not exist" ),
     E4035( "A program notification template associated with program rule name `{0}` is null" ),
+    E4036( "ProgramStageSection cannot be null for program rule: `{0}`" ),
+    E4037( "ProgramStageSection `{0}`associated with program rule: `{1}` does not exist" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
