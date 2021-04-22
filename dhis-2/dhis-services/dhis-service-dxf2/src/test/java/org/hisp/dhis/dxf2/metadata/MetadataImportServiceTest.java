@@ -46,16 +46,17 @@ import javax.xml.xpath.XPathExpressionException;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.*;
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundleMode;
-import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
@@ -436,7 +437,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
 
         dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
-        assertNotNull( dataSet.getSharing().getUserGroups() );
 
         assertEquals( 2, dataSet.getTranslations().size() );
     }
@@ -464,23 +464,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
 
         // Should not get to this point.
         fail( "The exception org.hibernate.MappingException was expected." );
-    }
-
-    @Test
-    public void testImportMultiPropertyUniqueness()
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/favorites/metadata_multi_property_uniqueness.json" ).getInputStream(),
-            RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE, metadata );
-
-        ImportReport importReport = importService.importMetadata( params );
-
-        assertTrue( importReport.getTypeReports().stream()
-            .flatMap( typeReport -> typeReport.getErrorReports().stream() )
-            .anyMatch( errorReport -> errorReport.getErrorCode().equals( ErrorCode.E5005 ) ) );
     }
 
     @Test
@@ -985,25 +968,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         userGroup = manager.get( UserGroup.class, "OPVIvvXzNTw" );
         assertEquals( "TA user group updated", userGroup.getName() );
         assertEquals( userA.getUid(), userGroup.getCreatedBy().getUid() );
-    }
-
-    @Test
-    public void testImportUser()
-        throws IOException
-    {
-        User userF = createUser( 'F', Lists.newArrayList( "ALL" ) );
-        userService.addUser( userF );
-
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService.fromMetadata(
-            new ClassPathResource( "dxf2/create_user_without_createdBy.json" ).getInputStream(), RenderFormat.JSON );
-
-        MetadataImportParams params = createParams( ImportStrategy.CREATE_AND_UPDATE, metadata );
-        params.setUser( userF );
-        ImportReport report = importService.importMetadata( params );
-        assertEquals( Status.OK, report.getStatus() );
-
-        User user = manager.get( User.class, "MwhEJUnTHkn" );
-        assertNotNull( user.getUserCredentials().getCreatedBy() );
     }
 
     private MetadataImportParams createParams( ImportStrategy importStrategy,
