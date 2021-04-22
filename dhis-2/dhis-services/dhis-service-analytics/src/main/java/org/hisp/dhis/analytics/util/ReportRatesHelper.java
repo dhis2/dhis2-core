@@ -104,13 +104,11 @@ public class ReportRatesHelper
     private static Double getTargetFromFilter( final int timeUnits, final Double target,
         final List<DimensionalItemObject> filterPeriods )
     {
-        final List<DimensionalItemObject> periods = filterPeriods;
-
-        if ( isNotEmpty( periods ) )
+        if ( isNotEmpty( filterPeriods ) )
         {
             int totalOfDaysInPeriod = 0;
 
-            for ( final DimensionalItemObject itemObject : periods )
+            for ( final DimensionalItemObject itemObject : filterPeriods )
             {
                 final Period period = (Period) itemObject;
                 totalOfDaysInPeriod += period.getDaysInPeriod();
