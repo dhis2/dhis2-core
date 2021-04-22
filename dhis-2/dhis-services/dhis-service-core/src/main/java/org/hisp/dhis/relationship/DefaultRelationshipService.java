@@ -35,6 +35,7 @@ import java.util.Optional;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -115,6 +116,7 @@ public class DefaultRelationshipService
     @Override
     @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         return relationshipStore.getByTrackedEntityInstance( tei );
@@ -122,7 +124,9 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+        boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramInstance( pi );
     }
@@ -130,6 +134,7 @@ public class DefaultRelationshipService
     @Override
     @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         return relationshipStore.getByProgramStageInstance( psi );

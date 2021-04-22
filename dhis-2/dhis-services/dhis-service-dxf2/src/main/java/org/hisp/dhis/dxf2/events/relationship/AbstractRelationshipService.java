@@ -73,6 +73,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -118,7 +119,9 @@ public abstract class AbstractRelationshipService
     @Override
     @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntityInstance tei, boolean skipAccessValidation )
+        TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+        boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -129,7 +132,9 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi, boolean skipAccessValidation )
+    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
+        boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
 
@@ -141,6 +146,7 @@ public abstract class AbstractRelationshipService
     @Override
     @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
