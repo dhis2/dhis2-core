@@ -147,8 +147,6 @@ public class DataItemQueryController
 
         checkNamesAndOperators( filters );
         checkOrderParams( orderParams.getOrders() );
-        // checkOrderParamsAndFiltersAllowance( orderParams.getOrders(), filters
-        // );
 
         // Extracting the target entities to be queried.
         final Set<Class<? extends BaseIdentifiableObject>> targetEntities = dataItemServiceFacade
@@ -165,7 +163,7 @@ public class DataItemQueryController
         final RootNode rootNode = createMetadata();
 
         responseHandler.addResultsToNode( rootNode, dimensionalItems, fields );
-        responseHandler.addPaginationToNode( rootNode, new ArrayList<>( targetEntities ), currentUser, options,
+        responseHandler.addPaginationToNode( rootNode, targetEntities, currentUser, options,
             filters );
 
         return new ResponseEntity<>( rootNode, OK );
