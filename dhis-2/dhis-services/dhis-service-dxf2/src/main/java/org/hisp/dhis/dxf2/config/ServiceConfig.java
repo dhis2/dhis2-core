@@ -93,6 +93,10 @@ import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.CreateEventProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.DisplayKeyValuePairProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.DisplayTextProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ErrorOnCompleteProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideFieldProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideOptionGroupProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
@@ -104,6 +108,8 @@ import org.hisp.dhis.programrule.action.validation.SendMessageProgramRuleActionV
 import org.hisp.dhis.programrule.action.validation.SetMandatoryFieldProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowErrorProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowOptionGroupProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ShowWarningProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.WarningOnCompleteProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -340,6 +346,12 @@ public class ServiceConfig
             .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, HideProgramStageProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.ASSIGN, AssignProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.HIDEFIELD, HideFieldProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.CREATEEVENT, CreateEventProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.WARNINGONCOMPLETE, WarningOnCompleteProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.ERRORONCOMPLETE, ErrorOnCompleteProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.DISPLAYTEXT, DisplayTextProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.DISPLAYKEYVALUEPAIR, DisplayKeyValuePairProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWWARNING, ShowWarningProgramRuleActionValidator.class )
             .build();
     }
 }
