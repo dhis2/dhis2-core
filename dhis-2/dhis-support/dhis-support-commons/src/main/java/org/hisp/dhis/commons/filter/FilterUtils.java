@@ -28,6 +28,7 @@
 package org.hisp.dhis.commons.filter;
 
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * Utility class for collection filtering.
@@ -52,7 +53,15 @@ public class FilterUtils
             return null;
         }
 
-        collection.removeIf( v -> !filter.retain( v ) );
+        final Iterator<V> iterator = collection.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            if ( !filter.retain( iterator.next() ) )
+            {
+                iterator.remove();
+            }
+        }
 
         return collection;
     }
@@ -74,7 +83,16 @@ public class FilterUtils
         {
             return null;
         }
-        collection.removeIf( filter::retain );
+
+        final Iterator<V> iterator = collection.iterator();
+
+        while ( iterator.hasNext() )
+        {
+            if ( filter.retain( iterator.next() ) )
+            {
+                iterator.remove();
+            }
+        }
 
         return collection;
     }
