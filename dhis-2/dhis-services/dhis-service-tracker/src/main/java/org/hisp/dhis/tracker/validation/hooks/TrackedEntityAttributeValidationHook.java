@@ -166,7 +166,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
             }
 
             validateAttributeValue( reporter, tea, attribute.getValue() );
-            validateTextPattern( reporter, attribute, tea, valueMap.get( tea.getUid() ) );
             validateAttrValueType( reporter, attribute, tea );
             validateOptionSet( reporter, tea, attribute.getValue() );
 
@@ -195,48 +194,6 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
         // data value type set on the attribute
         final String result = dataValueIsValid( value, tea.getValueType() );
         addErrorIf( () -> result != null, reporter, E1085, tea, result );
-    }
-
-    protected void validateTextPattern( ValidationErrorReporter reporter,
-        Attribute attribute, TrackedEntityAttribute tea, TrackedEntityAttributeValue existingValue )
-    {
-        TrackerBundle bundle = reporter.getValidationContext().getBundle();
-        checkNotNull( attribute, ATTRIBUTE_CANT_BE_NULL );
-        checkNotNull( tea, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
-
-        if ( !tea.isGenerated() )
-        {
-            return;
-        }
-
-        // TODO: Should we check the text pattern even if its not generated?
-        // TextPatternValidationUtils.validateTextPatternValue(
-        // attribute.getTextPattern(), value )
-
-        // TODO: Can't provoke this error since metadata importer won't allow
-        // null, empty or invalid patterns.
-        if ( tea.getTextPattern() == null && !bundle.isSkipTextPatternValidation() )
-        {
-            reporter.addError( newReport( TrackerErrorCode.E1111 )
-                .addArg( attribute ) );
-        }
-
-        if ( tea.getTextPattern() != null && !bundle.isSkipTextPatternValidation() )
-        {
-            String oldValue = existingValue != null ? existingValue.getValue() : null;
-
-            // We basically ignore the pattern validation if the value is
-            // reserved or already
-            // assigned i.e. input eq. already persisted value.
-            boolean isReservedOrAlreadyAssigned = Objects.equals( attribute.getValue(), oldValue ) ||
-                reservedValueService.isReserved( tea.getTextPattern(), attribute.getValue() );
-
-            boolean isValidPattern = TextPatternValidationUtils
-                .validateTextPatternValue( tea.getTextPattern(), attribute.getValue() );
-
-            addErrorIf( () -> !isReservedOrAlreadyAssigned && !isValidPattern, reporter, E1008, attribute.getValue(),
-                tea.getTextPattern() );
-        }
     }
 
     protected void validateFileNotAlreadyAssigned( ValidationErrorReporter reporter,
