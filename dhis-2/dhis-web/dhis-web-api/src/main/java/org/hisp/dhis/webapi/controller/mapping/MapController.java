@@ -138,7 +138,10 @@ public class MapController
         Map newMap = deserializeJsonEntity( request, response );
         newMap.setUid( uid );
 
-        mergeService.merge( new MergeParams<>( newMap, map ).setMergeMode( params.getMergeMode() ) );
+        mergeService.merge( new MergeParams<>( newMap, map )
+            .setMergeMode( params.getMergeMode() )
+            .setSkipSharing( params.isSkipSharing() )
+            .setSkipTranslation( params.isSkipTranslation() ) );
         mappingService.updateMap( map );
     }
 
