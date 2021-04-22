@@ -315,7 +315,7 @@ public class TeTaValidationTest
     public void testTeaIsNull()
         throws IOException
     {
-        setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
+        setUpMetadata( "tracker/validations/te-program-with-tea-mandatory-image.json" );
 
         TrackerValidationReport report = validate(
             "tracker/validations/te-program_with_tea_invalid_value_isnull.json" );
