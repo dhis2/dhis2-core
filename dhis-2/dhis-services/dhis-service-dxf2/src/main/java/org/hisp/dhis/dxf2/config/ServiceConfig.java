@@ -92,10 +92,18 @@ import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.external.conf.ConfigurationPropertyFactoryBean;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
+import org.hisp.dhis.programrule.action.validation.AssignProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideFieldProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideOptionGroupProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideOptionProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideProgramStageProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.HideSectionProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ScheduleMessageProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.SendMessageProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.SetMandatoryFieldProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowErrorProgramRuleActionValidator;
+import org.hisp.dhis.programrule.action.validation.ShowOptionGroupProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowWarningProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -325,7 +333,14 @@ public class ServiceConfig
             .put( ProgramRuleActionType.SENDMESSAGE, SendMessageProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.SCHEDULEMESSAGE, ScheduleMessageProgramRuleActionValidator.class )
             .put( ProgramRuleActionType.SHOWERROR, ShowErrorProgramRuleActionValidator.class )
-            .put( ProgramRuleActionType.SHOWWARNING, ShowWarningProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SHOWOPTIONGROUP, ShowOptionGroupProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEOPTIONGROUP, HideOptionGroupProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEOPTION, HideOptionProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.SETMANDATORYFIELD, SetMandatoryFieldProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDESECTION, HideSectionProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEPROGRAMSTAGE, HideProgramStageProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.ASSIGN, AssignProgramRuleActionValidator.class )
+            .put( ProgramRuleActionType.HIDEFIELD, HideFieldProgramRuleActionValidator.class )
             .build();
     }
 }
