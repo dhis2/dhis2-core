@@ -27,28 +27,15 @@
  */
 package org.hisp.dhis.dxf2.metadata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.xml.xpath.XPathExpressionException;
-
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import lombok.extern.slf4j.Slf4j;
-
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.TransactionalIntegrationTest;
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.common.MergeMode;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dataset.Section;
@@ -75,12 +62,24 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.visualization.Visualization;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
+import javax.xml.xpath.XPathExpressionException;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -434,7 +433,6 @@ public class MetadataImportServiceTest extends TransactionalIntegrationTest
         assertEquals( Status.OK, report.getStatus() );
 
         dataSet = manager.get( DataSet.class, "em8Bg4LCr5k" );
-        assertNotNull( dataSet.getSharing().getUserGroups() );
 
         assertEquals( 2, dataSet.getTranslations().size() );
     }

@@ -28,14 +28,7 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.HibernateCacheManager;
@@ -60,6 +53,11 @@ import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -312,8 +310,10 @@ public class DefaultObjectBundleService implements ObjectBundleService
 
             if ( bundle.getMergeMode() != MergeMode.NONE )
             {
-                mergeService.merge( new MergeParams<>( object, persistedObject ).setMergeMode( bundle.getMergeMode() )
-                    .setSkipSharing( bundle.isSkipSharing() ) );
+                mergeService.merge( new MergeParams<>( object, persistedObject )
+                    .setMergeMode( bundle.getMergeMode() )
+                    .setSkipSharing( bundle.isSkipSharing() )
+                    .setSkipTranslation( bundle.isSkipTranslation() ) );
             }
 
             if ( bundle.getOverrideUser() != null )
