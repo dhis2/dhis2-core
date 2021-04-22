@@ -387,7 +387,7 @@
             "id": "E8o1E9tAppy"
           },
           "attributeValues": [],
-          "mandatory": false,
+          "mandatory": true,
           "favorite": false,
           "trackedEntityAttribute": {
             "id": "fmBIpOStKkF"
