@@ -104,7 +104,6 @@ import org.hisp.dhis.programrule.action.validation.SendMessageProgramRuleActionV
 import org.hisp.dhis.programrule.action.validation.SetMandatoryFieldProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowErrorProgramRuleActionValidator;
 import org.hisp.dhis.programrule.action.validation.ShowOptionGroupProgramRuleActionValidator;
-import org.hisp.dhis.programrule.action.validation.ShowWarningProgramRuleActionValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
