@@ -28,14 +28,11 @@
 package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.nullness.Opt;
+
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -47,18 +44,19 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
     @Override
-    public ProgramRuleActionValidationResult validate(ProgramRuleAction programRuleAction, ProgramRuleActionValidationService validationService)
+    public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
+        ProgramRuleActionValidationService validationService )
     {
         if ( !programRuleAction.hasOption() )
         {
             log.debug( String.format( "Option cannot be null for program rule: %s ",
-                    programRuleAction.getProgramRule().getUid() ) );
+                programRuleAction.getProgramRule().getUid() ) );
 
             return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( Option.class, ErrorCode.E4040,
-                            programRuleAction.getProgramRule().getUid() ) )
-                    .build();
+                .valid( false )
+                .errorReport( new ErrorReport( Option.class, ErrorCode.E4040,
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
         }
 
         Option option = programRuleAction.getOption();
@@ -68,14 +66,14 @@ public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleAct
         if ( manager.get( Option.class, option.getUid() ) == null )
         {
             log.debug( String.format( "Option: %s associated with program rule: %s does not exist",
-                    option.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) );
+                option.getUid(),
+                programRuleAction.getProgramRule().getUid() ) );
 
             return ProgramRuleActionValidationResult.builder()
-                    .valid( false )
-                    .errorReport( new ErrorReport( Option.class, ErrorCode.E4041, option.getUid(),
-                            programRuleAction.getProgramRule().getUid() ) )
-                    .build();
+                .valid( false )
+                .errorReport( new ErrorReport( Option.class, ErrorCode.E4041, option.getUid(),
+                    programRuleAction.getProgramRule().getUid() ) )
+                .build();
         }
 
         return ProgramRuleActionValidationResult.builder().valid( true ).build();

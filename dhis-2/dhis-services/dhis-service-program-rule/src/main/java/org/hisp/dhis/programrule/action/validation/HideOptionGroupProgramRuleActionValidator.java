@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.programrule.action.validation;
 
-
 /**
  * @author Zubair Asghar
  */
