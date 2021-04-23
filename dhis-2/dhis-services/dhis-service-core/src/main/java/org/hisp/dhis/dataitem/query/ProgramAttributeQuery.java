@@ -81,6 +81,8 @@ public class ProgramAttributeQuery implements DataItemQuery
 
     private static final String SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE = " from trackedentityattribute ";
 
+    private static final String TRACKEDENTITY_ATTRIBUTE = "trackedentityattribute";
+
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
     {
@@ -115,7 +117,7 @@ public class ProgramAttributeQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "trackedentityattribute", paramsMap ) ) );
+        sql.append( always( sharingConditions( TRACKEDENTITY_ATTRIBUTE, paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
 
@@ -176,10 +178,10 @@ public class ProgramAttributeQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "trackedentityattribute", true ) )
+            .append( translationNamesColumnsFor( TRACKEDENTITY_ATTRIBUTE, true ) )
             .append( SPACED_FROM_TRACKED_ENTITY_ATTRIBUTE )
             .append( JOINS )
-            .append( translationNamesJoinsOn( "trackedentityattribute", true ) ).toString();
+            .append( translationNamesJoinsOn( TRACKEDENTITY_ATTRIBUTE, true ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()

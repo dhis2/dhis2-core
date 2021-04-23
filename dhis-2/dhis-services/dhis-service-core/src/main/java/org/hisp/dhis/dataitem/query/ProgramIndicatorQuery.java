@@ -80,6 +80,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
 
     private static final String SPACED_FROM_PROGRAM_INDICATOR = " from programindicator ";
 
+    private static final String PROGRAM_INDICATOR = "programindicator";
+
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
     {
@@ -114,7 +116,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "programindicator", paramsMap ) ) );
+        sql.append( always( sharingConditions( PROGRAM_INDICATOR, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
@@ -172,10 +174,10 @@ public class ProgramIndicatorQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "programindicator", false ) )
+            .append( translationNamesColumnsFor( PROGRAM_INDICATOR, false ) )
             .append( SPACED_FROM_PROGRAM_INDICATOR )
             .append( JOINS )
-            .append( translationNamesJoinsOn( "programindicator", false ) ).toString();
+            .append( translationNamesJoinsOn( PROGRAM_INDICATOR, false ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()

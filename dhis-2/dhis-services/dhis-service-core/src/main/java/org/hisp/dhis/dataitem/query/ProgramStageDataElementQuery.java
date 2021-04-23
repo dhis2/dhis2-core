@@ -81,6 +81,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
     private static final String SPACED_FROM_DATA_ELEMENT = " from dataelement ";
 
+    private static final String DATA_ELEMENT = "dataelement";
+
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
     {
@@ -115,7 +117,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "dataelement", paramsMap ) ) );
+        sql.append( always( sharingConditions( DATA_ELEMENT, paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
 
@@ -176,10 +178,10 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( translationNamesColumnsFor( "dataelement", true ) )
+            .append( translationNamesColumnsFor( DATA_ELEMENT, true ) )
             .append( SPACED_FROM_DATA_ELEMENT )
             .append( JOINS )
-            .append( translationNamesJoinsOn( "dataelement", true ) ).toString();
+            .append( translationNamesJoinsOn( DATA_ELEMENT, true ) ).toString();
     }
 
     private String selectAllRowsIgnoringAnyTranslation()
