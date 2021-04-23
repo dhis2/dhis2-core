@@ -74,6 +74,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoRule;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -91,6 +92,9 @@ public class ResponseHandlerTest
 
     @Mock
     private FieldFilterService fieldFilterService;
+
+    @Mock
+    private Environment environment;
 
     @Mock
     private CacheProvider cacheProvider;

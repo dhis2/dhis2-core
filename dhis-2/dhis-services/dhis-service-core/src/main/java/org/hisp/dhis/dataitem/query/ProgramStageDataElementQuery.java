@@ -70,7 +70,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "program.name as program_name, program.uid as program_uid,"
         + " program.shortname as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
         + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype, dataelement.code as item_code,"
-        + " dataelement.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_DATA_ELEMENT' as text) as item_type";
+        + " cast (null as text) as item_domaintype, cast ('PROGRAM_DATA_ELEMENT' as text) as item_type,"
+        + " dataelement.dataelementid as item_id, dataelement.publicaccess as item_publicaccess";
 
     private static final String COMMON_UIDS = "program.uid, dataelement.uid";
 
@@ -103,8 +104,8 @@ public class ProgramStageDataElementQuery implements DataItemQuery
 
         sql.append(
             " group by program.name, program.shortname, item_name, " + COMMON_UIDS
-                + ", item_valuetype, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+                + ", item_valuetype, item_code, item_shortname, i18n_first_name, i18n_first_shortname"
+                + ", i18n_second_name, i18n_second_shortname, item_id, item_publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -114,7 +115,7 @@ public class ProgramStageDataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", paramsMap ) ) );
+        sql.append( always( sharingConditions( "dataelement", paramsMap ) ) );
         sql.append( " and" );
         sql.append( ifSet( valueTypeFiltering( "t.item_valuetype", paramsMap ) ) );
 

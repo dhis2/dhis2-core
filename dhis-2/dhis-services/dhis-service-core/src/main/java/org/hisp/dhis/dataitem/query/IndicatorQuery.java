@@ -71,7 +71,8 @@ public class IndicatorQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
         + " cast (null as text) as program_shortname, indicator.uid as item_uid, indicator.name as item_name,"
         + " indicator.shortname as item_shortname, cast (null as text) as item_valuetype, indicator.code as item_code,"
-        + " indicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('INDICATOR' as text) as item_type";
+        + " cast (null as text) as item_domaintype, cast ('INDICATOR' as text) as item_type, "
+        + " indicator.indicatorid as item_id, indicator.publicaccess as item_publicaccess";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -95,8 +96,8 @@ public class IndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by item_name, item_uid, item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+            " group by item_name, item_uid, item_code, item_shortname, i18n_first_name, i18n_first_shortname,"
+                + " i18n_second_name, i18n_second_shortname, item_id, item_publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -106,7 +107,7 @@ public class IndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", paramsMap ) ) );
+        sql.append( always( sharingConditions( "indicator", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

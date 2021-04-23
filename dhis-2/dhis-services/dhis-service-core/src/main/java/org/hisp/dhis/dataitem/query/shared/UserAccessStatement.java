@@ -144,7 +144,7 @@ public class UserAccessStatement
 
         final StringBuilder condition = new StringBuilder();
         condition.append(
-            "(t." + table + "_publicaccess like " + READ_ACCESS + " or t." + table + "_publicaccess is null) " );
+            "(t.item_publicaccess like " + READ_ACCESS + " or t.item_publicaccess is null) " );
 
         return condition.toString();
     }
@@ -155,7 +155,7 @@ public class UserAccessStatement
         assertColumnName( column );
 
         final StringBuilder condition = new StringBuilder();
-        condition.append( " t.id IN (" )
+        condition.append( " t.item_id IN (" )
             .append( " SELECT " + userAccessTable + "." + column + " FROM " + userAccessTable )
             .append( " WHERE " + userAccessTable + ".useraccessid IN (SELECT useraccessid FROM useraccess" )
             .append( " WHERE access LIKE " + READ_ACCESS + " AND useraccess.userid = :" + USER_ID + "))" );
@@ -170,7 +170,8 @@ public class UserAccessStatement
         assertColumnName( column );
 
         final StringBuilder condition = new StringBuilder();
-        condition.append( " t.id IN (SELECT " + userGroupAccessTable + "." + column + " FROM " + userGroupAccessTable )
+        condition
+            .append( " t.item_id IN (SELECT " + userGroupAccessTable + "." + column + " FROM " + userGroupAccessTable )
             .append( " WHERE " + userGroupAccessTable
                 + ".usergroupaccessid IN (SELECT usergroupaccessid FROM usergroupaccess WHERE" )
             .append( " access LIKE " + READ_ACCESS

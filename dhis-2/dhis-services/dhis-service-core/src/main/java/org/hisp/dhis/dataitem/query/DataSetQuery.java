@@ -69,8 +69,8 @@ public class DataSetQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
         + " cast (null as text) as program_shortname, dataset.uid as item_uid, dataset.name as item_name,"
         + " dataset.shortname as item_shortname, cast (null as text) as item_valuetype, dataset.code as item_code,"
-        + " dataset.sharing as item_sharing, cast (null as text) as item_domaintype,"
-        + " cast('REPORTING_RATE' as text) as item_type";
+        + " cast (null as text) as item_domaintype, cast('REPORTING_RATE' as text) as item_type,"
+        + " dataset.datasetid as item_id, dataset.publicaccess as item_publicaccess";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -94,8 +94,8 @@ public class DataSetQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name,"
-                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+            " group by item_name, item_uid, item_code, item_shortname, i18n_first_name,"
+                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname, item_id, item_publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -105,7 +105,7 @@ public class DataSetQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", paramsMap ) ) );
+        sql.append( always( sharingConditions( "dataset", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

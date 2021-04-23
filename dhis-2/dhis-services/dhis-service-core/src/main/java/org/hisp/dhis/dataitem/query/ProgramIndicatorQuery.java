@@ -71,7 +71,8 @@ public class ProgramIndicatorQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, program.uid as program_uid,"
         + " cast (null as text) as program_shortname, programindicator.uid as item_uid, programindicator.name as item_name,"
         + " programindicator.shortname as item_shortname, cast (null as text) as item_valuetype, programindicator.code as item_code,"
-        + " programindicator.sharing as item_sharing, cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type";
+        + " cast (null as text) as item_domaintype, cast ('PROGRAM_INDICATOR' as text) as item_type,"
+        + " programindicator.programindicatorid as item_id, programindicator.publicaccess as item_publicaccess";
 
     private static final String COMMON_UIDS = "program.uid, programindicator.uid";
 
@@ -101,9 +102,9 @@ public class ProgramIndicatorQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by item_name, " + COMMON_UIDS
-                + ", item_code, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+            " group by item_name, " + COMMON_UIDS + ", item_code, item_shortname,"
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname,"
+                + " item_id, item_publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -113,7 +114,7 @@ public class ProgramIndicatorQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", paramsMap ) ) );
+        sql.append( always( sharingConditions( "programindicator", paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );

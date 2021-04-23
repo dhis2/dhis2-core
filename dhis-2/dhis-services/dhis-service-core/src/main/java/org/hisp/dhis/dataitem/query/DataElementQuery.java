@@ -75,8 +75,8 @@ public class DataElementQuery implements DataItemQuery
     private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
         + " cast (null as text) as program_shortname, dataelement.uid as item_uid, dataelement.name as item_name,"
         + " dataelement.shortname as item_shortname, dataelement.valuetype as item_valuetype,"
-        + " dataelement.code as item_code, dataelement.sharing as item_sharing, dataelement.domaintype as item_domaintype,"
-        + " cast ('DATA_ELEMENT' as text) as item_type";
+        + " dataelement.code as item_code, dataelement.domaintype as item_domaintype,"
+        + " cast ('DATA_ELEMENT' as text) as item_type, dataelement.dataelementid as item_id, dataelement.publicaccess as item_publicaccess";
 
     @Override
     public String getStatement( final MapSqlParameterSource paramsMap )
@@ -100,8 +100,8 @@ public class DataElementQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_sharing, item_shortname,"
-                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
+            " group by item_name, item_uid, item_valuetype, item_code, item_domaintype, item_shortname,"
+                + " i18n_first_name, i18n_first_shortname, i18n_second_name, i18n_second_shortname, item_id, item_publicaccess" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -111,7 +111,7 @@ public class DataElementQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.item_sharing", paramsMap ) ) );
+        sql.append( always( sharingConditions( "dataelement", paramsMap ) ) );
         sql.append( " and " );
         // ONLY aggregates
         sql.append( always( "t.item_domaintype = 'AGGREGATE'" ) );
