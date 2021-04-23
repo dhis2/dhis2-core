@@ -41,6 +41,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -324,6 +325,23 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         JsonObject group = groups.getObject( 0 );
         assertEquals( asList( "displayName", "id" ), group.names() );
         assertEquals( "groupX", group.getString( "displayName" ).string() );
+    }
+
+    @Test
+    public void testGistPropertyList_DisplayNameWithLocale()
+    {
+        assertStatus( HttpStatus.NO_CONTENT, PUT( "/organisationUnits/" + orgUnitId + "/translations",
+            "{'translations': [" +
+                "{'locale':'sv', 'property':'name', 'value':'enhet A'}, " +
+                "{'locale':'de', 'property':'name', 'value':'Einheit A'}]}" ) );
+
+        JsonString displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=de&headless=true",
+            orgUnitId ).content();
+        assertEquals( "Einheit A", displayName.string() );
+
+        displayName = GET( "/organisationUnits/{id}/gist?fields=displayName&locale=sv&headless=true",
+            orgUnitId ).content();
+        assertEquals( "enhet A", displayName.string() );
     }
 
     private void createDataSetsForOrganisationUnit( int count, String organisationUnitId, String namePrefix )
