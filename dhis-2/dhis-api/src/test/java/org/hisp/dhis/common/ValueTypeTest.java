@@ -51,8 +51,6 @@ public class ValueTypeTest
     {
         // arrange act assert
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
-        assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.NONE ) );
-        assertTrue( ValueType.LETTER.isAggregatable( AggregationType.NONE ) );
     }
 
     @Test
@@ -60,8 +58,8 @@ public class ValueTypeTest
     {
         // arrange act assert
         assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
-        assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.AVERAGE ) );
-        assertFalse( ValueType.LETTER.isAggregatable( AggregationType.FIRST ) );
+        assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.CUSTOM ) );
+        assertFalse( ValueType.LETTER.isAggregatable( AggregationType.CUSTOM ) );
     }
 
     @Test
@@ -101,7 +99,8 @@ public class ValueTypeTest
     {
         // arrange act assert
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.AVERAGE ) );
-        assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.NONE ) );
         assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.DEFAULT ) );
+        assertFalse( ValueType.FILE_RESOURCE.isAggregatable( AggregationType.NONE ) );
+
     }
 }
