@@ -912,6 +912,7 @@ public class RelativePeriods
         add( list, RelativePeriodEnum.QUARTERS_LAST_YEAR, quartersLastYear );
         add( list, RelativePeriodEnum.LAST_YEAR, lastYear );
         add( list, RelativePeriodEnum.LAST_5_YEARS, last5Years );
+        add( list, RelativePeriodEnum.LAST_10_YEARS, last10Years );
         add( list, RelativePeriodEnum.LAST_12_MONTHS, last12Months );
         add( list, RelativePeriodEnum.LAST_6_MONTHS, last6Months );
         add( list, RelativePeriodEnum.LAST_3_MONTHS, last3Months );
@@ -963,6 +964,7 @@ public class RelativePeriods
             quartersLastYear = relativePeriods.contains( RelativePeriodEnum.QUARTERS_LAST_YEAR );
             lastYear = relativePeriods.contains( RelativePeriodEnum.LAST_YEAR );
             last5Years = relativePeriods.contains( RelativePeriodEnum.LAST_5_YEARS );
+            last10Years = relativePeriods.contains( RelativePeriodEnum.LAST_10_YEARS );
             last12Months = relativePeriods.contains( RelativePeriodEnum.LAST_12_MONTHS );
             last6Months = relativePeriods.contains( RelativePeriodEnum.LAST_6_MONTHS );
             last3Months = relativePeriods.contains( RelativePeriodEnum.LAST_3_MONTHS );
