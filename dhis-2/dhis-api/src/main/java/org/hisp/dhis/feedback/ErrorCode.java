@@ -163,10 +163,10 @@ public enum ErrorCode
     E4041( "Option `{0}` associated with program rule `{1}` does not exist" ),
     E4042( "OptionGroup cannot be null for program rule `{0}`" ),
     E4043( "OptionGroup `{0}` associated with program rule `{1}` does not exist" ),
-    E4044( "DataElement cannot be null for program rule `{0}`" ),
+
+    E4044( "DataElement or TrackedEntityAttribute cannot be null for program rule `{0}`" ),
     E4045( "DataElement `{0}` associated with program rule `{1}` does not exist" ),
-    E4046( "TrackedEntityAttribute cannot be null for program rule `{0}`" ),
-    E4047( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
+    E4046( "TrackedEntityAttribute `{0}` associated with program rule `{1}` does not exist" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
