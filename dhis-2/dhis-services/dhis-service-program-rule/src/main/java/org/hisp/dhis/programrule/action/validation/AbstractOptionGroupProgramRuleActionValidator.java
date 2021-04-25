@@ -42,7 +42,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
  */
 
 @Slf4j
-public abstract class AbstractOptionGroupProgramRuleActionValidator extends AbstractProgramRuleActionValidator
+public abstract class AbstractOptionGroupProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,

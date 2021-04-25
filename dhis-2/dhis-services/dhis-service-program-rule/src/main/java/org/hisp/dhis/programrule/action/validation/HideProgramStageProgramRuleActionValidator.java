@@ -41,7 +41,7 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
  */
 
 @Slf4j
-public class HideProgramStageProgramRuleActionValidator extends AbstractProgramRuleActionValidator
+public class HideProgramStageProgramRuleActionValidator implements ProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
