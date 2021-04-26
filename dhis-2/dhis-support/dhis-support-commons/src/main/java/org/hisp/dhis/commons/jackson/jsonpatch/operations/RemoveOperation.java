@@ -34,6 +34,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.MissingNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * @author Morten Olav Hansen
@@ -50,6 +53,38 @@ public class RemoveOperation extends JsonPatchOperation
     public JsonNode apply( JsonNode node )
         throws JsonPatchException
     {
-        return null;
+        if ( path == JsonPointer.empty() )
+        {
+            return MissingNode.getInstance();
+        }
+
+        nodePathExists( node );
+
+        final JsonNode parentNode = node.at( path.head() );
+        final String rawToken = path.last().getMatchingProperty();
+
+        // in both these cases we are not checking for existence, it will remove
+        // if exists, otherwise do nothing
+        if ( parentNode.isObject() )
+        {
+            ((ObjectNode) parentNode).remove( rawToken );
+        }
+        else if ( parentNode.isArray() )
+        {
+            ((ArrayNode) parentNode).remove( Integer.parseInt( rawToken ) );
+        }
+
+        return node;
+    }
+
+    private void nodePathExists( JsonNode node )
+        throws JsonPatchException
+    {
+        final JsonNode found = node.at( path );
+
+        if ( found.isMissingNode() )
+        {
+            throw new JsonPatchException( "Path does not exist: " + path );
+        }
     }
 }

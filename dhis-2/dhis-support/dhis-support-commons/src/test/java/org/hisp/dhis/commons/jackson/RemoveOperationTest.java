@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.commons.jackson;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
@@ -35,7 +37,10 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * @author Morten Olav Hansen
@@ -44,15 +49,38 @@ public class RemoveOperationTest
 {
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
-    public void testBasic()
+    @Test( expected = JsonPatchException.class )
+    public void testRemoveInvalidKeyShouldThrowException()
         throws JsonProcessingException,
         JsonPatchException
     {
         JsonPatch patch = jsonMapper.readValue( "[" +
-            "{\"op\": \"add\", \"path\": \"\", \"value\": \"bbb\"}" +
+            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
             "]", JsonPatch.class );
 
         assertNotNull( patch );
+        JsonNode root = jsonMapper.createObjectNode();
+
+        assertFalse( root.has( "aaa" ) );
+        root = patch.apply( root );
+    }
+
+    @Test
+    public void testRemoveProperty()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"remove\", \"path\": \"/aaa\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+        root.set( "aaa", TextNode.valueOf( "bbb" ) );
+
+        assertTrue( root.has( "aaa" ) );
+        root = (ObjectNode) patch.apply( root );
+        assertFalse( root.has( "aaa" ) );
     }
 }

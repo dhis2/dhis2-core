@@ -30,7 +30,6 @@ package org.hisp.dhis.commons.jackson.jsonpatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.AddOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.RemoveOperation;
 import org.hisp.dhis.commons.jackson.jsonpatch.operations.ReplaceOperation;
-import org.hisp.dhis.commons.jackson.jsonpatch.operations.TestOperation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -47,7 +46,7 @@ import lombok.Getter;
     @JsonSubTypes.Type( name = "add", value = AddOperation.class ),
     @JsonSubTypes.Type( name = "remove", value = RemoveOperation.class ),
     @JsonSubTypes.Type( name = "replace", value = ReplaceOperation.class ),
-    @JsonSubTypes.Type( name = "test", value = TestOperation.class ),
+    /* @JsonSubTypes.Type( name = "test", value = TestOperation.class ), */
 } )
 @JsonTypeInfo( use = JsonTypeInfo.Id.NAME, property = "op" )
 public abstract class JsonPatchOperation

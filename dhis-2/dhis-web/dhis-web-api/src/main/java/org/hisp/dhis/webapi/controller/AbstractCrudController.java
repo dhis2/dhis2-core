@@ -573,6 +573,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
     @ResponseBody
     @PatchMapping( path = "/{uid}", consumes = "application/json-patch+json" )
+    @SuppressWarnings( "unchecked" )
     public WebMessage partialUpdateObject(
         @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
         HttpServletRequest request )
@@ -586,7 +587,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
             throw new WebMessageException( WebMessageUtils.notFound( getEntityClass(), pvUid ) );
         }
 
-        T persistedObject = entities.get( 0 );
+        final T persistedObject = entities.get( 0 );
 
         User user = currentUserService.getCurrentUser();
 
@@ -597,10 +598,10 @@ public abstract class AbstractCrudController<T extends IdentifiableObject>
 
         prePatchEntity( persistedObject );
 
-        JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
-        jsonPatchManager.apply( patch, persistedObject );
-        validateAndThrowErrors( () -> schemaValidator.validate( persistedObject ) );
-        manager.update( persistedObject );
+        final JsonPatch patch = jsonMapper.readValue( request.getInputStream(), JsonPatch.class );
+        final T updatedObject = (T) jsonPatchManager.apply( patch, persistedObject );
+        validateAndThrowErrors( () -> schemaValidator.validate( updatedObject ) );
+        manager.update( updatedObject );
 
         postPatchEntity( persistedObject );
 

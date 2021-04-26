@@ -27,11 +27,16 @@
  */
 package org.hisp.dhis.commons.jackson;
 
+import static org.junit.Assert.assertNotNull;
+
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
+import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -41,10 +46,21 @@ public class TestOperationTest
 {
     private final ObjectMapper jsonMapper = JacksonObjectMapperConfig.staticJsonMapper();
 
-    @Test
+    @Ignore
+    @Test( expected = JsonPatchException.class )
     public void testTestIfPathExists()
         throws JsonProcessingException,
         JsonPatchException
     {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"test\", \"path\": \"/aaa\", \"value\": \"bbb\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        JsonNode root = jsonMapper.createObjectNode();
+
+        // path 'aaa' does not exist, should throw exception
+        patch.apply( root );
     }
 }

@@ -29,7 +29,9 @@
 package org.hisp.dhis.commons.jackson.jsonpatch;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -46,15 +48,28 @@ public class JsonPatchManager
         this.jsonMapper = jsonMapper;
     }
 
-    public void apply( JsonPatch patch, Object object )
+    @Transactional
+    public Object apply( JsonPatch patch, Object object )
         throws JsonPatchException
     {
         if ( patch == null || object == null )
         {
-            return;
+            return null;
         }
 
         JsonNode node = jsonMapper.valueToTree( object );
         node = patch.apply( node );
+
+        try
+        {
+            Object detachedObject = jsonMapper.treeToValue( node, object.getClass() );
+            // TODO refresh object
+        }
+        catch ( JsonProcessingException e )
+        {
+            throw new JsonPatchException( e.getMessage() );
+        }
+
+        return object;
     }
 }

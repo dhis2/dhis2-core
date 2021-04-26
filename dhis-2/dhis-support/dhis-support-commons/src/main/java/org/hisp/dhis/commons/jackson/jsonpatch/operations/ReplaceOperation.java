@@ -40,6 +40,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 public class ReplaceOperation extends JsonPatchValueOperation
 {
+
     @JsonCreator
     public ReplaceOperation( @JsonProperty( "path" ) JsonPointer path, @JsonProperty( "value" ) JsonNode value )
     {
@@ -50,6 +51,13 @@ public class ReplaceOperation extends JsonPatchValueOperation
     public JsonNode apply( JsonNode node )
         throws JsonPatchException
     {
-        return null;
+        // TODO replace with custom impl? so we don't need to create new objects
+        final RemoveOperation removeOperation = new RemoveOperation( path );
+        final AddOperation addOperation = new AddOperation( path, value );
+
+        node = removeOperation.apply( node );
+        node = addOperation.apply( node );
+
+        return node;
     }
 }

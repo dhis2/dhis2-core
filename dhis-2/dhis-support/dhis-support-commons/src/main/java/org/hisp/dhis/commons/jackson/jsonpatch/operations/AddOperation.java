@@ -59,24 +59,24 @@ public class AddOperation extends JsonPatchValueOperation
             return value;
         }
 
-        final JsonNode parent = node.at( path.head() );
+        final JsonNode parentNode = node.at( path.head() );
         final String rawToken = path.last().getMatchingProperty();
 
-        if ( parent.isMissingNode() )
+        if ( parentNode.isMissingNode() )
         {
             throw new JsonPatchException( "isMissingNode" );
         }
 
-        if ( !parent.isContainerNode() )
+        if ( !parentNode.isContainerNode() )
         {
             throw new JsonPatchException( "isContainerNode" );
         }
 
-        if ( parent.isObject() )
+        if ( parentNode.isObject() )
         {
-            ((ObjectNode) parent).set( rawToken, value );
+            ((ObjectNode) parentNode).set( rawToken, value );
         }
-        else if ( parent.isArray() )
+        else if ( parentNode.isArray() )
         {
             final ArrayNode target = (ArrayNode) node.at( path.head() );
 
