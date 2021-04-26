@@ -68,8 +68,8 @@ public class AuthenticationProviderConfig
     TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
     @Autowired
-    @Qualifier( "userDetailsService" )
-    UserDetailsService defaultUserDetailsService;
+    @Qualifier( "ldapUserDetailsService" )
+    UserDetailsService ldapUserDetailsService;
 
     @Bean
     public TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource()
@@ -81,7 +81,7 @@ public class AuthenticationProviderConfig
     CustomLdapAuthenticationProvider customLdapAuthenticationProvider()
     {
         return new CustomLdapAuthenticationProvider( dhisBindAuthenticator(),
-            userDetailsServiceLdapAuthoritiesPopulator( defaultUserDetailsService ),
+            userDetailsServiceLdapAuthoritiesPopulator( ldapUserDetailsService ),
             configurationProvider );
     }
 
