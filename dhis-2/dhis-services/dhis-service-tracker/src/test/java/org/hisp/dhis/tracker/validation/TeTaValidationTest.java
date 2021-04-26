@@ -167,29 +167,6 @@ public class TeTaValidationTest
     }
 
     @Test
-    public void testGeneratedValuePatternDoNotMatch()
-        throws IOException
-    {
-        setUpMetadata( "tracker/validations/te-program_with_tea_fileresource_metadata.json" );
-
-        TrackerImportParams trackerImportParams = fromJson(
-            "tracker/validations/te-program_with_tea_generated_data.json", userService.getUser( ADMIN_USER_UID ) );
-
-        TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
-
-        TrackerValidationReport report = trackerValidationService.validate( trackerBundle );
-        assertEquals( 1, report.getErrorReports().size() );
-        printReport( report );
-        assertThat( report.getErrorReports(),
-            everyItem( hasProperty( "errorCode", equalTo( TrackerErrorCode.E1008 ) ) ) );
-
-        trackerBundleService.commit( trackerBundle );
-
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 0, trackedEntityInstances.size() );
-    }
-
-    @Test
     public void testTeaMaxTextValueLength()
         throws IOException
     {
