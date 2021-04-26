@@ -291,13 +291,10 @@ public class HibernateGenericStore<T>
     {
         TypedQuery<T> typedQuery = getTypedQuery( builder, parameters );
 
-        if ( Objects.nonNull( pagingAndSortingCriteriaAdapter ) )
+        if ( Objects.nonNull( pagingAndSortingCriteriaAdapter ) && pagingAndSortingCriteriaAdapter.isPagingRequest() )
         {
             typedQuery = typedQuery
-                .setFirstResult( pagingAndSortingCriteriaAdapter.getFirstResult() ) // TODO:
-                                                                                    // set
-                                                                                    // first
-                                                                                    // result
+                .setFirstResult( pagingAndSortingCriteriaAdapter.getFirstResult() )
                 .setMaxResults( pagingAndSortingCriteriaAdapter.getPageSize() );
         }
 

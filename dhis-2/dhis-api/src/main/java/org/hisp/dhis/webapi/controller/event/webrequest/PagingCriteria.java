@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
+import java.util.Optional;
+
 /**
  * Paging parameters
  *
@@ -34,6 +36,9 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
  */
 public interface PagingCriteria
 {
+    Integer DEFAULT_PAGE = 1;
+
+    Integer DEFAULT_PAGE_SIZE = 50;
 
     /**
      * Page number to return.
@@ -63,6 +68,15 @@ public interface PagingCriteria
 
     default Integer getFirstResult()
     {
-        return getPage() * getPageSize();
+        Integer page = Optional.ofNullable( getPage() )
+            .filter( p -> p > 0 )
+            .orElse( DEFAULT_PAGE );
+
+        Integer pageSize = Optional.ofNullable( getPageSize() )
+            .filter( ps -> ps > 0 )
+            .orElse( DEFAULT_PAGE_SIZE );
+
+        return (page - 1) * pageSize;
     }
+
 }

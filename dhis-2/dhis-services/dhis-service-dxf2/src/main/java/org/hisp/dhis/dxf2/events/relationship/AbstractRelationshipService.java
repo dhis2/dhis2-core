@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.relationship;
 
-import static org.hisp.dhis.relationship.RelationshipEntity.*;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.PROGRAM_STAGE_INSTANCE;
+import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,7 +127,9 @@ public abstract class AbstractRelationshipService
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService.getRelationshipsByTrackedEntityInstance( tei, skipAccessValidation ).stream()
+        return relationshipService
+            .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).filter( Objects::nonNull ).collect( Collectors.toList() );
     }
@@ -138,7 +142,8 @@ public abstract class AbstractRelationshipService
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService.getRelationshipsByProgramInstance( pi, skipAccessValidation ).stream()
+        return relationshipService
+            .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
@@ -151,7 +156,9 @@ public abstract class AbstractRelationshipService
     {
         User user = currentUserService.getCurrentUser();
 
-        return relationshipService.getRelationshipsByProgramStageInstance( psi, skipAccessValidation ).stream()
+        return relationshipService
+            .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( mapDaoToDto( user ) ).collect( Collectors.toList() );
     }
