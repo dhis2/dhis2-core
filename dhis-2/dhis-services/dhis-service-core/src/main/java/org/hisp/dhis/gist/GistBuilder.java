@@ -36,6 +36,7 @@ import static org.hisp.dhis.gist.GistLogic.isHrefProperty;
 import static org.hisp.dhis.gist.GistLogic.isNonNestedPath;
 import static org.hisp.dhis.gist.GistLogic.isPersistentCollectionField;
 import static org.hisp.dhis.gist.GistLogic.isPersistentReferenceField;
+import static org.hisp.dhis.gist.GistLogic.isStringLengthFilter;
 import static org.hisp.dhis.gist.GistLogic.parentPath;
 import static org.hisp.dhis.gist.GistLogic.pathOnSameParent;
 
@@ -630,17 +631,17 @@ final class GistBuilder
     private String createFilterHQL( int index, Filter filter, String field )
     {
         StringBuilder str = new StringBuilder();
-        boolean sizeOp = isCollectionSizeFilter( filter,
-            context.resolveMandatory( filter.getPropertyPath() ) );
-        if ( sizeOp )
+        Property property = context.resolveMandatory( filter.getPropertyPath() );
+        String fieldTemplate = "%s";
+        if ( isStringLengthFilter( filter, property ) )
         {
-            str.append( "size(" );
+            fieldTemplate = "length(%s)";
         }
-        str.append( field );
-        if ( sizeOp )
+        else if ( isCollectionSizeFilter( filter, property ) )
         {
-            str.append( ")" );
+            fieldTemplate = "size(%s)";
         }
+        str.append( String.format( fieldTemplate, field ) );
         Comparison operator = filter.getOperator();
         str.append( " " ).append( createOperatorLeftSideHQL( operator ) );
         if ( !operator.isUnary() )

@@ -106,6 +106,11 @@ final class GistLogic
             (filter.getOperator().isNumericCompare() && property.isCollection());
     }
 
+    static boolean isStringLengthFilter( Filter filter, Property property )
+    {
+        return filter.getOperator().isSizeCompare() && property.isSimple() && property.getKlass() == String.class;
+    }
+
     static Transform effectiveTransform( Property property, Transform fallback, Transform target )
     {
         if ( target == Transform.AUTO )

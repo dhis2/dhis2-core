@@ -37,12 +37,15 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.List;
 
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonObject;
 import org.hisp.dhis.webapi.json.JsonString;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
 /**
@@ -53,6 +56,9 @@ import org.springframework.http.HttpStatus;
  */
 public class GistQueryControllerTest extends DhisControllerConvenienceTest
 {
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
+
     private String userGroupId;
 
     private String orgUnitId;
@@ -312,6 +318,28 @@ public class GistQueryControllerTest extends DhisControllerConvenienceTest
         assertEquals( 1, GET( "/users/gist?filter=code:neq:Paul&headless=true" ).content().size() );
         assertEquals( 1, GET( "/users/gist?filter=code:ne:Paul&headless=true" ).content().size() );
         assertEquals( 0, GET( "/users/gist?filter=code:ne:admin&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_Empty()
+    {
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnitId );
+        ou.setComment( "" );
+        organisationUnitService.updateOrganisationUnit( ou );
+
+        assertEquals( 1, GET( "/organisationUnits/gist?filter=comment:empty&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/users/gist?filter=surname:empty&headless=true" ).content().size() );
+    }
+
+    @Test
+    public void testGistObjectList_FilterBy_NotEmpty()
+    {
+        OrganisationUnit ou = organisationUnitService.getOrganisationUnit( orgUnitId );
+        ou.setComment( "" );
+        organisationUnitService.updateOrganisationUnit( ou );
+
+        assertEquals( 1, GET( "/users/gist?filter=surname:!empty&headless=true" ).content().size() );
+        assertEquals( 0, GET( "/organisationUnits/gist?filter=comment:!empty&headless=true" ).content().size() );
     }
 
     @Test
