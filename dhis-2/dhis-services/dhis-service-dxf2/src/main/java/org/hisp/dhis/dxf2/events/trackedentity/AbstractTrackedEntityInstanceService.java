@@ -1572,6 +1572,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         trackedEntityInstance.setGeometry( daoTrackedEntityInstance.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntityInstance.isDeleted() );
         trackedEntityInstance.setStoredBy( daoTrackedEntityInstance.getStoredBy() );
+        trackedEntityInstance.setCreatedByUserInfo( daoTrackedEntityInstance.getCreatedByUserInfo() );
+        trackedEntityInstance.setLastUpdatedByUserInfo( daoTrackedEntityInstance.getLastUpdatedByUserInfo() );
 
         if ( daoTrackedEntityInstance.getGeometry() != null )
         {
