@@ -466,7 +466,8 @@ final class GistBuilder
             return createSizeTransformerHQL( index, field, property, "" );
         }
         String accessFilter = createAccessFilterHQL( itemContext, tableName );
-        return String.format( "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
+        return String.format(
+            "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
             tableName, propertyName, property.getItemKlass().getSimpleName(),
             getMemberPath( field.getPropertyPath() ), accessFilter );
     }
@@ -598,21 +599,32 @@ final class GistBuilder
         if ( !isNonNestedPath( filter.getPropertyPath() ) )
         {
             List<Property> path = context.resolvePath( filter.getPropertyPath() );
-            Property path0 = path.get( 0 );
-            if ( path.size() > 2 )
+            if ( isExistsInCollectionFilter( path ) )
             {
-                // we are not magicians...
-                throw new UnsupportedOperationException( "Path to deep: " + filter.getPropertyPath() );
-            }
-            if ( isPersistentCollectionField( path0 ) )
-            {
-                String tableName = "ft_" + index;
-                return String.format( "exists (select 1 from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
-                    tableName, path0.getItemKlass().getSimpleName(), path0.getFieldName(),
-                    createFilterHQL( index, filter, tableName + "." + path.get( 1 ).getFieldName() ) );
+                return createExistsFilterHQL( index, filter, path );
             }
         }
         return createFilterHQL( index, filter, "e." + getMemberPath( filter.getPropertyPath() ) );
+    }
+
+    private boolean isExistsInCollectionFilter( List<Property> path )
+    {
+        return path.size() == 2 && isPersistentCollectionField( path.get( 0 ) )
+            || path.size() == 3 && isPersistentReferenceField( path.get( 0 ) )
+                && isPersistentCollectionField( path.get( 1 ) );
+    }
+
+    private String createExistsFilterHQL( int index, Filter filter, List<Property> path )
+    {
+        Property compared = path.get( path.size() - 1 );
+        Property collection = path.get( path.size() - 2 );
+        String tableName = "ft_" + index;
+        String pathToCollection = path.size() == 2
+            ? path.get( 0 ).getFieldName()
+            : path.get( 0 ).getFieldName() + "." + path.get( 1 ).getFieldName();
+        return String.format( "exists (select 1 from %2$s %1$s where %1$s in elements(e.%3$s) and %4$s)",
+            tableName, collection.getItemKlass().getSimpleName(), pathToCollection,
+            createFilterHQL( index, filter, tableName + "." + compared.getFieldName() ) );
     }
 
     private String createFilterHQL( int index, Filter filter, String field )
@@ -670,7 +682,7 @@ final class GistBuilder
         case NOT_IN:
             return "not in (";
         case EMPTY:
-            return "== 0";
+            return "= 0";
         case NOT_EMPTY:
             return "> 0";
         case LIKE:
@@ -757,10 +769,11 @@ final class GistBuilder
             {
                 Property property = context.resolveMandatory( filter.getPropertyPath() );
                 Object value = getParameterValue( property, filter, argumentParser );
-                dest.accept( "f_" + (i++), operator.isStringCompare()
+                dest.accept( "f_" + i, operator.isStringCompare()
                     ? completeLikeExpression( operator, (String) value )
                     : value );
             }
+            i++;
         }
     }
 
@@ -790,13 +803,8 @@ final class GistBuilder
         {
             return argumentParser.apply( value, Integer.class );
         }
-        String valueAsJson = value;
         Class<?> itemType = getBaseType( property );
-        if ( !(Number.class.isAssignableFrom( itemType ) || itemType == Boolean.class || itemType == boolean.class) )
-        {
-            valueAsJson = '"' + value + '"';
-        }
-        return argumentParser.apply( valueAsJson, itemType );
+        return argumentParser.apply( value, itemType );
     }
 
     private static Object completeLikeExpression( Comparison operator, String value )
@@ -804,6 +812,8 @@ final class GistBuilder
         switch ( operator )
         {
         case LIKE:
+        case ILIKE:
+        case NOT_ILIKE:
         case NOT_LIKE:
             return sqlLikeExpressionOf( value );
         case STARTS_LIKE:
