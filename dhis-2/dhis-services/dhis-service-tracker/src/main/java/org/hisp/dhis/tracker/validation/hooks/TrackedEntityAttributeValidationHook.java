@@ -81,20 +81,21 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     @Override
     public void validateTrackedEntity( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
     {
+        TrackedEntityType trackedEntityType = reporter.getValidationContext()
+            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
+
         TrackerImportValidationContext context = reporter.getValidationContext();
 
         TrackedEntityInstance tei = context.getTrackedEntityInstance( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = context.getOrganisationUnit( trackedEntity.getOrgUnit() );
 
-        validateMandatoryAttributes( reporter, trackedEntity );
-        validateAttributes( reporter, trackedEntity, tei, organisationUnit );
+        validateMandatoryAttributes( reporter, trackedEntity, trackedEntityType );
+        validateAttributes( reporter, trackedEntity, tei, organisationUnit, trackedEntityType );
     }
 
-    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity )
+    private void validateMandatoryAttributes( ValidationErrorReporter reporter, TrackedEntity trackedEntity,
+        TrackedEntityType trackedEntityType )
     {
-        TrackedEntityType trackedEntityType = reporter.getValidationContext()
-            .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
-
         if ( trackedEntityType != null )
         {
             Set<String> trackedEntityAttributes = trackedEntity.getAttributes()
@@ -115,9 +116,11 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
     }
 
     protected void validateAttributes( ValidationErrorReporter reporter,
-        TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit )
+        TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
+        TrackedEntityType trackedEntityType )
     {
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntityType, TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL );
 
         Map<String, TrackedEntityAttributeValue> valueMap = new HashMap<>();
         if ( tei != null )
@@ -138,14 +141,17 @@ public class TrackedEntityAttributeValidationHook extends AttributeValidationHoo
                 continue;
             }
 
-            // if ( StringUtils.isEmpty( attribute.getValue() ) )
             if ( attribute.getValue() == null )
             {
-                // continue; ??? Just continue on empty and null?
-                // TODO: Is this really correct? This check was not here
-                // originally
-                // Enrollment attr check fails on null so why not here too?
-                addError( reporter, E1076, attribute );
+                Optional<TrackedEntityTypeAttribute> optionalTea = Optional.of( trackedEntityType )
+                    .map( tet -> tet.getTrackedEntityTypeAttributes().stream() )
+                    .flatMap( tetAtts -> tetAtts.filter(
+                        teaAtt -> teaAtt.getTrackedEntityAttribute().getUid().equals( attribute.getAttribute() )
+                            && teaAtt.isMandatory() != null && teaAtt.isMandatory() )
+                        .findFirst() );
+
+                if ( optionalTea.isPresent() )
+                    addError( reporter, E1076, TrackedEntityAttribute.class.getSimpleName(), attribute );
 
                 continue;
             }

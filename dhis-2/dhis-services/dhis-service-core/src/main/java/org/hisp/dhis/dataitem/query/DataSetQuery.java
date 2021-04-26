@@ -27,13 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
-import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.apache.commons.lang3.StringUtils.trimToNull;
-import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
-import static org.hisp.dhis.dataitem.DataItem.builder;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.always;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayNameFiltering;
 import static org.hisp.dhis.dataitem.query.shared.FilteringStatement.displayShortNameFiltering;
@@ -48,7 +42,7 @@ import static org.hisp.dhis.dataitem.query.shared.LimitStatement.maxLimit;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesColumnsFor;
 import static org.hisp.dhis.dataitem.query.shared.NameTranslationStatement.translationNamesJoinsOn;
 import static org.hisp.dhis.dataitem.query.shared.OrderingStatement.ordering;
-import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasStringNonBlankPresence;
+import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasNonBlankStringPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.PROGRAM_ID;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_SELECT;
@@ -56,19 +50,11 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.SPACED_WHERE;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.READ_ACCESS;
 import static org.hisp.dhis.dataitem.query.shared.UserAccessStatement.sharingConditions;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataitem.DataItem;
 import org.hisp.dhis.dataitem.query.shared.OptionalFilterBuilder;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 /**
@@ -81,92 +67,23 @@ import org.springframework.stereotype.Component;
 @Component
 public class DataSetQuery implements DataItemQuery
 {
-    private static final String COMMON_COLUMNS = "dataset.uid, dataset.name,"
-        + " dataset.code, dataset.sharing as dataset_sharing, dataset.shortname";
-
-    private static final String ITEM_UID = "dataset.uid";
-
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
-
-    public DataSetQuery( @Qualifier( "readOnlyJdbcTemplate" )
-    final JdbcTemplate jdbcTemplate )
-    {
-        checkNotNull( jdbcTemplate );
-
-        this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate( jdbcTemplate );
-    }
+    private static final String COMMON_COLUMNS = "cast (null as text) as program_name, cast (null as text) as program_uid,"
+        + " cast (null as text) as program_shortname, dataset.uid as item_uid, dataset.name as item_name,"
+        + " dataset.shortname as item_shortname, cast (null as text) as item_valuetype, dataset.code as item_code,"
+        + " dataset.sharing as item_sharing, cast (null as text) as item_domaintype,"
+        + " cast('REPORTING_RATE' as text) as item_type";
 
     @Override
-    public List<DataItem> find( final MapSqlParameterSource paramsMap )
+    public String getStatement( final MapSqlParameterSource paramsMap )
     {
-        final List<DataItem> dataItems = new ArrayList<>();
-
-        // If we have a program id filter, we should not return any data
-        // set because data sets don't have programs directly
-        // associated with.
-        // Hence we skip this query.
-        // It returns empty in such cases.
-        if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
-        {
-            return dataItems;
-        }
-
-        final SqlRowSet rowSet = namedParameterJdbcTemplate.queryForRowSet(
-            getDateSetQuery( paramsMap ), paramsMap );
-
-        while ( rowSet.next() )
-        {
-            final String name = trimToNull( rowSet.getString( "name" ) );
-            final String displayName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_name" ) ), name );
-            final String shortName = trimToNull( rowSet.getString( "shortname" ) );
-            final String displayShortName = defaultIfBlank( trimToNull( rowSet.getString( "i18n_shortname" ) ),
-                shortName );
-
-            dataItems.add( builder().name( name ).shortName( shortName ).displayName( displayName )
-                .displayShortName( displayShortName ).id( rowSet.getString( "uid" ) )
-                .code( rowSet.getString( "code" ) ).dimensionItemType( REPORTING_RATE )
-                .build() );
-        }
-
-        return dataItems;
-    }
-
-    @Override
-    public int count( final MapSqlParameterSource paramsMap )
-    {
-        // If we have a program id filter, we should not return any data
-        // set because data sets don't have programs directly
-        // associated with.
-        // Hence we skip this query.
-        // It returns empty in such cases.
-        if ( hasStringNonBlankPresence( paramsMap, PROGRAM_ID ) )
-        {
-            return 0;
-        }
-
         final StringBuilder sql = new StringBuilder();
 
-        sql.append( SPACED_SELECT + "count(*) from (" )
-            .append( getDateSetQuery( paramsMap ).replace( maxLimit( paramsMap ), EMPTY ) )
-            .append( ") t" );
-
-        return namedParameterJdbcTemplate.queryForObject( sql.toString(), paramsMap, Integer.class );
-    }
-
-    @Override
-    public Class<? extends BaseIdentifiableObject> getRootEntity()
-    {
-        return QueryableDataItem.DATA_SET.getEntity();
-    }
-
-    private String getDateSetQuery( final MapSqlParameterSource paramsMap )
-    {
-        final StringBuilder sql = new StringBuilder();
+        sql.append( "(" );
 
         // Creating a temp translated table to be queried.
         sql.append( SPACED_SELECT + "* from (" );
 
-        if ( hasStringNonBlankPresence( paramsMap, LOCALE ) )
+        if ( hasNonBlankStringPresence( paramsMap, LOCALE ) )
         {
             // Selecting translated names.
             sql.append( selectRowsContainingTranslatedName() );
@@ -178,8 +95,8 @@ public class DataSetQuery implements DataItemQuery
         }
 
         sql.append(
-            " group by dataset.name, " + ITEM_UID + ", dataset.code, i18n_name,"
-                + " dataset_sharing, dataset.shortname, i18n_shortname" );
+            " group by item_name, item_uid, item_code, item_sharing, item_shortname, i18n_first_name,"
+                + " i18n_first_shortname, i18n_second_name, i18n_second_shortname" );
 
         // Closing the temp table.
         sql.append( " ) t" );
@@ -189,18 +106,19 @@ public class DataSetQuery implements DataItemQuery
         // Applying filters, ordering and limits.
 
         // Mandatory filters. They do not respect the root junction filtering.
-        sql.append( always( sharingConditions( "t.dataset_sharing", READ_ACCESS, paramsMap ) ) );
+        sql.append( always( sharingConditions( "t.item_sharing", READ_ACCESS, paramsMap ) ) );
 
         // Optional filters, based on the current root junction.
         final OptionalFilterBuilder optionalFilters = new OptionalFilterBuilder( paramsMap );
-        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_name", paramsMap ) ) );
-        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( nameFiltering( "t.name", paramsMap ) ) );
-        optionalFilters.append( ifSet( shortNameFiltering( "t.shortname", paramsMap ) ) );
-        optionalFilters.append( ifSet( uidFiltering( "t.uid", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayNameFiltering( "t.i18n_first_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( displayShortNameFiltering( "t.i18n_first_shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( nameFiltering( "t.item_name", paramsMap ) ) );
+        optionalFilters.append( ifSet( shortNameFiltering( "t.item_shortname", paramsMap ) ) );
+        optionalFilters.append( ifSet( uidFiltering( "t.item_uid", paramsMap ) ) );
         sql.append( ifAny( optionalFilters.toString() ) );
 
-        final String identifiableStatement = identifiableTokenFiltering( "t.uid", "t.code", "t.i18n_name",
+        final String identifiableStatement = identifiableTokenFiltering( "t.item_uid", "t.item_code",
+            "t.i18n_first_name",
             null, paramsMap );
 
         if ( isNotBlank( identifiableStatement ) )
@@ -209,15 +127,37 @@ public class DataSetQuery implements DataItemQuery
             sql.append( identifiableStatement );
         }
 
-        sql.append( ifSet( ordering( "t.i18n_name, t.uid", "t.name, t.uid",
-            "t.i18n_shortname, t.uid", "t.shortname, t.uid", paramsMap ) ) );
+        sql.append( ifSet( ordering( "t.i18n_first_name, t.i18n_second_name, t.item_uid", "t.item_name, t.item_uid",
+            "t.i18n_first_shortname, t.i18n_second_shortname, t.item_uid", "t.item_shortname, t.item_uid",
+            paramsMap ) ) );
         sql.append( ifSet( maxLimit( paramsMap ) ) );
+        sql.append( ")" );
 
         final String fullStatement = sql.toString();
 
         log.trace( "Full SQL: " + fullStatement );
 
         return fullStatement;
+    }
+
+    /**
+     * If we have a program id filter, we should not return any data element
+     * because data elements don't have programs directly associated with. Hence
+     * we skip this query.
+     *
+     * @param paramsMap
+     * @return true if rules are matched.
+     */
+    @Override
+    public boolean matchQueryRules( final MapSqlParameterSource paramsMap )
+    {
+        return !hasNonBlankStringPresence( paramsMap, PROGRAM_ID );
+    }
+
+    @Override
+    public Class<? extends BaseIdentifiableObject> getRootEntity()
+    {
+        return QueryableDataItem.DATA_SET.getEntity();
     }
 
     private String selectRowsContainingTranslatedName()
@@ -237,7 +177,8 @@ public class DataSetQuery implements DataItemQuery
     {
         return new StringBuilder()
             .append( SPACED_SELECT + COMMON_COLUMNS )
-            .append( ", dataset.name as i18n_name, dataset.shortname as i18n_shortname" )
+            .append( ", dataset.name as i18n_first_name, cast (null as text) as i18n_second_name" )
+            .append( ", dataset.shortname as i18n_first_shortname, cast (null as text) as i18n_second_shortname" )
             .append( " from dataset " ).toString();
     }
 }
