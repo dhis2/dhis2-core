@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -101,22 +102,19 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         ProgramRuleActionValidationContext validationContext = ProgramRuleActionValidationContext.builder()
             .programRule( bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramRule.class,
                 ruleAction.getProgramRule() ) )
-            .dataElement( bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class,
-                ruleAction.getDataElement() ) )
-            .trackedEntityAttribute(
-                bundle.getPreheat().get( bundle.getPreheatIdentifier(), TrackedEntityAttribute.class,
-                    ruleAction.getAttribute() ) )
-            .notificationTemplate(
-                bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramNotificationTemplate.class,
-                    ruleAction.getTemplateUid() ) )
-            .programStageSection( bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStageSection.class,
-                ruleAction.getProgramStageSection() ) )
-            .programStage( bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStage.class,
-                ruleAction.getProgramStage() ) )
-            .option( bundle.getPreheat().get( bundle.getPreheatIdentifier(), Option.class,
-                ruleAction.getOption() ) )
-            .optionGroup( bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionGroup.class,
-                ruleAction.getOptionGroup() ) )
+            .dataElement( ruleAction.hasDataElement() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class, ruleAction.getDataElement() ) : null )
+            .trackedEntityAttribute( ruleAction.hasTrackedEntityAttribute() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), TrackedEntityAttribute.class,
+                    ruleAction.getAttribute() ) : null )
+            .notificationTemplate( ruleAction.hasNotification() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramNotificationTemplate.class,
+                    ruleAction.getTemplateUid() ) : null )
+            .programStageSection( ruleAction.hasProgramStageSection() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStageSection.class,
+                    ruleAction.getProgramStageSection() ) : null )
+            .programStage( ruleAction.hasProgramStage() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStage.class,
+                    ruleAction.getProgramStage() ) : null )
+            .option( ruleAction.hasOption() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), Option.class,
+                    ruleAction.getOption() ) : null )
+            .optionGroup( ruleAction.hasOptionGroup() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionGroup.class,
+                    ruleAction.getOptionGroup() ) : null )
             .build();
 
         try
