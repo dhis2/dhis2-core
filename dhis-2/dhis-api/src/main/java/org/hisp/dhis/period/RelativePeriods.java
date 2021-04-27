@@ -668,11 +668,12 @@ public class RelativePeriods
         if ( isLast10Years() )
         {
             periods.addAll(
-                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
-            periods.addAll(
                 getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS,
                     Iso8601Calendar.getInstance().minusYears( DateTimeUnit.fromJdkDate( date ), 5 ).toJdkDate(),
                     dynamicNames, format ) );
+            periods.addAll(
+                getRollingRelativePeriodList( new YearlyPeriodType(), LAST_10_YEARS, date, dynamicNames, format ) );
+
         }
 
         return periods;
