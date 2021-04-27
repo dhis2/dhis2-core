@@ -153,7 +153,7 @@ public enum ErrorCode
     /* ProgramRuleAction validation */
     E4032( "A program rule variable with name `{0}` and program uid `{1}` already exists" ),
     E4033( "A program rule action of type `{0}` associated with program rule name `{1}` is invalid" ),
-    E4034( "A program notification template `{0}` associated with program rule name `{1}` does not exist" ),
+    E4034( "ProgramNotificationTemplate `{0}` associated with program rule name `{1}` does not exist" ),
     E4035( "ProgramNotificationTemplate cannot be null for program rule name `{0}`" ),
     E4036( "ProgramStageSection cannot be null for program rule `{0}`" ),
     E4037( "ProgramStageSection `{0}` associated with program rule `{1}` does not exist" ),
