@@ -83,12 +83,12 @@ public class ProgramRuleEngine
     public List<RuleEffectByObject> evaluateNTI( ProgramInstance enrollment, Set<ProgramStageInstance> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return evaluateProgramRulesNTI( enrollment, events, trackedEntityAttributeValues );
+        return evaluateProgramRulesNTI( enrollment, events, enrollment.getProgram(), trackedEntityAttributeValues );
     }
 
     public List<RuleEffectByObject> evaluateProgramEventNTI( Set<ProgramStageInstance> events, Program program )
     {
-        return evaluateProgramRulesNTI( null, events, Lists.newArrayList() );
+        return evaluateProgramRulesNTI( null, events, program, Lists.newArrayList() );
     }
 
     public List<RuleEffect> evaluateOldOne( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
@@ -142,10 +142,11 @@ public class ProgramRuleEngine
     }
 
     private List<RuleEffectByObject> evaluateProgramRulesNTI( ProgramInstance enrollment,
-        Set<ProgramStageInstance> events, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+        Set<ProgramStageInstance> events, Program program,
+        List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
 
-        List<RuleEffect> ruleEffects = evaluateProgramRules( enrollment, null, events, enrollment.getProgram(),
+        List<RuleEffect> ruleEffects = evaluateProgramRules( enrollment, null, events, program,
             trackedEntityAttributeValues );
 
         RuleEffectByObject ruleEffectsForEnrollment = new RuleEffectByObject( true, false, enrollment.getUid(),
@@ -153,7 +154,7 @@ public class ProgramRuleEngine
 
         List<RuleEffectByObject> ruleEffectsForEvents = events.stream()
             .map( event -> Pair
-                .create( event.getUid(), evaluateProgramRules( enrollment, event, events, enrollment.getProgram(),
+                .create( event.getUid(), evaluateProgramRules( enrollment, event, events, program,
                     trackedEntityAttributeValues ) ) )
             .map( pair -> new RuleEffectByObject( false, true, pair.getFirst(), pair.getSecond() ) )
             .collect( Collectors.toList() );

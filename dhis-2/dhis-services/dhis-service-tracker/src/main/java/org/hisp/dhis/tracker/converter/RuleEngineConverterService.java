@@ -37,12 +37,12 @@ import org.hisp.dhis.tracker.preheat.TrackerPreheat;
  *
  * @author Enrico Colasante
  */
-public interface RuleEngineConverterService<From, To>
-    extends TrackerConverterService<From, To>
+public interface RuleEngineConverterService<FROM, TO>
+    extends TrackerConverterService<FROM, TO>
 {
-    To fromForRuleEngine( TrackerPreheat preheat, From object );
+    TO fromForRuleEngine( TrackerPreheat preheat, FROM object );
 
-    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
+    default List<TO> fromForRuleEngine( TrackerPreheat preheat, List<FROM> objects )
     {
         return objects.stream()
             .map( object -> fromForRuleEngine( preheat, object ) )

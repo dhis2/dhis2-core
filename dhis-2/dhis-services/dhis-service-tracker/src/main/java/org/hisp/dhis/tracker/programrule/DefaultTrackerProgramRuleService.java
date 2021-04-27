@@ -156,7 +156,7 @@ public class DefaultTrackerProgramRuleService
                 {
                     List<TrackedEntityAttributeValue> attributeValues = bundle.getEnrollments()
                         .stream()
-                        .filter( e -> entry.getValue().equals( e.getEnrollment() ) )
+                        .filter( e -> entry.getKey().equals( e.getEnrollment() ) )
                         .findAny()
                         .map( e -> getAttributes( e, bundle ) )
                         .orElse( Collections.EMPTY_LIST );
