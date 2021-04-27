@@ -42,12 +42,20 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
  */
 
 @Slf4j
-public abstract class AbstractOptionGroupProgramRuleActionValidator implements ProgramRuleActionValidator
+public abstract class AbstractOptionGroupProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
         ProgramRuleActionValidationService validationService )
     {
+        // First checking the validity of DataElement and TEA
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService );
+
+        if ( !result.isValid() )
+        {
+            return result;
+        }
+
         if ( !programRuleAction.hasOptionGroup() )
         {
             log.debug( String.format( "OptionGroup cannot be null for program rule: %s ",

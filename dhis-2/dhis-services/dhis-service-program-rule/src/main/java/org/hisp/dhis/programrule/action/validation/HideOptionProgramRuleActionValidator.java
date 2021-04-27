@@ -41,12 +41,20 @@ import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
  */
 
 @Slf4j
-public class HideOptionProgramRuleActionValidator implements ProgramRuleActionValidator
+public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleActionValidator
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
         ProgramRuleActionValidationService validationService )
     {
+        // First checking the validity of DataElement and TEA
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService );
+
+        if ( !result.isValid() )
+        {
+            return result;
+        }
+
         if ( !programRuleAction.hasOption() )
         {
             log.debug( String.format( "Option cannot be null for program rule: %s ",
