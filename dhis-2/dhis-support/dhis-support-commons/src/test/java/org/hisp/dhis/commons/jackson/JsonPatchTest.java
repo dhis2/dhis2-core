@@ -66,6 +66,6 @@ public class JsonPatchTest
             "]", JsonPatch.class );
 
         assertNotNull( patch );
-        assertEquals( 4, patch.getOperations().size() );
+        assertEquals( 3, patch.getOperations().size() );
     }
 }
