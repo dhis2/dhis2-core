@@ -1,0 +1,72 @@
+{
+  "taskData": {
+    "taskDisName": "task dis name",
+    "taskMark": "not usable",
+    "numofPeopleInvolved": 4,
+    "numofAgentIds": 5,
+    "taskNames": [{
+      "id": "13",
+      "surname": "SNAME",
+      "title": "mR",
+      "suffix": "dR",
+      "fullName": "SNAMEFULL",
+      "usageId": "2",
+      "givenNames": [{
+        "id": "13",
+        "name": "NAME",
+        "seqNum": "24",
+        "provDatetime": "2003-06-26T08:00:00"
+      }, {
+        "id": "14",
+        "name": "NAME1",
+        "seqNum": "25",
+        "provDatetime": "2003-07-26T08:00:00"
+      }
+      ],
+      "time": "2003-06-26T08:00:00"
+    }, {
+      "id": "15",
+      "surname": "SNAME1",
+      "title": "mR",
+      "suffix": "dR",
+      "fullName": "SNAMEFULL1",
+      "usageId": "3",
+      "givenNames": [{
+        "id": "14",
+        "name": "NAME1",
+        "seqNum": "24",
+        "provDatetime": "2003-06-26T08:00:00"
+      }, {
+        "id": "14",
+        "name": "NAME1",
+        "seqNum": "25",
+        "provDatetime": "2003-07-26T08:00:00"
+      }
+      ],
+      "time": "2003-06-26T08:00:00"
+    }
+    ],
+    "taskAchievedDates": [{
+      "dates1": "2003-04-09",
+      "initialDate": "2009-05-04",
+      "finalComplete": "2009-06-09",
+      "completed": "Y"
+    }, {
+      "dates1": "2004-04-09",
+      "initialDate": "2012-05-04",
+      "finalComplete": "2012-06-09",
+      "completed": "N"
+    }
+    ],
+    "taskType": "Normal",
+    "taskFixId": "342324",
+    "taskRejectId": "543456",
+    "takcomplexity": "Medium",
+    "taskIdentities": {
+      "taskIdentityValue": "taskIdentitiesValue"
+    }
+
+  },
+  "taskIds": [1, 3, 5, 7]
+
+}

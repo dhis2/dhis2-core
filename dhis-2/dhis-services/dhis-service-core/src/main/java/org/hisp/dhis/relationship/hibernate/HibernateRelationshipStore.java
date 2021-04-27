@@ -48,6 +48,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -67,36 +68,42 @@ public class HibernateRelationshipStore
     }
 
     @Override
-    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
+    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.or(
                 builder.equal( root.join( "from" ).get( "trackedEntityInstance" ), tei ),
-                builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ) );
+                builder.equal( root.join( "to" ).get( "trackedEntityInstance" ), tei ) ) ),
+            pagingAndSortingCriteriaAdapter );
     }
 
     @Override
-    public List<Relationship> getByProgramInstance( ProgramInstance pi )
+    public List<Relationship> getByProgramInstance( ProgramInstance pi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.or(
                 builder.equal( root.join( "from" ).get( "programInstance" ), pi ),
-                builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ) );
+                builder.equal( root.join( "to" ).get( "programInstance" ), pi ) ) ),
+            pagingAndSortingCriteriaAdapter );
     }
 
     @Override
-    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi )
+    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.or(
                 builder.equal( root.join( "from" ).get( "programStageInstance" ), psi ),
-                builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ) );
+                builder.equal( root.join( "to" ).get( "programStageInstance" ), psi ) ) ),
+            pagingAndSortingCriteriaAdapter );
     }
 
     @Override

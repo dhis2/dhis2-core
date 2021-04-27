@@ -119,7 +119,7 @@ public class DataIntegrityControllerTest extends DhisControllerConvenienceTest
     {
         String ouIdA = addOrganisationUnit( "A" );
         String ouIdB = addOrganisationUnit( "B" );
-        String ouIdC = addOrganisationUnit( "C" );
+        addOrganisationUnit( "C" );
 
         // all groups created are compulsory
         String groupA0Id = addOrganisationUnitGroup( "A0", ouIdA );

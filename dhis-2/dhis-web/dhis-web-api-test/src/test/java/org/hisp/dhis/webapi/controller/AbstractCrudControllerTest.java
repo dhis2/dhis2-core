@@ -44,6 +44,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonArray;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
@@ -100,6 +101,15 @@ public class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.NO_CONTENT, PATCH( "/users/" + id, "{'surname':'Peter'}" ) );
 
         assertEquals( "Peter", GET( "/users/{id}", id ).content().as( JsonUser.class ).getSurname() );
+    }
+
+    @Test
+    public void testPartialUpdateObject_Validation()
+    {
+        String id = run( SomeUserId::new );
+        JsonError error = PATCH( "/users/" + id, "{'email':'Not-valid'}" ).error();
+        assertEquals( "Property `email` requires a valid email address, was given `Not-valid`.",
+            error.getTypeReport().getErrorReports().get( 0 ).getMessage() );
     }
 
     @Test

@@ -49,6 +49,17 @@ public @interface Property
 
     Access access() default Access.READ_WRITE;
 
+    /**
+     * This is essentially a manual override to specify the
+     * {@link org.hisp.dhis.schema.Property#getFieldName()} of the annotated
+     * member.
+     *
+     * @return Name of the field this property is persisted as in case this is a
+     *         non persistent property which has a corresponding persistent
+     *         member.
+     */
+    String persistedAs() default "";
+
     enum Value
     {
         TRUE,

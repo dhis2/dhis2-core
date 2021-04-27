@@ -40,6 +40,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.apache.commons.collections.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -74,16 +75,36 @@ public class Sharing
     /**
      * Map of UserAccess. Key is User uid
      */
-    @Builder.Default
+    @Setter
     @JsonProperty
     private Map<String, UserAccess> users = new HashMap<>();
+
+    public Map<String, UserAccess> getUsers()
+    {
+        if ( users == null )
+        {
+            users = new HashMap<>();
+        }
+
+        return users;
+    }
 
     /**
      * Map of UserGroupAccess. Key is UserGroup uid
      */
-    @Builder.Default
+    @Setter
     @JsonProperty
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
+
+    public Map<String, UserGroupAccess> getUserGroups()
+    {
+        if ( userGroups == null )
+        {
+            userGroups = new HashMap<>();
+        }
+
+        return userGroups;
+    }
 
     public void setOwner( User user )
     {

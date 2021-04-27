@@ -84,6 +84,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
+import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -533,6 +534,8 @@ public abstract class AbstractEnrollmentService
         eventPublisher.publishEvent( new ProgramEnrollmentNotificationEvent( this, programInstance.getId() ) );
 
         eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, programInstance.getId() ) );
+
+        eventPublisher.publishEvent( new TrackerEnrollmentWebHookEvent( this, programInstance.getUid() ) );
 
         updateFeatureType( program, enrollment, programInstance );
         updateAttributeValues( enrollment, importOptions );

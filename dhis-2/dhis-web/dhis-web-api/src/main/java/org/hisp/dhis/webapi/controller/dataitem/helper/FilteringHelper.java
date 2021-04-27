@@ -394,7 +394,8 @@ public class FilteringHelper
     {
         if ( CollectionUtils.isNotEmpty( valueTypeNames ) )
         {
-            final List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() ).collect( toList() );
+            final List<String> aggregatableTypes = getAggregatables().stream().map( v -> v.name() )
+                .collect( toList() );
 
             for ( final String valueType : valueTypeNames )
             {
