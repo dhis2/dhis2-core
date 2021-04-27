@@ -37,6 +37,7 @@ import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.junit.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
@@ -69,5 +70,56 @@ public class ReplaceOperationTest
 
         assertTrue( root.has( "aaa" ) );
         assertEquals( "bbb", root.get( "aaa" ).asText() );
+    }
+
+    @Test
+    public void testBasicTextToArray()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": [1, 2, 3, 4, 5]}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+        root.set( "aaa", TextNode.valueOf( "aaa" ) );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( "aaa", root.get( "aaa" ).asText() );
+
+        root = (ObjectNode) patch.apply( root );
+
+        assertTrue( root.has( "aaa" ) );
+        JsonNode testNode = root.get( "aaa" );
+        assertTrue( testNode.isArray() );
+        assertEquals( 5, testNode.size() );
+    }
+
+    @Test
+    public void testBasicTextToObject()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"add\", \"path\": \"/aaa\", \"value\": {\"a\": 123}}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+        root.set( "aaa", TextNode.valueOf( "aaa" ) );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( "aaa", root.get( "aaa" ).asText() );
+
+        root = (ObjectNode) patch.apply( root );
+
+        assertTrue( root.has( "aaa" ) );
+        JsonNode testNode = root.get( "aaa" );
+        assertTrue( testNode.isObject() );
+        assertTrue( testNode.has( "a" ) );
+        assertEquals( 123, testNode.get( "a" ).asInt() );
     }
 }
