@@ -33,10 +33,13 @@ import lombok.Data;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
+import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
 /**
@@ -62,4 +65,31 @@ public class ProgramRuleActionValidationContext
     private OptionGroup optionGroup;
 
     private ProgramNotificationTemplate notificationTemplate;
+
+    public static ProgramRuleActionValidationContext load( Preheat preheat, PreheatIdentifier preheatIdentifier,
+        ProgramRuleAction ruleAction )
+    {
+        return ProgramRuleActionValidationContext.builder()
+            .programRule( preheat.get( preheatIdentifier, ProgramRule.class,
+                ruleAction.getProgramRule() ) )
+            .dataElement( ruleAction.hasDataElement()
+                ? preheat.get( preheatIdentifier, DataElement.class, ruleAction.getDataElement() )
+                : null )
+            .trackedEntityAttribute(
+                ruleAction.hasTrackedEntityAttribute() ? preheat.get( preheatIdentifier, TrackedEntityAttribute.class,
+                    ruleAction.getAttribute() ) : null )
+            .notificationTemplate(
+                ruleAction.hasNotification() ? preheat.get( preheatIdentifier, ProgramNotificationTemplate.class,
+                    ruleAction.getTemplateUid() ) : null )
+            .programStageSection(
+                ruleAction.hasProgramStageSection() ? preheat.get( preheatIdentifier, ProgramStageSection.class,
+                    ruleAction.getProgramStageSection() ) : null )
+            .programStage( ruleAction.hasProgramStage() ? preheat.get( preheatIdentifier, ProgramStage.class,
+                ruleAction.getProgramStage() ) : null )
+            .option( ruleAction.hasOption() ? preheat.get( preheatIdentifier, Option.class,
+                ruleAction.getOption() ) : null )
+            .optionGroup( ruleAction.hasOptionGroup() ? preheat.get( preheatIdentifier, OptionGroup.class,
+                ruleAction.getOptionGroup() ) : null )
+            .build();
+    }
 }

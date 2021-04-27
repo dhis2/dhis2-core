@@ -29,28 +29,19 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
-import org.hisp.dhis.option.Option;
-import org.hisp.dhis.option.OptionGroup;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidationContext;
 import org.hisp.dhis.programrule.action.validation.ProgramRuleActionValidator;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
@@ -99,23 +90,8 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
     {
         ProgramRuleActionValidationResult validationResult;
 
-        ProgramRuleActionValidationContext validationContext = ProgramRuleActionValidationContext.builder()
-            .programRule( bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramRule.class,
-                ruleAction.getProgramRule() ) )
-            .dataElement( ruleAction.hasDataElement() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), DataElement.class, ruleAction.getDataElement() ) : null )
-            .trackedEntityAttribute( ruleAction.hasTrackedEntityAttribute() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), TrackedEntityAttribute.class,
-                    ruleAction.getAttribute() ) : null )
-            .notificationTemplate( ruleAction.hasNotification() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramNotificationTemplate.class,
-                    ruleAction.getTemplateUid() ) : null )
-            .programStageSection( ruleAction.hasProgramStageSection() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStageSection.class,
-                    ruleAction.getProgramStageSection() ) : null )
-            .programStage( ruleAction.hasProgramStage() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramStage.class,
-                    ruleAction.getProgramStage() ) : null )
-            .option( ruleAction.hasOption() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), Option.class,
-                    ruleAction.getOption() ) : null )
-            .optionGroup( ruleAction.hasOptionGroup() ? bundle.getPreheat().get( bundle.getPreheatIdentifier(), OptionGroup.class,
-                    ruleAction.getOptionGroup() ) : null )
-            .build();
+        ProgramRuleActionValidationContext validationContext = ProgramRuleActionValidationContext
+            .load( bundle.getPreheat(), bundle.getPreheatIdentifier(), ruleAction );
 
         try
         {
