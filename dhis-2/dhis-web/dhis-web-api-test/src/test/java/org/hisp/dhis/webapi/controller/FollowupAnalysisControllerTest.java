@@ -27,12 +27,14 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 
 import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -57,6 +59,8 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
 
     private String orgUnitId;
 
+    private String ccId;
+
     private String cocId;
 
     @Before
@@ -73,7 +77,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
                 .content().getObject( 0 );
-        String ccId = ccDefault.getString( "id" ).string();
+        ccId = ccDefault.getString( "id" ).string();
         cocId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
 
         dataElementId = assertStatus( HttpStatus.CREATED,
@@ -82,9 +86,6 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
                     "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
                     "'categoryCombo': {'id': '" + ccId + "'}}" ) );
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataValues?de={de}&pe=2021-03&ou={ou}&co={coc}&value=5&comment=Needs_check&followUp=true",
-                dataElementId, orgUnitId, cocId ) );
     }
 
     /**
@@ -94,6 +95,8 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
     @Test
     public void testPerformFollowupAnalysis_FieldMapping()
     {
+        addDataValue( "2021-03", "5", "Needs_check", true );
+
         JsonList<JsonFollowupValue> values = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&pe={pe}",
             orgUnitId, dataElementId, "2021" ).content().asList( JsonFollowupValue.class );
 
@@ -117,5 +120,94 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         assertEquals( "Needs_check", value.getComment() );
         assertNotNull( value.getLastUpdated() );
         assertNotNull( value.getCreated() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_PeriodFiltering()
+    {
+        addDataValue( "2021-01", "13", "Needs_check 1", true );
+        addDataValue( "2021-02", "5", "Needs_check 2", true );
+        addDataValue( "2021-04", "11", null, false );
+        addDataValue( "2021-05", "11", "Needs_check 3", true );
+
+        assertFollowupValues( orgUnitId, dataElementId, "2021", "Needs_check 1", "Needs_check 2", "Needs_check 3" );
+        assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs_check 1" );
+        assertFollowupValues( orgUnitId, dataElementId, "2021Q1", "Needs_check 1", "Needs_check 2" );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_StartEndDateFiltering()
+    {
+        addDataValue( "2021-01", "13", "Needs_check 1", true );
+        addDataValue( "2021-02", "5", "Needs_check 2", true );
+        addDataValue( "2021-03", "11", null, false );
+        addDataValue( "2021-04", "11", "Needs_check 3", true );
+
+        assertFollowupValues( GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&startDate={start}&endDate={end}",
+            orgUnitId, dataElementId, "2021-02-01", "2021-03-28" ), "Needs_check 2" );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_OrgUnitFiltering()
+    {
+        String ouA = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/",
+                "{'name':'A', 'shortName':'A', 'openingDate': '2020-01-01', 'parent': { 'id':'" + orgUnitId + "'}}" ) );
+        String ouB = assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/",
+                "{'name':'B', 'shortName':'B', 'openingDate': '2020-01-01', 'parent': {'id':'" + orgUnitId + "'}}" ) );
+
+        addDataValue( "2021-01", "13", "Needs_check A", true, dataElementId, ouA );
+        addDataValue( "2021-01", "14", "Needs_check B", true, dataElementId, ouB );
+
+        assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs_check A", "Needs_check B" );
+        assertFollowupValues( ouA, dataElementId, "2021-01", "Needs_check A" );
+        assertFollowupValues( ouB, dataElementId, "2021-01", "Needs_check B" );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_DataElementFiltering()
+    {
+        String de2 = assertStatus( HttpStatus.CREATED,
+            POST( "/dataElements/",
+                "{'name':'Another DE', 'shortName':'DE2', 'code':'DE2', 'valueType':'INTEGER', " +
+                    "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', " +
+                    "'categoryCombo': {'id': '" + ccId + "'}}" ) );
+
+        addDataValue( "2021-01", "13", "Needs check DE1", true, dataElementId, orgUnitId );
+        addDataValue( "2021-01", "14", "Needs check DE2", true, de2, orgUnitId );
+
+        assertFollowupValues( orgUnitId, dataElementId, "2021-01", "Needs check DE1" );
+        assertFollowupValues( orgUnitId, de2, "2021-01", "Needs check DE2" );
+    }
+
+    private void assertFollowupValues( String orgUnitId, String dataElementId, String period,
+        String... expectedComments )
+    {
+        HttpResponse response = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&pe={pe}",
+            orgUnitId, dataElementId, period );
+        assertFollowupValues( response, expectedComments );
+    }
+
+    private void assertFollowupValues( HttpResponse response, String... expectedComments )
+    {
+        JsonList<JsonFollowupValue> values = response.content().asList( JsonFollowupValue.class );
+        assertEquals( expectedComments.length, values.size() );
+        assertEquals(
+            Arrays.stream( expectedComments ).collect( toSet() ),
+            values.stream().map( JsonFollowupValue::getComment ).collect( toSet() ) );
+    }
+
+    private void addDataValue( String period, String value, String comment, boolean followup )
+    {
+        addDataValue( period, value, comment, followup, dataElementId, orgUnitId );
+    }
+
+    private void addDataValue( String period, String value, String comment, boolean followup, String dataElementId,
+        String orgUnitId )
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+                dataElementId, period, orgUnitId, cocId, value, comment, followup ) );
     }
 }
