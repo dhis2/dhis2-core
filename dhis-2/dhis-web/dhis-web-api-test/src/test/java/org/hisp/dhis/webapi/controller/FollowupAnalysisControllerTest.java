@@ -27,19 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.utils.WebClientUtils.assertStatus;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
+import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
+import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.JsonList;
 import org.hisp.dhis.webapi.json.JsonObject;
+import org.hisp.dhis.webapi.json.JsonResponse;
+import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonFollowupValue;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,7 +52,7 @@ import org.springframework.http.HttpStatus;
 
 /**
  * Tests the
- * {@link DataAnalysisController#performFollowupAnalysis(FollowupAnalysisParams)}
+ * {@link DataAnalysisController#performFollowupAnalysis(FollowupAnalysisRequest)}
  * method.
  *
  * @author Jan Bernitt
@@ -98,7 +103,7 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         addDataValue( "2021-03", "5", "Needs_check", true );
 
         JsonList<JsonFollowupValue> values = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&pe={pe}",
-            orgUnitId, dataElementId, "2021" ).content().asList( JsonFollowupValue.class );
+            orgUnitId, dataElementId, "2021" ).content().getList( "followupValues", JsonFollowupValue.class );
 
         assertEquals( 1, values.size() );
 
@@ -181,6 +186,61 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
         assertFollowupValues( orgUnitId, de2, "2021-01", "Needs check DE2" );
     }
 
+    @Test
+    public void testPerformFollowupAnalysis_ValidationMissingDataElement()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&pe=2021", orgUnitId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2300, error.getErrorCode() );
+        assertEquals( "At least one data element or data set must be specified", error.getMessage() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_ValidationMissingStartDate()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&endDate=2020-01-01",
+            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2301, error.getErrorCode() );
+        assertEquals( "Start date and end date must be specified directly or indirectly by specifying a period",
+            error.getMessage() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_ValidationMissingEndDate()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&startDate=2020-01-01",
+            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2301, error.getErrorCode() );
+        assertEquals( "Start date and end date must be specified directly or indirectly by specifying a period",
+            error.getMessage() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_ValidationStartDateNotBeforeEndDate()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&startDate=2020-01-01&endDate=2019-01-01",
+            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2302, error.getErrorCode() );
+        assertEquals( "Start date must be before end date", error.getMessage() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_ValidationMaxResultsZeroOrNegative()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&pe=2021&maxResults=0",
+            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2303, error.getErrorCode() );
+        assertEquals( "Max results must be a positive number", error.getMessage() );
+    }
+
+    @Test
+    public void testPerformFollowupAnalysis_ValidationMaxResultsOverLimit()
+    {
+        JsonError error = GET( "/dataAnalysis/followup?ouParent={ou}&de={de}&pe=2021&maxResults=11111",
+            orgUnitId, dataElementId ).error( HttpStatus.CONFLICT );
+        assertEquals( ErrorCode.E2304, error.getErrorCode() );
+        assertEquals( "Max results exceeds the allowed max limit: `10,000`", error.getMessage() );
+    }
+
     private void assertFollowupValues( String orgUnitId, String dataElementId, String period,
         String... expectedComments )
     {
@@ -191,11 +251,15 @@ public class FollowupAnalysisControllerTest extends DhisControllerConvenienceTes
 
     private void assertFollowupValues( HttpResponse response, String... expectedComments )
     {
-        JsonList<JsonFollowupValue> values = response.content().asList( JsonFollowupValue.class );
+        JsonResponse body = response.content();
+        JsonList<JsonFollowupValue> values = body.getList( "followupValues", JsonFollowupValue.class );
         assertEquals( expectedComments.length, values.size() );
         assertEquals(
             Arrays.stream( expectedComments ).collect( toSet() ),
             values.stream().map( JsonFollowupValue::getComment ).collect( toSet() ) );
+        JsonObject metadata = body.getObject( "metadata" );
+        assertTrue( metadata.exists() );
+        assertEquals( asList( "de", "coc", "ouParent", "startDate", "endDate", "maxResults" ), metadata.names() );
     }
 
     private void addDataValue( String period, String value, String comment, boolean followup )

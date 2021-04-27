@@ -96,6 +96,13 @@ public enum ErrorCode
     E2207( "Data start date must be before data end date" ),
     E2208( "Non-numeric data values encountered during outlier value detection" ),
 
+    /* Followup value analysis */
+    E2300( "At least one data element or data set must be specified" ),
+    E2301( "Start date and end date must be specified directly or indirectly by specifying a period" ),
+    E2302( "Start date must be before end date" ),
+    E2303( "Max results must be a positive number" ),
+    E2304( "Max results exceeds the allowed max limit: `{0}`" ),
+
     /* Security */
     E3000( "User `{0}` is not allowed to create objects of type {1}." ),
     E3001( "User `{0}` is not allowed to update object `{1}`." ),

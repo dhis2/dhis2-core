@@ -49,7 +49,7 @@ import org.hisp.dhis.commons.collection.PaginatedList;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataanalysis.DataAnalysisMeasures;
 import org.hisp.dhis.dataanalysis.DataAnalysisStore;
-import org.hisp.dhis.dataanalysis.FollowupAnalysisParams;
+import org.hisp.dhis.dataanalysis.FollowupAnalysisRequest;
 import org.hisp.dhis.dataanalysis.FollowupValue;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
@@ -307,25 +307,14 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
      * HQL query used to select {@link FollowupValue}s.
      */
     private static final String FOLLOWUP_VALUE_HQL = "select new org.hisp.dhis.dataanalysis.FollowupValue(" +
-        "de.uid, " +
-        "de.name, " +
+        "de.uid, de.name, " +
         "pt.class, " +
-        "pe.startDate, " +
-        "pe.endDate, " +
-        "ou.uid, " +
-        "ou.name, " +
-        "ou.path, " +
-        "coc.uid, " +
-        "coc.name, " +
-        "aoc.uid, " +
-        "aoc.name, " +
-        "dv.value, " +
-        "dv.storedBy, " +
-        "dv.lastUpdated, " +
-        "dv.created, " +
-        "dv.comment, " +
-        "mm.min, " +
-        "mm.max " +
+        "pe.startDate, pe.endDate, " +
+        "ou.uid, ou.name, ou.path, " +
+        "coc.uid, coc.name, " +
+        "aoc.uid, aoc.name, " +
+        "dv.value, dv.storedBy, dv.lastUpdated, dv.created, dv.comment, " +
+        "mm.min, mm.max " +
         ")" +
         "from DataValue dv " +
         "left join MinMaxDataElement mm on (dv.dataElement.id = mm.dataElement.id and dv.categoryOptionCombo.id = mm.optionCombo.id and dv.source.id = mm.source.id) "
@@ -358,31 +347,31 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
         "where coc.categoryCombo.id in (select de.categoryCombo.id from DataElement de where de.uid in (:de_ids))";
 
     @Override
-    public List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisParams params )
+    public List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisRequest request )
     {
-        if ( isEmpty( params.getDe() ) && !isEmpty( params.getDs() ) )
+        if ( isEmpty( request.getDe() ) && !isEmpty( request.getDs() ) )
         {
-            params.setDe( sessionFactory.getCurrentSession()
+            request.setDe( sessionFactory.getCurrentSession()
                 .createQuery( DATA_ELEMENT_UIDS_BY_DATA_SET_UIDS_HQL, String.class )
-                .setParameter( "ds_ids", params.getDs() ).list() );
+                .setParameter( "ds_ids", request.getDs() ).list() );
         }
-        if ( !isEmpty( params.getDe() ) && isEmpty( params.getCoc() ) )
+        if ( !isEmpty( request.getDe() ) && isEmpty( request.getCoc() ) )
         {
-            params.setCoc( sessionFactory.getCurrentSession()
+            request.setCoc( sessionFactory.getCurrentSession()
                 .createQuery( CATEGORY_OPTION_COMBO_UIDS_BY_DATE_ELEMENT_UIDS_HQL, String.class )
-                .setParameter( "de_ids", params.getDe() ).list() );
+                .setParameter( "de_ids", request.getDe() ).list() );
         }
-        if ( isEmpty( params.getDe() ) || isEmpty( params.getCoc() ) || isEmpty( params.getOuParent() ) )
+        if ( isEmpty( request.getDe() ) || isEmpty( request.getCoc() ) || isEmpty( request.getOuParent() ) )
         {
             return emptyList();
         }
-        if ( params.getStartDate() == null && params.getPe() != null )
+        if ( request.getStartDate() == null && request.getPe() != null )
         {
-            params.setStartDate( PeriodType.getPeriodFromIsoString( params.getPe() ).getStartDate() );
+            request.setStartDate( PeriodType.getPeriodFromIsoString( request.getPe() ).getStartDate() );
         }
-        if ( params.getEndDate() == null && params.getPe() != null )
+        if ( request.getEndDate() == null && request.getPe() != null )
         {
-            params.setEndDate( PeriodType.getPeriodFromIsoString( params.getPe() ).getEndDate() );
+            request.setEndDate( PeriodType.getPeriodFromIsoString( request.getPe() ).getEndDate() );
         }
 
         Query<FollowupValue> query = sessionFactory.getCurrentSession().createQuery(
@@ -390,14 +379,12 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
                 generateHqlQueryForSharingCheck( "de", currentUser, AclService.LIKE_READ_METADATA ) ),
             FollowupValue.class );
 
-        query.setParameter( "ou_ids", params.getOuParent() );
-        query.setParameter( "de_ids", params.getDe() );
-        query.setParameter( "coc_ids", params.getCoc() );
-        query.setParameter( "startDate", params.getStartDate() );
-        query.setParameter( "endDate", params.getEndDate() );
-        int size = params.getPageSize() <= 0 ? 50 : params.getPageSize();
-        query.setMaxResults( size );
-        query.setFirstResult( Math.max( params.getPage() - 1, 0 ) * size );
+        query.setParameter( "ou_ids", request.getOuParent() );
+        query.setParameter( "de_ids", request.getDe() );
+        query.setParameter( "coc_ids", request.getCoc() );
+        query.setParameter( "startDate", request.getStartDate() );
+        query.setParameter( "endDate", request.getEndDate() );
+        query.setMaxResults( request.getMaxResults() );
         return query.setCacheable( false ).list();
     }
 }

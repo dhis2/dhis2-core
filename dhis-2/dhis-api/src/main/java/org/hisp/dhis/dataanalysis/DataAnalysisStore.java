@@ -118,8 +118,8 @@ public interface DataAnalysisStore
      * numeric database IDs.
      *
      * @param currentUser the current user (for sharing access)
-     * @param params filter parameters
+     * @param request filter parameters
      * @return a list if {@link FollowupValue}s.
      */
-    List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisParams params );
+    List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisRequest request );
 }

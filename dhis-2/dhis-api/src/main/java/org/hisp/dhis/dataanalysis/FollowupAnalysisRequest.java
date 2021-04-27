@@ -55,8 +55,7 @@ import org.hisp.dhis.period.Period;
  * Optional are:
  * <ul>
  * <li>{@link #coc} (derived from {@link #de} if empty)</li>
- * <li>{@link #page} (default 1)</li>
- * <li>{@link #pageSize} (default 50)</li>
+ * <li>{@link #maxResults} (default 50)</li>
  * </ul>
  *
  * @author Jan Bernitt
@@ -66,7 +65,7 @@ import org.hisp.dhis.period.Period;
 @Builder
 @NoArgsConstructor( access = AccessLevel.PUBLIC )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
-public final class FollowupAnalysisParams
+public final class FollowupAnalysisRequest
 {
     /**
      * {@link org.hisp.dhis.dataelement.DataElement} UIDs
@@ -110,7 +109,6 @@ public final class FollowupAnalysisParams
 
     private Date endDate;
 
-    private int page;
-
-    private int pageSize;
+    @Builder.Default
+    private int maxResults = 50;
 }
