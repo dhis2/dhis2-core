@@ -42,6 +42,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
+import org.hisp.dhis.programrule.engine.RuleEffectByObject;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Enrollment;
@@ -60,7 +61,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
 @RunWith( MockitoJUnitRunner.class )
@@ -112,8 +112,7 @@ public class ShowErrorWarningImplementerTest
         bundle = new TrackerBundle();
         bundle.setEvents( getEvents() );
         bundle.setEnrollments( getEnrollments() );
-        bundle.setEnrollmentRuleEffects( getRuleEnrollmentEffects() );
-        bundle.setEventRuleEffects( getRuleEventEffects() );
+        bundle.setRuleEffects( getRuleEventAndEnrollmentEffects() );
         bundle.setPreheat( preheat );
 
         programStage = createProgramStage( 'A', 0 );
@@ -147,7 +146,7 @@ public class ShowErrorWarningImplementerTest
     public void testValidateShowErrorRuleActionForEventsWithValidationStrategyOnComplete()
     {
         programStage.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        bundle.setEventRuleEffects( getRuleEventEffectsLinkedToDataElement() );
+        bundle.setRuleEffects( getRuleEventEffectsLinkedToDataElement() );
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
 
         assertErrors( errors, 1 );
@@ -157,7 +156,7 @@ public class ShowErrorWarningImplementerTest
     @Test
     public void testValidateShowErrorForEventsInDifferentProgramStages()
     {
-        bundle.setEventRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
+        bundle.setRuleEffects( getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages() );
         Map<String, List<ProgramRuleIssue>> errors = errorImplementer.validateEvents( bundle );
 
         assertErrors( errors, 1 );
@@ -293,36 +292,34 @@ public class ShowErrorWarningImplementerTest
         return Lists.newArrayList( activeEnrollment, completedEnrollment );
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedToDataElement()
+    private List<RuleEffectByObject> getRuleEventEffectsLinkedToDataElement()
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        ruleEffectsByEvent.put( COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() );
+        List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent
+            .add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+        ruleEffectsByEvent
+            .add( new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
         return ruleEffectsByEvent;
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages()
+    private List<RuleEffectByObject> getRuleEventEffectsLinkedTo2DataElementsIn2DifferentProgramStages()
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() );
-        ruleEffectsByEvent.put( COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() );
+        List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent
+            .add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffectsLinkedToDataElement() ) );
+        ruleEffectsByEvent.add(
+            new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffectsLinkedToDataAnotherElement() ) );
         return ruleEffectsByEvent;
     }
 
-    private Map<String, List<RuleEffect>> getRuleEventEffects()
+    private List<RuleEffectByObject> getRuleEventAndEnrollmentEffects()
     {
-        Map<String, List<RuleEffect>> ruleEffectsByEvent = Maps.newHashMap();
-        ruleEffectsByEvent.put( ACTIVE_EVENT_ID, getRuleEffects() );
-        ruleEffectsByEvent.put( COMPLETED_EVENT_ID, getRuleEffects() );
+        List<RuleEffectByObject> ruleEffectsByEvent = Lists.newArrayList();
+        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, ACTIVE_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffectByObject( false, true, COMPLETED_EVENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, ACTIVE_ENROLLMENT_ID, getRuleEffects() ) );
+        ruleEffectsByEvent.add( new RuleEffectByObject( true, false, COMPLETED_ENROLLMENT_ID, getRuleEffects() ) );
         return ruleEffectsByEvent;
-    }
-
-    private Map<String, List<RuleEffect>> getRuleEnrollmentEffects()
-    {
-        Map<String, List<RuleEffect>> ruleEffectsByEnrollment = Maps.newHashMap();
-        ruleEffectsByEnrollment.put( ACTIVE_ENROLLMENT_ID, getRuleEffects() );
-        ruleEffectsByEnrollment.put( COMPLETED_ENROLLMENT_ID, getRuleEffects() );
-        return ruleEffectsByEnrollment;
     }
 
     private List<RuleEffect> getRuleEffects()

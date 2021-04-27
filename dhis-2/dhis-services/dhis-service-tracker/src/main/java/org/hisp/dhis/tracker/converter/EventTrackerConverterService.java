@@ -65,7 +65,7 @@ import com.google.api.client.util.Objects;
  */
 @Service
 public class EventTrackerConverterService
-    implements TrackerConverterService<Event, ProgramStageInstance>
+    implements RuleEngineConverterService<Event, ProgramStageInstance>
 {
 
     private final NotesConverterService notesConverterService;

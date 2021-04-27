@@ -57,7 +57,7 @@ import com.google.api.client.util.Objects;
  */
 @Service
 public class EnrollmentTrackerConverterService
-    implements TrackerConverterService<Enrollment, ProgramInstance>
+    implements RuleEngineConverterService<Enrollment, ProgramInstance>
 {
     private final NotesConverterService notesConverterService;
 

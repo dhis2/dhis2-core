@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.math3.util.Pair;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -55,7 +52,6 @@ import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 import com.google.api.client.util.Lists;
-import com.google.api.client.util.Sets;
 
 /**
  * @author Zubair Asghar
@@ -79,47 +75,33 @@ public class ProgramRuleEngine
     @NonNull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events )
+    public List<RuleEffect> evaluateOldOne( ProgramInstance enrollment, Set<ProgramStageInstance> events )
     {
-        return evaluate( enrollment, events, Lists.newArrayList() );
+        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram(), Lists.newArrayList() );
     }
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+    public List<RuleEffectByObject> evaluateNTI( ProgramInstance enrollment, Set<ProgramStageInstance> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        return evaluateProgramRules( enrollment, null, events, enrollment.getProgram(), trackedEntityAttributeValues );
+        return evaluateProgramRulesNTI( enrollment, events, trackedEntityAttributeValues );
     }
 
-    public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program )
+    public List<RuleEffectByObject> evaluateProgramEventNTI( Set<ProgramStageInstance> events, Program program )
     {
-        return evaluateProgramRules( null, event, Sets.newHashSet(), program, Lists.newArrayList() );
+        return evaluateProgramRulesNTI( null, events, Lists.newArrayList() );
     }
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
+    public List<RuleEffect> evaluateOldOne( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
         Set<ProgramStageInstance> events )
     {
         return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
             Lists.newArrayList() );
     }
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
-        Set<ProgramStageInstance> events, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
-    {
-        if ( programStageInstance == null )
-        {
-            return Lists.newArrayList();
-        }
-
-        return evaluateProgramRules( enrollment, programStageInstance, events, enrollment.getProgram(),
-            trackedEntityAttributeValues );
-    }
-
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
         ProgramStageInstance programStageInstance, Set<ProgramStageInstance> events, Program program,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
-
         String programStageUid = Optional.ofNullable( programStageInstance ).map( p -> p.getProgramStage().getUid() )
             .orElse( null );
 
@@ -127,7 +109,7 @@ public class ProgramRuleEngine
 
         if ( programRules.isEmpty() )
         {
-            return ruleEffects;
+            return Collections.emptyList();
         }
 
         List<RuleEvent> ruleEvents = getRuleEvents( events, programStageInstance );
@@ -149,21 +131,36 @@ public class ProgramRuleEngine
 
             RuleEngine ruleEngine = builder.build();
 
-            ruleEffects = getRuleEngineEvaluation( ruleEngine, ruleEnrollment,
+            return getRuleEngineEvaluation( ruleEngine, ruleEnrollment,
                 programStageInstance );
-
-            ruleEffects
-                .stream()
-                .map( RuleEffect::ruleAction )
-                .forEach(
-                    action -> log.debug( String.format( "RuleEngine triggered with result: %s", action.toString() ) ) );
         }
         catch ( Exception e )
         {
             log.error( DebugUtils.getStackTrace( e ) );
+            return Collections.emptyList();
         }
+    }
 
-        return ruleEffects;
+    private List<RuleEffectByObject> evaluateProgramRulesNTI( ProgramInstance enrollment,
+        Set<ProgramStageInstance> events, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+    {
+
+        List<RuleEffect> ruleEffects = evaluateProgramRules( enrollment, null, events, enrollment.getProgram(),
+            trackedEntityAttributeValues );
+
+        RuleEffectByObject ruleEffectsForEnrollment = new RuleEffectByObject( true, false, enrollment.getUid(),
+            ruleEffects );
+
+        List<RuleEffectByObject> ruleEffectsForEvents = events.stream()
+            .map( event -> Pair
+                .create( event.getUid(), evaluateProgramRules( enrollment, event, events, enrollment.getProgram(),
+                    trackedEntityAttributeValues ) ) )
+            .map( pair -> new RuleEffectByObject( false, true, pair.getFirst(), pair.getSecond() ) )
+            .collect( Collectors.toList() );
+
+        ruleEffectsForEvents.add( ruleEffectsForEnrollment );
+
+        return ruleEffectsForEvents;
     }
 
     /**

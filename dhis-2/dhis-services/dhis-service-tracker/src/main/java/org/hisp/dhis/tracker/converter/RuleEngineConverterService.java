@@ -25,27 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.tracker.converter;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.preheat.TrackerPreheat;
 
 /**
- * Calculates rule effects calling rule engine on enrollments or events.
+ * Converts rule-engine domain objects to tracker domain objects and vice versa.
  *
  * @author Enrico Colasante
  */
-public interface TrackerProgramRuleService
+public interface RuleEngineConverterService<From, To>
+    extends TrackerConverterService<From, To>
 {
-    /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
-     *
-     * @param bundle The bundle to build the context for rule engine
-     * @return List containing tracker object uids and their associated rule
-     *         effects.
-     */
-    List<RuleEffectByObject> calculateRuleEffects( TrackerBundle bundle );
+    To fromForRuleEngine( TrackerPreheat preheat, From object );
+
+    default List<To> fromForRuleEngine( TrackerPreheat preheat, List<From> objects )
+    {
+        return objects.stream()
+            .map( object -> fromForRuleEngine( preheat, object ) )
+            .collect( Collectors.toList() );
+    }
 }

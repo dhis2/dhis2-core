@@ -25,27 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker;
+package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
 
-import org.hisp.dhis.programrule.engine.RuleEffectByObject;
-import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-/**
- * Calculates rule effects calling rule engine on enrollments or events.
- *
- * @author Enrico Colasante
- */
-public interface TrackerProgramRuleService
+import org.hisp.dhis.rules.models.RuleEffect;
+
+@RequiredArgsConstructor
+@Getter
+public class RuleEffectByObject
 {
-    /**
-     * It feeds in all enrollments and event from the {@link TrackerBundle} into
-     * rule engine and return a list of rule effects by tracker object.
-     *
-     * @param bundle The bundle to build the context for rule engine
-     * @return List containing tracker object uids and their associated rule
-     *         effects.
-     */
-    List<RuleEffectByObject> calculateRuleEffects( TrackerBundle bundle );
+    private final boolean isEnrollment;
+
+    private final boolean isEvent;
+
+    private final String uid;
+
+    private final List<RuleEffect> effects;
 }
