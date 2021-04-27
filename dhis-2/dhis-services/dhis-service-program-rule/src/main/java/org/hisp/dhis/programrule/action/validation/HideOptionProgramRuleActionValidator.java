@@ -29,10 +29,11 @@ package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -45,10 +46,11 @@ public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleAct
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
         // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService );
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService, preheat,
+            preheatIdentifier );
 
         if ( !result.isValid() )
         {
@@ -67,22 +69,21 @@ public class HideOptionProgramRuleActionValidator extends AbstractProgramRuleAct
                 .build();
         }
 
-        Option option = programRuleAction.getOption();
-
-        IdentifiableObjectManager manager = validationService.getManager();
-
-        if ( manager.get( Option.class, option.getUid() ) == null )
-        {
-            log.debug( String.format( "Option: %s associated with program rule: %s does not exist",
-                option.getUid(),
-                programRuleAction.getProgramRule().getUid() ) );
-
-            return ProgramRuleActionValidationResult.builder()
-                .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4041, option.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) )
-                .build();
-        }
+        /*
+         * Option option = programRuleAction.getOption();
+         *
+         * IdentifiableObjectManager manager = validationService.getManager();
+         *
+         * if ( manager.get( Option.class, option.getUid() ) == null ) {
+         * log.debug( String.format(
+         * "Option: %s associated with program rule: %s does not exist",
+         * option.getUid(), programRuleAction.getProgramRule().getUid() ) );
+         *
+         * return ProgramRuleActionValidationResult.builder() .valid( false )
+         * .errorReport( new ErrorReport( Option.class, ErrorCode.E4041,
+         * option.getUid(), programRuleAction.getProgramRule().getUid() ) )
+         * .build(); }
+         */
 
         return ProgramRuleActionValidationResult.builder().valid( true ).build();
     }

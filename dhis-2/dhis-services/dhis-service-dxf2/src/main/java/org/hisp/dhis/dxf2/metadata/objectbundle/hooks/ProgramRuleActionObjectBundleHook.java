@@ -40,6 +40,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ProgramRuleActionValidationServiceSupplier;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
@@ -82,7 +83,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
 
         ProgramRuleAction programRuleAction = (ProgramRuleAction) object;
 
-        ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction );
+        ProgramRuleActionValidationResult validationResult = validateProgramRuleAction( programRuleAction, bundle );
 
         if ( !validationResult.isValid() )
         {
@@ -92,16 +93,21 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         return ImmutableList.of();
     }
 
-    private ProgramRuleActionValidationResult validateProgramRuleAction( ProgramRuleAction ruleAction )
+    private ProgramRuleActionValidationResult validateProgramRuleAction( ProgramRuleAction ruleAction,
+        ObjectBundle bundle )
     {
         ProgramRuleActionValidationResult validationResult;
+
+        ProgramRule rule = bundle.getPreheat().get( bundle.getPreheatIdentifier(), ProgramRule.class,
+            ruleAction.getProgramRule() );
 
         try
         {
             ProgramRuleActionValidator validator = validatorMap.get( ruleAction.getProgramRuleActionType() )
                 .newInstance();
 
-            validationResult = validator.validate( ruleAction, programRuleActionValidationServiceSupplier.get() );
+            validationResult = validator.validate( ruleAction, programRuleActionValidationServiceSupplier.get(),
+                bundle.getPreheat(), bundle.getPreheatIdentifier() );
 
             return validationResult;
         }
@@ -113,7 +119,7 @@ public class ProgramRuleActionObjectBundleHook extends AbstractObjectBundleHook
         return ProgramRuleActionValidationResult.builder().valid( false )
             .errorReport(
                 new ErrorReport( ProgramRuleAction.class, ErrorCode.E4033, ruleAction.getProgramRuleActionType().name(),
-                    ruleAction.getProgramRule().getName() ) )
+                    rule.getName() ) )
             .build();
     }
 }

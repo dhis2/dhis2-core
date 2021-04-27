@@ -31,8 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -45,23 +47,24 @@ public abstract class AbstractMessageProgramRuleActionValidator implements Progr
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
-        ProgramNotificationTemplateService templateService = validationService.getNotificationTemplateService();
+        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
 
         if ( !programRuleAction.hasNotification() )
         {
             log.debug( String.format( "ProgramNotificationTemplate cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4035,
-                    programRuleAction.getProgramRule().getUid() ) )
+                    rule.getName() ) )
                 .build();
         }
 
-        ProgramNotificationTemplate pnt = templateService.getByUid( programRuleAction.getTemplateUid() );
+        ProgramNotificationTemplate pnt = preheat.get( preheatIdentifier, ProgramNotificationTemplate.class,
+            programRuleAction.getTemplateUid() );
 
         if ( pnt != null )
         {
@@ -69,12 +72,12 @@ public abstract class AbstractMessageProgramRuleActionValidator implements Progr
         }
 
         log.debug( String.format( "ProgramNotificationTemplate id: %s for program rule: %s does not exist",
-            programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) );
+            programRuleAction.getTemplateUid(), rule.getName() ) );
 
         return ProgramRuleActionValidationResult.builder()
             .valid( false )
             .errorReport( new ErrorReport( ProgramNotificationTemplate.class, ErrorCode.E4034,
-                programRuleAction.getTemplateUid(), programRuleAction.getProgramRule().getUid() ) )
+                programRuleAction.getTemplateUid(), rule.getName() ) )
             .build();
     }
 }

@@ -31,8 +31,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -45,34 +47,36 @@ public class HideProgramStageProgramRuleActionValidator implements ProgramRuleAc
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
+        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+
         if ( !programRuleAction.hasProgramStage() )
         {
             log.debug( String.format( "ProgramStage cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramStage.class, ErrorCode.E4038,
-                    programRuleAction.getProgramRule().getUid() ) )
+                    rule.getName() ) )
                 .build();
         }
 
-        ProgramStage programStage = programRuleAction.getProgramStage();
+        ProgramStage programStage = preheat.get( preheatIdentifier, ProgramStage.class,
+            programRuleAction.getProgramStage() );
 
-        ProgramStageService stageService = validationService.getProgramStageService();
-
-        if ( stageService.getProgramStage( programStage.getUid() ) == null )
+        if ( programStage == null )
         {
             log.debug( String.format( "ProgramStage: %s associated with program rule: %s does not exist",
-                programStage.getUid(),
-                programRuleAction.getProgramRule().getUid() ) );
+                programRuleAction.getProgramStage().getUid(),
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
-                .errorReport( new ErrorReport( ProgramStage.class, ErrorCode.E4039, programStage.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) )
+                .errorReport(
+                    new ErrorReport( ProgramStage.class, ErrorCode.E4039, programRuleAction.getProgramStage().getUid(),
+                        rule.getName() ) )
                 .build();
         }
 

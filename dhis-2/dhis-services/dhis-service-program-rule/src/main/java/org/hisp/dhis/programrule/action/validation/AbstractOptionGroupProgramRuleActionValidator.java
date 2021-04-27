@@ -33,7 +33,9 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionGroup;
-import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -46,10 +48,13 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
+        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+
         // First checking the validity of DataElement and TEA
-        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService );
+        ProgramRuleActionValidationResult result = super.validate( programRuleAction, validationService, preheat,
+            preheatIdentifier );
 
         if ( !result.isValid() )
         {
@@ -59,29 +64,29 @@ public abstract class AbstractOptionGroupProgramRuleActionValidator extends Abst
         if ( !programRuleAction.hasOptionGroup() )
         {
             log.debug( String.format( "OptionGroup cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( Option.class, ErrorCode.E4040,
-                    programRuleAction.getProgramRule().getUid() ) )
+                    rule.getName() ) )
                 .build();
         }
 
-        OptionGroup optionGroup = programRuleAction.getOptionGroup();
+        OptionGroup optionGroup = preheat.get( preheatIdentifier, OptionGroup.class,
+            programRuleAction.getOptionGroup() );
 
-        OptionService optionService = validationService.getOptionService();
-
-        if ( optionService.getOptionGroup( optionGroup.getUid() ) == null )
+        if ( optionGroup == null )
         {
             log.debug( String.format( "OptionGroup: %s associated with program rule: %s does not exist",
-                optionGroup.getUid(),
-                programRuleAction.getProgramRule().getUid() ) );
+                programRuleAction.getOptionGroup().getUid(),
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4041, optionGroup.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) )
+                .errorReport(
+                    new ErrorReport( Option.class, ErrorCode.E4041, programRuleAction.getOptionGroup().getUid(),
+                        rule.getName() ) )
                 .build();
         }
 

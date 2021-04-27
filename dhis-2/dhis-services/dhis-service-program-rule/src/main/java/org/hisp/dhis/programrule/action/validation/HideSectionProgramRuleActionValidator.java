@@ -29,10 +29,12 @@ package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 
@@ -45,34 +47,36 @@ public class HideSectionProgramRuleActionValidator implements ProgramRuleActionV
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
+        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+
         if ( !programRuleAction.hasProgramStageSection() )
         {
             log.debug( String.format( "ProgramStageSection cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4036,
-                    programRuleAction.getProgramRule().getUid() ) )
+                    rule.getName() ) )
                 .build();
         }
 
-        ProgramStageSection stageSection = programRuleAction.getProgramStageSection();
+        ProgramStageSection stageSection = preheat.get( preheatIdentifier, ProgramStageSection.class,
+            programRuleAction.getProgramStageSection() );
 
-        IdentifiableObjectManager manager = validationService.getManager();
-
-        if ( manager.get( ProgramStageSection.class, stageSection.getUid() ) == null )
+        if ( stageSection == null )
         {
             log.debug( String.format( "ProgramStageSection: %s associated with program rule: %s does not exist",
-                stageSection.getUid(),
-                programRuleAction.getProgramRule().getUid() ) );
+                programRuleAction.getProgramStageSection().getUid(),
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
-                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037, stageSection.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) )
+                .errorReport( new ErrorReport( ProgramStageSection.class, ErrorCode.E4037,
+                    programRuleAction.getProgramStageSection().getUid(),
+                    rule.getName() ) )
                 .build();
         }
 

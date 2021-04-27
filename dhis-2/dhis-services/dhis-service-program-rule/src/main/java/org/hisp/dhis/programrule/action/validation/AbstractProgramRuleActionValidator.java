@@ -30,13 +30,14 @@ package org.hisp.dhis.programrule.action.validation;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.preheat.Preheat;
+import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 
 /**
  * @author Zubair Asghar
@@ -47,57 +48,60 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 {
     @Override
     public ProgramRuleActionValidationResult validate( ProgramRuleAction programRuleAction,
-        ProgramRuleActionValidationService validationService )
+        ProgramRuleActionValidationService validationService, Preheat preheat, PreheatIdentifier preheatIdentifier )
     {
+        ProgramRule rule = preheat.get( preheatIdentifier, ProgramRule.class, programRuleAction.getProgramRule() );
+
         if ( !programRuleAction.hasDataElement() && !programRuleAction.hasTrackedEntityAttribute() )
         {
             log.debug( String.format( "DataElement or TrackedEntityAttribute cannot be null for program rule: %s ",
-                programRuleAction.getProgramRule().getUid() ) );
+                rule.getName() ) );
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
                 .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4044,
-                    programRuleAction.getProgramRule().getUid() ) )
+                    rule.getName() ) )
                 .build();
         }
 
         if ( programRuleAction.hasDataElement() )
         {
-            DataElementService dataElementService = validationService.getDataElementService();
+            DataElement dataElement = preheat.get( preheatIdentifier, DataElement.class,
+                programRuleAction.getDataElement() );
 
-            DataElement dataElement = programRuleAction.getDataElement();
-
-            if ( dataElementService.getDataElement( dataElement.getUid() ) == null )
+            if ( dataElement == null )
             {
                 log.debug( String.format( "DataElement: %s associated with program rule: %s does not exist",
-                    dataElement.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) );
+                    programRuleAction.getDataElement().getUid(),
+                    rule.getName() ) );
 
                 return ProgramRuleActionValidationResult.builder()
                     .valid( false )
-                    .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4045, dataElement.getUid(),
-                        programRuleAction.getProgramRule().getUid() ) )
+                    .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4045,
+                        programRuleAction.getDataElement().getUid(),
+                        rule.getName() ) )
                     .build();
             }
         }
 
         if ( programRuleAction.hasTrackedEntityAttribute() )
         {
-            TrackedEntityAttributeService attributeService = validationService.getAttributeService();
 
-            TrackedEntityAttribute attribute = programRuleAction.getAttribute();
+            TrackedEntityAttribute attribute = preheat.get( preheatIdentifier, TrackedEntityAttribute.class,
+                programRuleAction.getAttribute() );
 
-            if ( attributeService.getTrackedEntityAttribute( attribute.getUid() ) == null )
+            if ( attribute == null )
             {
 
                 log.debug( String.format( "TrackedEntityAttribute: %s associated with program rule: %s does not exist",
-                    attribute.getUid(),
-                    programRuleAction.getProgramRule().getUid() ) );
+                    programRuleAction.getAttribute().getUid(),
+                    rule.getName() ) );
 
                 return ProgramRuleActionValidationResult.builder()
                     .valid( false )
-                    .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046, attribute.getUid(),
-                        programRuleAction.getProgramRule().getUid() ) )
+                    .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046,
+                        programRuleAction.getAttribute().getUid(),
+                        rule.getName() ) )
                     .build();
             }
         }
