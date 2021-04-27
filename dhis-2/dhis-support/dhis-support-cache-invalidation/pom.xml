@@ -62,7 +62,7 @@
             <artifactId>dhis-support-commons</artifactId>
         </dependency>
 
-        <!-- Hibernate -->
+        <!-- Debezium -->
         <dependency>
             <groupId>io.debezium</groupId>
             <artifactId>debezium-api</artifactId>
