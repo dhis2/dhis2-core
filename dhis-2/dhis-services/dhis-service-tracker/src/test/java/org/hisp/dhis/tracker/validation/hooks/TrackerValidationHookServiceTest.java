@@ -38,7 +38,6 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
-import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.tracker.validation.TrackerValidationHook;
 import org.hisp.dhis.tracker.validation.TrackerValidationHookService;
 import org.junit.Rule;
@@ -77,8 +76,7 @@ public class TrackerValidationHookServiceTest
         List<TrackerValidationHook> validationHooks = trackerValidationHookService
             .sortValidationHooks(
                 Arrays.asList( new EventDataValuesValidationHook(),
-                    new TrackedEntityAttributeValidationHook( null, mock( ReservedValueService.class ),
-                        mock( DhisConfigurationProvider.class ) ),
+                    new TrackedEntityAttributeValidationHook( null, mock( DhisConfigurationProvider.class ) ),
                     new EnrollmentAttributeValidationHook( null ), new PreCheckValidateAndGenerateUidHook() ) );
 
         assertEquals( 4, validationHooks.size() );
