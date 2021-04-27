@@ -60,6 +60,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class DefaultGistService implements GistService
 {
 
+    /**
+     * Instead of an actual date value users may use string {@code now} to
+     * always get current moment as time for a {@link Date} value.
+     */
+    private static final String NOW_PARAMETER_VALUE = "now";
+
     private final SessionFactory sessionFactory;
 
     private final SchemaService schemaService;
@@ -155,7 +161,7 @@ public class DefaultGistService implements GistService
     @SuppressWarnings( "unchecked" )
     private <T> T parseFilterArgument( String value, Class<T> type )
     {
-        if ( type == Date.class && "now".equals( value ) )
+        if ( type == Date.class && NOW_PARAMETER_VALUE.equals( value ) )
         {
             return (T) new Date();
         }
