@@ -87,7 +87,39 @@ public class RemoveOperationTest
     }
 
     @Test
-    public void testRemovePropertyArrayIndex()
+    public void testRemovePropertyArrayLastIndex()
+        throws JsonProcessingException,
+        JsonPatchException
+    {
+        JsonPatch patch = jsonMapper.readValue( "[" +
+            "{\"op\": \"remove\", \"path\": \"/aaa/2\"}" +
+            "]", JsonPatch.class );
+
+        assertNotNull( patch );
+
+        ObjectNode root = jsonMapper.createObjectNode();
+
+        ArrayNode arrayNode = jsonMapper.createArrayNode();
+        arrayNode.add( 10 );
+        arrayNode.add( 20 );
+        arrayNode.add( 30 );
+
+        root.set( "aaa", arrayNode );
+
+        assertTrue( root.has( "aaa" ) );
+        assertEquals( 3, arrayNode.size() );
+
+        root = (ObjectNode) patch.apply( root );
+
+        arrayNode = (ArrayNode) root.get( "aaa" );
+        assertNotNull( arrayNode );
+        assertEquals( 2, arrayNode.size() );
+        assertEquals( 10, arrayNode.get( 0 ).asInt() );
+        assertEquals( 20, arrayNode.get( 1 ).asInt() );
+    }
+
+    @Test
+    public void testRemovePropertyArray2ndIndex()
         throws JsonProcessingException,
         JsonPatchException
     {
@@ -114,5 +146,7 @@ public class RemoveOperationTest
         arrayNode = (ArrayNode) root.get( "aaa" );
         assertNotNull( arrayNode );
         assertEquals( 2, arrayNode.size() );
+        assertEquals( 10, arrayNode.get( 0 ).asInt() );
+        assertEquals( 30, arrayNode.get( 1 ).asInt() );
     }
 }
