@@ -52,6 +52,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
 import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.*;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -1082,8 +1083,8 @@ public class DataQueryParams
     public List<DimensionalItemObject> getDimensionalItemObjects( DimensionType dimensionType )
     {
         return getDimensionsAndFilters( dimensionType ).stream()
-            .map( d -> d.getItems() )
-            .flatMap( i -> i.stream() )
+            .map( DimensionalObject::getItems )
+            .flatMap( Collection::stream )
             .collect( Collectors.toList() );
     }
 
@@ -1099,10 +1100,10 @@ public class DataQueryParams
         {
             return getDataElements().stream()
                 .map( de -> ((DataElement) de).getCategoryCombos() )
-                .flatMap( cc -> cc.stream() )
+                .flatMap( Collection::stream )
                 .distinct() // Get unique category combinations
-                .map( cc -> cc.getSortedOptionCombos() )
-                .flatMap( coc -> coc.stream() )
+                .map( CategoryCombo::getSortedOptionCombos )
+                .flatMap( Collection::stream )
                 .collect( Collectors.toList() );
         }
         else
@@ -1134,8 +1135,8 @@ public class DataQueryParams
      */
     public boolean hasDimensionOrFilter( String key )
     {
-        return dimensions.indexOf( new BaseDimensionalObject( key ) ) != -1
-            || filters.indexOf( new BaseDimensionalObject( key ) ) != -1;
+        return dimensions.contains( new BaseDimensionalObject( key ) )
+            || filters.contains( new BaseDimensionalObject( key ) );
     }
 
     /**
@@ -1152,7 +1153,7 @@ public class DataQueryParams
      */
     public boolean hasDimension( String key )
     {
-        return dimensions.indexOf( new BaseDimensionalObject( key ) ) != -1;
+        return dimensions.contains( new BaseDimensionalObject( key ) );
     }
 
     /**
@@ -1160,7 +1161,7 @@ public class DataQueryParams
      */
     public boolean hasFilter( String key )
     {
-        return filters.indexOf( new BaseDimensionalObject( key ) ) != -1;
+        return filters.contains( new BaseDimensionalObject( key ) );
     }
 
     /**
@@ -1406,6 +1407,15 @@ public class DataQueryParams
     }
 
     /**
+     * Indicates whether this query has a single indicator specified as
+     * dimension option for the data dimension.
+     */
+    public boolean hasSingleProgramIndicatorAsDataFilter()
+    {
+        return getFilterProgramIndicators().size() == 1 && getFilterOptions( DATA_X_DIM_ID ).size() == 1;
+    }
+
+    /**
      * Indicates whether this query has a single reporting rate specified as
      * dimension option for the data dimension.
      */
@@ -1502,8 +1512,7 @@ public class DataQueryParams
     {
         dimensions.add( dimension );
 
-        Collections.sort( dimensions,
-            ( o1, o2 ) -> o1.getDimensionType().getOrder() - o2.getDimensionType().getOrder() );
+        dimensions.sort( Comparator.comparingInt( o -> o.getDimensionType().getOrder() ) );
     }
 
     /**
@@ -1850,7 +1859,7 @@ public class DataQueryParams
         {
             String[] criterion = c.split( DimensionalObject.DIMENSION_NAME_SEP );
 
-            if ( criterion != null && criterion.length == 2 && MathUtils.isNumeric( criterion[1] ) )
+            if ( criterion.length == 2 && MathUtils.isNumeric( criterion[1] ) )
             {
                 MeasureFilter filter = MeasureFilter.valueOf( criterion[0] );
                 Double value = Double.valueOf( criterion[1] );
@@ -1901,25 +1910,26 @@ public class DataQueryParams
             {
                 return false;
             }
+            if ( filters == null )
+            {
+                return other.filters == null;
+            }
+            else
+                return filters.equals( other.filters );
         }
-        else if ( !dimensions.equals( other.dimensions ) )
+        else
         {
-            return false;
-        }
-
-        if ( filters == null )
-        {
-            if ( other.filters != null )
+            if ( !dimensions.equals( other.dimensions ) )
             {
                 return false;
             }
+            if ( filters == null )
+            {
+                return other.filters == null;
+            }
+            else
+                return filters.equals( other.filters );
         }
-        else if ( !filters.equals( other.filters ) )
-        {
-            return false;
-        }
-
-        return true;
     }
 
     @Override
@@ -2232,7 +2242,7 @@ public class DataQueryParams
     {
         return getAllReportingRates().stream()
             .map( r -> (ReportingRate) r )
-            .map( r -> r.getDataSet() )
+            .map( ReportingRate::getDataSet )
             .collect( Collectors.toSet() );
     }
 
@@ -2301,8 +2311,8 @@ public class DataQueryParams
     public Set<DimensionalItemObject> getCategoryOptions()
     {
         return getDimensionsAndFilters( DimensionType.CATEGORY ).stream()
-            .map( d -> d.getItems() )
-            .flatMap( i -> i.stream() )
+            .map( DimensionalObject::getItems )
+            .flatMap( Collection::stream )
             .collect( Collectors.toSet() );
     }
 
@@ -2465,6 +2475,15 @@ public class DataQueryParams
     public List<DimensionalItemObject> getFilterIndicators()
     {
         return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.INDICATOR,
+            getFilterOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all program indicators part of the data filter.
+     */
+    public List<DimensionalItemObject> getFilterProgramIndicators()
+    {
+        return ImmutableList.copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.PROGRAM_INDICATOR,
             getFilterOptions( DATA_X_DIM_ID ) ) );
     }
 
