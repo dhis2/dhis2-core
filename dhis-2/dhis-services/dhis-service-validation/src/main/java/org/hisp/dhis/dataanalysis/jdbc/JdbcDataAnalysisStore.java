@@ -349,29 +349,30 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
     @Override
     public List<FollowupValue> getFollowupDataValues( User currentUser, FollowupAnalysisRequest request )
     {
-        if ( isEmpty( request.getDe() ) && !isEmpty( request.getDs() ) )
+        if ( isEmpty( request.getDataElements() ) && !isEmpty( request.getDataSets() ) )
         {
-            request.setDe( sessionFactory.getCurrentSession()
+            request.setDataElements( sessionFactory.getCurrentSession()
                 .createQuery( DATA_ELEMENT_UIDS_BY_DATA_SET_UIDS_HQL, String.class )
-                .setParameter( "ds_ids", request.getDs() ).list() );
+                .setParameter( "ds_ids", request.getDataSets() ).list() );
         }
-        if ( !isEmpty( request.getDe() ) && isEmpty( request.getCoc() ) )
+        if ( !isEmpty( request.getDataElements() ) && isEmpty( request.getOptionCombos() ) )
         {
-            request.setCoc( sessionFactory.getCurrentSession()
+            request.setOptionCombos( sessionFactory.getCurrentSession()
                 .createQuery( CATEGORY_OPTION_COMBO_UIDS_BY_DATE_ELEMENT_UIDS_HQL, String.class )
-                .setParameter( "de_ids", request.getDe() ).list() );
+                .setParameter( "de_ids", request.getDataElements() ).list() );
         }
-        if ( isEmpty( request.getDe() ) || isEmpty( request.getCoc() ) || isEmpty( request.getOuParent() ) )
+        if ( isEmpty( request.getDataElements() ) || isEmpty( request.getOptionCombos() )
+            || isEmpty( request.getOrgUnits() ) )
         {
             return emptyList();
         }
-        if ( request.getStartDate() == null && request.getPe() != null )
+        if ( request.getStartDate() == null && request.getPeriod() != null )
         {
-            request.setStartDate( PeriodType.getPeriodFromIsoString( request.getPe() ).getStartDate() );
+            request.setStartDate( PeriodType.getPeriodFromIsoString( request.getPeriod() ).getStartDate() );
         }
-        if ( request.getEndDate() == null && request.getPe() != null )
+        if ( request.getEndDate() == null && request.getPeriod() != null )
         {
-            request.setEndDate( PeriodType.getPeriodFromIsoString( request.getPe() ).getEndDate() );
+            request.setEndDate( PeriodType.getPeriodFromIsoString( request.getPeriod() ).getEndDate() );
         }
 
         Query<FollowupValue> query = sessionFactory.getCurrentSession().createQuery(
@@ -379,9 +380,9 @@ public class JdbcDataAnalysisStore implements DataAnalysisStore
                 generateHqlQueryForSharingCheck( "de", currentUser, AclService.LIKE_READ_METADATA ) ),
             FollowupValue.class );
 
-        query.setParameter( "ou_ids", request.getOuParent() );
-        query.setParameter( "de_ids", request.getDe() );
-        query.setParameter( "coc_ids", request.getCoc() );
+        query.setParameter( "ou_ids", request.getOrgUnits() );
+        query.setParameter( "de_ids", request.getDataElements() );
+        query.setParameter( "coc_ids", request.getOptionCombos() );
         query.setParameter( "startDate", request.getStartDate() );
         query.setParameter( "endDate", request.getEndDate() );
         query.setMaxResults( request.getMaxResults() );

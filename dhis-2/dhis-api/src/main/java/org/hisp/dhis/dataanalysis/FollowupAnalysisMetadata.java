@@ -42,13 +42,13 @@ public class FollowupAnalysisMetadata
 {
 
     @JsonProperty
-    private final List<String> de;
+    private final List<String> dataElements;
 
     @JsonProperty
-    private final List<String> coc;
+    private final List<String> optionCombos;
 
     @JsonProperty
-    private final List<String> ouParent;
+    private final List<String> orgUnits;
 
     @JsonProperty
     private final Date startDate;
@@ -61,9 +61,9 @@ public class FollowupAnalysisMetadata
 
     public FollowupAnalysisMetadata( FollowupAnalysisRequest request )
     {
-        this.de = request.getDe();
-        this.coc = request.getCoc();
-        this.ouParent = request.getOuParent();
+        this.dataElements = request.getDataElements();
+        this.optionCombos = request.getOptionCombos();
+        this.orgUnits = request.getOrgUnits();
         this.startDate = request.getStartDate();
         this.endDate = request.getEndDate();
         this.maxResults = request.getMaxResults();

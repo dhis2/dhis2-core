@@ -47,14 +47,14 @@ import org.hisp.dhis.period.Period;
  *
  * Mandatory are:
  * <ul>
- * <li>at least one {@link #ouParent}</li>
- * <li>either {@link #de} or {@link #ds}</li>
- * <li>either {@link #pe} or {@link #startDate} and {@link #endDate}</li>
+ * <li>at least one {@link #orgUnits}</li>
+ * <li>either {@link #dataElements} or {@link #dataSets}</li>
+ * <li>either {@link #period} or {@link #startDate} and {@link #endDate}</li>
  * </ul>
  *
  * Optional are:
  * <ul>
- * <li>{@link #coc} (derived from {@link #de} if empty)</li>
+ * <li>{@link #optionCombos} (derived from {@link #dataElements} if empty)</li>
  * <li>{@link #maxResults} (default 50)</li>
  * </ul>
  *
@@ -70,18 +70,18 @@ public final class FollowupAnalysisRequest
     /**
      * {@link org.hisp.dhis.dataelement.DataElement} UIDs
      *
-     * Only considered when {@link #ds} is non-empty. Otherwise the elements
-     * considered is based on {@link DataSet#getDataElements()}.
+     * Only considered when {@link #dataSets} is non-empty. Otherwise the
+     * elements considered is based on {@link DataSet#getDataElements()}.
      */
-    private List<String> de;
+    private List<String> dataElements;
 
     /**
      * {@link org.hisp.dhis.dataset.DataSet} UIDs
      *
-     * If specified it as the same effect as if {@link #de} had been filled with
-     * the union of all {@link DataSet#getDataElements()}.
+     * If specified it as the same effect as if {@link #dataElements} had been
+     * filled with the union of all {@link DataSet#getDataElements()}.
      */
-    private List<String> ds;
+    private List<String> dataSets;
 
     /**
      * {@link org.hisp.dhis.category.CategoryOptionCombo} UIDs
@@ -90,20 +90,20 @@ public final class FollowupAnalysisRequest
      * of all {@link DataElement#getCategoryOptionCombos()} that are
      * {@link ValueType#isNumeric()}.
      */
-    private List<String> coc;
+    private List<String> optionCombos;
 
     /**
      * {@link org.hisp.dhis.organisationunit.OrganisationUnit} UIDs of the
      * parent(s) whose children should be included
      */
-    private List<String> ouParent;
+    private List<String> orgUnits;
 
     /**
      * As an alternative to providing {@link #startDate} and {@link #endDate} a
      * {@link Period} ISO string can be provided which is just used to derive
      * the start and end date from it.
      */
-    private String pe;
+    private String period;
 
     private Date startDate;
 
