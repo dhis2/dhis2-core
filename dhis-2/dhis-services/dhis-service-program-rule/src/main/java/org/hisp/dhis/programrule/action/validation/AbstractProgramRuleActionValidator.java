@@ -57,7 +57,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 
             return ProgramRuleActionValidationResult.builder()
                 .valid( false )
-                .errorReport( new ErrorReport( Option.class, ErrorCode.E4044,
+                .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4044,
                     programRuleAction.getProgramRule().getUid() ) )
                 .build();
         }
@@ -76,7 +76,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 
                 return ProgramRuleActionValidationResult.builder()
                     .valid( false )
-                    .errorReport( new ErrorReport( Option.class, ErrorCode.E4045, dataElement.getUid(),
+                    .errorReport( new ErrorReport( DataElement.class, ErrorCode.E4045, dataElement.getUid(),
                         programRuleAction.getProgramRule().getUid() ) )
                     .build();
             }
@@ -97,7 +97,7 @@ public abstract class AbstractProgramRuleActionValidator implements ProgramRuleA
 
                 return ProgramRuleActionValidationResult.builder()
                     .valid( false )
-                    .errorReport( new ErrorReport( Option.class, ErrorCode.E4046, attribute.getUid(),
+                    .errorReport( new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E4046, attribute.getUid(),
                         programRuleAction.getProgramRule().getUid() ) )
                     .build();
             }
